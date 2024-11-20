@@ -1,0 +1,58 @@
+{
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Debug tart",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tart",
+			"preLaunchTask": "swift: Build Debug tart"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Release tart",
+			"program": "${workspaceFolder:tarthelper}/.build/release/tart",
+			"preLaunchTask": "swift: Build Release tart"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Debug tartctl",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tartctl",
+			"preLaunchTask": "swift: Build Debug tartctl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Release tartctl",
+			"program": "${workspaceFolder:tarthelper}/.build/release/tartctl",
+			"preLaunchTask": "swift: Build Release tartctl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Debug tartd",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tartd",
+			"preLaunchTask": "swift: Build Debug tartd"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:tarthelper}",
+			"name": "Release tartd",
+			"program": "${workspaceFolder:tarthelper}/.build/release/tartd",
+			"preLaunchTask": "swift: Build Release tartd"
+		}
+	]
+}

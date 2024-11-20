@@ -1,0 +1,47 @@
+import ArgumentParser
+import Foundation
+import SystemConfiguration
+
+struct Start: TartdCommand {
+  var name: String
+
+  func run() async throws {
+    let vmDir = try VMStorageLocal().open(name)
+    let vmState = try vmDir.state()
+
+    if vmState == .Stopped {
+      try Start.startVM(vmDir: vmDir)
+    } else if vmState == .Running {
+      throw RuntimeError.VMAlreadyRunning(name)
+    }
+  }
+
+  public static func startVM(vmDir: VMDirectory) throws {
+      let config: [String:Any] = try Dictionary(contentsOf: vmDir.configURL) as [String:Any]
+      let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmDir.baseURL).absoluteURL.path()
+      let process: Process = Process()
+      var arguments: [String] = config["runningArguments"] as? [String] ?? []
+
+      arguments.append("2>&1")
+      arguments.append(">")
+      arguments.append(log)
+
+      process.standardError = FileHandle.nullDevice
+      process.environment = ProcessInfo.processInfo.environment
+      process.standardOutput = FileHandle.nullDevice
+      process.standardInput = FileHandle.nullDevice
+      process.arguments = [ "-c", "exec tart run \(vmDir.name) " + arguments.joined(separator: " ")]
+      process.executableURL = URL(fileURLWithPath: "/bin/bash")
+
+      do {
+        try process.run()
+      } catch {
+        print(error)
+        if process.terminationStatus != 0 {
+          throw RuntimeError.VMNotRunning("VM \"\(vmDir.name)\" exited with code \(process.terminationStatus)")
+        } else {
+          throw error
+        }
+      }
+  }
+}

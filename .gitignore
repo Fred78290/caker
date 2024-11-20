@@ -1,0 +1,8 @@
+
+.build/
+
+DerivedData/
+
+tarthelper.xcodeproj/project.xcworkspace/
+
+tarthelper.xcodeproj/xcuserdata/
