@@ -3,6 +3,7 @@ import Foundation
 import Network
 import SystemConfiguration
 import Sentry
+import GRPCLib
 
 enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
   case dhcp, arp

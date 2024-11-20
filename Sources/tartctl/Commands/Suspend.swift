@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Suspend: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(commandName: "suspend", abstract: "Suspend a VM")

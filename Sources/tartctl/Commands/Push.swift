@@ -2,6 +2,7 @@ import ArgumentParser
 import Dispatch
 import Foundation
 import Compression
+import GRPCLib
 
 struct Push: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Push a VM to a registry")

@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Prune: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Prune OCI and IPSW caches or local VMs")

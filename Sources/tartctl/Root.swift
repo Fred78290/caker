@@ -7,6 +7,7 @@ import NIOSSL
 import NIOCore
 import NIOPosix
 import SwiftDate
+import GRPCLib
 
 class GrpcError : Error {
   let code: Int
@@ -135,39 +136,6 @@ struct Root: AsyncParsableCommand {
 	}
 
   mutating func run() async throws {
-    // Initialize Sentry
-    if let dsn = ProcessInfo.processInfo.environment["SENTRY_DSN"] {
-      SentrySDK.start { options in
-        options.dsn = dsn
-        options.releaseName = CI.release
-        options.tracesSampleRate = Float(
-          ProcessInfo.processInfo.environment["SENTRY_TRACES_SAMPLE_RATE"] ?? "1.0"
-        ) as NSNumber?
-        
-        // By default only 5XX are captured
-        // Let's capture everything but 401 (unauthorized)
-        options.enableCaptureFailedRequests = true
-        options.failedRequestStatusCodes = [
-          HttpStatusCodeRange(min: 400, max: 400),
-          HttpStatusCodeRange(min: 402, max: 599)
-        ]
-      }
-    }
-    defer { SentrySDK.flush(timeout: 2.seconds.timeInterval) }
-    
-    SentrySDK.configureScope { scope in
-      scope.setExtra(value: ProcessInfo.processInfo.arguments, key: "Command-line arguments")
-    }
-    
-    // Enrich future events with Cirrus CI-specific tags
-    if let tags = ProcessInfo.processInfo.environment["CIRRUS_SENTRY_TAGS"] {
-      SentrySDK.configureScope { scope in
-        for (key, value) in tags.split(separator: ",").compactMap({ Self.parseCirrusSentryTag($0) }) {
-          scope.setTag(value: value, key: key)
-        }
-      }
-    }
-    
     // Ensure the default SIGINT handled is disabled,
     // otherwise there's a race between two handlers
     signal(SIGINT, SIG_IGN);
@@ -209,22 +177,9 @@ struct Root: AsyncParsableCommand {
       let reply = try await command.run(client: grpcClient)
       
       print(reply.output)
-    } catch {
-      // Capture the error into Sentry
-      SentrySDK.capture(error: error)
-      SentrySDK.flush(timeout: 2.seconds.timeInterval)
-      
+    } catch {      
       // Handle any other exception, including ArgumentParser's ones
       Self.exit(withError: error)
     }
-  }
-
-  private static func parseCirrusSentryTag(_ tag: String.SubSequence) -> (String, String)? {
-    let splits = tag.split(separator: "=", maxSplits: 1)
-    if splits.count != 2 {
-      return nil
-    }
-
-    return (String(splits[0]), String(splits[1]))
   }
 }

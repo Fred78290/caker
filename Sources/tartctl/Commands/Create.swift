@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Create: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Create a VM")

@@ -1,6 +1,7 @@
 import ArgumentParser
 import Dispatch
 import SwiftUI
+import GRPCLib
 
 struct Pull: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(

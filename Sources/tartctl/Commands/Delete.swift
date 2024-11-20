@@ -1,5 +1,6 @@
 import ArgumentParser
 import Dispatch
+import GRPCLib
 
 struct Delete: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Delete a VM")

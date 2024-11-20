@@ -13,64 +13,6 @@ import Security
 
 let tartDSignature = "org.cirruslabs.tartd"
 
-class StandardOutput {
-  let standardOutput: DataWriteStream
-  let savedStdout: Int32
-  let savedStderr: Int32
-  let savedOutPipe: Pipe
-  let savedErrPipe: Pipe
-  let outSemaphore: DispatchSemaphore
-  let errSemaphore: DispatchSemaphore
-  
-  init() throws {
-    Service.SyncSemaphore.wait()
-
-    self.savedOutPipe = Pipe()
-    self.savedErrPipe = Pipe()
-    self.outSemaphore = DispatchSemaphore(value: 0)
-    self.errSemaphore = DispatchSemaphore(value: 0)
-    self.standardOutput = DataWriteStream()
-    self.savedStdout = try StandardOutput.captureStandartOutput(fd: STDOUT_FILENO, output: self.standardOutput, outPipe: self.savedOutPipe, sema: self.outSemaphore)
-    self.savedStderr = try StandardOutput.captureStandartOutput(fd: STDERR_FILENO, output: self.standardOutput, outPipe: self.savedErrPipe, sema: self.errSemaphore)
-  }
-  
-  private static func captureStandartOutput(fd: Int32, output: DataWriteStream, outPipe: Pipe, sema: DispatchSemaphore) throws -> Int32 {
-    outPipe.fileHandleForReading.readabilityHandler = { fileHandle in
-      let data = fileHandle.availableData
-      
-      if data.isEmpty  { // end-of-file condition
-        fileHandle.readabilityHandler = nil
-        sema.signal()
-      } else {
-        try! output.write(data)
-      }
-    }
-    
-    // Redirect
-    setvbuf(fd == STDOUT_FILENO ? stdout : stderr, nil, _IONBF, 0)
-    
-    let savedOutput = dup(fd)
-    
-    dup2(outPipe.fileHandleForWriting.fileDescriptor, fd)
-    
-    return savedOutput
-  }
-  
-  func closeOutput() {
-    dup2(savedStdout, STDOUT_FILENO)
-    try! savedOutPipe.fileHandleForWriting.close()
-    close(savedStdout)
-    outSemaphore.wait() // Wait until read handler is done
-    
-    dup2(savedStderr, STDOUT_FILENO)
-    try! savedErrPipe.fileHandleForWriting.close()
-    close(savedStderr)
-    errSemaphore.wait() // Wait until read handler is done
-    
-    Service.SyncSemaphore.signal()
-  }
-}
-
 class ServiceError : Error {
   let description: String
 

@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct VMDisplayConfig : CustomStringConvertible, ExpressibleByArgument {
   var width: Int = 1024

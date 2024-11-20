@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Rename: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Rename a local VM")

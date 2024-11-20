@@ -6,3 +6,7 @@ DerivedData/
 tarthelper.xcodeproj/project.xcworkspace/
 
 tarthelper.xcodeproj/xcuserdata/
+
+*.log
+
+.swiftpm/

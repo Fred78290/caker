@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 enum Format: String, ExpressibleByArgument {
   case text, json

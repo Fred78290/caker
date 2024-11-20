@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
 //let defaultSimpleStreamsServer = "https://images.lxd.canonical.com/"

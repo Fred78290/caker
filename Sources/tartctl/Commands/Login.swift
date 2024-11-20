@@ -1,6 +1,7 @@
 import ArgumentParser
 import Dispatch
 import SwiftUI
+import GRPCLib
 
 struct Login: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Login to a registry")

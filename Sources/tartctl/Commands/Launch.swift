@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Launch : GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")

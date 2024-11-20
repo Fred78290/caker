@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct FQN: GrpcAsyncParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Get a fully-qualified VM name", shouldDisplay: false)
