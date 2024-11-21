@@ -1,6 +1,6 @@
 import ArgumentParser
 import Foundation
-import tartlib
+import TartLib
 
 enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
   case dhcp, arp

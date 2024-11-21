@@ -76,7 +76,7 @@ let package = Package(
     exclude: [
       "generate.sh",
       "service.proto",
-      "Service.swift",
+      "service.swift",
     ]),
     .executableTarget(name: "tartd", dependencies: [
       .target(name: "TartLib"),

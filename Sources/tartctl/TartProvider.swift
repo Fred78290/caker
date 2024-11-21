@@ -17,6 +17,7 @@ private func saveToTempFile(_ data: Data) throws -> String {
 extension Tartd_BuildRequest {
 
   init (command: Build) throws {
+	self.init()
     self.name = command.name
     self.cpu = Int32(command.cpu)
     self.memory = Int32(command.memory)
@@ -62,6 +63,7 @@ extension Tartd_BuildRequest {
 
 extension Tartd_CloneRequest {
   init (command: Clone) throws {
+	self.init()
     self.newName = command.newName
     self.sourceName = command.sourceName
   }
@@ -69,6 +71,7 @@ extension Tartd_CloneRequest {
 
 extension Tartd_CreateRequest {
   init (command: Create) throws {
+	self.init()
     self.name = command.name
     self.linux = command.linux
     self.diskSize = Int32(self.diskSize)
@@ -81,18 +84,21 @@ extension Tartd_CreateRequest {
 
 extension Tartd_DeleteRequest {
   init (command: Delete) throws {
+	self.init()
     self.name = command.name
   }
 }
 
 extension Tartd_FqnRequest {
   init (command: FQN) throws {
+	self.init()
     self.name = command.name
   }
 }
 
 extension Tartd_GetRequest {
   init (command: Get) throws {
+	self.init()
     self.name = command.name
 
     if command.format == .json {
@@ -105,6 +111,7 @@ extension Tartd_GetRequest {
 
 extension Tartd_ExportRequest {
   init (command: Export) {
+	self.init()
     self.name = command.name
 
     if let path = command.path {
@@ -115,6 +122,7 @@ extension Tartd_ExportRequest {
 
 extension Tartd_ImportRequest {
   init (command: Import) {
+	self.init()
     self.name = command.name
     self.path = command.path
   }
@@ -122,6 +130,7 @@ extension Tartd_ImportRequest {
 
 extension Tartd_IPRequest {
   init (command: IP) {
+	self.init()
     self.name = command.name
     self.wait = Int32(command.wait)
 
@@ -135,6 +144,7 @@ extension Tartd_IPRequest {
 
 extension Tartd_LaunchRequest {
   init (command: Launch) throws {
+	self.init()
     self.name = command.name
     self.cpu = Int32(command.cpu)
     self.memory = Int32(command.memory)
@@ -188,6 +198,7 @@ extension Tartd_LaunchRequest {
 
 extension Tartd_ListRequest {
   init (command: List) {
+	self.init()
     self.quiet = command.quiet
 
     if command.format == .json {
@@ -198,6 +209,7 @@ extension Tartd_ListRequest {
 
 extension Tartd_LoginRequest {
   init (command: Login) {
+	self.init()
     self.host = command.host
     self.insecure = command.insecure
     self.noValidate = command.noValidate
@@ -210,12 +222,14 @@ extension Tartd_LoginRequest {
 
 extension Tartd_LogoutRequest {
   init (command: Logout) {
+	self.init()
     self.host = command.host
   }
 }
 
 extension Tartd_PruneRequest {
   init (command: Prune) {
+	self.init()
     self.entries = command.entries
 
     if let olderThan = command.olderThan {
@@ -234,6 +248,7 @@ extension Tartd_PruneRequest {
 
 extension Tartd_PullRequest {
   init (command: Pull) {
+	  self.init()
     self.remoteName = command.remoteName
     self.deduplicate = command.deduplicate
     self.insecure = command.insecure
@@ -243,6 +258,7 @@ extension Tartd_PullRequest {
 
 extension Tartd_PushRequest{
   init (command: Push) {
+	  self.init()
     self.localName = command.localName
     self.remoteNames = command.remoteNames
     self.insecure = command.insecure
@@ -252,6 +268,7 @@ extension Tartd_PushRequest{
 
 extension Tartd_RenameRequest{
   init (command: Rename) throws {
+	  self.init()
     self.name = command.name
     self.newName = command.newName
   }
@@ -260,6 +277,7 @@ extension Tartd_RenameRequest{
 
 extension Tartd_VMDisplayConfig {
   init (width: Int32, height: Int32) {
+	  self.init()
     self.width = width
     self.height = height
   }
@@ -267,7 +285,8 @@ extension Tartd_VMDisplayConfig {
 
 extension Tartd_SetRequest {
   init (command: Set) {
-    self.name = command.name
+	  self.init()
+   self.name = command.name
     self.randomMac = command.randomMAC
     self.randomSerial = command.randomSerial
 
@@ -294,12 +313,14 @@ extension Tartd_SetRequest {
 
 extension Tartd_StartRequest {
   init (command: Start) {
+	  self.init()
     self.name = command.name
   }
 }
 
 extension Tartd_StopRequest {
   init (command: Stop) {
+	  self.init()
     self.name = command.name
     self.timeout = Int32(command.timeout)
   }
@@ -307,6 +328,7 @@ extension Tartd_StopRequest {
 
 extension Tartd_SuspendRequest {
   init (command: Suspend) {
+	  self.init()
     self.name = command.name
   }
 }

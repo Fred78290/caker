@@ -24,8 +24,7 @@ protoc_gen_grpc_swift="" # $(command -v protoc-gen-grpc-swift-v1) || :
 # Checkout and build the plugins.
 if [ -z "${protoc_gen_swift:=}" ] || [ -z "${protoc_gen_swift:=}" ]; then
   build_dir=$(mktemp -d)
-  git clone https://github.com/grpc/grpc-swift -b release/1.x --depth 1 "$build_dir"
-  git checkout release/1.x
+  git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "$build_dir"
   swift build --package-path "$build_dir" --product protoc-gen-swift
   swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
 
@@ -87,8 +86,8 @@ function generate_service {
   local proto="$here/service.proto"
   local output="$root/Grpc"
 
-  generate_message "$proto" "$(dirname "$proto")" "$output" "Visibility=Internal"
-  generate_grpc "$proto" "$(dirname "$proto")" "$output" "Visibility=Internal"
+  generate_message "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
+  generate_grpc "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
 }
 
 #------------------------------------------------------------------------------

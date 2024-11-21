@@ -1,6 +1,7 @@
 import Foundation
 import ShellOut
 import Virtualization
+import TartLib
 
 let cloudInitIso = "cloud-init.iso"
 
@@ -20,7 +21,7 @@ struct VM {
     // Create NVRAM
     _ = try VZEFIVariableStore(creatingVariableStoreAt: vmDir.nvramURL)
 
-    // Create disk
+	// Create disk
     try vmDir.resizeDisk(diskSizeGB)
 
     // Create config

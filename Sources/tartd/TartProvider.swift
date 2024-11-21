@@ -4,8 +4,9 @@
 //
 //  Created by Frederic BOLTZ on 19/11/2024.
 //
+import Foundation
 import GRPC
-import tartlib
+import TartLib
 import GRPCLib
 
 public protocol TartdCommand {

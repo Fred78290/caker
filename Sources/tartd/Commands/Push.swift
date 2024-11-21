@@ -13,7 +13,7 @@ struct Push: TartdCommand {
     var arguments: [String] = []
 
     arguments.append(localName)
-    arguments.append(remoteNames...)
+	arguments.append(remoteNames)
 
     if insecure {
       arguments.append("--insecure")

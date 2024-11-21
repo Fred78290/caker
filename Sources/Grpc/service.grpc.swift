@@ -12,7 +12,7 @@ import SwiftProtobuf
 
 
 /// Usage: instantiate `Tartd_ServiceClient`, then call methods of this protocol to make API calls.
-internal protocol Tartd_ServiceClientProtocol: GRPCClient {
+public protocol Tartd_ServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
   var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
 
@@ -128,7 +128,7 @@ internal protocol Tartd_ServiceClientProtocol: GRPCClient {
 }
 
 extension Tartd_ServiceClientProtocol {
-  internal var serviceName: String {
+  public var serviceName: String {
     return "tartd.Service"
   }
 
@@ -138,7 +138,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Build.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func build(
+  public func build(
     _ request: Tartd_BuildRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
@@ -156,7 +156,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Clone.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func clone(
+  public func clone(
     _ request: Tartd_CloneRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
@@ -174,7 +174,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Create.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func create(
+  public func create(
     _ request: Tartd_CreateRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
@@ -192,7 +192,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Delete.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func delete(
+  public func delete(
     _ request: Tartd_DeleteRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
@@ -210,7 +210,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to FQN.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func fQN(
+  public func fQN(
     _ request: Tartd_FqnRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
@@ -228,7 +228,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Get.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func get(
+  public func get(
     _ request: Tartd_GetRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_GetRequest, Tartd_TartReply> {
@@ -246,7 +246,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to ExportVM.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func exportVM(
+  public func exportVM(
     _ request: Tartd_ExportRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
@@ -264,7 +264,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to ImportVM.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func importVM(
+  public func importVM(
     _ request: Tartd_ImportRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
@@ -282,7 +282,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to IP.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func iP(
+  public func iP(
     _ request: Tartd_IPRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_IPRequest, Tartd_TartReply> {
@@ -300,7 +300,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Launch.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func launch(
+  public func launch(
     _ request: Tartd_LaunchRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
@@ -318,7 +318,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to List.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func list(
+  public func list(
     _ request: Tartd_ListRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_ListRequest, Tartd_TartReply> {
@@ -336,7 +336,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Login.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func login(
+  public func login(
     _ request: Tartd_LoginRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
@@ -354,7 +354,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Logout.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func logout(
+  public func logout(
     _ request: Tartd_LogoutRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
@@ -372,7 +372,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Prune.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func prune(
+  public func prune(
     _ request: Tartd_PruneRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
@@ -390,7 +390,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Pull.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func pull(
+  public func pull(
     _ request: Tartd_PullRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_PullRequest, Tartd_TartReply> {
@@ -408,7 +408,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Push.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func push(
+  public func push(
     _ request: Tartd_PushRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_PushRequest, Tartd_TartReply> {
@@ -426,7 +426,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Rename.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func rename(
+  public func rename(
     _ request: Tartd_RenameRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
@@ -444,7 +444,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to RunVM.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func runVM(
+  public func runVM(
     _ request: Tartd_RunRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_RunRequest, Tartd_TartReply> {
@@ -462,7 +462,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Set.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func set(
+  public func set(
     _ request: Tartd_SetRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_SetRequest, Tartd_TartReply> {
@@ -480,7 +480,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Start.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func start(
+  public func start(
     _ request: Tartd_StartRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_StartRequest, Tartd_TartReply> {
@@ -498,7 +498,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Stop.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func stop(
+  public func stop(
     _ request: Tartd_StopRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_StopRequest, Tartd_TartReply> {
@@ -516,7 +516,7 @@ extension Tartd_ServiceClientProtocol {
   ///   - request: Request to send to Suspend.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  internal func suspend(
+  public func suspend(
     _ request: Tartd_SuspendRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
@@ -533,16 +533,16 @@ extension Tartd_ServiceClientProtocol {
 extension Tartd_ServiceClient: @unchecked Sendable {}
 
 @available(*, deprecated, renamed: "Tartd_ServiceNIOClient")
-internal final class Tartd_ServiceClient: Tartd_ServiceClientProtocol {
+public final class Tartd_ServiceClient: Tartd_ServiceClientProtocol {
   private let lock = Lock()
   private var _defaultCallOptions: CallOptions
   private var _interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
-  internal let channel: GRPCChannel
-  internal var defaultCallOptions: CallOptions {
+  public let channel: GRPCChannel
+  public var defaultCallOptions: CallOptions {
     get { self.lock.withLock { return self._defaultCallOptions } }
     set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }
   }
-  internal var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
+  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
     get { self.lock.withLock { return self._interceptors } }
     set { self.lock.withLockVoid { self._interceptors = newValue } }
   }
@@ -553,7 +553,7 @@ internal final class Tartd_ServiceClient: Tartd_ServiceClientProtocol {
   ///   - channel: `GRPCChannel` to the service host.
   ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
   ///   - interceptors: A factory providing interceptors for each RPC.
-  internal init(
+  public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
     interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
@@ -564,10 +564,10 @@ internal final class Tartd_ServiceClient: Tartd_ServiceClientProtocol {
   }
 }
 
-internal struct Tartd_ServiceNIOClient: Tartd_ServiceClientProtocol {
-  internal var channel: GRPCChannel
-  internal var defaultCallOptions: CallOptions
-  internal var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
+public struct Tartd_ServiceNIOClient: Tartd_ServiceClientProtocol {
+  public var channel: GRPCChannel
+  public var defaultCallOptions: CallOptions
+  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
 
   /// Creates a client for the tartd.Service service.
   ///
@@ -575,7 +575,7 @@ internal struct Tartd_ServiceNIOClient: Tartd_ServiceClientProtocol {
   ///   - channel: `GRPCChannel` to the service host.
   ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
   ///   - interceptors: A factory providing interceptors for each RPC.
-  internal init(
+  public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
     interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
@@ -587,7 +587,7 @@ internal struct Tartd_ServiceNIOClient: Tartd_ServiceClientProtocol {
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-internal protocol Tartd_ServiceAsyncClientProtocol: GRPCClient {
+public protocol Tartd_ServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
 
@@ -704,15 +704,15 @@ internal protocol Tartd_ServiceAsyncClientProtocol: GRPCClient {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncClientProtocol {
-  internal static var serviceDescriptor: GRPCServiceDescriptor {
+  public static var serviceDescriptor: GRPCServiceDescriptor {
     return Tartd_ServiceClientMetadata.serviceDescriptor
   }
 
-  internal var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
+  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
     return nil
   }
 
-  internal func makeBuildCall(
+  public func makeBuildCall(
     _ request: Tartd_BuildRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
@@ -724,7 +724,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeCloneCall(
+  public func makeCloneCall(
     _ request: Tartd_CloneRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
@@ -736,7 +736,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeCreateCall(
+  public func makeCreateCall(
     _ request: Tartd_CreateRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
@@ -748,7 +748,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeDeleteCall(
+  public func makeDeleteCall(
     _ request: Tartd_DeleteRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
@@ -760,7 +760,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeFqnCall(
+  public func makeFqnCall(
     _ request: Tartd_FqnRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
@@ -772,7 +772,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeGetCall(
+  public func makeGetCall(
     _ request: Tartd_GetRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_GetRequest, Tartd_TartReply> {
@@ -784,7 +784,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeExportVmCall(
+  public func makeExportVmCall(
     _ request: Tartd_ExportRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
@@ -796,7 +796,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeImportVmCall(
+  public func makeImportVmCall(
     _ request: Tartd_ImportRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
@@ -808,7 +808,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeIpCall(
+  public func makeIpCall(
     _ request: Tartd_IPRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_IPRequest, Tartd_TartReply> {
@@ -820,7 +820,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeLaunchCall(
+  public func makeLaunchCall(
     _ request: Tartd_LaunchRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
@@ -832,7 +832,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeListCall(
+  public func makeListCall(
     _ request: Tartd_ListRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_ListRequest, Tartd_TartReply> {
@@ -844,7 +844,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeLoginCall(
+  public func makeLoginCall(
     _ request: Tartd_LoginRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
@@ -856,7 +856,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeLogoutCall(
+  public func makeLogoutCall(
     _ request: Tartd_LogoutRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
@@ -868,7 +868,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makePruneCall(
+  public func makePruneCall(
     _ request: Tartd_PruneRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
@@ -880,7 +880,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makePullCall(
+  public func makePullCall(
     _ request: Tartd_PullRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_PullRequest, Tartd_TartReply> {
@@ -892,7 +892,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makePushCall(
+  public func makePushCall(
     _ request: Tartd_PushRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_PushRequest, Tartd_TartReply> {
@@ -904,7 +904,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeRenameCall(
+  public func makeRenameCall(
     _ request: Tartd_RenameRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
@@ -916,7 +916,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeRunVmCall(
+  public func makeRunVmCall(
     _ request: Tartd_RunRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_RunRequest, Tartd_TartReply> {
@@ -928,7 +928,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeSetCall(
+  public func makeSetCall(
     _ request: Tartd_SetRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_SetRequest, Tartd_TartReply> {
@@ -940,7 +940,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeStartCall(
+  public func makeStartCall(
     _ request: Tartd_StartRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_StartRequest, Tartd_TartReply> {
@@ -952,7 +952,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeStopCall(
+  public func makeStopCall(
     _ request: Tartd_StopRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_StopRequest, Tartd_TartReply> {
@@ -964,7 +964,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func makeSuspendCall(
+  public func makeSuspendCall(
     _ request: Tartd_SuspendRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
@@ -979,7 +979,7 @@ extension Tartd_ServiceAsyncClientProtocol {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncClientProtocol {
-  internal func build(
+  public func build(
     _ request: Tartd_BuildRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -991,7 +991,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func clone(
+  public func clone(
     _ request: Tartd_CloneRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1003,7 +1003,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func create(
+  public func create(
     _ request: Tartd_CreateRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1015,7 +1015,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func delete(
+  public func delete(
     _ request: Tartd_DeleteRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1027,7 +1027,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func fQN(
+  public func fQN(
     _ request: Tartd_FqnRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1039,7 +1039,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func get(
+  public func get(
     _ request: Tartd_GetRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1051,7 +1051,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func exportVM(
+  public func exportVM(
     _ request: Tartd_ExportRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1063,7 +1063,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func importVM(
+  public func importVM(
     _ request: Tartd_ImportRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1075,7 +1075,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func iP(
+  public func iP(
     _ request: Tartd_IPRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1087,7 +1087,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func launch(
+  public func launch(
     _ request: Tartd_LaunchRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1099,7 +1099,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func list(
+  public func list(
     _ request: Tartd_ListRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1111,7 +1111,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func login(
+  public func login(
     _ request: Tartd_LoginRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1123,7 +1123,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func logout(
+  public func logout(
     _ request: Tartd_LogoutRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1135,7 +1135,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func prune(
+  public func prune(
     _ request: Tartd_PruneRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1147,7 +1147,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func pull(
+  public func pull(
     _ request: Tartd_PullRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1159,7 +1159,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func push(
+  public func push(
     _ request: Tartd_PushRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1171,7 +1171,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func rename(
+  public func rename(
     _ request: Tartd_RenameRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1183,7 +1183,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func runVM(
+  public func runVM(
     _ request: Tartd_RunRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1195,7 +1195,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func set(
+  public func set(
     _ request: Tartd_SetRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1207,7 +1207,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func start(
+  public func start(
     _ request: Tartd_StartRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1219,7 +1219,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func stop(
+  public func stop(
     _ request: Tartd_StopRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1231,7 +1231,7 @@ extension Tartd_ServiceAsyncClientProtocol {
     )
   }
 
-  internal func suspend(
+  public func suspend(
     _ request: Tartd_SuspendRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Tartd_TartReply {
@@ -1245,12 +1245,12 @@ extension Tartd_ServiceAsyncClientProtocol {
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-internal struct Tartd_ServiceAsyncClient: Tartd_ServiceAsyncClientProtocol {
-  internal var channel: GRPCChannel
-  internal var defaultCallOptions: CallOptions
-  internal var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
+public struct Tartd_ServiceAsyncClient: Tartd_ServiceAsyncClientProtocol {
+  public var channel: GRPCChannel
+  public var defaultCallOptions: CallOptions
+  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
 
-  internal init(
+  public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
     interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
@@ -1261,7 +1261,7 @@ internal struct Tartd_ServiceAsyncClient: Tartd_ServiceAsyncClientProtocol {
   }
 }
 
-internal protocol Tartd_ServiceClientInterceptorFactoryProtocol: Sendable {
+public protocol Tartd_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'build'.
   func makeBuildInterceptors() -> [ClientInterceptor<Tartd_BuildRequest, Tartd_TartReply>]
@@ -1330,8 +1330,8 @@ internal protocol Tartd_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeSuspendInterceptors() -> [ClientInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
 }
 
-internal enum Tartd_ServiceClientMetadata {
-  internal static let serviceDescriptor = GRPCServiceDescriptor(
+public enum Tartd_ServiceClientMetadata {
+  public static let serviceDescriptor = GRPCServiceDescriptor(
     name: "Service",
     fullName: "tartd.Service",
     methods: [
@@ -1360,134 +1360,134 @@ internal enum Tartd_ServiceClientMetadata {
     ]
   )
 
-  internal enum Methods {
-    internal static let build = GRPCMethodDescriptor(
+  public enum Methods {
+    public static let build = GRPCMethodDescriptor(
       name: "Build",
       path: "/tartd.Service/Build",
       type: GRPCCallType.unary
     )
 
-    internal static let clone = GRPCMethodDescriptor(
+    public static let clone = GRPCMethodDescriptor(
       name: "Clone",
       path: "/tartd.Service/Clone",
       type: GRPCCallType.unary
     )
 
-    internal static let create = GRPCMethodDescriptor(
+    public static let create = GRPCMethodDescriptor(
       name: "Create",
       path: "/tartd.Service/Create",
       type: GRPCCallType.unary
     )
 
-    internal static let delete = GRPCMethodDescriptor(
+    public static let delete = GRPCMethodDescriptor(
       name: "Delete",
       path: "/tartd.Service/Delete",
       type: GRPCCallType.unary
     )
 
-    internal static let fQN = GRPCMethodDescriptor(
+    public static let fQN = GRPCMethodDescriptor(
       name: "FQN",
       path: "/tartd.Service/FQN",
       type: GRPCCallType.unary
     )
 
-    internal static let get = GRPCMethodDescriptor(
+    public static let get = GRPCMethodDescriptor(
       name: "Get",
       path: "/tartd.Service/Get",
       type: GRPCCallType.unary
     )
 
-    internal static let exportVM = GRPCMethodDescriptor(
+    public static let exportVM = GRPCMethodDescriptor(
       name: "ExportVM",
       path: "/tartd.Service/ExportVM",
       type: GRPCCallType.unary
     )
 
-    internal static let importVM = GRPCMethodDescriptor(
+    public static let importVM = GRPCMethodDescriptor(
       name: "ImportVM",
       path: "/tartd.Service/ImportVM",
       type: GRPCCallType.unary
     )
 
-    internal static let iP = GRPCMethodDescriptor(
+    public static let iP = GRPCMethodDescriptor(
       name: "IP",
       path: "/tartd.Service/IP",
       type: GRPCCallType.unary
     )
 
-    internal static let launch = GRPCMethodDescriptor(
+    public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/tartd.Service/Launch",
       type: GRPCCallType.unary
     )
 
-    internal static let list = GRPCMethodDescriptor(
+    public static let list = GRPCMethodDescriptor(
       name: "List",
       path: "/tartd.Service/List",
       type: GRPCCallType.unary
     )
 
-    internal static let login = GRPCMethodDescriptor(
+    public static let login = GRPCMethodDescriptor(
       name: "Login",
       path: "/tartd.Service/Login",
       type: GRPCCallType.unary
     )
 
-    internal static let logout = GRPCMethodDescriptor(
+    public static let logout = GRPCMethodDescriptor(
       name: "Logout",
       path: "/tartd.Service/Logout",
       type: GRPCCallType.unary
     )
 
-    internal static let prune = GRPCMethodDescriptor(
+    public static let prune = GRPCMethodDescriptor(
       name: "Prune",
       path: "/tartd.Service/Prune",
       type: GRPCCallType.unary
     )
 
-    internal static let pull = GRPCMethodDescriptor(
+    public static let pull = GRPCMethodDescriptor(
       name: "Pull",
       path: "/tartd.Service/Pull",
       type: GRPCCallType.unary
     )
 
-    internal static let push = GRPCMethodDescriptor(
+    public static let push = GRPCMethodDescriptor(
       name: "Push",
       path: "/tartd.Service/Push",
       type: GRPCCallType.unary
     )
 
-    internal static let rename = GRPCMethodDescriptor(
+    public static let rename = GRPCMethodDescriptor(
       name: "Rename",
       path: "/tartd.Service/Rename",
       type: GRPCCallType.unary
     )
 
-    internal static let runVM = GRPCMethodDescriptor(
+    public static let runVM = GRPCMethodDescriptor(
       name: "RunVM",
       path: "/tartd.Service/RunVM",
       type: GRPCCallType.unary
     )
 
-    internal static let set = GRPCMethodDescriptor(
+    public static let set = GRPCMethodDescriptor(
       name: "Set",
       path: "/tartd.Service/Set",
       type: GRPCCallType.unary
     )
 
-    internal static let start = GRPCMethodDescriptor(
+    public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/tartd.Service/Start",
       type: GRPCCallType.unary
     )
 
-    internal static let stop = GRPCMethodDescriptor(
+    public static let stop = GRPCMethodDescriptor(
       name: "Stop",
       path: "/tartd.Service/Stop",
       type: GRPCCallType.unary
     )
 
-    internal static let suspend = GRPCMethodDescriptor(
+    public static let suspend = GRPCMethodDescriptor(
       name: "Suspend",
       path: "/tartd.Service/Suspend",
       type: GRPCCallType.unary
@@ -1496,7 +1496,7 @@ internal enum Tartd_ServiceClientMetadata {
 }
 
 /// To build a server, implement a class that conforms to this protocol.
-internal protocol Tartd_ServiceProvider: CallHandlerProvider {
+public protocol Tartd_ServiceProvider: CallHandlerProvider {
   var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
 
   /// Sends a greeting
@@ -1546,13 +1546,13 @@ internal protocol Tartd_ServiceProvider: CallHandlerProvider {
 }
 
 extension Tartd_ServiceProvider {
-  internal var serviceName: Substring {
+  public var serviceName: Substring {
     return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
   }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
   /// Returns nil for methods not handled by this service.
-  internal func handle(
+  public func handle(
     method name: Substring,
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
@@ -1763,7 +1763,7 @@ extension Tartd_ServiceProvider {
 
 /// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-internal protocol Tartd_ServiceAsyncProvider: CallHandlerProvider, Sendable {
+public protocol Tartd_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
 
@@ -1881,19 +1881,19 @@ internal protocol Tartd_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncProvider {
-  internal static var serviceDescriptor: GRPCServiceDescriptor {
+  public static var serviceDescriptor: GRPCServiceDescriptor {
     return Tartd_ServiceServerMetadata.serviceDescriptor
   }
 
-  internal var serviceName: Substring {
+  public var serviceName: Substring {
     return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
   }
 
-  internal var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? {
+  public var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? {
     return nil
   }
 
-  internal func handle(
+  public func handle(
     method name: Substring,
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
@@ -2102,7 +2102,7 @@ extension Tartd_ServiceAsyncProvider {
   }
 }
 
-internal protocol Tartd_ServiceServerInterceptorFactoryProtocol: Sendable {
+public protocol Tartd_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'build'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2193,8 +2193,8 @@ internal protocol Tartd_ServiceServerInterceptorFactoryProtocol: Sendable {
   func makeSuspendInterceptors() -> [ServerInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
 }
 
-internal enum Tartd_ServiceServerMetadata {
-  internal static let serviceDescriptor = GRPCServiceDescriptor(
+public enum Tartd_ServiceServerMetadata {
+  public static let serviceDescriptor = GRPCServiceDescriptor(
     name: "Service",
     fullName: "tartd.Service",
     methods: [
@@ -2223,134 +2223,134 @@ internal enum Tartd_ServiceServerMetadata {
     ]
   )
 
-  internal enum Methods {
-    internal static let build = GRPCMethodDescriptor(
+  public enum Methods {
+    public static let build = GRPCMethodDescriptor(
       name: "Build",
       path: "/tartd.Service/Build",
       type: GRPCCallType.unary
     )
 
-    internal static let clone = GRPCMethodDescriptor(
+    public static let clone = GRPCMethodDescriptor(
       name: "Clone",
       path: "/tartd.Service/Clone",
       type: GRPCCallType.unary
     )
 
-    internal static let create = GRPCMethodDescriptor(
+    public static let create = GRPCMethodDescriptor(
       name: "Create",
       path: "/tartd.Service/Create",
       type: GRPCCallType.unary
     )
 
-    internal static let delete = GRPCMethodDescriptor(
+    public static let delete = GRPCMethodDescriptor(
       name: "Delete",
       path: "/tartd.Service/Delete",
       type: GRPCCallType.unary
     )
 
-    internal static let fQN = GRPCMethodDescriptor(
+    public static let fQN = GRPCMethodDescriptor(
       name: "FQN",
       path: "/tartd.Service/FQN",
       type: GRPCCallType.unary
     )
 
-    internal static let get = GRPCMethodDescriptor(
+    public static let get = GRPCMethodDescriptor(
       name: "Get",
       path: "/tartd.Service/Get",
       type: GRPCCallType.unary
     )
 
-    internal static let exportVM = GRPCMethodDescriptor(
+    public static let exportVM = GRPCMethodDescriptor(
       name: "ExportVM",
       path: "/tartd.Service/ExportVM",
       type: GRPCCallType.unary
     )
 
-    internal static let importVM = GRPCMethodDescriptor(
+    public static let importVM = GRPCMethodDescriptor(
       name: "ImportVM",
       path: "/tartd.Service/ImportVM",
       type: GRPCCallType.unary
     )
 
-    internal static let iP = GRPCMethodDescriptor(
+    public static let iP = GRPCMethodDescriptor(
       name: "IP",
       path: "/tartd.Service/IP",
       type: GRPCCallType.unary
     )
 
-    internal static let launch = GRPCMethodDescriptor(
+    public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/tartd.Service/Launch",
       type: GRPCCallType.unary
     )
 
-    internal static let list = GRPCMethodDescriptor(
+    public static let list = GRPCMethodDescriptor(
       name: "List",
       path: "/tartd.Service/List",
       type: GRPCCallType.unary
     )
 
-    internal static let login = GRPCMethodDescriptor(
+    public static let login = GRPCMethodDescriptor(
       name: "Login",
       path: "/tartd.Service/Login",
       type: GRPCCallType.unary
     )
 
-    internal static let logout = GRPCMethodDescriptor(
+    public static let logout = GRPCMethodDescriptor(
       name: "Logout",
       path: "/tartd.Service/Logout",
       type: GRPCCallType.unary
     )
 
-    internal static let prune = GRPCMethodDescriptor(
+    public static let prune = GRPCMethodDescriptor(
       name: "Prune",
       path: "/tartd.Service/Prune",
       type: GRPCCallType.unary
     )
 
-    internal static let pull = GRPCMethodDescriptor(
+    public static let pull = GRPCMethodDescriptor(
       name: "Pull",
       path: "/tartd.Service/Pull",
       type: GRPCCallType.unary
     )
 
-    internal static let push = GRPCMethodDescriptor(
+    public static let push = GRPCMethodDescriptor(
       name: "Push",
       path: "/tartd.Service/Push",
       type: GRPCCallType.unary
     )
 
-    internal static let rename = GRPCMethodDescriptor(
+    public static let rename = GRPCMethodDescriptor(
       name: "Rename",
       path: "/tartd.Service/Rename",
       type: GRPCCallType.unary
     )
 
-    internal static let runVM = GRPCMethodDescriptor(
+    public static let runVM = GRPCMethodDescriptor(
       name: "RunVM",
       path: "/tartd.Service/RunVM",
       type: GRPCCallType.unary
     )
 
-    internal static let set = GRPCMethodDescriptor(
+    public static let set = GRPCMethodDescriptor(
       name: "Set",
       path: "/tartd.Service/Set",
       type: GRPCCallType.unary
     )
 
-    internal static let start = GRPCMethodDescriptor(
+    public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/tartd.Service/Start",
       type: GRPCCallType.unary
     )
 
-    internal static let stop = GRPCMethodDescriptor(
+    public static let stop = GRPCMethodDescriptor(
       name: "Stop",
       path: "/tartd.Service/Stop",
       type: GRPCCallType.unary
     )
 
-    internal static let suspend = GRPCMethodDescriptor(
+    public static let suspend = GRPCMethodDescriptor(
       name: "Suspend",
       path: "/tartd.Service/Suspend",
       type: GRPCCallType.unary
