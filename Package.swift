@@ -70,7 +70,6 @@ let package = Package(
       .product(name: "ISO9660", package: "iso9660-swift"),
       .product(name: "Yams", package: "Yams"),
       .product(name: "ShellOut", package: "ShellOut"),
-      .product(name: "Sentry", package: "sentry-cocoa"),
       .product(name: "X509", package: "swift-certificates"),
       .product(name: "Crypto", package: "swift-crypto"),
       .product(name: "GRPC", package: "grpc-swift"),
