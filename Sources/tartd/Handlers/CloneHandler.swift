@@ -1,7 +1,9 @@
 import Foundation
+import SystemConfiguration
 
-struct Pull: TartdCommand {
-  var remoteName: String
+struct CloneHandler: TartdCommand {
+  var sourceName: String = ""
+  var newName: String = ""
   var insecure: Bool = false
   var concurrency: UInt = 4
   var deduplicate: Bool = false
@@ -9,7 +11,8 @@ struct Pull: TartdCommand {
   func run() async throws {
     var arguments: [String] = []
 
-    arguments.append(remoteName)
+    arguments.append(sourceName)
+    arguments.append(newName)
 
     if insecure {
       arguments.append("--insecure")
@@ -23,6 +26,6 @@ struct Pull: TartdCommand {
       arguments.append("--concurrency=\(concurrency)")
     }
 
-    try Shell.runTart(command: "pull", arguments: arguments)
+    try Shell.runTart(command: "clone", arguments: arguments)
   }
 }

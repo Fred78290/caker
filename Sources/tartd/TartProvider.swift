@@ -6,11 +6,25 @@
 //
 import Foundation
 import GRPC
-import TartLib
 import GRPCLib
+import ArgumentParser
 
-public protocol TartdCommand {
+protocol TartdCommand {
   mutating func run() async throws
+}
+
+protocol CreateTartdCommand {
+  func createCommand() -> TartdCommand
+}
+
+private func saveToTempFile(_ data: Data) throws -> String {
+  let url = FileManager.default.temporaryDirectory
+	  .appendingPathComponent(UUID().uuidString)
+	  .appendingPathExtension("txt")
+  
+  try data.write(to: url)
+
+  return url.absoluteURL.path()
 }
 
 class Unimplemented : Error {
@@ -79,17 +93,131 @@ class StandardOutput {
   }
 }
 
-extension Tartd_GetRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Get()
-    
-    command.name = self.name
+extension Tartd_BuildRequest : CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = BuildHandler(name: self.name)
+	
+	if self.hasCpu {
+	  command.cpu = UInt16(self.cpu)
+	}
+	
+	if self.hasMemory {
+	  command.memory = UInt64(self.memory)
+	}
 
+	if self.hasDiskSize {
+	  command.diskSize = UInt16(self.diskSize)
+	}
+
+	if self.hasUser {
+	  command.user = self.user
+	}
+	
+	if self.hasInsecure {
+	  command.insecure = self.insecure
+	}
+	
+	if self.hasCloudImage {
+	  command.cloudImage = self.cloudImage
+	}
+	
+	if self.hasAliasImage {
+	  command.aliasImage = self.aliasImage
+	}
+	
+	if self.hasFromImage {
+	  command.fromImage = self.fromImage
+	}
+	
+	if self.hasOciImage {
+	  command.ociImage = self.ociImage
+	}
+
+	if self.hasRemoteContainerServer {
+	  command.remoteContainerServer = self.remoteContainerServer
+	}
+		  
+	if self.hasSshAuthorizedKey {
+	  command.sshAuthorizedKey = try? saveToTempFile(self.sshAuthorizedKey)
+	}
+	
+	if self.hasUserData {
+	  command.userData = try? saveToTempFile(self.userData)
+	}
+
+	if self.hasVendorData {
+	  command.vendorData = try? saveToTempFile(self.vendorData)
+	}
+
+	if self.hasNetworkConfig {
+	  command.networkConfig = try? saveToTempFile(self.networkConfig)
+	}
+	
+	return command
+  }
+}
+
+extension Tartd_CloneRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = CloneHandler(sourceName: self.sourceName, newName: self.newName)
+	
+	if self.hasDeduplicate {
+	   command.deduplicate = self.deduplicate
+	}
+
+	if self.hasInsecure {
+	  command.insecure = self.insecure
+	}
+	
+	if self.hasConcurrency {
+	  command.concurrency = UInt(self.concurrency)
+	}
+	
+	return command
+  }
+}
+
+extension Tartd_CreateRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = CreateHandler(name: self.name)
+		
+	if self.hasLinux {
+	  command.linux = self.linux
+	}
+	
+	if self.hasFromIpsw {
+	  command.fromIPSW = self.fromIpsw
+	}
+
+	if self.hasDiskSize {
+		command.diskSize = UInt16(self.diskSize)
+	}
+
+	return command
+  }
+}
+
+extension Tartd_DeleteRequest : CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return DeleteHandler(name: self.name)
+  }
+}
+
+extension Tartd_FqnRequest : CreateTartdCommand {
+	func createCommand() -> TartdCommand {
+	return FQNHandler(name: self.name)
+  }
+}
+
+extension Tartd_GetRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = GetHandler(name: self.name)
+    
     if self.hasFormat {
       if self.format == .json {
-        command.format = .json
+        command.format = Format.json
       } else if self.format == .text {
-        command.format = .text
+        command.format = Format.text
       }
     }
 
@@ -97,12 +225,10 @@ extension Tartd_GetRequest : TartdCommand {
   }
 }
 
-extension Tartd_ExportRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Export()
-    
-    command.name = self.name
-    
+extension Tartd_ExportRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = ExportHandler(name: self.name)
+	
     if self.hasPath {
       command.path = self.path
     }
@@ -111,28 +237,21 @@ extension Tartd_ExportRequest : TartdCommand {
   }
 }
 
-extension Tartd_ImportRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Import()
-    
-    command.name = self.name
-    command.path = self.path
-
-    return command
+extension Tartd_ImportRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return ImportHandler(path: self.path, name: self.name)
   }
 }
 
-extension Tartd_IPRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = IP()
-    
-    command.name = self.name
-    
+extension Tartd_IPRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = IPHandler(name: self.name)
+        
     if self.hasResolver {
       if self.resolver == .dhcp {
-        command.resolver = .dhcp
+        command.resolver = IPResolutionStrategy.dhcp
       } else if self.resolver == .arp {
-        command.resolver = .arp
+        command.resolver = IPResolutionStrategy.arp
       }
     }
 
@@ -144,11 +263,10 @@ extension Tartd_IPRequest : TartdCommand {
   }
 }
 
-extension Tartd_LaunchRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Launch()
+extension Tartd_LaunchRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = LaunchHandler(name: self.name)
 
-    command.name = self.name
     command.dir = self.dir
     command.netBridged = self.netBridged
     command.netHost = self.netHost
@@ -217,9 +335,9 @@ extension Tartd_LaunchRequest : TartdCommand {
   }
 }
 
-extension Tartd_ListRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = List()
+extension Tartd_ListRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = ListHandler()
     
     command.quiet = self.quiet
     
@@ -233,11 +351,10 @@ extension Tartd_ListRequest : TartdCommand {
   }
 }
 
-extension Tartd_LoginRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Login()
+extension Tartd_LoginRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = LoginHandler(host: self.host)
     
-    command.host = self.host
     command.username = self.username
     command.insecure = self.insecure
     command.noValidate = self.noValidate
@@ -246,19 +363,15 @@ extension Tartd_LoginRequest : TartdCommand {
   }
 }
 
-extension Tartd_LogoutRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Logout()
-    
-    command.host = self.host
-
-    return command
+extension Tartd_LogoutRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return LogoutHandler(host: self.host)
   }
 }
 
-extension Tartd_PruneRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Prune()
+extension Tartd_PruneRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = PruneHandler()
     
     if self.hasEntries {
       command.entries = self.entries
@@ -280,11 +393,10 @@ extension Tartd_PruneRequest : TartdCommand {
   }
 }
 
-extension Tartd_PullRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Pull()
+extension Tartd_PullRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = PullHandler(remoteName: self.remoteName)
     
-    command.remoteName = self.remoteName
     command.deduplicate = self.deduplicate
     command.insecure = self.insecure
     
@@ -296,12 +408,10 @@ extension Tartd_PullRequest : TartdCommand {
   }
 }
 
-extension Tartd_PushRequest : TartdCommand{
-  func createCommand() -> AsyncParsableCommand {
-    var command = Push()
+extension Tartd_PushRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	  var command = PushHandler(localName: self.localName, remoteNames: self.remoteNames)
     
-    command.localName = self.localName
-    command.remoteNames = self.remoteNames
     command.insecure = self.insecure
     command.populateCache = self.populateCache
 
@@ -313,20 +423,15 @@ extension Tartd_PushRequest : TartdCommand{
   }
 }
 
-extension Tartd_RenameRequest : TartdCommand{
-  func createCommand() -> AsyncParsableCommand {
-    var command = Rename()
-    
-    command.name = self.newName
-    command.newName = self.newName
-
-    return command
+extension Tartd_RenameRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return RenameHandler(name: self.newName, newName: self.newName)
   }
 }
 
-extension Tartd_SetRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Set()
+extension Tartd_SetRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = SetHandler(name: self.name)
     
     command.name = self.name
     command.randomMAC = self.randomMac
@@ -355,22 +460,16 @@ extension Tartd_SetRequest : TartdCommand {
   }
 }
 
-extension Tartd_StartRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Start()
-    
-    command.name = self.name
-    
-    return command
+extension Tartd_StartRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return StartHandler(name: self.name)
   }
 }
 
-extension Tartd_StopRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Stop()
-    
-    command.name = self.name
-    
+extension Tartd_StopRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+    var command = StopHandler(name: self.name)
+        
     if self.hasTimeout {
       command.timeout = UInt64(self.timeout)
     }
@@ -379,20 +478,16 @@ extension Tartd_StopRequest : TartdCommand {
   }
 }
 
-extension Tartd_SuspendRequest : TartdCommand {
-  func createCommand() -> AsyncParsableCommand {
-    var command = Suspend()
-    
-    command.name = self.name
-    
-    return command
+extension Tartd_SuspendRequest: CreateTartdCommand {
+  func createCommand() -> TartdCommand {
+	return SuspendHandler(name: self.name)
   }
 }
 
 class TartDaemonProvider: Tartd_ServiceAsyncProvider {
   var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? = nil
 
-  func execute(command: TartdCommand) async throws -> Tartd_TartReply {
+  func execute(command: CreateTartdCommand) async throws -> Tartd_TartReply {
     let output = try StandardOutput()
 
     var command = command.createCommand()

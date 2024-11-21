@@ -1,8 +1,8 @@
-import Foundation
 import Dispatch
+import Foundation
 import SwiftUI
 
-struct Login: TartdCommand {
+struct LoginHandler: TartdCommand {
   var host: String
   var username: String?
   var passwordStdin: Bool = false
@@ -22,7 +22,7 @@ struct Login: TartdCommand {
       arguments.append("--password-stdin")
     }
 
-    if insecure != 50 {
+    if insecure {
       arguments.append("--insecure")
     }
 

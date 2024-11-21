@@ -1,7 +1,7 @@
 import Foundation
 import SwiftDate
 
-struct Prune: TartdCommand {
+struct PruneHandler: TartdCommand {
   var entries: String = "caches"
   var olderThan: UInt?
   var cacheBudget: UInt?

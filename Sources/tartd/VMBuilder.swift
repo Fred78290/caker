@@ -1,11 +1,10 @@
 import Foundation
 import ShellOut
 import Virtualization
-import TartLib
 
 let cloudInitIso = "cloud-init.iso"
 
-struct VM {
+struct VMBuilder {
   private static func buildVM(vmName: String,
                               vmDir: VMDirectory,
                               cpu: UInt16?,
@@ -170,7 +169,7 @@ struct VM {
                       networkConfig: String?) async throws {
 
       guard let remoteContainerServerURL = URL(string: remoteContainerServer) else {
-        throw RuntimeError.MalformedURL(remoteContainerServer)
+        throw ServiceError("malformed url: \(remoteContainerServer)")
       }
 
       let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
@@ -213,7 +212,7 @@ struct VM {
 
   public static func buildVM(vmName: String, vmDir: VMDirectory, arguments: BuildArguments) async throws {
       if let fromImage = arguments.fromImage {
-        try await VM.buildVM(vmName: vmName,
+        try await Self.buildVM(vmName: vmName,
                              vmDir: vmDir,
                              diskImageURL: adjustUrl(url: fromImage),
                              cpu: arguments.cpu,
@@ -227,7 +226,7 @@ struct VM {
                              userData: arguments.userData,
                              networkConfig: arguments.networkConfig)
       } else if let cloudImage = arguments.cloudImage {
-        try await VM.buildVM(vmName: vmName,
+        try await Self.buildVM(vmName: vmName,
                              vmDir: vmDir,
                              cloudImageURL: adjustUrl(url: cloudImage),
                              cpu: arguments.cpu,
@@ -241,7 +240,7 @@ struct VM {
                              userData: arguments.userData,
                              networkConfig: arguments.networkConfig)
       } else if let ociImage = arguments.ociImage {
-        try await VM.buildVM(vmName: vmName,
+        try await Self.buildVM(vmName: vmName,
                              vmDir: vmDir,
                              ociImage: ociImage,
                              cpu: arguments.cpu,
@@ -255,7 +254,7 @@ struct VM {
                              userData: arguments.userData,
                              networkConfig: arguments.networkConfig)
       } else if let aliasImage = arguments.aliasImage {
-        try await VM.buildVM(vmName: vmName,
+        try await Self.buildVM(vmName: vmName,
                              vmDir: vmDir,
                              remoteContainerServer: arguments.remoteContainerServer,
                              aliasImage: aliasImage,
@@ -270,7 +269,7 @@ struct VM {
                              userData: arguments.userData,
                              networkConfig: arguments.networkConfig)
       } else {
-        throw RuntimeError.InternalError("any image specified")
+        throw RuntimeError.ImportFailed("any image specified")
       }
 
   }

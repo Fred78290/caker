@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 
-struct Start: TartdCommand {
+struct StartHandler: TartdCommand {
   var name: String
 
   func run() async throws {
@@ -10,7 +10,7 @@ struct Start: TartdCommand {
     let vmState = try vmDir.state()
 
     if vmState == .Stopped {
-      try Start.startVM(vmDir: vmDir)
+      try StartHandler.startVM(vmDir: vmDir)
     } else if vmState == .Running {
       throw RuntimeError.VMAlreadyRunning(name)
     }

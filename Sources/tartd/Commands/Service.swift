@@ -13,7 +13,7 @@ import Security
 
 let tartDSignature = "org.cirruslabs.tartd"
 
-class ServiceError : Error {
+class ServiceError : Error, CustomStringConvertible {
   let description: String
 
   init(_ what: String) {
@@ -21,7 +21,7 @@ class ServiceError : Error {
   }
 }
 
-struct Service : ParsableCommand {
+struct Service: ParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Tart daemon as launchctl agent",
                                                   subcommands: [Install.self, Listen.self])
   static let SyncSemaphore = DispatchSemaphore(value: 0)
@@ -373,7 +373,7 @@ extension Service {
         builder = Server.insecure(group: on)
       }
 
-      builder.withServiceProviders([GreeterTartd()])
+      builder.withServiceProviders([TartDaemonProvider()])
 
       if let listeningAddress = listeningAddress {
         if listeningAddress.scheme == "unix" {

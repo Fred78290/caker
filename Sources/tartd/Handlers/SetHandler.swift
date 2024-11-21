@@ -1,10 +1,10 @@
 import Foundation
 
-struct Set: TartdCommand {
+struct SetHandler: TartdCommand {
   var name: String
   var cpu: UInt16?
   var memory: UInt64?
-  var display: String?
+  var display: VMDisplayConfig?
   var randomMAC: Bool = false
   var randomSerial: Bool = false
   var disk: String?
@@ -24,7 +24,7 @@ struct Set: TartdCommand {
     }
 
     if let display = self.display {
-      arguments.append("--display=\(display)")
+      arguments.append("--display=\(display.description)")
     }
 
     if randomMAC {

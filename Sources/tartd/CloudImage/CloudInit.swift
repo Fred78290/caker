@@ -25,7 +25,7 @@ extension Dictionary {
 
   func write(to: URL) throws {
     guard let jsonData = self.jsonData else {
-      throw RuntimeError.InternalError("Can't get data")
+      throw RuntimeError.ImportFailed("Can't get data")
     }
 
     try jsonData.write(to: to)

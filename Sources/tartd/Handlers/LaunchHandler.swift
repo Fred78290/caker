@@ -1,6 +1,6 @@
 import Foundation
 
-struct Launch : TartdCommand, BuildArguments {
+struct LaunchHandler: TartdCommand, BuildArguments {
   var name: String
   var cpu: UInt16 = 1
   var memory: UInt64 = 512
@@ -56,11 +56,11 @@ struct Launch : TartdCommand, BuildArguments {
       arguments.append("--net-host")
     }
 
-    var config: [String:Any] = try Dictionary(contentsOf: vmDir.configURL) as [String:Any]
+    var config: [String: Any] = try Dictionary(contentsOf: vmDir.configURL) as [String: Any]
     config["runningArguments"] = arguments
     try config.write(to: vmDir.configURL)
 
-    try Start.startVM(vmDir: vmDir)
+    try StartHandler.startVM(vmDir: vmDir)
   }
 
   func run() async throws {
@@ -70,13 +70,15 @@ struct Launch : TartdCommand, BuildArguments {
     let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.baseURL)
     try tmpVMDirLock.lock()
 
-    try await withTaskCancellationHandler(operation: {
-      try await VM.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
-      try VMStorageLocal().move(name, from: tmpVMDir)
-      try launch()
-    }, onCancel: {
-      try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
-    })
+    try await withTaskCancellationHandler(
+      operation: {
+        try await VMBuilder.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
+        try VMStorageLocal().move(name, from: tmpVMDir)
+        try launch()
+      },
+      onCancel: {
+        try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
+      })
   }
 
 }

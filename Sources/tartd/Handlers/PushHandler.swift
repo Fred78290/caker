@@ -1,6 +1,6 @@
 import Foundation
 
-struct Push: TartdCommand {
+struct PushHandler: TartdCommand {
   var localName: String
   var remoteNames: [String]
   var insecure: Bool = false
@@ -13,7 +13,7 @@ struct Push: TartdCommand {
     var arguments: [String] = []
 
     arguments.append(localName)
-	arguments.append(remoteNames)
+	arguments += remoteNames
 
     if insecure {
       arguments.append("--insecure")

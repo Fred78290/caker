@@ -1,6 +1,6 @@
 import Foundation
 
-struct Stop: TartdCommand {
+struct StopHandler: TartdCommand {
   var name: String
   var timeout: UInt64 = 30
 

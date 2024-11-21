@@ -1,6 +1,6 @@
 import Foundation
 
-struct Logout: TartdCommand {
+struct LogoutHandler: TartdCommand {
   var host: String
 
   func run() async throws {

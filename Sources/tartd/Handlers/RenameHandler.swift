@@ -1,6 +1,6 @@
 import Foundation
 
-struct Rename: TartdCommand {
+struct RenameHandler: TartdCommand {
   var name: String
   var newName: String
 

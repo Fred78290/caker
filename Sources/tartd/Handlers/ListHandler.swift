@@ -1,6 +1,6 @@
 import Foundation
 
-struct List: TartdCommand {
+struct ListHandler: TartdCommand {
   var source: String?
   var format: Format = .text
   var quiet: Bool = false

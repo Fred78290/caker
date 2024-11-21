@@ -10,7 +10,6 @@ let package = Package(
     .executable(name: "tartd", targets: ["tartd"]),
     .executable(name: "tartctl", targets: ["tartctl"]),
     .library(name: "GRPCLib", targets: ["GRPCLib"]),
-    .library(name: "TartLib", targets: ["TartLib"])
   ],
   dependencies: [
     .package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.1"),
@@ -43,43 +42,16 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
   ],
   targets: [
-    .target(name: "TartLib", dependencies: [
-      .product(name: "Algorithms", package: "swift-algorithms"),
-      .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-      .product(name: "ArgumentParser", package: "swift-argument-parser"),
-      .product(name: "Dynamic", package: "Dynamic"),
-      .product(name: "SwiftDate", package: "SwiftDate"),
-      .product(name: "Antlr4Static", package: "Antlr4"),
-      .product(name: "Atomics", package: "swift-atomics"),
-      .product(name: "Sentry", package: "sentry-cocoa"),
-      .product(name: "TextTable", package: "TextTable"),
-      .product(name: "Sysctl", package: "swift-sysctl"),
-      .product(name: "SwiftRadix", package: "SwiftRadix"),
-      .product(name: "Semaphore", package: "Semaphore"),
-      .product(name: "DMRetry", package: "swift-retry"),
-      .product(name: "XAttr", package: "swift-xattr"),
-    ],
-    path: "tart/Sources/tart",
-    exclude: [
-      "Root.swift",
-      "OCI/Reference/Makefile",
-      "OCI/Reference/Reference.g4",
-      "OCI/Reference/Generated/Reference.interp",
-      "OCI/Reference/Generated/Reference.tokens",
-      "OCI/Reference/Generated/ReferenceLexer.interp",
-      "OCI/Reference/Generated/ReferenceLexer.tokens",
-    ]),
     .target(name: "GRPCLib", dependencies: [
       .product(name: "GRPC", package: "grpc-swift")
     ],
-    path: "Sources/Grpc",
+    path: "Sources/grpc",
     exclude: [
       "generate.sh",
       "service.proto",
-      "service.swift",
+      "Service.swift",
     ]),
     .executableTarget(name: "tartd", dependencies: [
-      .target(name: "TartLib"),
       .target(name: "GRPCLib"),
       .product(name: "Algorithms", package: "swift-algorithms"),
       .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
@@ -111,9 +83,24 @@ let package = Package(
       .product(name: "NIOPosix", package: "swift-nio"),
       .product(name: "NIOSSL", package: "swift-nio-ssl"),
       .product(name: "NIOTLS", package: "swift-nio")
+    ],
+    path: "Sources",
+    exclude: [
+      "tartctl",
+      "grpc",
+      "tart/Root.swift",
+      "tart/OCI/Reference/Makefile",
+      "tart/OCI/Reference/Reference.g4",
+      "tart/OCI/Reference/Generated/Reference.interp",
+      "tart/OCI/Reference/Generated/Reference.tokens",
+      "tart/OCI/Reference/Generated/ReferenceLexer.interp",
+      "tart/OCI/Reference/Generated/ReferenceLexer.tokens",
+    ],
+    sources: [
+      "tart",
+      "tartd"
     ]),
     .executableTarget(name: "tartctl", dependencies: [
-      .target(name: "TartLib"),
       .target(name: "GRPCLib"),
       .product(name: "Algorithms", package: "swift-algorithms"),
       .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),

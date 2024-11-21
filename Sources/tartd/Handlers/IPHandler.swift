@@ -1,14 +1,7 @@
 import ArgumentParser
 import Foundation
-import TartLib
 
-enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
-  case dhcp, arp
-
-  private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}
-}
-
-struct IP: TartdCommand {
+struct IPHandler: TartdCommand {
   var name: String
   var wait: UInt16 = 0
   var resolver: IPResolutionStrategy = .dhcp

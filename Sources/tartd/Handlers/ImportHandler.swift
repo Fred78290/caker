@@ -1,6 +1,6 @@
 import Foundation
 
-struct Import: TartdCommand {
+struct ImportHandler: TartdCommand {
   var path: String
   var name: String
 

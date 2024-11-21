@@ -1,6 +1,6 @@
 import Foundation
 
-struct Get: TartdCommand {
+struct GetHandler: TartdCommand {
   var name: String
   var format: Format = .text
 

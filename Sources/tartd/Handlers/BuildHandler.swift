@@ -22,8 +22,8 @@ protocol BuildArguments {
   var diskSize: UInt16 { get }
 }
 
-struct Build: TartdCommand, BuildArguments {
-  var name: String
+struct BuildHandler: TartdCommand, BuildArguments {
+  var name: String = ""
   var cpu: UInt16 = 1
   var memory: UInt64 = 512
   var diskSize: UInt16 = 20
@@ -47,11 +47,13 @@ struct Build: TartdCommand, BuildArguments {
     let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.baseURL)
     try tmpVMDirLock.lock()
 
-    try await withTaskCancellationHandler(operation: {
-      try await VM.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
-      try VMStorageLocal().move(name, from: tmpVMDir)
-    }, onCancel: {
-      try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
-    })
+    try await withTaskCancellationHandler(
+      operation: {
+        try await VMBuilder.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
+        try VMStorageLocal().move(name, from: tmpVMDir)
+      },
+      onCancel: {
+        try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
+      })
   }
 }

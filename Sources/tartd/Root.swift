@@ -2,16 +2,6 @@ import ArgumentParser
 import Darwin
 import Foundation
 
-var defaultLogger: Logger = {
-  public func appendNewLine(_ line: String) {
-    print(line, terminator: "\n")
-  }
-
-  public func updateLastLine(_ line: String) {
-    print(line, terminator: "\n")
-  }
-}()
-
 @main
 struct Root: AsyncParsableCommand {
   static var configuration = CommandConfiguration(

@@ -4,7 +4,10 @@ import ShellOut
 struct Shell {
   static func runTart(command: String, arguments: [String]) throws {
     do {
-      let convertOuput = try shellOut(to: "tart", arguments: [name, arguments...])
+		var args = [command]
+		
+		args += arguments
+      let convertOuput = try shellOut(to: "tart", arguments: args)
       defaultLogger.appendNewLine(convertOuput)
     } catch {
       let error = error as! ShellOutError

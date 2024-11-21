@@ -1,6 +1,6 @@
 import Foundation
 
-struct Suspend: TartdCommand {
+struct SuspendHandler: TartdCommand {
   var name: String
 
   func run() async throws {

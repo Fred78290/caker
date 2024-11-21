@@ -1,7 +1,7 @@
 import Foundation
 
-struct Create: TartdCommand {
-  var name: String
+struct CreateHandler: TartdCommand {
+  var name: String = ""
   var fromIPSW: String?
   var linux: Bool = false
   var diskSize: UInt16 = 50
