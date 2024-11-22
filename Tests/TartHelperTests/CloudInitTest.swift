@@ -1,6 +1,6 @@
 import XCTest
 import ShellOut
-@testable import tart
+@testable import tartd
 
 let networkConfig = 
 """
@@ -57,147 +57,151 @@ runcmd:
 """
 
 final class CloudInitTests: XCTestCase {
-  static let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
-  static let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
+	static let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
+	static let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
 
-  override class func setUp() {
-    do {
-      var networkconfig = networkConfig
-      let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
-      let sharedNetAddressStr = sharedNetAddress[0]+"."+sharedNetAddress[1]+"."+sharedNetAddress[2]+".10"
+	override class func setUp() {
+		do {
+			var networkconfig = networkConfig
+			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
+			let sharedNetAddressStr = sharedNetAddress[0]+"."+sharedNetAddress[1]+"."+sharedNetAddress[2]+".10"
 
-      networkconfig.replace("$$Shared_Net_Address$$", with: sharedNetAddressStr)
-      
-      try networkconfig.data(using: .ascii)?.write(to: networkConfigPath)
-      try userData.data(using: .ascii)?.write(to: userDataPath)
-    } catch {
-       print(error)
-       exit(1)
-    }
-  }
+			networkconfig.replace("$$Shared_Net_Address$$", with: sharedNetAddressStr)
 
-  /*
-  * Assume sudoer
-  */
-  static func getSharedNetAddress() throws -> String {
-    do {
-      return try shellOut(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
-    } catch {
-      let error = error as! ShellOutError
+			try networkconfig.data(using: .ascii)?.write(to: networkConfigPath)
+			try userData.data(using: .ascii)?.write(to: userDataPath)
+		} catch {
+			print(error)
+			exit(1)
+		}
+	}
 
-      defaultLogger.appendNewLine(error.message)
-      defaultLogger.appendNewLine(error.output)
+	/*
+	 * Assume sudoer
+	 */
+	static func getSharedNetAddress() throws -> String {
+		do {
+			return try shellOut(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
+		} catch {
+			let error = error as! ShellOutError
 
-      throw error
-    }
-  }
+			defaultLogger.appendNewLine(error.message)
+			defaultLogger.appendNewLine(error.output)
 
-  /*
-  * Helper to retrieve the correct finger print
-  */
-  static func getFingerPrint(url: URL, product: String) throws -> String{
-    do {
-      return try shellOut(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
-    } catch {
-      let error = error as! ShellOutError
+			throw error
+		}
+	}
 
-      defaultLogger.appendNewLine(error.message)
-      defaultLogger.appendNewLine(error.output)
+	/*
+	 * Helper to retrieve the correct finger print
+	 */
+	static func getFingerPrint(url: URL, product: String) throws -> String{
+		do {
+			return try shellOut(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
+		} catch {
+			let error = error as! ShellOutError
 
-      throw error
-    }
-  }
+			defaultLogger.appendNewLine(error.message)
+			defaultLogger.appendNewLine(error.output)
 
-  func testSimpleStreamsFindImage() async throws {
-    if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
-      let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL)
-      let arch = CurrentArchitecture().rawValue
-      let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
-      let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud")
+			throw error
+		}
+	}
 
-      XCTAssertEqual(image.fingerprint, fingerprint)
+	func testSimpleStreamsFindImage() async throws {
+		if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
+			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL)
+			let arch = CurrentArchitecture().rawValue
+			let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud")
 
-      let temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("alpine.img").absoluteURL
+			XCTAssertEqual(image.fingerprint, fingerprint)
 
-      try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL)
+			let temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("alpine.img").absoluteURL
 
-      print("saved to \(temporaryURL.path())")
+			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL)
 
-      XCTAssert(FileManager.default.fileExists(atPath: temporaryURL.path()), temporaryURL.path())
-    }
-  }
+			print("saved to \(temporaryURL.path())")
 
-  func testBuildVMWithCloudImage() async throws {
-    let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+			XCTAssert(FileManager.default.fileExists(atPath: temporaryURL.path()), temporaryURL.path())
+		}
+	}
 
-    try await VM.buildVM(vmDir: tmpVMDir,
-                         cloudImageURL: URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img")!,
-                         cpu: 1,
-                         memory: 512,
-                         diskSizeGB: 10,
-                         userName: "admin",
-                         insecure: true,
-                         sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-                         vendorData: nil,
-                         userData: CloudInitTests.userDataPath.path(),
-                         networkConfig: CloudInitTests.networkConfigPath.path())
+	func testBuildVMWithCloudImage() async throws {
+		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
-      try VMStorageLocal().move("noble-cloud-image", from: tmpVMDir)
-  }
+		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
+									vmDir: tmpVMDir,
+									cloudImageURL: URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img")!,
+									cpu: 1,
+									memory: 512,
+									diskSizeGB: 10,
+									userName: "admin",
+									insecure: true,
+									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
+									vendorData: nil,
+									userData: CloudInitTests.userDataPath.path(),
+									networkConfig: CloudInitTests.networkConfigPath.path())
 
-  func testBuildVMWithOCI() async throws {
-    let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		try VMStorageLocal().move("noble-cloud-image", from: tmpVMDir)
+	}
 
-    try await VM.buildVM(vmDir: tmpVMDir,
-                         ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
-                         cpu: 1,
-                         memory: 512,
-                         diskSizeGB: 10,
-                         userName: "admin",
-                         insecure: true,
-                         sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-                         vendorData: nil,
-                         userData: CloudInitTests.userDataPath.path(),
-                         networkConfig: CloudInitTests.networkConfigPath.path())
+	func testBuildVMWithOCI() async throws {
+		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
-      try VMStorageLocal().move("noble-oci-image", from: tmpVMDir)
-  }
+		try await VMBuilder.buildVM(vmName: tmpVMDir.name,,
+									vmDir: tmpVMDir,
+									ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
+									cpu: 1,
+									memory: 512,
+									diskSizeGB: 10,
+									userName: "admin",
+									insecure: true,
+									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
+									vendorData: nil,
+									userData: CloudInitTests.userDataPath.path(),
+									networkConfig: CloudInitTests.networkConfigPath.path())
 
-  func testBuildVMWithContainer() async throws {
-    let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		try VMStorageLocal().move("noble-oci-image", from: tmpVMDir)
+	}
 
-    try await VM.buildVM(vmDir: tmpVMDir,
-                         remoteContainerServer: "https://images.linuxcontainers.org",
-                         aliasImage: "ubuntu/noble/cloud",
-                         cpu: 1,
-                         memory: 512,
-                         diskSizeGB: 10,
-                         userName: "admin",
-                         insecure: true,
-                         sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-                         vendorData: nil,
-                         userData: CloudInitTests.userDataPath.path(),
-                         networkConfig: CloudInitTests.networkConfigPath.path())
+	func testBuildVMWithContainer() async throws {
+		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
-      try VMStorageLocal().move("noble-container-image", from: tmpVMDir)
-  }
+		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
+									vmDir: tmpVMDir,
+									remoteContainerServer: "https://images.linuxcontainers.org",
+									aliasImage: "ubuntu/noble/cloud",
+									cpu: 1,
+									memory: 512,
+									diskSizeGB: 10,
+									userName: "admin",
+									insecure: true,
+									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
+									vendorData: nil,
+									userData: CloudInitTests.userDataPath.path(),
+									networkConfig: CloudInitTests.networkConfigPath.path())
 
-  func testBuildVMWithLXDContainers() async throws {
-    let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		try VMStorageLocal().move("noble-container-image", from: tmpVMDir)
+	}
 
-    try await VM.buildVM(vmDir: tmpVMDir,
-                         remoteContainerServer: "https://cloud-images.ubuntu.com/releases/",
-                         aliasImage: "noble",
-                         cpu: 1,
-                         memory: 512,
-                         diskSizeGB: 10,
-                         userName: "admin",
-                         insecure: true,
-                         sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-                         vendorData: nil,
-                         userData: CloudInitTests.userDataPath.path(),
-                         networkConfig: CloudInitTests.networkConfigPath.path())
+	func testBuildVMWithLXDContainers() async throws {
+		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
-      try VMStorageLocal().move("noble-lxd-image", from: tmpVMDir)
-  }
+		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
+									vmDir: tmpVMDir,
+									remoteContainerServer: "https://cloud-images.ubuntu.com/releases/",
+									aliasImage: "noble",
+									cpu: 1,
+									memory: 512,
+									diskSizeGB: 10,
+									userName: "admin",
+									insecure: true,
+									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
+									vendorData: nil,
+									userData: CloudInitTests.userDataPath.path(),
+									networkConfig: CloudInitTests.networkConfigPath.path())
+
+		try VMStorageLocal().move("noble-lxd-image", from: tmpVMDir)
+	}
 }

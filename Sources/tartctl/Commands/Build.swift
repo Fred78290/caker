@@ -7,93 +7,93 @@ let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
 //let defaultSimpleStreamsServer = "https://cloud-images.ubuntu.com/releases/"
 
 struct Build: GrpcAsyncParsableCommand {
-  static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
+    static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
-  @Argument(help: "VM name")
-  var name: String
+    @Argument(help: "VM name")
+    var name: String
 
-  @Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
-  var cpu: UInt16 = 1
+    @Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
+    var cpu: UInt16 = 1
 
-  @Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
-  var memory: UInt64 = 512
+    @Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+    var memory: UInt64 = 512
 
-  @Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
-  var diskSize: UInt16 = 20
+    @Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+    var diskSize: UInt16 = 20
 
-  @Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
-  var user: String = "admin"
+    @Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
+    var user: String = "admin"
 
-  @Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
-  var mainGroup: String = "adm"
+    @Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
+    var mainGroup: String = "adm"
 
-  @Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
-  var insecure: Bool = false
+    @Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
+    var insecure: Bool = false
 
-  @Option(name: [.long, .customLong("cloud")], help: ArgumentHelp("create a linux VM using a qcow2 cloud-image file or URL", valueName: "path"))
-  var cloudImage: String?
+    @Option(name: [.long, .customLong("cloud")], help: ArgumentHelp("create a linux VM using a qcow2 cloud-image file or URL", valueName: "path"))
+    var cloudImage: String?
 
-  @Option(name: [.long, .customLong("alias")], help: ArgumentHelp("create a linux VM using a linux container cloud-image alias", valueName: "alias"))
-  var aliasImage: String?
+    @Option(name: [.long, .customLong("alias")], help: ArgumentHelp("create a linux VM using a linux container cloud-image alias", valueName: "alias"))
+    var aliasImage: String?
 
-  @Option(name: [.long, .customLong("image")], help: ArgumentHelp("create a linux VM using a raw image file or URL", valueName: "path"))
-  var fromImage: String?
+    @Option(name: [.long, .customLong("image")], help: ArgumentHelp("create a linux VM using a raw image file or URL", valueName: "path"))
+    var fromImage: String?
 
-  @Option(name: [.long, .customLong("oci")], help: ArgumentHelp("create a linux VM using an OCI image", valueName: "path"))
-  var ociImage: String?
+    @Option(name: [.long, .customLong("oci")], help: ArgumentHelp("create a linux VM using an OCI image", valueName: "path"))
+    var ociImage: String?
 
-  @Option(name: [.customLong("remote"), .customShort("r")], help: ArgumentHelp("URL of images linuxcontainer", valueName: "url"))
-  var remoteContainerServer: String = defaultSimpleStreamsServer
+    @Option(name: [.customLong("remote"), .customShort("r")], help: ArgumentHelp("URL of images linuxcontainer", valueName: "url"))
+    var remoteContainerServer: String = defaultSimpleStreamsServer
 
-  @Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
-  var sshAuthorizedKey: String?
+    @Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
+    var sshAuthorizedKey: String?
 
-  @Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
-  var vendorData: String?
+    @Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
+    var vendorData: String?
 
-  @Option(help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "path"))
-  var userData: String?
+    @Option(help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "path"))
+    var userData: String?
 
-  @Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
-  var networkConfig: String?
+    @Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
+    var networkConfig: String?
 
-  func validate() throws {
-    if name.contains("/") {
-      throw ValidationError("\(name) should be a local name")
+    func validate() throws {
+        if name.contains("/") {
+            throw ValidationError("\(name) should be a local name")
+        }
+
+        if fromImage == nil && cloudImage == nil && ociImage == nil && aliasImage == nil{
+            throw ValidationError("Please specify either --from-img url or --cloud-image url or --oci-image url or --alias-image container image!")
+        }
+
+        var count = 0
+
+        if fromImage != nil {
+            count += 1
+        }
+
+        if cloudImage != nil {
+            count += 1
+        }
+
+        if ociImage != nil{
+            count += 1
+        }
+
+        if aliasImage != nil{
+            count += 1
+        }
+
+        if count > 1 {
+            throw ValidationError("--from-img url and --cloud-image url and --oci-image url and --alias-image are mutually exclusive!")
+        }
     }
 
-    if fromImage == nil && cloudImage == nil && ociImage == nil && aliasImage == nil{
-      throw ValidationError("Please specify either --from-img url or --cloud-image url or --oci-image url or --alias-image container image!")
+    mutating func run() async throws {
+        throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    var count = 0
-
-    if fromImage != nil {
-      count += 1
+    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
+        return try await client.build(Tartd_BuildRequest(command: self)).response.get()
     }
-
-    if cloudImage != nil {
-      count += 1
-    }
-
-    if ociImage != nil{
-      count += 1
-    }
-
-    if aliasImage != nil{
-      count += 1
-    }
-
-    if count > 1 {
-      throw ValidationError("--from-img url and --cloud-image url and --oci-image url and --alias-image are mutually exclusive!")
-    }
-  }
-
-  mutating func run() async throws {
-    throw GrpcError(code: 0, reason: "nothing here")
-  }
-
-  mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-    return try await client.build(Tartd_BuildRequest(command: self)).response.get()
-  }
 }

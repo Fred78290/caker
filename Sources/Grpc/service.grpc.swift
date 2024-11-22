@@ -13,543 +13,543 @@ import SwiftProtobuf
 
 /// Usage: instantiate `Tartd_ServiceClient`, then call methods of this protocol to make API calls.
 public protocol Tartd_ServiceClientProtocol: GRPCClient {
-  var serviceName: String { get }
-  var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
+    var serviceName: String { get }
+    var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
 
-  func build(
-    _ request: Tartd_BuildRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_BuildRequest, Tartd_TartReply>
+    func build(
+        _ request: Tartd_BuildRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_BuildRequest, Tartd_TartReply>
 
-  func start(
-    _ request: Tartd_StartRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_StartRequest, Tartd_TartReply>
+    func start(
+        _ request: Tartd_StartRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_StartRequest, Tartd_TartReply>
 
-  func tart(
-    _ request: Tartd_TartRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_TartRequest, Tartd_TartReply>
+    func tart(
+        _ request: Tartd_TartRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_TartRequest, Tartd_TartReply>
 
-  func clone(
-    _ request: Tartd_CloneRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_CloneRequest, Tartd_TartReply>
+    func clone(
+        _ request: Tartd_CloneRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_CloneRequest, Tartd_TartReply>
 
-  func create(
-    _ request: Tartd_CreateRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_CreateRequest, Tartd_TartReply>
+    func create(
+        _ request: Tartd_CreateRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_CreateRequest, Tartd_TartReply>
 
-  func delete(
-    _ request: Tartd_DeleteRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_DeleteRequest, Tartd_TartReply>
+    func delete(
+        _ request: Tartd_DeleteRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_DeleteRequest, Tartd_TartReply>
 
-  func fQN(
-    _ request: Tartd_FqnRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_FqnRequest, Tartd_TartReply>
+    func fQN(
+        _ request: Tartd_FqnRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_FqnRequest, Tartd_TartReply>
 
-  func get(
-    _ request: Tartd_GetRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_GetRequest, Tartd_TartReply>
+    func get(
+        _ request: Tartd_GetRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_GetRequest, Tartd_TartReply>
 
-  func exportVM(
-    _ request: Tartd_ExportRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_ExportRequest, Tartd_TartReply>
+    func exportVM(
+        _ request: Tartd_ExportRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_ExportRequest, Tartd_TartReply>
 
-  func importVM(
-    _ request: Tartd_ImportRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_ImportRequest, Tartd_TartReply>
+    func importVM(
+        _ request: Tartd_ImportRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_ImportRequest, Tartd_TartReply>
 
-  func iP(
-    _ request: Tartd_IPRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_IPRequest, Tartd_TartReply>
+    func iP(
+        _ request: Tartd_IPRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_IPRequest, Tartd_TartReply>
 
-  func launch(
-    _ request: Tartd_LaunchRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_LaunchRequest, Tartd_TartReply>
+    func launch(
+        _ request: Tartd_LaunchRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_LaunchRequest, Tartd_TartReply>
 
-  func list(
-    _ request: Tartd_ListRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_ListRequest, Tartd_TartReply>
+    func list(
+        _ request: Tartd_ListRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_ListRequest, Tartd_TartReply>
 
-  func login(
-    _ request: Tartd_LoginRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_LoginRequest, Tartd_TartReply>
+    func login(
+        _ request: Tartd_LoginRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_LoginRequest, Tartd_TartReply>
 
-  func logout(
-    _ request: Tartd_LogoutRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_LogoutRequest, Tartd_TartReply>
+    func logout(
+        _ request: Tartd_LogoutRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_LogoutRequest, Tartd_TartReply>
 
-  func prune(
-    _ request: Tartd_PruneRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_PruneRequest, Tartd_TartReply>
+    func prune(
+        _ request: Tartd_PruneRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_PruneRequest, Tartd_TartReply>
 
-  func pull(
-    _ request: Tartd_PullRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_PullRequest, Tartd_TartReply>
+    func pull(
+        _ request: Tartd_PullRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_PullRequest, Tartd_TartReply>
 
-  func push(
-    _ request: Tartd_PushRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_PushRequest, Tartd_TartReply>
+    func push(
+        _ request: Tartd_PushRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_PushRequest, Tartd_TartReply>
 
-  func rename(
-    _ request: Tartd_RenameRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_RenameRequest, Tartd_TartReply>
+    func rename(
+        _ request: Tartd_RenameRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_RenameRequest, Tartd_TartReply>
 
-  func runVM(
-    _ request: Tartd_RunRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_RunRequest, Tartd_TartReply>
+    func runVM(
+        _ request: Tartd_RunRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_RunRequest, Tartd_TartReply>
 
-  func set(
-    _ request: Tartd_SetRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_SetRequest, Tartd_TartReply>
+    func set(
+        _ request: Tartd_SetRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_SetRequest, Tartd_TartReply>
 
-  func stop(
-    _ request: Tartd_StopRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_StopRequest, Tartd_TartReply>
+    func stop(
+        _ request: Tartd_StopRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_StopRequest, Tartd_TartReply>
 
-  func suspend(
-    _ request: Tartd_SuspendRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Tartd_SuspendRequest, Tartd_TartReply>
+    func suspend(
+        _ request: Tartd_SuspendRequest,
+        callOptions: CallOptions?
+    ) -> UnaryCall<Tartd_SuspendRequest, Tartd_TartReply>
 }
 
 extension Tartd_ServiceClientProtocol {
-  public var serviceName: String {
-    return "tartd.Service"
-  }
+    public var serviceName: String {
+        return "tartd.Service"
+    }
 
-  /// Sends a greeting
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Build.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func build(
-    _ request: Tartd_BuildRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.build.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeBuildInterceptors() ?? []
-    )
-  }
+    /// Sends a greeting
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Build.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func build(
+        _ request: Tartd_BuildRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.build.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeBuildInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Start
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Start.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func start(
-    _ request: Tartd_StartRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_StartRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
-    )
-  }
+    /// Unary call to Start
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Start.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func start(
+        _ request: Tartd_StartRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_StartRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.start.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStartInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Tart
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Tart.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func tart(
-    _ request: Tartd_TartRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_TartRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.tart.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartInterceptors() ?? []
-    )
-  }
+    /// Unary call to Tart
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Tart.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func tart(
+        _ request: Tartd_TartRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_TartRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.tart.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeTartInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Clone
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Clone.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func clone(
-    _ request: Tartd_CloneRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.clone.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
-    )
-  }
+    /// Unary call to Clone
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Clone.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func clone(
+        _ request: Tartd_CloneRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.clone.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCloneInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Create
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Create.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func create(
-    _ request: Tartd_CreateRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.create.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCreateInterceptors() ?? []
-    )
-  }
+    /// Unary call to Create
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Create.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func create(
+        _ request: Tartd_CreateRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.create.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCreateInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Delete
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Delete.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func delete(
-    _ request: Tartd_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
+    /// Unary call to Delete
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Delete.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func delete(
+        _ request: Tartd_DeleteRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.delete.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to FQN
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to FQN.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func fQN(
-    _ request: Tartd_FqnRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.fQN.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeFQNInterceptors() ?? []
-    )
-  }
+    /// Unary call to FQN
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to FQN.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func fQN(
+        _ request: Tartd_FqnRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.fQN.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeFQNInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Get
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Get.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func get(
-    _ request: Tartd_GetRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_GetRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.get.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetInterceptors() ?? []
-    )
-  }
+    /// Unary call to Get
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Get.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func get(
+        _ request: Tartd_GetRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_GetRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.get.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeGetInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to ExportVM
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to ExportVM.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func exportVM(
-    _ request: Tartd_ExportRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
-    )
-  }
+    /// Unary call to ExportVM
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to ExportVM.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func exportVM(
+        _ request: Tartd_ExportRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to ImportVM
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to ImportVM.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func importVM(
-    _ request: Tartd_ImportRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.importVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
-    )
-  }
+    /// Unary call to ImportVM
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to ImportVM.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func importVM(
+        _ request: Tartd_ImportRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.importVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to IP
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to IP.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func iP(
-    _ request: Tartd_IPRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_IPRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.iP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeIPInterceptors() ?? []
-    )
-  }
+    /// Unary call to IP
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to IP.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func iP(
+        _ request: Tartd_IPRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_IPRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.iP.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeIPInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Launch
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Launch.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func launch(
-    _ request: Tartd_LaunchRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.launch.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
-    )
-  }
+    /// Unary call to Launch
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Launch.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func launch(
+        _ request: Tartd_LaunchRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.launch.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to List
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to List.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func list(
-    _ request: Tartd_ListRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_ListRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
+    /// Unary call to List
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to List.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func list(
+        _ request: Tartd_ListRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_ListRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.list.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeListInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Login
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Login.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func login(
-    _ request: Tartd_LoginRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.login.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
-    )
-  }
+    /// Unary call to Login
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Login.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func login(
+        _ request: Tartd_LoginRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.login.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Logout
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Logout.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func logout(
-    _ request: Tartd_LogoutRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.logout.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
-    )
-  }
+    /// Unary call to Logout
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Logout.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func logout(
+        _ request: Tartd_LogoutRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.logout.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Prune
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Prune.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func prune(
-    _ request: Tartd_PruneRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.prune.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
-    )
-  }
+    /// Unary call to Prune
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Prune.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func prune(
+        _ request: Tartd_PruneRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.prune.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePruneInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Pull
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Pull.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func pull(
-    _ request: Tartd_PullRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_PullRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.pull.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
-    )
-  }
+    /// Unary call to Pull
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Pull.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func pull(
+        _ request: Tartd_PullRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_PullRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.pull.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePullInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Push
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Push.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func push(
-    _ request: Tartd_PushRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_PushRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.push.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePushInterceptors() ?? []
-    )
-  }
+    /// Unary call to Push
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Push.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func push(
+        _ request: Tartd_PushRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_PushRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.push.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePushInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Rename
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Rename.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func rename(
-    _ request: Tartd_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
+    /// Unary call to Rename
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Rename.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func rename(
+        _ request: Tartd_RenameRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.rename.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to RunVM
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to RunVM.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func runVM(
-    _ request: Tartd_RunRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_RunRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.runVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
-    )
-  }
+    /// Unary call to RunVM
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to RunVM.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func runVM(
+        _ request: Tartd_RunRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_RunRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.runVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Set
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Set.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func set(
-    _ request: Tartd_SetRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_SetRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.set.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetInterceptors() ?? []
-    )
-  }
+    /// Unary call to Set
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Set.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func set(
+        _ request: Tartd_SetRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_SetRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.set.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSetInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Stop
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Stop.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func stop(
-    _ request: Tartd_StopRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_StopRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
+    /// Unary call to Stop
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Stop.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func stop(
+        _ request: Tartd_StopRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_StopRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.stop.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStopInterceptors() ?? []
+        )
+    }
 
-  /// Unary call to Suspend
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Suspend.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func suspend(
-    _ request: Tartd_SuspendRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
-    return self.makeUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.suspend.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
-    )
-  }
+    /// Unary call to Suspend
+    ///
+    /// - Parameters:
+    ///   - request: Request to send to Suspend.
+    ///   - callOptions: Call options.
+    /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+    public func suspend(
+        _ request: Tartd_SuspendRequest,
+        callOptions: CallOptions? = nil
+    ) -> UnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
+        return self.makeUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.suspend.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+        )
+    }
 }
 
 @available(*, deprecated)
@@ -557,1901 +557,1901 @@ extension Tartd_ServiceClient: @unchecked Sendable {}
 
 @available(*, deprecated, renamed: "Tartd_ServiceNIOClient")
 public final class Tartd_ServiceClient: Tartd_ServiceClientProtocol {
-  private let lock = Lock()
-  private var _defaultCallOptions: CallOptions
-  private var _interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
-  public let channel: GRPCChannel
-  public var defaultCallOptions: CallOptions {
-    get { self.lock.withLock { return self._defaultCallOptions } }
-    set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }
-  }
-  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
-    get { self.lock.withLock { return self._interceptors } }
-    set { self.lock.withLockVoid { self._interceptors = newValue } }
-  }
+    private let lock = Lock()
+    private var _defaultCallOptions: CallOptions
+    private var _interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
+    public let channel: GRPCChannel
+    public var defaultCallOptions: CallOptions {
+        get { self.lock.withLock { return self._defaultCallOptions } }
+        set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }
+    }
+    public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
+        get { self.lock.withLock { return self._interceptors } }
+        set { self.lock.withLockVoid { self._interceptors = newValue } }
+    }
 
-  /// Creates a client for the tartd.Service service.
-  ///
-  /// - Parameters:
-  ///   - channel: `GRPCChannel` to the service host.
-  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
-  ///   - interceptors: A factory providing interceptors for each RPC.
-  public init(
-    channel: GRPCChannel,
-    defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
-  ) {
-    self.channel = channel
-    self._defaultCallOptions = defaultCallOptions
-    self._interceptors = interceptors
-  }
+    /// Creates a client for the tartd.Service service.
+    ///
+    /// - Parameters:
+    ///   - channel: `GRPCChannel` to the service host.
+    ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+    ///   - interceptors: A factory providing interceptors for each RPC.
+    public init(
+        channel: GRPCChannel,
+        defaultCallOptions: CallOptions = CallOptions(),
+        interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
+    ) {
+        self.channel = channel
+        self._defaultCallOptions = defaultCallOptions
+        self._interceptors = interceptors
+    }
 }
 
 public struct Tartd_ServiceNIOClient: Tartd_ServiceClientProtocol {
-  public var channel: GRPCChannel
-  public var defaultCallOptions: CallOptions
-  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
+    public var channel: GRPCChannel
+    public var defaultCallOptions: CallOptions
+    public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
 
-  /// Creates a client for the tartd.Service service.
-  ///
-  /// - Parameters:
-  ///   - channel: `GRPCChannel` to the service host.
-  ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
-  ///   - interceptors: A factory providing interceptors for each RPC.
-  public init(
-    channel: GRPCChannel,
-    defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
-  ) {
-    self.channel = channel
-    self.defaultCallOptions = defaultCallOptions
-    self.interceptors = interceptors
-  }
+    /// Creates a client for the tartd.Service service.
+    ///
+    /// - Parameters:
+    ///   - channel: `GRPCChannel` to the service host.
+    ///   - defaultCallOptions: Options to use for each service call if the user doesn't provide them.
+    ///   - interceptors: A factory providing interceptors for each RPC.
+    public init(
+        channel: GRPCChannel,
+        defaultCallOptions: CallOptions = CallOptions(),
+        interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
+    ) {
+        self.channel = channel
+        self.defaultCallOptions = defaultCallOptions
+        self.interceptors = interceptors
+    }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Tartd_ServiceAsyncClientProtocol: GRPCClient {
-  static var serviceDescriptor: GRPCServiceDescriptor { get }
-  var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
+    static var serviceDescriptor: GRPCServiceDescriptor { get }
+    var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? { get }
 
-  func makeBuildCall(
-    _ request: Tartd_BuildRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_BuildRequest, Tartd_TartReply>
+    func makeBuildCall(
+        _ request: Tartd_BuildRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_BuildRequest, Tartd_TartReply>
 
-  func makeStartCall(
-    _ request: Tartd_StartRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_StartRequest, Tartd_TartReply>
+    func makeStartCall(
+        _ request: Tartd_StartRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_StartRequest, Tartd_TartReply>
 
-  func makeTartCall(
-    _ request: Tartd_TartRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_TartRequest, Tartd_TartReply>
+    func makeTartCall(
+        _ request: Tartd_TartRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_TartRequest, Tartd_TartReply>
 
-  func makeCloneCall(
-    _ request: Tartd_CloneRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_CloneRequest, Tartd_TartReply>
+    func makeCloneCall(
+        _ request: Tartd_CloneRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_CloneRequest, Tartd_TartReply>
 
-  func makeCreateCall(
-    _ request: Tartd_CreateRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_CreateRequest, Tartd_TartReply>
+    func makeCreateCall(
+        _ request: Tartd_CreateRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_CreateRequest, Tartd_TartReply>
 
-  func makeDeleteCall(
-    _ request: Tartd_DeleteRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_DeleteRequest, Tartd_TartReply>
+    func makeDeleteCall(
+        _ request: Tartd_DeleteRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_DeleteRequest, Tartd_TartReply>
 
-  func makeFqnCall(
-    _ request: Tartd_FqnRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_FqnRequest, Tartd_TartReply>
+    func makeFqnCall(
+        _ request: Tartd_FqnRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_FqnRequest, Tartd_TartReply>
 
-  func makeGetCall(
-    _ request: Tartd_GetRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_GetRequest, Tartd_TartReply>
+    func makeGetCall(
+        _ request: Tartd_GetRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_GetRequest, Tartd_TartReply>
 
-  func makeExportVmCall(
-    _ request: Tartd_ExportRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_ExportRequest, Tartd_TartReply>
+    func makeExportVmCall(
+        _ request: Tartd_ExportRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_ExportRequest, Tartd_TartReply>
 
-  func makeImportVmCall(
-    _ request: Tartd_ImportRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_ImportRequest, Tartd_TartReply>
+    func makeImportVmCall(
+        _ request: Tartd_ImportRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_ImportRequest, Tartd_TartReply>
 
-  func makeIpCall(
-    _ request: Tartd_IPRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_IPRequest, Tartd_TartReply>
+    func makeIpCall(
+        _ request: Tartd_IPRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_IPRequest, Tartd_TartReply>
 
-  func makeLaunchCall(
-    _ request: Tartd_LaunchRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_LaunchRequest, Tartd_TartReply>
+    func makeLaunchCall(
+        _ request: Tartd_LaunchRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_LaunchRequest, Tartd_TartReply>
 
-  func makeListCall(
-    _ request: Tartd_ListRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_ListRequest, Tartd_TartReply>
+    func makeListCall(
+        _ request: Tartd_ListRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_ListRequest, Tartd_TartReply>
 
-  func makeLoginCall(
-    _ request: Tartd_LoginRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_LoginRequest, Tartd_TartReply>
+    func makeLoginCall(
+        _ request: Tartd_LoginRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_LoginRequest, Tartd_TartReply>
 
-  func makeLogoutCall(
-    _ request: Tartd_LogoutRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_LogoutRequest, Tartd_TartReply>
+    func makeLogoutCall(
+        _ request: Tartd_LogoutRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_LogoutRequest, Tartd_TartReply>
 
-  func makePruneCall(
-    _ request: Tartd_PruneRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_PruneRequest, Tartd_TartReply>
+    func makePruneCall(
+        _ request: Tartd_PruneRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_PruneRequest, Tartd_TartReply>
 
-  func makePullCall(
-    _ request: Tartd_PullRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_PullRequest, Tartd_TartReply>
+    func makePullCall(
+        _ request: Tartd_PullRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_PullRequest, Tartd_TartReply>
 
-  func makePushCall(
-    _ request: Tartd_PushRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_PushRequest, Tartd_TartReply>
+    func makePushCall(
+        _ request: Tartd_PushRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_PushRequest, Tartd_TartReply>
 
-  func makeRenameCall(
-    _ request: Tartd_RenameRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_RenameRequest, Tartd_TartReply>
+    func makeRenameCall(
+        _ request: Tartd_RenameRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_RenameRequest, Tartd_TartReply>
 
-  func makeRunVmCall(
-    _ request: Tartd_RunRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_RunRequest, Tartd_TartReply>
+    func makeRunVmCall(
+        _ request: Tartd_RunRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_RunRequest, Tartd_TartReply>
 
-  func makeSetCall(
-    _ request: Tartd_SetRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_SetRequest, Tartd_TartReply>
+    func makeSetCall(
+        _ request: Tartd_SetRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_SetRequest, Tartd_TartReply>
 
-  func makeStopCall(
-    _ request: Tartd_StopRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_StopRequest, Tartd_TartReply>
+    func makeStopCall(
+        _ request: Tartd_StopRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_StopRequest, Tartd_TartReply>
 
-  func makeSuspendCall(
-    _ request: Tartd_SuspendRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tartd_SuspendRequest, Tartd_TartReply>
+    func makeSuspendCall(
+        _ request: Tartd_SuspendRequest,
+        callOptions: CallOptions?
+    ) -> GRPCAsyncUnaryCall<Tartd_SuspendRequest, Tartd_TartReply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncClientProtocol {
-  public static var serviceDescriptor: GRPCServiceDescriptor {
-    return Tartd_ServiceClientMetadata.serviceDescriptor
-  }
+    public static var serviceDescriptor: GRPCServiceDescriptor {
+        return Tartd_ServiceClientMetadata.serviceDescriptor
+    }
 
-  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
-    return nil
-  }
+    public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? {
+        return nil
+    }
 
-  public func makeBuildCall(
-    _ request: Tartd_BuildRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.build.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeBuildInterceptors() ?? []
-    )
-  }
+    public func makeBuildCall(
+        _ request: Tartd_BuildRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_BuildRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.build.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeBuildInterceptors() ?? []
+        )
+    }
 
-  public func makeStartCall(
-    _ request: Tartd_StartRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_StartRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
-    )
-  }
+    public func makeStartCall(
+        _ request: Tartd_StartRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_StartRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.start.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStartInterceptors() ?? []
+        )
+    }
 
-  public func makeTartCall(
-    _ request: Tartd_TartRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_TartRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.tart.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartInterceptors() ?? []
-    )
-  }
+    public func makeTartCall(
+        _ request: Tartd_TartRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_TartRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.tart.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeTartInterceptors() ?? []
+        )
+    }
 
-  public func makeCloneCall(
-    _ request: Tartd_CloneRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.clone.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
-    )
-  }
+    public func makeCloneCall(
+        _ request: Tartd_CloneRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_CloneRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.clone.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCloneInterceptors() ?? []
+        )
+    }
 
-  public func makeCreateCall(
-    _ request: Tartd_CreateRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.create.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCreateInterceptors() ?? []
-    )
-  }
+    public func makeCreateCall(
+        _ request: Tartd_CreateRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_CreateRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.create.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCreateInterceptors() ?? []
+        )
+    }
 
-  public func makeDeleteCall(
-    _ request: Tartd_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
+    public func makeDeleteCall(
+        _ request: Tartd_DeleteRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_DeleteRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.delete.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+        )
+    }
 
-  public func makeFqnCall(
-    _ request: Tartd_FqnRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.fQN.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeFQNInterceptors() ?? []
-    )
-  }
+    public func makeFqnCall(
+        _ request: Tartd_FqnRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_FqnRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.fQN.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeFQNInterceptors() ?? []
+        )
+    }
 
-  public func makeGetCall(
-    _ request: Tartd_GetRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_GetRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.get.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetInterceptors() ?? []
-    )
-  }
+    public func makeGetCall(
+        _ request: Tartd_GetRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_GetRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.get.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeGetInterceptors() ?? []
+        )
+    }
 
-  public func makeExportVmCall(
-    _ request: Tartd_ExportRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
-    )
-  }
+    public func makeExportVmCall(
+        _ request: Tartd_ExportRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_ExportRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
+        )
+    }
 
-  public func makeImportVmCall(
-    _ request: Tartd_ImportRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.importVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
-    )
-  }
+    public func makeImportVmCall(
+        _ request: Tartd_ImportRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_ImportRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.importVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
+        )
+    }
 
-  public func makeIpCall(
-    _ request: Tartd_IPRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_IPRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.iP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeIPInterceptors() ?? []
-    )
-  }
+    public func makeIpCall(
+        _ request: Tartd_IPRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_IPRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.iP.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeIPInterceptors() ?? []
+        )
+    }
 
-  public func makeLaunchCall(
-    _ request: Tartd_LaunchRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.launch.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
-    )
-  }
+    public func makeLaunchCall(
+        _ request: Tartd_LaunchRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_LaunchRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.launch.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
+        )
+    }
 
-  public func makeListCall(
-    _ request: Tartd_ListRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_ListRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
+    public func makeListCall(
+        _ request: Tartd_ListRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_ListRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.list.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeListInterceptors() ?? []
+        )
+    }
 
-  public func makeLoginCall(
-    _ request: Tartd_LoginRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.login.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
-    )
-  }
+    public func makeLoginCall(
+        _ request: Tartd_LoginRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_LoginRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.login.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+        )
+    }
 
-  public func makeLogoutCall(
-    _ request: Tartd_LogoutRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.logout.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
-    )
-  }
+    public func makeLogoutCall(
+        _ request: Tartd_LogoutRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_LogoutRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.logout.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
+        )
+    }
 
-  public func makePruneCall(
-    _ request: Tartd_PruneRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.prune.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
-    )
-  }
+    public func makePruneCall(
+        _ request: Tartd_PruneRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_PruneRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.prune.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePruneInterceptors() ?? []
+        )
+    }
 
-  public func makePullCall(
-    _ request: Tartd_PullRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_PullRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.pull.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
-    )
-  }
+    public func makePullCall(
+        _ request: Tartd_PullRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_PullRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.pull.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePullInterceptors() ?? []
+        )
+    }
 
-  public func makePushCall(
-    _ request: Tartd_PushRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_PushRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.push.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePushInterceptors() ?? []
-    )
-  }
+    public func makePushCall(
+        _ request: Tartd_PushRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_PushRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.push.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePushInterceptors() ?? []
+        )
+    }
 
-  public func makeRenameCall(
-    _ request: Tartd_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
+    public func makeRenameCall(
+        _ request: Tartd_RenameRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_RenameRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.rename.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+        )
+    }
 
-  public func makeRunVmCall(
-    _ request: Tartd_RunRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_RunRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.runVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
-    )
-  }
+    public func makeRunVmCall(
+        _ request: Tartd_RunRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_RunRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.runVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
+        )
+    }
 
-  public func makeSetCall(
-    _ request: Tartd_SetRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_SetRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.set.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetInterceptors() ?? []
-    )
-  }
+    public func makeSetCall(
+        _ request: Tartd_SetRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_SetRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.set.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSetInterceptors() ?? []
+        )
+    }
 
-  public func makeStopCall(
-    _ request: Tartd_StopRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_StopRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
+    public func makeStopCall(
+        _ request: Tartd_StopRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_StopRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.stop.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStopInterceptors() ?? []
+        )
+    }
 
-  public func makeSuspendCall(
-    _ request: Tartd_SuspendRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
-    return self.makeAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.suspend.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
-    )
-  }
+    public func makeSuspendCall(
+        _ request: Tartd_SuspendRequest,
+        callOptions: CallOptions? = nil
+    ) -> GRPCAsyncUnaryCall<Tartd_SuspendRequest, Tartd_TartReply> {
+        return self.makeAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.suspend.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+        )
+    }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncClientProtocol {
-  public func build(
-    _ request: Tartd_BuildRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.build.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeBuildInterceptors() ?? []
-    )
-  }
+    public func build(
+        _ request: Tartd_BuildRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.build.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeBuildInterceptors() ?? []
+        )
+    }
 
-  public func start(
-    _ request: Tartd_StartRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
-    )
-  }
+    public func start(
+        _ request: Tartd_StartRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.start.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStartInterceptors() ?? []
+        )
+    }
 
-  public func tart(
-    _ request: Tartd_TartRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.tart.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartInterceptors() ?? []
-    )
-  }
+    public func tart(
+        _ request: Tartd_TartRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.tart.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeTartInterceptors() ?? []
+        )
+    }
 
-  public func clone(
-    _ request: Tartd_CloneRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.clone.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
-    )
-  }
+    public func clone(
+        _ request: Tartd_CloneRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.clone.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCloneInterceptors() ?? []
+        )
+    }
 
-  public func create(
-    _ request: Tartd_CreateRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.create.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCreateInterceptors() ?? []
-    )
-  }
+    public func create(
+        _ request: Tartd_CreateRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.create.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeCreateInterceptors() ?? []
+        )
+    }
 
-  public func delete(
-    _ request: Tartd_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
+    public func delete(
+        _ request: Tartd_DeleteRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.delete.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+        )
+    }
 
-  public func fQN(
-    _ request: Tartd_FqnRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.fQN.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeFQNInterceptors() ?? []
-    )
-  }
+    public func fQN(
+        _ request: Tartd_FqnRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.fQN.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeFQNInterceptors() ?? []
+        )
+    }
 
-  public func get(
-    _ request: Tartd_GetRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.get.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeGetInterceptors() ?? []
-    )
-  }
+    public func get(
+        _ request: Tartd_GetRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.get.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeGetInterceptors() ?? []
+        )
+    }
 
-  public func exportVM(
-    _ request: Tartd_ExportRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
-    )
-  }
+    public func exportVM(
+        _ request: Tartd_ExportRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.exportVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeExportVMInterceptors() ?? []
+        )
+    }
 
-  public func importVM(
-    _ request: Tartd_ImportRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.importVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
-    )
-  }
+    public func importVM(
+        _ request: Tartd_ImportRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.importVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeImportVMInterceptors() ?? []
+        )
+    }
 
-  public func iP(
-    _ request: Tartd_IPRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.iP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeIPInterceptors() ?? []
-    )
-  }
+    public func iP(
+        _ request: Tartd_IPRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.iP.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeIPInterceptors() ?? []
+        )
+    }
 
-  public func launch(
-    _ request: Tartd_LaunchRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.launch.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
-    )
-  }
+    public func launch(
+        _ request: Tartd_LaunchRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.launch.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
+        )
+    }
 
-  public func list(
-    _ request: Tartd_ListRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
+    public func list(
+        _ request: Tartd_ListRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.list.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeListInterceptors() ?? []
+        )
+    }
 
-  public func login(
-    _ request: Tartd_LoginRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.login.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
-    )
-  }
+    public func login(
+        _ request: Tartd_LoginRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.login.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+        )
+    }
 
-  public func logout(
-    _ request: Tartd_LogoutRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.logout.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
-    )
-  }
+    public func logout(
+        _ request: Tartd_LogoutRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.logout.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
+        )
+    }
 
-  public func prune(
-    _ request: Tartd_PruneRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.prune.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
-    )
-  }
+    public func prune(
+        _ request: Tartd_PruneRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.prune.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePruneInterceptors() ?? []
+        )
+    }
 
-  public func pull(
-    _ request: Tartd_PullRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.pull.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
-    )
-  }
+    public func pull(
+        _ request: Tartd_PullRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.pull.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePullInterceptors() ?? []
+        )
+    }
 
-  public func push(
-    _ request: Tartd_PushRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.push.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePushInterceptors() ?? []
-    )
-  }
+    public func push(
+        _ request: Tartd_PushRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.push.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makePushInterceptors() ?? []
+        )
+    }
 
-  public func rename(
-    _ request: Tartd_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
+    public func rename(
+        _ request: Tartd_RenameRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.rename.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+        )
+    }
 
-  public func runVM(
-    _ request: Tartd_RunRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.runVM.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
-    )
-  }
+    public func runVM(
+        _ request: Tartd_RunRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.runVM.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeRunVMInterceptors() ?? []
+        )
+    }
 
-  public func set(
-    _ request: Tartd_SetRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.set.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSetInterceptors() ?? []
-    )
-  }
+    public func set(
+        _ request: Tartd_SetRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.set.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSetInterceptors() ?? []
+        )
+    }
 
-  public func stop(
-    _ request: Tartd_StopRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
+    public func stop(
+        _ request: Tartd_StopRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.stop.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeStopInterceptors() ?? []
+        )
+    }
 
-  public func suspend(
-    _ request: Tartd_SuspendRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Tartd_TartReply {
-    return try await self.performAsyncUnaryCall(
-      path: Tartd_ServiceClientMetadata.Methods.suspend.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
-    )
-  }
+    public func suspend(
+        _ request: Tartd_SuspendRequest,
+        callOptions: CallOptions? = nil
+    ) async throws -> Tartd_TartReply {
+        return try await self.performAsyncUnaryCall(
+            path: Tartd_ServiceClientMetadata.Methods.suspend.path,
+            request: request,
+            callOptions: callOptions ?? self.defaultCallOptions,
+            interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+        )
+    }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public struct Tartd_ServiceAsyncClient: Tartd_ServiceAsyncClientProtocol {
-  public var channel: GRPCChannel
-  public var defaultCallOptions: CallOptions
-  public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
+    public var channel: GRPCChannel
+    public var defaultCallOptions: CallOptions
+    public var interceptors: Tartd_ServiceClientInterceptorFactoryProtocol?
 
-  public init(
-    channel: GRPCChannel,
-    defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
-  ) {
-    self.channel = channel
-    self.defaultCallOptions = defaultCallOptions
-    self.interceptors = interceptors
-  }
+    public init(
+        channel: GRPCChannel,
+        defaultCallOptions: CallOptions = CallOptions(),
+        interceptors: Tartd_ServiceClientInterceptorFactoryProtocol? = nil
+    ) {
+        self.channel = channel
+        self.defaultCallOptions = defaultCallOptions
+        self.interceptors = interceptors
+    }
 }
 
 public protocol Tartd_ServiceClientInterceptorFactoryProtocol: Sendable {
 
-  /// - Returns: Interceptors to use when invoking 'build'.
-  func makeBuildInterceptors() -> [ClientInterceptor<Tartd_BuildRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'build'.
+    func makeBuildInterceptors() -> [ClientInterceptor<Tartd_BuildRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'start'.
-  func makeStartInterceptors() -> [ClientInterceptor<Tartd_StartRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'start'.
+    func makeStartInterceptors() -> [ClientInterceptor<Tartd_StartRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'tart'.
-  func makeTartInterceptors() -> [ClientInterceptor<Tartd_TartRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'tart'.
+    func makeTartInterceptors() -> [ClientInterceptor<Tartd_TartRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'clone'.
-  func makeCloneInterceptors() -> [ClientInterceptor<Tartd_CloneRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'clone'.
+    func makeCloneInterceptors() -> [ClientInterceptor<Tartd_CloneRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'create'.
-  func makeCreateInterceptors() -> [ClientInterceptor<Tartd_CreateRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'create'.
+    func makeCreateInterceptors() -> [ClientInterceptor<Tartd_CreateRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'delete'.
-  func makeDeleteInterceptors() -> [ClientInterceptor<Tartd_DeleteRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'delete'.
+    func makeDeleteInterceptors() -> [ClientInterceptor<Tartd_DeleteRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'fQN'.
-  func makeFQNInterceptors() -> [ClientInterceptor<Tartd_FqnRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'fQN'.
+    func makeFQNInterceptors() -> [ClientInterceptor<Tartd_FqnRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'get'.
-  func makeGetInterceptors() -> [ClientInterceptor<Tartd_GetRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'get'.
+    func makeGetInterceptors() -> [ClientInterceptor<Tartd_GetRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'exportVM'.
-  func makeExportVMInterceptors() -> [ClientInterceptor<Tartd_ExportRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'exportVM'.
+    func makeExportVMInterceptors() -> [ClientInterceptor<Tartd_ExportRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'importVM'.
-  func makeImportVMInterceptors() -> [ClientInterceptor<Tartd_ImportRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'importVM'.
+    func makeImportVMInterceptors() -> [ClientInterceptor<Tartd_ImportRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'iP'.
-  func makeIPInterceptors() -> [ClientInterceptor<Tartd_IPRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'iP'.
+    func makeIPInterceptors() -> [ClientInterceptor<Tartd_IPRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'launch'.
-  func makeLaunchInterceptors() -> [ClientInterceptor<Tartd_LaunchRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'launch'.
+    func makeLaunchInterceptors() -> [ClientInterceptor<Tartd_LaunchRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'list'.
-  func makeListInterceptors() -> [ClientInterceptor<Tartd_ListRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'list'.
+    func makeListInterceptors() -> [ClientInterceptor<Tartd_ListRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'login'.
-  func makeLoginInterceptors() -> [ClientInterceptor<Tartd_LoginRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'login'.
+    func makeLoginInterceptors() -> [ClientInterceptor<Tartd_LoginRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'logout'.
-  func makeLogoutInterceptors() -> [ClientInterceptor<Tartd_LogoutRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'logout'.
+    func makeLogoutInterceptors() -> [ClientInterceptor<Tartd_LogoutRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'prune'.
-  func makePruneInterceptors() -> [ClientInterceptor<Tartd_PruneRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'prune'.
+    func makePruneInterceptors() -> [ClientInterceptor<Tartd_PruneRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'pull'.
-  func makePullInterceptors() -> [ClientInterceptor<Tartd_PullRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'pull'.
+    func makePullInterceptors() -> [ClientInterceptor<Tartd_PullRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'push'.
-  func makePushInterceptors() -> [ClientInterceptor<Tartd_PushRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'push'.
+    func makePushInterceptors() -> [ClientInterceptor<Tartd_PushRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'rename'.
-  func makeRenameInterceptors() -> [ClientInterceptor<Tartd_RenameRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'rename'.
+    func makeRenameInterceptors() -> [ClientInterceptor<Tartd_RenameRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'runVM'.
-  func makeRunVMInterceptors() -> [ClientInterceptor<Tartd_RunRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'runVM'.
+    func makeRunVMInterceptors() -> [ClientInterceptor<Tartd_RunRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'set'.
-  func makeSetInterceptors() -> [ClientInterceptor<Tartd_SetRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'set'.
+    func makeSetInterceptors() -> [ClientInterceptor<Tartd_SetRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'stop'.
-  func makeStopInterceptors() -> [ClientInterceptor<Tartd_StopRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'stop'.
+    func makeStopInterceptors() -> [ClientInterceptor<Tartd_StopRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when invoking 'suspend'.
-  func makeSuspendInterceptors() -> [ClientInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when invoking 'suspend'.
+    func makeSuspendInterceptors() -> [ClientInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
 }
 
 public enum Tartd_ServiceClientMetadata {
-  public static let serviceDescriptor = GRPCServiceDescriptor(
-    name: "Service",
-    fullName: "tartd.Service",
-    methods: [
-      Tartd_ServiceClientMetadata.Methods.build,
-      Tartd_ServiceClientMetadata.Methods.start,
-      Tartd_ServiceClientMetadata.Methods.tart,
-      Tartd_ServiceClientMetadata.Methods.clone,
-      Tartd_ServiceClientMetadata.Methods.create,
-      Tartd_ServiceClientMetadata.Methods.delete,
-      Tartd_ServiceClientMetadata.Methods.fQN,
-      Tartd_ServiceClientMetadata.Methods.get,
-      Tartd_ServiceClientMetadata.Methods.exportVM,
-      Tartd_ServiceClientMetadata.Methods.importVM,
-      Tartd_ServiceClientMetadata.Methods.iP,
-      Tartd_ServiceClientMetadata.Methods.launch,
-      Tartd_ServiceClientMetadata.Methods.list,
-      Tartd_ServiceClientMetadata.Methods.login,
-      Tartd_ServiceClientMetadata.Methods.logout,
-      Tartd_ServiceClientMetadata.Methods.prune,
-      Tartd_ServiceClientMetadata.Methods.pull,
-      Tartd_ServiceClientMetadata.Methods.push,
-      Tartd_ServiceClientMetadata.Methods.rename,
-      Tartd_ServiceClientMetadata.Methods.runVM,
-      Tartd_ServiceClientMetadata.Methods.set,
-      Tartd_ServiceClientMetadata.Methods.stop,
-      Tartd_ServiceClientMetadata.Methods.suspend,
-    ]
-  )
-
-  public enum Methods {
-    public static let build = GRPCMethodDescriptor(
-      name: "Build",
-      path: "/tartd.Service/Build",
-      type: GRPCCallType.unary
+    public static let serviceDescriptor = GRPCServiceDescriptor(
+        name: "Service",
+        fullName: "tartd.Service",
+        methods: [
+            Tartd_ServiceClientMetadata.Methods.build,
+            Tartd_ServiceClientMetadata.Methods.start,
+            Tartd_ServiceClientMetadata.Methods.tart,
+            Tartd_ServiceClientMetadata.Methods.clone,
+            Tartd_ServiceClientMetadata.Methods.create,
+            Tartd_ServiceClientMetadata.Methods.delete,
+            Tartd_ServiceClientMetadata.Methods.fQN,
+            Tartd_ServiceClientMetadata.Methods.get,
+            Tartd_ServiceClientMetadata.Methods.exportVM,
+            Tartd_ServiceClientMetadata.Methods.importVM,
+            Tartd_ServiceClientMetadata.Methods.iP,
+            Tartd_ServiceClientMetadata.Methods.launch,
+            Tartd_ServiceClientMetadata.Methods.list,
+            Tartd_ServiceClientMetadata.Methods.login,
+            Tartd_ServiceClientMetadata.Methods.logout,
+            Tartd_ServiceClientMetadata.Methods.prune,
+            Tartd_ServiceClientMetadata.Methods.pull,
+            Tartd_ServiceClientMetadata.Methods.push,
+            Tartd_ServiceClientMetadata.Methods.rename,
+            Tartd_ServiceClientMetadata.Methods.runVM,
+            Tartd_ServiceClientMetadata.Methods.set,
+            Tartd_ServiceClientMetadata.Methods.stop,
+            Tartd_ServiceClientMetadata.Methods.suspend,
+        ]
     )
 
-    public static let start = GRPCMethodDescriptor(
-      name: "Start",
-      path: "/tartd.Service/Start",
-      type: GRPCCallType.unary
-    )
+    public enum Methods {
+        public static let build = GRPCMethodDescriptor(
+            name: "Build",
+            path: "/tartd.Service/Build",
+            type: GRPCCallType.unary
+        )
 
-    public static let tart = GRPCMethodDescriptor(
-      name: "Tart",
-      path: "/tartd.Service/Tart",
-      type: GRPCCallType.unary
-    )
+        public static let start = GRPCMethodDescriptor(
+            name: "Start",
+            path: "/tartd.Service/Start",
+            type: GRPCCallType.unary
+        )
 
-    public static let clone = GRPCMethodDescriptor(
-      name: "Clone",
-      path: "/tartd.Service/Clone",
-      type: GRPCCallType.unary
-    )
+        public static let tart = GRPCMethodDescriptor(
+            name: "Tart",
+            path: "/tartd.Service/Tart",
+            type: GRPCCallType.unary
+        )
 
-    public static let create = GRPCMethodDescriptor(
-      name: "Create",
-      path: "/tartd.Service/Create",
-      type: GRPCCallType.unary
-    )
+        public static let clone = GRPCMethodDescriptor(
+            name: "Clone",
+            path: "/tartd.Service/Clone",
+            type: GRPCCallType.unary
+        )
 
-    public static let delete = GRPCMethodDescriptor(
-      name: "Delete",
-      path: "/tartd.Service/Delete",
-      type: GRPCCallType.unary
-    )
+        public static let create = GRPCMethodDescriptor(
+            name: "Create",
+            path: "/tartd.Service/Create",
+            type: GRPCCallType.unary
+        )
 
-    public static let fQN = GRPCMethodDescriptor(
-      name: "FQN",
-      path: "/tartd.Service/FQN",
-      type: GRPCCallType.unary
-    )
+        public static let delete = GRPCMethodDescriptor(
+            name: "Delete",
+            path: "/tartd.Service/Delete",
+            type: GRPCCallType.unary
+        )
 
-    public static let get = GRPCMethodDescriptor(
-      name: "Get",
-      path: "/tartd.Service/Get",
-      type: GRPCCallType.unary
-    )
+        public static let fQN = GRPCMethodDescriptor(
+            name: "FQN",
+            path: "/tartd.Service/FQN",
+            type: GRPCCallType.unary
+        )
 
-    public static let exportVM = GRPCMethodDescriptor(
-      name: "ExportVM",
-      path: "/tartd.Service/ExportVM",
-      type: GRPCCallType.unary
-    )
+        public static let get = GRPCMethodDescriptor(
+            name: "Get",
+            path: "/tartd.Service/Get",
+            type: GRPCCallType.unary
+        )
 
-    public static let importVM = GRPCMethodDescriptor(
-      name: "ImportVM",
-      path: "/tartd.Service/ImportVM",
-      type: GRPCCallType.unary
-    )
+        public static let exportVM = GRPCMethodDescriptor(
+            name: "ExportVM",
+            path: "/tartd.Service/ExportVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let iP = GRPCMethodDescriptor(
-      name: "IP",
-      path: "/tartd.Service/IP",
-      type: GRPCCallType.unary
-    )
+        public static let importVM = GRPCMethodDescriptor(
+            name: "ImportVM",
+            path: "/tartd.Service/ImportVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let launch = GRPCMethodDescriptor(
-      name: "Launch",
-      path: "/tartd.Service/Launch",
-      type: GRPCCallType.unary
-    )
+        public static let iP = GRPCMethodDescriptor(
+            name: "IP",
+            path: "/tartd.Service/IP",
+            type: GRPCCallType.unary
+        )
 
-    public static let list = GRPCMethodDescriptor(
-      name: "List",
-      path: "/tartd.Service/List",
-      type: GRPCCallType.unary
-    )
+        public static let launch = GRPCMethodDescriptor(
+            name: "Launch",
+            path: "/tartd.Service/Launch",
+            type: GRPCCallType.unary
+        )
 
-    public static let login = GRPCMethodDescriptor(
-      name: "Login",
-      path: "/tartd.Service/Login",
-      type: GRPCCallType.unary
-    )
+        public static let list = GRPCMethodDescriptor(
+            name: "List",
+            path: "/tartd.Service/List",
+            type: GRPCCallType.unary
+        )
 
-    public static let logout = GRPCMethodDescriptor(
-      name: "Logout",
-      path: "/tartd.Service/Logout",
-      type: GRPCCallType.unary
-    )
+        public static let login = GRPCMethodDescriptor(
+            name: "Login",
+            path: "/tartd.Service/Login",
+            type: GRPCCallType.unary
+        )
 
-    public static let prune = GRPCMethodDescriptor(
-      name: "Prune",
-      path: "/tartd.Service/Prune",
-      type: GRPCCallType.unary
-    )
+        public static let logout = GRPCMethodDescriptor(
+            name: "Logout",
+            path: "/tartd.Service/Logout",
+            type: GRPCCallType.unary
+        )
 
-    public static let pull = GRPCMethodDescriptor(
-      name: "Pull",
-      path: "/tartd.Service/Pull",
-      type: GRPCCallType.unary
-    )
+        public static let prune = GRPCMethodDescriptor(
+            name: "Prune",
+            path: "/tartd.Service/Prune",
+            type: GRPCCallType.unary
+        )
 
-    public static let push = GRPCMethodDescriptor(
-      name: "Push",
-      path: "/tartd.Service/Push",
-      type: GRPCCallType.unary
-    )
+        public static let pull = GRPCMethodDescriptor(
+            name: "Pull",
+            path: "/tartd.Service/Pull",
+            type: GRPCCallType.unary
+        )
 
-    public static let rename = GRPCMethodDescriptor(
-      name: "Rename",
-      path: "/tartd.Service/Rename",
-      type: GRPCCallType.unary
-    )
+        public static let push = GRPCMethodDescriptor(
+            name: "Push",
+            path: "/tartd.Service/Push",
+            type: GRPCCallType.unary
+        )
 
-    public static let runVM = GRPCMethodDescriptor(
-      name: "RunVM",
-      path: "/tartd.Service/RunVM",
-      type: GRPCCallType.unary
-    )
+        public static let rename = GRPCMethodDescriptor(
+            name: "Rename",
+            path: "/tartd.Service/Rename",
+            type: GRPCCallType.unary
+        )
 
-    public static let set = GRPCMethodDescriptor(
-      name: "Set",
-      path: "/tartd.Service/Set",
-      type: GRPCCallType.unary
-    )
+        public static let runVM = GRPCMethodDescriptor(
+            name: "RunVM",
+            path: "/tartd.Service/RunVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let stop = GRPCMethodDescriptor(
-      name: "Stop",
-      path: "/tartd.Service/Stop",
-      type: GRPCCallType.unary
-    )
+        public static let set = GRPCMethodDescriptor(
+            name: "Set",
+            path: "/tartd.Service/Set",
+            type: GRPCCallType.unary
+        )
 
-    public static let suspend = GRPCMethodDescriptor(
-      name: "Suspend",
-      path: "/tartd.Service/Suspend",
-      type: GRPCCallType.unary
-    )
-  }
+        public static let stop = GRPCMethodDescriptor(
+            name: "Stop",
+            path: "/tartd.Service/Stop",
+            type: GRPCCallType.unary
+        )
+
+        public static let suspend = GRPCMethodDescriptor(
+            name: "Suspend",
+            path: "/tartd.Service/Suspend",
+            type: GRPCCallType.unary
+        )
+    }
 }
 
 /// To build a server, implement a class that conforms to this protocol.
 public protocol Tartd_ServiceProvider: CallHandlerProvider {
-  var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
+    var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
 
-  /// Sends a greeting
-  func build(request: Tartd_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    /// Sends a greeting
+    func build(request: Tartd_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func start(request: Tartd_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func start(request: Tartd_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func tart(request: Tartd_TartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func tart(request: Tartd_TartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func clone(request: Tartd_CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func clone(request: Tartd_CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func create(request: Tartd_CreateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func create(request: Tartd_CreateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func delete(request: Tartd_DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func delete(request: Tartd_DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func fQN(request: Tartd_FqnRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func fQN(request: Tartd_FqnRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func get(request: Tartd_GetRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func get(request: Tartd_GetRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func exportVM(request: Tartd_ExportRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func exportVM(request: Tartd_ExportRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func importVM(request: Tartd_ImportRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func importVM(request: Tartd_ImportRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func iP(request: Tartd_IPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func iP(request: Tartd_IPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func launch(request: Tartd_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func launch(request: Tartd_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func list(request: Tartd_ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func list(request: Tartd_ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func login(request: Tartd_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func login(request: Tartd_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func logout(request: Tartd_LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func logout(request: Tartd_LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func prune(request: Tartd_PruneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func prune(request: Tartd_PruneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func pull(request: Tartd_PullRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func pull(request: Tartd_PullRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func push(request: Tartd_PushRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func push(request: Tartd_PushRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func rename(request: Tartd_RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func rename(request: Tartd_RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func runVM(request: Tartd_RunRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func runVM(request: Tartd_RunRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func set(request: Tartd_SetRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func set(request: Tartd_SetRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func stop(request: Tartd_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func stop(request: Tartd_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 
-  func suspend(request: Tartd_SuspendRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
+    func suspend(request: Tartd_SuspendRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tartd_TartReply>
 }
 
 extension Tartd_ServiceProvider {
-  public var serviceName: Substring {
-    return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
-  }
-
-  /// Determines, calls and returns the appropriate request handler, depending on the request's method.
-  /// Returns nil for methods not handled by this service.
-  public func handle(
-    method name: Substring,
-    context: CallHandlerContext
-  ) -> GRPCServerHandlerProtocol? {
-    switch name {
-    case "Build":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
-        userFunction: self.build(request:context:)
-      )
-
-    case "Start":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
-        userFunction: self.start(request:context:)
-      )
-
-    case "Tart":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_TartRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeTartInterceptors() ?? [],
-        userFunction: self.tart(request:context:)
-      )
-
-    case "Clone":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_CloneRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
-        userFunction: self.clone(request:context:)
-      )
-
-    case "Create":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_CreateRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeCreateInterceptors() ?? [],
-        userFunction: self.create(request:context:)
-      )
-
-    case "Delete":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_DeleteRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
-        userFunction: self.delete(request:context:)
-      )
-
-    case "FQN":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_FqnRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeFQNInterceptors() ?? [],
-        userFunction: self.fQN(request:context:)
-      )
-
-    case "Get":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_GetRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeGetInterceptors() ?? [],
-        userFunction: self.get(request:context:)
-      )
-
-    case "ExportVM":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ExportRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeExportVMInterceptors() ?? [],
-        userFunction: self.exportVM(request:context:)
-      )
-
-    case "ImportVM":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ImportRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeImportVMInterceptors() ?? [],
-        userFunction: self.importVM(request:context:)
-      )
-
-    case "IP":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_IPRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeIPInterceptors() ?? [],
-        userFunction: self.iP(request:context:)
-      )
-
-    case "Launch":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
-        userFunction: self.launch(request:context:)
-      )
-
-    case "List":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ListRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeListInterceptors() ?? [],
-        userFunction: self.list(request:context:)
-      )
-
-    case "Login":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LoginRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
-        userFunction: self.login(request:context:)
-      )
-
-    case "Logout":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LogoutRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
-        userFunction: self.logout(request:context:)
-      )
-
-    case "Prune":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PruneRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePruneInterceptors() ?? [],
-        userFunction: self.prune(request:context:)
-      )
-
-    case "Pull":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PullRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePullInterceptors() ?? [],
-        userFunction: self.pull(request:context:)
-      )
-
-    case "Push":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PushRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePushInterceptors() ?? [],
-        userFunction: self.push(request:context:)
-      )
-
-    case "Rename":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_RenameRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
-        userFunction: self.rename(request:context:)
-      )
-
-    case "RunVM":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_RunRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeRunVMInterceptors() ?? [],
-        userFunction: self.runVM(request:context:)
-      )
-
-    case "Set":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_SetRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeSetInterceptors() ?? [],
-        userFunction: self.set(request:context:)
-      )
-
-    case "Stop":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_StopRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
-        userFunction: self.stop(request:context:)
-      )
-
-    case "Suspend":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_SuspendRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
-        userFunction: self.suspend(request:context:)
-      )
-
-    default:
-      return nil
+    public var serviceName: Substring {
+        return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
     }
-  }
+
+    /// Determines, calls and returns the appropriate request handler, depending on the request's method.
+    /// Returns nil for methods not handled by this service.
+    public func handle(
+        method name: Substring,
+        context: CallHandlerContext
+    ) -> GRPCServerHandlerProtocol? {
+        switch name {
+        case "Build":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_BuildRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
+                userFunction: self.build(request:context:)
+            )
+
+        case "Start":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_StartRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeStartInterceptors() ?? [],
+                userFunction: self.start(request:context:)
+            )
+
+        case "Tart":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_TartRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeTartInterceptors() ?? [],
+                userFunction: self.tart(request:context:)
+            )
+
+        case "Clone":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_CloneRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+                userFunction: self.clone(request:context:)
+            )
+
+        case "Create":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_CreateRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeCreateInterceptors() ?? [],
+                userFunction: self.create(request:context:)
+            )
+
+        case "Delete":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_DeleteRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+                userFunction: self.delete(request:context:)
+            )
+
+        case "FQN":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_FqnRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeFQNInterceptors() ?? [],
+                userFunction: self.fQN(request:context:)
+            )
+
+        case "Get":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_GetRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeGetInterceptors() ?? [],
+                userFunction: self.get(request:context:)
+            )
+
+        case "ExportVM":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ExportRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeExportVMInterceptors() ?? [],
+                userFunction: self.exportVM(request:context:)
+            )
+
+        case "ImportVM":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ImportRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeImportVMInterceptors() ?? [],
+                userFunction: self.importVM(request:context:)
+            )
+
+        case "IP":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_IPRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeIPInterceptors() ?? [],
+                userFunction: self.iP(request:context:)
+            )
+
+        case "Launch":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LaunchRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
+                userFunction: self.launch(request:context:)
+            )
+
+        case "List":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ListRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeListInterceptors() ?? [],
+                userFunction: self.list(request:context:)
+            )
+
+        case "Login":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LoginRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
+                userFunction: self.login(request:context:)
+            )
+
+        case "Logout":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LogoutRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
+                userFunction: self.logout(request:context:)
+            )
+
+        case "Prune":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PruneRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePruneInterceptors() ?? [],
+                userFunction: self.prune(request:context:)
+            )
+
+        case "Pull":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PullRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePullInterceptors() ?? [],
+                userFunction: self.pull(request:context:)
+            )
+
+        case "Push":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PushRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePushInterceptors() ?? [],
+                userFunction: self.push(request:context:)
+            )
+
+        case "Rename":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_RenameRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
+                userFunction: self.rename(request:context:)
+            )
+
+        case "RunVM":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_RunRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeRunVMInterceptors() ?? [],
+                userFunction: self.runVM(request:context:)
+            )
+
+        case "Set":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_SetRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeSetInterceptors() ?? [],
+                userFunction: self.set(request:context:)
+            )
+
+        case "Stop":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_StopRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+                userFunction: self.stop(request:context:)
+            )
+
+        case "Suspend":
+            return UnaryServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_SuspendRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
+                userFunction: self.suspend(request:context:)
+            )
+
+        default:
+            return nil
+        }
+    }
 }
 
 /// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Tartd_ServiceAsyncProvider: CallHandlerProvider, Sendable {
-  static var serviceDescriptor: GRPCServiceDescriptor { get }
-  var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
+    static var serviceDescriptor: GRPCServiceDescriptor { get }
+    var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? { get }
 
-  /// Sends a greeting
-  func build(
-    request: Tartd_BuildRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    /// Sends a greeting
+    func build(
+        request: Tartd_BuildRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func start(
-    request: Tartd_StartRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func start(
+        request: Tartd_StartRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func tart(
-    request: Tartd_TartRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func tart(
+        request: Tartd_TartRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func clone(
-    request: Tartd_CloneRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func clone(
+        request: Tartd_CloneRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func create(
-    request: Tartd_CreateRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func create(
+        request: Tartd_CreateRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func delete(
-    request: Tartd_DeleteRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func delete(
+        request: Tartd_DeleteRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func fQN(
-    request: Tartd_FqnRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func fQN(
+        request: Tartd_FqnRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func get(
-    request: Tartd_GetRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func get(
+        request: Tartd_GetRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func exportVM(
-    request: Tartd_ExportRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func exportVM(
+        request: Tartd_ExportRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func importVM(
-    request: Tartd_ImportRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func importVM(
+        request: Tartd_ImportRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func iP(
-    request: Tartd_IPRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func iP(
+        request: Tartd_IPRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func launch(
-    request: Tartd_LaunchRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func launch(
+        request: Tartd_LaunchRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func list(
-    request: Tartd_ListRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func list(
+        request: Tartd_ListRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func login(
-    request: Tartd_LoginRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func login(
+        request: Tartd_LoginRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func logout(
-    request: Tartd_LogoutRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func logout(
+        request: Tartd_LogoutRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func prune(
-    request: Tartd_PruneRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func prune(
+        request: Tartd_PruneRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func pull(
-    request: Tartd_PullRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func pull(
+        request: Tartd_PullRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func push(
-    request: Tartd_PushRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func push(
+        request: Tartd_PushRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func rename(
-    request: Tartd_RenameRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func rename(
+        request: Tartd_RenameRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func runVM(
-    request: Tartd_RunRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func runVM(
+        request: Tartd_RunRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func set(
-    request: Tartd_SetRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func set(
+        request: Tartd_SetRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func stop(
-    request: Tartd_StopRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func stop(
+        request: Tartd_StopRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 
-  func suspend(
-    request: Tartd_SuspendRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Tartd_TartReply
+    func suspend(
+        request: Tartd_SuspendRequest,
+        context: GRPCAsyncServerCallContext
+    ) async throws -> Tartd_TartReply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Tartd_ServiceAsyncProvider {
-  public static var serviceDescriptor: GRPCServiceDescriptor {
-    return Tartd_ServiceServerMetadata.serviceDescriptor
-  }
-
-  public var serviceName: Substring {
-    return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
-  }
-
-  public var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? {
-    return nil
-  }
-
-  public func handle(
-    method name: Substring,
-    context: CallHandlerContext
-  ) -> GRPCServerHandlerProtocol? {
-    switch name {
-    case "Build":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
-        wrapping: { try await self.build(request: $0, context: $1) }
-      )
-
-    case "Start":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
-        wrapping: { try await self.start(request: $0, context: $1) }
-      )
-
-    case "Tart":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_TartRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeTartInterceptors() ?? [],
-        wrapping: { try await self.tart(request: $0, context: $1) }
-      )
-
-    case "Clone":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_CloneRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
-        wrapping: { try await self.clone(request: $0, context: $1) }
-      )
-
-    case "Create":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_CreateRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeCreateInterceptors() ?? [],
-        wrapping: { try await self.create(request: $0, context: $1) }
-      )
-
-    case "Delete":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_DeleteRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
-        wrapping: { try await self.delete(request: $0, context: $1) }
-      )
-
-    case "FQN":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_FqnRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeFQNInterceptors() ?? [],
-        wrapping: { try await self.fQN(request: $0, context: $1) }
-      )
-
-    case "Get":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_GetRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeGetInterceptors() ?? [],
-        wrapping: { try await self.get(request: $0, context: $1) }
-      )
-
-    case "ExportVM":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ExportRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeExportVMInterceptors() ?? [],
-        wrapping: { try await self.exportVM(request: $0, context: $1) }
-      )
-
-    case "ImportVM":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ImportRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeImportVMInterceptors() ?? [],
-        wrapping: { try await self.importVM(request: $0, context: $1) }
-      )
-
-    case "IP":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_IPRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeIPInterceptors() ?? [],
-        wrapping: { try await self.iP(request: $0, context: $1) }
-      )
-
-    case "Launch":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
-        wrapping: { try await self.launch(request: $0, context: $1) }
-      )
-
-    case "List":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_ListRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeListInterceptors() ?? [],
-        wrapping: { try await self.list(request: $0, context: $1) }
-      )
-
-    case "Login":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LoginRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
-        wrapping: { try await self.login(request: $0, context: $1) }
-      )
-
-    case "Logout":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_LogoutRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
-        wrapping: { try await self.logout(request: $0, context: $1) }
-      )
-
-    case "Prune":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PruneRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePruneInterceptors() ?? [],
-        wrapping: { try await self.prune(request: $0, context: $1) }
-      )
-
-    case "Pull":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PullRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePullInterceptors() ?? [],
-        wrapping: { try await self.pull(request: $0, context: $1) }
-      )
-
-    case "Push":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_PushRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makePushInterceptors() ?? [],
-        wrapping: { try await self.push(request: $0, context: $1) }
-      )
-
-    case "Rename":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_RenameRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
-        wrapping: { try await self.rename(request: $0, context: $1) }
-      )
-
-    case "RunVM":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_RunRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeRunVMInterceptors() ?? [],
-        wrapping: { try await self.runVM(request: $0, context: $1) }
-      )
-
-    case "Set":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_SetRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeSetInterceptors() ?? [],
-        wrapping: { try await self.set(request: $0, context: $1) }
-      )
-
-    case "Stop":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_StopRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
-        wrapping: { try await self.stop(request: $0, context: $1) }
-      )
-
-    case "Suspend":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Tartd_SuspendRequest>(),
-        responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
-        interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
-        wrapping: { try await self.suspend(request: $0, context: $1) }
-      )
-
-    default:
-      return nil
+    public static var serviceDescriptor: GRPCServiceDescriptor {
+        return Tartd_ServiceServerMetadata.serviceDescriptor
     }
-  }
+
+    public var serviceName: Substring {
+        return Tartd_ServiceServerMetadata.serviceDescriptor.fullName[...]
+    }
+
+    public var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? {
+        return nil
+    }
+
+    public func handle(
+        method name: Substring,
+        context: CallHandlerContext
+    ) -> GRPCServerHandlerProtocol? {
+        switch name {
+        case "Build":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_BuildRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
+                wrapping: { try await self.build(request: $0, context: $1) }
+            )
+
+        case "Start":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_StartRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeStartInterceptors() ?? [],
+                wrapping: { try await self.start(request: $0, context: $1) }
+            )
+
+        case "Tart":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_TartRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeTartInterceptors() ?? [],
+                wrapping: { try await self.tart(request: $0, context: $1) }
+            )
+
+        case "Clone":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_CloneRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+                wrapping: { try await self.clone(request: $0, context: $1) }
+            )
+
+        case "Create":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_CreateRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeCreateInterceptors() ?? [],
+                wrapping: { try await self.create(request: $0, context: $1) }
+            )
+
+        case "Delete":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_DeleteRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+                wrapping: { try await self.delete(request: $0, context: $1) }
+            )
+
+        case "FQN":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_FqnRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeFQNInterceptors() ?? [],
+                wrapping: { try await self.fQN(request: $0, context: $1) }
+            )
+
+        case "Get":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_GetRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeGetInterceptors() ?? [],
+                wrapping: { try await self.get(request: $0, context: $1) }
+            )
+
+        case "ExportVM":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ExportRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeExportVMInterceptors() ?? [],
+                wrapping: { try await self.exportVM(request: $0, context: $1) }
+            )
+
+        case "ImportVM":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ImportRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeImportVMInterceptors() ?? [],
+                wrapping: { try await self.importVM(request: $0, context: $1) }
+            )
+
+        case "IP":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_IPRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeIPInterceptors() ?? [],
+                wrapping: { try await self.iP(request: $0, context: $1) }
+            )
+
+        case "Launch":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LaunchRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
+                wrapping: { try await self.launch(request: $0, context: $1) }
+            )
+
+        case "List":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_ListRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeListInterceptors() ?? [],
+                wrapping: { try await self.list(request: $0, context: $1) }
+            )
+
+        case "Login":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LoginRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
+                wrapping: { try await self.login(request: $0, context: $1) }
+            )
+
+        case "Logout":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_LogoutRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
+                wrapping: { try await self.logout(request: $0, context: $1) }
+            )
+
+        case "Prune":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PruneRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePruneInterceptors() ?? [],
+                wrapping: { try await self.prune(request: $0, context: $1) }
+            )
+
+        case "Pull":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PullRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePullInterceptors() ?? [],
+                wrapping: { try await self.pull(request: $0, context: $1) }
+            )
+
+        case "Push":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_PushRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makePushInterceptors() ?? [],
+                wrapping: { try await self.push(request: $0, context: $1) }
+            )
+
+        case "Rename":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_RenameRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
+                wrapping: { try await self.rename(request: $0, context: $1) }
+            )
+
+        case "RunVM":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_RunRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeRunVMInterceptors() ?? [],
+                wrapping: { try await self.runVM(request: $0, context: $1) }
+            )
+
+        case "Set":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_SetRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeSetInterceptors() ?? [],
+                wrapping: { try await self.set(request: $0, context: $1) }
+            )
+
+        case "Stop":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_StopRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+                wrapping: { try await self.stop(request: $0, context: $1) }
+            )
+
+        case "Suspend":
+            return GRPCAsyncServerHandler(
+                context: context,
+                requestDeserializer: ProtobufDeserializer<Tartd_SuspendRequest>(),
+                responseSerializer: ProtobufSerializer<Tartd_TartReply>(),
+                interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
+                wrapping: { try await self.suspend(request: $0, context: $1) }
+            )
+
+        default:
+            return nil
+        }
+    }
 }
 
 public protocol Tartd_ServiceServerInterceptorFactoryProtocol: Sendable {
 
-  /// - Returns: Interceptors to use when handling 'build'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeBuildInterceptors() -> [ServerInterceptor<Tartd_BuildRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'build'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeBuildInterceptors() -> [ServerInterceptor<Tartd_BuildRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'start'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStartInterceptors() -> [ServerInterceptor<Tartd_StartRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'start'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeStartInterceptors() -> [ServerInterceptor<Tartd_StartRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'tart'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeTartInterceptors() -> [ServerInterceptor<Tartd_TartRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'tart'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeTartInterceptors() -> [ServerInterceptor<Tartd_TartRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'clone'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeCloneInterceptors() -> [ServerInterceptor<Tartd_CloneRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'clone'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeCloneInterceptors() -> [ServerInterceptor<Tartd_CloneRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'create'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeCreateInterceptors() -> [ServerInterceptor<Tartd_CreateRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'create'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeCreateInterceptors() -> [ServerInterceptor<Tartd_CreateRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'delete'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeDeleteInterceptors() -> [ServerInterceptor<Tartd_DeleteRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'delete'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeDeleteInterceptors() -> [ServerInterceptor<Tartd_DeleteRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'fQN'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeFQNInterceptors() -> [ServerInterceptor<Tartd_FqnRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'fQN'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeFQNInterceptors() -> [ServerInterceptor<Tartd_FqnRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'get'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetInterceptors() -> [ServerInterceptor<Tartd_GetRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'get'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeGetInterceptors() -> [ServerInterceptor<Tartd_GetRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'exportVM'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeExportVMInterceptors() -> [ServerInterceptor<Tartd_ExportRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'exportVM'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeExportVMInterceptors() -> [ServerInterceptor<Tartd_ExportRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'importVM'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeImportVMInterceptors() -> [ServerInterceptor<Tartd_ImportRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'importVM'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeImportVMInterceptors() -> [ServerInterceptor<Tartd_ImportRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'iP'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeIPInterceptors() -> [ServerInterceptor<Tartd_IPRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'iP'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeIPInterceptors() -> [ServerInterceptor<Tartd_IPRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'launch'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLaunchInterceptors() -> [ServerInterceptor<Tartd_LaunchRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'launch'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeLaunchInterceptors() -> [ServerInterceptor<Tartd_LaunchRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'list'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeListInterceptors() -> [ServerInterceptor<Tartd_ListRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'list'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeListInterceptors() -> [ServerInterceptor<Tartd_ListRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'login'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLoginInterceptors() -> [ServerInterceptor<Tartd_LoginRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'login'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeLoginInterceptors() -> [ServerInterceptor<Tartd_LoginRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'logout'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLogoutInterceptors() -> [ServerInterceptor<Tartd_LogoutRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'logout'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeLogoutInterceptors() -> [ServerInterceptor<Tartd_LogoutRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'prune'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makePruneInterceptors() -> [ServerInterceptor<Tartd_PruneRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'prune'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makePruneInterceptors() -> [ServerInterceptor<Tartd_PruneRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'pull'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makePullInterceptors() -> [ServerInterceptor<Tartd_PullRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'pull'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makePullInterceptors() -> [ServerInterceptor<Tartd_PullRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'push'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makePushInterceptors() -> [ServerInterceptor<Tartd_PushRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'push'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makePushInterceptors() -> [ServerInterceptor<Tartd_PushRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'rename'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRenameInterceptors() -> [ServerInterceptor<Tartd_RenameRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'rename'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeRenameInterceptors() -> [ServerInterceptor<Tartd_RenameRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'runVM'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRunVMInterceptors() -> [ServerInterceptor<Tartd_RunRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'runVM'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeRunVMInterceptors() -> [ServerInterceptor<Tartd_RunRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'set'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSetInterceptors() -> [ServerInterceptor<Tartd_SetRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'set'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeSetInterceptors() -> [ServerInterceptor<Tartd_SetRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'stop'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStopInterceptors() -> [ServerInterceptor<Tartd_StopRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'stop'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeStopInterceptors() -> [ServerInterceptor<Tartd_StopRequest, Tartd_TartReply>]
 
-  /// - Returns: Interceptors to use when handling 'suspend'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeSuspendInterceptors() -> [ServerInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
+    /// - Returns: Interceptors to use when handling 'suspend'.
+    ///   Defaults to calling `self.makeInterceptors()`.
+    func makeSuspendInterceptors() -> [ServerInterceptor<Tartd_SuspendRequest, Tartd_TartReply>]
 }
 
 public enum Tartd_ServiceServerMetadata {
-  public static let serviceDescriptor = GRPCServiceDescriptor(
-    name: "Service",
-    fullName: "tartd.Service",
-    methods: [
-      Tartd_ServiceServerMetadata.Methods.build,
-      Tartd_ServiceServerMetadata.Methods.start,
-      Tartd_ServiceServerMetadata.Methods.tart,
-      Tartd_ServiceServerMetadata.Methods.clone,
-      Tartd_ServiceServerMetadata.Methods.create,
-      Tartd_ServiceServerMetadata.Methods.delete,
-      Tartd_ServiceServerMetadata.Methods.fQN,
-      Tartd_ServiceServerMetadata.Methods.get,
-      Tartd_ServiceServerMetadata.Methods.exportVM,
-      Tartd_ServiceServerMetadata.Methods.importVM,
-      Tartd_ServiceServerMetadata.Methods.iP,
-      Tartd_ServiceServerMetadata.Methods.launch,
-      Tartd_ServiceServerMetadata.Methods.list,
-      Tartd_ServiceServerMetadata.Methods.login,
-      Tartd_ServiceServerMetadata.Methods.logout,
-      Tartd_ServiceServerMetadata.Methods.prune,
-      Tartd_ServiceServerMetadata.Methods.pull,
-      Tartd_ServiceServerMetadata.Methods.push,
-      Tartd_ServiceServerMetadata.Methods.rename,
-      Tartd_ServiceServerMetadata.Methods.runVM,
-      Tartd_ServiceServerMetadata.Methods.set,
-      Tartd_ServiceServerMetadata.Methods.stop,
-      Tartd_ServiceServerMetadata.Methods.suspend,
-    ]
-  )
-
-  public enum Methods {
-    public static let build = GRPCMethodDescriptor(
-      name: "Build",
-      path: "/tartd.Service/Build",
-      type: GRPCCallType.unary
+    public static let serviceDescriptor = GRPCServiceDescriptor(
+        name: "Service",
+        fullName: "tartd.Service",
+        methods: [
+            Tartd_ServiceServerMetadata.Methods.build,
+            Tartd_ServiceServerMetadata.Methods.start,
+            Tartd_ServiceServerMetadata.Methods.tart,
+            Tartd_ServiceServerMetadata.Methods.clone,
+            Tartd_ServiceServerMetadata.Methods.create,
+            Tartd_ServiceServerMetadata.Methods.delete,
+            Tartd_ServiceServerMetadata.Methods.fQN,
+            Tartd_ServiceServerMetadata.Methods.get,
+            Tartd_ServiceServerMetadata.Methods.exportVM,
+            Tartd_ServiceServerMetadata.Methods.importVM,
+            Tartd_ServiceServerMetadata.Methods.iP,
+            Tartd_ServiceServerMetadata.Methods.launch,
+            Tartd_ServiceServerMetadata.Methods.list,
+            Tartd_ServiceServerMetadata.Methods.login,
+            Tartd_ServiceServerMetadata.Methods.logout,
+            Tartd_ServiceServerMetadata.Methods.prune,
+            Tartd_ServiceServerMetadata.Methods.pull,
+            Tartd_ServiceServerMetadata.Methods.push,
+            Tartd_ServiceServerMetadata.Methods.rename,
+            Tartd_ServiceServerMetadata.Methods.runVM,
+            Tartd_ServiceServerMetadata.Methods.set,
+            Tartd_ServiceServerMetadata.Methods.stop,
+            Tartd_ServiceServerMetadata.Methods.suspend,
+        ]
     )
 
-    public static let start = GRPCMethodDescriptor(
-      name: "Start",
-      path: "/tartd.Service/Start",
-      type: GRPCCallType.unary
-    )
+    public enum Methods {
+        public static let build = GRPCMethodDescriptor(
+            name: "Build",
+            path: "/tartd.Service/Build",
+            type: GRPCCallType.unary
+        )
 
-    public static let tart = GRPCMethodDescriptor(
-      name: "Tart",
-      path: "/tartd.Service/Tart",
-      type: GRPCCallType.unary
-    )
+        public static let start = GRPCMethodDescriptor(
+            name: "Start",
+            path: "/tartd.Service/Start",
+            type: GRPCCallType.unary
+        )
 
-    public static let clone = GRPCMethodDescriptor(
-      name: "Clone",
-      path: "/tartd.Service/Clone",
-      type: GRPCCallType.unary
-    )
+        public static let tart = GRPCMethodDescriptor(
+            name: "Tart",
+            path: "/tartd.Service/Tart",
+            type: GRPCCallType.unary
+        )
 
-    public static let create = GRPCMethodDescriptor(
-      name: "Create",
-      path: "/tartd.Service/Create",
-      type: GRPCCallType.unary
-    )
+        public static let clone = GRPCMethodDescriptor(
+            name: "Clone",
+            path: "/tartd.Service/Clone",
+            type: GRPCCallType.unary
+        )
 
-    public static let delete = GRPCMethodDescriptor(
-      name: "Delete",
-      path: "/tartd.Service/Delete",
-      type: GRPCCallType.unary
-    )
+        public static let create = GRPCMethodDescriptor(
+            name: "Create",
+            path: "/tartd.Service/Create",
+            type: GRPCCallType.unary
+        )
 
-    public static let fQN = GRPCMethodDescriptor(
-      name: "FQN",
-      path: "/tartd.Service/FQN",
-      type: GRPCCallType.unary
-    )
+        public static let delete = GRPCMethodDescriptor(
+            name: "Delete",
+            path: "/tartd.Service/Delete",
+            type: GRPCCallType.unary
+        )
 
-    public static let get = GRPCMethodDescriptor(
-      name: "Get",
-      path: "/tartd.Service/Get",
-      type: GRPCCallType.unary
-    )
+        public static let fQN = GRPCMethodDescriptor(
+            name: "FQN",
+            path: "/tartd.Service/FQN",
+            type: GRPCCallType.unary
+        )
 
-    public static let exportVM = GRPCMethodDescriptor(
-      name: "ExportVM",
-      path: "/tartd.Service/ExportVM",
-      type: GRPCCallType.unary
-    )
+        public static let get = GRPCMethodDescriptor(
+            name: "Get",
+            path: "/tartd.Service/Get",
+            type: GRPCCallType.unary
+        )
 
-    public static let importVM = GRPCMethodDescriptor(
-      name: "ImportVM",
-      path: "/tartd.Service/ImportVM",
-      type: GRPCCallType.unary
-    )
+        public static let exportVM = GRPCMethodDescriptor(
+            name: "ExportVM",
+            path: "/tartd.Service/ExportVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let iP = GRPCMethodDescriptor(
-      name: "IP",
-      path: "/tartd.Service/IP",
-      type: GRPCCallType.unary
-    )
+        public static let importVM = GRPCMethodDescriptor(
+            name: "ImportVM",
+            path: "/tartd.Service/ImportVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let launch = GRPCMethodDescriptor(
-      name: "Launch",
-      path: "/tartd.Service/Launch",
-      type: GRPCCallType.unary
-    )
+        public static let iP = GRPCMethodDescriptor(
+            name: "IP",
+            path: "/tartd.Service/IP",
+            type: GRPCCallType.unary
+        )
 
-    public static let list = GRPCMethodDescriptor(
-      name: "List",
-      path: "/tartd.Service/List",
-      type: GRPCCallType.unary
-    )
+        public static let launch = GRPCMethodDescriptor(
+            name: "Launch",
+            path: "/tartd.Service/Launch",
+            type: GRPCCallType.unary
+        )
 
-    public static let login = GRPCMethodDescriptor(
-      name: "Login",
-      path: "/tartd.Service/Login",
-      type: GRPCCallType.unary
-    )
+        public static let list = GRPCMethodDescriptor(
+            name: "List",
+            path: "/tartd.Service/List",
+            type: GRPCCallType.unary
+        )
 
-    public static let logout = GRPCMethodDescriptor(
-      name: "Logout",
-      path: "/tartd.Service/Logout",
-      type: GRPCCallType.unary
-    )
+        public static let login = GRPCMethodDescriptor(
+            name: "Login",
+            path: "/tartd.Service/Login",
+            type: GRPCCallType.unary
+        )
 
-    public static let prune = GRPCMethodDescriptor(
-      name: "Prune",
-      path: "/tartd.Service/Prune",
-      type: GRPCCallType.unary
-    )
+        public static let logout = GRPCMethodDescriptor(
+            name: "Logout",
+            path: "/tartd.Service/Logout",
+            type: GRPCCallType.unary
+        )
 
-    public static let pull = GRPCMethodDescriptor(
-      name: "Pull",
-      path: "/tartd.Service/Pull",
-      type: GRPCCallType.unary
-    )
+        public static let prune = GRPCMethodDescriptor(
+            name: "Prune",
+            path: "/tartd.Service/Prune",
+            type: GRPCCallType.unary
+        )
 
-    public static let push = GRPCMethodDescriptor(
-      name: "Push",
-      path: "/tartd.Service/Push",
-      type: GRPCCallType.unary
-    )
+        public static let pull = GRPCMethodDescriptor(
+            name: "Pull",
+            path: "/tartd.Service/Pull",
+            type: GRPCCallType.unary
+        )
 
-    public static let rename = GRPCMethodDescriptor(
-      name: "Rename",
-      path: "/tartd.Service/Rename",
-      type: GRPCCallType.unary
-    )
+        public static let push = GRPCMethodDescriptor(
+            name: "Push",
+            path: "/tartd.Service/Push",
+            type: GRPCCallType.unary
+        )
 
-    public static let runVM = GRPCMethodDescriptor(
-      name: "RunVM",
-      path: "/tartd.Service/RunVM",
-      type: GRPCCallType.unary
-    )
+        public static let rename = GRPCMethodDescriptor(
+            name: "Rename",
+            path: "/tartd.Service/Rename",
+            type: GRPCCallType.unary
+        )
 
-    public static let set = GRPCMethodDescriptor(
-      name: "Set",
-      path: "/tartd.Service/Set",
-      type: GRPCCallType.unary
-    )
+        public static let runVM = GRPCMethodDescriptor(
+            name: "RunVM",
+            path: "/tartd.Service/RunVM",
+            type: GRPCCallType.unary
+        )
 
-    public static let stop = GRPCMethodDescriptor(
-      name: "Stop",
-      path: "/tartd.Service/Stop",
-      type: GRPCCallType.unary
-    )
+        public static let set = GRPCMethodDescriptor(
+            name: "Set",
+            path: "/tartd.Service/Set",
+            type: GRPCCallType.unary
+        )
 
-    public static let suspend = GRPCMethodDescriptor(
-      name: "Suspend",
-      path: "/tartd.Service/Suspend",
-      type: GRPCCallType.unary
-    )
-  }
+        public static let stop = GRPCMethodDescriptor(
+            name: "Stop",
+            path: "/tartd.Service/Stop",
+            type: GRPCCallType.unary
+        )
+
+        public static let suspend = GRPCMethodDescriptor(
+            name: "Suspend",
+            path: "/tartd.Service/Suspend",
+            type: GRPCCallType.unary
+        )
+    }
 }

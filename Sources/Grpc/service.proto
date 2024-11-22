@@ -246,7 +246,7 @@ message Error {
 
 message TartReply {
   oneof response {
-    Error error = 1;
-    string output = 2;
+	Error error = 1;
+	string output = 2;
   }
 }

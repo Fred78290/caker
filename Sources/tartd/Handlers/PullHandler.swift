@@ -1,28 +1,28 @@
 import Foundation
 
 struct PullHandler: TartdCommand {
-  var remoteName: String
-  var insecure: Bool = false
-  var concurrency: UInt = 4
-  var deduplicate: Bool = false
+	var remoteName: String
+	var insecure: Bool = false
+	var concurrency: UInt = 4
+	var deduplicate: Bool = false
 
-  func run() async throws -> String {
-    var arguments: [String] = []
+	func run() async throws -> String {
+		var arguments: [String] = []
 
-    arguments.append(remoteName)
+		arguments.append(remoteName)
 
-    if insecure {
-      arguments.append("--insecure")
-    }
+		if insecure {
+			arguments.append("--insecure")
+		}
 
-    if deduplicate {
-      arguments.append("--deduplicate")
-    }
+		if deduplicate {
+			arguments.append("--deduplicate")
+		}
 
-    if concurrency != 4 {
-      arguments.append("--concurrency=\(concurrency)")
-    }
+		if concurrency != 4 {
+			arguments.append("--concurrency=\(concurrency)")
+		}
 
-    return try Shell.runTart(command: "pull", arguments: arguments)
-  }
+		return try Shell.runTart(command: "pull", arguments: arguments)
+	}
 }

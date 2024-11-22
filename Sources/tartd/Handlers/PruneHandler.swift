@@ -2,29 +2,29 @@ import Foundation
 import SwiftDate
 
 struct PruneHandler: TartdCommand {
-  var entries: String = "caches"
-  var olderThan: UInt?
-  var cacheBudget: UInt?
-  var spaceBudget: UInt?
-  var gc: Bool = false
+	var entries: String = "caches"
+	var olderThan: UInt?
+	var cacheBudget: UInt?
+	var spaceBudget: UInt?
+	var gc: Bool = false
 
-  func run() async throws -> String {
-    var arguments: [String] = []
+	func run() async throws -> String {
+		var arguments: [String] = []
 
-    arguments.append(entries)
+		arguments.append(entries)
 
-    if let olderThan = self.olderThan {
-      arguments.append("--older-than=\(olderThan)")
-    }
+		if let olderThan = self.olderThan {
+			arguments.append("--older-than=\(olderThan)")
+		}
 
-    if let spaceBudget = self.spaceBudget {
-      arguments.append("--space-budget=\(spaceBudget)")
-    }
+		if let spaceBudget = self.spaceBudget {
+			arguments.append("--space-budget=\(spaceBudget)")
+		}
 
-    if gc {
-      arguments.append("--gc")
-    }
+		if gc {
+			arguments.append("--gc")
+		}
 
-    return try Shell.runTart(command: "prune", arguments: arguments)
-  }
+		return try Shell.runTart(command: "prune", arguments: arguments)
+	}
 }

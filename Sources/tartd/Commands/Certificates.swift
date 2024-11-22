@@ -3,25 +3,33 @@ import ArgumentParser
 import Foundation
 
 struct Certificates: ParsableCommand {
-  static var configuration = CommandConfiguration(abstract: "Tart daemon as launchctl agent",
-                                                  subcommands: [Generate.self, Get.self])
+	static var configuration = CommandConfiguration(abstract: "Tart daemon as launchctl agent",
+													subcommands: [Generate.self, Get.self])
 
-  struct Get: ParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Return certificates path")
+	struct Get: ParsableCommand {
+		static var configuration = CommandConfiguration(abstract: "Return certificates path")
 
-      mutating func run() throws {
+		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
+		var asSystem: Bool = false
 
-      }
-  }
+		mutating func run() throws {
+			let out = String(data: try! JSONSerialization.data(withJSONObject: try Utils.getCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
 
-  struct Generate: ParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Generate certificates")
+			print(out)
+		}
+	}
 
-    @Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
-    var asSystem: Bool = false
+	struct Generate: ParsableCommand {
+		static var configuration = CommandConfiguration(abstract: "Generate certificates")
 
-    mutating func run() throws {
-      let _ = try Utils.createCertificats(asSystem: self.asSystem)
-    }
-  }
+		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
+		var asSystem: Bool = false
+
+		mutating func run() throws {
+			let out = String(data: try! JSONSerialization.data(withJSONObject: try Utils.createCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
+
+			print(out)
+			
+		}
+	}
 }

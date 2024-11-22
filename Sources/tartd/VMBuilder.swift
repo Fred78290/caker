@@ -5,272 +5,272 @@ import Virtualization
 let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
-  private static func buildVM(vmName: String,
-                              vmDir: VMDirectory,
-                              cpu: UInt16?,
-                              memory: UInt64?,
-                              diskSizeGB: UInt16,
-                              userName: String,
-                              mainGroup: String,
-                              insecure: Bool,
-                              sshAuthorizedKey: String?,
-                              vendorData: String?,
-                              userData: String?,
-                              networkConfig: String?) async throws {
-    // Create NVRAM
-    _ = try VZEFIVariableStore(creatingVariableStoreAt: vmDir.nvramURL)
+	private static func buildVM(vmName: String,
+								vmDir: VMDirectory,
+								cpu: UInt16?,
+								memory: UInt64?,
+								diskSizeGB: UInt16,
+								userName: String,
+								mainGroup: String,
+								insecure: Bool,
+								sshAuthorizedKey: String?,
+								vendorData: String?,
+								userData: String?,
+								networkConfig: String?) async throws {
+		// Create NVRAM
+		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmDir.nvramURL)
 
-	// Create disk
-    try vmDir.resizeDisk(diskSizeGB)
+		// Create disk
+		try vmDir.resizeDisk(diskSizeGB)
 
-    // Create config
-    var config = VMConfig(platform: Linux(), cpuCountMin: 1, memorySizeMin: 512 * 1024 * 1024)
-    let cloudInit = try CloudInit(userName: userName,
-                                  mainGroup: mainGroup,
-                                  insecure: insecure,
-                                  sshAuthorizedKeyPath: sshAuthorizedKey,
-                                  vendorDataPath: vendorData,
-                                  userDataPath: userData,
-                                  networkConfigPath: networkConfig)
+		// Create config
+		var config = VMConfig(platform: Linux(), cpuCountMin: 1, memorySizeMin: 512 * 1024 * 1024)
+		let cloudInit = try CloudInit(userName: userName,
+									  mainGroup: mainGroup,
+									  insecure: insecure,
+									  sshAuthorizedKeyPath: sshAuthorizedKey,
+									  vendorDataPath: vendorData,
+									  userDataPath: userData,
+									  networkConfigPath: networkConfig)
 
-    if let cpu = cpu {
-      try config.setCPU(cpuCount: Int(cpu))
-    }
+		if let cpu = cpu {
+			try config.setCPU(cpuCount: Int(cpu))
+		}
 
-    if let memory = memory {
-      try config.setMemory(memorySize: memory * 1024 * 1024)
-    }
+		if let memory = memory {
+			try config.setMemory(memorySize: memory * 1024 * 1024)
+		}
 
-    try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL))
-    try config.save(toURL: vmDir.configURL)
-  }
+		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL))
+		try config.save(toURL: vmDir.configURL)
+	}
 
-  @available(macOS 13, *)
-  static func buildVM(vmName: String,
-                      vmDir: VMDirectory,
-                      cloudImageURL: URL,
-                      cpu: UInt16?,
-                      memory: UInt64?,
-                      diskSizeGB: UInt16,
-                      userName: String,
-                      mainGroup: String,
-                      insecure: Bool,
-                      sshAuthorizedKey: String?,
-                      vendorData: String?,
-                      userData: String?,
-                      networkConfig: String?)async  throws {
-    if cloudImageURL.isFileURL {
-      try CloudImageConverter.convertCloudImageToRaw(from: cloudImageURL, to: vmDir.diskURL)
-    } else {
-      try await CloudImageConverter.retrieveCloudImageAndConvert(from: cloudImageURL, to: vmDir.diskURL)
-    }
+	@available(macOS 13, *)
+	static func buildVM(vmName: String,
+						vmDir: VMDirectory,
+						cloudImageURL: URL,
+						cpu: UInt16?,
+						memory: UInt64?,
+						diskSizeGB: UInt16,
+						userName: String,
+						mainGroup: String,
+						insecure: Bool,
+						sshAuthorizedKey: String?,
+						vendorData: String?,
+						userData: String?,
+						networkConfig: String?)async  throws {
+		if cloudImageURL.isFileURL {
+			try CloudImageConverter.convertCloudImageToRaw(from: cloudImageURL, to: vmDir.diskURL)
+		} else {
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: cloudImageURL, to: vmDir.diskURL)
+		}
 
-    try await self.buildVM(vmName: vmName,
-                           vmDir: vmDir,
-                           cpu: cpu,
-                           memory: memory,
-                           diskSizeGB: diskSizeGB,
-                           userName: userName,
-                           mainGroup: mainGroup,
-                           insecure: insecure,
-                           sshAuthorizedKey: sshAuthorizedKey,
-                           vendorData: vendorData,
-                           userData: userData,
-                           networkConfig: networkConfig)
-  }
+		try await self.buildVM(vmName: vmName,
+							   vmDir: vmDir,
+							   cpu: cpu,
+							   memory: memory,
+							   diskSizeGB: diskSizeGB,
+							   userName: userName,
+							   mainGroup: mainGroup,
+							   insecure: insecure,
+							   sshAuthorizedKey: sshAuthorizedKey,
+							   vendorData: vendorData,
+							   userData: userData,
+							   networkConfig: networkConfig)
+	}
 
-  @available(macOS 13, *)
-  static func buildVM(vmName: String,
-                      vmDir: VMDirectory,
-                      diskImageURL: URL,
-                      cpu: UInt16?,
-                      memory: UInt64?,
-                      diskSizeGB: UInt16,
-                      userName: String,
-                      mainGroup: String,
-                      insecure: Bool,
-                      sshAuthorizedKey: String?,
-                      vendorData: String?,
-                      userData: String?,
-                      networkConfig: String?) async throws {
-    var diskImageURL = diskImageURL
+	@available(macOS 13, *)
+	static func buildVM(vmName: String,
+						vmDir: VMDirectory,
+						diskImageURL: URL,
+						cpu: UInt16?,
+						memory: UInt64?,
+						diskSizeGB: UInt16,
+						userName: String,
+						mainGroup: String,
+						insecure: Bool,
+						sshAuthorizedKey: String?,
+						vendorData: String?,
+						userData: String?,
+						networkConfig: String?) async throws {
+		var diskImageURL = diskImageURL
 
-    if !diskImageURL.isFileURL {
-      diskImageURL = try await CloudImageConverter.downloadLinuxImage(remoteURL: diskImageURL)
-    }
+		if !diskImageURL.isFileURL {
+			diskImageURL = try await CloudImageConverter.downloadLinuxImage(remoteURL: diskImageURL)
+		}
 
-    // Copy disk image
-    diskImageURL.resolveSymlinksInPath()
+		// Copy disk image
+		diskImageURL.resolveSymlinksInPath()
 
-    let temporaryDiskURL = try Config().tartTmpDir.appendingPathComponent("set-disk-\(UUID().uuidString)")
+		let temporaryDiskURL = try Config().tartTmpDir.appendingPathComponent("set-disk-\(UUID().uuidString)")
 
-    try FileManager.default.copyItem(at: diskImageURL, to: temporaryDiskURL)
-    _ = try FileManager.default.replaceItemAt(vmDir.diskURL, withItemAt: temporaryDiskURL)
+		try FileManager.default.copyItem(at: diskImageURL, to: temporaryDiskURL)
+		_ = try FileManager.default.replaceItemAt(vmDir.diskURL, withItemAt: temporaryDiskURL)
 
-    try await self.buildVM(vmName: vmName,
-                           vmDir: vmDir,
-                           cpu: cpu,
-                           memory: memory,
-                           diskSizeGB: diskSizeGB,
-                           userName: userName,
-                           mainGroup: mainGroup,
-                           insecure: insecure,
-                           sshAuthorizedKey: sshAuthorizedKey,
-                           vendorData: vendorData,
-                           userData: userData,
-                           networkConfig: networkConfig)
-  }
+		try await self.buildVM(vmName: vmName,
+							   vmDir: vmDir,
+							   cpu: cpu,
+							   memory: memory,
+							   diskSizeGB: diskSizeGB,
+							   userName: userName,
+							   mainGroup: mainGroup,
+							   insecure: insecure,
+							   sshAuthorizedKey: sshAuthorizedKey,
+							   vendorData: vendorData,
+							   userData: userData,
+							   networkConfig: networkConfig)
+	}
 
-  @available(macOS 13, *)
-  static func buildVM(vmName: String,
-                      vmDir: VMDirectory,
-                      ociImage: String,
-                      cpu: UInt16?,
-                      memory: UInt64?,
-                      diskSizeGB: UInt16,
-                      userName: String,
-                      mainGroup: String,
-                      insecure: Bool,
-                      sshAuthorizedKey: String?,
-                      vendorData: String?,
-                      userData: String?,
-                      networkConfig: String?) async throws {
+	@available(macOS 13, *)
+	static func buildVM(vmName: String,
+						vmDir: VMDirectory,
+						ociImage: String,
+						cpu: UInt16?,
+						memory: UInt64?,
+						diskSizeGB: UInt16,
+						userName: String,
+						mainGroup: String,
+						insecure: Bool,
+						sshAuthorizedKey: String?,
+						vendorData: String?,
+						userData: String?,
+						networkConfig: String?) async throws {
 
-    try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
+		try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
 
-    try await self.buildVM(vmName: vmName,
-                           vmDir: vmDir,
-                           cpu: cpu,
-                           memory: memory,
-                           diskSizeGB: diskSizeGB,
-                           userName: userName,
-                           mainGroup: mainGroup,
-                           insecure: insecure,
-                           sshAuthorizedKey: sshAuthorizedKey,
-                           vendorData: vendorData,
-                           userData: userData,
-                           networkConfig: networkConfig)
-  }
+		try await self.buildVM(vmName: vmName,
+							   vmDir: vmDir,
+							   cpu: cpu,
+							   memory: memory,
+							   diskSizeGB: diskSizeGB,
+							   userName: userName,
+							   mainGroup: mainGroup,
+							   insecure: insecure,
+							   sshAuthorizedKey: sshAuthorizedKey,
+							   vendorData: vendorData,
+							   userData: userData,
+							   networkConfig: networkConfig)
+	}
 
-  @available(macOS 13, *)
-  static func buildVM(vmName: String,
-                      vmDir: VMDirectory,
-                      remoteContainerServer: String,
-                      aliasImage: String,
-                      cpu: UInt16?,
-                      memory: UInt64?,
-                      diskSizeGB: UInt16,
-                      userName: String,
-                      mainGroup: String,
-                      insecure: Bool,
-                      sshAuthorizedKey: String?,
-                      vendorData: String?,
-                      userData: String?,
-                      networkConfig: String?) async throws {
+	@available(macOS 13, *)
+	static func buildVM(vmName: String,
+						vmDir: VMDirectory,
+						remoteContainerServer: String,
+						aliasImage: String,
+						cpu: UInt16?,
+						memory: UInt64?,
+						diskSizeGB: UInt16,
+						userName: String,
+						mainGroup: String,
+						insecure: Bool,
+						sshAuthorizedKey: String?,
+						vendorData: String?,
+						userData: String?,
+						networkConfig: String?) async throws {
 
-      guard let remoteContainerServerURL = URL(string: remoteContainerServer) else {
-        throw ServiceError("malformed url: \(remoteContainerServer)")
-      }
+		guard let remoteContainerServerURL = URL(string: remoteContainerServer) else {
+			throw ServiceError("malformed url: \(remoteContainerServer)")
+		}
 
-      let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
-      let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: aliasImage)
+		let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
+		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: aliasImage)
 
-      try await image.retrieveSimpleStreamImageAndConvert(to: vmDir.diskURL)
+		try await image.retrieveSimpleStreamImageAndConvert(to: vmDir.diskURL)
 
-    try await self.buildVM(vmName: vmName,
-                           vmDir: vmDir,
-                           cpu: cpu,
-                           memory: memory,
-                           diskSizeGB: diskSizeGB,
-                           userName: userName,
-                           mainGroup: mainGroup,
-                           insecure: insecure,
-                           sshAuthorizedKey: sshAuthorizedKey,
-                           vendorData: vendorData,
-                           userData: userData,
-                           networkConfig: networkConfig)
-  }
-  
-  static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
-    let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
-      readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)
+		try await self.buildVM(vmName: vmName,
+							   vmDir: vmDir,
+							   cpu: cpu,
+							   memory: memory,
+							   diskSizeGB: diskSizeGB,
+							   userName: userName,
+							   mainGroup: mainGroup,
+							   insecure: insecure,
+							   sshAuthorizedKey: sshAuthorizedKey,
+							   vendorData: vendorData,
+							   userData: userData,
+							   networkConfig: networkConfig)
+	}
 
-    let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
+	static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
+		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
+																									readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)
 
-    cdrom.blockDeviceIdentifier = "CIDATA"
+		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
 
-    return cdrom
-  }
+		cdrom.blockDeviceIdentifier = "CIDATA"
 
-  static func adjustUrl(url: String) -> URL{
-    if url.starts(with: "http://") || url.starts(with: "https://") || url.starts(with: "file://") {
-      return URL(string: url)!
-    } else {
-      return URL(fileURLWithPath: NSString(string: url).expandingTildeInPath)
-    }
-  }
+		return cdrom
+	}
 
-  public static func buildVM(vmName: String, vmDir: VMDirectory, arguments: BuildArguments) async throws {
-      if let fromImage = arguments.fromImage {
-        try await Self.buildVM(vmName: vmName,
-                             vmDir: vmDir,
-                             diskImageURL: adjustUrl(url: fromImage),
-                             cpu: arguments.cpu,
-                             memory: arguments.memory,
-                             diskSizeGB: arguments.diskSize,
-                             userName: arguments.user,
-                             mainGroup: arguments.mainGroup,
-                             insecure: arguments.insecure,
-                             sshAuthorizedKey: arguments.sshAuthorizedKey,
-                             vendorData: arguments.vendorData,
-                             userData: arguments.userData,
-                             networkConfig: arguments.networkConfig)
-      } else if let cloudImage = arguments.cloudImage {
-        try await Self.buildVM(vmName: vmName,
-                             vmDir: vmDir,
-                             cloudImageURL: adjustUrl(url: cloudImage),
-                             cpu: arguments.cpu,
-                             memory: arguments.memory,
-                             diskSizeGB: arguments.diskSize,
-                             userName: arguments.user,
-                             mainGroup: arguments.mainGroup,
-                             insecure: arguments.insecure,
-                             sshAuthorizedKey: arguments.sshAuthorizedKey,
-                             vendorData: arguments.vendorData,
-                             userData: arguments.userData,
-                             networkConfig: arguments.networkConfig)
-      } else if let ociImage = arguments.ociImage {
-        try await Self.buildVM(vmName: vmName,
-                             vmDir: vmDir,
-                             ociImage: ociImage,
-                             cpu: arguments.cpu,
-                             memory: arguments.memory,
-                             diskSizeGB: arguments.diskSize,
-                             userName: arguments.user,
-                             mainGroup: arguments.mainGroup,
-                             insecure: arguments.insecure,
-                             sshAuthorizedKey: arguments.sshAuthorizedKey,
-                             vendorData: arguments.vendorData,
-                             userData: arguments.userData,
-                             networkConfig: arguments.networkConfig)
-      } else if let aliasImage = arguments.aliasImage {
-        try await Self.buildVM(vmName: vmName,
-                             vmDir: vmDir,
-                             remoteContainerServer: arguments.remoteContainerServer,
-                             aliasImage: aliasImage,
-                             cpu: arguments.cpu,
-                             memory: arguments.memory,
-                             diskSizeGB: arguments.diskSize,
-                             userName: arguments.user,
-                             mainGroup: arguments.mainGroup,
-                             insecure: arguments.insecure,
-                             sshAuthorizedKey: arguments.sshAuthorizedKey,
-                             vendorData: arguments.vendorData,
-                             userData: arguments.userData,
-                             networkConfig: arguments.networkConfig)
-      } else {
-        throw RuntimeError.ImportFailed("any image specified")
-      }
+	static func adjustUrl(url: String) -> URL{
+		if url.starts(with: "http://") || url.starts(with: "https://") || url.starts(with: "file://") {
+			return URL(string: url)!
+		} else {
+			return URL(fileURLWithPath: NSString(string: url).expandingTildeInPath)
+		}
+	}
 
-  }
+	public static func buildVM(vmName: String, vmDir: VMDirectory, arguments: BuildArguments) async throws {
+		if let fromImage = arguments.fromImage {
+			try await Self.buildVM(vmName: vmName,
+								   vmDir: vmDir,
+								   diskImageURL: adjustUrl(url: fromImage),
+								   cpu: arguments.cpu,
+								   memory: arguments.memory,
+								   diskSizeGB: arguments.diskSize,
+								   userName: arguments.user,
+								   mainGroup: arguments.mainGroup,
+								   insecure: arguments.insecure,
+								   sshAuthorizedKey: arguments.sshAuthorizedKey,
+								   vendorData: arguments.vendorData,
+								   userData: arguments.userData,
+								   networkConfig: arguments.networkConfig)
+		} else if let cloudImage = arguments.cloudImage {
+			try await Self.buildVM(vmName: vmName,
+								   vmDir: vmDir,
+								   cloudImageURL: adjustUrl(url: cloudImage),
+								   cpu: arguments.cpu,
+								   memory: arguments.memory,
+								   diskSizeGB: arguments.diskSize,
+								   userName: arguments.user,
+								   mainGroup: arguments.mainGroup,
+								   insecure: arguments.insecure,
+								   sshAuthorizedKey: arguments.sshAuthorizedKey,
+								   vendorData: arguments.vendorData,
+								   userData: arguments.userData,
+								   networkConfig: arguments.networkConfig)
+		} else if let ociImage = arguments.ociImage {
+			try await Self.buildVM(vmName: vmName,
+								   vmDir: vmDir,
+								   ociImage: ociImage,
+								   cpu: arguments.cpu,
+								   memory: arguments.memory,
+								   diskSizeGB: arguments.diskSize,
+								   userName: arguments.user,
+								   mainGroup: arguments.mainGroup,
+								   insecure: arguments.insecure,
+								   sshAuthorizedKey: arguments.sshAuthorizedKey,
+								   vendorData: arguments.vendorData,
+								   userData: arguments.userData,
+								   networkConfig: arguments.networkConfig)
+		} else if let aliasImage = arguments.aliasImage {
+			try await Self.buildVM(vmName: vmName,
+								   vmDir: vmDir,
+								   remoteContainerServer: arguments.remoteContainerServer,
+								   aliasImage: aliasImage,
+								   cpu: arguments.cpu,
+								   memory: arguments.memory,
+								   diskSizeGB: arguments.diskSize,
+								   userName: arguments.user,
+								   mainGroup: arguments.mainGroup,
+								   insecure: arguments.insecure,
+								   sshAuthorizedKey: arguments.sshAuthorizedKey,
+								   vendorData: arguments.vendorData,
+								   userData: arguments.userData,
+								   networkConfig: arguments.networkConfig)
+		} else {
+			throw RuntimeError.ImportFailed("any image specified")
+		}
+
+	}
 }

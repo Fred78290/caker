@@ -1,0 +1,7 @@
+--exclude tart,Sources/tart
+--disable all
+--enable indent
+--indent 4
+--tabwidth 4
+--exclude Sources/tart/OCI/Reference/Generated
+--swiftversion 5.7
