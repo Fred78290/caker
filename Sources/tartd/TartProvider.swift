@@ -456,6 +456,10 @@ class TartDaemonProvider: @unchecked Sendable, Tartd_ServiceAsyncProvider {
     return reply
   }
 
+	func tart(request: Tartd_TartRequest, context: GRPCAsyncServerCallContext) async throws -> Tartd_TartReply {
+	  return try await self.execute(command: request)
+	}
+
   func build(request: Tartd_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Tartd_TartReply {
     return try await self.execute(command: request)
   }
