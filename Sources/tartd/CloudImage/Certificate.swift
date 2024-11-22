@@ -1,5 +1,8 @@
 import Foundation
 import Security
+import Crypto
+import SwiftASN1
+import X509
 
 struct CypherKeyGeneratorError: Error {
   let description: String
@@ -112,6 +115,126 @@ public struct CypherKeyGenerator {
     }
 
     return CypherKeyModel.init(publicKey: publicKey, privateKey: privateKey)
+  }
+
+  static func generateClientServerCertificate(subject: String, numberOfYears: Int,
+                                              caKeyURL: URL, caCertURL: URL,
+                                              serverKeyURL: URL, serverCertURL:URL,
+                                              clientKeyURL: URL, clientCertURL: URL) throws {
+    let notValidBefore = Date()
+    let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
+    let rootPrivateKey = P521.Signing.PrivateKey()
+    let rootCertKey = Certificate.PrivateKey(rootPrivateKey)
+    let rootCertName = try! DistinguishedName {
+        CommonName("Tart Daemon Root CA")
+    }
+    let rootCert = try! Certificate(
+        version: .v3,
+        serialNumber: .init(),
+        publicKey: rootCertKey.publicKey,
+        notValidBefore: notValidBefore,
+        notValidAfter: notValidAfter,
+        issuer: rootCertName,
+        subject: rootCertName,
+        signatureAlgorithm: .ecdsaWithSHA256,
+        extensions: try! Certificate.Extensions {
+            Critical(
+                BasicConstraints.isCertificateAuthority(maxPathLength: nil)
+            )
+        },
+        issuerPrivateKey: rootCertKey
+    )
+
+    let savePrivateKey = { (_ key: P521.Signing.PrivateKey, to: URL) in
+      let data = "-----BEGIN RSA PRIVATE KEY-----\n"
+                  + key.rawRepresentation.base64EncodedString()
+                  + "\n-----END RSA PRIVATE KEY-----"
+
+      FileManager.default.createFile(atPath: to.absoluteURL.path,
+                                     contents: data.data(using: .ascii),
+                                     attributes: [.posixPermissions : 0o600])
+    }
+
+    let subjectName = try DistinguishedName {
+      CommonName(subject);
+      OrganizationName("Cirrus Labs");
+    }
+
+    let serverPrivateKey = P521.Signing.PrivateKey()
+    let serverCertKey = Certificate.PrivateKey(serverPrivateKey)
+    let serverCertificate = try Certificate(
+        version: .v3,
+        serialNumber: Certificate.SerialNumber(),
+        publicKey: serverCertKey.publicKey,
+        notValidBefore: notValidBefore,
+        notValidAfter: notValidAfter,
+        issuer: rootCertName,
+        subject: subjectName,
+        signatureAlgorithm: .ecdsaWithSHA256,
+        extensions: try Certificate.Extensions {
+          Critical(
+              BasicConstraints.isCertificateAuthority(maxPathLength: nil)
+          )
+          Critical(
+            KeyUsage(digitalSignature: true, keyEncipherment: true, dataEncipherment: true, keyCertSign: true)
+          )
+          Critical(
+            try ExtendedKeyUsage([.serverAuth, .clientAuth])
+          )
+          SubjectAlternativeNames([
+            .dnsName("localhost"),
+            .dnsName("*")
+          ])
+        },
+        issuerPrivateKey: rootCertKey)
+
+    let clientPrivateKey = P521.Signing.PrivateKey()
+    let clientCertKey = Certificate.PrivateKey(clientPrivateKey)
+    let clientCertificate = try Certificate(
+        version: .v3,
+        serialNumber: Certificate.SerialNumber(),
+        publicKey: clientCertKey.publicKey,
+        notValidBefore: notValidBefore,
+        notValidAfter: notValidAfter,
+        issuer: subjectName,
+        subject: try DistinguishedName {
+          CommonName("Tart client");
+          OrganizationName("Cirrus Labs");
+        },
+        signatureAlgorithm: .ecdsaWithSHA256,
+        extensions: try Certificate.Extensions {
+          Critical(
+              BasicConstraints.isCertificateAuthority(maxPathLength: nil)
+          )
+          Critical(
+            KeyUsage(digitalSignature: true, keyEncipherment: true)
+          )
+          Critical(
+            try ExtendedKeyUsage([.clientAuth])
+          )
+          SubjectAlternativeNames([
+            .dnsName("localhost"),
+            .dnsName("*"),
+            .ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1]))
+          ])
+        },
+        issuerPrivateKey: serverCertKey)
+
+    savePrivateKey(rootPrivateKey, caKeyURL)
+    savePrivateKey(serverPrivateKey, serverKeyURL)
+    savePrivateKey(clientPrivateKey, clientKeyURL)
+
+    FileManager.default.createFile(atPath: caCertURL.absoluteURL.path(),
+                                   contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
+                                   attributes: [.posixPermissions : 0o600])
+
+    FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path(),
+                                   contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
+                                   attributes: [.posixPermissions : 0o644])
+
+    FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path(),
+                                   contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
+                                   attributes: [.posixPermissions : 0o644])
   }
 }
 

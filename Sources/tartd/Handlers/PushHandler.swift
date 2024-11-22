@@ -9,11 +9,11 @@ struct PushHandler: TartdCommand {
   var diskFormat: String = "v2"
   var populateCache: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(localName)
-	arguments += remoteNames
+    arguments += remoteNames
 
     if insecure {
       arguments.append("--insecure")
@@ -27,6 +27,6 @@ struct PushHandler: TartdCommand {
       arguments.append("--concurrency=\(concurrency)")
     }
 
-    try Shell.runTart(command: "push", arguments: arguments)
+    return try Shell.runTart(command: "push", arguments: arguments)
   }
 }

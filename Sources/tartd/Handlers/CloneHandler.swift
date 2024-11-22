@@ -8,7 +8,7 @@ struct CloneHandler: TartdCommand {
   var concurrency: UInt = 4
   var deduplicate: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(sourceName)
@@ -26,6 +26,6 @@ struct CloneHandler: TartdCommand {
       arguments.append("--concurrency=\(concurrency)")
     }
 
-    try Shell.runTart(command: "clone", arguments: arguments)
+    return try Shell.runTart(command: "clone", arguments: arguments)
   }
 }

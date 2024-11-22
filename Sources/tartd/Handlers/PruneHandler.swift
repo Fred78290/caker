@@ -8,7 +8,7 @@ struct PruneHandler: TartdCommand {
   var spaceBudget: UInt?
   var gc: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(entries)
@@ -25,6 +25,6 @@ struct PruneHandler: TartdCommand {
       arguments.append("--gc")
     }
 
-    try Shell.runTart(command: "prune", arguments: arguments)
+    return try Shell.runTart(command: "prune", arguments: arguments)
   }
 }

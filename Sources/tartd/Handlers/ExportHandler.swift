@@ -4,7 +4,7 @@ struct ExportHandler: TartdCommand {
   var name: String
   var path: String?
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -13,6 +13,6 @@ struct ExportHandler: TartdCommand {
       arguments.append(path)
     }
 
-    try Shell.runTart(command: "export", arguments: arguments)
+    return try Shell.runTart(command: "export", arguments: arguments)
   }
 }

@@ -6,7 +6,7 @@ struct IPHandler: TartdCommand {
   var wait: UInt16 = 0
   var resolver: IPResolutionStrategy = .dhcp
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -19,6 +19,6 @@ struct IPHandler: TartdCommand {
       arguments.append("--wait=\(wait)")
     }
 
-    try Shell.runTart(command: "ip", arguments: arguments)
+    return try Shell.runTart(command: "ip", arguments: arguments)
   }
 }

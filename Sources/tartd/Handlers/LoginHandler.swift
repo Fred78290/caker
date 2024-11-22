@@ -9,7 +9,7 @@ struct LoginHandler: TartdCommand {
   var insecure: Bool = false
   var noValidate: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(host)
@@ -26,6 +26,6 @@ struct LoginHandler: TartdCommand {
       arguments.append("--insecure")
     }
 
-    try Shell.runTart(command: "login", arguments: arguments)
+    return try Shell.runTart(command: "login", arguments: arguments)
   }
 }

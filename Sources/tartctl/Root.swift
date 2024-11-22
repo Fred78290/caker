@@ -52,21 +52,19 @@ struct Root: AsyncParsableCommand {
     ])
 
   @Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
-  var address: String?
+  var address: String = try! Root.getDefaultServerAddress()
 
   @Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
   var caCert: String?
 
-  @Option(name: [.customLong("tls-cert"), .customShort("c")], help: "Client TLS certificate")
+  @Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
   var tlsCert: String?
 
   @Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
   var tlsKey: String?
 
-  private func getServerAddress() throws -> String {
-    if let address = self.address {
-      return address
-    } else if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTD_LISTEN_ADDRESS"] {
+  private static func getDefaultServerAddress() throws -> String {
+    if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTD_LISTEN_ADDRESS"] {
       return tartdListenAddress
     } else {
       var tartHomeDir: URL
@@ -88,7 +86,7 @@ struct Root: AsyncParsableCommand {
   }
 
   func createClient(on: MultiThreadedEventLoopGroup) throws -> ClientConnection {
-    let listeningAddress = URL(string: try self.getServerAddress())
+    let listeningAddress = URL(string: self.address)
     let connection: ClientConnection.Builder
 
     if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
@@ -133,8 +131,31 @@ struct Root: AsyncParsableCommand {
     }
     
     throw GrpcError(code: -1, reason: "connection address must be specified")
-	}
+  }
 
+	func execute(command: inout GrpcAsyncParsableCommand) async throws -> String {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+		// Make sure the group is shutdown when we're done with it.
+		defer {
+		  Task {
+			try! await group.shutdownGracefully()
+		  }
+		}
+
+		let connection = try createClient(on: group)
+		
+		defer {
+		  Task {
+			try! await connection.close().get()
+		  }
+		}
+		
+		let grpcClient = Tartd_ServiceNIOClient(channel: connection)
+		let reply = try await command.run(client: grpcClient)
+		
+		return reply.output
+	}
   mutating func run() async throws {
     // Ensure the default SIGINT handled is disabled,
     // otherwise there's a race between two handlers
@@ -153,31 +174,10 @@ struct Root: AsyncParsableCommand {
     // Parse and run command
     do {
       guard var command = try Self.parseAsRoot() as? GrpcAsyncParsableCommand else {
-        throw GrpcError(code: -1, reason: "command is wrong type")
+		  throw GrpcError(code: -1, reason: "command is wrong type")
       }
-      
-      let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-
-      // Make sure the group is shutdown when we're done with it.
-      defer {
-        Task {
-          try! await group.shutdownGracefully()
-        }
-      }
-
-      let connection = try createClient(on: group)
-      
-      defer {
-        Task {
-          try! await connection.close().get()
-        }
-      }
-      
-      let grpcClient = Tartd_ServiceNIOClient(channel: connection)
-      let reply = try await command.run(client: grpcClient)
-      
-      print(reply.output)
-    } catch {      
+		print(try await self.execute(command: &command))
+    } catch {
       // Handle any other exception, including ArgumentParser's ones
       Self.exit(withError: error)
     }

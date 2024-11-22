@@ -5,7 +5,7 @@ import SystemConfiguration
 struct StartHandler: TartdCommand {
   var name: String
 
-  func run() async throws {
+  func run() async throws -> String {
     let vmDir = try VMStorageLocal().open(name)
     let vmState = try vmDir.state()
 
@@ -14,6 +14,8 @@ struct StartHandler: TartdCommand {
     } else if vmState == .Running {
       throw RuntimeError.VMAlreadyRunning(name)
     }
+
+    return "started \(name)"
   }
 
   public static func startVM(vmDir: VMDirectory) throws {

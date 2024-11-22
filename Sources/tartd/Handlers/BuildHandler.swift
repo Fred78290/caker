@@ -40,7 +40,7 @@ struct BuildHandler: TartdCommand, BuildArguments {
   var userData: String?
   var networkConfig: String?
 
-  func run() async throws {
+  func run() async throws -> String {
     let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
     // Lock the temporary VM directory to prevent it's garbage collection
@@ -55,5 +55,7 @@ struct BuildHandler: TartdCommand, BuildArguments {
       onCancel: {
         try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
       })
+
+    return ""
   }
 }

@@ -6,7 +6,7 @@ struct PullHandler: TartdCommand {
   var concurrency: UInt = 4
   var deduplicate: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(remoteName)
@@ -23,6 +23,6 @@ struct PullHandler: TartdCommand {
       arguments.append("--concurrency=\(concurrency)")
     }
 
-    try Shell.runTart(command: "pull", arguments: arguments)
+    return try Shell.runTart(command: "pull", arguments: arguments)
   }
 }

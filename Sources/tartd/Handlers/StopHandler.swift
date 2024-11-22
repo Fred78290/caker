@@ -4,7 +4,7 @@ struct StopHandler: TartdCommand {
   var name: String
   var timeout: UInt64 = 30
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -13,6 +13,6 @@ struct StopHandler: TartdCommand {
       arguments.append("--timeout=\(timeout)")
     }
 
-    try Shell.runTart(command: "push", arguments: arguments)
+    return try Shell.runTart(command: "push", arguments: arguments)
   }
 }

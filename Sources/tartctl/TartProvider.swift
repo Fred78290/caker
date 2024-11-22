@@ -14,6 +14,14 @@ private func saveToTempFile(_ data: Data) throws -> String {
   return url.absoluteURL.path()
 }
 
+extension Tartd_TartRequest {
+	init(command: String, arguments: [String]) {
+      self.init()
+      self.command = command
+      self.arguments = arguments
+	}
+}
+
 extension Tartd_BuildRequest {
 
   init (command: Build) throws {

@@ -63,7 +63,7 @@ struct LaunchHandler: TartdCommand, BuildArguments {
     try StartHandler.startVM(vmDir: vmDir)
   }
 
-  func run() async throws {
+  func run() async throws  -> String{
     let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
     // Lock the temporary VM directory to prevent it's garbage collection
@@ -79,6 +79,8 @@ struct LaunchHandler: TartdCommand, BuildArguments {
       onCancel: {
         try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
       })
+
+    return "launched \(name)"
   }
 
 }

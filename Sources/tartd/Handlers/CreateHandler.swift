@@ -6,7 +6,7 @@ struct CreateHandler: TartdCommand {
   var linux: Bool = false
   var diskSize: UInt16 = 50
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -23,6 +23,6 @@ struct CreateHandler: TartdCommand {
       arguments.append("--disk-size=\(diskSize)")
     }
 
-    try Shell.runTart(command: "create", arguments: arguments)
+    return try Shell.runTart(command: "create", arguments: arguments)
   }
 }

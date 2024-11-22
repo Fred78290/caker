@@ -10,7 +10,7 @@ struct SetHandler: TartdCommand {
   var disk: String?
   var diskSize: UInt16?
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -43,6 +43,6 @@ struct SetHandler: TartdCommand {
       arguments.append("--disk-size=\(diskSize)")
     }
 
-    try Shell.runTart(command: "set", arguments: arguments)
+    return try Shell.runTart(command: "set", arguments: arguments)
   }
 }

@@ -11,6 +11,10 @@ package tartd;
 service Service {
   // Sends a greeting
   rpc Build (BuildRequest) returns (TartReply) {}
+  rpc Start (StartRequest) returns (TartReply) {}
+  rpc Tart (TartRequest) returns (TartReply) {}
+
+
   rpc Clone (CloneRequest) returns (TartReply) {}
   rpc Create (CreateRequest) returns (TartReply) {}
   rpc Delete (DeleteRequest) returns (TartReply) {}
@@ -29,9 +33,13 @@ service Service {
   rpc Rename (RenameRequest) returns (TartReply) {}
   rpc RunVM (RunRequest) returns (TartReply) {}
   rpc Set (SetRequest) returns (TartReply) {}
-  rpc Start (StartRequest) returns (TartReply) {}
   rpc Stop (StopRequest) returns (TartReply) {}
   rpc Suspend (SuspendRequest) returns (TartReply) {}
+}
+
+message TartRequest {
+  string command = 1;
+  repeated string arguments = 2;
 }
 
 enum OutputFormat {
@@ -232,7 +240,7 @@ message SuspendRequest {
 }
 
 message Error {
-  string code = 1;
+  int32 code = 1;
   string reason = 2;
 }
 

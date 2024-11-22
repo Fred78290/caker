@@ -5,7 +5,7 @@ struct ListHandler: TartdCommand {
   var format: Format = .text
   var quiet: Bool = false
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     if let source = self.source {
@@ -20,6 +20,6 @@ struct ListHandler: TartdCommand {
       arguments.append("--format=\(format.rawValue)")
     }
 
-    try Shell.runTart(command: "list", arguments: arguments)
+    return try Shell.runTart(command: "list", arguments: arguments)
   }
 }

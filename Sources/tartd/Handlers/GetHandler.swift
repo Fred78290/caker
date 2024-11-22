@@ -4,7 +4,7 @@ struct GetHandler: TartdCommand {
   var name: String
   var format: Format = .text
 
-  func run() async throws {
+  func run() async throws -> String {
     var arguments: [String] = []
 
     arguments.append(name)
@@ -13,6 +13,6 @@ struct GetHandler: TartdCommand {
       arguments.append("--format=\(format.rawValue)")
     }
 
-    try Shell.runTart(command: "get", arguments: arguments)
+    return try Shell.runTart(command: "get", arguments: arguments)
   }
 }
