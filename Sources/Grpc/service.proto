@@ -12,44 +12,13 @@ service Service {
   // Sends a greeting
   rpc Build (BuildRequest) returns (TartReply) {}
   rpc Start (StartRequest) returns (TartReply) {}
-  rpc Tart (TartRequest) returns (TartReply) {}
-
-
-  rpc Clone (CloneRequest) returns (TartReply) {}
-  rpc Create (CreateRequest) returns (TartReply) {}
-  rpc Delete (DeleteRequest) returns (TartReply) {}
-  rpc FQN (FqnRequest) returns (TartReply) {}
-  rpc Get (GetRequest) returns (TartReply) {}
-  rpc ExportVM (ExportRequest) returns (TartReply) {}
-  rpc ImportVM (ImportRequest) returns (TartReply) {}
-  rpc IP (IPRequest) returns (TartReply) {}
+  rpc TartCommand (TartCommandRequest) returns (TartReply) {}
   rpc Launch (LaunchRequest) returns (TartReply) {}
-  rpc List (ListRequest) returns (TartReply) {}
-  rpc Login (LoginRequest) returns (TartReply) {}
-  rpc Logout (LogoutRequest) returns (TartReply) {}
-  rpc Prune (PruneRequest) returns (TartReply) {}
-  rpc Pull (PullRequest) returns (TartReply) {}
-  rpc Push (PushRequest) returns (TartReply) {}
-  rpc Rename (RenameRequest) returns (TartReply) {}
-  rpc RunVM (RunRequest) returns (TartReply) {}
-  rpc Set (SetRequest) returns (TartReply) {}
-  rpc Stop (StopRequest) returns (TartReply) {}
-  rpc Suspend (SuspendRequest) returns (TartReply) {}
 }
 
-message TartRequest {
+message TartCommandRequest {
   string command = 1;
   repeated string arguments = 2;
-}
-
-enum OutputFormat {
-  TEXT = 0;
-  JSON = 1;
-}
-
-enum IPResolutionStrategy {
-  DHCP = 0;
-  ARP = 1;
 }
 
 message BuildRequest {
@@ -69,55 +38,6 @@ message BuildRequest {
   optional bytes userData = 13;
   optional bytes networkConfig = 14;
   optional int32 diskSize = 15;
-}
-
-message RenameRequest {
-  string name = 1;
-  string newName = 2;
-}
-
-message CloneRequest {
-  string sourceName = 1;
-  string newName = 2;
-  optional bool insecure = 3;
-  optional int32 concurrency = 4;
-  optional bool deduplicate = 5;
-}
-
-message CreateRequest {
-  string name = 1;
-  optional string fromIPSW = 2;
-  optional bool linux = 3;
-  optional int32 diskSize = 4;
-}
-
-message DeleteRequest {
-  repeated string name = 1;
-}
-
-message FqnRequest {
-  string name = 1;
-}
-
-message GetRequest {
-  string name = 1;
-  optional OutputFormat format = 2;
-}
-
-message ExportRequest {
-  string name = 1;
-  optional string path = 2;
-}
-
-message ImportRequest {
-  string name = 1;
-  string path = 2;
-}
-
-message IPRequest {
-  string name = 1;
-  optional int32 wait = 2;
-  optional IPResolutionStrategy resolver = 3;
 }
 
 message LaunchRequest {
@@ -144,98 +64,7 @@ message LaunchRequest {
   optional bool netHost = 20;
 }
 
-message ListRequest {
-  string source = 1;
-  optional OutputFormat format = 2;
-  optional bool quiet = 3;
-}
-
-message LoginRequest {
-  string host = 1;
-  string username = 2;
-  string password = 3;
-  optional bool insecure = 4;
-  optional bool noValidate = 5;
-}
-
-message LogoutRequest {
-  string host = 1;
-}
-
-message PruneRequest {
-  optional string entries = 1;
-  optional int32 olderThan = 2;
-  optional int32 cacheBudget = 3;
-  optional int32 spaceBudget = 4;
-  optional bool gc = 5;
-}
-
-message PushRequest {
-  string localName = 1;
-  repeated string remoteNames = 2;
-  optional bool insecure = 3;
-  optional bool populateCache = 6;
-  optional int32 concurrency = 4;
-  optional int32 chunkSize = 5;
-}
-
-message PullRequest {
-  string remoteName = 1;
-  optional bool insecure = 2;
-  optional int32 concurrency = 3;
-  optional bool deduplicate = 4;
-}
-
-message RunRequest {
-  string name = 1;
-  optional bool noGraphics = 2;
-  optional bool serial = 3;
-  optional string serialPath = 4;
-  optional bool graphics = 5;
-  optional bool noAudio = 6;
-  optional bool noClipboard = 7;
-  optional bool recovery = 8;
-  optional bool vnc = 9;
-  optional bool vncExperimental = 10;
-  repeated string disk = 11;
-  optional string rosettaTag = 12;
-  repeated string dir = 13;
-  optional bool nested = 14;
-  repeated string netBridged = 15;
-  optional bool netSofnet = 16;
-  optional string netSoftnetAllow = 17;
-  optional bool netHost = 18;
-  optional string rootDiskOpts = 19;
-  optional bool suspendable = 20;
-  optional bool captureSystemKeys = 21;
-}
-
-message VMDisplayConfig {
-  int32 width = 1;
-  int32 height = 2;
-}
-
-message SetRequest {
-  string name = 1;
-  optional int32 cpu = 2;
-  optional int32 memory = 3;
-  optional VMDisplayConfig display = 4;
-  optional bool randomMAC = 5;
-  optional bool randomSerial = 6;
-  optional string disk = 7;
-  optional int32 diskSize = 8;
-}
-
 message StartRequest {
-  string name = 1;
-}
-
-message StopRequest {
-  string name = 1;
-  optional int32 timeout = 2;
-}
-
-message SuspendRequest {
   string name = 1;
 }
 

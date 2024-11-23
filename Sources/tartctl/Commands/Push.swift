@@ -38,7 +38,7 @@ struct Push: GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.push(Tartd_PushRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "push", arguments: arguments)).response.get()
     }
 }

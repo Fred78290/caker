@@ -21,20 +21,11 @@ struct Login: GrpcAsyncParsableCommand {
     @Flag(help: "skip validation of the registry's credentials before logging-in")
     var noValidate: Bool = false
 
-    func validate() throws {
-        let usernameProvided = username != nil
-        let passwordProvided = passwordStdin
-
-        if usernameProvided != passwordProvided {
-            throw ValidationError("both --username and --password-stdin are required")
-        }
-    }
-
     mutating func run() async throws {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.login(Tartd_LoginRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "login", arguments: arguments)).response.get()
     }
 }

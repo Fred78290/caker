@@ -12,7 +12,7 @@ struct FQN: GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.fQN(Tartd_FqnRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "fqn", arguments: arguments)).response.get()
     }
 }

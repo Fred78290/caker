@@ -24,29 +24,12 @@ struct Prune: GrpcAsyncParsableCommand {
     @Flag(help: .hidden)
     var gc: Bool = false
 
-    mutating func validate() throws {
-        // --cache-budget deprecation logic
-        if let cacheBudget = cacheBudget {
-            fputs("--cache-budget is deprecated, please use --space-budget\n", stderr)
-
-            if spaceBudget != nil {
-                throw ValidationError("--cache-budget is deprecated, please use --space-budget")
-            }
-
-            spaceBudget = cacheBudget
-        }
-
-        if olderThan == nil && spaceBudget == nil && !gc {
-            throw ValidationError("at least one pruning criteria must be specified")
-        }
-    }
-
     mutating func run() async throws {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.prune(Tartd_PruneRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "prune", arguments: arguments)).response.get()
     }
 
 }

@@ -1,18 +1,31 @@
 import ArgumentParser
 import Darwin
 import Foundation
+import ShellOut
 
+let COMMAND_NAME="tartd"
 @main
 struct Root: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(
-		commandName: "tartd",
+		commandName: "\(COMMAND_NAME)",
+		usage: "\(COMMAND_NAME) <subcommand or tart subcommand>",
+		discussion: "\(COMMAND_NAME) is a tool to wrap tart command and add some features like run as daemon, build VM from cloud image",
 		version: CI.version,
 		subcommands: [
 			Service.self,
 			Certificates.self,
 			Build.self,
-			Start.self
+			Start.self,
+			Launch.self
 		])
+
+	static func parse() throws -> ParsableCommand? {
+		do {
+			return try parseAsRoot()
+		} catch {
+			return nil
+		}
+	}
 
 	public static func main() async throws {
 		// Ensure the default SIGINT handled is disabled,
@@ -31,7 +44,7 @@ struct Root: AsyncParsableCommand {
 
 		// Parse and run command
 		do {
-			guard var command: any ParsableCommand = try parseAsRoot() as any ParsableCommand else {
+			guard var command = try parse() else {
                 var commandName: String?
                 var arguments: [String] = []
                 for argument in CommandLine.arguments.dropFirst() {
@@ -42,7 +55,7 @@ struct Root: AsyncParsableCommand {
                     }
                 }
 
-				defaultLogger.appendNewLine(try Shell.runTart(command: commandName ?? "", arguments: arguments))
+				print(try Shell.runTart(command: commandName ?? "", arguments: arguments))
 
 				return
 			}
@@ -53,6 +66,11 @@ struct Root: AsyncParsableCommand {
 				try command.run()
 			}
 		} catch {
+			if let shellOutError = error as? ShellOutError {
+				fputs("\(shellOutError.message)\n", stderr)
+				Foundation.exit(shellOutError.terminationStatus)
+			}
+
 			// Handle a non-ArgumentParser's exception that requires a specific exit code to be set
 			if let errorWithExitCode = error as? HasExitCode {
 				fputs("\(error)\n", stderr)

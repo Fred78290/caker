@@ -20,7 +20,7 @@ class GrpcError: Error {
 }
 
 protocol GrpcAsyncParsableCommand: AsyncParsableCommand {
-	mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply
+	mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply
 }
 
 @main
@@ -138,7 +138,8 @@ struct Root: AsyncParsableCommand {
 		throw GrpcError(code: -1, reason: "connection address must be specified")
 	}
 
-	func execute(command: inout GrpcAsyncParsableCommand) async throws -> String {
+	func execute(command: GrpcAsyncParsableCommand, arguments: [String]) async throws -> String {
+		var command = command
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 		// Make sure the group is shutdown when we're done with it.
@@ -157,9 +158,17 @@ struct Root: AsyncParsableCommand {
 		}
 
 		let grpcClient = Tartd_ServiceNIOClient(channel: connection)
-		let reply = try await command.run(client: grpcClient)
+		let reply = try await command.run(client: grpcClient, arguments: arguments)
 
 		return reply.output
+	}
+
+	static func parse() throws -> GrpcAsyncParsableCommand? {
+		do {
+			return try parseAsRoot() as? GrpcAsyncParsableCommand
+		} catch {
+			return nil
+		}
 	}
 
 	mutating func run() async throws {
@@ -179,24 +188,25 @@ struct Root: AsyncParsableCommand {
 
 		// Parse and run command
 		do {
-			guard var command = try Self.parseAsRoot() as? GrpcAsyncParsableCommand else {
-				var commandName: String?
-				var arguments: [String] = []
-				for argument in CommandLine.arguments.dropFirst() {
-					if argument.hasPrefix("-") || commandName != nil {
-						arguments.append(argument)
-					} else if commandName == nil {
-						commandName = argument
-					}
+			var commandName: String?
+			var arguments: [String] = []
+			for argument in CommandLine.arguments.dropFirst() {
+				if argument.hasPrefix("-") || commandName != nil {
+					arguments.append(argument)
+				} else if commandName == nil {
+					commandName = argument
 				}
+			}
 
-				var command: any GrpcAsyncParsableCommand = Tart(command: commandName, arguments: arguments)
+			guard let command = try Self.parse() else {
+				let command: any GrpcAsyncParsableCommand = Tart(command: commandName)
 
-				print(try await self.execute(command: &command))
+				print(try await self.execute(command: command, arguments: arguments))
 
 				return
 			}
-			print(try await self.execute(command: &command))
+
+			print(try await self.execute(command: command, arguments: arguments))
 		} catch {
 			// Handle any other exception, including ArgumentParser's ones
 			Self.exit(withError: error)

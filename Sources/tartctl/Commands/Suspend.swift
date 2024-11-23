@@ -12,7 +12,7 @@ struct Suspend: GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.suspend(Tartd_SuspendRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "suspend", arguments: arguments)).response.get()
     }
 }

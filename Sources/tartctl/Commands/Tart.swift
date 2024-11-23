@@ -15,25 +15,21 @@ struct Tart: GrpcAsyncParsableCommand {
     @Argument(help: "command")
     var command: String?
 
-    @Argument(help: "arguments")
-    var arguments: [String]
-
     init() {
 
     }
 
-    init(command: String?, arguments: [String]) {
+    init(command: String?) {
         self.command = command
-        self.arguments = arguments
     }
 
     mutating func run() async throws {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.tart(
-            Tartd_TartRequest(command: self.command ?? "", arguments: self.arguments)
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+        return try await client.tartCommand(
+            Tartd_TartCommandRequest(command: self.command ?? "", arguments: arguments)
         ).response.get()
     }
 }

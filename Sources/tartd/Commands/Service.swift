@@ -22,7 +22,7 @@ class ServiceError : Error, CustomStringConvertible {
 }
 
 struct Service: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Tart daemon as launchctl agent",
+	static var configuration = CommandConfiguration(abstract: "Tart helper as launchctl agent",
 													subcommands: [Install.self, Listen.self])
 	static let SyncSemaphore = DispatchSemaphore(value: 0)
 

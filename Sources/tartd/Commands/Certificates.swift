@@ -3,7 +3,7 @@ import ArgumentParser
 import Foundation
 
 struct Certificates: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Tart daemon as launchctl agent",
+	static var configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
 													subcommands: [Generate.self, Get.self])
 
 	struct Get: ParsableCommand {

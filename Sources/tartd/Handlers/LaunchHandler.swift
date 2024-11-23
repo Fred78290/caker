@@ -1,6 +1,13 @@
 import Foundation
 
-struct LaunchHandler: TartdCommand, BuildArguments {
+protocol LaunchArguments : BuildArguments {
+	var dir: [String] { get }
+	var netBridged: [String] { get }
+	var netSoftnet: Bool { get }
+	var netSoftnetAllow: String? { get }
+	var netHost: Bool { get }
+}
+struct LaunchHandler: TartdCommand, LaunchArguments {
 	var name: String
 	var cpu: UInt16 = 1
 	var memory: UInt64 = 512
@@ -23,12 +30,12 @@ struct LaunchHandler: TartdCommand, BuildArguments {
 	var netSoftnetAllow: String?
 	var netHost: Bool = false
 
-	func launch() throws {
+	static func launch(_ self: LaunchArguments) throws {
 		let vmDir = try VMStorageLocal().open(self.name)
 		let lock = try vmDir.lock()
 
 		if try !lock.trylock() {
-			throw RuntimeError.VMAlreadyRunning("VM \"\(name)\" is already running!")
+			throw RuntimeError.VMAlreadyRunning("VM \"\(self.name)\" is already running!")
 		}
 
 		var arguments: [String] = ["--no-graphics", "--no-audio", "--nested"]
@@ -63,7 +70,7 @@ struct LaunchHandler: TartdCommand, BuildArguments {
 		try StartHandler.startVM(vmDir: vmDir)
 	}
 
-	func run() async throws  -> String{
+	static func launchVM(_ self: LaunchArguments) async throws {
 		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
@@ -73,13 +80,16 @@ struct LaunchHandler: TartdCommand, BuildArguments {
 		try await withTaskCancellationHandler(
 			operation: {
 				try await VMBuilder.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
-				try VMStorageLocal().move(name, from: tmpVMDir)
-				try launch()
+				try VMStorageLocal().move(self.name, from: tmpVMDir)
+				try Self.launch(self)
 			},
 			onCancel: {
 				try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
 			})
+	}
 
+	func run() async throws  -> String {
+		try await Self.launchVM(self)
 		return "launched \(name)"
 	}
 

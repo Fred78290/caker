@@ -27,17 +27,11 @@ struct Pull: GrpcAsyncParsableCommand {
     @Flag(help: .hidden)
     var deduplicate: Bool = false
 
-    func validate() throws {
-        if concurrency < 1 {
-            throw ValidationError("network concurrency cannot be less than 1")
-        }
-    }
-
     mutating func run() async throws {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.pull(Tartd_PullRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "run", arguments: arguments)).response.get()
     }
 }

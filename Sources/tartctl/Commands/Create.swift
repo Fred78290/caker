@@ -17,22 +17,11 @@ struct Create: GrpcAsyncParsableCommand {
     @Option(help: ArgumentHelp("Disk size in GB"))
     var diskSize: UInt16 = 50
 
-    func validate() throws {
-        if fromIPSW == nil && !linux {
-            throw ValidationError("Please specify either a --from-ipsw or --linux option!")
-        }
-        #if arch(x86_64)
-            if fromIPSW != nil {
-                throw ValidationError("Only Linux VMs are supported on Intel!")
-            }
-        #endif
-    }
-
     mutating func run() async throws {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient) async throws -> Tartd_TartReply {
-        return try await client.create(Tartd_CreateRequest(command: self)).response.get()
+    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
+		return try await client.tartCommand(Tartd_TartCommandRequest(command: "create", arguments: arguments)).response.get()
     }
 }
