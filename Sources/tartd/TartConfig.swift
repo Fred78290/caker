@@ -16,9 +16,11 @@ struct DisplayConfig: Codable {
 	}
 
 	func to() -> Dictionary<String, Int> {
-		var dict: [String:Int] = [:]
+		var dict: Dictionary<String, Int> = Dictionary<String, Int>()
+
 		dict["width"] = self.width
 		dict["height"] = self.height
+
 		return dict
 	}
 }
