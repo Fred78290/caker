@@ -73,6 +73,8 @@ extension Service {
 		}
 
 		mutating func run() throws {
+			runAsSystem = self.asSystem
+
 			let certs = try Utils.createCertificats(asSystem: self.asSystem)
 			let listenAddress: String = try Utils.getListenAddress(asSystem: self.asSystem)
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
@@ -81,12 +83,10 @@ extension Service {
 									programArguments: [
 										try Install.findMe(),
 										"listen",
-										"--address",
-										listenAddress,
-										"--tls-cert",
-										certs.serverCertURL.path(),
-										"--tls-key",
-										certs.serverKeyURL.path(),
+										"--system=\(asSystem)",
+										"--address=\(listenAddress)",
+										"--tls-cert=\(certs.serverCertURL.path())",
+										"--tls-key=\(certs.serverKeyURL.path())",
 									],
 									keepAlive: [
 										"SuccessfulExit" : false
@@ -115,8 +115,12 @@ extension Service {
 			try agent.write(to: agentURL)
 		}
 	}
+
 	struct Listen : AsyncParsableCommand {
 		static var configuration = CommandConfiguration(abstract: "tart daemon listening")
+
+		@Option(name: [.customLong("system"), .customShort("s")], help: "Run agent as system agent, need sudo")
+		var asSystem: Bool = false
 
 		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
 		var address: String?
@@ -170,7 +174,7 @@ extension Service {
 				builder = Server.insecure(group: on)
 			}
 
-			builder.withServiceProviders([TartDaemonProvider()])
+			builder.withServiceProviders([TartDaemonProvider(asSystem: self.asSystem)])
 
 			if let listeningAddress = listeningAddress {
 				if listeningAddress.scheme == "unix" {
@@ -186,7 +190,10 @@ extension Service {
 		}
 
 		func run() async throws {
+			runAsSystem = self.asSystem
+
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
 			defer {
 				Task {
 					try! await group.shutdownGracefully()

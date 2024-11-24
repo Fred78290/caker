@@ -415,6 +415,67 @@ public struct Tartd_Error: Sendable {
   public init() {}
 }
 
+public struct Tartd_PruneRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var entries: String {
+    get {return _entries ?? String()}
+    set {_entries = newValue}
+  }
+  /// Returns true if `entries` has been explicitly set.
+  public var hasEntries: Bool {return self._entries != nil}
+  /// Clears the value of `entries`. Subsequent reads from it will return its default value.
+  public mutating func clearEntries() {self._entries = nil}
+
+  public var olderThan: Int32 {
+    get {return _olderThan ?? 0}
+    set {_olderThan = newValue}
+  }
+  /// Returns true if `olderThan` has been explicitly set.
+  public var hasOlderThan: Bool {return self._olderThan != nil}
+  /// Clears the value of `olderThan`. Subsequent reads from it will return its default value.
+  public mutating func clearOlderThan() {self._olderThan = nil}
+
+  public var cacheBudget: Int32 {
+    get {return _cacheBudget ?? 0}
+    set {_cacheBudget = newValue}
+  }
+  /// Returns true if `cacheBudget` has been explicitly set.
+  public var hasCacheBudget: Bool {return self._cacheBudget != nil}
+  /// Clears the value of `cacheBudget`. Subsequent reads from it will return its default value.
+  public mutating func clearCacheBudget() {self._cacheBudget = nil}
+
+  public var spaceBudget: Int32 {
+    get {return _spaceBudget ?? 0}
+    set {_spaceBudget = newValue}
+  }
+  /// Returns true if `spaceBudget` has been explicitly set.
+  public var hasSpaceBudget: Bool {return self._spaceBudget != nil}
+  /// Clears the value of `spaceBudget`. Subsequent reads from it will return its default value.
+  public mutating func clearSpaceBudget() {self._spaceBudget = nil}
+
+  public var gc: Bool {
+    get {return _gc ?? false}
+    set {_gc = newValue}
+  }
+  /// Returns true if `gc` has been explicitly set.
+  public var hasGc: Bool {return self._gc != nil}
+  /// Clears the value of `gc`. Subsequent reads from it will return its default value.
+  public mutating func clearGc() {self._gc = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _entries: String? = nil
+  fileprivate var _olderThan: Int32? = nil
+  fileprivate var _cacheBudget: Int32? = nil
+  fileprivate var _spaceBudget: Int32? = nil
+  fileprivate var _gc: Bool? = nil
+}
+
 public struct Tartd_TartReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -918,6 +979,66 @@ extension Tartd_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   public static func ==(lhs: Tartd_Error, rhs: Tartd_Error) -> Bool {
     if lhs.code != rhs.code {return false}
     if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Tartd_PruneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".PruneRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "entries"),
+    2: .same(proto: "olderThan"),
+    3: .same(proto: "cacheBudget"),
+    4: .same(proto: "spaceBudget"),
+    5: .same(proto: "gc"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self._entries) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self._olderThan) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self._cacheBudget) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self._spaceBudget) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self._gc) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._entries {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._olderThan {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._cacheBudget {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._spaceBudget {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._gc {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Tartd_PruneRequest, rhs: Tartd_PruneRequest) -> Bool {
+    if lhs._entries != rhs._entries {return false}
+    if lhs._olderThan != rhs._olderThan {return false}
+    if lhs._cacheBudget != rhs._cacheBudget {return false}
+    if lhs._spaceBudget != rhs._spaceBudget {return false}
+    if lhs._gc != rhs._gc {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

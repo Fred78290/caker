@@ -2,7 +2,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "org.cirruslabs.tartd";
+option java_package = "com.aldunelabs.tartd";
 option java_outer_classname = "TardDaemon";
 option objc_class_prefix = "tartd";
 
@@ -14,6 +14,7 @@ service Service {
   rpc Start (StartRequest) returns (TartReply) {}
   rpc TartCommand (TartCommandRequest) returns (TartReply) {}
   rpc Launch (LaunchRequest) returns (TartReply) {}
+  rpc Prune (PruneRequest) returns (TartReply) {}
 }
 
 message TartCommandRequest {
@@ -71,6 +72,14 @@ message StartRequest {
 message Error {
   int32 code = 1;
   string reason = 2;
+}
+
+message PruneRequest {
+  optional string entries = 1;
+  optional int32 olderThan = 2;
+  optional int32 cacheBudget = 3;
+  optional int32 spaceBudget = 4;
+  optional bool gc = 5;
 }
 
 message TartReply {

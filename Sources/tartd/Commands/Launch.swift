@@ -89,7 +89,7 @@ struct Launch : AsyncParsableCommand, LaunchArguments {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		if VMStorageLocal().exists(name) {
+		if StorageLocation(asSystem: false).exists(name) {
 			throw ValidationError("\(name) already exists")
 		}
 
@@ -131,7 +131,7 @@ struct Launch : AsyncParsableCommand, LaunchArguments {
 	}
 
 	func run() async throws {
-		try await LaunchHandler.launchVM(self)
+		try await LaunchHandler.launchVM(asSystem: false, self)
 	}
 
 }

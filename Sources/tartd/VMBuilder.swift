@@ -6,7 +6,7 @@ let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
 	private static func buildVM(vmName: String,
-								vmDir: VMDirectory,
+								vmDir: VMLocation,
 								cpu: UInt16?,
 								memory: UInt64?,
 								diskSizeGB: UInt16,
@@ -21,10 +21,10 @@ struct VMBuilder {
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmDir.nvramURL)
 
 		// Create disk
-		try vmDir.resizeDisk(diskSizeGB)
+		try vmDir.expandDiskTo(diskSizeGB)
 
 		// Create config
-		var config = VMConfig(platform: Linux(), cpuCountMin: 1, memorySizeMin: 512 * 1024 * 1024)
+		var config = TartConfig(os: .linux, cpuCountMin: 1, memorySizeMin: 512 * 1024 * 1024)
 		let cloudInit = try CloudInit(userName: userName,
 									  mainGroup: mainGroup,
 									  insecure: insecure,
@@ -34,11 +34,11 @@ struct VMBuilder {
 									  networkConfigPath: networkConfig)
 
 		if let cpu = cpu {
-			try config.setCPU(cpuCount: Int(cpu))
+			config.cpuCount = Int(cpu)
 		}
 
 		if let memory = memory {
-			try config.setMemory(memorySize: memory * 1024 * 1024)
+			config.memorySize = memory * 1024 * 1024
 		}
 
 		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL))
@@ -47,7 +47,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMDirectory,
+						vmDir: VMLocation,
 						cloudImageURL: URL,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -81,7 +81,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMDirectory,
+						vmDir: VMLocation,
 						diskImageURL: URL,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -102,7 +102,7 @@ struct VMBuilder {
 		// Copy disk image
 		diskImageURL.resolveSymlinksInPath()
 
-		let temporaryDiskURL = try Config().tartTmpDir.appendingPathComponent("set-disk-\(UUID().uuidString)")
+		let temporaryDiskURL = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
 		try FileManager.default.copyItem(at: diskImageURL, to: temporaryDiskURL)
 		_ = try FileManager.default.replaceItemAt(vmDir.diskURL, withItemAt: temporaryDiskURL)
@@ -123,7 +123,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMDirectory,
+						vmDir: VMLocation,
 						ociImage: String,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -154,7 +154,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMDirectory,
+						vmDir: VMLocation,
 						remoteContainerServer: String,
 						aliasImage: String,
 						cpu: UInt16?,
@@ -210,7 +210,7 @@ struct VMBuilder {
 		}
 	}
 
-	public static func buildVM(vmName: String, vmDir: VMDirectory, arguments: BuildArguments) async throws {
+	public static func buildVM(vmName: String, vmDir: VMLocation, arguments: BuildArguments) async throws {
 		if let fromImage = arguments.fromImage {
 			try await Self.buildVM(vmName: vmName,
 								   vmDir: vmDir,
@@ -269,7 +269,7 @@ struct VMBuilder {
 								   userData: arguments.userData,
 								   networkConfig: arguments.networkConfig)
 		} else {
-			throw RuntimeError.ImportFailed("any image specified")
+			throw ServiceError("any image specified")
 		}
 
 	}

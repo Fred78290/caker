@@ -128,3 +128,22 @@ extension Tartd_StartRequest {
 		self.name = command.name
 	}
 }
+
+extension Tartd_PruneRequest {
+	init (command: Prune) {
+		self.init()
+		self.entries = command.entries
+
+		if let olderThan = command.olderThan {
+			self.olderThan = Int32(olderThan)
+		}
+
+		if let cacheBudget = command.cacheBudget {
+			self.cacheBudget = Int32(cacheBudget)
+		}
+
+		if let spaceBudget = command.spaceBudget {
+			self.spaceBudget = Int32(spaceBudget)
+		}
+	}
+}

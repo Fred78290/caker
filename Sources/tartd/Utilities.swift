@@ -1,4 +1,5 @@
 import Foundation
+import System
 
 struct Utils {
 	struct CertificatesLocation: Codable {
@@ -22,19 +23,7 @@ struct Utils {
 	}
 
 	static func getTartHome(asSystem: Bool) throws -> URL {
-		if asSystem {
-			let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
-			var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
-
-			applicationSupportDirectory = URL(fileURLWithPath: tartDSignature,
-											  isDirectory: true,
-											  relativeTo: applicationSupportDirectory)
-			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
-
-			return applicationSupportDirectory
-		}
-
-		return try Config().tartHomeDir
+		return try Home(asSystem: asSystem).homeDir
 	}
 
 	static func getOutputLog(asSystem: Bool) -> String {
@@ -42,7 +31,7 @@ struct Utils {
 			return "/Library/Logs/tartd.log"
 		}
 
-		return URL(fileURLWithPath: "tartd.log", relativeTo: try? Config().tartHomeDir).absoluteURL.path()
+		return URL(fileURLWithPath: "tartd.log", relativeTo: try? Home(asSystem: false).homeDir).absoluteURL.path()
 	}
 
 	static func getListenAddress(asSystem: Bool) throws -> String {
@@ -67,11 +56,99 @@ struct Utils {
 		if FileManager.default.fileExists(atPath: certs.serverKeyURL.path()) == false {
 			try FileManager.default.createDirectory(at: certs.certHome, withIntermediateDirectories: true)
 			try CypherKeyGenerator.generateClientServerCertificate(subject: "Tart daemon", numberOfYears: 1,
-																   caKeyURL: certs.caKeyURL, caCertURL: certs.caCertURL,
-																   serverKeyURL: certs.serverKeyURL, serverCertURL: certs.serverCertURL,
-																   clientKeyURL: certs.clientKeyURL, clientCertURL: certs.clientCertURL)
+			                                                       caKeyURL: certs.caKeyURL, caCertURL: certs.caCertURL,
+			                                                       serverKeyURL: certs.serverKeyURL, serverCertURL: certs.serverCertURL,
+			                                                       clientKeyURL: certs.clientKeyURL, clientCertURL: certs.clientCertURL)
 		}
 
 		return certs
+	}
+}
+
+enum FileLockError: Error, Equatable {
+  case Failed(_ message: String)
+  case AlreadyLocked
+}
+
+class FileLock {
+	let url: URL
+	let fd: Int32
+
+	init(lockURL: URL) throws {
+		url = lockURL
+		fd = open(lockURL.path, 0)
+	}
+
+	deinit {
+		close(fd)
+	}
+
+	func trylock() throws -> Bool {
+		try flockWrapper(LOCK_EX | LOCK_NB)
+	}
+
+	func lock() throws {
+		_ = try flockWrapper(LOCK_EX)
+	}
+
+	func unlock() throws {
+		_ = try flockWrapper(LOCK_UN)
+	}
+
+	func flockWrapper(_ operation: Int32) throws -> Bool {
+		let ret = flock(fd, operation)
+		if ret != 0 {
+			let details = Errno(rawValue: CInt(errno))
+
+			if (operation & LOCK_NB) != 0 && details == .wouldBlock {
+				return false
+			}
+
+			throw FileLockError.Failed("failed to lock \(url): \(details)")
+		}
+
+		return true
+	}
+}
+
+extension Date {
+  func asTimeval() -> timeval {
+	timeval(tv_sec: Int(timeIntervalSince1970), tv_usec: 0)
+  }
+}
+
+extension URL: Purgeable {
+	var url: URL {
+	  self
+	}
+
+	func delete() throws {
+	  try FileManager.default.removeItem(at: self)
+	}
+
+	func sizeBytes() throws -> Int {
+	  try resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
+	}
+
+	func allocatedSizeBytes() throws -> Int {
+	  try resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
+	}
+
+	func accessDate() throws -> Date {
+		let attrs = try resourceValues(forKeys: [.contentAccessDateKey])
+		return attrs.contentAccessDate!
+	}
+
+	func updateAccessDate(_ accessDate: Date = Date()) throws {
+		let attrs = try resourceValues(forKeys: [.contentAccessDateKey])
+		let modificationDate = attrs.contentAccessDate!
+
+		let times = [accessDate.asTimeval(), modificationDate.asTimeval()]
+		let ret = utimes(path, times)
+		if ret != 0 {
+			let details = Errno(rawValue: CInt(errno))
+
+			throw ServiceError("utimes(2) failed: \(details)")
+		}
 	}
 }

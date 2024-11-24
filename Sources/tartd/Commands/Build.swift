@@ -56,7 +56,7 @@ struct Build: AsyncParsableCommand, BuildArguments {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		if VMStorageLocal().exists(name) {
+		if StorageLocation(asSystem: false).exists(name) {
 			throw ValidationError("\(name) already exists")
 		}
 
@@ -88,6 +88,6 @@ struct Build: AsyncParsableCommand, BuildArguments {
 	}
 
 	func run() async throws {
-		try await BuildHandler.build(name: self.name, arguments: self)
+		try await BuildHandler.build(name: self.name, arguments: self, asSystem: false)
 	}
 }

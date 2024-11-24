@@ -85,8 +85,8 @@ final class CloudInitTests: XCTestCase {
 		} catch {
 			let error = error as! ShellOutError
 
-			defaultLogger.appendNewLine(error.message)
-			defaultLogger.appendNewLine(error.output)
+			Logger.appendNewLine(error.message)
+			Logger.appendNewLine(error.output)
 
 			throw error
 		}
@@ -101,8 +101,8 @@ final class CloudInitTests: XCTestCase {
 		} catch {
 			let error = error as! ShellOutError
 
-			defaultLogger.appendNewLine(error.message)
-			defaultLogger.appendNewLine(error.output)
+			Logger.appendNewLine(error.message)
+			Logger.appendNewLine(error.output)
 
 			throw error
 		}
@@ -128,7 +128,7 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithCloudImage() async throws {
-		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		let tmpVMDir: VMLocation = try VMLocation.temporary()
 
 		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
 									vmDir: tmpVMDir,
@@ -137,36 +137,38 @@ final class CloudInitTests: XCTestCase {
 									memory: 512,
 									diskSizeGB: 10,
 									userName: "admin",
+									mainGroup: "admin",
 									insecure: true,
 									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
 									vendorData: nil,
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try VMStorageLocal().move("noble-cloud-image", from: tmpVMDir)
+		try StorageLocation().move("noble-cloud-image", from: tmpVMDir)
 	}
 
 	func testBuildVMWithOCI() async throws {
-		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		let tmpVMDir: VMLocation = try VMLocation.temporary()
 
-		try await VMBuilder.buildVM(vmName: tmpVMDir.name,,
+		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
 									vmDir: tmpVMDir,
 									ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
 									cpu: 1,
 									memory: 512,
 									diskSizeGB: 10,
 									userName: "admin",
+									mainGroup: "admin",
 									insecure: true,
 									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
 									vendorData: nil,
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try VMStorageLocal().move("noble-oci-image", from: tmpVMDir)
+		try StorageLocation().move("noble-oci-image", from: tmpVMDir)
 	}
 
 	func testBuildVMWithContainer() async throws {
-		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		let tmpVMDir: VMLocation = try VMLocation.temporary()
 
 		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
 									vmDir: tmpVMDir,
@@ -176,17 +178,18 @@ final class CloudInitTests: XCTestCase {
 									memory: 512,
 									diskSizeGB: 10,
 									userName: "admin",
+									mainGroup: "admin",
 									insecure: true,
 									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
 									vendorData: nil,
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try VMStorageLocal().move("noble-container-image", from: tmpVMDir)
+		try StorageLocation().move("noble-container-image", from: tmpVMDir)
 	}
 
 	func testBuildVMWithLXDContainers() async throws {
-		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+		let tmpVMDir: VMLocation = try VMLocation.temporary()
 
 		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
 									vmDir: tmpVMDir,
@@ -196,12 +199,13 @@ final class CloudInitTests: XCTestCase {
 									memory: 512,
 									diskSizeGB: 10,
 									userName: "admin",
+									mainGroup: "admin",
 									insecure: true,
 									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
 									vendorData: nil,
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try VMStorageLocal().move("noble-lxd-image", from: tmpVMDir)
+		try StorageLocation().move("noble-lxd-image", from: tmpVMDir)
 	}
 }

@@ -10,7 +10,7 @@ import GRPC
 import GRPCLib
 
 protocol TartdCommand {
-	mutating func run() async throws -> String
+	mutating func run(asSystem: Bool) async throws -> String
 }
 
 protocol CreateTartdCommand {
@@ -111,6 +111,26 @@ extension Tartd_BuildRequest: CreateTartdCommand {
 	}
 }
 
+extension Tartd_PruneRequest : CreateTartdCommand {	
+  func createCommand() -> TartdCommand {
+    var command = PruneHandler()
+    
+    if self.hasEntries {
+      command.entries = self.entries
+    }
+
+    if self.hasOlderThan {
+      command.olderThan = UInt(self.olderThan)
+    }
+
+    if self.hasSpaceBudget {
+      command.spaceBudget = UInt(self.spaceBudget)
+    }
+
+    return command
+  }
+}
+
 extension Tartd_LaunchRequest: CreateTartdCommand {
 	func createCommand() -> TartdCommand {
 		var command = LaunchHandler(name: self.name)
@@ -197,15 +217,21 @@ extension Tartd_Error {
 		self.reason = reason
 	}
 }
+
 class TartDaemonProvider: @unchecked Sendable, Tartd_ServiceAsyncProvider {
 	var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? = nil
+	let asSystem: Bool
+
+	init(asSystem: Bool) {
+		self.asSystem = asSystem
+	}
 
 	func execute(command: CreateTartdCommand) async throws -> Tartd_TartReply {
 		var command = command.createCommand()
 		var reply: Tartd_TartReply = Tartd_TartReply()
 
 		do {
-			reply.output = try await command.run()
+			reply.output = try await command.run(asSystem: self.asSystem)
 		} catch {
 			reply.error = Tartd_Error(code: -1, reason: error.localizedDescription)
 		}
@@ -232,6 +258,12 @@ class TartDaemonProvider: @unchecked Sendable, Tartd_ServiceAsyncProvider {
 	}
 
 	func start(request: Tartd_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
+		-> Tartd_TartReply
+	{
+		return try await self.execute(command: request)
+	}
+
+	func prune(request: Tartd_PruneRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
 		-> Tartd_TartReply
 	{
 		return try await self.execute(command: request)

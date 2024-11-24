@@ -6,6 +6,7 @@ DISK_SIZE=20
 CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 LXD_IMAGE=ubuntu/noble/cloud
 #LXD_IMAGE=centos/9-Stream/cloud
+DESKTOP=NO
 
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
@@ -33,10 +34,6 @@ cat > /tmp/user-data.yaml <<EOF
 package_update: true
 package_upgrade: true
 timezone: Europe/Paris
-packages:
-- ubuntu-desktop-minimal
-- xrdp
-- spice-vdagent
 growpart:
   mode: auto
   devices: ["/"]
@@ -69,6 +66,15 @@ runcmd:
 - hostnamectl set-hostname openstack-dev-k3s-worker-02
 EOF
 
+if [ ${DESKTOP} != NO ]; then
+cat >> /tmp/user-data.yaml <<EOF
+packages:
+- ubuntu-desktop-minimal
+- xrdp
+- spice-vdagent
+EOF
+fi
+
 BUILD_OPTIONS="--cpu 2 --memory 2048 --disk-size ${DISK_SIZE} --ssh-authorized-key $HOME/.ssh/id_rsa.pub --network-config /tmp/network-config.yaml --user-data /tmp/user-data.yaml"
 
 ${BIN_PATH}/tartd delete linux
@@ -76,6 +82,3 @@ ${BIN_PATH}/tartd build linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE}
 #${BIN_PATH}/tartd build linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
 ${BIN_PATH}/tartd set --display-refit linux
 ${BIN_PATH}/tartd run linux --nested --disk ~/.tart/vms/linux/cloud-init.iso
-
-qemu-img convert -p -f raw -O vmdk ~/.tart/vms/linux/disk.img "$HOME/Virtual Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk"
-#qemu-img convert -p -f raw -O vmdk ~/.tart/vms/noble-container-image/disk.img "$HOME/Virtual Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk"

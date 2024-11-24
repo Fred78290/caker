@@ -3,17 +3,12 @@ import ArgumentParser
 struct Start: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
-	@Argument(help: "VM name", completion: .custom(completeRunningMachines))
+	@Argument(help: "VM name")
 	var name: String
 
 	func run() async throws {
-		let vmDir = try VMStorageLocal().open(name)
-		let vmState = try vmDir.state()
+		let vmDir = try StorageLocation(asSystem: false).find(name)
 
-		if vmState == .Stopped {
-			try StartHandler.startVM(vmDir: vmDir)
-		} else if vmState == .Running {
-			throw RuntimeError.VMAlreadyRunning(name)
-		}
+		try StartHandler.startVM(vmDir: vmDir)
 	}
 }

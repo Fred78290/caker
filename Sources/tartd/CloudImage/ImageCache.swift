@@ -1,6 +1,18 @@
 import Foundation
 import Virtualization
 
+protocol Purgeable {
+  var url: URL { get }
+  func delete() throws
+  func accessDate() throws -> Date
+  func sizeBytes() throws -> Int
+  func allocatedSizeBytes() throws -> Int
+}
+
+protocol PurgeableStorage {
+  func purgeables() throws -> [Purgeable]
+}
+
 class CacheError : Error {
 	let description: String
 
@@ -9,7 +21,7 @@ class CacheError : Error {
 	}
 }
 
-class CommonCacheImageCache: PrunableStorage {
+class CommonCacheImageCache: PurgeableStorage {
 	let baseURL: URL
 	let name: String
 	let location: String
@@ -20,7 +32,7 @@ class CommonCacheImageCache: PrunableStorage {
 		self.location = location
 		self.ext = ext
 
-		let root = try Config().tartCacheDir.appendingPathComponent(location, isDirectory: true)
+		let root = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(location, isDirectory: true)
 		self.baseURL = root.appendingPathComponent(self.name, isDirectory: true)
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
@@ -30,7 +42,7 @@ class CommonCacheImageCache: PrunableStorage {
 		self.location = location
 		self.ext = ext
 
-		baseURL = try Config().tartCacheDir.appendingPathComponent(self.location, isDirectory: true).absoluteURL
+		baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true).absoluteURL
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
@@ -46,7 +58,7 @@ class CommonCacheImageCache: PrunableStorage {
 		return dirUrl
 	}
 
-	func prunables() throws -> [Prunable] {
+	func purgeables() throws -> [Purgeable] {
 		try FileManager.default.contentsOfDirectory(at: baseURL, includingPropertiesForKeys: nil)
 			.filter { $0.lastPathComponent.hasSuffix(self.ext)}
 	}

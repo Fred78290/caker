@@ -5,22 +5,17 @@ import SystemConfiguration
 struct StartHandler: TartdCommand {
 	var name: String
 
-	func run() async throws -> String {
-		let vmDir = try VMStorageLocal().open(name)
-		let vmState = try vmDir.state()
+	func run(asSystem: Bool) async throws -> String {
+		let vmDir = try StorageLocation(asSystem: asSystem).find(name)
 
-		if vmState == .Stopped {
-			try StartHandler.startVM(vmDir: vmDir)
-		} else if vmState == .Running {
-			throw RuntimeError.VMAlreadyRunning(name)
-		}
+		try StartHandler.startVM(vmDir: vmDir)
 
 		return "started \(name)"
 	}
 
-	public static func startVM(vmDir: VMDirectory) throws {
+	public static func startVM(vmDir: VMLocation) throws {
 		let config: [String:Any] = try Dictionary(contentsOf: vmDir.configURL) as [String:Any]
-		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmDir.baseURL).absoluteURL.path()
+		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmDir.rootURL).absoluteURL.path()
 		let process: Process = Process()
 		var arguments: [String] = config["runningArguments"] as? [String] ?? []
 
@@ -40,7 +35,7 @@ struct StartHandler: TartdCommand {
 		} catch {
 			print(error)
 			if process.terminationStatus != 0 {
-				throw RuntimeError.VMNotRunning("VM \"\(vmDir.name)\" exited with code \(process.terminationStatus)")
+				throw ServiceError("VM \"\(vmDir.name)\" exited with code \(process.terminationStatus)")
 			} else {
 				throw error
 			}

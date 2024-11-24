@@ -3,6 +3,8 @@ import Darwin
 import Foundation
 import ShellOut
 
+var runAsSystem: Bool = false
+
 let COMMAND_NAME="tartd"
 @main
 struct Root: AsyncParsableCommand {
@@ -16,7 +18,8 @@ struct Root: AsyncParsableCommand {
 			Certificates.self,
 			Build.self,
 			Start.self,
-			Launch.self
+			Launch.self,
+			Purge.self
 		])
 
 	static func parse() throws -> ParsableCommand? {
@@ -55,7 +58,7 @@ struct Root: AsyncParsableCommand {
                     }
                 }
 
-				print(try Shell.runTart(command: commandName ?? "", arguments: arguments))
+				try Shell.runTart(command: commandName ?? "", arguments: arguments, direct: true)
 
 				return
 			}
@@ -69,13 +72,6 @@ struct Root: AsyncParsableCommand {
 			if let shellOutError = error as? ShellOutError {
 				fputs("\(shellOutError.message)\n", stderr)
 				Foundation.exit(shellOutError.terminationStatus)
-			}
-
-			// Handle a non-ArgumentParser's exception that requires a specific exit code to be set
-			if let errorWithExitCode = error as? HasExitCode {
-				fputs("\(error)\n", stderr)
-
-				Foundation.exit(errorWithExitCode.exitCode)
 			}
 
 			// Handle any other exception, including ArgumentParser's ones

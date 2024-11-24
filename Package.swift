@@ -81,22 +81,6 @@ let package = Package(
 			.product(name: "NIOPosix", package: "swift-nio"),
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio")
-		],
-		path: "Sources",
-		exclude: [
-			"tartctl",
-			"grpc",
-			"tart/Root.swift",
-			"tart/OCI/Reference/Makefile",
-			"tart/OCI/Reference/Reference.g4",
-			"tart/OCI/Reference/Generated/Reference.interp",
-			"tart/OCI/Reference/Generated/Reference.tokens",
-			"tart/OCI/Reference/Generated/ReferenceLexer.interp",
-			"tart/OCI/Reference/Generated/ReferenceLexer.tokens",
-		],
-		sources: [
-			"tart",
-			"tartd"
 		]),
 		.executableTarget(name: "tartctl", dependencies: [
 			.target(name: "GRPCLib"),

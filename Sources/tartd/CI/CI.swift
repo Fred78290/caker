@@ -6,7 +6,7 @@ struct CI {
 	}
 
 	static var release: String? {
-		rawVersion.expanded() ? "tartctl@\(rawVersion)" : nil
+		rawVersion.expanded() ? "tartd@\(rawVersion)" : nil
 	}
 }
 

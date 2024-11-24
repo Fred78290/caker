@@ -9,12 +9,12 @@ class CloudImageConverter {
 				from.path(),
 				to.path()
 			])
-			defaultLogger.appendNewLine(convertOuput)
+			Logger.appendNewLine(convertOuput)
 		} catch {
 			let error = error as! ShellOutError
 
-			defaultLogger.appendNewLine(error.message)
-			defaultLogger.appendNewLine(error.output)
+			Logger.appendNewLine(error.message)
+			Logger.appendNewLine(error.output)
 
 			throw error
 		}
@@ -27,37 +27,28 @@ class CloudImageConverter {
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			defaultLogger.appendNewLine("Using cached \(cacheLocation.path) file...")
+			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate()
 			return cacheLocation
 		}
 
 		// Download the cloud-image
-		defaultLogger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
+		Logger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
 
 		let downloadProgress = Progress(totalUnitCount: 100)
-		ProgressObserver(downloadProgress).log(defaultLogger)
-
-		let request = URLRequest(url: remoteURL)
-		let (channel, response) = try await Fetcher.fetch(request, viaFile: true, progress: downloadProgress)
-
-		let temporaryLocation = try Config().tartTmpDir.appendingPathComponent(UUID().uuidString + ".img")
-		defaultLogger.appendNewLine("Computing digest for \(temporaryLocation.path)...")
-		let digestProgress = Progress(totalUnitCount: response.expectedContentLength)
-		ProgressObserver(digestProgress).log(defaultLogger)
+		let channel = try await Curl(fromURL: remoteURL).get(progress: downloadProgress)
+		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
 		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
+
 		let lock = try FileLock(lockURL: temporaryLocation)
 		try lock.lock()
 
 		let fileHandle: FileHandle = try FileHandle(forWritingTo: temporaryLocation)
-		let digest: Digest = Digest()
 
-		for try await chunk in channel {
+		for try await chunk in channel.0 {
 			let chunkAsData = Data(chunk)
 			fileHandle.write(chunkAsData)
-			digest.update(chunkAsData)
-			digestProgress.completedUnitCount += Int64(chunk.count)
 		}
 
 		try fileHandle.close()
@@ -67,7 +58,7 @@ class CloudImageConverter {
 			do {
 				try FileManager.default.removeItem(at: temporaryLocation)
 			} catch {
-				defaultLogger.appendNewLine("Unexpected error: \(error).")
+				Logger.appendNewLine("Unexpected error: \(error).")
 			}
 		}
 
@@ -83,47 +74,40 @@ class CloudImageConverter {
 	}
 
 	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL) async throws {
-		let temporaryLocation = try Config().tartTmpDir.appendingPathComponent(UUID().uuidString + ".img")
+		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
 			if FileManager.default.fileExists(atPath: temporaryLocation.path()) {
 				do {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				} catch {
-					defaultLogger.appendNewLine("Unexpected error: \(error).")
+					Logger.appendNewLine("Unexpected error: \(error).")
 				}
 			}
 		}
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			defaultLogger.appendNewLine("Using cached \(cacheLocation.path) file...")
+			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate() 
 		} else {
 			// Download the cloud-image
-			defaultLogger.appendNewLine("Fetching \(from.lastPathComponent)...")
+			Logger.appendNewLine("Fetching \(from.lastPathComponent)...")
 
-			let downloadProgress = Progress(totalUnitCount: 100)
-			ProgressObserver(downloadProgress).log(defaultLogger)
+			let progress = Progress(totalUnitCount: 100)
+			ProgressObserver(progress).log()
 
-			let request = URLRequest(url: from)
-			let (channel, response) = try await Fetcher.fetch(request, viaFile: true, progress: downloadProgress)
-
-			defaultLogger.appendNewLine("Computing digest for \(temporaryLocation.path)...")
-			let digestProgress = Progress(totalUnitCount: response.expectedContentLength)
-			ProgressObserver(digestProgress).log(defaultLogger)
+			let channel = try await Curl(fromURL: from).get(progress: progress)
 
 			FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
+
 			let lock = try FileLock(lockURL: temporaryLocation)
 			try lock.lock()
 
 			let fileHandle: FileHandle = try FileHandle(forWritingTo: temporaryLocation)
-			let digest: Digest = Digest()
 
-			for try await chunk in channel {
+			for try await chunk in channel.0 {
 				let chunkAsData = Data(chunk)
 				fileHandle.write(chunkAsData)
-				digest.update(chunkAsData)
-				digestProgress.completedUnitCount += Int64(chunk.count)
 			}
 
 			try fileHandle.close()

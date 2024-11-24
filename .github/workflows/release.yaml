@@ -1,0 +1,100 @@
+name: Release
+on:
+  push:
+    branches:
+    - 'master'
+    tags:
+    - 'v*'
+  pull_request:
+    branches:
+    - 'master'
+
+env:
+  BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+  P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+  KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  TEAM_ID: ${{ secrets.TEAM_ID }}
+  APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: recursive
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2.1.0
+      - name: Version
+        run: |
+          VERSION_TAG="${GITHUB_REF##*/}"
+          TMPFILE=$(mktemp)
+          envsubst < Sources/tart/CI/CI.swift > $TMPFILE
+          cp $TMPFILE Sources/tartd/CI/CI.swift
+          cp $TMPFILE Sources/tartctl/CI/CI.swift
+      - name: Build
+        run: |
+          swift build -c release --arch x86_64 --product TartHelper
+          swift build -c release --arch arm64 --product TartHelper
+      - name: Run tests
+        run: swift test
+      - name: Install the Apple certificate and provisioning profile
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/installer_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: package
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          export VERSION_TAG="${GITHUB_REF##*/}"
+          ./ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
+
+      - name: "Prepare the release note"
+        run: |
+          shasha=$(sha256sum _artifacts/SHA256SUMS | awk '{print $1}')
+          cat <<-EOF | tee /tmp/release-note.txt
+          (Changes to be documented)
+  
+          ## Usage
+          \`\`\`console
+          [macOS]$ tartctl launch....
+          \`\`\`
+  
+          - - -
+          The binaries were built automatically on GitHub Actions.
+          The build log is available for 90 days: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  
+          The sha256sum of the SHA256SUMS file itself is \`${shasha}\` .
+          - - -
+          Release manager: [ADD YOUR NAME HERE] (@[ADD YOUR GITHUB ID HERE])
+          EOF
+
+      - name: "Create release"
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION_TAG="${GITHUB_REF##*/}"
+          gh release create -F /tmp/release-note.txt --draft --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Tart-${VERSION_TAG}.pkg
+    
+      - name: Clean up keychain and provisioning profile
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db

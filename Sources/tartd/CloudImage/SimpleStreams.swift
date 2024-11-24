@@ -22,17 +22,13 @@ class Streamable {
 	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String) async throws -> T {
 		let simpleStreamCache = try SimpleStreamsImageCache(name: remoteName)
 		let indexLocation: URL = simpleStreamCache.locationFor(fileName: cachedFile)
-		var headRequest = URLRequest(url: remoteURL)
-
-		headRequest.httpMethod = "HEAD"
-
-		let (_, headResponse) = try await Fetcher.fetch(headRequest, viaFile: false)
+		let (_, headResponse) = try await Curl(fromURL: remoteURL).head()
 
 		if let etag: String = headResponse.ETag() {
 			if FileManager.default.fileExists(atPath: indexLocation.path) {
 				if let cached = simpleStreamCache.getCache(name: cachedFile) {
 					if cached.fingerprint == etag {
-						defaultLogger.appendNewLine("Using cached \(cachedFile) file...")
+						Logger.appendNewLine("Using cached \(cachedFile) file...")
 						try indexLocation.updateAccessDate()
 						return try T(fromURL: indexLocation)
 					}
@@ -43,32 +39,27 @@ class Streamable {
 		}
 
 		// Download the index
-		defaultLogger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
+		Logger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
 
-		let downloadProgress = Progress(totalUnitCount: 100)
-		ProgressObserver(downloadProgress).log(defaultLogger)
+		let progress = Progress(totalUnitCount: 100)
+		ProgressObserver(progress).log()
 
-		let request = URLRequest(url: remoteURL)
-		let (channel, response) = try await Fetcher.fetch(request, viaFile: true, progress: downloadProgress)
-		let digestProgress = Progress(totalUnitCount: response.expectedContentLength)
-
-		ProgressObserver(digestProgress).log(defaultLogger)
+		let channel = try await Curl(fromURL: remoteURL).get(progress: progress)
 
 		FileManager.default.createFile(atPath: indexLocation.path, contents: nil)
+
 		let lock = try FileLock(lockURL: indexLocation)
 		try lock.lock()
 
 		let fileHandle = try FileHandle(forWritingTo: indexLocation)
-		let digest = Digest()
 
-		for try await chunk in channel {
+		for try await chunk in channel.0 {
 			let chunkAsData = Data(chunk)
 			fileHandle.write(chunkAsData)
-			digest.update(chunkAsData)
-			digestProgress.completedUnitCount += Int64(chunk.count)
 		}
 
 		try fileHandle.close()
+
 		return try T(fromURL: indexLocation)
 	}
 }
@@ -86,7 +77,7 @@ struct SimpleStream: JsonDecodable {
 	}
 
 	init(fromJSON: Data) throws {
-		self = try Config.jsonDecoder().decode(Self.self, from: fromJSON)
+		self = try JSONDecoder().decode(Self.self, from: fromJSON)
 	}
 
 	init(fromURL: URL) throws {
@@ -159,7 +150,7 @@ struct SimpleStreamImageIndex: JsonDecodable {
 	}
 
 	init(fromJSON: Data) throws {
-		self = try Config.jsonDecoder().decode(Self.self, from: fromJSON)
+		self = try JSONDecoder().decode(Self.self, from: fromJSON)
 	}
 
 	init(fromURL: URL) throws {
@@ -351,7 +342,7 @@ class LinuxContainerImage {
 
 		if let cached = imageCache.getCache(name: alias) {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
-				let temporaryLocation = try Config().tartTmpDir.appendingPathComponent(UUID().uuidString + ".img")
+				let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
 				try cacheLocation.updateAccessDate() 
 				try FileManager.default.copyItem(at: cacheLocation, to: temporaryLocation)
@@ -424,7 +415,7 @@ class SimpleStreamProtocol {
 	}
 
 	public func GetImageAlias(alias: String) async throws -> LinuxContainerImage {
-		let currentArch = CurrentArchitecture().rawValue
+		let currentArch = HostArchitecture.current().rawValue
 		let images = try self.index.images
 
 		// Check if alias exists in product

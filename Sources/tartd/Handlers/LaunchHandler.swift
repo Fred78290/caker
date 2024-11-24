@@ -30,18 +30,14 @@ struct LaunchHandler: TartdCommand, LaunchArguments {
 	var netSoftnetAllow: String?
 	var netHost: Bool = false
 
-	static func launch(_ self: LaunchArguments) throws {
-		let vmDir = try VMStorageLocal().open(self.name)
-		let lock = try vmDir.lock()
-
-		if try !lock.trylock() {
-			throw RuntimeError.VMAlreadyRunning("VM \"\(self.name)\" is already running!")
-		}
-
+	static func launch(asSystem: Bool, _ self: LaunchArguments) throws {
+		let vmDir = try StorageLocation(asSystem: asSystem).find(self.name)
+		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL).absoluteURL.path()
 		var arguments: [String] = ["--no-graphics", "--no-audio", "--nested"]
 
-		// now VM state will return "running" so we can unlock
-		try lock.unlock()
+		if FileManager.default.fileExists(atPath: cdrom) {
+			arguments.append("--disk=\(cdrom)")
+		}
 
 		for dir in self.dir {
 			arguments.append("--dir=\(dir)")
@@ -63,33 +59,33 @@ struct LaunchHandler: TartdCommand, LaunchArguments {
 			arguments.append("--net-host")
 		}
 
-		var config: [String: Any] = try Dictionary(contentsOf: vmDir.configURL) as [String: Any]
-		config["runningArguments"] = arguments
-		try config.write(to: vmDir.configURL)
+		var config = try TartConfig(contentsOf: vmDir.configURL)
+		config.runningArguments = arguments
+		try config.save(toURL: vmDir.configURL)
 
 		try StartHandler.startVM(vmDir: vmDir)
 	}
 
-	static func launchVM(_ self: LaunchArguments) async throws {
-		let tmpVMDir: VMDirectory = try VMDirectory.temporary()
+	static func launchVM(asSystem: Bool, _ self: LaunchArguments) async throws {
+		let tmpVMDir: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
-		let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.baseURL)
+		let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.rootURL)
 		try tmpVMDirLock.lock()
 
 		try await withTaskCancellationHandler(
 			operation: {
 				try await VMBuilder.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
-				try VMStorageLocal().move(self.name, from: tmpVMDir)
-				try Self.launch(self)
+				try StorageLocation(asSystem: asSystem).relocate(self.name, from: tmpVMDir)
+				try Self.launch(asSystem: false, self)
 			},
 			onCancel: {
-				try? FileManager.default.removeItem(at: tmpVMDir.baseURL)
+				try? FileManager.default.removeItem(at: tmpVMDir.rootURL)
 			})
 	}
 
-	func run() async throws  -> String {
-		try await Self.launchVM(self)
+	func run(asSystem: Bool) async throws  -> String {
+		try await Self.launchVM(asSystem: asSystem, self)
 		return "launched \(name)"
 	}
 

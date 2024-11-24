@@ -25,7 +25,7 @@ extension Dictionary {
 
 	func write(to: URL) throws {
 		guard let jsonData = self.jsonData else {
-			throw RuntimeError.ImportFailed("Can't get data")
+			throw ServiceError("Can't get data")
 		}
 
 		try jsonData.write(to: to)
@@ -317,8 +317,8 @@ class CloudInit {
 	var sshAuthorizedKeys: [String]?
 	var insecure: Bool = false
 
-	private static func loadSharedPublicKey(config: Config) throws -> String? {
-		let publicKeyURL = URL(fileURLWithPath: "id_rsa.pub", relativeTo: config.tartHomeDir)
+	private static func loadSharedPublicKey(home: Home) throws -> String? {
+		let publicKeyURL = URL(fileURLWithPath: "id_rsa.pub", relativeTo: home.homeDir)
 
 		if FileManager.default.fileExists(atPath: publicKeyURL.path) {
 			let content = try Data(contentsOf: publicKeyURL)
@@ -351,15 +351,15 @@ class CloudInit {
 	}
 
 	private static func createSharedSshKeys() throws -> String {
-		let config: Config = try Config()
+		let home: Home = try Home(asSystem: runAsSystem)
 
-		if let key = try loadSharedPublicKey(config: config) {
+		if let key = try loadSharedPublicKey(home: home) {
 			return key
 		} else {
 			let cypher = try CypherKeyGenerator(identifier: "com.cirruslabs.keys.ssh")
 			let key = try cypher.generateKey()
 
-			try key.save(privateURL: URL(fileURLWithPath: "id_rsa", relativeTo: config.tartHomeDir), publicURL: URL(fileURLWithPath: "id_rsa.pub", relativeTo: config.tartHomeDir))
+			try key.save(privateURL: URL(fileURLWithPath: "id_rsa", relativeTo: home.homeDir), publicURL: URL(fileURLWithPath: "id_rsa.pub", relativeTo: home.homeDir))
 
 			return try key.publicKeyString()
 		}
