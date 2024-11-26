@@ -12,3 +12,7 @@ tarthelper.xcodeproj/xcuserdata/
 .swiftpm/
 
 qcow2convert/Qcow2convert.xcframework/
+
+.env
+
+*.pkg
