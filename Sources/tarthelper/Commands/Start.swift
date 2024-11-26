@@ -7,8 +7,8 @@ struct Start: AsyncParsableCommand {
 	var name: String
 
 	func run() async throws {
-		let vmDir = try StorageLocation(asSystem: false).find(name)
+		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
-		try StartHandler.startVM(vmDir: vmDir)
+		try StartHandler.startVM(vmLocation: vmLocation)
 	}
 }

@@ -131,8 +131,8 @@ struct Launch : GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
-        return try await client.launch(Tartd_LaunchRequest(command: self)).response.get()
+    func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply {
+        return try await client.launch(Tarthelper_LaunchRequest(command: self)).response.get()
     }
 
 }

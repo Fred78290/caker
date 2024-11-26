@@ -5,7 +5,7 @@ import ShellOut
 
 var runAsSystem: Bool = false
 
-let COMMAND_NAME="tartd"
+let COMMAND_NAME="tarthelper"
 @main
 struct Root: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(

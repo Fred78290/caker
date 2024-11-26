@@ -14,9 +14,9 @@
 				"--cloud-image=https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img",
 			],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "tartd build",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tartd",
-			"preLaunchTask": "swift: Build Debug tartd"
+			"name": "tarthelper build",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
+			"preLaunchTask": "swift: Build Debug tarthelper"
 		},
 		{
 			"type": "lldb",
@@ -41,18 +41,18 @@
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Debug tartd",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tartd",
-			"preLaunchTask": "swift: Build Debug tartd"
+			"name": "Debug tarthelper",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
+			"preLaunchTask": "swift: Build Debug tarthelper"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Release tartd",
-			"program": "${workspaceFolder:tarthelper}/.build/release/tartd",
-			"preLaunchTask": "swift: Build Release tartd"
+			"name": "Release tarthelper",
+			"program": "${workspaceFolder:tarthelper}/.build/release/tarthelper",
+			"preLaunchTask": "swift: Build Release tarthelper"
 		}
 	]
 }

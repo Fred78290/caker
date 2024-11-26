@@ -41,19 +41,19 @@ struct BuildHandler: TartdCommand, BuildArguments {
 	var networkConfig: String?
 
 	static func build(name: String, arguments: BuildArguments, asSystem: Bool) async throws {
-		let tmpVMDir: VMLocation = try VMLocation.tempDirectory()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
-		let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.rootURL)
+		let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 		try tmpVMDirLock.lock()
 
 		try await withTaskCancellationHandler(
 			operation: {
-				try await VMBuilder.buildVM(vmName: name, vmDir: tmpVMDir, arguments: arguments)
-				try StorageLocation(asSystem: asSystem).relocate(name, from: tmpVMDir)
+				try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, arguments: arguments)
+				try StorageLocation(asSystem: asSystem).relocate(name, from: tempVMLocation)
 			},
 			onCancel: {
-				try? FileManager.default.removeItem(at: tmpVMDir.rootURL)
+				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 			})
 	}
 

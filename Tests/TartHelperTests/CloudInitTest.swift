@@ -1,6 +1,6 @@
 import XCTest
 import ShellOut
-@testable import tartd
+@testable import tarthelper
 
 let networkConfig = 
 """
@@ -111,7 +111,7 @@ final class CloudInitTests: XCTestCase {
 	func testSimpleStreamsFindImage() async throws {
 		if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
 			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL)
-			let arch = CurrentArchitecture().rawValue
+			let arch = HostArchitecture.current().rawValue
 			let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud")
 
@@ -128,10 +128,10 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithCloudImage() async throws {
-		let tmpVMDir: VMLocation = try VMLocation.temporary()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
-		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
-									vmDir: tmpVMDir,
+		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
+									vmLocation: tempVMLocation,
 									cloudImageURL: URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img")!,
 									cpu: 1,
 									memory: 512,
@@ -144,14 +144,14 @@ final class CloudInitTests: XCTestCase {
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try StorageLocation().move("noble-cloud-image", from: tmpVMDir)
+		try StorageLocation(asSystem: false).relocate("noble-cloud-image", from: tempVMLocation)
 	}
 
 	func testBuildVMWithOCI() async throws {
-		let tmpVMDir: VMLocation = try VMLocation.temporary()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
-		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
-									vmDir: tmpVMDir,
+		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
+									vmLocation: tempVMLocation,
 									ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
 									cpu: 1,
 									memory: 512,
@@ -164,14 +164,14 @@ final class CloudInitTests: XCTestCase {
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try StorageLocation().move("noble-oci-image", from: tmpVMDir)
+		try StorageLocation(asSystem: false).relocate("noble-oci-image", from: tempVMLocation)
 	}
 
 	func testBuildVMWithContainer() async throws {
-		let tmpVMDir: VMLocation = try VMLocation.temporary()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
-		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
-									vmDir: tmpVMDir,
+		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
+									vmLocation: tempVMLocation,
 									remoteContainerServer: "https://images.linuxcontainers.org",
 									aliasImage: "ubuntu/noble/cloud",
 									cpu: 1,
@@ -185,14 +185,14 @@ final class CloudInitTests: XCTestCase {
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try StorageLocation().move("noble-container-image", from: tmpVMDir)
+		try StorageLocation(asSystem: false).relocate("noble-container-image", from: tempVMLocation)
 	}
 
 	func testBuildVMWithLXDContainers() async throws {
-		let tmpVMDir: VMLocation = try VMLocation.temporary()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
-		try await VMBuilder.buildVM(vmName: tmpVMDir.name,
-									vmDir: tmpVMDir,
+		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
+									vmLocation: tempVMLocation,
 									remoteContainerServer: "https://cloud-images.ubuntu.com/releases/",
 									aliasImage: "noble",
 									cpu: 1,
@@ -206,6 +206,6 @@ final class CloudInitTests: XCTestCase {
 									userData: CloudInitTests.userDataPath.path(),
 									networkConfig: CloudInitTests.networkConfigPath.path())
 
-		try StorageLocation().move("noble-lxd-image", from: tmpVMDir)
+		try StorageLocation(asSystem: false).relocate("noble-lxd-image", from: tempVMLocation)
 	}
 }

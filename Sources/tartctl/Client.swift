@@ -20,11 +20,11 @@ class GrpcError: Error {
 }
 
 protocol GrpcAsyncParsableCommand: AsyncParsableCommand {
-	mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply
+	func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply
 }
 
 @main
-struct Root: AsyncParsableCommand {
+struct Client: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(
 		commandName: "tartctl",
 		version: CI.version,
@@ -52,7 +52,7 @@ struct Root: AsyncParsableCommand {
 		])
 
 	@Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
-	var address: String = try! Root.getDefaultServerAddress()
+	var address: String = try! Self.getDefaultServerAddress()
 
 	@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
 	var caCert: String?
@@ -139,7 +139,7 @@ struct Root: AsyncParsableCommand {
 	}
 
 	func execute(command: GrpcAsyncParsableCommand, arguments: [String]) async throws -> String {
-		var command = command
+		let command = command
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 		// Make sure the group is shutdown when we're done with it.
@@ -157,7 +157,7 @@ struct Root: AsyncParsableCommand {
 			}
 		}
 
-		let grpcClient = Tartd_ServiceNIOClient(channel: connection)
+		let grpcClient = Tarthelper_ServiceNIOClient(channel: connection)
 		let reply = try await command.run(client: grpcClient, arguments: arguments)
 
 		return reply.output

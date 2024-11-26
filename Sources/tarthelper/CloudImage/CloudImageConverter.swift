@@ -1,8 +1,9 @@
 import Foundation
 import ShellOut
+import Qcow2convert
 
 class CloudImageConverter {
-	static func convertCloudImageToRaw(from: URL, to: URL) throws {
+	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {
 		do {
 			let convertOuput = try shellOut(to: "qemu-img", arguments: [
 				"convert", "-p", "-f", "qcow2", "-O", "raw",
@@ -17,6 +18,32 @@ class CloudImageConverter {
 			Logger.appendNewLine(error.output)
 
 			throw error
+		}
+	}
+
+	static func convertCloudImageToRaw(from: URL, to: URL) throws {
+		var outputData: Data = Data()
+		var errorData: Data = Data()
+		let outputPipe = Pipe()
+		let errorPipe : Pipe = Pipe()
+
+		outputPipe.fileHandleForReading.readabilityHandler = { handler in
+			outputData.append(handler.availableData)
+		}
+
+		errorPipe.fileHandleForReading.readabilityHandler = { handler in
+			errorData.append(handler.availableData)
+		}
+
+		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path(),
+													  destination: to.absoluteURL.path(),
+													  outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor,
+													  errorFileHandle: errorPipe.fileHandleForWriting.fileDescriptor) {
+			if converter.convert() < 0 {
+				throw ServiceError(String(data: errorData, encoding: .utf8)!)
+			} else {
+				Logger.appendNewLine(String(data: outputData, encoding: .utf8)!)
+			}
 		}
 	}
 

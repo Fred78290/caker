@@ -7,7 +7,7 @@ let package = Package(
 		.macOS(.v13)
 	],
 	products: [
-		.executable(name: "tartd", targets: ["tartd"]),
+		.executable(name: "tarthelper", targets: ["tarthelper"]),
 		.executable(name: "tartctl", targets: ["tartctl"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
 	],
@@ -42,6 +42,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
 	],
 	targets: [
+		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "GRPC", package: "grpc-swift")
 		],
@@ -50,8 +51,9 @@ let package = Package(
 			"generate.sh",
 			"service.proto",
 		]),
-		.executableTarget(name: "tartd", dependencies: [
+		.executableTarget(name: "tarthelper", dependencies: [
 			.target(name: "GRPCLib"),
+			.target(name: "Qcow2convert"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -114,6 +116,6 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio")
 		]),
-		.testTarget(name: "TartHelperTests", dependencies: ["tartd"])
+		.testTarget(name: "TartHelperTests", dependencies: ["GRPCLib", "tarthelper", "tartctl"])
 	]
 )

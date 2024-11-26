@@ -93,7 +93,7 @@ struct Build: GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
-        return try await client.build(Tartd_BuildRequest(command: self)).response.get()
+    func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply {
+        return try await client.build(Tarthelper_BuildRequest(command: self)).response.get()
     }
 }

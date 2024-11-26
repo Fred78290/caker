@@ -2,11 +2,11 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "com.aldunelabs.tartd";
-option java_outer_classname = "TardDaemon";
-option objc_class_prefix = "tartd";
+option java_package = "com.aldunelabs.helper";
+option java_outer_classname = "TartHelper";
+option objc_class_prefix = "tarthelper";
 
-package tartd;
+package tarthelper;
 
 service Service {
   // Sends a greeting

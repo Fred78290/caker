@@ -1,0 +1,21 @@
+task:
+  name: build
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-ventura-xcode:latest
+  build_script: |
+    CURDIR=${PWD}
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    brew install go
+    go install golang.org/x/mobile/cmd/gomobile@latest
+    export PATH=$PATH:~/go/bin
+    pwd
+    ls -l
+    rm -rf Qcow2convert.xcframework
+    mkdir -p /tmp/gomobile
+    gomobile init
+    gomobile bind -target macos -o /tmp/gomobile/Qcow2convert.xcframework
+    (cd /tmp/gomobile ; tar cvf - Qcow2convert.xcframework) | (cd $PWD ; tar xvf -)
+  binary_artifacts:
+    path: Qcow2convert.xcframework
+  

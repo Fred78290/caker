@@ -1,7 +1,7 @@
 #!/bin/bash
 VERSION=${VERSION:=SNAPSHOT}
 
-lipo -create .build/x86_64-apple-macosx/release/tartd .build/arm64-apple-macosx/release/tartd -output .ci/pkg/tartd
+lipo -create .build/x86_64-apple-macosx/release/tarthelper .build/arm64-apple-macosx/release/tarthelper -output .ci/pkg/tarthelper
 lipo -create .build/x86_64-apple-macosx/release/tartctl .build/arm64-apple-macosx/release/tartctl -output .ci/pkg/tartctl
 
 if [ -n "$1" ]; then

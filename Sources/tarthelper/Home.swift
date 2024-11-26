@@ -12,7 +12,7 @@ struct Home {
 			let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 			var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
-			applicationSupportDirectory = URL(fileURLWithPath: tartDSignature,
+			applicationSupportDirectory = URL(fileURLWithPath: tartHelperSignature,
 			                                  isDirectory: true,
 			                                  relativeTo: applicationSupportDirectory)
 			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)

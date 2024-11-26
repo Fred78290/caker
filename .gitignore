@@ -10,3 +10,5 @@ tarthelper.xcodeproj/xcuserdata/
 *.log
 
 .swiftpm/
+
+qcow2convert/Qcow2convert.xcframework/

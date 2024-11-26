@@ -35,7 +35,7 @@ class Unimplemented: Error {
 	}
 }
 
-extension Tartd_TartCommandRequest: CreateTartdCommand {
+extension Tarthelper_TartCommandRequest: CreateTartdCommand {
 	init(command: String, arguments: [String]) {
 		self.init()
 		self.command = command
@@ -47,7 +47,7 @@ extension Tartd_TartCommandRequest: CreateTartdCommand {
 	}
 }
 
-extension Tartd_BuildRequest: CreateTartdCommand {
+extension Tarthelper_BuildRequest: CreateTartdCommand {
 	func createCommand() -> TartdCommand {
 		var command = BuildHandler(name: self.name)
 
@@ -111,7 +111,7 @@ extension Tartd_BuildRequest: CreateTartdCommand {
 	}
 }
 
-extension Tartd_PruneRequest : CreateTartdCommand {	
+extension Tarthelper_PruneRequest : CreateTartdCommand {	
   func createCommand() -> TartdCommand {
     var command = PruneHandler()
     
@@ -131,7 +131,7 @@ extension Tartd_PruneRequest : CreateTartdCommand {
   }
 }
 
-extension Tartd_LaunchRequest: CreateTartdCommand {
+extension Tarthelper_LaunchRequest: CreateTartdCommand {
 	func createCommand() -> TartdCommand {
 		var command = LaunchHandler(name: self.name)
 
@@ -203,13 +203,13 @@ extension Tartd_LaunchRequest: CreateTartdCommand {
 	}
 }
 
-extension Tartd_StartRequest: CreateTartdCommand {
+extension Tarthelper_StartRequest: CreateTartdCommand {
 	func createCommand() -> TartdCommand {
 		return StartHandler(name: self.name)
 	}
 }
 
-extension Tartd_Error {
+extension Tarthelper_Error {
 	init(code: Int32, reason: String) {
 		self.init()
 
@@ -218,53 +218,53 @@ extension Tartd_Error {
 	}
 }
 
-class TartDaemonProvider: @unchecked Sendable, Tartd_ServiceAsyncProvider {
-	var interceptors: Tartd_ServiceServerInterceptorFactoryProtocol? = nil
+class TartDaemonProvider: @unchecked Sendable, Tarthelper_ServiceAsyncProvider {
+	var interceptors: Tarthelper_ServiceServerInterceptorFactoryProtocol? = nil
 	let asSystem: Bool
 
 	init(asSystem: Bool) {
 		self.asSystem = asSystem
 	}
 
-	func execute(command: CreateTartdCommand) async throws -> Tartd_TartReply {
+	func execute(command: CreateTartdCommand) async throws -> Tarthelper_TartReply {
 		var command = command.createCommand()
-		var reply: Tartd_TartReply = Tartd_TartReply()
+		var reply: Tarthelper_TartReply = Tarthelper_TartReply()
 
 		do {
 			reply.output = try await command.run(asSystem: self.asSystem)
 		} catch {
-			reply.error = Tartd_Error(code: -1, reason: error.localizedDescription)
+			reply.error = Tarthelper_Error(code: -1, reason: error.localizedDescription)
 		}
 
 		return reply
 	}
 
-	func tartCommand(request: Tartd_TartCommandRequest, context: GRPCAsyncServerCallContext) async throws
-		-> Tartd_TartReply
+	func tartCommand(request: Tarthelper_TartCommandRequest, context: GRPCAsyncServerCallContext) async throws
+		-> Tarthelper_TartReply
 	{
 		return try await self.execute(command: request)
 	}
 
-	func build(request: Tartd_BuildRequest, context: GRPCAsyncServerCallContext) async throws
-		-> Tartd_TartReply
+	func build(request: Tarthelper_BuildRequest, context: GRPCAsyncServerCallContext) async throws
+		-> Tarthelper_TartReply
 	{
 		return try await self.execute(command: request)
 	}
 
-	func launch(request: Tartd_LaunchRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Tartd_TartReply
+	func launch(request: Tarthelper_LaunchRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
+		-> Tarthelper_TartReply
 	{
 		return try await self.execute(command: request)
 	}
 
-	func start(request: Tartd_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Tartd_TartReply
+	func start(request: Tarthelper_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
+		-> Tarthelper_TartReply
 	{
 		return try await self.execute(command: request)
 	}
 
-	func prune(request: Tartd_PruneRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Tartd_TartReply
+	func prune(request: Tarthelper_PruneRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
+		-> Tarthelper_TartReply
 	{
 		return try await self.execute(command: request)
 	}

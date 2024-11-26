@@ -77,8 +77,8 @@ fi
 
 BUILD_OPTIONS="--cpu 2 --memory 2048 --disk-size ${DISK_SIZE} --ssh-authorized-key $HOME/.ssh/id_rsa.pub --network-config /tmp/network-config.yaml --user-data /tmp/user-data.yaml"
 
-${BIN_PATH}/tartd delete linux
-${BIN_PATH}/tartd build linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE} 
-#${BIN_PATH}/tartd build linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
-${BIN_PATH}/tartd set --display-refit linux
-${BIN_PATH}/tartd run linux --nested --disk ~/.tart/vms/linux/cloud-init.iso
+${BIN_PATH}/tarthelper delete linux
+${BIN_PATH}/tarthelper build linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE} 
+#${BIN_PATH}/tarthelper build linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
+${BIN_PATH}/tarthelper set --display-refit linux
+${BIN_PATH}/tarthelper run linux --nested --disk ~/.tart/vms/linux/cloud-init.iso

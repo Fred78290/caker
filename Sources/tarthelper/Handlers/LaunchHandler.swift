@@ -31,8 +31,8 @@ struct LaunchHandler: TartdCommand, LaunchArguments {
 	var netHost: Bool = false
 
 	static func launch(asSystem: Bool, _ self: LaunchArguments) throws {
-		let vmDir = try StorageLocation(asSystem: asSystem).find(self.name)
-		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL).absoluteURL.path()
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.name)
+		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
 		var arguments: [String] = ["--no-graphics", "--no-audio", "--nested"]
 
 		if FileManager.default.fileExists(atPath: cdrom) {
@@ -59,28 +59,28 @@ struct LaunchHandler: TartdCommand, LaunchArguments {
 			arguments.append("--net-host")
 		}
 
-		var config = try TartConfig(contentsOf: vmDir.configURL)
+		var config = try TartConfig(contentsOf: vmLocation.configURL)
 		config.runningArguments = arguments
-		try config.save(toURL: vmDir.configURL)
+		try config.save(toURL: vmLocation.configURL)
 
-		try StartHandler.startVM(vmDir: vmDir)
+		try StartHandler.startVM(vmLocation: vmLocation)
 	}
 
 	static func launchVM(asSystem: Bool, _ self: LaunchArguments) async throws {
-		let tmpVMDir: VMLocation = try VMLocation.tempDirectory()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
-		let tmpVMDirLock = try FileLock(lockURL: tmpVMDir.rootURL)
+		let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 		try tmpVMDirLock.lock()
 
 		try await withTaskCancellationHandler(
 			operation: {
-				try await VMBuilder.buildVM(vmName: self.name, vmDir: tmpVMDir, arguments: self)
-				try StorageLocation(asSystem: asSystem).relocate(self.name, from: tmpVMDir)
-				try Self.launch(asSystem: false, self)
+				try await VMBuilder.buildVM(vmName: self.name, vmLocation: tempVMLocation, arguments: self)
+				try StorageLocation(asSystem: asSystem).relocate(self.name, from: tempVMLocation)
+				try Self.launch(asSystem: asSystem, self)
 			},
 			onCancel: {
-				try? FileManager.default.removeItem(at: tmpVMDir.rootURL)
+				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 			})
 	}
 

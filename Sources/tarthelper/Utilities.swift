@@ -28,10 +28,10 @@ struct Utils {
 
 	static func getOutputLog(asSystem: Bool) -> String {
 		if asSystem {
-			return "/Library/Logs/tartd.log"
+			return "/Library/Logs/tarthelper.log"
 		}
 
-		return URL(fileURLWithPath: "tartd.log", relativeTo: try? Home(asSystem: false).homeDir).absoluteURL.path()
+		return URL(fileURLWithPath: "tarthelper.log", relativeTo: try? Home(asSystem: false).homeDir).absoluteURL.path()
 	}
 
 	static func getListenAddress(asSystem: Bool) throws -> String {

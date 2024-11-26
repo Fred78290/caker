@@ -20,13 +20,15 @@ env:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-13
     timeout-minutes: 10
     steps:
       - name: checkout
         uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
+      - name: Setup Go
+        uses: actions/setup-go@v5
       - name: Setup Swift
         uses: swift-actions/setup-swift@v2.1.0
       - name: Version
@@ -34,9 +36,15 @@ jobs:
           VERSION_TAG="${GITHUB_REF##*/}"
           TMPFILE=$(mktemp)
           envsubst < Sources/tart/CI/CI.swift > $TMPFILE
-          cp $TMPFILE Sources/tartd/CI/CI.swift
+          cp $TMPFILE Sources/tarthelper/CI/CI.swift
           cp $TMPFILE Sources/tartctl/CI/CI.swift
-      - name: Build
+      - name: Build QCow2convert framework
+        run: |
+          cd qcow2convert
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          gomobile init
+          gomobile bind -target macos -o /tmp/gomobile/Qcow2convert.xcframework
+      - name: Build Swift package
         run: |
           swift build -c release --arch x86_64 --product TartHelper
           swift build -c release --arch arm64 --product TartHelper
@@ -45,22 +53,7 @@ jobs:
       - name: Install the Apple certificate and provisioning profile
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         run: |
-          # create variables
-          CERTIFICATE_PATH=$RUNNER_TEMP/installer_certificate.p12
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # import certificate and provisioning profile from secrets
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-
-          # create temporary keychain
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          # import certificate to keychain
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security list-keychain -d user -s $KEYCHAIN_PATH
+          ./ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: package
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')

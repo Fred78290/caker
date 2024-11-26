@@ -29,7 +29,7 @@ struct List: GrpcAsyncParsableCommand {
         throw GrpcError(code: 0, reason: "nothing here")
     }
 
-    mutating func run(client: Tartd_ServiceNIOClient, arguments: [String]) async throws -> Tartd_TartReply {
-		return try await client.tartCommand(Tartd_TartCommandRequest(command: "list", arguments: arguments)).response.get()
+    func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply {
+		return try await client.tartCommand(Tarthelper_TartCommandRequest(command: "list", arguments: arguments)).response.get()
     }
 }

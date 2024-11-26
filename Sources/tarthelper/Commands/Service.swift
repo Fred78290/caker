@@ -11,7 +11,7 @@ import SwiftASN1
 import X509
 import Security
 
-let tartDSignature = "com.aldunelabs.tartd"
+let tartHelperSignature = "com.aldunelabs.tarthelper"
 
 class ServiceError : Error, CustomStringConvertible {
 	let description: String
@@ -79,7 +79,7 @@ extension Service {
 			let listenAddress: String = try Utils.getListenAddress(asSystem: self.asSystem)
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
 			let tartHome: URL = try Utils.getTartHome(asSystem: self.asSystem)
-			let agent = LaunchAgent(label: tartDSignature,
+			let agent = LaunchAgent(label: tartHelperSignature,
 									programArguments: [
 										try Install.findMe(),
 										"listen",
@@ -107,9 +107,9 @@ extension Service {
 			let agentURL: URL
 
 			if self.asSystem {
-				agentURL = URL(fileURLWithPath: "/Library/LaunchDaemons/\(tartDSignature).plist")
+				agentURL = URL(fileURLWithPath: "/Library/LaunchDaemons/\(tartHelperSignature).plist")
 			} else {
-				agentURL = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(tartDSignature).plist")
+				agentURL = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(tartHelperSignature).plist")
 			}
 
 			try agent.write(to: agentURL)
@@ -160,7 +160,7 @@ extension Service {
 			}
 		}
 
-		private func createServer(on: MultiThreadedEventLoopGroup) async throws -> EventLoopFuture<Server> {
+		func createServer(on: MultiThreadedEventLoopGroup) async throws -> EventLoopFuture<Server> {
 			let listeningAddress = URL(string: try self.getServerAddress())
 			let builder: Server.Builder
 

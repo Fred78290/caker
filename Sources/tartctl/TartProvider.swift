@@ -13,7 +13,7 @@ private func saveToTempFile(_ data: Data) throws -> String {
 	return url.absoluteURL.path()
 }
 
-extension Tartd_TartCommandRequest {
+extension Tarthelper_TartCommandRequest {
 	init(command: String, arguments: [String]) {
 		self.init()
 		self.command = command
@@ -21,7 +21,7 @@ extension Tartd_TartCommandRequest {
 	}
 }
 
-extension Tartd_BuildRequest {
+extension Tarthelper_BuildRequest {
 
 	init(command: Build) throws {
 		self.init()
@@ -68,7 +68,7 @@ extension Tartd_BuildRequest {
 	}
 }
 
-extension Tartd_LaunchRequest {
+extension Tarthelper_LaunchRequest {
 	init(command: Launch) throws {
 		self.init()
 		self.name = command.name
@@ -122,14 +122,14 @@ extension Tartd_LaunchRequest {
 	}
 }
 
-extension Tartd_StartRequest {
+extension Tarthelper_StartRequest {
 	init(command: Start) {
 		self.init()
 		self.name = command.name
 	}
 }
 
-extension Tartd_PruneRequest {
+extension Tarthelper_PruneRequest {
 	init (command: Prune) {
 		self.init()
 		self.entries = command.entries

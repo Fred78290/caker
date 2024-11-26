@@ -415,7 +415,7 @@ class CloudInit {
 										packages: ["pollinate"],
 										writeFiles: [
 											WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
-											WriteFile(path: "/etc/pollinate/add-user-agent", content: "tartd/vz/1.0 # Written by tart")
+											WriteFile(path: "/etc/pollinate/add-user-agent", content: "tarthelper/vz/1.0 # Written by tart")
 										],
 										growPart: true)
 

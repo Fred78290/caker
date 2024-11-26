@@ -1,30 +1,6 @@
 import Foundation
 import Virtualization
 
-struct DisplayConfig: Codable {
-	var width: Int = 1024
-	var height: Int = 768
-
-	init() {
-		self.width = 1024
-		self.height = 768
-	}
-
-	init(from: Dictionary<String, Int>) {
-		self.width = from["width"] ?? 1024
-		self.height = from["height"] ?? 768
-	}
-
-	func to() -> Dictionary<String, Int> {
-		var dict: Dictionary<String, Int> = Dictionary<String, Int>()
-
-		dict["width"] = self.width
-		dict["height"] = self.height
-
-		return dict
-	}
-}
-
 enum VirtualizedOS: String, Codable {
 	case darwin
 	case linux
@@ -33,7 +9,7 @@ enum VirtualizedOS: String, Codable {
 enum HostArchitecture: String, Codable {
 	case arm64
 	case amd64
-	
+
 	static func current() -> HostArchitecture {
 	  #if arch(arm64)
 		return .arm64
@@ -52,13 +28,29 @@ struct TartConfig {
 	}
 
 	var os: VirtualizedOS {
-		set { self.config["os"] = newValue }
-		get { self.config["os"] as! VirtualizedOS }
+		set { self.config["os"] = newValue.rawValue }
+		get {
+			let os: String? = self.config["os"] as? String
+
+			if let os = os {
+				return VirtualizedOS(rawValue: os)!
+			}
+
+			return .linux
+		}
 	}
 
 	var arch: HostArchitecture {
-		set { self.config["arch"] = newValue }
-		get { self.config["arch"] as! HostArchitecture }
+		set { self.config["arch"] = newValue.rawValue }
+		get {
+			let arch: String? = self.config["arch"] as? String
+
+			if let arch = arch {
+				return HostArchitecture(rawValue: arch)!
+			}
+
+			return HostArchitecture.current()
+		}
 	}
 
 	var cpuCountMin: Int {
@@ -86,11 +78,6 @@ struct TartConfig {
 		get { self.config["macAddress"] as! String }
 	}
 
-	var display: DisplayConfig {
-		set { self.config["display"] = newValue.to() }
-		get { DisplayConfig(from: self.config["display"] as! Dictionary<String, Int>) }
-	}
-
 	var displayRefit: Bool? {
 		set { self.config["displayRefit"] = newValue }
 		get { self.config["displayRefit"] as? Bool }
@@ -106,7 +93,12 @@ struct TartConfig {
 	     memorySizeMin: UInt64,
 	     macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered()) {
 
-		self.config = [:]
+		var display = Dictionary<String, Any>()
+
+		display["width"] = 1024
+		display["height"] = 768
+
+		self.config = Dictionary<String, Any>()
 		self.version = 1
 		self.os = os
 		self.cpuCountMin = cpuCountMin
@@ -114,7 +106,8 @@ struct TartConfig {
 		self.macAddress = macAddress.string
 		self.cpuCount = cpuCountMin
 		self.memorySize = memorySizeMin
-		self.display = DisplayConfig()
+
+		self.config["display"] = display
 	}
 
 	init(contentsOf: URL) throws {
@@ -122,6 +115,9 @@ struct TartConfig {
 	}
 
 	func save(toURL: URL) throws {
-		try config.write(to: toURL)
+		//let jsonData = try NSJSONSerialization.dataWithJSONObject(self.config, options: .prettyPrinted)
+		//let jsonData = try JSONSerialization.data(withJSONObject: self.config, options: .prettyPrinted)
+		//try jsonData.write(to: toURL)
+		try self.config.write(to: toURL)
 	}
 }

@@ -3,6 +3,6 @@
 set -e
 
 ln -s "/Library/Application Support/TartHelper/tartctl" /usr/local/bin
-ln -s "/Library/Application Support/TartHelper/tartd" /usr/local/bin
+ln -s "/Library/Application Support/TartHelper/tarthelper" /usr/local/bin
 
-tartd service install --system
+tarthelper service install --system

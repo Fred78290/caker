@@ -6,7 +6,7 @@ let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
 	private static func buildVM(vmName: String,
-								vmDir: VMLocation,
+								vmLocation: VMLocation,
 								cpu: UInt16?,
 								memory: UInt64?,
 								diskSizeGB: UInt16,
@@ -18,10 +18,10 @@ struct VMBuilder {
 								userData: String?,
 								networkConfig: String?) async throws {
 		// Create NVRAM
-		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmDir.nvramURL)
+		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
 
 		// Create disk
-		try vmDir.expandDiskTo(diskSizeGB)
+		try vmLocation.expandDiskTo(diskSizeGB)
 
 		// Create config
 		var config = TartConfig(os: .linux, cpuCountMin: 1, memorySizeMin: 512 * 1024 * 1024)
@@ -41,13 +41,13 @@ struct VMBuilder {
 			config.memorySize = memory * 1024 * 1024
 		}
 
-		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmDir.diskURL))
-		try config.save(toURL: vmDir.configURL)
+		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
+		try config.save(toURL: vmLocation.configURL)
 	}
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMLocation,
+						vmLocation: VMLocation,
 						cloudImageURL: URL,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -60,13 +60,13 @@ struct VMBuilder {
 						userData: String?,
 						networkConfig: String?)async  throws {
 		if cloudImageURL.isFileURL {
-			try CloudImageConverter.convertCloudImageToRaw(from: cloudImageURL, to: vmDir.diskURL)
+			try CloudImageConverter.convertCloudImageToRaw(from: cloudImageURL, to: vmLocation.diskURL)
 		} else {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: cloudImageURL, to: vmDir.diskURL)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: cloudImageURL, to: vmLocation.diskURL)
 		}
 
 		try await self.buildVM(vmName: vmName,
-							   vmDir: vmDir,
+							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
 							   diskSizeGB: diskSizeGB,
@@ -81,7 +81,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMLocation,
+						vmLocation: VMLocation,
 						diskImageURL: URL,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -105,10 +105,10 @@ struct VMBuilder {
 		let temporaryDiskURL = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
 		try FileManager.default.copyItem(at: diskImageURL, to: temporaryDiskURL)
-		_ = try FileManager.default.replaceItemAt(vmDir.diskURL, withItemAt: temporaryDiskURL)
+		_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)
 
 		try await self.buildVM(vmName: vmName,
-							   vmDir: vmDir,
+							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
 							   diskSizeGB: diskSizeGB,
@@ -123,7 +123,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMLocation,
+						vmLocation: VMLocation,
 						ociImage: String,
 						cpu: UInt16?,
 						memory: UInt64?,
@@ -139,7 +139,7 @@ struct VMBuilder {
 		try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
 
 		try await self.buildVM(vmName: vmName,
-							   vmDir: vmDir,
+							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
 							   diskSizeGB: diskSizeGB,
@@ -154,7 +154,7 @@ struct VMBuilder {
 
 	@available(macOS 13, *)
 	static func buildVM(vmName: String,
-						vmDir: VMLocation,
+						vmLocation: VMLocation,
 						remoteContainerServer: String,
 						aliasImage: String,
 						cpu: UInt16?,
@@ -175,10 +175,10 @@ struct VMBuilder {
 		let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
 		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: aliasImage)
 
-		try await image.retrieveSimpleStreamImageAndConvert(to: vmDir.diskURL)
+		try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL)
 
 		try await self.buildVM(vmName: vmName,
-							   vmDir: vmDir,
+							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
 							   diskSizeGB: diskSizeGB,
@@ -210,10 +210,10 @@ struct VMBuilder {
 		}
 	}
 
-	public static func buildVM(vmName: String, vmDir: VMLocation, arguments: BuildArguments) async throws {
+	public static func buildVM(vmName: String, vmLocation: VMLocation, arguments: BuildArguments) async throws {
 		if let fromImage = arguments.fromImage {
 			try await Self.buildVM(vmName: vmName,
-								   vmDir: vmDir,
+								   vmLocation: vmLocation,
 								   diskImageURL: adjustUrl(url: fromImage),
 								   cpu: arguments.cpu,
 								   memory: arguments.memory,
@@ -227,7 +227,7 @@ struct VMBuilder {
 								   networkConfig: arguments.networkConfig)
 		} else if let cloudImage = arguments.cloudImage {
 			try await Self.buildVM(vmName: vmName,
-								   vmDir: vmDir,
+								   vmLocation: vmLocation,
 								   cloudImageURL: adjustUrl(url: cloudImage),
 								   cpu: arguments.cpu,
 								   memory: arguments.memory,
@@ -241,7 +241,7 @@ struct VMBuilder {
 								   networkConfig: arguments.networkConfig)
 		} else if let ociImage = arguments.ociImage {
 			try await Self.buildVM(vmName: vmName,
-								   vmDir: vmDir,
+								   vmLocation: vmLocation,
 								   ociImage: ociImage,
 								   cpu: arguments.cpu,
 								   memory: arguments.memory,
@@ -255,7 +255,7 @@ struct VMBuilder {
 								   networkConfig: arguments.networkConfig)
 		} else if let aliasImage = arguments.aliasImage {
 			try await Self.buildVM(vmName: vmName,
-								   vmDir: vmDir,
+								   vmLocation: vmLocation,
 								   remoteContainerServer: arguments.remoteContainerServer,
 								   aliasImage: aliasImage,
 								   cpu: arguments.cpu,
