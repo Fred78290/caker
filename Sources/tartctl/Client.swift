@@ -63,7 +63,7 @@ struct Client: AsyncParsableCommand {
 	@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
 	var tlsKey: String?
 
-	private static func getDefaultServerAddress() throws -> String {
+	static func getDefaultServerAddress() throws -> String {
 		if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTD_LISTEN_ADDRESS"] {
 			return tartdListenAddress
 		} else {
@@ -79,14 +79,17 @@ struct Client: AsyncParsableCommand {
 
 			try FileManager.default.createDirectory(at: tartHomeDir, withIntermediateDirectories: true)
 
-			tartHomeDir.append(path: "tard.sock")
+			tartHomeDir.append(path: "tarthelper.sock")
 
 			return "unix://\(tartHomeDir.absoluteURL.path())"
 		}
 	}
 
-	func createClient(on: MultiThreadedEventLoopGroup) throws -> ClientConnection {
-		let listeningAddress = URL(string: self.address)
+	static func createClient(on: MultiThreadedEventLoopGroup,
+							 listeningAddress: URL?,
+							 caCert: String?,
+							 tlsCert: String?,
+							 tlsKey: String?) throws -> ClientConnection {
 		let connection: ClientConnection.Builder
 
 		if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
@@ -103,7 +106,8 @@ struct Client: AsyncParsableCommand {
 		if let listeningAddress = listeningAddress {
 			if listeningAddress.scheme == "unix" {
 				let clientSocket = socket(AF_UNIX, SOCK_STREAM, 0)
-				let addr = try SocketAddress(unixDomainSocketPath: listeningAddress.path())
+				let socketPath = listeningAddress.path()
+				let addr = try SocketAddress(unixDomainSocketPath: socketPath)
 
 				try addr.withSockAddr { addr, size in
 					let ret = connect(clientSocket, addr, UInt32(size))
@@ -149,7 +153,11 @@ struct Client: AsyncParsableCommand {
 			}
 		}
 
-		let connection = try createClient(on: group)
+		let connection = try Self.createClient(on: group,
+								listeningAddress: URL(string: self.address),
+								caCert: self.caCert,
+								tlsCert: self.tlsCert,
+								tlsKey: self.tlsKey)
 
 		defer {
 			Task {

@@ -40,7 +40,7 @@ struct Utils {
 		} else {
 			var home = try Self.getTartHome(asSystem: asSystem)
 
-			home.append(path: "tard.sock")
+			home.append(path: "tarthelper.sock")
 
 			return "unix://\(home.absoluteURL.path())"
 		}

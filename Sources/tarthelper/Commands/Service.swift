@@ -160,8 +160,12 @@ extension Service {
 			}
 		}
 
-		func createServer(on: MultiThreadedEventLoopGroup) async throws -> EventLoopFuture<Server> {
-			let listeningAddress = URL(string: try self.getServerAddress())
+		static func createServer(on: MultiThreadedEventLoopGroup,
+								 asSystem: Bool,
+								 listeningAddress: URL?,
+								 caCert: String?,
+								 tlsCert: String?,
+								 tlsKey: String?) async throws -> EventLoopFuture<Server> {
 			let builder: Server.Builder
 
 			if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
@@ -174,7 +178,7 @@ extension Service {
 				builder = Server.insecure(group: on)
 			}
 
-			builder.withServiceProviders([TartDaemonProvider(asSystem: self.asSystem)])
+			builder.withServiceProviders([TartDaemonProvider(asSystem: asSystem)])
 
 			if let listeningAddress = listeningAddress {
 				if listeningAddress.scheme == "unix" {
@@ -201,7 +205,12 @@ extension Service {
 			}
 
 			// Start the server and print its address once it has started.
-			let server = try await createServer(on: group).get()
+			let server = try await Self.createServer(on: group,
+							asSystem: self.asSystem,
+							listeningAddress: URL(string: try self.getServerAddress()),
+							caCert: self.caCert,
+							tlsCert: self.tlsCert,
+							tlsKey: self.tlsKey).get()
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			try await server.onClose.get()

@@ -14,9 +14,24 @@ final class GrpcTests: XCTestCase {
 	var server: Server? = nil
 	var client: ClientConnection? = nil
 
+	func createClient() throws -> ClientConnection {
+		guard let client = self.client else {
+			let client = try Client.createClient(on: group,
+							listeningAddress: URL(string: try Client.getDefaultServerAddress()),
+							caCert: nil, tlsCert: nil, tlsKey: nil)
+			self.client = client
+
+			return client
+		}
+
+		return client
+	}
+
 	override func setUp() async throws {
-		client = try Client().createClient(on: group)
-		server = try await Service.Listen().createServer(on: group).get()
+		server = try await Service.Listen.createServer(on: group,
+								asSystem: false,
+								listeningAddress: URL(string: try Client.getDefaultServerAddress()),
+								caCert: nil, tlsCert: nil, tlsKey: nil).get()
 	}
 
 	override func tearDown() async throws {
@@ -28,10 +43,8 @@ final class GrpcTests: XCTestCase {
 	}
 
 	func testClientList() async throws {
-		if let client = self.client {
-			let reply = try await List().run(client: Tarthelper_ServiceNIOClient(channel: client), arguments: [])
+		let reply = try await List().run(client: Tarthelper_ServiceNIOClient(channel: try self.createClient()), arguments: [])
 
-			print(reply.output)
-		}
+		print(reply.output)
 	}
 }
