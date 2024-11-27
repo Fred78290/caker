@@ -6,35 +6,31 @@ import Sentry
 import GRPCLib
 
 enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
-    case dhcp, arp
+	case dhcp, arp
 
-    private(set) static var allValueStrings: [String] = IPResolutionStrategy.allCases.map { "\($0)"}
+	private(set) static var allValueStrings: [String] = IPResolutionStrategy.allCases.map { "\($0)"}
 }
 
-struct IP: GrpcAsyncParsableCommand {
-    static var configuration = CommandConfiguration(abstract: "Get VM's IP address")
+struct IP: GrpcParsableCommand {
+	static var configuration = CommandConfiguration(abstract: "Get VM's IP address")
 
-    @Argument(help: "VM name")
-    var name: String
+	@Argument(help: "VM name")
+	var name: String
 
-    @Option(help: "Number of seconds to wait for a potential VM booting")
-    var wait: UInt16 = 0
+	@Option(help: "Number of seconds to wait for a potential VM booting")
+	var wait: UInt16 = 0
 
-    @Option(help: ArgumentHelp("Strategy for resolving IP address: dhcp or arp",
-                               discussion: """
-                               By default, Tart is looking up and parsing DHCP lease file to determine the IP of the VM.\n
-                               This method is fast and the most reliable but only returns local IP adresses.\n
-                               Alternatively, Tart can call external `arp` executable and parse it's output.\n
-                               In case of enabled Bridged Networking this method will return VM's IP address on the network interface used for Bridged Networking.\n
-                               Note that `arp` strategy won't work for VMs using `--net-softnet`.
-                               """))
-    var resolver: IPResolutionStrategy = .dhcp
+	@Option(help: ArgumentHelp("Strategy for resolving IP address: dhcp or arp",
+	                           discussion: """
+	                           By default, Tart is looking up and parsing DHCP lease file to determine the IP of the VM.\n
+	                           This method is fast and the most reliable but only returns local IP adresses.\n
+	                           Alternatively, Tart can call external `arp` executable and parse it's output.\n
+	                           In case of enabled Bridged Networking this method will return VM's IP address on the network interface used for Bridged Networking.\n
+	                           Note that `arp` strategy won't work for VMs using `--net-softnet`.
+	                           """))
+	var resolver: IPResolutionStrategy = .dhcp
 
-    mutating func run() async throws {
-        throw GrpcError(code: 0, reason: "nothing here")
-    }
-
-    func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply {
-		return try await client.tartCommand(Tarthelper_TartCommandRequest(command: "ip", arguments: arguments)).response.get()
-    }
+	func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) throws -> Tarthelper_TartReply {
+		return try client.tartCommand(Tarthelper_TartCommandRequest(command: "ip", arguments: arguments)).response.wait()
+	}
 }

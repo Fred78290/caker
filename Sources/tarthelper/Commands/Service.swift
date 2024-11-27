@@ -75,7 +75,7 @@ extension Service {
 		mutating func run() throws {
 			runAsSystem = self.asSystem
 
-			let certs = try Utils.createCertificats(asSystem: self.asSystem)
+			let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
 			let listenAddress: String = try Utils.getListenAddress(asSystem: self.asSystem)
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
 			let tartHome: URL = try Utils.getTartHome(asSystem: self.asSystem)
@@ -165,7 +165,7 @@ extension Service {
 								 listeningAddress: URL?,
 								 caCert: String?,
 								 tlsCert: String?,
-								 tlsKey: String?) async throws -> EventLoopFuture<Server> {
+								 tlsKey: String?) throws -> EventLoopFuture<Server> {
 			let builder: Server.Builder
 
 			if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
@@ -182,7 +182,8 @@ extension Service {
 
 			if let listeningAddress = listeningAddress {
 				if listeningAddress.scheme == "unix" {
-					return builder.bind(unixDomainSocketPath: listeningAddress.path())
+					let path = listeningAddress.path()
+					return builder.bind(unixDomainSocketPath: path)
 				} else if listeningAddress.scheme == "tcp" {
 					return builder.bind(host: listeningAddress.host ?? "127.0.0.1", port: listeningAddress.port ?? 5000)
 				} else {

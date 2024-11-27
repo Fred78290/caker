@@ -19,12 +19,12 @@ class GrpcError: Error {
 	}
 }
 
-protocol GrpcAsyncParsableCommand: AsyncParsableCommand {
-	func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply
+protocol GrpcParsableCommand: ParsableCommand {
+	func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) throws -> Tarthelper_TartReply
 }
 
 @main
-struct Client: AsyncParsableCommand {
+struct Client: ParsableCommand {
 	static var configuration = CommandConfiguration(
 		commandName: "tartctl",
 		version: CI.version,
@@ -142,15 +142,13 @@ struct Client: AsyncParsableCommand {
 		throw GrpcError(code: -1, reason: "connection address must be specified")
 	}
 
-	func execute(command: GrpcAsyncParsableCommand, arguments: [String]) async throws -> String {
+	func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
 		let command = command
 		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 		// Make sure the group is shutdown when we're done with it.
 		defer {
-			Task {
-				try! await group.shutdownGracefully()
-			}
+			try! group.syncShutdownGracefully()
 		}
 
 		let connection = try Self.createClient(on: group,
@@ -160,26 +158,24 @@ struct Client: AsyncParsableCommand {
 								tlsKey: self.tlsKey)
 
 		defer {
-			Task {
-				try! await connection.close().get()
-			}
+			try! connection.close().wait()
 		}
 
 		let grpcClient = Tarthelper_ServiceNIOClient(channel: connection)
-		let reply = try await command.run(client: grpcClient, arguments: arguments)
+		let reply = try command.run(client: grpcClient, arguments: arguments)
 
 		return reply.output
 	}
 
-	static func parse() throws -> GrpcAsyncParsableCommand? {
+	static func parse() throws -> GrpcParsableCommand? {
 		do {
-			return try parseAsRoot() as? GrpcAsyncParsableCommand
+			return try parseAsRoot() as? GrpcParsableCommand
 		} catch {
 			return nil
 		}
 	}
 
-	mutating func run() async throws {
+	mutating func run() throws {
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
 		signal(SIGINT, SIG_IGN)
@@ -207,14 +203,14 @@ struct Client: AsyncParsableCommand {
 			}
 
 			guard let command = try Self.parse() else {
-				let command: any GrpcAsyncParsableCommand = Tart(command: commandName)
+				let command: any GrpcParsableCommand = Tart(command: commandName)
 
-				print(try await self.execute(command: command, arguments: arguments))
+				print(try self.execute(command: command, arguments: arguments))
 
 				return
 			}
 
-			print(try await self.execute(command: command, arguments: arguments))
+			print(try self.execute(command: command, arguments: arguments))
 		} catch {
 			// Handle any other exception, including ArgumentParser's ones
 			Self.exit(withError: error)

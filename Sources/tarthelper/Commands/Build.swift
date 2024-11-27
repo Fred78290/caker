@@ -1,6 +1,6 @@
 import ArgumentParser
 
-struct Build: AsyncParsableCommand, BuildArguments {
+struct Build: ParsableCommand, BuildArguments {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
 	@Argument(help: "VM name")

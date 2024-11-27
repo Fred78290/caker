@@ -124,9 +124,9 @@ public struct CypherKeyGenerator {
 		let notValidBefore = Date()
 		let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
 		let rootPrivateKey = P521.Signing.PrivateKey()
-		let rootCertKey = Certificate.PrivateKey(rootPrivateKey)
+		let rootCertKey: Certificate.PrivateKey = Certificate.PrivateKey(rootPrivateKey)
 		let rootCertName = try! DistinguishedName {
-			CommonName("Tart Daemon Root CA")
+			CommonName("TartHelper Root CA")
 		}
 		let rootCert = try! Certificate(
 			version: .v3,
@@ -145,19 +145,9 @@ public struct CypherKeyGenerator {
 			issuerPrivateKey: rootCertKey
 		)
 
-		let savePrivateKey = { (_ key: P521.Signing.PrivateKey, to: URL) in
-			let data = "-----BEGIN RSA PRIVATE KEY-----\n"
-				+ key.rawRepresentation.base64EncodedString()
-				+ "\n-----END RSA PRIVATE KEY-----"
-
-			FileManager.default.createFile(atPath: to.absoluteURL.path,
-										   contents: data.data(using: .ascii),
-										   attributes: [.posixPermissions : 0o600])
-		}
-
 		let subjectName = try DistinguishedName {
 			CommonName(subject);
-			OrganizationName("Cirrus Labs");
+			OrganizationName("AlduneLabs");
 		}
 
 		let serverPrivateKey = P521.Signing.PrivateKey()
@@ -198,8 +188,8 @@ public struct CypherKeyGenerator {
 			notValidAfter: notValidAfter,
 			issuer: subjectName,
 			subject: try DistinguishedName {
-				CommonName("Tart client");
-				OrganizationName("Cirrus Labs");
+				CommonName("TartHelper client");
+				OrganizationName("AlduneLabs");
 			},
 			signatureAlgorithm: .ecdsaWithSHA256,
 			extensions: try Certificate.Extensions {
@@ -220,16 +210,30 @@ public struct CypherKeyGenerator {
 			},
 			issuerPrivateKey: serverCertKey)
 
-		savePrivateKey(rootPrivateKey, caKeyURL)
-		savePrivateKey(serverPrivateKey, serverKeyURL)
-		savePrivateKey(clientPrivateKey, clientKeyURL)
+		// Save CA key & cert
+		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path(),
+									   contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
+									   attributes: [.posixPermissions : 0o600])
 
 		FileManager.default.createFile(atPath: caCertURL.absoluteURL.path(),
 									   contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o600])
 
+
+		// Save server key & cert
+		FileManager.default.createFile(atPath: serverKeyURL.absoluteURL.path(),
+									   contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
+									   attributes: [.posixPermissions : 0o644])
+
 		FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path(),
 									   contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
+									   attributes: [.posixPermissions : 0o644])
+
+
+
+		// Save Client key & cert
+		FileManager.default.createFile(atPath: clientKeyURL.absoluteURL.path(),
+									   contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o644])
 
 		FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path(),

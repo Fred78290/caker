@@ -13,7 +13,7 @@ struct Certificates: ParsableCommand {
 		var asSystem: Bool = false
 
 		mutating func run() throws {
-			let out = String(data: try! JSONSerialization.data(withJSONObject: try Utils.getCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
+			let out = String(data: try! JSONSerialization.data(withJSONObject: try CertificatesLocation.getCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
 
 			print(out)
 		}
@@ -26,7 +26,7 @@ struct Certificates: ParsableCommand {
 		var asSystem: Bool = false
 
 		mutating func run() throws {
-			let out = String(data: try! JSONSerialization.data(withJSONObject: try Utils.createCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
+			let out = String(data: try! JSONSerialization.data(withJSONObject: try CertificatesLocation.createCertificats(asSystem: asSystem), options: [.prettyPrinted]), encoding: .ascii) ?? ""
 
 			print(out)
 			

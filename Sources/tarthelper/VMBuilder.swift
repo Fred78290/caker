@@ -16,7 +16,7 @@ struct VMBuilder {
 								sshAuthorizedKey: String?,
 								vendorData: String?,
 								userData: String?,
-								networkConfig: String?) async throws {
+								networkConfig: String?) throws {
 		// Create NVRAM
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
 
@@ -65,7 +65,7 @@ struct VMBuilder {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: cloudImageURL, to: vmLocation.diskURL)
 		}
 
-		try await self.buildVM(vmName: vmName,
+		try self.buildVM(vmName: vmName,
 							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
@@ -107,7 +107,7 @@ struct VMBuilder {
 		try FileManager.default.copyItem(at: diskImageURL, to: temporaryDiskURL)
 		_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)
 
-		try await self.buildVM(vmName: vmName,
+		try self.buildVM(vmName: vmName,
 							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
@@ -138,7 +138,7 @@ struct VMBuilder {
 
 		try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
 
-		try await self.buildVM(vmName: vmName,
+		try self.buildVM(vmName: vmName,
 							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,
@@ -177,7 +177,7 @@ struct VMBuilder {
 
 		try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL)
 
-		try await self.buildVM(vmName: vmName,
+		try self.buildVM(vmName: vmName,
 							   vmLocation: vmLocation,
 							   cpu: cpu,
 							   memory: memory,

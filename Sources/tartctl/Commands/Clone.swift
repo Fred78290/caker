@@ -2,40 +2,36 @@ import ArgumentParser
 import Foundation
 import GRPCLib
 
-struct Clone: GrpcAsyncParsableCommand {
-    static var configuration = CommandConfiguration(
-        abstract: "Clone a VM",
-        discussion: """
-        Creates a local virtual machine by cloning either a remote or another local virtual machine.
+struct Clone: GrpcParsableCommand {
+	static var configuration = CommandConfiguration(
+		abstract: "Clone a VM",
+		discussion: """
+		Creates a local virtual machine by cloning either a remote or another local virtual machine.
 
-        Due to copy-on-write magic in Apple File System, a cloned VM won't actually claim all the space right away.
-        Only changes to a cloned disk will be written and claim new space. This also speeds up clones enormously.
+		Due to copy-on-write magic in Apple File System, a cloned VM won't actually claim all the space right away.
+		Only changes to a cloned disk will be written and claim new space. This also speeds up clones enormously.
 
-        By default, Tart checks available capacity in Tart's home directory and tries to reclaim minimum possible storage for the cloned image
-        to fit. This behaviour is called "automatic pruning" and can be disabled by setting TART_NO_AUTO_PRUNE environment variable.
-        """
-    )
+		By default, Tart checks available capacity in Tart's home directory and tries to reclaim minimum possible storage for the cloned image
+		to fit. This behaviour is called "automatic pruning" and can be disabled by setting TART_NO_AUTO_PRUNE environment variable.
+		"""
+	)
 
-    @Argument(help: "source VM name")
-    var sourceName: String
+	@Argument(help: "source VM name")
+	var sourceName: String
 
-    @Argument(help: "new VM name")
-    var newName: String
+	@Argument(help: "new VM name")
+	var newName: String
 
-    @Flag(help: "connect to the OCI registry via insecure HTTP protocol")
-    var insecure: Bool = false
+	@Flag(help: "connect to the OCI registry via insecure HTTP protocol")
+	var insecure: Bool = false
 
-    @Option(help: "network concurrency to use when pulling a remote VM from the OCI-compatible registry")
-    var concurrency: UInt = 4
+	@Option(help: "network concurrency to use when pulling a remote VM from the OCI-compatible registry")
+	var concurrency: UInt = 4
 
-    @Flag(help: .hidden)
-    var deduplicate: Bool = false
+	@Flag(help: .hidden)
+	var deduplicate: Bool = false
 
-    mutating func run() async throws {
-        throw GrpcError(code: 0, reason: "nothing here")
-    }
-
-    func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) async throws -> Tarthelper_TartReply {
-		return try await client.tartCommand(Tarthelper_TartCommandRequest(command: "clone", arguments: arguments)).response.get()
-    }
+	func run(client: Tarthelper_ServiceNIOClient, arguments: [String]) throws -> Tarthelper_TartReply {
+		return try client.tartCommand(Tarthelper_TartCommandRequest(command: "clone", arguments: arguments)).response.wait()
+	}
 }
