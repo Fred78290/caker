@@ -6,8 +6,8 @@ import NIOCore
 import NIOPosix
 import GRPC
 
-@testable import tarthelper
-@testable import tartctl
+@testable import caked
+@testable import cakectl
 @testable import GRPCLib
 
 class GrpcTestCase {
@@ -54,7 +54,7 @@ class GrpcTestCase {
 			XCTAssertNoThrow(try client.close().wait())
 		}
 
-		let reply = try List().run(client: Tarthelper_ServiceNIOClient(channel: client), arguments: [])
+		let reply = try List().run(client: Caked_ServiceNIOClient(channel: client), arguments: [])
 
 		print(reply.output)
 	}

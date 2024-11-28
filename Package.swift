@@ -2,13 +2,13 @@
 
 import PackageDescription
 let package = Package(
-	name: "TartHelper",
+	name: "Caker",
 	platforms: [
 		.macOS(.v13)
 	],
 	products: [
-		.executable(name: "tarthelper", targets: ["tarthelper"]),
-		.executable(name: "tartctl", targets: ["tartctl"]),
+		.executable(name: "caked", targets: ["caked"]),
+		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
 	],
 	dependencies: [
@@ -51,7 +51,7 @@ let package = Package(
 			"generate.sh",
 			"service.proto",
 		]),
-		.executableTarget(name: "tarthelper", dependencies: [
+		.executableTarget(name: "caked", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "Qcow2convert"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
@@ -84,7 +84,7 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio")
 		]),
-		.executableTarget(name: "tartctl", dependencies: [
+		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
@@ -116,6 +116,6 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio")
 		]),
-		.testTarget(name: "TartHelperTests", dependencies: ["GRPCLib", "tarthelper", "tartctl"])
+		.testTarget(name: "CakeTests", dependencies: ["GRPCLib", "caked", "cakectl"])
 	]
 )

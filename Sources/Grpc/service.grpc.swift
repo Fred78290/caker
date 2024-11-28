@@ -11,40 +11,40 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 
 
-/// Usage: instantiate `Tarthelper_ServiceClient`, then call methods of this protocol to make API calls.
-public protocol Tarthelper_ServiceClientProtocol: GRPCClient {
+/// Usage: instantiate `Caked_ServiceClient`, then call methods of this protocol to make API calls.
+public protocol Caked_ServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
-  var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? { get }
+  var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
   func build(
-    _ request: Tarthelper_BuildRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Tarthelper_BuildRequest, Tarthelper_TartReply>
+  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply>
 
   func start(
-    _ request: Tarthelper_StartRequest,
+    _ request: Caked_StartRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Tarthelper_StartRequest, Tarthelper_TartReply>
+  ) -> UnaryCall<Caked_StartRequest, Caked_Reply>
 
-  func tartCommand(
-    _ request: Tarthelper_TartCommandRequest,
+  func cakeCommand(
+    _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Tarthelper_TartCommandRequest, Tarthelper_TartReply>
+  ) -> UnaryCall<Caked_CakedCommandRequest, Caked_Reply>
 
   func launch(
-    _ request: Tarthelper_LaunchRequest,
+    _ request: Caked_LaunchRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Tarthelper_LaunchRequest, Tarthelper_TartReply>
+  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply>
 
   func prune(
-    _ request: Tarthelper_PruneRequest,
+    _ request: Caked_PruneRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Tarthelper_PruneRequest, Tarthelper_TartReply>
+  ) -> UnaryCall<Caked_PruneRequest, Caked_Reply>
 }
 
-extension Tarthelper_ServiceClientProtocol {
+extension Caked_ServiceClientProtocol {
   public var serviceName: String {
-    return "tarthelper.Service"
+    return "caked.Service"
   }
 
   /// Sends a greeting
@@ -54,11 +54,11 @@ extension Tarthelper_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func build(
-    _ request: Tarthelper_BuildRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tarthelper_BuildRequest, Tarthelper_TartReply> {
+  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.build.path,
+      path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeBuildInterceptors() ?? []
@@ -72,32 +72,32 @@ extension Tarthelper_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func start(
-    _ request: Tarthelper_StartRequest,
+    _ request: Caked_StartRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tarthelper_StartRequest, Tarthelper_TartReply> {
+  ) -> UnaryCall<Caked_StartRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.start.path,
+      path: Caked_ServiceClientMetadata.Methods.start.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
     )
   }
 
-  /// Unary call to TartCommand
+  /// Unary call to CakeCommand
   ///
   /// - Parameters:
-  ///   - request: Request to send to TartCommand.
+  ///   - request: Request to send to CakeCommand.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func tartCommand(
-    _ request: Tarthelper_TartCommandRequest,
+  public func cakeCommand(
+    _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tarthelper_TartCommandRequest, Tarthelper_TartReply> {
+  ) -> UnaryCall<Caked_CakedCommandRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.tartCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
     )
   }
 
@@ -108,11 +108,11 @@ extension Tarthelper_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func launch(
-    _ request: Tarthelper_LaunchRequest,
+    _ request: Caked_LaunchRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tarthelper_LaunchRequest, Tarthelper_TartReply> {
+  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.launch.path,
+      path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
@@ -126,11 +126,11 @@ extension Tarthelper_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func prune(
-    _ request: Tarthelper_PruneRequest,
+    _ request: Caked_PruneRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Tarthelper_PruneRequest, Tarthelper_TartReply> {
+  ) -> UnaryCall<Caked_PruneRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.prune.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makePruneInterceptors() ?? []
@@ -139,24 +139,24 @@ extension Tarthelper_ServiceClientProtocol {
 }
 
 @available(*, deprecated)
-extension Tarthelper_ServiceClient: @unchecked Sendable {}
+extension Caked_ServiceClient: @unchecked Sendable {}
 
-@available(*, deprecated, renamed: "Tarthelper_ServiceNIOClient")
-public final class Tarthelper_ServiceClient: Tarthelper_ServiceClientProtocol {
+@available(*, deprecated, renamed: "Caked_ServiceNIOClient")
+public final class Caked_ServiceClient: Caked_ServiceClientProtocol {
   private let lock = Lock()
   private var _defaultCallOptions: CallOptions
-  private var _interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol?
+  private var _interceptors: Caked_ServiceClientInterceptorFactoryProtocol?
   public let channel: GRPCChannel
   public var defaultCallOptions: CallOptions {
     get { self.lock.withLock { return self._defaultCallOptions } }
     set { self.lock.withLockVoid { self._defaultCallOptions = newValue } }
   }
-  public var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? {
+  public var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
     get { self.lock.withLock { return self._interceptors } }
     set { self.lock.withLockVoid { self._interceptors = newValue } }
   }
 
-  /// Creates a client for the tarthelper.Service service.
+  /// Creates a client for the caked.Service service.
   ///
   /// - Parameters:
   ///   - channel: `GRPCChannel` to the service host.
@@ -165,7 +165,7 @@ public final class Tarthelper_ServiceClient: Tarthelper_ServiceClientProtocol {
   public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? = nil
+    interceptors: Caked_ServiceClientInterceptorFactoryProtocol? = nil
   ) {
     self.channel = channel
     self._defaultCallOptions = defaultCallOptions
@@ -173,12 +173,12 @@ public final class Tarthelper_ServiceClient: Tarthelper_ServiceClientProtocol {
   }
 }
 
-public struct Tarthelper_ServiceNIOClient: Tarthelper_ServiceClientProtocol {
+public struct Caked_ServiceNIOClient: Caked_ServiceClientProtocol {
   public var channel: GRPCChannel
   public var defaultCallOptions: CallOptions
-  public var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol?
+  public var interceptors: Caked_ServiceClientInterceptorFactoryProtocol?
 
-  /// Creates a client for the tarthelper.Service service.
+  /// Creates a client for the caked.Service service.
   ///
   /// - Parameters:
   ///   - channel: `GRPCChannel` to the service host.
@@ -187,7 +187,7 @@ public struct Tarthelper_ServiceNIOClient: Tarthelper_ServiceClientProtocol {
   public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? = nil
+    interceptors: Caked_ServiceClientInterceptorFactoryProtocol? = nil
   ) {
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
@@ -196,52 +196,52 @@ public struct Tarthelper_ServiceNIOClient: Tarthelper_ServiceClientProtocol {
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-public protocol Tarthelper_ServiceAsyncClientProtocol: GRPCClient {
+public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
-  var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? { get }
+  var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
   func makeBuildCall(
-    _ request: Tarthelper_BuildRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tarthelper_BuildRequest, Tarthelper_TartReply>
+  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply>
 
   func makeStartCall(
-    _ request: Tarthelper_StartRequest,
+    _ request: Caked_StartRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tarthelper_StartRequest, Tarthelper_TartReply>
+  ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply>
 
-  func makeTartCommandCall(
-    _ request: Tarthelper_TartCommandRequest,
+  func makeCakeCommandCall(
+    _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tarthelper_TartCommandRequest, Tarthelper_TartReply>
+  ) -> GRPCAsyncUnaryCall<Caked_CakedCommandRequest, Caked_Reply>
 
   func makeLaunchCall(
-    _ request: Tarthelper_LaunchRequest,
+    _ request: Caked_LaunchRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tarthelper_LaunchRequest, Tarthelper_TartReply>
+  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply>
 
   func makePruneCall(
-    _ request: Tarthelper_PruneRequest,
+    _ request: Caked_PruneRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Tarthelper_PruneRequest, Tarthelper_TartReply>
+  ) -> GRPCAsyncUnaryCall<Caked_PruneRequest, Caked_Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-extension Tarthelper_ServiceAsyncClientProtocol {
+extension Caked_ServiceAsyncClientProtocol {
   public static var serviceDescriptor: GRPCServiceDescriptor {
-    return Tarthelper_ServiceClientMetadata.serviceDescriptor
+    return Caked_ServiceClientMetadata.serviceDescriptor
   }
 
-  public var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? {
+  public var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
     return nil
   }
 
   public func makeBuildCall(
-    _ request: Tarthelper_BuildRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tarthelper_BuildRequest, Tarthelper_TartReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.build.path,
+      path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeBuildInterceptors() ?? []
@@ -249,35 +249,35 @@ extension Tarthelper_ServiceAsyncClientProtocol {
   }
 
   public func makeStartCall(
-    _ request: Tarthelper_StartRequest,
+    _ request: Caked_StartRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tarthelper_StartRequest, Tarthelper_TartReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.start.path,
+      path: Caked_ServiceClientMetadata.Methods.start.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
     )
   }
 
-  public func makeTartCommandCall(
-    _ request: Tarthelper_TartCommandRequest,
+  public func makeCakeCommandCall(
+    _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tarthelper_TartCommandRequest, Tarthelper_TartReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_CakedCommandRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.tartCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
     )
   }
 
   public func makeLaunchCall(
-    _ request: Tarthelper_LaunchRequest,
+    _ request: Caked_LaunchRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tarthelper_LaunchRequest, Tarthelper_TartReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.launch.path,
+      path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
@@ -285,11 +285,11 @@ extension Tarthelper_ServiceAsyncClientProtocol {
   }
 
   public func makePruneCall(
-    _ request: Tarthelper_PruneRequest,
+    _ request: Caked_PruneRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Tarthelper_PruneRequest, Tarthelper_TartReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_PruneRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.prune.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makePruneInterceptors() ?? []
@@ -298,13 +298,13 @@ extension Tarthelper_ServiceAsyncClientProtocol {
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-extension Tarthelper_ServiceAsyncClientProtocol {
+extension Caked_ServiceAsyncClientProtocol {
   public func build(
-    _ request: Tarthelper_BuildRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Tarthelper_TartReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.build.path,
+      path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeBuildInterceptors() ?? []
@@ -312,35 +312,35 @@ extension Tarthelper_ServiceAsyncClientProtocol {
   }
 
   public func start(
-    _ request: Tarthelper_StartRequest,
+    _ request: Caked_StartRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Tarthelper_TartReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.start.path,
+      path: Caked_ServiceClientMetadata.Methods.start.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
     )
   }
 
-  public func tartCommand(
-    _ request: Tarthelper_TartCommandRequest,
+  public func cakeCommand(
+    _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Tarthelper_TartReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.tartCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTartCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
     )
   }
 
   public func launch(
-    _ request: Tarthelper_LaunchRequest,
+    _ request: Caked_LaunchRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Tarthelper_TartReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.launch.path,
+      path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
@@ -348,11 +348,11 @@ extension Tarthelper_ServiceAsyncClientProtocol {
   }
 
   public func prune(
-    _ request: Tarthelper_PruneRequest,
+    _ request: Caked_PruneRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Tarthelper_TartReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Tarthelper_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.prune.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makePruneInterceptors() ?? []
@@ -361,15 +361,15 @@ extension Tarthelper_ServiceAsyncClientProtocol {
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-public struct Tarthelper_ServiceAsyncClient: Tarthelper_ServiceAsyncClientProtocol {
+public struct Caked_ServiceAsyncClient: Caked_ServiceAsyncClientProtocol {
   public var channel: GRPCChannel
   public var defaultCallOptions: CallOptions
-  public var interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol?
+  public var interceptors: Caked_ServiceClientInterceptorFactoryProtocol?
 
   public init(
     channel: GRPCChannel,
     defaultCallOptions: CallOptions = CallOptions(),
-    interceptors: Tarthelper_ServiceClientInterceptorFactoryProtocol? = nil
+    interceptors: Caked_ServiceClientInterceptorFactoryProtocol? = nil
   ) {
     self.channel = channel
     self.defaultCallOptions = defaultCallOptions
@@ -377,89 +377,89 @@ public struct Tarthelper_ServiceAsyncClient: Tarthelper_ServiceAsyncClientProtoc
   }
 }
 
-public protocol Tarthelper_ServiceClientInterceptorFactoryProtocol: Sendable {
+public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'build'.
-  func makeBuildInterceptors() -> [ClientInterceptor<Tarthelper_BuildRequest, Tarthelper_TartReply>]
+  func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'start'.
-  func makeStartInterceptors() -> [ClientInterceptor<Tarthelper_StartRequest, Tarthelper_TartReply>]
+  func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'tartCommand'.
-  func makeTartCommandInterceptors() -> [ClientInterceptor<Tarthelper_TartCommandRequest, Tarthelper_TartReply>]
+  /// - Returns: Interceptors to use when invoking 'cakeCommand'.
+  func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'launch'.
-  func makeLaunchInterceptors() -> [ClientInterceptor<Tarthelper_LaunchRequest, Tarthelper_TartReply>]
+  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'prune'.
-  func makePruneInterceptors() -> [ClientInterceptor<Tarthelper_PruneRequest, Tarthelper_TartReply>]
+  func makePruneInterceptors() -> [ClientInterceptor<Caked_PruneRequest, Caked_Reply>]
 }
 
-public enum Tarthelper_ServiceClientMetadata {
+public enum Caked_ServiceClientMetadata {
   public static let serviceDescriptor = GRPCServiceDescriptor(
     name: "Service",
-    fullName: "tarthelper.Service",
+    fullName: "caked.Service",
     methods: [
-      Tarthelper_ServiceClientMetadata.Methods.build,
-      Tarthelper_ServiceClientMetadata.Methods.start,
-      Tarthelper_ServiceClientMetadata.Methods.tartCommand,
-      Tarthelper_ServiceClientMetadata.Methods.launch,
-      Tarthelper_ServiceClientMetadata.Methods.prune,
+      Caked_ServiceClientMetadata.Methods.build,
+      Caked_ServiceClientMetadata.Methods.start,
+      Caked_ServiceClientMetadata.Methods.cakeCommand,
+      Caked_ServiceClientMetadata.Methods.launch,
+      Caked_ServiceClientMetadata.Methods.prune,
     ]
   )
 
   public enum Methods {
     public static let build = GRPCMethodDescriptor(
       name: "Build",
-      path: "/tarthelper.Service/Build",
+      path: "/caked.Service/Build",
       type: GRPCCallType.unary
     )
 
     public static let start = GRPCMethodDescriptor(
       name: "Start",
-      path: "/tarthelper.Service/Start",
+      path: "/caked.Service/Start",
       type: GRPCCallType.unary
     )
 
-    public static let tartCommand = GRPCMethodDescriptor(
-      name: "TartCommand",
-      path: "/tarthelper.Service/TartCommand",
+    public static let cakeCommand = GRPCMethodDescriptor(
+      name: "CakeCommand",
+      path: "/caked.Service/CakeCommand",
       type: GRPCCallType.unary
     )
 
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
-      path: "/tarthelper.Service/Launch",
+      path: "/caked.Service/Launch",
       type: GRPCCallType.unary
     )
 
     public static let prune = GRPCMethodDescriptor(
       name: "Prune",
-      path: "/tarthelper.Service/Prune",
+      path: "/caked.Service/Prune",
       type: GRPCCallType.unary
     )
   }
 }
 
 /// To build a server, implement a class that conforms to this protocol.
-public protocol Tarthelper_ServiceProvider: CallHandlerProvider {
-  var interceptors: Tarthelper_ServiceServerInterceptorFactoryProtocol? { get }
+public protocol Caked_ServiceProvider: CallHandlerProvider {
+  var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
   /// Sends a greeting
-  func build(request: Tarthelper_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tarthelper_TartReply>
+  func build(request: Caked_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func start(request: Tarthelper_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tarthelper_TartReply>
+  func start(request: Caked_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func tartCommand(request: Tarthelper_TartCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tarthelper_TartReply>
+  func cakeCommand(request: Caked_CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func launch(request: Tarthelper_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tarthelper_TartReply>
+  func launch(request: Caked_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func prune(request: Tarthelper_PruneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Tarthelper_TartReply>
+  func prune(request: Caked_PruneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 }
 
-extension Tarthelper_ServiceProvider {
+extension Caked_ServiceProvider {
   public var serviceName: Substring {
-    return Tarthelper_ServiceServerMetadata.serviceDescriptor.fullName[...]
+    return Caked_ServiceServerMetadata.serviceDescriptor.fullName[...]
   }
 
   /// Determines, calls and returns the appropriate request handler, depending on the request's method.
@@ -472,8 +472,8 @@ extension Tarthelper_ServiceProvider {
     case "Build":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
         userFunction: self.build(request:context:)
       )
@@ -481,26 +481,26 @@ extension Tarthelper_ServiceProvider {
     case "Start":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_StartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         userFunction: self.start(request:context:)
       )
 
-    case "TartCommand":
+    case "CakeCommand":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_TartCommandRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
-        interceptors: self.interceptors?.makeTartCommandInterceptors() ?? [],
-        userFunction: self.tartCommand(request:context:)
+        requestDeserializer: ProtobufDeserializer<Caked_CakedCommandRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
+        userFunction: self.cakeCommand(request:context:)
       )
 
     case "Launch":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         userFunction: self.launch(request:context:)
       )
@@ -508,8 +508,8 @@ extension Tarthelper_ServiceProvider {
     case "Prune":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_PruneRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_PruneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makePruneInterceptors() ?? [],
         userFunction: self.prune(request:context:)
       )
@@ -522,48 +522,48 @@ extension Tarthelper_ServiceProvider {
 
 /// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-public protocol Tarthelper_ServiceAsyncProvider: CallHandlerProvider, Sendable {
+public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
-  var interceptors: Tarthelper_ServiceServerInterceptorFactoryProtocol? { get }
+  var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
   /// Sends a greeting
   func build(
-    request: Tarthelper_BuildRequest,
+    request: Caked_BuildRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Tarthelper_TartReply
+  ) async throws -> Caked_Reply
 
   func start(
-    request: Tarthelper_StartRequest,
+    request: Caked_StartRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Tarthelper_TartReply
+  ) async throws -> Caked_Reply
 
-  func tartCommand(
-    request: Tarthelper_TartCommandRequest,
+  func cakeCommand(
+    request: Caked_CakedCommandRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Tarthelper_TartReply
+  ) async throws -> Caked_Reply
 
   func launch(
-    request: Tarthelper_LaunchRequest,
+    request: Caked_LaunchRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Tarthelper_TartReply
+  ) async throws -> Caked_Reply
 
   func prune(
-    request: Tarthelper_PruneRequest,
+    request: Caked_PruneRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Tarthelper_TartReply
+  ) async throws -> Caked_Reply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-extension Tarthelper_ServiceAsyncProvider {
+extension Caked_ServiceAsyncProvider {
   public static var serviceDescriptor: GRPCServiceDescriptor {
-    return Tarthelper_ServiceServerMetadata.serviceDescriptor
+    return Caked_ServiceServerMetadata.serviceDescriptor
   }
 
   public var serviceName: Substring {
-    return Tarthelper_ServiceServerMetadata.serviceDescriptor.fullName[...]
+    return Caked_ServiceServerMetadata.serviceDescriptor.fullName[...]
   }
 
-  public var interceptors: Tarthelper_ServiceServerInterceptorFactoryProtocol? {
+  public var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? {
     return nil
   }
 
@@ -575,8 +575,8 @@ extension Tarthelper_ServiceAsyncProvider {
     case "Build":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
         wrapping: { try await self.build(request: $0, context: $1) }
       )
@@ -584,26 +584,26 @@ extension Tarthelper_ServiceAsyncProvider {
     case "Start":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_StartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         wrapping: { try await self.start(request: $0, context: $1) }
       )
 
-    case "TartCommand":
+    case "CakeCommand":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_TartCommandRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
-        interceptors: self.interceptors?.makeTartCommandInterceptors() ?? [],
-        wrapping: { try await self.tartCommand(request: $0, context: $1) }
+        requestDeserializer: ProtobufDeserializer<Caked_CakedCommandRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
+        wrapping: { try await self.cakeCommand(request: $0, context: $1) }
       )
 
     case "Launch":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         wrapping: { try await self.launch(request: $0, context: $1) }
       )
@@ -611,8 +611,8 @@ extension Tarthelper_ServiceAsyncProvider {
     case "Prune":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Tarthelper_PruneRequest>(),
-        responseSerializer: ProtobufSerializer<Tarthelper_TartReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_PruneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makePruneInterceptors() ?? [],
         wrapping: { try await self.prune(request: $0, context: $1) }
       )
@@ -623,70 +623,70 @@ extension Tarthelper_ServiceAsyncProvider {
   }
 }
 
-public protocol Tarthelper_ServiceServerInterceptorFactoryProtocol: Sendable {
+public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'build'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeBuildInterceptors() -> [ServerInterceptor<Tarthelper_BuildRequest, Tarthelper_TartReply>]
+  func makeBuildInterceptors() -> [ServerInterceptor<Caked_BuildRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'start'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStartInterceptors() -> [ServerInterceptor<Tarthelper_StartRequest, Tarthelper_TartReply>]
+  func makeStartInterceptors() -> [ServerInterceptor<Caked_StartRequest, Caked_Reply>]
 
-  /// - Returns: Interceptors to use when handling 'tartCommand'.
+  /// - Returns: Interceptors to use when handling 'cakeCommand'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeTartCommandInterceptors() -> [ServerInterceptor<Tarthelper_TartCommandRequest, Tarthelper_TartReply>]
+  func makeCakeCommandInterceptors() -> [ServerInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLaunchInterceptors() -> [ServerInterceptor<Tarthelper_LaunchRequest, Tarthelper_TartReply>]
+  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_LaunchRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'prune'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makePruneInterceptors() -> [ServerInterceptor<Tarthelper_PruneRequest, Tarthelper_TartReply>]
+  func makePruneInterceptors() -> [ServerInterceptor<Caked_PruneRequest, Caked_Reply>]
 }
 
-public enum Tarthelper_ServiceServerMetadata {
+public enum Caked_ServiceServerMetadata {
   public static let serviceDescriptor = GRPCServiceDescriptor(
     name: "Service",
-    fullName: "tarthelper.Service",
+    fullName: "caked.Service",
     methods: [
-      Tarthelper_ServiceServerMetadata.Methods.build,
-      Tarthelper_ServiceServerMetadata.Methods.start,
-      Tarthelper_ServiceServerMetadata.Methods.tartCommand,
-      Tarthelper_ServiceServerMetadata.Methods.launch,
-      Tarthelper_ServiceServerMetadata.Methods.prune,
+      Caked_ServiceServerMetadata.Methods.build,
+      Caked_ServiceServerMetadata.Methods.start,
+      Caked_ServiceServerMetadata.Methods.cakeCommand,
+      Caked_ServiceServerMetadata.Methods.launch,
+      Caked_ServiceServerMetadata.Methods.prune,
     ]
   )
 
   public enum Methods {
     public static let build = GRPCMethodDescriptor(
       name: "Build",
-      path: "/tarthelper.Service/Build",
+      path: "/caked.Service/Build",
       type: GRPCCallType.unary
     )
 
     public static let start = GRPCMethodDescriptor(
       name: "Start",
-      path: "/tarthelper.Service/Start",
+      path: "/caked.Service/Start",
       type: GRPCCallType.unary
     )
 
-    public static let tartCommand = GRPCMethodDescriptor(
-      name: "TartCommand",
-      path: "/tarthelper.Service/TartCommand",
+    public static let cakeCommand = GRPCMethodDescriptor(
+      name: "CakeCommand",
+      path: "/caked.Service/CakeCommand",
       type: GRPCCallType.unary
     )
 
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
-      path: "/tarthelper.Service/Launch",
+      path: "/caked.Service/Launch",
       type: GRPCCallType.unary
     )
 
     public static let prune = GRPCMethodDescriptor(
       name: "Prune",
-      path: "/tarthelper.Service/Prune",
+      path: "/caked.Service/Prune",
       type: GRPCCallType.unary
     )
   }

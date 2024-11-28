@@ -1,6 +1,6 @@
 import XCTest
 import ShellOut
-@testable import tarthelper
+@testable import caked
 
 let networkConfig = 
 """

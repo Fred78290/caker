@@ -23,7 +23,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
-public struct Tarthelper_TartCommandRequest: Sendable {
+public struct Caked_CakedCommandRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -37,7 +37,7 @@ public struct Tarthelper_TartCommandRequest: Sendable {
   public init() {}
 }
 
-public struct Tarthelper_BuildRequest: @unchecked Sendable {
+public struct Caked_BuildRequest: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -200,7 +200,7 @@ public struct Tarthelper_BuildRequest: @unchecked Sendable {
   fileprivate var _diskSize: Int32? = nil
 }
 
-public struct Tarthelper_LaunchRequest: @unchecked Sendable {
+public struct Caked_LaunchRequest: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -389,7 +389,7 @@ public struct Tarthelper_LaunchRequest: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
-public struct Tarthelper_StartRequest: Sendable {
+public struct Caked_StartRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -401,7 +401,7 @@ public struct Tarthelper_StartRequest: Sendable {
   public init() {}
 }
 
-public struct Tarthelper_Error: Sendable {
+public struct Caked_Error: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -415,7 +415,7 @@ public struct Tarthelper_Error: Sendable {
   public init() {}
 }
 
-public struct Tarthelper_PruneRequest: Sendable {
+public struct Caked_PruneRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
@@ -476,17 +476,17 @@ public struct Tarthelper_PruneRequest: Sendable {
   fileprivate var _gc: Bool? = nil
 }
 
-public struct Tarthelper_TartReply: Sendable {
+public struct Caked_Reply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var response: Tarthelper_TartReply.OneOf_Response? = nil
+  public var response: Caked_Reply.OneOf_Response? = nil
 
-  public var error: Tarthelper_Error {
+  public var error: Caked_Error {
     get {
       if case .error(let v)? = response {return v}
-      return Tarthelper_Error()
+      return Caked_Error()
     }
     set {response = .error(newValue)}
   }
@@ -502,7 +502,7 @@ public struct Tarthelper_TartReply: Sendable {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Response: Equatable, Sendable {
-    case error(Tarthelper_Error)
+    case error(Caked_Error)
     case output(String)
 
   }
@@ -512,10 +512,10 @@ public struct Tarthelper_TartReply: Sendable {
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
-fileprivate let _protobuf_package = "tarthelper"
+fileprivate let _protobuf_package = "caked"
 
-extension Tarthelper_TartCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".TartCommandRequest"
+extension Caked_CakedCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CakedCommandRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "command"),
     2: .same(proto: "arguments"),
@@ -544,7 +544,7 @@ extension Tarthelper_TartCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._M
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_TartCommandRequest, rhs: Tarthelper_TartCommandRequest) -> Bool {
+  public static func ==(lhs: Caked_CakedCommandRequest, rhs: Caked_CakedCommandRequest) -> Bool {
     if lhs.command != rhs.command {return false}
     if lhs.arguments != rhs.arguments {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -552,7 +552,7 @@ extension Tarthelper_TartCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._M
   }
 }
 
-extension Tarthelper_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".BuildRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
@@ -656,7 +656,7 @@ extension Tarthelper_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_BuildRequest, rhs: Tarthelper_BuildRequest) -> Bool {
+  public static func ==(lhs: Caked_BuildRequest, rhs: Caked_BuildRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs._cpu != rhs._cpu {return false}
     if lhs._memory != rhs._memory {return false}
@@ -678,7 +678,7 @@ extension Tarthelper_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Tarthelper_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".LaunchRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
@@ -879,7 +879,7 @@ extension Tarthelper_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_LaunchRequest, rhs: Tarthelper_LaunchRequest) -> Bool {
+  public static func ==(lhs: Caked_LaunchRequest, rhs: Caked_LaunchRequest) -> Bool {
     if lhs._storage !== rhs._storage {
       let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
         let _storage = _args.0
@@ -914,7 +914,7 @@ extension Tarthelper_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Tarthelper_StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Caked_StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".StartRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
@@ -939,14 +939,14 @@ extension Tarthelper_StartRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_StartRequest, rhs: Tarthelper_StartRequest) -> Bool {
+  public static func ==(lhs: Caked_StartRequest, rhs: Caked_StartRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
 }
 
-extension Tarthelper_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Caked_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Error"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "code"),
@@ -976,7 +976,7 @@ extension Tarthelper_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_Error, rhs: Tarthelper_Error) -> Bool {
+  public static func ==(lhs: Caked_Error, rhs: Caked_Error) -> Bool {
     if lhs.code != rhs.code {return false}
     if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -984,7 +984,7 @@ extension Tarthelper_Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   }
 }
 
-extension Tarthelper_PruneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+extension Caked_PruneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".PruneRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "entries"),
@@ -1033,7 +1033,7 @@ extension Tarthelper_PruneRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_PruneRequest, rhs: Tarthelper_PruneRequest) -> Bool {
+  public static func ==(lhs: Caked_PruneRequest, rhs: Caked_PruneRequest) -> Bool {
     if lhs._entries != rhs._entries {return false}
     if lhs._olderThan != rhs._olderThan {return false}
     if lhs._cacheBudget != rhs._cacheBudget {return false}
@@ -1044,8 +1044,8 @@ extension Tarthelper_PruneRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Tarthelper_TartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".TartReply"
+extension Caked_Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Reply"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "error"),
     2: .same(proto: "output"),
@@ -1058,7 +1058,7 @@ extension Tarthelper_TartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try {
-        var v: Tarthelper_Error?
+        var v: Caked_Error?
         var hadOneofValue = false
         if let current = self.response {
           hadOneofValue = true
@@ -1102,7 +1102,7 @@ extension Tarthelper_TartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Tarthelper_TartReply, rhs: Tarthelper_TartReply) -> Bool {
+  public static func ==(lhs: Caked_Reply, rhs: Caked_Reply) -> Bool {
     if lhs.response != rhs.response {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

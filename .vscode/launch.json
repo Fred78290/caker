@@ -3,59 +3,38 @@
 		{
 			"type": "lldb",
 			"request": "launch",
-			"args": [
-				"build",
-				"linux",
-				"--cpu=2",
-				"--memory=2048",
-				"--ssh-authorized-key=${userHome}/.ssh/id_rsa.pub",
-				"--network-config=/tmp/network-config.yaml",
-				"--user-data=/tmp/user-data.yaml",
-				"--cloud-image=https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-arm64.img",
-			],
+			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "tarthelper build",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
-			"preLaunchTask": "swift: Build Debug tarthelper"
-		},
-		{
-			"type": "lldb",
-			"request": "launch",
-			"args": [
-				"service",
-				"listen"
-			],
-			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "TartHelper service listen",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
-			"preLaunchTask": "swift: Build Debug tarthelper"
+			"name": "Debug caked",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Release tartctl",
-			"program": "${workspaceFolder:tarthelper}/.build/release/tartctl",
-			"preLaunchTask": "swift: Build Release tartctl"
+			"name": "Release caked",
+			"program": "${workspaceFolder:tarthelper}/.build/release/caked",
+			"preLaunchTask": "swift: Build Release caked"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Debug tarthelper",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
-			"preLaunchTask": "swift: Build Debug tarthelper"
+			"name": "Debug cakectl",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/cakectl",
+			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Release tarthelper",
-			"program": "${workspaceFolder:tarthelper}/.build/release/tarthelper",
-			"preLaunchTask": "swift: Build Release tarthelper"
+			"name": "Release cakectl",
+			"program": "${workspaceFolder:tarthelper}/.build/release/cakectl",
+			"preLaunchTask": "swift: Build Release cakectl"
 		}
 	]
 }
