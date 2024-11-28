@@ -90,53 +90,34 @@ struct Client: ParsableCommand {
 							 caCert: String?,
 							 tlsCert: String?,
 							 tlsKey: String?) throws -> ClientConnection {
-		let connection: ClientConnection.Builder
-
-		if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
-			connection =
-				ClientConnection
-					.usingTLSBackedByNIOSSL(on: on)
-					.withTLS(privateKey: try NIOSSLPrivateKey(file: tlsKey, format: .pem))
-					.withTLS(certificateChain: [try NIOSSLCertificate(file: tlsCert, format: .pem)])
-					.withTLS(trustRoots: .certificates([try NIOSSLCertificate(file: caCert, format: .pem)]))
-		} else {
-			connection = ClientConnection.insecure(group: on)
-		}
-
 		if let listeningAddress = listeningAddress {
+			let target: ConnectionTarget
+
 			if listeningAddress.scheme == "unix" {
-				let clientSocket = socket(AF_UNIX, SOCK_STREAM, 0)
-				let socketPath = listeningAddress.path()
-				let addr = try SocketAddress(unixDomainSocketPath: socketPath)
-
-				try addr.withSockAddr { addr, size in
-					let ret = connect(clientSocket, addr, UInt32(size))
-
-					if ret == -1 {
-						throw GrpcError(code: -1, reason: "clientSocket failed: errno = \(errno)")
-					}
-				}
-
-				let flags = fcntl(clientSocket, F_GETFL, 0)
-
-				if flags == -1 {
-					throw GrpcError(code: -1, reason: "clientSocket failed: errno = \(errno)")
-				}
-
-				if fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) != 0 {
-					throw GrpcError(code: -1, reason: "fcntl failed: errno = \(errno)")
-				}
-
-				return connection.withConnectedSocket(clientSocket)
+				target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 			} else if listeningAddress.scheme == "tcp" {
-				return connection.connect(
-					host: listeningAddress.host ?? "127.0.0.1", port: listeningAddress.port ?? 5000)
+				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 			} else {
 				throw GrpcError(
 					code: -1,
 					reason:
-					"unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
+					"unsupported address scheme: \(String(describing: listeningAddress.scheme))")
 			}
+
+			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
+
+			if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
+				let clientTLSConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
+											certificateChain: [.certificate(try NIOSSLCertificate(file: tlsCert, format: .pem))],
+											privateKey: .privateKey(try NIOSSLPrivateKey(file: tlsKey, format: .pem)),
+											trustRoots: .certificates([try NIOSSLCertificate(file: caCert, format: .pem)]),
+											certificateVerification: .noHostnameVerification
+				)
+
+				clientConfiguration.tlsConfiguration = clientTLSConfiguration
+			}
+
+			return ClientConnection(configuration: clientConfiguration)
 		}
 
 		throw GrpcError(code: -1, reason: "connection address must be specified")
