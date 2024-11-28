@@ -6,7 +6,7 @@ struct Start: ParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	func run() throws {
+	mutating func run() throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
 		try StartHandler.startVM(vmLocation: vmLocation)

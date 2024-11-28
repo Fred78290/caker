@@ -21,9 +21,15 @@ class ServiceError : Error, CustomStringConvertible {
 	}
 }
 
+struct Certs {
+	let ca: String?
+	let key: String?
+	let cert: String?
+}
+
 struct Service: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Tart helper as launchctl agent",
-													subcommands: [Install.self, Listen.self])
+	                                                subcommands: [Install.self, Listen.self])
 	static let SyncSemaphore = DispatchSemaphore(value: 0)
 
 }
@@ -65,44 +71,96 @@ extension Service {
 	struct Install : ParsableCommand {    
 		static var configuration = CommandConfiguration(abstract: "Install tart daemon as launchctl agent")
 
-		@Option(name: [.customLong("system"), .customShort("s")], help: "Install agent as system agent, need sudo")
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install TartHelper as system agent, need sudo")
 		var asSystem: Bool = false
 
+		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
+		var address: String?
+
+		@Flag(name: [.customLong("insecure"), .customShort("k")], help: "don't use TLS")
+		var insecure: Bool = false
+
+		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		var caCert: String?
+
+		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		var tlsCert: String?
+
+		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		var tlsKey: String?
+
 		static func findMe() throws -> String {
-			return try shellOut(to: "command", arguments: ["-v", "tart"])
+			return try shellOut(to: "command", arguments: ["-v", "tarthelper"])
+		}
+
+		func getCertificats() throws -> Certs {
+			if self.tlsCert == nil && self.tlsKey == nil {
+				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+
+				return Certs(ca: certs.caCertURL.path(), key: certs.serverKeyURL.path(), cert: certs.serverCertURL.path())
+			}
+
+			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
+		}
+
+		func getListenAddress() throws -> String {
+			if let address = self.address {
+				return address
+			}
+
+			return try Utils.getListenAddress(asSystem: self.asSystem)
 		}
 
 		mutating func run() throws {
 			runAsSystem = self.asSystem
 
-			let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
-			let listenAddress: String = try Utils.getListenAddress(asSystem: self.asSystem)
+			let listenAddress: String = try getListenAddress()
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
 			let tartHome: URL = try Utils.getTartHome(asSystem: self.asSystem)
+
+			var arguments: [String] = [
+				try Install.findMe(),
+				"listen",
+				"--address=\(listenAddress)"
+			]
+
+			if asSystem {
+				arguments.append("--system")
+			}
+
+			if self.insecure == false {
+				let certs = try getCertificats()
+
+				if let ca = certs.ca {
+					arguments.append("--ca-cert=\(ca)")
+				}
+
+				if let key = certs.key {
+					arguments.append("--tls-cert=\(key)")
+				}
+
+				if let cert = certs.cert {
+					arguments.append("--tls-key=\(cert)")
+				}
+			}
+
 			let agent = LaunchAgent(label: tartHelperSignature,
-									programArguments: [
-										try Install.findMe(),
-										"listen",
-										"--system=\(asSystem)",
-										"--address=\(listenAddress)",
-										"--tls-cert=\(certs.serverCertURL.path())",
-										"--tls-key=\(certs.serverKeyURL.path())",
-									],
-									keepAlive: [
-										"SuccessfulExit" : false
-									],
-									runAtLoad: true,
-									abandonProcessGroup: true,
-									softResourceLimits: [
-										"NumberOfFiles" : 4096
-									],
-									environmentVariables: [
-										"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-										"TART_HOME" : tartHome.path()
-									],
-									standardErrorPath: outputLog,
-									standardOutPath: outputLog,
-									processType: "Background")
+			                        programArguments: arguments,
+			                        keepAlive: [
+			                        	"SuccessfulExit" : false
+			                        ],
+			                        runAtLoad: true,
+			                        abandonProcessGroup: true,
+			                        softResourceLimits: [
+			                        	"NumberOfFiles" : 4096
+			                        ],
+			                        environmentVariables: [
+			                        	"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
+			                        	"TART_HOME" : tartHome.path()
+			                        ],
+			                        standardErrorPath: outputLog,
+			                        standardOutPath: outputLog,
+			                        processType: "Background")
 
 			let agentURL: URL
 
@@ -116,10 +174,10 @@ extension Service {
 		}
 	}
 
-	struct Listen : AsyncParsableCommand {
+	struct Listen : ParsableCommand {
 		static var configuration = CommandConfiguration(abstract: "tart daemon listening")
 
-		@Option(name: [.customLong("system"), .customShort("s")], help: "Run agent as system agent, need sudo")
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run TartHelper as system agent, need sudo")
 		var asSystem: Bool = false
 
 		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
@@ -156,65 +214,75 @@ extension Service {
 			if let address = self.address {
 				return address
 			} else {
-				return try Utils.getListenAddress(asSystem: false)
+				return try Utils.getListenAddress(asSystem: asSystem)
 			}
 		}
 
 		static func createServer(on: MultiThreadedEventLoopGroup,
-								 asSystem: Bool,
-								 listeningAddress: URL?,
-								 caCert: String?,
-								 tlsCert: String?,
-								 tlsKey: String?) throws -> EventLoopFuture<Server> {
-			let builder: Server.Builder
-
-			if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
-				builder = Server.usingTLSBackedByNIOSSL(
-					on: on,
-					certificateChain: [try NIOSSLCertificate(file: tlsCert, format: .pem)],
-					privateKey: try NIOSSLPrivateKey(file: tlsKey, format: .pem))
-					.withTLS(trustRoots: .certificates([try NIOSSLCertificate(file: caCert, format: .pem)]))
-			} else {
-				builder = Server.insecure(group: on)
-			}
-
-			builder.withServiceProviders([TartDaemonProvider(asSystem: asSystem)])
-
+		                         asSystem: Bool,
+		                         listeningAddress: URL?,
+		                         caCert: String?,
+		                         tlsCert: String?,
+		                         tlsKey: String?) throws -> EventLoopFuture<Server> {
 			if let listeningAddress = listeningAddress {
+				let target: ConnectionTarget
+
 				if listeningAddress.scheme == "unix" {
-					let path = listeningAddress.path()
-					return builder.bind(unixDomainSocketPath: path)
+					target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 				} else if listeningAddress.scheme == "tcp" {
-					return builder.bind(host: listeningAddress.host ?? "127.0.0.1", port: listeningAddress.port ?? 5000)
+					target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 				} else {
 					throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
 				}
+
+				var serverConfiguration = Server.Configuration.default(target: target,
+				                                                       eventLoopGroup: on,
+				                                                       serviceProviders: [TartDaemonProvider(asSystem: asSystem)])
+
+				if let tlsCert = tlsCert, let tlsKey = tlsKey {
+					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
+					let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
+					let trustRoots: NIOSSLTrustRoots
+
+					if let caCert: String = caCert {
+						trustRoots = .certificates([try NIOSSLCertificate(file: caCert, format: .pem)])
+					} else {
+						trustRoots = NIOSSLTrustRoots.default
+					}
+
+					serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
+						certificateChain: [.certificate(tlsCert)],
+						privateKey: .privateKey(tlsKey),
+						trustRoots: trustRoots,
+						certificateVerification: CertificateVerification.none,
+						requireALPN: false)
+				}
+
+				return Server.start(configuration: serverConfiguration)
 			}
 
 			throw ServiceError("connection address must be specified")
 		}
 
-		func run() async throws {
+		mutating func run() throws {
 			runAsSystem = self.asSystem
 
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 			defer {
-				Task {
-					try! await group.shutdownGracefully()
-				}
+				try! group.syncShutdownGracefully()
 			}
 
 			// Start the server and print its address once it has started.
-			let server = try await Self.createServer(on: group,
-							asSystem: self.asSystem,
-							listeningAddress: URL(string: try self.getServerAddress()),
-							caCert: self.caCert,
-							tlsCert: self.tlsCert,
-							tlsKey: self.tlsKey).get()
+			let server = try Self.createServer(on: group,
+			                                   asSystem: self.asSystem,
+			                                   listeningAddress: URL(string: try self.getServerAddress()),
+			                                   caCert: self.caCert,
+			                                   tlsCert: self.tlsCert,
+			                                   tlsKey: self.tlsKey).wait()
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
-			try await server.onClose.get()
+			try server.onClose.wait()
 		}
 	}
 }

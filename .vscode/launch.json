@@ -21,11 +21,13 @@
 		{
 			"type": "lldb",
 			"request": "launch",
-			"args": [],
+			"args": [
+				"listen"
+			],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Debug tartctl",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/tartctl",
-			"preLaunchTask": "swift: Build Debug tartctl"
+			"name": "TartHelper listen",
+			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
+			"preLaunchTask": "swift: Build Debug tarthelper"
 		},
 		{
 			"type": "lldb",

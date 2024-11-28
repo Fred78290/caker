@@ -3,6 +3,7 @@ import Security
 import Crypto
 import SwiftASN1
 import X509
+import _CryptoExtras
 
 struct CypherKeyGeneratorError: Error {
 	let description: String
@@ -26,7 +27,7 @@ public struct CypherKeyModel {
 		let publicKey = try self.publicKeyString()
 
 		FileManager.default.createFile(atPath: privateURL.path, contents: privateKey.data(using: .ascii), attributes: [.posixPermissions : 0o600])
-		FileManager.default.createFile(atPath: privateURL.path, contents: publicKey.data(using: .ascii), attributes: [.posixPermissions : 0o644])
+		FileManager.default.createFile(atPath: publicURL.path, contents: publicKey.data(using: .ascii), attributes: [.posixPermissions : 0o644])
 	}
 
 	public func publicKeyString() throws -> String {
@@ -123,7 +124,7 @@ public struct CypherKeyGenerator {
 												clientKeyURL: URL, clientCertURL: URL) throws {
 		let notValidBefore = Date()
 		let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
-		let rootPrivateKey = P521.Signing.PrivateKey()
+		let rootPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
 		let rootCertKey: Certificate.PrivateKey = Certificate.PrivateKey(rootPrivateKey)
 		let rootCertName = try! DistinguishedName {
 			CommonName("TartHelper Root CA")
@@ -136,7 +137,7 @@ public struct CypherKeyGenerator {
 			notValidAfter: notValidAfter,
 			issuer: rootCertName,
 			subject: rootCertName,
-			signatureAlgorithm: .ecdsaWithSHA256,
+			signatureAlgorithm: .sha512WithRSAEncryption,
 			extensions: try! Certificate.Extensions {
 				Critical(
 					BasicConstraints.isCertificateAuthority(maxPathLength: nil)
@@ -150,7 +151,7 @@ public struct CypherKeyGenerator {
 			OrganizationName("AlduneLabs");
 		}
 
-		let serverPrivateKey = P521.Signing.PrivateKey()
+		let serverPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
 		let serverCertKey = Certificate.PrivateKey(serverPrivateKey)
 		let serverCertificate = try Certificate(
 			version: .v3,
@@ -160,7 +161,7 @@ public struct CypherKeyGenerator {
 			notValidAfter: notValidAfter,
 			issuer: rootCertName,
 			subject: subjectName,
-			signatureAlgorithm: .ecdsaWithSHA256,
+			signatureAlgorithm: .sha512WithRSAEncryption,
 			extensions: try Certificate.Extensions {
 				Critical(
 					BasicConstraints.isCertificateAuthority(maxPathLength: nil)
@@ -178,7 +179,7 @@ public struct CypherKeyGenerator {
 			},
 			issuerPrivateKey: rootCertKey)
 
-		let clientPrivateKey = P521.Signing.PrivateKey()
+		let clientPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
 		let clientCertKey = Certificate.PrivateKey(clientPrivateKey)
 		let clientCertificate = try Certificate(
 			version: .v3,
@@ -191,7 +192,7 @@ public struct CypherKeyGenerator {
 				CommonName("TartHelper client");
 				OrganizationName("AlduneLabs");
 			},
-			signatureAlgorithm: .ecdsaWithSHA256,
+			signatureAlgorithm: .sha512WithRSAEncryption,
 			extensions: try Certificate.Extensions {
 				Critical(
 					BasicConstraints.isCertificateAuthority(maxPathLength: nil)

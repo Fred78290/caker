@@ -15,7 +15,7 @@ struct Utils {
 	}
 
 	static func getListenAddress(asSystem: Bool) throws -> String {
-		if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTD_LISTEN_ADDRESS"] {
+		if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTHELPER_LISTEN_ADDRESS"] {
 			return tartdListenAddress
 		} else {
 			var home = try Self.getTartHome(asSystem: asSystem)

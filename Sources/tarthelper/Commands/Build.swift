@@ -1,6 +1,6 @@
 import ArgumentParser
 
-struct Build: ParsableCommand, BuildArguments {
+struct Build: AsyncParsableCommand, BuildArguments {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
 	@Argument(help: "VM name")
@@ -87,7 +87,7 @@ struct Build: ParsableCommand, BuildArguments {
 		}
 	}
 
-	func run() async throws {
+	mutating func run() async throws {
 		try await BuildHandler.build(name: self.name, arguments: self, asSystem: false)
 	}
 }

@@ -130,7 +130,7 @@ struct Launch : AsyncParsableCommand, LaunchArguments {
 		}
 	}
 
-	func run() async throws {
+	mutating func run() async throws {
 		try await LaunchHandler.launchVM(asSystem: false, self)
 	}
 

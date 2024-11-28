@@ -18,6 +18,8 @@ struct Home {
 			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
 
 			baseDir = applicationSupportDirectory
+		} else if let customTartHome = ProcessInfo.processInfo.environment["TARTHELPER_HOME"] {
+			baseDir = URL(fileURLWithPath: customTartHome)
 		} else if let customTartHome = ProcessInfo.processInfo.environment["TART_HOME"] {
 			baseDir = URL(fileURLWithPath: customTartHome)
 		} else {

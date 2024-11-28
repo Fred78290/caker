@@ -30,7 +30,7 @@ struct Purge: AsyncParsableCommand, PruneArguments {
 		}
 	}
 
-	func run() async throws {
+	mutating func run() async throws {
 		try await PruneHandler.prune(direct: true, self)
 	}
 }

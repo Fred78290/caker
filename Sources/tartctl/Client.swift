@@ -51,8 +51,14 @@ struct Client: ParsableCommand {
 			FQN.self,
 		])
 
+	@Flag(name: [.customLong("insecure"), .customShort("k")], help: "don't use TLS")
+	var insecure: Bool = false
+
+	@Flag(name: [.customLong("system"), .customShort("s")], help: "TartHelper run as system agent")
+	var asSystem: Bool = false
+
 	@Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
-	var address: String = try! Self.getDefaultServerAddress()
+	var address: String = try! Self.getDefaultServerAddress(asSystem: false)
 
 	@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
 	var caCert: String?
@@ -63,21 +69,11 @@ struct Client: ParsableCommand {
 	@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
 	var tlsKey: String?
 
-	static func getDefaultServerAddress() throws -> String {
-		if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTD_LISTEN_ADDRESS"] {
+	static func getDefaultServerAddress(asSystem: Bool) throws -> String {
+		if let tartdListenAddress = ProcessInfo.processInfo.environment["TARTHELPER_LISTEN_ADDRESS"] {
 			return tartdListenAddress
 		} else {
-			var tartHomeDir: URL
-
-			if let customTartHome = ProcessInfo.processInfo.environment["TART_HOME"] {
-				tartHomeDir = URL(fileURLWithPath: customTartHome)
-			} else {
-				tartHomeDir = FileManager.default
-					.homeDirectoryForCurrentUser
-					.appendingPathComponent(".tart", isDirectory: true)
-			}
-
-			try FileManager.default.createDirectory(at: tartHomeDir, withIntermediateDirectories: true)
+			var tartHomeDir = try Utils.getTartHome(asSystem: asSystem)
 
 			tartHomeDir.append(path: "tarthelper.sock")
 
@@ -86,10 +82,10 @@ struct Client: ParsableCommand {
 	}
 
 	static func createClient(on: MultiThreadedEventLoopGroup,
-							 listeningAddress: URL?,
-							 caCert: String?,
-							 tlsCert: String?,
-							 tlsKey: String?) throws -> ClientConnection {
+	                         listeningAddress: URL?,
+	                         caCert: String?,
+	                         tlsCert: String?,
+	                         tlsKey: String?) throws -> ClientConnection {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -106,15 +102,22 @@ struct Client: ParsableCommand {
 
 			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
 
-			if let caCert = caCert, let tlsCert = tlsCert, let tlsKey = tlsKey {
-				let clientTLSConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
-											certificateChain: [.certificate(try NIOSSLCertificate(file: tlsCert, format: .pem))],
-											privateKey: .privateKey(try NIOSSLPrivateKey(file: tlsKey, format: .pem)),
-											trustRoots: .certificates([try NIOSSLCertificate(file: caCert, format: .pem)]),
-											certificateVerification: .noHostnameVerification
-				)
+			if let tlsCert = tlsCert, let tlsKey = tlsKey {
+				let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
+				let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
+				let trustRoots: NIOSSLTrustRoots
 
-				clientConfiguration.tlsConfiguration = clientTLSConfiguration
+				if let caCert: String = caCert {
+					trustRoots = .certificates([try NIOSSLCertificate(file: caCert, format: .pem)])
+				} else {
+					trustRoots = NIOSSLTrustRoots.default
+				}
+
+				clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
+					certificateChain: [.certificate(tlsCert)],
+					privateKey: .privateKey(tlsKey),
+					trustRoots: trustRoots,
+					certificateVerification: .noHostnameVerification)
 			}
 
 			return ClientConnection(configuration: clientConfiguration)
@@ -133,10 +136,10 @@ struct Client: ParsableCommand {
 		}
 
 		let connection = try Self.createClient(on: group,
-								listeningAddress: URL(string: self.address),
-								caCert: self.caCert,
-								tlsCert: self.tlsCert,
-								tlsKey: self.tlsKey)
+		                                       listeningAddress: URL(string: self.address),
+		                                       caCert: self.caCert,
+		                                       tlsCert: self.tlsCert,
+		                                       tlsKey: self.tlsKey)
 
 		defer {
 			try! connection.close().wait()
@@ -170,6 +173,22 @@ struct Client: ParsableCommand {
 
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
+
+		if self.insecure {
+			self.caCert = nil
+			self.tlsCert = nil
+			self.tlsKey = nil
+		} else {
+			if self.tlsCert == nil && self.tlsKey == nil {
+				let certs = try CertificatesLocation.getCertificats(asSystem: self.asSystem)
+
+				if certs.exists() {
+					self.caCert = certs.caCertURL.path()
+					self.tlsCert = certs.clientCertURL.path()
+					self.tlsKey = certs.clientKeyURL.path()
+				}
+			}
+		}
 
 		// Parse and run command
 		do {
