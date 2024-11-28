@@ -120,6 +120,7 @@ extension Service {
 
 			var arguments: [String] = [
 				try Install.findMe(),
+				"service",
 				"listen",
 				"--address=\(listenAddress)"
 			]

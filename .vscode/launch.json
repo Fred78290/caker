@@ -22,10 +22,11 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"service",
 				"listen"
 			],
 			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "TartHelper listen",
+			"name": "TartHelper service listen",
 			"program": "${workspaceFolder:tarthelper}/.build/debug/tarthelper",
 			"preLaunchTask": "swift: Build Debug tarthelper"
 		},
