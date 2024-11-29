@@ -7,7 +7,7 @@ CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-
 LXD_IMAGE=ubuntu/noble/cloud
 #LXD_IMAGE=centos/9-Stream/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
-DESKTOP=NO
+DESKTOP=YES
 
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
@@ -79,6 +79,6 @@ fi
 BUILD_OPTIONS="--cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/caked delete linux
-${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE} 
-#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
+#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE} 
+${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
 #${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --oci-image ${OCI_IMAGE}

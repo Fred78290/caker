@@ -4,6 +4,27 @@ import Foundation
 
 var runAsSystem: Bool = false
 
+let delegatedCommand: [String] = [
+	"create",
+	"clone",
+	"run",
+	"set",
+	"get",
+	"list",
+	"login",
+	"logout",
+	"ip",
+	"pull",
+	"push",
+	"import",
+	"export",
+	"prune",
+	"rename",
+	"stop",
+	"delete",
+	"suspend"
+]
+
 let COMMAND_NAME="caked"
 @main
 struct Root: AsyncParsableCommand {
@@ -25,7 +46,11 @@ struct Root: AsyncParsableCommand {
 		do {
 			return try parseAsRoot()
 		} catch {
-			print(error.localizedDescription)
+			if let e: ValidationError = error as? ValidationError {
+				print("ValidationError: \(e.localizedDescription)")
+			} else {
+				print(error.localizedDescription)
+			}
 			return nil
 		}
 	}
@@ -47,21 +72,25 @@ struct Root: AsyncParsableCommand {
 
 		// Parse and run command
 		do {
-			guard var command = try parse() else {
-                var commandName: String?
-                var arguments: [String] = []
-                for argument in CommandLine.arguments.dropFirst() {
-                    if argument.hasPrefix("-") || commandName != nil {
-                        arguments.append(argument)
-                    } else if commandName == nil {
-                        commandName = argument
-                    }
-                }
-
-				try Shell.runTart(command: commandName ?? "", arguments: arguments, direct: true)
-
-				return
+			var commandName: String?
+			var arguments: [String] = []
+			for argument in CommandLine.arguments.dropFirst() {
+				if argument.hasPrefix("-") || commandName != nil {
+					arguments.append(argument)
+				} else if commandName == nil {
+					commandName = argument
+				}
 			}
+
+			if let commandName = commandName {
+				if delegatedCommand.contains(commandName) {
+					try Shell.runTart(command: commandName, arguments: arguments, direct: true)
+
+					return
+				}
+			}
+
+			var command = try parseAsRoot()
 
 			if var asyncCommand = command as? AsyncParsableCommand {
 				try await asyncCommand.run()
