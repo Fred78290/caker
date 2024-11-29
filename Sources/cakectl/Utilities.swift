@@ -18,12 +18,10 @@ struct Utils {
 			cakeHomeDir = applicationSupportDirectory
 		} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 			cakeHomeDir = URL(fileURLWithPath: customHome)
-		} else if let customHome = ProcessInfo.processInfo.environment["TART_HOME"] {
-			cakeHomeDir = URL(fileURLWithPath: customHome)
 		} else {
 			cakeHomeDir = FileManager.default
 				.homeDirectoryForCurrentUser
-				.appendingPathComponent(".tart", isDirectory: true)
+				.appendingPathComponent(".cake", isDirectory: true)
 		}
 
 		try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
@@ -33,7 +31,7 @@ struct Utils {
 
 }
 
-struct CertificatesLocation: Codable {
+struct ClientCertificatesLocation: Codable {
 	let caCertURL: URL
 	let clientKeyURL: URL
 	let clientCertURL: URL
@@ -44,8 +42,8 @@ struct CertificatesLocation: Codable {
 		self.clientCertURL = URL(fileURLWithPath: "client.pem", relativeTo: certHome).absoluteURL
 	}
 
-	static func getCertificats(asSystem: Bool) throws -> CertificatesLocation {
-		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
+	static func getCertificats(asSystem: Bool) throws -> ClientCertificatesLocation {
+		return ClientCertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
 	}
 
 	func exists() -> Bool {

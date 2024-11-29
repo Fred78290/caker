@@ -51,6 +51,9 @@ struct Build: AsyncParsableCommand, BuildArguments {
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
 	var networkConfig: String?
 
+	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	var displayRefit: Bool = true
+
 	func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")

@@ -3,38 +3,89 @@
 		{
 			"type": "lldb",
 			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:tarthelper}",
-			"name": "Debug caked",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/caked",
+			"args": [
+				"list"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked list",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"build",
+				"linux",
+				"--cpu=2",
+				"--memory=2048",
+				"--disk-size=20",
+				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
+				"--network-config=/tmp/network-config.yaml",
+				"--user-data=/tmp/user-data.yaml",
+				"--oci-image=devregistry.aldunelabs.com/ubuntu:latest"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked build",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"launch",
+				"linux",
+				"--foreground",
+				"--display-refit",
+				"--cpu=2",
+				"--memory=2048",
+				"--disk-size=20",
+				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
+				"--network-config=/tmp/network-config.yaml",
+				"--user-data=/tmp/user-data.yaml",
+				"--oci-image=devregistry.aldunelabs.com/ubuntu:latest"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked launch",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
 			"preLaunchTask": "swift: Build Debug caked"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
-			"cwd": "${workspaceFolder:tarthelper}",
+			"cwd": "${workspaceFolder:caker}",
 			"name": "Release caked",
-			"program": "${workspaceFolder:tarthelper}/.build/release/caked",
+			"program": "${workspaceFolder:caker}/.build/release/caked",
 			"preLaunchTask": "swift: Build Release caked"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
-			"cwd": "${workspaceFolder:tarthelper}",
+			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug cakectl",
-			"program": "${workspaceFolder:tarthelper}/.build/debug/cakectl",
+			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [],
-			"cwd": "${workspaceFolder:tarthelper}",
+			"cwd": "${workspaceFolder:caker}",
 			"name": "Release cakectl",
-			"program": "${workspaceFolder:tarthelper}/.build/release/cakectl",
+			"program": "${workspaceFolder:caker}/.build/release/cakectl",
 			"preLaunchTask": "swift: Build Release cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug caked",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
 		}
 	]
 }

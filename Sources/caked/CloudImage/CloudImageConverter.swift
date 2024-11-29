@@ -1,18 +1,17 @@
 import Foundation
-import ShellOut
 import Qcow2convert
 
 class CloudImageConverter {
 	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {
 		do {
-			let convertOuput = try shellOut(to: "qemu-img", arguments: [
+			let convertOuput = try Shell.execute(to: "qemu-img", arguments: [
 				"convert", "-p", "-f", "qcow2", "-O", "raw",
 				from.path(),
 				to.path()
 			])
 			Logger.appendNewLine(convertOuput)
 		} catch {
-			let error = error as! ShellOutError
+			let error = error as! ShellError
 
 			Logger.appendNewLine(error.message)
 			Logger.appendNewLine(error.output)

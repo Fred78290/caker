@@ -1,5 +1,4 @@
 import XCTest
-import ShellOut
 import Synchronization
 import NIOCore
 import NIOPosix
@@ -9,15 +8,17 @@ import GRPC
 @testable import cakectl
 @testable import GRPCLib
 
-final class GrpcTcpSocketTests: XCTestCase {
+final class GrpcUnixSocketTests: XCTestCase {
 	let testCase = GrpcTestCase()
-	let address = URL(string: "tcp://127.0.0.1:\(Int.random(in: 9600..<9700))")
 
-	func testTcpClientListWithTls() throws {
+//	let address: URL = URL(string: try! Client.getDefaultServerAddress())
+	let address = URL(string: "unix:///tmp/caked-\(getpid()).sock")
+
+	func testSocketClientListWithTls() throws {
 		XCTAssertNoThrow(try testCase.runClientList(listeningAddress: address, tls: true))
 	}
 
-	func testTcpClientListNoTls() throws {
+	func testSocketClientListNoTls() throws {
 		XCTAssertNoThrow(try testCase.runClientList(listeningAddress: address, tls: false))
 	}
 }

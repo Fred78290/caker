@@ -18,14 +18,12 @@ struct Home {
 			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
 
 			baseDir = applicationSupportDirectory
-		} else if let customHome = ProcessInfo.processInfo.environment["CAKED_HOME"] {
-			baseDir = URL(fileURLWithPath: customHome)
-		} else if let customHome = ProcessInfo.processInfo.environment["TART_HOME"] {
+		} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 			baseDir = URL(fileURLWithPath: customHome)
 		} else {
 			baseDir = FileManager.default
 				.homeDirectoryForCurrentUser
-				.appendingPathComponent(".tart", isDirectory: true)
+				.appendingPathComponent(".cake", isDirectory: true)
 		}
 
 		self.homeDir = baseDir

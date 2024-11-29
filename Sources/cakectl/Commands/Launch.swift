@@ -85,6 +85,12 @@ struct Launch : GrpcParsableCommand {
 	@Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
 	var netHost: Bool = false
 
+	@Flag(help: ArgumentHelp("Enable nested virtualization if possible"))
+	var nested: Bool = false
+
+	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	var displayRefit: Bool = true
+
 	func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
@@ -130,5 +136,4 @@ struct Launch : GrpcParsableCommand {
 	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
 		return try client.launch(Caked_LaunchRequest(command: self)).response.wait()
 	}
-
 }

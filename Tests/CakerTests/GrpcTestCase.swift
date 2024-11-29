@@ -1,6 +1,5 @@
 
 import XCTest
-import ShellOut
 import Synchronization
 import NIOCore
 import NIOPosix

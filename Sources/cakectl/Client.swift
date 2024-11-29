@@ -70,7 +70,7 @@ struct Client: ParsableCommand {
 	var tlsKey: String?
 
 	static func getDefaultServerAddress(asSystem: Bool) throws -> String {
-		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKED_LISTEN_ADDRESS"] {
+		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
 			return cakeListenAddress
 		} else {
 			var tartHomeDir = try Utils.getHome(asSystem: asSystem)
@@ -180,7 +180,7 @@ struct Client: ParsableCommand {
 			self.tlsKey = nil
 		} else {
 			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.getCertificats(asSystem: self.asSystem)
+				let certs = try ClientCertificatesLocation.getCertificats(asSystem: self.asSystem)
 
 				if certs.exists() {
 					self.caCert = certs.caCertURL.path()

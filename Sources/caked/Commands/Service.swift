@@ -1,6 +1,5 @@
 import ArgumentParser
 import Foundation
-import ShellOut
 import GRPC
 import NIOSSL
 import NIOCore
@@ -90,7 +89,7 @@ extension Service {
 		var tlsKey: String?
 
 		static func findMe() throws -> String {
-			return try shellOut(to: "command", arguments: ["-v", "caked"])
+			return try Shell.execute(to: "command", arguments: ["-v", "caked"])
 		}
 
 		func getCertificats() throws -> Certs {
@@ -116,7 +115,7 @@ extension Service {
 
 			let listenAddress: String = try getListenAddress()
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
-			let tartHome: URL = try Utils.getHome(asSystem: self.asSystem)
+			let cakeHome: URL = try Utils.getHome(asSystem: self.asSystem)
 
 			var arguments: [String] = [
 				try Install.findMe(),
@@ -157,7 +156,7 @@ extension Service {
 			                        ],
 			                        environmentVariables: [
 			                        	"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-			                        	"TART_HOME" : tartHome.path()
+			                        	"CAKE_HOME" : cakeHome.path()
 			                        ],
 			                        standardErrorPath: outputLog,
 			                        standardOutPath: outputLog,

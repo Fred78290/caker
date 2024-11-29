@@ -1,7 +1,6 @@
 import ArgumentParser
 import Darwin
 import Foundation
-import ShellOut
 
 var runAsSystem: Bool = false
 
@@ -26,6 +25,7 @@ struct Root: AsyncParsableCommand {
 		do {
 			return try parseAsRoot()
 		} catch {
+			print(error.localizedDescription)
 			return nil
 		}
 	}
@@ -69,9 +69,9 @@ struct Root: AsyncParsableCommand {
 				try command.run()
 			}
 		} catch {
-			if let shellOutError = error as? ShellOutError {
-				fputs("\(shellOutError.message)\n", stderr)
-				Foundation.exit(shellOutError.terminationStatus)
+			if let shellError = error as? ShellError {
+				fputs("\(shellError.message)\n", stderr)
+				Foundation.exit(shellError.terminationStatus)
 			}
 
 			// Handle any other exception, including ArgumentParser's ones

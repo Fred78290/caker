@@ -20,6 +20,7 @@ protocol BuildArguments {
 	var userData: String? { get }
 	var networkConfig: String? { get }
 	var diskSize: UInt16 { get }
+	var displayRefit: Bool { get }
 }
 
 struct BuildHandler: CakedCommand, BuildArguments {
@@ -39,6 +40,7 @@ struct BuildHandler: CakedCommand, BuildArguments {
 	var vendorData: String?
 	var userData: String?
 	var networkConfig: String?
+	var displayRefit: Bool = true
 
 	static func build(name: String, arguments: BuildArguments, asSystem: Bool) async throws {
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()

@@ -1,5 +1,4 @@
 import XCTest
-import ShellOut
 @testable import caked
 
 let networkConfig = 
@@ -81,9 +80,9 @@ final class CloudInitTests: XCTestCase {
 	 */
 	static func getSharedNetAddress() throws -> String {
 		do {
-			return try shellOut(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
+			return try Shell.execute(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
 		} catch {
-			let error = error as! ShellOutError
+			let error = error as! ShellError
 
 			Logger.appendNewLine(error.message)
 			Logger.appendNewLine(error.output)
@@ -97,9 +96,9 @@ final class CloudInitTests: XCTestCase {
 	 */
 	static func getFingerPrint(url: URL, product: String) throws -> String{
 		do {
-			return try shellOut(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
+			return try Shell.execute(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
 		} catch {
-			let error = error as! ShellOutError
+			let error = error as! ShellError
 
 			Logger.appendNewLine(error.message)
 			Logger.appendNewLine(error.output)
@@ -133,6 +132,7 @@ final class CloudInitTests: XCTestCase {
 		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
 									vmLocation: tempVMLocation,
 									cloudImageURL: URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img")!,
+									displayRefit: true,
 									cpu: 1,
 									memory: 512,
 									diskSizeGB: 10,
@@ -153,6 +153,7 @@ final class CloudInitTests: XCTestCase {
 		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
 									vmLocation: tempVMLocation,
 									ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
+									displayRefit: true,
 									cpu: 1,
 									memory: 512,
 									diskSizeGB: 10,
@@ -174,6 +175,7 @@ final class CloudInitTests: XCTestCase {
 									vmLocation: tempVMLocation,
 									remoteContainerServer: "https://images.linuxcontainers.org",
 									aliasImage: "ubuntu/noble/cloud",
+									displayRefit: true,
 									cpu: 1,
 									memory: 512,
 									diskSizeGB: 10,
@@ -195,6 +197,7 @@ final class CloudInitTests: XCTestCase {
 									vmLocation: tempVMLocation,
 									remoteContainerServer: "https://cloud-images.ubuntu.com/releases/",
 									aliasImage: "noble",
+									displayRefit: true,
 									cpu: 1,
 									memory: 512,
 									diskSizeGB: 10,

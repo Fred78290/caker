@@ -83,12 +83,8 @@ struct CakeConfig {
 		get { self.config["displayRefit"] as? Bool }
 	}
 
-	var runningArguments: [String] {
-		set { self.config["runningArguments"] = newValue }
-		get { self.config["runningArguments"] as! [String] }
-	}
-
 	init(os: VirtualizedOS,
+	     displayRefit: Bool,
 	     cpuCountMin: Int,
 	     memorySizeMin: UInt64,
 	     macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered()) {
@@ -106,6 +102,7 @@ struct CakeConfig {
 		self.macAddress = macAddress.string
 		self.cpuCount = cpuCountMin
 		self.memorySize = memorySizeMin
+		self.displayRefit = displayRefit
 
 		self.config["display"] = display
 	}

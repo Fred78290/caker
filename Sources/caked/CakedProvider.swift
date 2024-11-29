@@ -193,6 +193,10 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 			command.networkConfig = try? saveToTempFile(self.networkConfig)
 		}
 
+		if self.hasNested {
+			command.nested = self.nested
+		}
+
 		return command
 	}
 }

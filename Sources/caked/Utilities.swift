@@ -15,7 +15,7 @@ struct Utils {
 	}
 
 	static func getListenAddress(asSystem: Bool) throws -> String {
-		if let tartdListenAddress = ProcessInfo.processInfo.environment["CAKED_LISTEN_ADDRESS"] {
+		if let tartdListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
 			return tartdListenAddress
 		} else {
 			var home = try Self.getHome(asSystem: asSystem)
@@ -28,8 +28,8 @@ struct Utils {
 }
 
 enum FileLockError: Error, Equatable {
-  case Failed(_ message: String)
-  case AlreadyLocked
+	case Failed(_ message: String)
+	case AlreadyLocked
 }
 
 class FileLock {
@@ -74,26 +74,34 @@ class FileLock {
 }
 
 extension Date {
-  func asTimeval() -> timeval {
-	timeval(tv_sec: Int(timeIntervalSince1970), tv_usec: 0)
-  }
+	func asTimeval() -> timeval {
+		timeval(tv_sec: Int(timeIntervalSince1970), tv_usec: 0)
+	}
 }
 
 extension URL: Purgeable {
 	var url: URL {
-	  self
+		self
+	}
+
+	func exists() throws -> Bool {
+		if self.isFileURL {
+			return FileManager.default.fileExists(atPath: self.absoluteURL.path())
+		}
+
+		throw ServiceError("Not a file URL: \(self.absoluteString)")
 	}
 
 	func delete() throws {
-	  try FileManager.default.removeItem(at: self)
+		try FileManager.default.removeItem(at: self)
 	}
 
 	func sizeBytes() throws -> Int {
-	  try resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
+		try resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
 	}
 
 	func allocatedSizeBytes() throws -> Int {
-	  try resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
+		try resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
 	}
 
 	func accessDate() throws -> Date {

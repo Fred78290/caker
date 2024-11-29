@@ -29,7 +29,6 @@ let package = Package(
 		.package(url: "https://github.com/jozefizso/swift-xattr", from: "3.0.0"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/jpsim/Yams", from: "5.1.3"),
-		.package(url: "https://github.com/john-mueller/ShellOut", branch: "swift-5.1"),
 		.package(url: "https://github.com/apple/swift-certificates.git", from: "1.6.1"),
 		.package(url: "https://github.com/apple/swift-crypto.git", from: "3.9.1"),
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.23.0"),
@@ -70,7 +69,6 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "ISO9660", package: "iso9660-swift"),
 			.product(name: "Yams", package: "Yams"),
-			.product(name: "ShellOut", package: "ShellOut"),
 			.product(name: "X509", package: "swift-certificates"),
 			.product(name: "Crypto", package: "swift-crypto"),
 			.product(name: "GRPC", package: "grpc-swift"),
@@ -102,7 +100,6 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "ISO9660", package: "iso9660-swift"),
 			.product(name: "Yams", package: "Yams"),
-			.product(name: "ShellOut", package: "ShellOut"),
 			.product(name: "X509", package: "swift-certificates"),
 			.product(name: "Crypto", package: "swift-crypto"),
 			.product(name: "GRPC", package: "grpc-swift"),
@@ -116,6 +113,6 @@ let package = Package(
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio")
 		]),
-		.testTarget(name: "CakeTests", dependencies: ["GRPCLib", "caked", "cakectl"])
+		.testTarget(name: "CakerTests", dependencies: ["GRPCLib", "caked", "cakectl"])
 	]
 )

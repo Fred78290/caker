@@ -6,7 +6,10 @@ protocol LaunchArguments : BuildArguments {
 	var netSoftnet: Bool { get }
 	var netSoftnetAllow: String? { get }
 	var netHost: Bool { get }
+	var nested: Bool { get }
+	var foreground: Bool { get }
 }
+
 struct LaunchHandler: CakedCommand, LaunchArguments {
 	var name: String
 	var cpu: UInt16 = 1
@@ -29,14 +32,23 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 	var netSoftnet: Bool = false
 	var netSoftnetAllow: String?
 	var netHost: Bool = false
+	var nested: Bool = true
+	var foreground: Bool = false
+	var displayRefit: Bool = true
 
 	static func launch(asSystem: Bool, _ self: LaunchArguments) throws {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.name)
-		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
-		var arguments: [String] = ["--no-graphics", "--no-audio", "--nested"]
+		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
+		let extras: URL = URL(fileURLWithPath: "extras.json", relativeTo: vmLocation.configURL)
+		var config: [String:Any] = [:]
+		var arguments: [String] = []
 
-		if FileManager.default.fileExists(atPath: cdrom) {
-			arguments.append("--disk=\(cdrom)")
+		if self.nested {
+			arguments.append("--nested")
+		}
+
+		if try cdrom.exists() {
+			arguments.append("--disk=\(cdrom.path())")
 		}
 
 		for dir in self.dir {
@@ -59,11 +71,11 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 			arguments.append("--net-host")
 		}
 
-		var config = try CakeConfig(contentsOf: vmLocation.configURL)
-		config.runningArguments = arguments
-		try config.save(toURL: vmLocation.configURL)
+		config["runningArguments"] = arguments
 
-		try StartHandler.startVM(vmLocation: vmLocation)
+		try config.write(to: extras)
+
+		try StartHandler.startVM(vmLocation: vmLocation, args: arguments, foreground: self.foreground)
 	}
 
 	static func launchVM(asSystem: Bool, _ self: LaunchArguments) async throws {
@@ -76,6 +88,7 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 		try await withTaskCancellationHandler(
 			operation: {
 				try await VMBuilder.buildVM(vmName: self.name, vmLocation: tempVMLocation, arguments: self)
+				try tmpVMDirLock.unlock()
 				try StorageLocation(asSystem: asSystem).relocate(self.name, from: tempVMLocation)
 				try Self.launch(asSystem: asSystem, self)
 			},

@@ -22,6 +22,15 @@ struct Launch : AsyncParsableCommand, LaunchArguments {
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	var mainGroup: String = "adm"
 
+	@Flag(help: ArgumentHelp("Enable nested virtualization if possible"))
+	var nested: Bool = false
+
+	@Flag(help: ArgumentHelp("Run VM in foreground"))
+	var foreground: Bool = false
+
+	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	var displayRefit: Bool = true
+
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
 	var insecure: Bool = false
 

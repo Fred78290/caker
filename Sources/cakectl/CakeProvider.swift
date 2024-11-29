@@ -83,6 +83,7 @@ extension Caked_LaunchRequest {
 		self.netBridged = command.netBridged
 		self.netSofnet = command.netSoftnet
 		self.netHost = command.netHost
+		self.nested = command.nested
 
 		if let netSoftnetAllow: String = command.netSoftnetAllow {
 			self.netSoftnetAllow = netSoftnetAllow

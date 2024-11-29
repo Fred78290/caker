@@ -63,6 +63,7 @@ message LaunchRequest {
   optional bool netSofnet = 18;
   optional string netSoftnetAllow = 19;
   optional bool netHost = 20;
+  optional bool nested = 22;
 }
 
 message StartRequest {

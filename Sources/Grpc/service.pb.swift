@@ -382,6 +382,15 @@ public struct Caked_LaunchRequest: @unchecked Sendable {
   /// Clears the value of `netHost`. Subsequent reads from it will return its default value.
   public mutating func clearNetHost() {_uniqueStorage()._netHost = nil}
 
+  public var nested: Bool {
+    get {return _storage._nested ?? false}
+    set {_uniqueStorage()._nested = newValue}
+  }
+  /// Returns true if `nested` has been explicitly set.
+  public var hasNested: Bool {return _storage._nested != nil}
+  /// Clears the value of `nested`. Subsequent reads from it will return its default value.
+  public mutating func clearNested() {_uniqueStorage()._nested = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -702,6 +711,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     18: .same(proto: "netSofnet"),
     19: .same(proto: "netSoftnetAllow"),
     20: .same(proto: "netHost"),
+    22: .same(proto: "nested"),
   ]
 
   fileprivate class _StorageClass {
@@ -726,6 +736,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _netSofnet: Bool? = nil
     var _netSoftnetAllow: String? = nil
     var _netHost: Bool? = nil
+    var _nested: Bool? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -761,6 +772,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _netSofnet = source._netSofnet
       _netSoftnetAllow = source._netSoftnetAllow
       _netHost = source._netHost
+      _nested = source._nested
     }
   }
 
@@ -800,6 +812,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._netSoftnetAllow) }()
         case 20: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
         case 21: try { try decoder.decodeSingularStringField(value: &_storage._mainGroup) }()
+        case 22: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
         default: break
         }
       }
@@ -875,6 +888,9 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       try { if let v = _storage._mainGroup {
         try visitor.visitSingularStringField(value: v, fieldNumber: 21)
       } }()
+      try { if let v = _storage._nested {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 22)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -905,6 +921,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._netSofnet != rhs_storage._netSofnet {return false}
         if _storage._netSoftnetAllow != rhs_storage._netSoftnetAllow {return false}
         if _storage._netHost != rhs_storage._netHost {return false}
+        if _storage._nested != rhs_storage._nested {return false}
         return true
       }
       if !storagesAreEqual {return false}
