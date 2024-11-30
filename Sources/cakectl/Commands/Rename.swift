@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 struct Rename: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Rename a local VM")
@@ -11,7 +12,7 @@ struct Rename: GrpcParsableCommand {
 	@Argument(help: "new VM name")
 	var newName: String
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "rename", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "rename", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

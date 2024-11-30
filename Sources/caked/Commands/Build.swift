@@ -21,8 +21,14 @@ struct Build: AsyncParsableCommand, BuildArguments {
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	var mainGroup: String = "adm"
 
-	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
-	var insecure: Bool = false
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	var clearPassword: Bool = false
+
+	@Flag(name: [.long, .customShort("s")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	var autostart: Bool = false
+
+	@Flag(help: ArgumentHelp("Enable nested virtualization if possible"))
+	var nested: Bool = false
 
 	@Option(name: [.long, .customLong("cloud")], help: ArgumentHelp("create a linux VM using a qcow2 cloud-image file or URL", valueName: "path"))
 	var cloudImage: String?

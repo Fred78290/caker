@@ -9,7 +9,7 @@ protocol BuildArguments {
 	var memory: UInt64 { get }
 	var user: String { get }
 	var mainGroup: String { get }
-	var insecure: Bool { get }
+	var clearPassword: Bool { get }
 	var cloudImage: String? { get }
 	var remoteContainerServer: String { get }
 	var aliasImage: String? { get }
@@ -21,6 +21,8 @@ protocol BuildArguments {
 	var networkConfig: String? { get }
 	var diskSize: UInt16 { get }
 	var displayRefit: Bool { get }
+	var autostart: Bool { get }
+	var nested: Bool { get }
 }
 
 struct BuildHandler: CakedCommand, BuildArguments {
@@ -30,7 +32,7 @@ struct BuildHandler: CakedCommand, BuildArguments {
 	var diskSize: UInt16 = 20
 	var user: String = "admin"
 	var mainGroup: String = "adm"
-	var insecure: Bool = false
+	var clearPassword: Bool = false
 	var cloudImage: String?
 	var aliasImage: String?
 	var fromImage: String?
@@ -41,6 +43,8 @@ struct BuildHandler: CakedCommand, BuildArguments {
 	var userData: String?
 	var networkConfig: String?
 	var displayRefit: Bool = true
+	var autostart: Bool = false
+	var nested: Bool = false
 
 	static func build(name: String, arguments: BuildArguments, asSystem: Bool) async throws {
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()

@@ -19,6 +19,7 @@ struct Shell {
 		arguments: [String] = [],
 		at path: String = ".",
 		process: Process = .init(),
+		input: String? = nil,
 		outputHandle: FileHandle? = nil,
 		errorHandle: FileHandle? = nil
 	) throws -> String {
@@ -26,12 +27,13 @@ struct Shell {
 
 		return try process.bash(
 			with: command,
+			input: input,
 			outputHandle: outputHandle,
 			errorHandle: errorHandle
 		)
 	}
 
-	@discardableResult static func runTart(command: String, arguments: [String], direct: Bool = false) throws -> String{
+	@discardableResult static func runTart(command: String, arguments: [String], direct: Bool = false, input: String? = nil) throws -> String{
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
@@ -63,6 +65,7 @@ struct Shell {
 		environment["TART_HOME"] = cakeHomeDir.path()
 
 		let _ = try Self.bash(to: "tart", arguments: args,
+							  input: input,
 		                      outputHandle: outputPipe.fileHandleForWriting,
 		                      errorHandle: errorPipe.fileHandleForWriting,
 							  environment: environment)
@@ -75,6 +78,7 @@ struct Shell {
 		arguments: [String] = [],
 		at path: String = ".",
 		process: Process = .init(),
+		input: String? = nil,
 		outputHandle: FileHandle? = nil,
 		errorHandle: FileHandle? = nil,
 		environment: [String : String]? = nil
@@ -83,6 +87,7 @@ struct Shell {
 
 		return try process.bash(
 			with: command,
+			input: input,
 			outputHandle: outputHandle,
 			errorHandle: errorHandle,
 			environment: environment
@@ -101,9 +106,10 @@ private extension FileHandle {
 
 private extension Process {
 	@discardableResult func bash(with command: String,
-	                                   outputHandle: FileHandle? = nil,
-	                                   errorHandle: FileHandle? = nil,
-	                                   environment: [String : String]? = nil) throws -> String {
+								 input: String? = nil,
+								 outputHandle: FileHandle? = nil,
+								 errorHandle: FileHandle? = nil,
+								 environment: [String : String]? = nil) throws -> String {
 
 		if #available(OSX 10.13, *) {
 			self.executableURL = URL(fileURLWithPath: "/bin/bash")
@@ -146,6 +152,18 @@ private extension Process {
 				errorHandle?.write(data)
 			}
 		}
+
+		if var input = input {
+			input = input + "\n"
+			let inputPipe = Pipe()
+			
+			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
+				handler.write(input.data(using: .utf8)!)
+			}
+
+			self.standardInput = inputPipe
+		}
+
 
 		if #available(OSX 10.13, *) {
 			try self.run()

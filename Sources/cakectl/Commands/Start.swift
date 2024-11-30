@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 struct Start: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Launch a linux VM create in background")
@@ -8,7 +9,7 @@ struct Start: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.start(Caked_StartRequest(command: self)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.start(Caked_StartRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

@@ -36,10 +36,20 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply>
 
-  func prune(
-    _ request: Caked_PruneRequest,
+  func login(
+    _ request: Caked_LoginRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_PruneRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_LoginRequest, Caked_Reply>
+
+  func purge(
+    _ request: Caked_PurgeRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_PurgeRequest, Caked_Reply>
+
+  func configure(
+    _ request: Caked_ConfigureRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -119,21 +129,57 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Prune
+  /// Unary call to Login
   ///
   /// - Parameters:
-  ///   - request: Request to send to Prune.
+  ///   - request: Request to send to Login.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func prune(
-    _ request: Caked_PruneRequest,
+  public func login(
+    _ request: Caked_LoginRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_PruneRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_LoginRequest, Caked_Reply> {
     return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
+      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Purge
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Purge.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func purge(
+    _ request: Caked_PurgeRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_PurgeRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.purge.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePurgeInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Configure
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Configure.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func configure(
+    _ request: Caked_ConfigureRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
 }
@@ -220,10 +266,20 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply>
 
-  func makePruneCall(
-    _ request: Caked_PruneRequest,
+  func makeLoginCall(
+    _ request: Caked_LoginRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_PruneRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_LoginRequest, Caked_Reply>
+
+  func makePurgeCall(
+    _ request: Caked_PurgeRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_PurgeRequest, Caked_Reply>
+
+  func makeConfigureCall(
+    _ request: Caked_ConfigureRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -284,15 +340,39 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makePruneCall(
-    _ request: Caked_PruneRequest,
+  public func makeLoginCall(
+    _ request: Caked_LoginRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_PruneRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_LoginRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
+      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+    )
+  }
+
+  public func makePurgeCall(
+    _ request: Caked_PurgeRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_PurgeRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.purge.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePurgeInterceptors() ?? []
+    )
+  }
+
+  public func makeConfigureCall(
+    _ request: Caked_ConfigureRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
 }
@@ -347,15 +427,39 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func prune(
-    _ request: Caked_PruneRequest,
+  public func login(
+    _ request: Caked_LoginRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.prune.path,
+      path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePruneInterceptors() ?? []
+      interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+    )
+  }
+
+  public func purge(
+    _ request: Caked_PurgeRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.purge.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePurgeInterceptors() ?? []
+    )
+  }
+
+  public func configure(
+    _ request: Caked_ConfigureRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
 }
@@ -391,8 +495,14 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'launch'.
   func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'prune'.
-  func makePruneInterceptors() -> [ClientInterceptor<Caked_PruneRequest, Caked_Reply>]
+  /// - Returns: Interceptors to use when invoking 'login'.
+  func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'purge'.
+  func makePurgeInterceptors() -> [ClientInterceptor<Caked_PurgeRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'configure'.
+  func makeConfigureInterceptors() -> [ClientInterceptor<Caked_ConfigureRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -404,7 +514,9 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.start,
       Caked_ServiceClientMetadata.Methods.cakeCommand,
       Caked_ServiceClientMetadata.Methods.launch,
-      Caked_ServiceClientMetadata.Methods.prune,
+      Caked_ServiceClientMetadata.Methods.login,
+      Caked_ServiceClientMetadata.Methods.purge,
+      Caked_ServiceClientMetadata.Methods.configure,
     ]
   )
 
@@ -433,9 +545,21 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let prune = GRPCMethodDescriptor(
-      name: "Prune",
-      path: "/caked.Service/Prune",
+    public static let login = GRPCMethodDescriptor(
+      name: "Login",
+      path: "/caked.Service/Login",
+      type: GRPCCallType.unary
+    )
+
+    public static let purge = GRPCMethodDescriptor(
+      name: "Purge",
+      path: "/caked.Service/Purge",
+      type: GRPCCallType.unary
+    )
+
+    public static let configure = GRPCMethodDescriptor(
+      name: "Configure",
+      path: "/caked.Service/Configure",
       type: GRPCCallType.unary
     )
   }
@@ -454,7 +578,11 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func launch(request: Caked_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func prune(request: Caked_PruneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func login(request: Caked_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func purge(request: Caked_PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func configure(request: Caked_ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -505,13 +633,31 @@ extension Caked_ServiceProvider {
         userFunction: self.launch(request:context:)
       )
 
-    case "Prune":
+    case "Login":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_PruneRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_LoginRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makePruneInterceptors() ?? [],
-        userFunction: self.prune(request:context:)
+        interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
+        userFunction: self.login(request:context:)
+      )
+
+    case "Purge":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_PurgeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makePurgeInterceptors() ?? [],
+        userFunction: self.purge(request:context:)
+      )
+
+    case "Configure":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_ConfigureRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
+        userFunction: self.configure(request:context:)
       )
 
     default:
@@ -547,8 +693,18 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
-  func prune(
-    request: Caked_PruneRequest,
+  func login(
+    request: Caked_LoginRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func purge(
+    request: Caked_PurgeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func configure(
+    request: Caked_ConfigureRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 }
@@ -608,13 +764,31 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.launch(request: $0, context: $1) }
       )
 
-    case "Prune":
+    case "Login":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_PruneRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_LoginRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makePruneInterceptors() ?? [],
-        wrapping: { try await self.prune(request: $0, context: $1) }
+        interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
+        wrapping: { try await self.login(request: $0, context: $1) }
+      )
+
+    case "Purge":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_PurgeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makePurgeInterceptors() ?? [],
+        wrapping: { try await self.purge(request: $0, context: $1) }
+      )
+
+    case "Configure":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_ConfigureRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
+        wrapping: { try await self.configure(request: $0, context: $1) }
       )
 
     default:
@@ -641,9 +815,17 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeLaunchInterceptors() -> [ServerInterceptor<Caked_LaunchRequest, Caked_Reply>]
 
-  /// - Returns: Interceptors to use when handling 'prune'.
+  /// - Returns: Interceptors to use when handling 'login'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makePruneInterceptors() -> [ServerInterceptor<Caked_PruneRequest, Caked_Reply>]
+  func makeLoginInterceptors() -> [ServerInterceptor<Caked_LoginRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when handling 'purge'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makePurgeInterceptors() -> [ServerInterceptor<Caked_PurgeRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when handling 'configure'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeConfigureInterceptors() -> [ServerInterceptor<Caked_ConfigureRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -655,7 +837,9 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.start,
       Caked_ServiceServerMetadata.Methods.cakeCommand,
       Caked_ServiceServerMetadata.Methods.launch,
-      Caked_ServiceServerMetadata.Methods.prune,
+      Caked_ServiceServerMetadata.Methods.login,
+      Caked_ServiceServerMetadata.Methods.purge,
+      Caked_ServiceServerMetadata.Methods.configure,
     ]
   )
 
@@ -684,9 +868,21 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let prune = GRPCMethodDescriptor(
-      name: "Prune",
-      path: "/caked.Service/Prune",
+    public static let login = GRPCMethodDescriptor(
+      name: "Login",
+      path: "/caked.Service/Login",
+      type: GRPCCallType.unary
+    )
+
+    public static let purge = GRPCMethodDescriptor(
+      name: "Purge",
+      path: "/caked.Service/Purge",
+      type: GRPCCallType.unary
+    )
+
+    public static let configure = GRPCMethodDescriptor(
+      name: "Configure",
+      path: "/caked.Service/Configure",
       type: GRPCCallType.unary
     )
   }

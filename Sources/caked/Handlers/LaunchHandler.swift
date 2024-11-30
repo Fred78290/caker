@@ -17,7 +17,7 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 	var diskSize: UInt16 = 20
 	var user: String = "admin"
 	var mainGroup: String = "adm"
-	var insecure: Bool = false
+	var clearPassword: Bool = false
 	var cloudImage: String?
 	var aliasImage: String?
 	var fromImage: String?
@@ -35,47 +35,24 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 	var nested: Bool = true
 	var foreground: Bool = false
 	var displayRefit: Bool = true
+	var autostart: Bool = false
 
 	static func launch(asSystem: Bool, _ self: LaunchArguments) throws {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.name)
-		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
-		let extras: URL = URL(fileURLWithPath: "extras.json", relativeTo: vmLocation.configURL)
-		var config: [String:Any] = [:]
-		var arguments: [String] = []
+		var config = try CakeConfig(baseURL: vmLocation.rootURL)
 
-		if self.nested {
-			arguments.append("--nested")
-		}
+		config.nested = self.nested
+		config.displayRefit = self.displayRefit
+		config.autostart = self.autostart
+		config.netBridged = self.netBridged
+		config.netSoftnet = self.netSoftnet
+		config.netSoftnetAllow = self.netSoftnetAllow
+		config.netHost = self.netHost
+		config.dir = self.dir
 
-		if try cdrom.exists() {
-			arguments.append("--disk=\(cdrom.path())")
-		}
+		try config.save(to: vmLocation.rootURL)
 
-		for dir in self.dir {
-			arguments.append("--dir=\(dir)")
-		}
-
-		for net in self.netBridged {
-			arguments.append("--net-bridged=\(net)")
-		}
-
-		if self.netSoftnet {
-			arguments.append("--net-softnet")
-		}
-
-		if let netSoftnetAllow = self.netSoftnetAllow {
-			arguments.append("--net-softnet-allow=\(netSoftnetAllow)")
-		}
-
-		if self.netHost {
-			arguments.append("--net-host")
-		}
-
-		config["runningArguments"] = arguments
-
-		try config.write(to: extras)
-
-		try StartHandler.startVM(vmLocation: vmLocation, args: arguments, foreground: self.foreground)
+		try StartHandler.startVM(vmLocation: vmLocation, foreground: self.foreground)
 	}
 
 	static func launchVM(asSystem: Bool, _ self: LaunchArguments) async throws {

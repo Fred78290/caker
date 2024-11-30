@@ -63,6 +63,17 @@
 		{
 			"type": "lldb",
 			"request": "launch",
+			"args": [
+				"list"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "cacked list",
+			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
+			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug cakectl",

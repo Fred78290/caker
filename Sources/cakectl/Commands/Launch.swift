@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 struct Launch : GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
@@ -23,8 +24,11 @@ struct Launch : GrpcParsableCommand {
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	var mainGroup: String = "adm"
 
-	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
-	var insecure: Bool = false
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	var clearPassword: Bool = false
+
+	@Flag(name: [.long, .customShort("s")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	var autostart: Bool = false
 
 	@Option(name: [.long, .customLong("cloud")], help: ArgumentHelp("create a linux VM using a qcow2 cloud-image file or URL", valueName: "path"))
 	var cloudImage: String?
@@ -53,30 +57,13 @@ struct Launch : GrpcParsableCommand {
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
 	var networkConfig: String?
 
-	@Option(help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: """
-	Requires host to be macOS 13.0 (Ventura) or newer. macOS guests must be running macOS 13.0 (Ventura) or newer too.
-
-	Options are comma-separated and are as follows:
-
-	* ro — mount this directory share in read-only mode instead of the default read-write (e.g. --dir=\"~/src/sources:ro\")
-
-	* tag=<TAG> — by default, the \"com.apple.virtio-fs.automount\" mount tag is used for all directory shares. On macOS, this causes the directories to be automatically mounted to "/Volumes/My Shared Files" directory. On Linux, you have to do it manually: "mount -t virtiofs com.apple.virtio-fs.automount /mount/point".
-
-	Mount tag can be overridden by appending tag property to the directory share (e.g. --dir=\"~/src/build:tag=build\" or --dir=\"~/src/build:ro,tag=build\"). Then it can be mounted via "mount_virtiofs build ~/build" inside guest macOS and "mount -t virtiofs build ~/build" inside guest Linux.
-
-	In case of passing multiple directories per mount tag it is required to prefix them with names e.g. --dir=\"build:~/src/build\" --dir=\"sources:~/src/sources:ro\". These names will be used as directory names under the mounting point inside guests. For the example above it will be "/Volumes/My Shared Files/build" and "/Volumes/My Shared Files/sources" respectively.
-	""", valueName: "[name:]path[:options]"))
+	@Option(help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
 	var dir: [String] = []
 
-	@Option(help: ArgumentHelp("""
-	Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")
-	""", discussion: """
-	Specify "list" as an interface name (--net-bridged=list) to list the available bridged interfaces.
-	""", valueName: "interface name"))
+	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
 	var netBridged: [String] = []
 
-	@Flag(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking",
-	                         discussion: "Learn how to configure Softnet for use with Tart here: https://github.com/cirruslabs/softnet"))
+	@Flag(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
 	var netSoftnet: Bool = false
 
 	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
@@ -133,7 +120,7 @@ struct Launch : GrpcParsableCommand {
 		}
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.launch(Caked_LaunchRequest(command: self)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.launch(Caked_LaunchRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

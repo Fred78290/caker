@@ -31,7 +31,9 @@ extension Caked_BuildRequest {
 		self.diskSize = Int32(command.diskSize)
 		self.user = command.user
 		self.mainGroup = command.mainGroup
-		self.insecure = command.insecure
+		self.sshPwAuth = command.clearPassword
+		self.autostart = command.autostart
+		self.nested = command.nested
 		self.remoteContainerServer = command.remoteContainerServer
 
 		if let cloudImage = command.cloudImage {
@@ -77,13 +79,14 @@ extension Caked_LaunchRequest {
 		self.diskSize = Int32(command.diskSize)
 		self.user = command.user
 		self.mainGroup = command.mainGroup
-		self.insecure = command.insecure
+		self.sshPwAuth = command.clearPassword
 		self.remoteContainerServer = command.remoteContainerServer
-		self.dir = command.dir
-		self.netBridged = command.netBridged
+		self.dir = command.dir.joined(separator: ",")
+		self.netBridged = command.netBridged.joined(separator: ",")
 		self.netSofnet = command.netSoftnet
 		self.netHost = command.netHost
 		self.nested = command.nested
+		self.autostart = command.autostart
 
 		if let netSoftnetAllow: String = command.netSoftnetAllow {
 			self.netSoftnetAllow = netSoftnetAllow
@@ -130,8 +133,8 @@ extension Caked_StartRequest {
 	}
 }
 
-extension Caked_PruneRequest {
-	init (command: Prune) {
+extension Caked_PurgeRequest {
+	init (command: Purge) {
 		self.init()
 		self.entries = command.entries
 
@@ -146,5 +149,78 @@ extension Caked_PruneRequest {
 		if let spaceBudget = command.spaceBudget {
 			self.spaceBudget = Int32(spaceBudget)
 		}
+	}
+}
+
+extension Caked_LoginRequest {
+	init (command: Login) throws {
+		self.init()
+
+		self.insecure = command.insecure
+		self.noValidate = command.noValidate
+
+		if let username = command.username {
+			self.username = username
+		}
+		if command.passwordStdin {
+			if let password = readLine(strippingNewline: true) {
+				self.password = password
+			}
+		} else if let password = command.password {
+			self.password = password
+		}
+	}
+}
+
+extension Caked_ConfigureRequest {
+	init (command: Configure) {
+		self.init()
+		self.name = command.name
+
+		if let cpu = command.cpu {
+			self.cpu = Int32(cpu)
+		}
+
+		if let memory = command.memory {
+			self.memory = Int32(memory)
+		}
+
+		if let diskSize = command.diskSize {
+			self.diskSize = Int32(diskSize)
+		}
+
+		if let displayRefit = command.displayRefit {
+			self.displayRefit = displayRefit
+		}
+
+		if let autostart = command.autostart {
+			self.autostart = autostart
+		}
+
+		if let nested = command.nested {
+			self.nested = nested
+		}
+
+		if command.dir.contains("unset") == false {
+			self.dir = command.dir.joined(separator: ",")
+		}
+
+		if command.netBridged.contains("unset") == false {
+			self.netBridged = command.netBridged.joined(separator: ",")
+		}
+
+		if let netSoftnet = command.netSoftnet {
+			self.netSoftnet = netSoftnet
+		}
+
+		if let netSoftnetAllow = command.netSoftnetAllow {
+			self.netSoftnetAllow = netSoftnetAllow
+		}
+
+		if let netHost = command.netHost {
+			self.netHost = netHost
+		}
+
+		self.randomMac = command.randomMAC
 	}
 }

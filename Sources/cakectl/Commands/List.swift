@@ -2,16 +2,7 @@ import ArgumentParser
 import Dispatch
 import SwiftUI
 import GRPCLib
-
-fileprivate struct VMInfo: Encodable {
-	let Source: String
-	let Name: String
-	let Disk: Int
-	let Size: Int
-	let SizeOnDisk: Int
-	let Running: Bool
-	let State: String
-}
+import GRPC
 
 struct List: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "List created VMs")
@@ -29,7 +20,15 @@ struct List: GrpcParsableCommand {
 		throw GrpcError(code: 0, reason: "nothing here")
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "list", arguments: arguments)).response.wait()
+	func validate() throws {
+		print("passed here")
+	}
+
+	public mutating func run() throws {
+		throw CleanExit.helpRequest(self)
+	}
+
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "list", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

@@ -9,83 +9,111 @@ option objc_class_prefix = "caked";
 package caked;
 
 service Service {
-  // Sends a greeting
-  rpc Build (BuildRequest) returns (Reply) {}
-  rpc Start (StartRequest) returns (Reply) {}
-  rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
-  rpc Launch (LaunchRequest) returns (Reply) {}
-  rpc Prune (PruneRequest) returns (Reply) {}
+	// Sends a greeting
+	rpc Build (BuildRequest) returns (Reply) {}
+	rpc Start (StartRequest) returns (Reply) {}
+	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
+	rpc Launch (LaunchRequest) returns (Reply) {}
+	rpc Login (LoginRequest) returns (Reply) {}
+	rpc Purge (PurgeRequest) returns (Reply) {}
+	rpc Configure (ConfigureRequest) returns (Reply) {}
 }
 
 message CakedCommandRequest {
-  string command = 1;
-  repeated string arguments = 2;
+	string command = 1;
+	repeated string arguments = 2;
 }
 
 message BuildRequest {
-  string name = 1;
-  optional int32 cpu = 2;
-  optional int32 memory = 3;
-  optional string user = 4;
-  optional string mainGroup = 16;
-  optional bool insecure = 5;
-  optional string cloudImage = 6;
-  optional string remoteContainerServer = 7;
-  optional string aliasImage = 8;
-  optional string fromImage = 9;
-  optional string ociImage = 10;
-  optional bytes sshAuthorizedKey = 11;
-  optional bytes vendorData = 12;
-  optional bytes userData = 13;
-  optional bytes networkConfig = 14;
-  optional int32 diskSize = 15;
+	string name = 1;
+	optional int32 cpu = 2;
+	optional int32 memory = 3;
+	optional string user = 4;
+	optional string mainGroup = 5;
+	optional bool sshPwAuth = 6;
+	optional string cloudImage = 7;
+	optional string remoteContainerServer = 8;
+	optional string aliasImage = 9;
+	optional string fromImage = 10;
+	optional string ociImage = 11;
+	optional bytes sshAuthorizedKey = 12;
+	optional bytes vendorData = 13;
+	optional bytes userData = 14;
+	optional bytes networkConfig = 15;
+	optional int32 diskSize = 16;
+	optional bool autostart = 17;
+	optional bool nested = 18;
 }
 
 message LaunchRequest {
-  string name = 1;
-  optional int32 cpu = 2;
-  optional int32 memory = 3;
-  optional string user = 4;
-  optional string mainGroup = 21;
-  optional bool insecure = 5;
-  optional string cloudImage = 6;
-  optional string remoteContainerServer = 7;
-  optional string aliasImage = 8;
-  optional string fromImage = 9;
-  optional string ociImage = 10;
-  optional bytes sshAuthorizedKey = 11;
-  optional bytes vendorData = 12;
-  optional bytes userData = 13;
-  optional bytes networkConfig = 14;
-  optional int32 diskSize = 15;
-  repeated string dir = 16;
-  repeated string netBridged = 17;
-  optional bool netSofnet = 18;
-  optional string netSoftnetAllow = 19;
-  optional bool netHost = 20;
-  optional bool nested = 22;
+	string name = 1;
+	optional int32 cpu = 2;
+	optional int32 memory = 3;
+	optional string user = 4;
+	optional string mainGroup = 5;
+	optional bool sshPwAuth = 6;
+	optional string cloudImage = 7;
+	optional string remoteContainerServer = 8;
+	optional string aliasImage = 9;
+	optional string fromImage = 10;
+	optional string ociImage = 11;
+	optional bytes sshAuthorizedKey = 12;
+	optional bytes vendorData = 13;
+	optional bytes userData = 14;
+	optional bytes networkConfig = 15;
+	optional int32 diskSize = 16;
+	optional string dir = 17;
+	optional string netBridged = 18;
+	optional bool netSofnet = 19;
+	optional string netSoftnetAllow = 20;
+	optional bool netHost = 21;
+	optional bool nested = 22;
+	optional bool autostart = 23;
 }
 
 message StartRequest {
-  string name = 1;
+	string name = 1;
 }
 
 message Error {
-  int32 code = 1;
-  string reason = 2;
+	int32 code = 1;
+	string reason = 2;
 }
 
-message PruneRequest {
-  optional string entries = 1;
-  optional int32 olderThan = 2;
-  optional int32 cacheBudget = 3;
-  optional int32 spaceBudget = 4;
-  optional bool gc = 5;
+message PurgeRequest {
+	optional string entries = 1;
+	optional int32 olderThan = 2;
+	optional int32 cacheBudget = 3;
+	optional int32 spaceBudget = 4;
+	optional bool gc = 5;
+}
+
+message ConfigureRequest {
+	string name = 1;
+	optional int32 cpu = 2;
+	optional int32 memory = 3;
+	optional int32 diskSize = 4;
+	optional bool displayRefit = 5;
+	optional bool autostart = 6;
+	optional bool nested = 7;
+	optional string dir = 8;
+	optional string netBridged = 9;
+	optional bool netSoftnet = 10;
+	optional string netSoftnetAllow = 1120;
+	optional bool netHost = 12;
+	optional bool randomMAC = 13;
+}
+
+message LoginRequest {
+	string username = 1;
+	string password = 2;
+	bool insecure = 3;
+	bool noValidate = 4;
 }
 
 message Reply {
   oneof response {
-	Error error = 1;
-	string output = 2;
+    Error error = 1;
+    string output = 2;
   }
 }

@@ -2,12 +2,12 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 
-struct PruneHandler: CakedCommand, PruneArguments {
+struct PurgeHandler: CakedCommand, PurgeArguments {
 	var entries: String = "caches"
 	var olderThan: UInt?
 	var spaceBudget: UInt?
 
-	@discardableResult static func prune(direct: Bool, _ self: PruneArguments) async throws -> String {
+	@discardableResult static func purge(direct: Bool, _ self: PurgeArguments) async throws -> String {
 		var arguments: [String] = [ self.entries ]
 
 		if let olderThan = self.olderThan {
@@ -19,47 +19,47 @@ struct PruneHandler: CakedCommand, PruneArguments {
 		}
 
 		if self.entries == "caches" {
-			let prunableStorages = [try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
+			let purgeableStorages = [try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
 
 			if let olderThan = self.olderThan {
 				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
 				let olderThanDate = Date() - olderThanInterval
 
-				try Self.pruneOlderThan(prunableStorages: prunableStorages, olderThanDate: olderThanDate)
+				try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
 			}
 
 			if let spaceBudget = self.spaceBudget {
-				try Self.pruneSpaceBudget(prunableStorages: prunableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
+				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
 			}
 		}
 
 		return try Shell.runTart(command: "prune", arguments: arguments, direct: direct)
 	}
 
-	static func pruneOlderThan(prunableStorages: [PurgeableStorage], olderThanDate: Date) throws {
-		let purgeables: [Purgeable] = try prunableStorages.flatMap { try $0.purgeables() }
+	static func purgeOlderThan(purgeableStorages: [PurgeableStorage], olderThanDate: Date) throws {
+		let purgeables: [Purgeable] = try purgeableStorages.flatMap { try $0.purgeables() }
 
 		try purgeables.filter { try $0.accessDate() <= olderThanDate }.forEach { try $0.delete() }
 	}
 
-	static func pruneSpaceBudget(prunableStorages: [PurgeableStorage], spaceBudgetBytes: UInt64) throws {
-		let purgeables: [Purgeable] = try prunableStorages
+	static func purgeSpaceBudget(purgeableStorages: [PurgeableStorage], spaceBudgetBytes: UInt64) throws {
+		let purgeables: [Purgeable] = try purgeableStorages
 			.flatMap { try $0.purgeables() }
 			.sorted { try $0.accessDate() > $1.accessDate() }
 
 		var spaceBudgetBytes = spaceBudgetBytes
 		var purgeablesToDelete: [Purgeable] = []
 
-		for prunable in purgeables {
-			let prunableSizeBytes = UInt64(try prunable.allocatedSizeBytes())
+		for purgeable in purgeables {
+			let purgeableSizeBytes = UInt64(try purgeable.allocatedSizeBytes())
 
-			if prunableSizeBytes <= spaceBudgetBytes {
+			if purgeableSizeBytes <= spaceBudgetBytes {
 				// Don't mark for deletion as
 				// there's a budget available
-				spaceBudgetBytes -= prunableSizeBytes
+				spaceBudgetBytes -= purgeableSizeBytes
 			} else {
 				// Mark for deletion
-				purgeablesToDelete.append(prunable)
+				purgeablesToDelete.append(purgeable)
 			}
 		}
 
@@ -67,6 +67,6 @@ struct PruneHandler: CakedCommand, PruneArguments {
 	}
 
 	func run(asSystem: Bool) async throws -> String {
-		return try await Self.prune(direct: false, self)
+		return try await Self.purge(direct: false, self)
 	}
 }

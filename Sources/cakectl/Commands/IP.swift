@@ -4,6 +4,7 @@ import Network
 import SystemConfiguration
 import Sentry
 import GRPCLib
+import GRPC
 
 enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
 	case dhcp, arp
@@ -30,7 +31,7 @@ struct IP: GrpcParsableCommand {
 	                           """))
 	var resolver: IPResolutionStrategy = .dhcp
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "ip", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "ip", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

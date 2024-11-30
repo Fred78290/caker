@@ -20,11 +20,11 @@ class GrpcError: Error {
 }
 
 protocol GrpcParsableCommand: ParsableCommand {
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply
 }
 
 @main
-struct Client: ParsableCommand {
+struct Client: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(
 		commandName: "cakectl",
 		version: CI.version,
@@ -33,7 +33,7 @@ struct Client: ParsableCommand {
 			Start.self,
 			Create.self,
 			Clone.self,
-			Set.self,
+			Configure.self,
 			Get.self,
 			Launch.self,
 			List.self,
@@ -44,14 +44,17 @@ struct Client: ParsableCommand {
 			Push.self,
 			Import.self,
 			Export.self,
-			Prune.self,
+			Purge.self,
 			Rename.self,
 			Stop.self,
 			Delete.self,
 			FQN.self,
 		])
 
-	@Flag(name: [.customLong("insecure"), .customShort("k")], help: "don't use TLS")
+	@Option(help: "Connection timeout in seconds")
+	var timeout: Int64 = 30
+
+	@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
 	var insecure: Bool = false
 
 	@Flag(name: [.customLong("system"), .customShort("s")], help: "Caked run as system agent")
@@ -146,7 +149,7 @@ struct Client: ParsableCommand {
 		}
 
 		let grpcClient = Caked_ServiceNIOClient(channel: connection)
-		let reply = try command.run(client: grpcClient, arguments: arguments)
+		let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
 
 		return reply.output
 	}
@@ -203,11 +206,17 @@ struct Client: ParsableCommand {
 			}
 
 			guard let command = try Self.parse() else {
-				let command: any GrpcParsableCommand = Cake(command: commandName)
+				if let commandName = commandName {
+					let command: any GrpcParsableCommand = Cake(command: commandName)
 
-				print(try self.execute(command: command, arguments: arguments))
+					print(try self.execute(command: command, arguments: arguments))
+				}
 
-				return
+				let usage = Self.usageString() + "\n"
+
+				FileHandle.standardError.write(usage.data(using: .utf8)!)
+
+				Foundation.exit(-1)
 			}
 
 			print(try self.execute(command: command, arguments: arguments))

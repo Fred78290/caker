@@ -4,7 +4,7 @@ import SwiftUI
 import GRPCLib
 import GRPC
 
-struct Login: GrpcParsableCommand {
+struct Login: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Login to a registry")
 
 	@Argument(help: "host")
@@ -25,10 +25,6 @@ struct Login: GrpcParsableCommand {
 	@Flag(help: "skip validation of the registry's credentials before logging-in")
 	var noValidate: Bool = false
 
-	mutating func run() async throws {
-		throw GrpcError(code: 0, reason: "nothing here")
-	}
-
 	func validate() throws {
 		let usernameProvided = username != nil
 		let passwordProvided = password != nil
@@ -46,7 +42,11 @@ struct Login: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait()
+	mutating func run() async throws {
+		if self.passwordStdin {
+			self.password = readLine(strippingNewline: true)
+		}
+
+		try LoginHandler.login(username: self.username!, password: self.password!, insecure: self.insecure, noValidate: self.noValidate, direct: true)
 	}
 }

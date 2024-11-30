@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 struct Clone: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(
@@ -31,7 +32,7 @@ struct Clone: GrpcParsableCommand {
 	@Flag(help: .hidden)
 	var deduplicate: Bool = false
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "clone", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "clone", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

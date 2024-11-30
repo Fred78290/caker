@@ -1,9 +1,10 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
-struct Prune: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Prune OCI and IPSW caches or local VMs")
+struct Purge: GrpcParsableCommand {
+	static var configuration = CommandConfiguration(abstract: "Purge OCI and IPSW caches or local VMs")
 
 	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets OCI and IPSW caches and \"vms\" targets local VMs."))
 	var entries: String = "caches"
@@ -21,10 +22,7 @@ struct Prune: GrpcParsableCommand {
 	                           valueName: "n"))
 	var spaceBudget: UInt?
 
-	@Flag(help: .hidden)
-	var gc: Bool = false
-
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "prune", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.purge(Caked_PurgeRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

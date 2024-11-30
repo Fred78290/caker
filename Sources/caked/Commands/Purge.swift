@@ -2,13 +2,13 @@ import ArgumentParser
 import Dispatch
 import SwiftDate
 
-protocol PruneArguments {
+protocol PurgeArguments {
 	var entries: String { get }
 	var olderThan: UInt? { get }
 	var spaceBudget: UInt? { get }
 }
 
-struct Purge: AsyncParsableCommand, PruneArguments {
+struct Purge: AsyncParsableCommand, PurgeArguments {
 	static var configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
 
 	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs."))
@@ -31,6 +31,6 @@ struct Purge: AsyncParsableCommand, PruneArguments {
 	}
 
 	mutating func run() async throws {
-		try await PruneHandler.prune(direct: true, self)
+		try await PurgeHandler.purge(direct: true, self)
 	}
 }

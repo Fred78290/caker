@@ -61,8 +61,16 @@ extension Caked_BuildRequest: CreateCakedCommand {
 			command.user = self.user
 		}
 
-		if self.hasInsecure {
-			command.insecure = self.insecure
+		if self.hasSshPwAuth {
+			command.clearPassword = self.sshPwAuth
+		}
+
+		if self.hasNested {
+			command.nested = self.nested
+		}
+
+		if self.hasAutostart {
+			command.autostart = self.autostart
 		}
 
 		if self.hasCloudImage {
@@ -105,9 +113,9 @@ extension Caked_BuildRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_PruneRequest : CreateCakedCommand {
+extension Caked_PurgeRequest : CreateCakedCommand {
   func createCommand() -> CakedCommand {
-    var command = PruneHandler()
+    var command = PurgeHandler()
 
     if self.hasEntries {
       command.entries = self.entries
@@ -129,9 +137,17 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		var command = LaunchHandler(name: self.name)
 
-		command.dir = self.dir
-		command.netBridged = self.netBridged
-		command.netHost = self.netHost
+		if self.hasDir {
+			command.dir = self.dir.components(separatedBy: ",")
+		}
+
+		if self.hasNetBridged {
+			command.netBridged = self.netBridged.components(separatedBy: ",")
+		}
+
+		if self.hasNetHost {
+			command.netHost = self.netHost
+		}
 
 		if self.hasNetSofnet {
 			command.netSoftnet = self.netSofnet
@@ -153,8 +169,12 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 			command.user = self.user
 		}
 
-		if self.hasInsecure {
-			command.insecure = self.insecure
+		if self.hasSshPwAuth {
+			command.clearPassword = self.sshPwAuth
+		}
+
+		if self.hasAutostart {
+			command.autostart = self.autostart
 		}
 
 		if self.hasCloudImage {
@@ -201,9 +221,21 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_ConfigureRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return ConfigureHandler(name: self.name)
+	}
+}
+
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return StartHandler(name: self.name)
+	}
+}
+
+extension Caked_LoginRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return LoginHandler(username: self.username, password: self.password, insecure: insecure, noValidate: noValidate)
 	}
 }
 
@@ -219,51 +251,55 @@ extension Caked_Error {
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 	let asSystem: Bool
-
+	
 	init(asSystem: Bool) {
 		self.asSystem = asSystem
 	}
-
+	
 	func execute(command: CreateCakedCommand) async throws -> Caked_Reply {
 		var command = command.createCommand()
 		var reply: Caked_Reply = Caked_Reply()
-
+		
 		do {
 			reply.output = try await command.run(asSystem: self.asSystem)
 		} catch {
 			reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
 		}
-
+		
 		return reply
 	}
-
-	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws
-		-> Caked_Reply
+	
+	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
-
-	func build(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws
-		-> Caked_Reply
+	
+	func build(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
-
-	func launch(request: Caked_LaunchRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Caked_Reply
+	
+	func launch(request: Caked_LaunchRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
-
-	func start(request: Caked_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Caked_Reply
+	
+	func start(request: Caked_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
-
-	func prune(request: Caked_PruneRequest, context: GRPC.GRPCAsyncServerCallContext) async throws
-		-> Caked_Reply
+	
+	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
+	
+	func purge(request: Caked_PurgeRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
+	
+	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
+	
 }

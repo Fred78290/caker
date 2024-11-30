@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 struct VMDisplayConfig : CustomStringConvertible, ExpressibleByArgument {
 	var width: Int = 1024
@@ -64,8 +65,8 @@ struct Set: GrpcParsableCommand {
 	                           """))
 	var diskSize: UInt16?
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "set", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "set", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }
 

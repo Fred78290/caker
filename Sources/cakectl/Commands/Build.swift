@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPC
 import GRPCLib
 
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -27,8 +28,14 @@ struct Build: GrpcParsableCommand {
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	var mainGroup: String = "adm"
 
-	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow clear password"))
-	var insecure: Bool = false
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	var clearPassword: Bool = false
+
+	@Flag(name: [.long, .customShort("s")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	var autostart: Bool = false
+
+	@Flag(help: ArgumentHelp("Enable nested virtualization if possible"))
+	var nested: Bool = false
 
 	@Option(name: [.long, .customLong("cloud")], help: ArgumentHelp("create a linux VM using a qcow2 cloud-image file or URL", valueName: "path"))
 	var cloudImage: String?
@@ -89,7 +96,7 @@ struct Build: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.build(Caked_BuildRequest(command: self)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.build(Caked_BuildRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

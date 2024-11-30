@@ -1,6 +1,11 @@
 import Foundation
 import Virtualization
 
+enum ConfigFileName: String {
+	case config = "config.json"
+	case cake = "cake.json"
+}
+
 enum VirtualizedOS: String, Codable {
 	case darwin
 	case linux
@@ -21,6 +26,7 @@ enum HostArchitecture: String, Codable {
 
 struct CakeConfig {
 	var config: Dictionary<String, Any>
+	var cake: Dictionary<String, Any>
 
 	var version: Int {
 		set { self.config["version"] = newValue }
@@ -73,17 +79,59 @@ struct CakeConfig {
 		get { self.config["memorySize"] as! UInt64 }
 	}
 
-	var macAddress: String {
+	var macAddress: String? {
 		set { self.config["macAddress"] = newValue }
-		get { self.config["macAddress"] as! String }
+		get { self.config["macAddress"] as? String }
 	}
 
-	var displayRefit: Bool? {
+	var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
-		get { self.config["displayRefit"] as? Bool }
+		get { self.config["displayRefit"] as? Bool ?? false}
+	}
+
+	var configuredUser: String {
+		set { self.cake["configuredUser"] = newValue }
+		get { self.cake["configuredUser"] as? String ?? "admin" }
+	}
+
+	var autostart: Bool {
+		set { self.cake["autostart"] = newValue }
+		get { self.cake["autostart"] as? Bool ?? false }
+	}
+
+	var nested: Bool {
+		set { self.cake["nested"] = newValue }
+		get { self.cake["nested"] as? Bool ?? false }
+	}
+
+	var dir: [String] {
+		set { self.cake["dir"] = newValue }
+		get { self.cake["dir"] as? [String] ?? []}
+	}
+
+	var netBridged: [String] {
+		set { self.cake["netBridged"] = newValue }
+		get { self.cake["netBridged"] as? [String] ?? []}
+	}
+
+	var netSoftnet: Bool {
+		set { self.cake["netSoftnet"] = newValue }
+		get { self.cake["netSoftnet"] as? Bool ?? false}
+	}
+
+	var netHost: Bool {
+		set { self.cake["netHost"] = newValue }
+		get { self.cake["netHost"] as? Bool ?? false }
+	}
+
+	var netSoftnetAllow: String? {
+		set { self.cake["netSoftnetAllow"] = newValue }
+		get { self.cake["netSoftnetAllow"] as? String ?? nil }
 	}
 
 	init(os: VirtualizedOS,
+		 autostart: Bool,
+		 configuredUser: String,
 	     displayRefit: Bool,
 	     cpuCountMin: Int,
 	     memorySizeMin: UInt64,
@@ -95,6 +143,7 @@ struct CakeConfig {
 		display["height"] = 768
 
 		self.config = Dictionary<String, Any>()
+		self.cake = Dictionary<String, Any>()
 		self.version = 1
 		self.os = os
 		self.cpuCountMin = cpuCountMin
@@ -103,18 +152,19 @@ struct CakeConfig {
 		self.cpuCount = cpuCountMin
 		self.memorySize = memorySizeMin
 		self.displayRefit = displayRefit
+		self.configuredUser = configuredUser
+		self.autostart = autostart
 
 		self.config["display"] = display
 	}
 
-	init(contentsOf: URL) throws {
-		self.config = try Dictionary(contentsOf: contentsOf) as [String: Any]
+	init(baseURL: URL) throws {
+		self.config = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: baseURL)) as [String: Any]
+		self.cake = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: baseURL)) as [String: Any]
 	}
 
-	func save(toURL: URL) throws {
-		//let jsonData = try NSJSONSerialization.dataWithJSONObject(self.config, options: .prettyPrinted)
-		//let jsonData = try JSONSerialization.data(withJSONObject: self.config, options: .prettyPrinted)
-		//try jsonData.write(to: toURL)
-		try self.config.write(to: toURL)
+	func save(to: URL) throws {
+		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: to))
+		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: to))
 	}
 }

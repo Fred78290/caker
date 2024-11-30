@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import GRPC
 
 enum Format: String, ExpressibleByArgument {
 	case text, json
@@ -19,7 +20,7 @@ struct Get: GrpcParsableCommand {
 		throw GrpcError(code: 0, reason: "nothing here")
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "get", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "get", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

@@ -3,6 +3,7 @@ import Dispatch
 import Foundation
 import Compression
 import GRPCLib
+import GRPC
 
 struct Push: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Push a VM to a registry")
@@ -34,7 +35,7 @@ struct Push: GrpcParsableCommand {
 	                         discussion: "Increases disk usage, but saves time if you're going to pull the pushed images later."))
 	var populateCache: Bool = false
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String]) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "push", arguments: arguments)).response.wait()
+	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "push", arguments: arguments), callOptions: callOptions).response.wait()
 	}
 }

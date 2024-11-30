@@ -18,26 +18,17 @@ set -eu
 here="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 root="$here/.."
 protoc=$(which protoc)
-protoc_gen_swift="" # $(command -v protoc-gen-swift-v1) || :
-protoc_gen_grpc_swift="" # $(command -v protoc-gen-grpc-swift-v1) || :
+build_dir=$(mktemp -d)
 
 # Checkout and build the plugins.
-if [ -z "${protoc_gen_swift:=}" ] || [ -z "${protoc_gen_swift:=}" ]; then
-  build_dir=$(mktemp -d)
-  git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "$build_dir"
-  swift build --package-path "$build_dir" --product protoc-gen-swift
-  swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
+git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "$build_dir"
+swift build --package-path "$build_dir" --product protoc-gen-swift
+swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
 
-  # Grab the plugin paths.
-  bin_path=$(swift build --package-path "$build_dir" --show-bin-path)
-  protoc_gen_swift="$bin_path/protoc-gen-swift"
-  protoc_gen_grpc_swift="$bin_path/protoc-gen-grpc-swift"
-
-#  sudo mv ${protoc_gen_swift} /usr/local/bin/protoc-gen-swift-v1
-#  sudo mv ${protoc_gen_grpc_swift} /usr/local/bin/protoc-gen-grpc-swift-v1
-#  protoc_gen_swift="/usr/local/bin/protoc-gen-swift-v1"
-#  protoc_gen_grpc_swift="/usr/local/bin/protoc-gen-grpc-swift-v1"
-fi
+# Grab the plugin paths.
+bin_path=$(swift build --package-path "$build_dir" --show-bin-path)
+protoc_gen_swift="$bin_path/protoc-gen-swift"
+protoc_gen_grpc_swift="$bin_path/protoc-gen-grpc-swift"
 
 # Generates gRPC by invoking protoc with the gRPC Swift plugin.
 # Parameters:
@@ -92,3 +83,5 @@ function generate_service {
 
 #------------------------------------------------------------------------------
 generate_service
+
+rm -rf ${build_dir}

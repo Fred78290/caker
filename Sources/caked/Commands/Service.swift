@@ -281,8 +281,20 @@ extension Service {
 			                                   tlsCert: self.tlsCert,
 			                                   tlsKey: self.tlsKey).wait()
 
+			signal(SIGINT, SIG_IGN)
+
+			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
+			
+			sigintSrc.setEventHandler {
+				try? server.close().wait()
+			}
+
+			sigintSrc.activate()
+
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			try server.onClose.wait()
+			
+			Logger.appendNewLine("Server stopped")
 		}
 	}
 }

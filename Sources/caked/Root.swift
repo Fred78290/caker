@@ -39,6 +39,7 @@ struct Root: AsyncParsableCommand {
 			Build.self,
 			Start.self,
 			Launch.self,
+			Configure.self,
 			Purge.self
 		])
 

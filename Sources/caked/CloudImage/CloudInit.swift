@@ -95,14 +95,14 @@ struct VendorData: Codable {
 		case writeFiles = "write_files"
 	}
 
-	init(defaultUser: String, mainGroup: String, insecure: Bool, sshAuthorizedKeys: [String]?, tz: String, packages: [String]?, writeFiles: [WriteFile]?, growPart: Bool) {
+	init(defaultUser: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKeys: [String]?, tz: String, packages: [String]?, writeFiles: [WriteFile]?, growPart: Bool) {
 		self.manageEtcHosts = true
 		self.packages = packages
 		self.sshAuthorizedKeys = sshAuthorizedKeys
-		self.sshPwAuth = insecure
+		self.sshPwAuth = clearPassword
 		self.systemInfo = SystemInfo(defaultUser: defaultUser)
 		self.timezone = tz
-		self.users = [User.userClass(UserClass(name: defaultUser, password: insecure ? defaultUser : nil, sshAuthorizedKeys: sshAuthorizedKeys, primaryGroup: mainGroup, groups: nil, sudo: true))]
+		self.users = [User.userClass(UserClass(name: defaultUser, password: clearPassword ? defaultUser : nil, sshAuthorizedKeys: sshAuthorizedKeys, primaryGroup: mainGroup, groups: nil, sudo: true))]
 		self.writeFiles = writeFiles
 
 		if growPart {
@@ -315,7 +315,7 @@ class CloudInit {
 	var userName: String = "admin"
 	var mainGroup: String = "adm"
 	var sshAuthorizedKeys: [String]?
-	var insecure: Bool = false
+	var clearPassword: Bool = false
 
 	private static func loadSharedPublicKey(home: Home) throws -> String? {
 		let publicKeyURL = URL(fileURLWithPath: "id_rsa.pub", relativeTo: home.homeDir)
@@ -365,20 +365,20 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, mainGroup: String, insecure: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?) throws {
+	init(userName: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?) throws {
 		self.userName = userName
 		self.mainGroup = mainGroup
-		self.insecure = insecure
+		self.clearPassword = clearPassword
 		self.sshAuthorizedKeys = sshAuthorizedKey
 		self.userData = userData
 		self.vendorData = vendorData
 		self.networkConfig = networkConfig
 	}
 
-	convenience init(userName: String, mainGroup: String, insecure: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
+	convenience init(userName: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
 		try self.init(userName: userName,
 					  mainGroup: mainGroup,
-					  insecure: insecure,
+					  clearPassword: clearPassword,
 					  sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath),
 					  vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
 					  userData:userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
@@ -409,7 +409,7 @@ class CloudInit {
 		guard let vendorData = self.vendorData else {
 			let vendorData = VendorData(defaultUser: self.userName,
 										mainGroup: self.mainGroup,
-										insecure: self.insecure,
+										clearPassword: self.clearPassword,
 										sshAuthorizedKeys: sshAuthorizedKeys,
 										tz: TimeZone.current.identifier,
 										packages: ["pollinate"],
