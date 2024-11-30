@@ -8,6 +8,8 @@ import GRPC
 struct Push: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Push a VM to a registry")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "local or remote VM name")
 	var localName: String
 

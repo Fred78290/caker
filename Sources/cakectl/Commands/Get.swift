@@ -10,6 +10,8 @@ enum Format: String, ExpressibleByArgument {
 struct Get: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "get", abstract: "Get a VM's configuration")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name.")
 	var name: String
 

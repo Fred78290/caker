@@ -28,6 +28,8 @@ struct VMDisplayConfig : CustomStringConvertible, ExpressibleByArgument {
 struct Set: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "set", abstract: "Modify VM's configuration")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

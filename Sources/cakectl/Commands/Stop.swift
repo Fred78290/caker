@@ -6,6 +6,8 @@ import GRPC
 struct Stop: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "stop", abstract: "Stop a VM")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

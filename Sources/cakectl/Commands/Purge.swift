@@ -6,6 +6,8 @@ import GRPC
 struct Purge: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Purge OCI and IPSW caches or local VMs")
 
+	@OptionGroup var options: Client.Options
+
 	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets OCI and IPSW caches and \"vms\" targets local VMs."))
 	var entries: String = "caches"
 

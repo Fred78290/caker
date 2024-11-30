@@ -17,6 +17,8 @@ struct Clone: GrpcParsableCommand {
 		"""
 	)
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "source VM name")
 	var sourceName: String
 

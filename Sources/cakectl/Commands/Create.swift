@@ -6,6 +6,8 @@ import GRPC
 struct Create: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Create a VM")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

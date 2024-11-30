@@ -6,6 +6,8 @@ import GRPC
 struct Rename: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Rename a local VM")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

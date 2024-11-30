@@ -74,6 +74,17 @@
 		{
 			"type": "lldb",
 			"request": "launch",
+			"args": [
+				"lunar"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "cakectl lunar",
+			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
+			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug cakectl",

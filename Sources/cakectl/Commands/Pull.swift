@@ -16,6 +16,8 @@ struct Pull: GrpcParsableCommand {
 		"""
 	)
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "remote VM name")
 	var remoteName: String
 

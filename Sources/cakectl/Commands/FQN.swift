@@ -6,6 +6,8 @@ import GRPC
 struct FQN: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Get a fully-qualified VM name", shouldDisplay: false)
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

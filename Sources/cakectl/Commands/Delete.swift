@@ -6,6 +6,8 @@ import GRPC
 struct Delete: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Delete a VM")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: [String]
 

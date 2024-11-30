@@ -7,6 +7,8 @@ import GRPC
 struct Logout: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Logout from a registry")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "host")
 	var host: String
 

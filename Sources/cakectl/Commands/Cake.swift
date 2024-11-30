@@ -11,6 +11,8 @@ struct Cake: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(
 		abstract: "Catch all tart commands", shouldDisplay: false)
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "command")
 	var command: String?
 

@@ -20,11 +20,116 @@ class GrpcError: Error {
 }
 
 protocol GrpcParsableCommand: ParsableCommand {
+	var options: Client.Options { get }
+
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply
+}
+
+extension GrpcParsableCommand {
+	public mutating func run() throws {
+		print(try self.options.execute(command: self, arguments: self.options.arguments))
+	}
 }
 
 @main
 struct Client: AsyncParsableCommand {
+	struct Options: ParsableArguments {
+		var commandName: String? = nil
+		var arguments: [String] = []
+
+		init() {
+			let discardedOptions: [String] = [
+				"--timeout",
+				"--system",
+				"--address",
+				"--ca-cert",
+				"--tls-cert",
+				"--tls-key",
+				"-i",
+				"-l",
+				"-c",
+				"-t",
+				"-k"
+			]
+
+			for argument in CommandLine.arguments.dropFirst() {
+				if discardedOptions.contains(argument) == false {
+					if argument.hasPrefix("-") || commandName != nil {
+						arguments.append(argument)
+					} else if commandName == nil {
+						commandName = argument
+					}
+				}
+			}
+		}
+
+		@Option(help: "Connection timeout in seconds")
+		var timeout: Int64 = 30
+
+		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
+		var insecure: Bool = false
+
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Caked run as system agent")
+		var asSystem: Bool = false
+
+		@Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
+		var address: String = try! Client.getDefaultServerAddress(asSystem: false)
+
+		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		var caCert: String?
+
+		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		var tlsCert: String?
+
+		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		var tlsKey: String?
+
+		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
+			let command = command
+			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+
+			// Make sure the group is shutdown when we're done with it.
+			defer {
+				try! group.syncShutdownGracefully()
+			}
+
+			let connection = try Client.createClient(on: group,
+			                                         listeningAddress: URL(string: self.address),
+			                                         caCert: self.caCert,
+			                                         tlsCert: self.tlsCert,
+			                                         tlsKey: self.tlsKey)
+
+			defer {
+				try! connection.close().wait()
+			}
+
+			let grpcClient = Caked_ServiceNIOClient(channel: connection)
+			let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
+
+			return reply.output
+		}
+
+		mutating func validate() throws {
+			if self.insecure {
+				self.caCert = nil
+				self.tlsCert = nil
+				self.tlsKey = nil
+			} else {
+				if self.tlsCert == nil && self.tlsKey == nil {
+					let certs = try ClientCertificatesLocation.getCertificats(asSystem: self.asSystem)
+
+					if certs.exists() {
+						self.caCert = certs.caCertURL.path()
+						self.tlsCert = certs.clientCertURL.path()
+						self.tlsKey = certs.clientKeyURL.path()
+					}
+				}
+			}
+		}
+	}
+
+	@OptionGroup var options: Client.Options
+
 	static var configuration = CommandConfiguration(
 		commandName: "cakectl",
 		version: CI.version,
@@ -50,27 +155,6 @@ struct Client: AsyncParsableCommand {
 			Delete.self,
 			FQN.self,
 		])
-
-	@Option(help: "Connection timeout in seconds")
-	var timeout: Int64 = 30
-
-	@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
-	var insecure: Bool = false
-
-	@Flag(name: [.customLong("system"), .customShort("s")], help: "Caked run as system agent")
-	var asSystem: Bool = false
-
-	@Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
-	var address: String = try! Self.getDefaultServerAddress(asSystem: false)
-
-	@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
-	var caCert: String?
-
-	@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
-	var tlsCert: String?
-
-	@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
-	var tlsKey: String?
 
 	static func getDefaultServerAddress(asSystem: Bool) throws -> String {
 		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
@@ -129,31 +213,6 @@ struct Client: AsyncParsableCommand {
 		throw GrpcError(code: -1, reason: "connection address must be specified")
 	}
 
-	func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
-		let command = command
-		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-
-		// Make sure the group is shutdown when we're done with it.
-		defer {
-			try! group.syncShutdownGracefully()
-		}
-
-		let connection = try Self.createClient(on: group,
-		                                       listeningAddress: URL(string: self.address),
-		                                       caCert: self.caCert,
-		                                       tlsCert: self.tlsCert,
-		                                       tlsKey: self.tlsKey)
-
-		defer {
-			try! connection.close().wait()
-		}
-
-		let grpcClient = Caked_ServiceNIOClient(channel: connection)
-		let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
-
-		return reply.output
-	}
-
 	static func parse() throws -> GrpcParsableCommand? {
 		do {
 			return try parseAsRoot() as? GrpcParsableCommand
@@ -177,39 +236,15 @@ struct Client: AsyncParsableCommand {
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
 
-		if self.insecure {
-			self.caCert = nil
-			self.tlsCert = nil
-			self.tlsKey = nil
-		} else {
-			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try ClientCertificatesLocation.getCertificats(asSystem: self.asSystem)
-
-				if certs.exists() {
-					self.caCert = certs.caCertURL.path()
-					self.tlsCert = certs.clientCertURL.path()
-					self.tlsKey = certs.clientKeyURL.path()
-				}
-			}
-		}
+		try self.options.validate()
 
 		// Parse and run command
 		do {
-			var commandName: String?
-			var arguments: [String] = []
-			for argument in CommandLine.arguments.dropFirst() {
-				if argument.hasPrefix("-") || commandName != nil {
-					arguments.append(argument)
-				} else if commandName == nil {
-					commandName = argument
-				}
-			}
-
 			guard let command = try Self.parse() else {
-				if let commandName = commandName {
+				if let commandName = self.options.commandName {
 					let command: any GrpcParsableCommand = Cake(command: commandName)
 
-					print(try self.execute(command: command, arguments: arguments))
+					print(try self.options.execute(command: command, arguments: self.options.arguments))
 				}
 
 				let usage = Self.usageString() + "\n"
@@ -219,7 +254,7 @@ struct Client: AsyncParsableCommand {
 				Foundation.exit(-1)
 			}
 
-			print(try self.execute(command: command, arguments: arguments))
+			print(try self.options.execute(command: command, arguments: self.options.arguments))
 		} catch {
 			// Handle any other exception, including ArgumentParser's ones
 			Self.exit(withError: error)

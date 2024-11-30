@@ -6,6 +6,8 @@ import GRPC
 struct Configure: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Reconfigure VM")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

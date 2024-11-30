@@ -15,6 +15,8 @@ enum IPResolutionStrategy: String, ExpressibleByArgument, CaseIterable {
 struct IP: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Get VM's IP address")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

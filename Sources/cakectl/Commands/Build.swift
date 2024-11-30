@@ -10,6 +10,8 @@ let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
 struct Build: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 

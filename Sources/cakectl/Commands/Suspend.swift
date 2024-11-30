@@ -9,6 +9,8 @@ struct Suspend: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
+	@OptionGroup var options: Client.Options
+
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.cakeCommand(Caked_CakedCommandRequest(command: "suspend", arguments: arguments), callOptions: callOptions).response.wait()
 	}

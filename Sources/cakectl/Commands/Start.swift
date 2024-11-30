@@ -6,6 +6,8 @@ import GRPC
 struct Start: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Launch a linux VM create in background")
 
+	@OptionGroup var options: Client.Options
+
 	@Argument(help: "VM name")
 	var name: String
 
