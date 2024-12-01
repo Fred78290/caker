@@ -267,6 +267,8 @@ extension Service {
 		mutating func run() throws {
 			runAsSystem = self.asSystem
 
+			try StartHandler.autostart(asSystem: self.asSystem)
+
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
 			defer {

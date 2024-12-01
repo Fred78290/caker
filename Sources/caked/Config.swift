@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import GRPCLib
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -16,11 +17,11 @@ enum HostArchitecture: String, Codable {
 	case amd64
 
 	static func current() -> HostArchitecture {
-	  #if arch(arm64)
-		return .arm64
-	  #elseif arch(x86_64)
-		return .amd64
-	  #endif
+		#if arch(arm64)
+			return .arm64
+		#elseif arch(x86_64)
+			return .amd64
+		#endif
 	}
 }
 
@@ -129,9 +130,32 @@ struct CakeConfig {
 		get { self.cake["netSoftnetAllow"] as? String ?? nil }
 	}
 
+	var forwardedPort: [ForwardedPort] {
+		set { self.cake["forwardedPort"] = newValue.description }
+		get {
+			if let forwardedPort = self.cake["forwardedPort"] as? [String] {
+				return forwardedPort.map { value in 
+					return ForwardedPort(argument: value)
+				}
+			}
+
+			return []
+		}
+	}
+
+	var nestedVirtualization: Bool {
+		get {
+			if self.os == .linux && Utils.isNestedVirtualizationSupported() {
+				return self.nested
+			}
+
+			return false
+		}
+	}
+
 	init(os: VirtualizedOS,
-		 autostart: Bool,
-		 configuredUser: String,
+	     autostart: Bool,
+	     configuredUser: String,
 	     displayRefit: Bool,
 	     cpuCountMin: Int,
 	     memorySizeMin: UInt64,

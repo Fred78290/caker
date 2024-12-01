@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:5.7
 
 import PackageDescription
 let package = Package(
@@ -43,6 +43,7 @@ let package = Package(
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
 		.target(name: "GRPCLib", dependencies: [
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift")
 		],
 		path: "Sources/grpc",

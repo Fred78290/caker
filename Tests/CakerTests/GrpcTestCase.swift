@@ -53,7 +53,7 @@ class GrpcTestCase {
 			XCTAssertNoThrow(try client.close().wait())
 		}
 
-		let reply = try List().run(client: Caked_ServiceNIOClient(channel: client), arguments: [])
+		let reply = try List().run(client: Caked_ServiceNIOClient(channel: client), arguments: [], callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
 
 		print(reply.output)
 	}

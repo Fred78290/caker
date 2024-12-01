@@ -2,7 +2,7 @@ import Dispatch
 import Foundation
 import SwiftUI
 import Virtualization
-
+import GRPCLib
 protocol BuildArguments {
 	var name: String { get }
 	var cpu: UInt16 { get }
@@ -23,6 +23,7 @@ protocol BuildArguments {
 	var displayRefit: Bool { get }
 	var autostart: Bool { get }
 	var nested: Bool { get }
+	var forwardedPort: [ForwardedPort] { get }
 }
 
 struct BuildHandler: CakedCommand, BuildArguments {
@@ -45,6 +46,7 @@ struct BuildHandler: CakedCommand, BuildArguments {
 	var displayRefit: Bool = true
 	var autostart: Bool = false
 	var nested: Bool = false
+	var forwardedPort: [ForwardedPort] = []
 
 	static func build(name: String, arguments: BuildArguments, asSystem: Bool) async throws {
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()

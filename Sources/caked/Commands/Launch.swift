@@ -1,5 +1,6 @@
 import ArgumentParser
 import Foundation
+import GRPCLib
 
 struct Launch : AsyncParsableCommand, LaunchArguments {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
@@ -78,6 +79,9 @@ struct Launch : AsyncParsableCommand, LaunchArguments {
 
 	@Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
 	var netHost: Bool = false
+
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	var forwardedPort: [ForwardedPort] = []
 
 	func validate() throws {
 		if name.contains("/") {

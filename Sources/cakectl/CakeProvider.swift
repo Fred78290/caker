@@ -36,6 +36,12 @@ extension Caked_BuildRequest {
 		self.nested = command.nested
 		self.remoteContainerServer = command.remoteContainerServer
 
+		if command.forwardedPort.isEmpty == false {
+			self.forwardedPort = command.forwardedPort.map { forwardedPort in
+				return forwardedPort.description
+			}.joined(separator: ",")
+		}
+
 		if let cloudImage = command.cloudImage {
 			self.cloudImage = cloudImage
 		}
@@ -87,6 +93,12 @@ extension Caked_LaunchRequest {
 		self.netHost = command.netHost
 		self.nested = command.nested
 		self.autostart = command.autostart
+
+		if command.forwardedPort.isEmpty == false {
+			self.forwardedPort = command.forwardedPort.map { forwardedPort in
+				return forwardedPort.description
+			}.joined(separator: ",")
+		}
 
 		if let netSoftnetAllow: String = command.netSoftnetAllow {
 			self.netSoftnetAllow = netSoftnetAllow

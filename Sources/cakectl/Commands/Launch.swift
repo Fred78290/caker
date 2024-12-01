@@ -80,6 +80,9 @@ struct Launch : GrpcParsableCommand {
 	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	var displayRefit: Bool = true
 
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	var forwardedPort: [ForwardedPort] = []
+
 	func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")

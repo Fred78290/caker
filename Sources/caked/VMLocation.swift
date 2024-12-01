@@ -1,6 +1,12 @@
 import Foundation
 
 struct VMLocation {
+	enum Status: String {
+		case running
+		case suspended
+		case stopped
+	}
+
 	var rootURL: URL
 
 	var configURL: URL {
@@ -35,6 +41,43 @@ struct VMLocation {
 		FileManager.default.fileExists(atPath: configURL.path) &&
 			FileManager.default.fileExists(atPath: diskURL.path) &&
 			FileManager.default.fileExists(atPath: nvramURL.path)
+	}
+
+	var status: Status {
+		get {
+			if FileManager.default.fileExists(atPath: stateURL.path) {
+				return .suspended
+			} else {
+				let fd = open(configURL.path, O_RDWR)
+
+				if fd != -1 {
+
+					defer {
+						close(fd)
+					}
+
+					var result = flock(l_start: 0, l_len: 0, l_pid: 0, l_type: Int16(F_RDLCK), l_whence: Int16(SEEK_SET))
+
+					if fcntl(fd, F_GETLK, &result) == 0 {
+						if result.l_pid != 0 {
+							return .running
+						}
+					}
+				}
+
+				return .stopped
+			}
+		}
+	}
+
+	func lock() -> Bool {
+		let fd = open(configURL.path, O_RDWR) 
+
+		if fd != -1 {
+			close(fd)
+		}
+
+		return fd != -1
 	}
 
 	static func tempDirectory() throws -> VMLocation {

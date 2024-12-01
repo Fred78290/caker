@@ -109,6 +109,12 @@ extension Caked_BuildRequest: CreateCakedCommand {
 			command.networkConfig = try? saveToTempFile(self.networkConfig)
 		}
 
+		if self.hasForwardedPort {
+			command.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
+				return ForwardedPort(argument: argument)
+			}
+		}
+
 		return command
 	}
 }
@@ -136,6 +142,12 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 extension Caked_LaunchRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		var command = LaunchHandler(name: self.name)
+
+		if self.hasForwardedPort {
+			command.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
+				return ForwardedPort(argument: argument)
+			}
+		}
 
 		if self.hasDir {
 			command.dir = self.dir.components(separatedBy: ",")
@@ -239,6 +251,12 @@ extension Caked_LoginRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_RemoteRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return RemoteHandler(request: self)
+	}
+}
+
 extension Caked_Error {
 	init(code: Int32, reason: String) {
 		self.init()
@@ -299,6 +317,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
+	
+	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
 		return try await self.execute(command: request)
 	}
 	

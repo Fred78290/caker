@@ -6,6 +6,32 @@ struct StartHandler: CakedCommand {
 	var foreground: Bool = false
 	var name: String
 
+	static func autostart(asSystem: Bool) throws {
+		let storageLocation = StorageLocation(asSystem: asSystem)
+
+		_ = try storageLocation.list().map { (name: String, vmLocation: VMLocation) in
+			do {
+				let config = try CakeConfig(baseURL: vmLocation.rootURL)
+
+				if config.autostart && vmLocation.status != .running {
+					Task {
+						do {
+							let handler: StartHandler = StartHandler(foreground: false, name: name)
+
+							_ = try await handler.run(asSystem: asSystem)
+						} catch {
+							Logger.appendError(error)
+						}
+					}
+				}
+			} catch {
+				Logger.appendError(error)
+			}
+
+			return vmLocation
+		}
+	}
+
 	func run(asSystem: Bool) async throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 
@@ -19,7 +45,7 @@ struct StartHandler: CakedCommand {
 		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
 		var arguments: [String] = []
 
-		if config.nested {
+		if config.nestedVirtualization {
 			arguments.append("--nested")
 		}
 

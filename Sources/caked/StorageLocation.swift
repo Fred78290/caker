@@ -1,5 +1,21 @@
 import Foundation
 
+extension NSError {
+	func fileNotFound() -> Bool {
+		return self.code == NSFileNoSuchFileError || self.code == NSFileReadNoSuchFileError
+	}
+}
+
+extension Error {
+	func fileNotFound() -> Bool {
+		let nsError: NSError = self as NSError
+
+		return nsError.fileNotFound() || nsError.underlyingErrors.contains(where: {
+			$0.fileNotFound()
+		})
+	}
+}
+
 struct StorageLocation {
 	let rootURL: URL
 
@@ -23,6 +39,29 @@ struct StorageLocation {
 		try location.rootURL.updateAccessDate()
 
 		return location
+	}
+
+	func list() throws -> [(String, VMLocation)] {
+		do {
+			return try FileManager.default.contentsOfDirectory(
+				at: rootURL,
+				includingPropertiesForKeys: [.isDirectoryKey],
+				options: .skipsSubdirectoryDescendants).compactMap { url in
+				let vmDir = VMLocation(rootURL: url)
+
+				if !vmDir.inited {
+					return nil
+				}
+
+				return (vmDir.name, vmDir)
+			}
+		} catch {
+			if error.fileNotFound() {
+				return []
+			}
+
+			throw error
+		}
 	}
 
 	func relocate(_ name: String, from: VMLocation) throws {

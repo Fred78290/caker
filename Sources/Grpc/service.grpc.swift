@@ -50,6 +50,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_ConfigureRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply>
+
+  func remote(
+    _ request: Caked_RemoteRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_RemoteRequest, Caked_Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -182,6 +187,24 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
+
+  /// Unary call to Remote
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Remote.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func remote(
+    _ request: Caked_RemoteRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_RemoteRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.remote.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRemoteInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -280,6 +303,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_ConfigureRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply>
+
+  func makeRemoteCall(
+    _ request: Caked_RemoteRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_RemoteRequest, Caked_Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -375,6 +403,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
+
+  public func makeRemoteCall(
+    _ request: Caked_RemoteRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_RemoteRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.remote.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRemoteInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -462,6 +502,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
     )
   }
+
+  public func remote(
+    _ request: Caked_RemoteRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.remote.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRemoteInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -503,6 +555,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'configure'.
   func makeConfigureInterceptors() -> [ClientInterceptor<Caked_ConfigureRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'remote'.
+  func makeRemoteInterceptors() -> [ClientInterceptor<Caked_RemoteRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -517,6 +572,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.login,
       Caked_ServiceClientMetadata.Methods.purge,
       Caked_ServiceClientMetadata.Methods.configure,
+      Caked_ServiceClientMetadata.Methods.remote,
     ]
   )
 
@@ -562,6 +618,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/Configure",
       type: GRPCCallType.unary
     )
+
+    public static let remote = GRPCMethodDescriptor(
+      name: "Remote",
+      path: "/caked.Service/Remote",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -583,6 +645,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func purge(request: Caked_PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func configure(request: Caked_ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func remote(request: Caked_RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -660,6 +724,15 @@ extension Caked_ServiceProvider {
         userFunction: self.configure(request:context:)
       )
 
+    case "Remote":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_RemoteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeRemoteInterceptors() ?? [],
+        userFunction: self.remote(request:context:)
+      )
+
     default:
       return nil
     }
@@ -705,6 +778,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func configure(
     request: Caked_ConfigureRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func remote(
+    request: Caked_RemoteRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 }
@@ -791,6 +869,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.configure(request: $0, context: $1) }
       )
 
+    case "Remote":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_RemoteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeRemoteInterceptors() ?? [],
+        wrapping: { try await self.remote(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -826,6 +913,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'configure'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeConfigureInterceptors() -> [ServerInterceptor<Caked_ConfigureRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when handling 'remote'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRemoteInterceptors() -> [ServerInterceptor<Caked_RemoteRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -840,6 +931,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.login,
       Caked_ServiceServerMetadata.Methods.purge,
       Caked_ServiceServerMetadata.Methods.configure,
+      Caked_ServiceServerMetadata.Methods.remote,
     ]
   )
 
@@ -883,6 +975,12 @@ public enum Caked_ServiceServerMetadata {
     public static let configure = GRPCMethodDescriptor(
       name: "Configure",
       path: "/caked.Service/Configure",
+      type: GRPCCallType.unary
+    )
+
+    public static let remote = GRPCMethodDescriptor(
+      name: "Remote",
+      path: "/caked.Service/Remote",
       type: GRPCCallType.unary
     )
   }

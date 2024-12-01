@@ -1,7 +1,15 @@
 import Foundation
 import System
-
+import Virtualization
 struct Utils {
+	static func isNestedVirtualizationSupported() -> Bool {
+		if #available(macOS 15, *) {
+			return VZGenericPlatformConfiguration.isNestedVirtualizationSupported
+		}
+
+		return false
+	}
+
 	static func getHome(asSystem: Bool) throws -> URL {
 		return try Home(asSystem: asSystem).homeDir
 	}

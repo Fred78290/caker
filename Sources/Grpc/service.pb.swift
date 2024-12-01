@@ -23,6 +23,110 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case none // = 0
+  case add // = 1
+  case delete // = 2
+  case list // = 3
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .none
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .none
+    case 1: self = .add
+    case 2: self = .delete
+    case 3: self = .list
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .none: return 0
+    case .add: return 1
+    case .delete: return 2
+    case .list: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Caked_RemoteCommand] = [
+    .none,
+    .add,
+    .delete,
+    .list,
+  ]
+
+}
+
+public struct Caked_RemoteRequestAdd: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var url: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Caked_RemoteRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var command: Caked_RemoteCommand = .none
+
+  public var request: Caked_RemoteRequest.OneOf_Request? = nil
+
+  public var add: Caked_RemoteRequestAdd {
+    get {
+      if case .add(let v)? = request {return v}
+      return Caked_RemoteRequestAdd()
+    }
+    set {request = .add(newValue)}
+  }
+
+  public var delete: String {
+    get {
+      if case .delete(let v)? = request {return v}
+      return String()
+    }
+    set {request = .delete(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Request: Equatable, Sendable {
+    case add(Caked_RemoteRequestAdd)
+    case delete(String)
+
+  }
+
+  public init() {}
+}
+
+public struct Caked_Bytes: @unchecked Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var data: Data = Data()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Caked_CakedCommandRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -199,6 +303,15 @@ public struct Caked_BuildRequest: @unchecked Sendable {
   public var hasNested: Bool {return _storage._nested != nil}
   /// Clears the value of `nested`. Subsequent reads from it will return its default value.
   public mutating func clearNested() {_uniqueStorage()._nested = nil}
+
+  public var forwardedPort: String {
+    get {return _storage._forwardedPort ?? String()}
+    set {_uniqueStorage()._forwardedPort = newValue}
+  }
+  /// Returns true if `forwardedPort` has been explicitly set.
+  public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
+  /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
+  public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -415,6 +528,15 @@ public struct Caked_LaunchRequest: @unchecked Sendable {
   /// Clears the value of `autostart`. Subsequent reads from it will return its default value.
   public mutating func clearAutostart() {_uniqueStorage()._autostart = nil}
 
+  public var forwardedPort: String {
+    get {return _storage._forwardedPort ?? String()}
+    set {_uniqueStorage()._forwardedPort = newValue}
+  }
+  /// Returns true if `forwardedPort` has been explicitly set.
+  public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
+  /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
+  public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -624,6 +746,15 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `randomMac`. Subsequent reads from it will return its default value.
   public mutating func clearRandomMac() {self._randomMac = nil}
 
+  public var forwardedPort: String {
+    get {return _forwardedPort ?? String()}
+    set {_forwardedPort = newValue}
+  }
+  /// Returns true if `forwardedPort` has been explicitly set.
+  public var hasForwardedPort: Bool {return self._forwardedPort != nil}
+  /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
+  public mutating func clearForwardedPort() {self._forwardedPort = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -640,6 +771,7 @@ public struct Caked_ConfigureRequest: Sendable {
   fileprivate var _netSoftnetAllow: String? = nil
   fileprivate var _netHost: Bool? = nil
   fileprivate var _randomMac: Bool? = nil
+  fileprivate var _forwardedPort: String? = nil
 }
 
 public struct Caked_LoginRequest: Sendable {
@@ -697,6 +829,156 @@ public struct Caked_Reply: Sendable {
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "caked"
+
+extension Caked_RemoteCommand: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "none"),
+    1: .same(proto: "add"),
+    2: .same(proto: "delete"),
+    3: .same(proto: "list"),
+  ]
+}
+
+extension Caked_RemoteRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RemoteRequestAdd"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "url"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.url) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.url.isEmpty {
+      try visitor.visitSingularStringField(value: self.url, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_RemoteRequestAdd, rhs: Caked_RemoteRequestAdd) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.url != rhs.url {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RemoteRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "command"),
+    2: .same(proto: "add"),
+    3: .same(proto: "delete"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.command) }()
+      case 2: try {
+        var v: Caked_RemoteRequestAdd?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .add(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .add(v)
+        }
+      }()
+      case 3: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.request != nil {try decoder.handleConflictingOneOf()}
+          self.request = .delete(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.command != .none {
+      try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
+    }
+    switch self.request {
+    case .add?: try {
+      guard case .add(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .delete?: try {
+      guard case .delete(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_RemoteRequest, rhs: Caked_RemoteRequest) -> Bool {
+    if lhs.command != rhs.command {return false}
+    if lhs.request != rhs.request {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Bytes: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Bytes"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "data"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBytesField(value: &self.data) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.data.isEmpty {
+      try visitor.visitSingularBytesField(value: self.data, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Bytes, rhs: Caked_Bytes) -> Bool {
+    if lhs.data != rhs.data {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
 
 extension Caked_CakedCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CakedCommandRequest"
@@ -757,6 +1039,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     16: .same(proto: "diskSize"),
     17: .same(proto: "autostart"),
     18: .same(proto: "nested"),
+    19: .same(proto: "forwardedPort"),
   ]
 
   fileprivate class _StorageClass {
@@ -778,6 +1061,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _diskSize: Int32? = nil
     var _autostart: Bool? = nil
     var _nested: Bool? = nil
+    var _forwardedPort: String? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -810,6 +1094,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _diskSize = source._diskSize
       _autostart = source._autostart
       _nested = source._nested
+      _forwardedPort = source._forwardedPort
     }
   }
 
@@ -846,6 +1131,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 16: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
         case 17: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
         case 18: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
         default: break
         }
       }
@@ -912,6 +1198,9 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       try { if let v = _storage._nested {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 18)
       } }()
+      try { if let v = _storage._forwardedPort {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 19)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -939,6 +1228,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._diskSize != rhs_storage._diskSize {return false}
         if _storage._autostart != rhs_storage._autostart {return false}
         if _storage._nested != rhs_storage._nested {return false}
+        if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -974,6 +1264,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     21: .same(proto: "netHost"),
     22: .same(proto: "nested"),
     23: .same(proto: "autostart"),
+    24: .same(proto: "forwardedPort"),
   ]
 
   fileprivate class _StorageClass {
@@ -1000,6 +1291,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     var _netHost: Bool? = nil
     var _nested: Bool? = nil
     var _autostart: Bool? = nil
+    var _forwardedPort: String? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -1037,6 +1329,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       _netHost = source._netHost
       _nested = source._nested
       _autostart = source._autostart
+      _forwardedPort = source._forwardedPort
     }
   }
 
@@ -1078,6 +1371,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         case 21: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
         case 22: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
         case 23: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
+        case 24: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
         default: break
         }
       }
@@ -1159,6 +1453,9 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       try { if let v = _storage._autostart {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 23)
       } }()
+      try { if let v = _storage._forwardedPort {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 24)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -1191,6 +1488,7 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         if _storage._netHost != rhs_storage._netHost {return false}
         if _storage._nested != rhs_storage._nested {return false}
         if _storage._autostart != rhs_storage._autostart {return false}
+        if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -1346,6 +1644,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     1120: .same(proto: "netSoftnetAllow"),
     12: .same(proto: "netHost"),
     13: .same(proto: "randomMAC"),
+    24: .same(proto: "forwardedPort"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1366,6 +1665,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 10: try { try decoder.decodeSingularBoolField(value: &self._netSoftnet) }()
       case 12: try { try decoder.decodeSingularBoolField(value: &self._netHost) }()
       case 13: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
+      case 24: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
       case 1120: try { try decoder.decodeSingularStringField(value: &self._netSoftnetAllow) }()
       default: break
       }
@@ -1413,6 +1713,9 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._randomMac {
       try visitor.visitSingularBoolField(value: v, fieldNumber: 13)
     } }()
+    try { if let v = self._forwardedPort {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 24)
+    } }()
     try { if let v = self._netSoftnetAllow {
       try visitor.visitSingularStringField(value: v, fieldNumber: 1120)
     } }()
@@ -1433,6 +1736,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._netSoftnetAllow != rhs._netSoftnetAllow {return false}
     if lhs._netHost != rhs._netHost {return false}
     if lhs._randomMac != rhs._randomMac {return false}
+    if lhs._forwardedPort != rhs._forwardedPort {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

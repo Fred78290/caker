@@ -1,4 +1,5 @@
 import Foundation
+import GRPCLib
 
 protocol LaunchArguments : BuildArguments {
 	var dir: [String] { get }
@@ -36,6 +37,7 @@ struct LaunchHandler: CakedCommand, LaunchArguments {
 	var foreground: Bool = false
 	var displayRefit: Bool = true
 	var autostart: Bool = false
+	var forwardedPort: [ForwardedPort] = []
 
 	static func launch(asSystem: Bool, _ self: LaunchArguments) throws {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.name)

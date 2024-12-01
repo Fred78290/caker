@@ -17,6 +17,32 @@ service Service {
 	rpc Login (LoginRequest) returns (Reply) {}
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
+	rpc Remote(RemoteRequest) returns (Reply) {}
+//	rpc Stream(stream Bytes) returns (stream Bytes);
+}
+
+enum RemoteCommand {
+	none = 0;
+	add = 1;
+	delete = 2;
+	list = 3;
+}
+
+message RemoteRequestAdd {
+	string name = 1;
+	string url = 2;
+}
+
+message RemoteRequest {
+	RemoteCommand command = 1;
+	oneof request {
+		RemoteRequestAdd add = 2;
+		string delete = 3;
+	}
+}
+
+message Bytes {
+	bytes data = 1;
 }
 
 message CakedCommandRequest {
@@ -43,6 +69,7 @@ message BuildRequest {
 	optional int32 diskSize = 16;
 	optional bool autostart = 17;
 	optional bool nested = 18;
+	optional string forwardedPort = 19;
 }
 
 message LaunchRequest {
@@ -69,6 +96,7 @@ message LaunchRequest {
 	optional bool netHost = 21;
 	optional bool nested = 22;
 	optional bool autostart = 23;
+	optional string forwardedPort = 24;
 }
 
 message StartRequest {
@@ -102,6 +130,7 @@ message ConfigureRequest {
 	optional string netSoftnetAllow = 1120;
 	optional bool netHost = 12;
 	optional bool randomMAC = 13;
+	optional string forwardedPort = 24;
 }
 
 message LoginRequest {

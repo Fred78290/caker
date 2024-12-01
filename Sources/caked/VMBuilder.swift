@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import GRPCLib
 
 let cloudInitIso = "cloud-init.iso"
 
@@ -17,7 +18,8 @@ struct VMBuilder {
 	                            sshAuthorizedKey: String?,
 	                            vendorData: String?,
 	                            userData: String?,
-	                            networkConfig: String?) throws {
+	                            networkConfig: String?,
+								forwardedPort: [ForwardedPort]) throws {
 		// Create NVRAM
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
 
@@ -61,7 +63,8 @@ struct VMBuilder {
 	                    sshAuthorizedKey: String?,
 	                    vendorData: String?,
 	                    userData: String?,
-	                    networkConfig: String?)async  throws {
+	                    networkConfig: String?,
+						forwardedPort: [ForwardedPort]) async  throws {
 		if cloudImageURL.isFileURL {
 			try CloudImageConverter.convertCloudImageToRaw(from: cloudImageURL, to: vmLocation.diskURL)
 		} else {
@@ -81,7 +84,8 @@ struct VMBuilder {
 		                 sshAuthorizedKey: sshAuthorizedKey,
 		                 vendorData: vendorData,
 		                 userData: userData,
-		                 networkConfig: networkConfig)
+		                 networkConfig: networkConfig,
+						 forwardedPort: forwardedPort)
 	}
 
 	@available(macOS 13, *)
@@ -99,7 +103,8 @@ struct VMBuilder {
 	                    sshAuthorizedKey: String?,
 	                    vendorData: String?,
 	                    userData: String?,
-	                    networkConfig: String?) async throws {
+	                    networkConfig: String?,
+						forwardedPort: [ForwardedPort]) async throws {
 		var diskImageURL = diskImageURL
 
 		if !diskImageURL.isFileURL {
@@ -127,7 +132,8 @@ struct VMBuilder {
 		                 sshAuthorizedKey: sshAuthorizedKey,
 		                 vendorData: vendorData,
 		                 userData: userData,
-		                 networkConfig: networkConfig)
+		                 networkConfig: networkConfig,
+						 forwardedPort: forwardedPort)
 	}
 
 	@available(macOS 13, *)
@@ -145,7 +151,8 @@ struct VMBuilder {
 	                    sshAuthorizedKey: String?,
 	                    vendorData: String?,
 	                    userData: String?,
-	                    networkConfig: String?) async throws {
+	                    networkConfig: String?,
+						forwardedPort: [ForwardedPort]) async throws {
 
 		try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--clearPassword"])
 
@@ -168,7 +175,8 @@ struct VMBuilder {
 		                 sshAuthorizedKey: sshAuthorizedKey,
 		                 vendorData: vendorData,
 		                 userData: userData,
-		                 networkConfig: networkConfig)
+		                 networkConfig: networkConfig,
+						 forwardedPort: forwardedPort)
 	}
 
 	@available(macOS 13, *)
@@ -187,7 +195,8 @@ struct VMBuilder {
 	                    sshAuthorizedKey: String?,
 	                    vendorData: String?,
 	                    userData: String?,
-	                    networkConfig: String?) async throws {
+	                    networkConfig: String?,
+						forwardedPort: [ForwardedPort]) async throws {
 
 		guard let remoteContainerServerURL = URL(string: remoteContainerServer) else {
 			throw ServiceError("malformed url: \(remoteContainerServer)")
@@ -211,12 +220,14 @@ struct VMBuilder {
 		                 sshAuthorizedKey: sshAuthorizedKey,
 		                 vendorData: vendorData,
 		                 userData: userData,
-		                 networkConfig: networkConfig)
+		                 networkConfig: networkConfig,
+						 forwardedPort: forwardedPort)
 	}
 
 	static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
-		                                                                                            readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)
+		                                                                                            readOnly: true, cachingMode: .cached,
+																									synchronizationMode: VZDiskImageSynchronizationMode.none)
 
 		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
 
@@ -249,7 +260,8 @@ struct VMBuilder {
 			                       sshAuthorizedKey: arguments.sshAuthorizedKey,
 			                       vendorData: arguments.vendorData,
 			                       userData: arguments.userData,
-			                       networkConfig: arguments.networkConfig)
+			                       networkConfig: arguments.networkConfig,
+								   forwardedPort: arguments.forwardedPort)
 		} else if let cloudImage = arguments.cloudImage {
 			try await Self.buildVM(vmName: vmName,
 			                       vmLocation: vmLocation,
@@ -265,7 +277,8 @@ struct VMBuilder {
 			                       sshAuthorizedKey: arguments.sshAuthorizedKey,
 			                       vendorData: arguments.vendorData,
 			                       userData: arguments.userData,
-			                       networkConfig: arguments.networkConfig)
+			                       networkConfig: arguments.networkConfig,
+								   forwardedPort: arguments.forwardedPort)
 		} else if let ociImage = arguments.ociImage {
 			try await Self.buildVM(vmName: vmName,
 			                       vmLocation: vmLocation,
@@ -281,7 +294,8 @@ struct VMBuilder {
 			                       sshAuthorizedKey: arguments.sshAuthorizedKey,
 			                       vendorData: arguments.vendorData,
 			                       userData: arguments.userData,
-			                       networkConfig: arguments.networkConfig)
+			                       networkConfig: arguments.networkConfig,
+								   forwardedPort: arguments.forwardedPort)
 		} else if let aliasImage = arguments.aliasImage {
 			try await Self.buildVM(vmName: vmName,
 			                       vmLocation: vmLocation,
@@ -298,7 +312,8 @@ struct VMBuilder {
 			                       sshAuthorizedKey: arguments.sshAuthorizedKey,
 			                       vendorData: arguments.vendorData,
 			                       userData: arguments.userData,
-			                       networkConfig: arguments.networkConfig)
+			                       networkConfig: arguments.networkConfig,
+								   forwardedPort: arguments.forwardedPort)
 		} else {
 			throw ServiceError("any image specified")
 		}

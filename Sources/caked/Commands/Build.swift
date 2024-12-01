@@ -1,5 +1,5 @@
 import ArgumentParser
-
+import GRPCLib
 struct Build: AsyncParsableCommand, BuildArguments {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
@@ -59,6 +59,9 @@ struct Build: AsyncParsableCommand, BuildArguments {
 
 	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	var displayRefit: Bool = true
+
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	var forwardedPort: [ForwardedPort] = []
 
 	func validate() throws {
 		if name.contains("/") {

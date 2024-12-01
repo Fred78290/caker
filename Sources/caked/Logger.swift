@@ -1,6 +1,10 @@
 import Foundation
 
 struct Logger {
+	static public func appendError(_ err: Error) {
+		"\(err.localizedDescription)\n".data(using: .utf8).map(FileHandle.standardError.write)
+	}
+
 	static public func appendNewLine(_ line: String) {
 		print(line, terminator: "\n")
 	}

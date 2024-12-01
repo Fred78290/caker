@@ -66,6 +66,9 @@ struct Build: GrpcParsableCommand {
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
 	var networkConfig: String?
 
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	var forwardedPort: [ForwardedPort] = []
+
 	func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
