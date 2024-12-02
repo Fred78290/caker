@@ -3,10 +3,6 @@ import Foundation
 import GRPCLib
 import GRPC
 
-enum Format: String, ExpressibleByArgument {
-	case text, json
-}
-
 struct Get: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "get", abstract: "Get a VM's configuration")
 

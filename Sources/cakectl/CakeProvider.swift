@@ -236,3 +236,29 @@ extension Caked_ConfigureRequest {
 		self.randomMac = command.randomMAC
 	}
 }
+
+extension Caked_RemoteRequest {
+	init(command: Remote.AddRemote) {
+		self.init()
+		var add: Caked_RemoteRequestAdd = Caked_RemoteRequestAdd()
+
+		add.name = command.remote
+		add.url = command.url
+
+		self.command = .add
+		self.add = add
+	}
+
+	init(command: Remote.DeleteRemote) {
+		self.init()
+
+		self.command = .delete
+		self.delete = command.remote
+	}
+
+	init(command: Remote.ListRemote) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+	}
+}

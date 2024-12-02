@@ -23,6 +23,40 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+public enum Caked_Format: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case text // = 0
+  case json // = 1
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .text
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .text
+    case 1: self = .json
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .text: return 0
+    case .json: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Caked_Format] = [
+    .text,
+    .json,
+  ]
+
+}
+
 public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case none // = 0
@@ -104,11 +138,20 @@ public struct Caked_RemoteRequest: Sendable {
     set {request = .delete(newValue)}
   }
 
+  public var format: Caked_Format {
+    get {
+      if case .format(let v)? = request {return v}
+      return .text
+    }
+    set {request = .format(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Request: Equatable, Sendable {
     case add(Caked_RemoteRequestAdd)
     case delete(String)
+    case format(Caked_Format)
 
   }
 
@@ -830,6 +873,13 @@ public struct Caked_Reply: Sendable {
 
 fileprivate let _protobuf_package = "caked"
 
+extension Caked_Format: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "text"),
+    1: .same(proto: "json"),
+  ]
+}
+
 extension Caked_RemoteCommand: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "none"),
@@ -883,6 +933,7 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     1: .same(proto: "command"),
     2: .same(proto: "add"),
     3: .same(proto: "delete"),
+    4: .same(proto: "format"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -913,6 +964,14 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
           self.request = .delete(v)
         }
       }()
+      case 4: try {
+        var v: Caked_Format?
+        try decoder.decodeSingularEnumField(value: &v)
+        if let v = v {
+          if self.request != nil {try decoder.handleConflictingOneOf()}
+          self.request = .format(v)
+        }
+      }()
       default: break
       }
     }
@@ -934,6 +993,10 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     case .delete?: try {
       guard case .delete(let v)? = self.request else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    }()
+    case .format?: try {
+      guard case .format(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }

@@ -46,7 +46,7 @@ struct Client: AsyncParsableCommand {
 				"--tls-cert",
 				"--tls-key",
 				"-i",
-				"-l",
+				"-a",
 				"-c",
 				"-t",
 				"-k"
@@ -72,7 +72,7 @@ struct Client: AsyncParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Caked run as system agent")
 		var asSystem: Bool = false
 
-		@Option(name: [.customLong("address"), .customShort("l")], help: "connect to address")
+		@Option(name: [.customLong("address"), .customShort("a")], help: "connect to address")
 		var address: String = try! Client.getDefaultServerAddress(asSystem: false)
 
 		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
@@ -139,6 +139,7 @@ struct Client: AsyncParsableCommand {
 			Create.self,
 			Clone.self,
 			Configure.self,
+			Remote.self,
 			Get.self,
 			Launch.self,
 			List.self,

@@ -4,6 +4,7 @@ struct Home {
 	let homeDir: URL
 	let cacheDir: URL
 	let temporaryDir: URL
+	let remoteDb: URL
 
 	init(asSystem: Bool) throws {
 		var baseDir: URL
@@ -27,10 +28,19 @@ struct Home {
 		}
 
 		self.homeDir = baseDir
-		self.cacheDir = baseDir.appendingPathComponent("cache", isDirectory: true)
-		self.temporaryDir = baseDir.appendingPathComponent("tmp", isDirectory: true)
+		self.cacheDir = baseDir.appendingPathComponent("cache", isDirectory: true).absoluteURL
+		self.temporaryDir = baseDir.appendingPathComponent("tmp", isDirectory: true).absoluteURL
+		self.remoteDb = baseDir.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
 
 		try FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
 		try FileManager.default.createDirectory(at: temporaryDir, withIntermediateDirectories: true)
+
+		if try self.remoteDb.exists() == false {
+			try "{}".write(to: self.remoteDb, atomically: true, encoding: .utf8)
+		}
+	}
+
+	func remoteDatabase() throws -> Dictionary<String, String> {
+		return try Dictionary<String, String>(contentsOf: self.remoteDb)
 	}
 }

@@ -21,6 +21,11 @@ service Service {
 //	rpc Stream(stream Bytes) returns (stream Bytes);
 }
 
+enum Format {
+	text = 0;
+	json = 1;
+}
+
 enum RemoteCommand {
 	none = 0;
 	add = 1;
@@ -38,6 +43,7 @@ message RemoteRequest {
 	oneof request {
 		RemoteRequestAdd add = 2;
 		string delete = 3;
+		Format format = 4;
 	}
 }
 
