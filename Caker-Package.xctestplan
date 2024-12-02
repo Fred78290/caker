@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "F653144B-8511-4E1E-BDE1-86950BD67221",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "cakectl",
+      "name" : "cakectl"
+    }
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : false,
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CakerTests",
+        "name" : "CakerTests"
+      }
+    }
+  ],
+  "version" : 1
+}

@@ -130,3 +130,13 @@ extension URL: Purgeable {
 		}
 	}
 }
+
+extension String {
+	func stringAfter(after: String) -> String {
+		if let r = self.range(of: after) {
+			return String(self[r.upperBound..<self.endIndex])
+		} else {
+			return self
+		}
+	}
+}

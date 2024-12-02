@@ -3,14 +3,8 @@ import Foundation
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
 	public let terminationStatus: Int32
-	/// The error message as a UTF8 string, as returned through `STDERR`
-	public var message: String { return errorData.shellOutput() }
-	/// The raw error buffer data, as returned through `STDERR`
-	public let errorData: Data
-	/// The raw output buffer data, as retuned through `STDOUT`
-	public let outputData: Data
-	/// The output of the command as a UTF8 string, as returned through `STDOUT`
-	public var output: String { return outputData.shellOutput() }
+	public let outputError: String
+	public let outputMessage: String
 }
 
 struct Shell {
@@ -190,18 +184,18 @@ private extension Process {
 			if terminationStatus != 0 {
 				throw ShellError(
 					terminationStatus: terminationStatus,
-					errorData: errorData,
-					outputData: outputData
+					outputError: errorData.toString(),
+					outputMessage: outputData.toString()
 				)
 			}
 
-			return outputData.shellOutput()
+			return outputData.toString()
 		}
 	}
 }
 
 private extension Data {
-	func shellOutput() -> String {
+	func toString() -> String {
 		guard let output = String(data: self, encoding: .utf8) else {
 			return ""
 		}

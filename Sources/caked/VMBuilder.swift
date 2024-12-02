@@ -31,7 +31,7 @@ struct VMBuilder {
 		config.netHost = options.netHost
 		config.mounts = options.mounts
 
-		try config.save(to: vmLocation.rootURL)
+		try config.save(to: vmLocation.configURL)
 
 		let cloudInit = try CloudInit(userName: options.user,
 												 mainGroup: options.mainGroup,
@@ -72,9 +72,8 @@ struct VMBuilder {
 		} else if imageURL.scheme == "http" || imageURL.scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL)
 		} else if imageURL.scheme == "oci" {
-			let range = options.image.index(options.image.startIndex, offsetBy: "oci://".count)..<options.image.endIndex
-			let ociImage = String(options.image[range])
-			
+			let ociImage = options.image.stringAfter(after: "oci://")
+
 			try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
 
 			let clonedLocation = try StorageLocation(asSystem: runAsSystem).find(vmName)
@@ -83,7 +82,7 @@ struct VMBuilder {
 
 			try FileManager.default.removeItem(at: clonedLocation.rootURL)
 		} else if let remote = remotes.first(where: { start in return options.image.starts(with: start) }) {
-			let aliasImage = imageURL.path()
+			let aliasImage: Dictionary<String, String>.Keys.Element = options.image.stringAfter(after: remote+":")
 			let remoteContainerServer = remoteDb.get(remote)!
 
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {

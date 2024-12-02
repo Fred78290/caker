@@ -87,8 +87,8 @@ final class CloudInitTests: XCTestCase {
 		} catch {
 			let error = error as! ShellError
 
-			Logger.appendNewLine(error.message)
-			Logger.appendNewLine(error.output)
+			Logger.appendNewLine(error.outputError)
+			Logger.appendNewLine(error.outputMessage)
 
 			throw error
 		}
@@ -103,8 +103,8 @@ final class CloudInitTests: XCTestCase {
 		} catch {
 			let error = error as! ShellError
 
-			Logger.appendNewLine(error.message)
-			Logger.appendNewLine(error.output)
+			Logger.appendNewLine(error.outputError)
+			Logger.appendNewLine(error.outputMessage)
 
 			throw error
 		}
@@ -172,7 +172,7 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithOCI() async throws {
-		try await buildVM(name: "noble-oci-image", image: "oci://devregistry.aldunelabs.com/ubuntu:latest")
+		try await buildVM(name: "noble-oci-image", image: "oci://ghcr.io/cirruslabs/ubuntu:latest")
 	}
 
 	func testBuildVMWithContainer() async throws {

@@ -101,7 +101,7 @@ struct Root: AsyncParsableCommand {
 			}
 		} catch {
 			if let shellError = error as? ShellError {
-				fputs("\(shellError.message)\n", stderr)
+				fputs("\(shellError.outputError)\n", stderr)
 				Foundation.exit(shellError.terminationStatus)
 			}
 
