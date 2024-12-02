@@ -38,7 +38,7 @@ struct Remote: ParsableCommand {
 		var format: Format = .text
 
 		mutating func run() throws {
-			let result = try RemoteHandler.listRemote(asSystem: false)
+			let result: [RemoteEntry] = try RemoteHandler.listRemote(asSystem: false)
 
 			Logger.appendNewLine(format.renderList(result))
 		}

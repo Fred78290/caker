@@ -105,9 +105,9 @@ struct CakeConfig {
 		get { self.cake["nested"] as? Bool ?? false }
 	}
 
-	var dir: [String] {
-		set { self.cake["dir"] = newValue }
-		get { self.cake["dir"] as? [String] ?? []}
+	var mounts: [String] {
+		set { self.cake["mounts"] = newValue }
+		get { self.cake["mounts"] as? [String] ?? []}
 	}
 
 	var netBridged: [String] {

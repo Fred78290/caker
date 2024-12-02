@@ -25,8 +25,8 @@ struct Configure: AsyncParsableCommand, ConfigureArguments {
 	@Option(help: ArgumentHelp("Enable nested virtualization if possible"))
 	var nested: Bool?
 
-	@Option(help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
-	var dir: [String] = ["unset"]
+	@Option(name: [.customLong("mount")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
+	var mount: [String] = ["unset"]
 
 	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
 	var netBridged: [String] = ["unset"]
@@ -43,23 +43,23 @@ struct Configure: AsyncParsableCommand, ConfigureArguments {
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	var randomMAC: Bool = false
 
-	var mount: [String]? {
+	var mounts: [String]? {
 		get {
-			if dir.contains("unset") == false {
+			if mount.contains("unset") == false {
 				return nil
 			}
 			
-			return dir
+			return mount
 		}
 	}
 	
 	var bridged: [String]? {
 		get {
-			if dir.contains("unset") == false {
+			if netBridged.contains("unset") == false {
 				return nil
 			}
 			
-			return dir
+			return netBridged
 		}
 	}
 

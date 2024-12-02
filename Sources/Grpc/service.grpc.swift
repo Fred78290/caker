@@ -32,9 +32,9 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
   ) -> UnaryCall<Caked_CakedCommandRequest, Caked_Reply>
 
   func launch(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply>
 
   func login(
     _ request: Caked_LoginRequest,
@@ -123,9 +123,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func launch(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
@@ -285,9 +285,9 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   ) -> GRPCAsyncUnaryCall<Caked_CakedCommandRequest, Caked_Reply>
 
   func makeLaunchCall(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply>
 
   func makeLoginCall(
     _ request: Caked_LoginRequest,
@@ -357,9 +357,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeLaunchCall(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
@@ -456,7 +456,7 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func launch(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_BuildRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
@@ -545,7 +545,7 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'launch'.
-  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>]
+  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'login'.
   func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>]
@@ -638,7 +638,7 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func cakeCommand(request: Caked_CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func launch(request: Caked_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func launch(request: Caked_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func login(request: Caked_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -691,7 +691,7 @@ extension Caked_ServiceProvider {
     case "Launch":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         userFunction: self.launch(request:context:)
@@ -762,7 +762,7 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   ) async throws -> Caked_Reply
 
   func launch(
-    request: Caked_LaunchRequest,
+    request: Caked_BuildRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
@@ -836,7 +836,7 @@ extension Caked_ServiceAsyncProvider {
     case "Launch":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         wrapping: { try await self.launch(request: $0, context: $1) }
@@ -900,7 +900,7 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_LaunchRequest, Caked_Reply>]
+  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_BuildRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'login'.
   ///   Defaults to calling `self.makeInterceptors()`.

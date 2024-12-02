@@ -43,79 +43,128 @@ extension Caked_CakedCommandRequest: CreateCakedCommand {
 
 extension Caked_BuildRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
-		var command = BuildHandler(name: self.name)
+		var options = BuildOptions()
+
+		options.name = self.name
+		options.displayRefit = false
 
 		if self.hasCpu {
-			command.cpu = UInt16(self.cpu)
+			options.cpu = UInt16(self.cpu)
+		} else {
+			options.cpu = 1
 		}
 
 		if self.hasMemory {
-			command.memory = UInt64(self.memory)
+			options.memory = UInt64(self.memory)
+		} else {
+			options.memory = 512
 		}
 
 		if self.hasDiskSize {
-			command.diskSize = UInt16(self.diskSize)
+			options.diskSize = UInt16(self.diskSize)
+		} else {
+			options.diskSize = 10
 		}
 
 		if self.hasUser {
-			command.user = self.user
+			options.user = self.user
+		} else {
+			options.user = "admin"
+		}
+
+		if self.hasMainGroup {
+			options.mainGroup = self.mainGroup
+		} else {
+			options.mainGroup = "admin"
 		}
 
 		if self.hasSshPwAuth {
-			command.clearPassword = self.sshPwAuth
+			options.clearPassword = self.sshPwAuth
+		} else {
+			options.clearPassword = false
 		}
 
 		if self.hasNested {
-			command.nested = self.nested
+			options.nested = self.nested
+		} else {
+			options.nested = true
 		}
 
 		if self.hasAutostart {
-			command.autostart = self.autostart
+			options.autostart = self.autostart
+		} else {
+			options.autostart = false
 		}
 
-		if self.hasCloudImage {
-			command.cloudImage = self.cloudImage
-		}
-
-		if self.hasAliasImage {
-			command.aliasImage = self.aliasImage
-		}
-
-		if self.hasFromImage {
-			command.fromImage = self.fromImage
-		}
-
-		if self.hasOciImage {
-			command.ociImage = self.ociImage
-		}
-
-		if self.hasRemoteContainerServer {
-			command.remoteContainerServer = self.remoteContainerServer
+		if self.hasImage {
+			options.image = self.image
+		} else {
+			options.image = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 		}
 
 		if self.hasSshAuthorizedKey {
-			command.sshAuthorizedKey = try? saveToTempFile(self.sshAuthorizedKey)
+			options.sshAuthorizedKey = try? saveToTempFile(self.sshAuthorizedKey)
+		} else {
+			options.sshAuthorizedKey = nil
 		}
 
 		if self.hasUserData {
-			command.userData = try? saveToTempFile(self.userData)
+			options.userData = try? saveToTempFile(self.userData)
+		} else {
+			options.userData = nil
 		}
 
 		if self.hasVendorData {
-			command.vendorData = try? saveToTempFile(self.vendorData)
+			options.vendorData = try? saveToTempFile(self.vendorData)
+		} else {
+			options.vendorData = nil
 		}
 
 		if self.hasNetworkConfig {
-			command.networkConfig = try? saveToTempFile(self.networkConfig)
+			options.networkConfig = try? saveToTempFile(self.networkConfig)
+		} else {
+			options.networkConfig = nil
 		}
 
 		if self.hasForwardedPort {
-			command.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
+			options.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
 				return ForwardedPort(argument: argument)
 			}
+		} else {
+			options.forwardedPort = []
 		}
 
-		return command
+		if self.hasMounts {
+			options.mounts = self.mounts.components(separatedBy: ",")
+		} else {
+			options.mounts = []
+		}
+
+		if self.hasNetBridged {
+			options.netBridged = self.netBridged.components(separatedBy: ",")
+		} else {
+			options.netBridged = []
+		}
+
+		if self.hasNetHost {
+			options.netHost = self.netHost
+		} else {
+			options.netHost = false
+		}
+
+		if self.hasNetSofnet {
+			options.netSoftnet = self.netSofnet
+		} else {
+			options.netSoftnet = false
+		}
+
+		if self.hasNetSoftnetAllow {
+			options.netSoftnetAllow = self.netSoftnetAllow
+		} else {
+			options.netSoftnetAllow = nil
+		}
+
+		return BuildHandler(options: options)
 	}
 }
 
@@ -137,100 +186,6 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 
     return command
   }
-}
-
-extension Caked_LaunchRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		var command = LaunchHandler(name: self.name)
-
-		if self.hasForwardedPort {
-			command.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
-				return ForwardedPort(argument: argument)
-			}
-		}
-
-		if self.hasDir {
-			command.dir = self.dir.components(separatedBy: ",")
-		}
-
-		if self.hasNetBridged {
-			command.netBridged = self.netBridged.components(separatedBy: ",")
-		}
-
-		if self.hasNetHost {
-			command.netHost = self.netHost
-		}
-
-		if self.hasNetSofnet {
-			command.netSoftnet = self.netSofnet
-		}
-
-		if self.hasCpu {
-			command.cpu = UInt16(self.cpu)
-		}
-
-		if self.hasMemory {
-			command.memory = UInt64(self.memory)
-		}
-
-		if self.hasDiskSize {
-			command.diskSize = UInt16(self.diskSize)
-		}
-
-		if self.hasUser {
-			command.user = self.user
-		}
-
-		if self.hasSshPwAuth {
-			command.clearPassword = self.sshPwAuth
-		}
-
-		if self.hasAutostart {
-			command.autostart = self.autostart
-		}
-
-		if self.hasCloudImage {
-			command.cloudImage = self.cloudImage
-		}
-
-		if self.hasAliasImage {
-			command.aliasImage = self.aliasImage
-		}
-
-		if self.hasFromImage {
-			command.fromImage = self.fromImage
-		}
-
-		if self.hasOciImage {
-			command.ociImage = self.ociImage
-		}
-
-		if self.hasRemoteContainerServer {
-			command.remoteContainerServer = self.remoteContainerServer
-		}
-
-		if self.hasSshAuthorizedKey {
-			command.sshAuthorizedKey = try? saveToTempFile(self.sshAuthorizedKey)
-		}
-
-		if self.hasUserData {
-			command.userData = try? saveToTempFile(self.userData)
-		}
-
-		if self.hasVendorData {
-			command.vendorData = try? saveToTempFile(self.vendorData)
-		}
-
-		if self.hasNetworkConfig {
-			command.networkConfig = try? saveToTempFile(self.networkConfig)
-		}
-
-		if self.hasNested {
-			command.nested = self.nested
-		}
-
-		return command
-	}
 }
 
 extension Caked_ConfigureRequest: CreateCakedCommand {
@@ -297,7 +252,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try await self.execute(command: request)
 	}
 	
-	func launch(request: Caked_LaunchRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
+	func launch(request: Caked_BuildRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}

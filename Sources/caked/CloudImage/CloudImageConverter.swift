@@ -46,23 +46,16 @@ class CloudImageConverter {
 		}
 	}
 
-	static func downloadLinuxImage(remoteURL: URL) async throws -> URL{
-		// Check if we already have this linux image in cache
-		let fileName = (remoteURL.lastPathComponent as NSString).deletingPathExtension
-		let imageCache = try CloudImageCache(name: remoteURL.host()!)
-		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
-
-		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
-			try cacheLocation.updateAccessDate()
-			return cacheLocation
+	static func downloadLinuxImage(fromURL: URL, toURL: URL) async throws -> URL{
+		if FileManager.default.fileExists(atPath: toURL.path()) {
+			throw ServiceError("file already exists: \(toURL.path())")
 		}
 
 		// Download the cloud-image
-		Logger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
+		Logger.appendNewLine("Fetching \(fromURL.lastPathComponent)...")
 
 		let downloadProgress = Progress(totalUnitCount: 100)
-		let channel = try await Curl(fromURL: remoteURL).get(progress: downloadProgress)
+		let channel = try await Curl(fromURL: fromURL).get(progress: downloadProgress)
 		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
 		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
@@ -88,7 +81,22 @@ class CloudImageConverter {
 			}
 		}
 
-		return try FileManager.default.replaceItemAt(cacheLocation, withItemAt: temporaryLocation)!
+		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
+	}
+
+	static func downloadLinuxImage(remoteURL: URL) async throws -> URL{
+		// Check if we already have this linux image in cache
+		let fileName = (remoteURL.lastPathComponent as NSString).deletingPathExtension
+		let imageCache = try CloudImageCache(name: remoteURL.host()!)
+		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
+
+		if FileManager.default.fileExists(atPath: cacheLocation.path) {
+			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
+			try cacheLocation.updateAccessDate()
+			return cacheLocation
+		}
+
+		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation)
 	}
 
 	static func retrieveCloudImageAndConvert(from: URL, to: URL) async throws {

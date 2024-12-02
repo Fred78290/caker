@@ -239,50 +239,14 @@ public struct Caked_BuildRequest: @unchecked Sendable {
   /// Clears the value of `sshPwAuth`. Subsequent reads from it will return its default value.
   public mutating func clearSshPwAuth() {_uniqueStorage()._sshPwAuth = nil}
 
-  public var cloudImage: String {
-    get {return _storage._cloudImage ?? String()}
-    set {_uniqueStorage()._cloudImage = newValue}
+  public var image: String {
+    get {return _storage._image ?? String()}
+    set {_uniqueStorage()._image = newValue}
   }
-  /// Returns true if `cloudImage` has been explicitly set.
-  public var hasCloudImage: Bool {return _storage._cloudImage != nil}
-  /// Clears the value of `cloudImage`. Subsequent reads from it will return its default value.
-  public mutating func clearCloudImage() {_uniqueStorage()._cloudImage = nil}
-
-  public var remoteContainerServer: String {
-    get {return _storage._remoteContainerServer ?? String()}
-    set {_uniqueStorage()._remoteContainerServer = newValue}
-  }
-  /// Returns true if `remoteContainerServer` has been explicitly set.
-  public var hasRemoteContainerServer: Bool {return _storage._remoteContainerServer != nil}
-  /// Clears the value of `remoteContainerServer`. Subsequent reads from it will return its default value.
-  public mutating func clearRemoteContainerServer() {_uniqueStorage()._remoteContainerServer = nil}
-
-  public var aliasImage: String {
-    get {return _storage._aliasImage ?? String()}
-    set {_uniqueStorage()._aliasImage = newValue}
-  }
-  /// Returns true if `aliasImage` has been explicitly set.
-  public var hasAliasImage: Bool {return _storage._aliasImage != nil}
-  /// Clears the value of `aliasImage`. Subsequent reads from it will return its default value.
-  public mutating func clearAliasImage() {_uniqueStorage()._aliasImage = nil}
-
-  public var fromImage: String {
-    get {return _storage._fromImage ?? String()}
-    set {_uniqueStorage()._fromImage = newValue}
-  }
-  /// Returns true if `fromImage` has been explicitly set.
-  public var hasFromImage: Bool {return _storage._fromImage != nil}
-  /// Clears the value of `fromImage`. Subsequent reads from it will return its default value.
-  public mutating func clearFromImage() {_uniqueStorage()._fromImage = nil}
-
-  public var ociImage: String {
-    get {return _storage._ociImage ?? String()}
-    set {_uniqueStorage()._ociImage = newValue}
-  }
-  /// Returns true if `ociImage` has been explicitly set.
-  public var hasOciImage: Bool {return _storage._ociImage != nil}
-  /// Clears the value of `ociImage`. Subsequent reads from it will return its default value.
-  public mutating func clearOciImage() {_uniqueStorage()._ociImage = nil}
+  /// Returns true if `image` has been explicitly set.
+  public var hasImage: Bool {return _storage._image != nil}
+  /// Clears the value of `image`. Subsequent reads from it will return its default value.
+  public mutating func clearImage() {_uniqueStorage()._image = nil}
 
   public var sshAuthorizedKey: Data {
     get {return _storage._sshAuthorizedKey ?? Data()}
@@ -356,166 +320,14 @@ public struct Caked_BuildRequest: @unchecked Sendable {
   /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
   public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
-  public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-  public init() {}
-
-  fileprivate var _storage = _StorageClass.defaultInstance
-}
-
-public struct Caked_LaunchRequest: @unchecked Sendable {
-  // SwiftProtobuf.Message conformance is added in an extension below. See the
-  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-  // methods supported on all messages.
-
-  public var name: String {
-    get {return _storage._name}
-    set {_uniqueStorage()._name = newValue}
+  public var mounts: String {
+    get {return _storage._mounts ?? String()}
+    set {_uniqueStorage()._mounts = newValue}
   }
-
-  public var cpu: Int32 {
-    get {return _storage._cpu ?? 0}
-    set {_uniqueStorage()._cpu = newValue}
-  }
-  /// Returns true if `cpu` has been explicitly set.
-  public var hasCpu: Bool {return _storage._cpu != nil}
-  /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
-  public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
-
-  public var memory: Int32 {
-    get {return _storage._memory ?? 0}
-    set {_uniqueStorage()._memory = newValue}
-  }
-  /// Returns true if `memory` has been explicitly set.
-  public var hasMemory: Bool {return _storage._memory != nil}
-  /// Clears the value of `memory`. Subsequent reads from it will return its default value.
-  public mutating func clearMemory() {_uniqueStorage()._memory = nil}
-
-  public var user: String {
-    get {return _storage._user ?? String()}
-    set {_uniqueStorage()._user = newValue}
-  }
-  /// Returns true if `user` has been explicitly set.
-  public var hasUser: Bool {return _storage._user != nil}
-  /// Clears the value of `user`. Subsequent reads from it will return its default value.
-  public mutating func clearUser() {_uniqueStorage()._user = nil}
-
-  public var mainGroup: String {
-    get {return _storage._mainGroup ?? String()}
-    set {_uniqueStorage()._mainGroup = newValue}
-  }
-  /// Returns true if `mainGroup` has been explicitly set.
-  public var hasMainGroup: Bool {return _storage._mainGroup != nil}
-  /// Clears the value of `mainGroup`. Subsequent reads from it will return its default value.
-  public mutating func clearMainGroup() {_uniqueStorage()._mainGroup = nil}
-
-  public var sshPwAuth: Bool {
-    get {return _storage._sshPwAuth ?? false}
-    set {_uniqueStorage()._sshPwAuth = newValue}
-  }
-  /// Returns true if `sshPwAuth` has been explicitly set.
-  public var hasSshPwAuth: Bool {return _storage._sshPwAuth != nil}
-  /// Clears the value of `sshPwAuth`. Subsequent reads from it will return its default value.
-  public mutating func clearSshPwAuth() {_uniqueStorage()._sshPwAuth = nil}
-
-  public var cloudImage: String {
-    get {return _storage._cloudImage ?? String()}
-    set {_uniqueStorage()._cloudImage = newValue}
-  }
-  /// Returns true if `cloudImage` has been explicitly set.
-  public var hasCloudImage: Bool {return _storage._cloudImage != nil}
-  /// Clears the value of `cloudImage`. Subsequent reads from it will return its default value.
-  public mutating func clearCloudImage() {_uniqueStorage()._cloudImage = nil}
-
-  public var remoteContainerServer: String {
-    get {return _storage._remoteContainerServer ?? String()}
-    set {_uniqueStorage()._remoteContainerServer = newValue}
-  }
-  /// Returns true if `remoteContainerServer` has been explicitly set.
-  public var hasRemoteContainerServer: Bool {return _storage._remoteContainerServer != nil}
-  /// Clears the value of `remoteContainerServer`. Subsequent reads from it will return its default value.
-  public mutating func clearRemoteContainerServer() {_uniqueStorage()._remoteContainerServer = nil}
-
-  public var aliasImage: String {
-    get {return _storage._aliasImage ?? String()}
-    set {_uniqueStorage()._aliasImage = newValue}
-  }
-  /// Returns true if `aliasImage` has been explicitly set.
-  public var hasAliasImage: Bool {return _storage._aliasImage != nil}
-  /// Clears the value of `aliasImage`. Subsequent reads from it will return its default value.
-  public mutating func clearAliasImage() {_uniqueStorage()._aliasImage = nil}
-
-  public var fromImage: String {
-    get {return _storage._fromImage ?? String()}
-    set {_uniqueStorage()._fromImage = newValue}
-  }
-  /// Returns true if `fromImage` has been explicitly set.
-  public var hasFromImage: Bool {return _storage._fromImage != nil}
-  /// Clears the value of `fromImage`. Subsequent reads from it will return its default value.
-  public mutating func clearFromImage() {_uniqueStorage()._fromImage = nil}
-
-  public var ociImage: String {
-    get {return _storage._ociImage ?? String()}
-    set {_uniqueStorage()._ociImage = newValue}
-  }
-  /// Returns true if `ociImage` has been explicitly set.
-  public var hasOciImage: Bool {return _storage._ociImage != nil}
-  /// Clears the value of `ociImage`. Subsequent reads from it will return its default value.
-  public mutating func clearOciImage() {_uniqueStorage()._ociImage = nil}
-
-  public var sshAuthorizedKey: Data {
-    get {return _storage._sshAuthorizedKey ?? Data()}
-    set {_uniqueStorage()._sshAuthorizedKey = newValue}
-  }
-  /// Returns true if `sshAuthorizedKey` has been explicitly set.
-  public var hasSshAuthorizedKey: Bool {return _storage._sshAuthorizedKey != nil}
-  /// Clears the value of `sshAuthorizedKey`. Subsequent reads from it will return its default value.
-  public mutating func clearSshAuthorizedKey() {_uniqueStorage()._sshAuthorizedKey = nil}
-
-  public var vendorData: Data {
-    get {return _storage._vendorData ?? Data()}
-    set {_uniqueStorage()._vendorData = newValue}
-  }
-  /// Returns true if `vendorData` has been explicitly set.
-  public var hasVendorData: Bool {return _storage._vendorData != nil}
-  /// Clears the value of `vendorData`. Subsequent reads from it will return its default value.
-  public mutating func clearVendorData() {_uniqueStorage()._vendorData = nil}
-
-  public var userData: Data {
-    get {return _storage._userData ?? Data()}
-    set {_uniqueStorage()._userData = newValue}
-  }
-  /// Returns true if `userData` has been explicitly set.
-  public var hasUserData: Bool {return _storage._userData != nil}
-  /// Clears the value of `userData`. Subsequent reads from it will return its default value.
-  public mutating func clearUserData() {_uniqueStorage()._userData = nil}
-
-  public var networkConfig: Data {
-    get {return _storage._networkConfig ?? Data()}
-    set {_uniqueStorage()._networkConfig = newValue}
-  }
-  /// Returns true if `networkConfig` has been explicitly set.
-  public var hasNetworkConfig: Bool {return _storage._networkConfig != nil}
-  /// Clears the value of `networkConfig`. Subsequent reads from it will return its default value.
-  public mutating func clearNetworkConfig() {_uniqueStorage()._networkConfig = nil}
-
-  public var diskSize: Int32 {
-    get {return _storage._diskSize ?? 0}
-    set {_uniqueStorage()._diskSize = newValue}
-  }
-  /// Returns true if `diskSize` has been explicitly set.
-  public var hasDiskSize: Bool {return _storage._diskSize != nil}
-  /// Clears the value of `diskSize`. Subsequent reads from it will return its default value.
-  public mutating func clearDiskSize() {_uniqueStorage()._diskSize = nil}
-
-  public var dir: String {
-    get {return _storage._dir ?? String()}
-    set {_uniqueStorage()._dir = newValue}
-  }
-  /// Returns true if `dir` has been explicitly set.
-  public var hasDir: Bool {return _storage._dir != nil}
-  /// Clears the value of `dir`. Subsequent reads from it will return its default value.
-  public mutating func clearDir() {_uniqueStorage()._dir = nil}
+  /// Returns true if `mounts` has been explicitly set.
+  public var hasMounts: Bool {return _storage._mounts != nil}
+  /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
+  public mutating func clearMounts() {_uniqueStorage()._mounts = nil}
 
   public var netBridged: String {
     get {return _storage._netBridged ?? String()}
@@ -552,33 +364,6 @@ public struct Caked_LaunchRequest: @unchecked Sendable {
   public var hasNetHost: Bool {return _storage._netHost != nil}
   /// Clears the value of `netHost`. Subsequent reads from it will return its default value.
   public mutating func clearNetHost() {_uniqueStorage()._netHost = nil}
-
-  public var nested: Bool {
-    get {return _storage._nested ?? false}
-    set {_uniqueStorage()._nested = newValue}
-  }
-  /// Returns true if `nested` has been explicitly set.
-  public var hasNested: Bool {return _storage._nested != nil}
-  /// Clears the value of `nested`. Subsequent reads from it will return its default value.
-  public mutating func clearNested() {_uniqueStorage()._nested = nil}
-
-  public var autostart: Bool {
-    get {return _storage._autostart ?? false}
-    set {_uniqueStorage()._autostart = newValue}
-  }
-  /// Returns true if `autostart` has been explicitly set.
-  public var hasAutostart: Bool {return _storage._autostart != nil}
-  /// Clears the value of `autostart`. Subsequent reads from it will return its default value.
-  public mutating func clearAutostart() {_uniqueStorage()._autostart = nil}
-
-  public var forwardedPort: String {
-    get {return _storage._forwardedPort ?? String()}
-    set {_uniqueStorage()._forwardedPort = newValue}
-  }
-  /// Returns true if `forwardedPort` has been explicitly set.
-  public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
-  /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
-  public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -1090,19 +875,20 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     4: .same(proto: "user"),
     5: .same(proto: "mainGroup"),
     6: .same(proto: "sshPwAuth"),
-    7: .same(proto: "cloudImage"),
-    8: .same(proto: "remoteContainerServer"),
-    9: .same(proto: "aliasImage"),
-    10: .same(proto: "fromImage"),
-    11: .same(proto: "ociImage"),
-    12: .same(proto: "sshAuthorizedKey"),
-    13: .same(proto: "vendorData"),
-    14: .same(proto: "userData"),
-    15: .same(proto: "networkConfig"),
-    16: .same(proto: "diskSize"),
-    17: .same(proto: "autostart"),
-    18: .same(proto: "nested"),
-    19: .same(proto: "forwardedPort"),
+    7: .same(proto: "image"),
+    8: .same(proto: "sshAuthorizedKey"),
+    9: .same(proto: "vendorData"),
+    10: .same(proto: "userData"),
+    11: .same(proto: "networkConfig"),
+    12: .same(proto: "diskSize"),
+    13: .same(proto: "autostart"),
+    14: .same(proto: "nested"),
+    15: .same(proto: "forwardedPort"),
+    16: .same(proto: "mounts"),
+    17: .same(proto: "netBridged"),
+    18: .same(proto: "netSofnet"),
+    19: .same(proto: "netSoftnetAllow"),
+    21: .same(proto: "netHost"),
   ]
 
   fileprivate class _StorageClass {
@@ -1112,11 +898,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _user: String? = nil
     var _mainGroup: String? = nil
     var _sshPwAuth: Bool? = nil
-    var _cloudImage: String? = nil
-    var _remoteContainerServer: String? = nil
-    var _aliasImage: String? = nil
-    var _fromImage: String? = nil
-    var _ociImage: String? = nil
+    var _image: String? = nil
     var _sshAuthorizedKey: Data? = nil
     var _vendorData: Data? = nil
     var _userData: Data? = nil
@@ -1125,6 +907,11 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _autostart: Bool? = nil
     var _nested: Bool? = nil
     var _forwardedPort: String? = nil
+    var _mounts: String? = nil
+    var _netBridged: String? = nil
+    var _netSofnet: Bool? = nil
+    var _netSoftnetAllow: String? = nil
+    var _netHost: Bool? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -1145,11 +932,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _user = source._user
       _mainGroup = source._mainGroup
       _sshPwAuth = source._sshPwAuth
-      _cloudImage = source._cloudImage
-      _remoteContainerServer = source._remoteContainerServer
-      _aliasImage = source._aliasImage
-      _fromImage = source._fromImage
-      _ociImage = source._ociImage
+      _image = source._image
       _sshAuthorizedKey = source._sshAuthorizedKey
       _vendorData = source._vendorData
       _userData = source._userData
@@ -1158,6 +941,11 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _autostart = source._autostart
       _nested = source._nested
       _forwardedPort = source._forwardedPort
+      _mounts = source._mounts
+      _netBridged = source._netBridged
+      _netSofnet = source._netSofnet
+      _netSoftnetAllow = source._netSoftnetAllow
+      _netHost = source._netHost
     }
   }
 
@@ -1182,19 +970,20 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 4: try { try decoder.decodeSingularStringField(value: &_storage._user) }()
         case 5: try { try decoder.decodeSingularStringField(value: &_storage._mainGroup) }()
         case 6: try { try decoder.decodeSingularBoolField(value: &_storage._sshPwAuth) }()
-        case 7: try { try decoder.decodeSingularStringField(value: &_storage._cloudImage) }()
-        case 8: try { try decoder.decodeSingularStringField(value: &_storage._remoteContainerServer) }()
-        case 9: try { try decoder.decodeSingularStringField(value: &_storage._aliasImage) }()
-        case 10: try { try decoder.decodeSingularStringField(value: &_storage._fromImage) }()
-        case 11: try { try decoder.decodeSingularStringField(value: &_storage._ociImage) }()
-        case 12: try { try decoder.decodeSingularBytesField(value: &_storage._sshAuthorizedKey) }()
-        case 13: try { try decoder.decodeSingularBytesField(value: &_storage._vendorData) }()
-        case 14: try { try decoder.decodeSingularBytesField(value: &_storage._userData) }()
-        case 15: try { try decoder.decodeSingularBytesField(value: &_storage._networkConfig) }()
-        case 16: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
-        case 17: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
-        case 18: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
-        case 19: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._image) }()
+        case 8: try { try decoder.decodeSingularBytesField(value: &_storage._sshAuthorizedKey) }()
+        case 9: try { try decoder.decodeSingularBytesField(value: &_storage._vendorData) }()
+        case 10: try { try decoder.decodeSingularBytesField(value: &_storage._userData) }()
+        case 11: try { try decoder.decodeSingularBytesField(value: &_storage._networkConfig) }()
+        case 12: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
+        case 13: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
+        case 14: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
+        case 15: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
+        case 16: try { try decoder.decodeSingularStringField(value: &_storage._mounts) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._netBridged) }()
+        case 18: try { try decoder.decodeSingularBoolField(value: &_storage._netSofnet) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._netSoftnetAllow) }()
+        case 21: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
         default: break
         }
       }
@@ -1225,44 +1014,47 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       try { if let v = _storage._sshPwAuth {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
       } }()
-      try { if let v = _storage._cloudImage {
+      try { if let v = _storage._image {
         try visitor.visitSingularStringField(value: v, fieldNumber: 7)
       } }()
-      try { if let v = _storage._remoteContainerServer {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
-      } }()
-      try { if let v = _storage._aliasImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 9)
-      } }()
-      try { if let v = _storage._fromImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 10)
-      } }()
-      try { if let v = _storage._ociImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 11)
-      } }()
       try { if let v = _storage._sshAuthorizedKey {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 12)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 8)
       } }()
       try { if let v = _storage._vendorData {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 13)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 9)
       } }()
       try { if let v = _storage._userData {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 14)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 10)
       } }()
       try { if let v = _storage._networkConfig {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 15)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 11)
       } }()
       try { if let v = _storage._diskSize {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 16)
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 12)
       } }()
       try { if let v = _storage._autostart {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 17)
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 13)
       } }()
       try { if let v = _storage._nested {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 18)
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 14)
       } }()
       try { if let v = _storage._forwardedPort {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 15)
+      } }()
+      try { if let v = _storage._mounts {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 16)
+      } }()
+      try { if let v = _storage._netBridged {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 17)
+      } }()
+      try { if let v = _storage._netSofnet {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 18)
+      } }()
+      try { if let v = _storage._netSoftnetAllow {
         try visitor.visitSingularStringField(value: v, fieldNumber: 19)
+      } }()
+      try { if let v = _storage._netHost {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 21)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -1279,11 +1071,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._user != rhs_storage._user {return false}
         if _storage._mainGroup != rhs_storage._mainGroup {return false}
         if _storage._sshPwAuth != rhs_storage._sshPwAuth {return false}
-        if _storage._cloudImage != rhs_storage._cloudImage {return false}
-        if _storage._remoteContainerServer != rhs_storage._remoteContainerServer {return false}
-        if _storage._aliasImage != rhs_storage._aliasImage {return false}
-        if _storage._fromImage != rhs_storage._fromImage {return false}
-        if _storage._ociImage != rhs_storage._ociImage {return false}
+        if _storage._image != rhs_storage._image {return false}
         if _storage._sshAuthorizedKey != rhs_storage._sshAuthorizedKey {return false}
         if _storage._vendorData != rhs_storage._vendorData {return false}
         if _storage._userData != rhs_storage._userData {return false}
@@ -1292,266 +1080,11 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._autostart != rhs_storage._autostart {return false}
         if _storage._nested != rhs_storage._nested {return false}
         if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".LaunchRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "cpu"),
-    3: .same(proto: "memory"),
-    4: .same(proto: "user"),
-    5: .same(proto: "mainGroup"),
-    6: .same(proto: "sshPwAuth"),
-    7: .same(proto: "cloudImage"),
-    8: .same(proto: "remoteContainerServer"),
-    9: .same(proto: "aliasImage"),
-    10: .same(proto: "fromImage"),
-    11: .same(proto: "ociImage"),
-    12: .same(proto: "sshAuthorizedKey"),
-    13: .same(proto: "vendorData"),
-    14: .same(proto: "userData"),
-    15: .same(proto: "networkConfig"),
-    16: .same(proto: "diskSize"),
-    17: .same(proto: "dir"),
-    18: .same(proto: "netBridged"),
-    19: .same(proto: "netSofnet"),
-    20: .same(proto: "netSoftnetAllow"),
-    21: .same(proto: "netHost"),
-    22: .same(proto: "nested"),
-    23: .same(proto: "autostart"),
-    24: .same(proto: "forwardedPort"),
-  ]
-
-  fileprivate class _StorageClass {
-    var _name: String = String()
-    var _cpu: Int32? = nil
-    var _memory: Int32? = nil
-    var _user: String? = nil
-    var _mainGroup: String? = nil
-    var _sshPwAuth: Bool? = nil
-    var _cloudImage: String? = nil
-    var _remoteContainerServer: String? = nil
-    var _aliasImage: String? = nil
-    var _fromImage: String? = nil
-    var _ociImage: String? = nil
-    var _sshAuthorizedKey: Data? = nil
-    var _vendorData: Data? = nil
-    var _userData: Data? = nil
-    var _networkConfig: Data? = nil
-    var _diskSize: Int32? = nil
-    var _dir: String? = nil
-    var _netBridged: String? = nil
-    var _netSofnet: Bool? = nil
-    var _netSoftnetAllow: String? = nil
-    var _netHost: Bool? = nil
-    var _nested: Bool? = nil
-    var _autostart: Bool? = nil
-    var _forwardedPort: String? = nil
-
-    #if swift(>=5.10)
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _name = source._name
-      _cpu = source._cpu
-      _memory = source._memory
-      _user = source._user
-      _mainGroup = source._mainGroup
-      _sshPwAuth = source._sshPwAuth
-      _cloudImage = source._cloudImage
-      _remoteContainerServer = source._remoteContainerServer
-      _aliasImage = source._aliasImage
-      _fromImage = source._fromImage
-      _ociImage = source._ociImage
-      _sshAuthorizedKey = source._sshAuthorizedKey
-      _vendorData = source._vendorData
-      _userData = source._userData
-      _networkConfig = source._networkConfig
-      _diskSize = source._diskSize
-      _dir = source._dir
-      _netBridged = source._netBridged
-      _netSofnet = source._netSofnet
-      _netSoftnetAllow = source._netSoftnetAllow
-      _netHost = source._netHost
-      _nested = source._nested
-      _autostart = source._autostart
-      _forwardedPort = source._forwardedPort
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
-        case 2: try { try decoder.decodeSingularInt32Field(value: &_storage._cpu) }()
-        case 3: try { try decoder.decodeSingularInt32Field(value: &_storage._memory) }()
-        case 4: try { try decoder.decodeSingularStringField(value: &_storage._user) }()
-        case 5: try { try decoder.decodeSingularStringField(value: &_storage._mainGroup) }()
-        case 6: try { try decoder.decodeSingularBoolField(value: &_storage._sshPwAuth) }()
-        case 7: try { try decoder.decodeSingularStringField(value: &_storage._cloudImage) }()
-        case 8: try { try decoder.decodeSingularStringField(value: &_storage._remoteContainerServer) }()
-        case 9: try { try decoder.decodeSingularStringField(value: &_storage._aliasImage) }()
-        case 10: try { try decoder.decodeSingularStringField(value: &_storage._fromImage) }()
-        case 11: try { try decoder.decodeSingularStringField(value: &_storage._ociImage) }()
-        case 12: try { try decoder.decodeSingularBytesField(value: &_storage._sshAuthorizedKey) }()
-        case 13: try { try decoder.decodeSingularBytesField(value: &_storage._vendorData) }()
-        case 14: try { try decoder.decodeSingularBytesField(value: &_storage._userData) }()
-        case 15: try { try decoder.decodeSingularBytesField(value: &_storage._networkConfig) }()
-        case 16: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
-        case 17: try { try decoder.decodeSingularStringField(value: &_storage._dir) }()
-        case 18: try { try decoder.decodeSingularStringField(value: &_storage._netBridged) }()
-        case 19: try { try decoder.decodeSingularBoolField(value: &_storage._netSofnet) }()
-        case 20: try { try decoder.decodeSingularStringField(value: &_storage._netSoftnetAllow) }()
-        case 21: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
-        case 22: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
-        case 23: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
-        case 24: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
-        default: break
-        }
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      if !_storage._name.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 1)
-      }
-      try { if let v = _storage._cpu {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._memory {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
-      } }()
-      try { if let v = _storage._user {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-      } }()
-      try { if let v = _storage._mainGroup {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-      } }()
-      try { if let v = _storage._sshPwAuth {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
-      } }()
-      try { if let v = _storage._cloudImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 7)
-      } }()
-      try { if let v = _storage._remoteContainerServer {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
-      } }()
-      try { if let v = _storage._aliasImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 9)
-      } }()
-      try { if let v = _storage._fromImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 10)
-      } }()
-      try { if let v = _storage._ociImage {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 11)
-      } }()
-      try { if let v = _storage._sshAuthorizedKey {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 12)
-      } }()
-      try { if let v = _storage._vendorData {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 13)
-      } }()
-      try { if let v = _storage._userData {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 14)
-      } }()
-      try { if let v = _storage._networkConfig {
-        try visitor.visitSingularBytesField(value: v, fieldNumber: 15)
-      } }()
-      try { if let v = _storage._diskSize {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 16)
-      } }()
-      try { if let v = _storage._dir {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 17)
-      } }()
-      try { if let v = _storage._netBridged {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 18)
-      } }()
-      try { if let v = _storage._netSofnet {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 19)
-      } }()
-      try { if let v = _storage._netSoftnetAllow {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 20)
-      } }()
-      try { if let v = _storage._netHost {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 21)
-      } }()
-      try { if let v = _storage._nested {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 22)
-      } }()
-      try { if let v = _storage._autostart {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 23)
-      } }()
-      try { if let v = _storage._forwardedPort {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 24)
-      } }()
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Caked_LaunchRequest, rhs: Caked_LaunchRequest) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._name != rhs_storage._name {return false}
-        if _storage._cpu != rhs_storage._cpu {return false}
-        if _storage._memory != rhs_storage._memory {return false}
-        if _storage._user != rhs_storage._user {return false}
-        if _storage._mainGroup != rhs_storage._mainGroup {return false}
-        if _storage._sshPwAuth != rhs_storage._sshPwAuth {return false}
-        if _storage._cloudImage != rhs_storage._cloudImage {return false}
-        if _storage._remoteContainerServer != rhs_storage._remoteContainerServer {return false}
-        if _storage._aliasImage != rhs_storage._aliasImage {return false}
-        if _storage._fromImage != rhs_storage._fromImage {return false}
-        if _storage._ociImage != rhs_storage._ociImage {return false}
-        if _storage._sshAuthorizedKey != rhs_storage._sshAuthorizedKey {return false}
-        if _storage._vendorData != rhs_storage._vendorData {return false}
-        if _storage._userData != rhs_storage._userData {return false}
-        if _storage._networkConfig != rhs_storage._networkConfig {return false}
-        if _storage._diskSize != rhs_storage._diskSize {return false}
-        if _storage._dir != rhs_storage._dir {return false}
+        if _storage._mounts != rhs_storage._mounts {return false}
         if _storage._netBridged != rhs_storage._netBridged {return false}
         if _storage._netSofnet != rhs_storage._netSofnet {return false}
         if _storage._netSoftnetAllow != rhs_storage._netSoftnetAllow {return false}
         if _storage._netHost != rhs_storage._netHost {return false}
-        if _storage._nested != rhs_storage._nested {return false}
-        if _storage._autostart != rhs_storage._autostart {return false}
-        if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
         return true
       }
       if !storagesAreEqual {return false}

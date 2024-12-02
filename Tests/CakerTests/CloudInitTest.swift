@@ -1,6 +1,9 @@
 import XCTest
 @testable import caked
+@testable import GRPCLib
 
+let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
 let networkConfig = 
 """
 #cloud-config
@@ -126,93 +129,65 @@ final class CloudInitTests: XCTestCase {
 		}
 	}
 
-	func testBuildVMWithCloudImage() async throws {
+	func buildVM(name: String, image: String) async throws {
+		var options: BuildOptions = BuildOptions()
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
-		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
-									vmLocation: tempVMLocation,
-									cloudImageURL: URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img")!,
-									autostart: true,
-									displayRefit: true,
-									cpu: 1,
-									memory: 512,
-									diskSizeGB: 10,
-									userName: "admin",
-									mainGroup: "admin",
-									clearPassword: true,
-									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-									vendorData: nil,
-									userData: CloudInitTests.userDataPath.path(),
-									networkConfig: CloudInitTests.networkConfigPath.path())
+		options.name = name
+		options.autostart = true
+		options.displayRefit = true
+		options.cpu = 1
+		options.memory = 512
+		options.diskSize = 10
+		options.user = "admin"
+		options.mainGroup = "admin"
+		options.clearPassword = true
+		options.image = image
+		options.nested = true
+		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
+		options.userData = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
+		options.vendorData = nil
+		options.networkConfig = CloudInitTests.networkConfigPath.path()
+		options.forwardedPort = []
+		options.mounts = []
+		options.netBridged = []
+		options.netSoftnet = false
+		options.netSoftnetAllow = nil
+		options.netHost = false
 
-		try StorageLocation(asSystem: false).relocate("noble-cloud-image", from: tempVMLocation)
+		try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
+
+		XCTAssertNoThrow(try StorageLocation(asSystem: false).relocate(options.name, from: tempVMLocation))
+	}
+
+	func testBuildVMWithCloudImage() async throws {
+		try await buildVM(name: "noble-cloud-image", image: ubuntuCloudImage)
+	}
+
+	func testBuildVMWithQCow2() async throws {
+		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!,
+			toURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2"))
+		
+		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path())")
 	}
 
 	func testBuildVMWithOCI() async throws {
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
-
-		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
-									vmLocation: tempVMLocation,
-									ociImage: "devregistry.aldunelabs.com/ubuntu:latest",
-									autostart: true,
-									displayRefit: true,
-									cpu: 1,
-									memory: 512,
-									diskSizeGB: 10,
-									userName: "admin",
-									mainGroup: "admin",
-									clearPassword: true,
-									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-									vendorData: nil,
-									userData: CloudInitTests.userDataPath.path(),
-									networkConfig: CloudInitTests.networkConfigPath.path())
-
-		try StorageLocation(asSystem: false).relocate("noble-oci-image", from: tempVMLocation)
+		try await buildVM(name: "noble-oci-image", image: "oci://devregistry.aldunelabs.com/ubuntu:latest")
 	}
 
 	func testBuildVMWithContainer() async throws {
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
-
-		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
-									vmLocation: tempVMLocation,
-									remoteContainerServer: "https://images.linuxcontainers.org",
-									aliasImage: "ubuntu/noble/cloud",
-									autostart: true,
-									displayRefit: true,
-									cpu: 1,
-									memory: 512,
-									diskSizeGB: 10,
-									userName: "admin",
-									mainGroup: "admin",
-									clearPassword: true,
-									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-									vendorData: nil,
-									userData: CloudInitTests.userDataPath.path(),
-									networkConfig: CloudInitTests.networkConfigPath.path())
-
-		try StorageLocation(asSystem: false).relocate("noble-container-image", from: tempVMLocation)
+		try await buildVM(name: "noble-container-image", image: "images:ubuntu/noble/cloud")
 	}
 
 	func testBuildVMWithLXDContainers() async throws {
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
+		try await buildVM(name: "noble-lxd-image", image: "ubuntu:noble")
+	}
 
-		try await VMBuilder.buildVM(vmName: tempVMLocation.name,
-									vmLocation: tempVMLocation,
-									remoteContainerServer: "https://cloud-images.ubuntu.com/releases/",
-									aliasImage: "noble",
-									autostart: true,
-									displayRefit: true,
-									cpu: 1,
-									memory: 512,
-									diskSizeGB: 10,
-									userName: "admin",
-									mainGroup: "admin",
-									clearPassword: true,
-									sshAuthorizedKey: NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath,
-									vendorData: nil,
-									userData: CloudInitTests.userDataPath.path(),
-									networkConfig: CloudInitTests.networkConfigPath.path())
-
-		try StorageLocation(asSystem: false).relocate("noble-lxd-image", from: tempVMLocation)
+	func testBuildMustFail() async throws {
+		do {
+			try await buildVM(name: "noble-must-fail-image", image: "zlib://devregistry.aldunelabs.com/ubuntu:latest")
+	        XCTFail("Error needs to be thrown")
+		} catch {
+		}
 	}
 }

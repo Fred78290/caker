@@ -23,118 +23,49 @@ extension Caked_CakedCommandRequest {
 
 extension Caked_BuildRequest {
 
-	init(command: Build) throws {
+	init(buildOptions: BuildOptions) throws {
 		self.init()
-		self.name = command.name
-		self.cpu = Int32(command.cpu)
-		self.memory = Int32(command.memory)
-		self.diskSize = Int32(command.diskSize)
-		self.user = command.user
-		self.mainGroup = command.mainGroup
-		self.sshPwAuth = command.clearPassword
-		self.autostart = command.autostart
-		self.nested = command.nested
-		self.remoteContainerServer = command.remoteContainerServer
+		self.name = buildOptions.name
+		self.cpu = Int32(buildOptions.cpu)
+		self.memory = Int32(buildOptions.memory)
+		self.diskSize = Int32(buildOptions.diskSize)
+		self.user = buildOptions.user
+		self.mainGroup = buildOptions.mainGroup
+		self.sshPwAuth = buildOptions.clearPassword
+		self.autostart = buildOptions.autostart
+		self.nested = buildOptions.nested
+		self.image = buildOptions.image
+		self.mounts = buildOptions.mounts.joined(separator: ",")
+		self.netBridged = buildOptions.netBridged.joined(separator: ",")
+		self.netSofnet = buildOptions.netSoftnet
+		self.netHost = buildOptions.netHost
 
-		if command.forwardedPort.isEmpty == false {
-			self.forwardedPort = command.forwardedPort.map { forwardedPort in
+		if buildOptions.forwardedPort.isEmpty == false {
+			self.forwardedPort = buildOptions.forwardedPort.map { forwardedPort in
 				return forwardedPort.description
 			}.joined(separator: ",")
 		}
 
-		if let cloudImage = command.cloudImage {
-			self.cloudImage = cloudImage
-		}
-
-		if let aliasImage = command.aliasImage {
-			self.aliasImage = aliasImage
-		}
-
-		if let fromImage = command.fromImage {
-			self.fromImage = fromImage
-		}
-
-		if let ociImage = command.ociImage {
-			self.fromImage = ociImage
-		}
-
-		if let sshAuthorizedKey = command.sshAuthorizedKey {
+		if let sshAuthorizedKey = buildOptions.sshAuthorizedKey {
 			self.sshAuthorizedKey = try Data(contentsOf: URL(filePath: sshAuthorizedKey))
 		}
 
-		if let vendorData = command.vendorData {
+		if let vendorData = buildOptions.vendorData {
 			self.vendorData = try Data(contentsOf: URL(filePath: vendorData))
 		}
 
-		if let userData = command.userData {
+		if let userData = buildOptions.userData {
 			self.userData = try Data(contentsOf: URL(filePath: userData))
 		}
 
-		if let networkConfig = command.networkConfig {
+		if let networkConfig = buildOptions.networkConfig {
 			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
 		}
-	}
-}
 
-extension Caked_LaunchRequest {
-	init(command: Launch) throws {
-		self.init()
-		self.name = command.name
-		self.cpu = Int32(command.cpu)
-		self.memory = Int32(command.memory)
-		self.diskSize = Int32(command.diskSize)
-		self.user = command.user
-		self.mainGroup = command.mainGroup
-		self.sshPwAuth = command.clearPassword
-		self.remoteContainerServer = command.remoteContainerServer
-		self.dir = command.dir.joined(separator: ",")
-		self.netBridged = command.netBridged.joined(separator: ",")
-		self.netSofnet = command.netSoftnet
-		self.netHost = command.netHost
-		self.nested = command.nested
-		self.autostart = command.autostart
-
-		if command.forwardedPort.isEmpty == false {
-			self.forwardedPort = command.forwardedPort.map { forwardedPort in
-				return forwardedPort.description
-			}.joined(separator: ",")
-		}
-
-		if let netSoftnetAllow: String = command.netSoftnetAllow {
+		if let netSoftnetAllow: String = buildOptions.netSoftnetAllow {
 			self.netSoftnetAllow = netSoftnetAllow
 		}
 
-		if let cloudImage: String = command.cloudImage {
-			self.cloudImage = cloudImage
-		}
-
-		if let aliasImage = command.aliasImage {
-			self.aliasImage = aliasImage
-		}
-
-		if let fromImage = command.fromImage {
-			self.fromImage = fromImage
-		}
-
-		if let ociImage = command.ociImage {
-			self.fromImage = ociImage
-		}
-
-		if let sshAuthorizedKey = command.sshAuthorizedKey {
-			self.sshAuthorizedKey = try Data(contentsOf: URL(filePath: sshAuthorizedKey))
-		}
-
-		if let vendorData = command.vendorData {
-			self.vendorData = try Data(contentsOf: URL(filePath: vendorData))
-		}
-
-		if let userData = command.userData {
-			self.userData = try Data(contentsOf: URL(filePath: userData))
-		}
-
-		if let networkConfig = command.networkConfig {
-			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
-		}
 	}
 }
 

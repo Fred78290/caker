@@ -1,9 +1,5 @@
 import Foundation
 
-let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
-//let defaultSimpleStreamsServer = "https://images.lxd.canonical.com/"
-//let defaultSimpleStreamsServer = "https://cloud-images.ubuntu.com/releases/"
-
 struct SimpleStreamError: Error {
 	let description: String
 

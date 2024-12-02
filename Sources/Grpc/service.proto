@@ -13,7 +13,7 @@ service Service {
 	rpc Build (BuildRequest) returns (Reply) {}
 	rpc Start (StartRequest) returns (Reply) {}
 	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
-	rpc Launch (LaunchRequest) returns (Reply) {}
+	rpc Launch (BuildRequest) returns (Reply) {}
 	rpc Login (LoginRequest) returns (Reply) {}
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
@@ -63,46 +63,20 @@ message BuildRequest {
 	optional string user = 4;
 	optional string mainGroup = 5;
 	optional bool sshPwAuth = 6;
-	optional string cloudImage = 7;
-	optional string remoteContainerServer = 8;
-	optional string aliasImage = 9;
-	optional string fromImage = 10;
-	optional string ociImage = 11;
-	optional bytes sshAuthorizedKey = 12;
-	optional bytes vendorData = 13;
-	optional bytes userData = 14;
-	optional bytes networkConfig = 15;
-	optional int32 diskSize = 16;
-	optional bool autostart = 17;
-	optional bool nested = 18;
-	optional string forwardedPort = 19;
-}
-
-message LaunchRequest {
-	string name = 1;
-	optional int32 cpu = 2;
-	optional int32 memory = 3;
-	optional string user = 4;
-	optional string mainGroup = 5;
-	optional bool sshPwAuth = 6;
-	optional string cloudImage = 7;
-	optional string remoteContainerServer = 8;
-	optional string aliasImage = 9;
-	optional string fromImage = 10;
-	optional string ociImage = 11;
-	optional bytes sshAuthorizedKey = 12;
-	optional bytes vendorData = 13;
-	optional bytes userData = 14;
-	optional bytes networkConfig = 15;
-	optional int32 diskSize = 16;
-	optional string dir = 17;
-	optional string netBridged = 18;
-	optional bool netSofnet = 19;
-	optional string netSoftnetAllow = 20;
+	optional string image = 7;
+	optional bytes sshAuthorizedKey = 8;
+	optional bytes vendorData = 9;
+	optional bytes userData = 10;
+	optional bytes networkConfig = 11;
+	optional int32 diskSize = 12;
+	optional bool autostart = 13;
+	optional bool nested = 14;
+	optional string forwardedPort = 15;
+	optional string mounts = 16;
+	optional string netBridged = 17;
+	optional bool netSofnet = 18;
+	optional string netSoftnetAllow = 19;
 	optional bool netHost = 21;
-	optional bool nested = 22;
-	optional bool autostart = 23;
-	optional string forwardedPort = 24;
 }
 
 message StartRequest {

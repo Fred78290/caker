@@ -11,7 +11,7 @@ protocol ConfigureArguments {
 	var displayRefit: Bool? { get }
 	var autostart: Bool? { get }
 	var nested: Bool? { get }
-	var mount: [String]? { get }
+	var mounts: [String]? { get }
 	var bridged: [String]? { get }
 	var netSoftnet: Bool? { get }
 	var netSoftnetAllow: String? { get }
@@ -27,7 +27,7 @@ struct ConfigureHandler: CakedCommand, ConfigureArguments {
 	var displayRefit: Bool? = nil
 	var autostart: Bool? = nil
 	var nested: Bool? = nil
-	var mount: [String]? = nil
+	var mounts: [String]? = nil
 	var bridged: [String]? = nil
 	var netSoftnet: Bool? = nil
 	var netSoftnetAllow: String? = nil
@@ -62,8 +62,8 @@ struct ConfigureHandler: CakedCommand, ConfigureArguments {
 			config.nested = nested
 		}
 		
-		if let mount = arguments.mount {
-			config.dir = mount
+		if let mounts = arguments.mounts {
+			config.mounts = mounts
 		}
 
 		if let bridged = arguments.bridged {

@@ -49,8 +49,8 @@ struct StartHandler: CakedCommand {
 			arguments.append("--nested")
 		}
 
-		for dir in config.dir {
-			arguments.append("--dir=\(dir)")
+		for mount in config.mounts {
+			arguments.append("--dir=\(mount)")
 		}
 
 		for net in config.netBridged {

@@ -10,13 +10,12 @@ struct RemoteHandler: CakedCommand {
 	var request: Caked_RemoteRequest
 
 	static func addRemote(name: String, url: URL, asSystem: Bool) throws -> String {
-		let home: Home = try Home(asSystem: asSystem)
-		var remoteDb = try home.remoteDatabase()
+		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
 		if url.scheme == "https" || url.scheme == "http" {
-			guard let _: String = remoteDb[name] else {
-				remoteDb[name] = url.absoluteString
-				try remoteDb.write(to: home.remoteDb)
+			guard let _: String = remoteDb.get(name) else {
+				remoteDb.add(name, url.absoluteString)
+				try remoteDb.save()
 
 				return "remote \(name) added"
 			}
@@ -30,12 +29,11 @@ struct RemoteHandler: CakedCommand {
 	}
 
 	static func deleteRemote(name: String, asSystem: Bool) throws -> String {
-		let home: Home = try Home(asSystem: asSystem)
-		var remoteDb = try home.remoteDatabase()
+		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
-		if let _: String = remoteDb[name] {
-			remoteDb.removeValue(forKey: name)
-			try remoteDb.write(to: home.remoteDb)
+		if let _: String = remoteDb.get(name) {
+			remoteDb.remove(name)
+			try remoteDb.save()
 
 			return "remote \(name) deleted"
 		}
@@ -44,10 +42,9 @@ struct RemoteHandler: CakedCommand {
 	}
 
 	static func listRemote(asSystem: Bool) throws -> [RemoteEntry] {
-		let home: Home = try Home(asSystem: asSystem)
-		let remoteDb = try home.remoteDatabase()
+		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
-		return remoteDb.map { (key: String, value: String) in
+		return try remoteDb.map { (key: String, value: String) in
 			RemoteEntry(name: key, url: value)
 		}
 	}
