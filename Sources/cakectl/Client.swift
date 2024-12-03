@@ -163,7 +163,7 @@ struct Client: AsyncParsableCommand {
 		} else {
 			var tartHomeDir = try Utils.getHome(asSystem: asSystem)
 
-			tartHomeDir.append(path: "caked.sock")
+			tartHomeDir.append(path: ".caked.sock")
 
 			return "unix://\(tartHomeDir.absoluteURL.path())"
 		}

@@ -9,8 +9,7 @@ import Crypto
 import SwiftASN1
 import X509
 import Security
-
-let cakedSignature = "com.aldunelabs.caker"
+import GRPCLib
 
 class ServiceError : Error, CustomStringConvertible {
 	let description: String
@@ -107,7 +106,7 @@ extension Service {
 				return address
 			}
 
-			return try Utils.getListenAddress(asSystem: self.asSystem)
+			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
 		}
 
 		mutating func run() throws {
@@ -116,6 +115,7 @@ extension Service {
 			let listenAddress: String = try getListenAddress()
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
 			let cakeHome: URL = try Utils.getHome(asSystem: self.asSystem)
+			let cakedSignature = Utils.cakerSignature
 
 			var arguments: [String] = [
 				try Install.findMe(),
@@ -214,7 +214,7 @@ extension Service {
 			if let address = self.address {
 				return address
 			} else {
-				return try Utils.getListenAddress(asSystem: asSystem)
+				return try Utils.getDefaultServerAddress(asSystem: asSystem)
 			}
 		}
 

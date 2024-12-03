@@ -13,6 +13,7 @@ final class GrpcUnixSocketTests: XCTestCase {
 
 	let address = URL(string: try! Client.getDefaultServerAddress(asSystem: false))
 //	let address = URL(string: "unix:///tmp/caked-\(getpid()).sock")
+//	let address = URL(string: "unix:///Users/fboltz/.cake/.cacked.sock")
 
 	func testSocketClientListWithTls() throws {
 		XCTAssertNoThrow(try testCase.runClientList(listeningAddress: address, tls: true))

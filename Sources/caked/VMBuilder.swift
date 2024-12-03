@@ -46,7 +46,7 @@ struct VMBuilder {
 
 	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
 		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
-		var starter = ["http://", "https://", "file://", "oci://", "qcow2://"]
+		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
@@ -71,10 +71,17 @@ struct VMBuilder {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
 		} else if imageURL.scheme == "http" || imageURL.scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL)
-		} else if imageURL.scheme == "oci" {
-			let ociImage = options.image.stringAfter(after: "oci://")
+		} else if imageURL.scheme == "oci" || imageURL.scheme == "ocis" {
+			let ociImage = options.image.stringAfter(after: "//")
+			let arguments: [String]
 
-			try Shell.runTart(command: "clone", arguments: [ociImage, vmName, "--insecure"])
+			if imageURL.scheme == "oci" {
+				arguments = [ociImage, vmName, "--insecure"]
+			} else {
+				arguments = [ociImage, vmName]
+			}
+
+			try Shell.runTart(command: "clone", arguments: arguments)
 
 			let clonedLocation = try StorageLocation(asSystem: runAsSystem).find(vmName)
 

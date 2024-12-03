@@ -1,4 +1,5 @@
 import Foundation
+import GRPCLib
 
 extension NSError {
 	func fileNotFound() -> Bool {

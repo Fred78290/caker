@@ -1,39 +1,5 @@
 import Foundation
 import System
-import Virtualization
-struct Utils {
-	static func isNestedVirtualizationSupported() -> Bool {
-		if #available(macOS 15, *) {
-			return VZGenericPlatformConfiguration.isNestedVirtualizationSupported
-		}
-
-		return false
-	}
-
-	static func getHome(asSystem: Bool) throws -> URL {
-		return try Home(asSystem: asSystem).homeDir
-	}
-
-	static func getOutputLog(asSystem: Bool) -> String {
-		if asSystem {
-			return "/Library/Logs/caked.log"
-		}
-
-		return URL(fileURLWithPath: "caked.log", relativeTo: try? Home(asSystem: false).homeDir).absoluteURL.path()
-	}
-
-	static func getListenAddress(asSystem: Bool) throws -> String {
-		if let tartdListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
-			return tartdListenAddress
-		} else {
-			var home = try Self.getHome(asSystem: asSystem)
-
-			home.append(path: "caked.sock")
-
-			return "unix://\(home.absoluteURL.path())"
-		}
-	}
-}
 
 enum FileLockError: Error, Equatable {
 	case Failed(_ message: String)

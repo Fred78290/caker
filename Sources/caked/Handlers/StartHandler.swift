@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import SystemConfiguration
+import GRPCLib
 
 struct StartHandler: CakedCommand {
 	var foreground: Bool = false

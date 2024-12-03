@@ -1,5 +1,65 @@
 import Foundation
 import ArgumentParser
+import Virtualization
+
+public struct Utils {
+	public static let cakerSignature = "com.aldunelabs.caker"
+
+	public static func isNestedVirtualizationSupported() -> Bool {
+		if #available(macOS 15, *) {
+			return VZGenericPlatformConfiguration.isNestedVirtualizationSupported
+		}
+
+		return false
+	}
+
+	public static func getHome(asSystem: Bool = false) throws -> URL {
+		let cakeHomeDir: URL
+
+		if asSystem {
+			let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
+			var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
+
+			applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
+			                                  isDirectory: true,
+			                                  relativeTo: applicationSupportDirectory)
+			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
+
+			cakeHomeDir = applicationSupportDirectory
+		} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
+			cakeHomeDir = URL(fileURLWithPath: customHome)
+		} else {
+			cakeHomeDir = FileManager.default
+				.homeDirectoryForCurrentUser
+				.appendingPathComponent(".cake", isDirectory: true)
+		}
+
+		try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
+
+		return cakeHomeDir
+	}
+
+	public static func getDefaultServerAddress(asSystem: Bool) throws -> String {
+		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
+			return cakeListenAddress
+		} else {
+			var tartHomeDir = try Utils.getHome(asSystem: asSystem)
+
+			tartHomeDir.append(path: ".caked.sock")
+
+			return "unix://\(tartHomeDir.absoluteURL.path())"
+		}
+	}
+
+	public static func getOutputLog(asSystem: Bool) -> String {
+		if asSystem {
+			return "/Library/Logs/caked.log"
+		}
+
+		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(asSystem: false)).absoluteURL.path()
+	}
+
+}
 
 public struct ForwardedPort: Codable {
 	public enum ForwardedProtocol: String, Codable {
@@ -9,7 +69,7 @@ public struct ForwardedPort: Codable {
 		case none
 	}
 
-	public var proto: ForwardedProtocol = .none
+	public var proto: ForwardedProtocol = .tcp
 	public var host: Int = -1
 	public var guest: Int = -1
 }
@@ -37,7 +97,7 @@ extension ForwardedPort: CustomStringConvertible, ExpressibleByArgument {
 			self.guest = self.host
 		}
 
-		self.proto = .both
+		self.proto = .tcp
 
 		if let protoRange = Range(match.range(withName: "proto"), in: argument) {
 			if let proto = ForwardedProtocol(rawValue: String(argument[protoRange])) {
@@ -81,7 +141,8 @@ public struct BuildOptions: ParsableArguments {
 	- local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
 	- cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 	- lxc images: images:ubuntu/noble/cloud, see remote command for detail
-	- oci images: oci://ghcr.io/cirruslabs/ubuntu:latest
+	- secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
+	- unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
 	""", valueName: "url"))
 	public var image: String = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 

@@ -11,10 +11,7 @@ class CloudImageConverter {
 			])
 			Logger.appendNewLine(convertOuput)
 		} catch {
-			let error = error as! ShellError
-
-			Logger.appendNewLine(error.message)
-			Logger.appendNewLine(error.output)
+			Logger.appendError(error)
 
 			throw error
 		}
@@ -75,7 +72,9 @@ class CloudImageConverter {
 
 		defer {
 			do {
-				try FileManager.default.removeItem(at: temporaryLocation)
+				if try temporaryLocation.exists() {
+					try FileManager.default.removeItem(at: temporaryLocation)
+				}
 			} catch {
 				Logger.appendNewLine("Unexpected error: \(error).")
 			}

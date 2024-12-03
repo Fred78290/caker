@@ -1,35 +1,5 @@
 import Foundation
-
-let cakerSignature = "com.aldunelabs.caker"
-
-struct Utils {
-	static func getHome(asSystem: Bool = false) throws -> URL {
-		let cakeHomeDir: URL
-
-		if asSystem {
-			let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
-			var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
-
-			applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
-			                                  isDirectory: true,
-			                                  relativeTo: applicationSupportDirectory)
-			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
-
-			cakeHomeDir = applicationSupportDirectory
-		} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
-			cakeHomeDir = URL(fileURLWithPath: customHome)
-		} else {
-			cakeHomeDir = FileManager.default
-				.homeDirectoryForCurrentUser
-				.appendingPathComponent(".cake", isDirectory: true)
-		}
-
-		try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
-
-		return cakeHomeDir
-	}
-
-}
+import GRPCLib
 
 struct ClientCertificatesLocation: Codable {
 	let caCertURL: URL

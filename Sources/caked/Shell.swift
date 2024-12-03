@@ -1,10 +1,17 @@
 import Foundation
+import GRPCLib
 
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
 	public let terminationStatus: Int32
-	public let outputError: String
-	public let outputMessage: String
+	public let error: String
+	public let message: String
+	
+	var description: String {
+		get {
+			return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
+		}
+	}
 }
 
 struct Shell {
@@ -184,8 +191,8 @@ private extension Process {
 			if terminationStatus != 0 {
 				throw ShellError(
 					terminationStatus: terminationStatus,
-					outputError: errorData.toString(),
-					outputMessage: outputData.toString()
+					error: errorData.toString(),
+					message: outputData.toString()
 				)
 			}
 

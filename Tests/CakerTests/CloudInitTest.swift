@@ -85,11 +85,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
 		} catch {
-			let error = error as! ShellError
-
-			Logger.appendNewLine(error.outputError)
-			Logger.appendNewLine(error.outputMessage)
-
+			Logger.appendError(error)
 			throw error
 		}
 	}
@@ -101,10 +97,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
 		} catch {
-			let error = error as! ShellError
-
-			Logger.appendNewLine(error.outputError)
-			Logger.appendNewLine(error.outputMessage)
+			Logger.appendError(error)
 
 			throw error
 		}
@@ -138,7 +131,7 @@ final class CloudInitTests: XCTestCase {
 		options.displayRefit = true
 		options.cpu = 1
 		options.memory = 512
-		options.diskSize = 10
+		options.diskSize = 20
 		options.user = "admin"
 		options.mainGroup = "admin"
 		options.clearPassword = true
@@ -168,11 +161,19 @@ final class CloudInitTests: XCTestCase {
 		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!,
 			toURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2"))
 		
+		defer {
+			if let exists = try? tempLocation.exists() {
+				if exists {
+					try? FileManager.default.removeItem(at: tempLocation)
+				}
+			}
+		}
+
 		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path())")
 	}
 
 	func testBuildVMWithOCI() async throws {
-		try await buildVM(name: "noble-oci-image", image: "oci://ghcr.io/cirruslabs/ubuntu:latest")
+		try await buildVM(name: "noble-oci-image", image: "ocis://ghcr.io/cirruslabs/ubuntu:latest")
 	}
 
 	func testBuildVMWithContainer() async throws {
