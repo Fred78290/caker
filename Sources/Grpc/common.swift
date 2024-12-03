@@ -107,6 +107,76 @@ extension ForwardedPort: CustomStringConvertible, ExpressibleByArgument {
 	}
 }
 
+public struct ConfigureOptions: ParsableArguments {
+	@Argument(help: "VM name")
+	public var name: String
+
+	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
+	public var cpu: UInt16? = nil
+
+	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+	public var memory: UInt64? = nil
+
+	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+	public var diskSize: UInt16? = nil
+
+	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	public var autostart: Bool? = nil
+
+	@Option(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
+	public var nested: Bool?
+
+	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	public var displayRefit: Bool? = nil
+
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	public var forwardedPort: [ForwardedPort] = []
+
+	@Flag(name: [.customLong("reset-publish")], help: ArgumentHelp("Reset published port."))
+	public var resetForwardedPort: Bool = false
+
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
+	public var mount: [String] = ["unset"]
+
+	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
+	public var netBridged: [String] = ["unset"]
+
+	@Option(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
+	public var netSoftnet: Bool? = nil
+
+	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
+	public var netSoftnetAllow: String? = nil
+
+	@Option(help: ("Restrict network access to the host-only network"))
+	public var netHost: Bool? = nil
+
+	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
+	public var randomMAC: Bool = false
+
+	public var mounts: [String]? {
+		get {
+			if mount.contains("unset") == false {
+				return nil
+			}
+			
+			return mount
+		}
+	}
+
+	public var bridged: [String]? {
+		get {
+			if netBridged.contains("unset") == false {
+				return nil
+			}
+			
+			return netBridged
+		}
+	}
+
+	public init() {
+	}
+}
+
 public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("n")], help: "VM name")
 	public var name: String
@@ -129,10 +199,10 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
 	public var clearPassword: Bool = false
 
-	@Flag(name: [.long, .customShort("s")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
 	public var autostart: Bool = false
 
-	@Flag(help: ArgumentHelp("Enable nested virtualization if possible"))
+	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool = false
 
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion:"""
@@ -158,13 +228,13 @@ public struct BuildOptions: ParsableArguments {
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
 	public var networkConfig: String?
 
-	@Flag(inversion: .prefixedNo, help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
-	public var displayRefit: Bool = true
+	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	public var displayRefit: Bool = false
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
 	public var forwardedPort: [ForwardedPort] = []
 
-	@Option(name: [.customLong("mount")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
 	public var mounts: [String] = []
 
 	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))

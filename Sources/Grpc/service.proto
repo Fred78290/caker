@@ -104,13 +104,14 @@ message ConfigureRequest {
 	optional bool displayRefit = 5;
 	optional bool autostart = 6;
 	optional bool nested = 7;
-	optional string dir = 8;
+	optional string mounts = 8;
 	optional string netBridged = 9;
 	optional bool netSoftnet = 10;
 	optional string netSoftnetAllow = 1120;
 	optional bool netHost = 12;
 	optional bool randomMAC = 13;
 	optional string forwardedPort = 24;
+	optional bool resetForwardedPort = 25;
 }
 
 message LoginRequest {

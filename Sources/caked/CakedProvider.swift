@@ -63,7 +63,7 @@ extension Caked_BuildRequest: CreateCakedCommand {
 		if self.hasDiskSize {
 			options.diskSize = UInt16(self.diskSize)
 		} else {
-			options.diskSize = 10
+			options.diskSize = 20
 		}
 
 		if self.hasUser {
@@ -190,7 +190,84 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 
 extension Caked_ConfigureRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
-		return ConfigureHandler(name: self.name)
+		var options = ConfigureOptions()
+
+		options.name = self.name
+		options.displayRefit = false
+
+		if self.hasCpu {
+			options.cpu = UInt16(self.cpu)
+		} else {
+			options.cpu = 1
+		}
+
+		if self.hasMemory {
+			options.memory = UInt64(self.memory)
+		} else {
+			options.memory = 512
+		}
+
+		if self.hasDiskSize {
+			options.diskSize = UInt16(self.diskSize)
+		} else {
+			options.diskSize = 20
+		}
+
+		if self.hasNested {
+			options.nested = self.nested
+		} else {
+			options.nested = false
+		}
+
+		if self.hasAutostart {
+			options.autostart = self.autostart
+		} else {
+			options.autostart = false
+		}
+
+		if self.hasMounts {
+			options.mount = self.mounts.components(separatedBy: ",")
+		} else {
+			options.mount = []
+		}
+
+		if self.hasNetBridged {
+			options.netBridged = self.netBridged.components(separatedBy: ",")
+		} else {
+			options.netBridged = []
+		}
+
+		if self.hasNetHost {
+			options.netHost = self.netHost
+		} else {
+			options.netHost = false
+		}
+
+		if self.hasNetSoftnet {
+			options.netSoftnet = self.netSoftnet
+		} else {
+			options.netSoftnet = false
+		}
+
+		if self.hasNetSoftnetAllow {
+			options.netSoftnetAllow = self.netSoftnetAllow
+		} else {
+			options.netSoftnetAllow = nil
+		}
+
+		if self.hasRandomMac {
+			options.randomMAC = self.randomMac
+		}
+
+		if self.hasForwardedPort {
+			options.forwardedPort = []
+
+			for forwardedPort in self.forwardedPort.components(separatedBy: ",") {
+				options.forwardedPort.append(ForwardedPort(argument: forwardedPort))
+			}
+		}
+
+		return ConfigureHandler(options: options)
 	}
 }
 

@@ -520,14 +520,14 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `nested`. Subsequent reads from it will return its default value.
   public mutating func clearNested() {self._nested = nil}
 
-  public var dir: String {
-    get {return _dir ?? String()}
-    set {_dir = newValue}
+  public var mounts: String {
+    get {return _mounts ?? String()}
+    set {_mounts = newValue}
   }
-  /// Returns true if `dir` has been explicitly set.
-  public var hasDir: Bool {return self._dir != nil}
-  /// Clears the value of `dir`. Subsequent reads from it will return its default value.
-  public mutating func clearDir() {self._dir = nil}
+  /// Returns true if `mounts` has been explicitly set.
+  public var hasMounts: Bool {return self._mounts != nil}
+  /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
+  public mutating func clearMounts() {self._mounts = nil}
 
   public var netBridged: String {
     get {return _netBridged ?? String()}
@@ -583,6 +583,15 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
   public mutating func clearForwardedPort() {self._forwardedPort = nil}
 
+  public var resetForwardedPort: Bool {
+    get {return _resetForwardedPort ?? false}
+    set {_resetForwardedPort = newValue}
+  }
+  /// Returns true if `resetForwardedPort` has been explicitly set.
+  public var hasResetForwardedPort: Bool {return self._resetForwardedPort != nil}
+  /// Clears the value of `resetForwardedPort`. Subsequent reads from it will return its default value.
+  public mutating func clearResetForwardedPort() {self._resetForwardedPort = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -593,13 +602,14 @@ public struct Caked_ConfigureRequest: Sendable {
   fileprivate var _displayRefit: Bool? = nil
   fileprivate var _autostart: Bool? = nil
   fileprivate var _nested: Bool? = nil
-  fileprivate var _dir: String? = nil
+  fileprivate var _mounts: String? = nil
   fileprivate var _netBridged: String? = nil
   fileprivate var _netSoftnet: Bool? = nil
   fileprivate var _netSoftnetAllow: String? = nil
   fileprivate var _netHost: Bool? = nil
   fileprivate var _randomMac: Bool? = nil
   fileprivate var _forwardedPort: String? = nil
+  fileprivate var _resetForwardedPort: Bool? = nil
 }
 
 public struct Caked_LoginRequest: Sendable {
@@ -1234,13 +1244,14 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     5: .same(proto: "displayRefit"),
     6: .same(proto: "autostart"),
     7: .same(proto: "nested"),
-    8: .same(proto: "dir"),
+    8: .same(proto: "mounts"),
     9: .same(proto: "netBridged"),
     10: .same(proto: "netSoftnet"),
     1120: .same(proto: "netSoftnetAllow"),
     12: .same(proto: "netHost"),
     13: .same(proto: "randomMAC"),
     24: .same(proto: "forwardedPort"),
+    25: .same(proto: "resetForwardedPort"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1256,12 +1267,13 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 5: try { try decoder.decodeSingularBoolField(value: &self._displayRefit) }()
       case 6: try { try decoder.decodeSingularBoolField(value: &self._autostart) }()
       case 7: try { try decoder.decodeSingularBoolField(value: &self._nested) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self._dir) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self._mounts) }()
       case 9: try { try decoder.decodeSingularStringField(value: &self._netBridged) }()
       case 10: try { try decoder.decodeSingularBoolField(value: &self._netSoftnet) }()
       case 12: try { try decoder.decodeSingularBoolField(value: &self._netHost) }()
       case 13: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
       case 24: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
+      case 25: try { try decoder.decodeSingularBoolField(value: &self._resetForwardedPort) }()
       case 1120: try { try decoder.decodeSingularStringField(value: &self._netSoftnetAllow) }()
       default: break
       }
@@ -1294,7 +1306,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._nested {
       try visitor.visitSingularBoolField(value: v, fieldNumber: 7)
     } }()
-    try { if let v = self._dir {
+    try { if let v = self._mounts {
       try visitor.visitSingularStringField(value: v, fieldNumber: 8)
     } }()
     try { if let v = self._netBridged {
@@ -1312,6 +1324,9 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._forwardedPort {
       try visitor.visitSingularStringField(value: v, fieldNumber: 24)
     } }()
+    try { if let v = self._resetForwardedPort {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 25)
+    } }()
     try { if let v = self._netSoftnetAllow {
       try visitor.visitSingularStringField(value: v, fieldNumber: 1120)
     } }()
@@ -1326,13 +1341,14 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._displayRefit != rhs._displayRefit {return false}
     if lhs._autostart != rhs._autostart {return false}
     if lhs._nested != rhs._nested {return false}
-    if lhs._dir != rhs._dir {return false}
+    if lhs._mounts != rhs._mounts {return false}
     if lhs._netBridged != rhs._netBridged {return false}
     if lhs._netSoftnet != rhs._netSoftnet {return false}
     if lhs._netSoftnetAllow != rhs._netSoftnetAllow {return false}
     if lhs._netHost != rhs._netHost {return false}
     if lhs._randomMac != rhs._randomMac {return false}
     if lhs._forwardedPort != rhs._forwardedPort {return false}
+    if lhs._resetForwardedPort != rhs._resetForwardedPort {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

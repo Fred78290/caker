@@ -2,95 +2,74 @@ import Dispatch
 import Foundation
 import SwiftUI
 import Virtualization
+import GRPCLib
 
-protocol ConfigureArguments {
-	var name: String { get }
-	var cpu: UInt16? { get }
-	var memory: UInt64? { get }
-	var diskSize: UInt16? { get }
-	var displayRefit: Bool? { get }
-	var autostart: Bool? { get }
-	var nested: Bool? { get }
-	var mounts: [String]? { get }
-	var bridged: [String]? { get }
-	var netSoftnet: Bool? { get }
-	var netSoftnetAllow: String? { get }
-	var netHost: Bool? { get }
-	var randomMAC: Bool { get }
-}
+struct ConfigureHandler: CakedCommand {
+	var options: ConfigureOptions
 
-struct ConfigureHandler: CakedCommand, ConfigureArguments {
-	var name: String
-	var cpu: UInt16? = nil
-	var memory: UInt64? = nil
-	var diskSize: UInt16? = nil
-	var displayRefit: Bool? = nil
-	var autostart: Bool? = nil
-	var nested: Bool? = nil
-	var mounts: [String]? = nil
-	var bridged: [String]? = nil
-	var netSoftnet: Bool? = nil
-	var netSoftnetAllow: String? = nil
-	var netHost: Bool? = nil
-	var randomMAC: Bool = false
-
-	static func configure(name: String, arguments: ConfigureArguments, asSystem: Bool) async throws {
+	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) async throws {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
 		var config = try CakeConfig(baseURL: vmLocation.rootURL)
 
-		if let cpu = arguments.cpu {
+		if let cpu = options.cpu {
 			config.cpuCount = Int(cpu)
 		}
 
-		if let memory = arguments.memory {
+		if let memory = options.memory {
 			config.memorySize = memory * 1024 * 1024
 		}
 
-		if arguments.randomMAC {
+		if options.randomMAC {
 			config.macAddress = VZMACAddress.randomLocallyAdministered().string
 		}
 
-		if let displayRefit = arguments.displayRefit {
+		if let displayRefit = options.displayRefit {
 			config.displayRefit = displayRefit
 		}
 
-		if let autostart = arguments.autostart {
+		if let autostart = options.autostart {
 			config.autostart = autostart
 		}
-		
-		if let nested = arguments.nested {
+
+		if let nested = options.nested {
 			config.nested = nested
 		}
-		
-		if let mounts = arguments.mounts {
+
+		if let mounts = options.mounts {
 			config.mounts = mounts
 		}
 
-		if let bridged = arguments.bridged {
+		if let bridged = options.bridged {
 			config.netBridged = bridged
 		}
-		
-		if let netSoftnet = arguments.netSoftnet {
+
+		if let netSoftnet = options.netSoftnet {
 			config.netSoftnet = netSoftnet
 		}
 
-		if let netSoftnetAllow = arguments.netSoftnetAllow {
+		if let netSoftnetAllow = options.netSoftnetAllow {
 			config.netSoftnetAllow = netSoftnetAllow
 		}
 
-		if let netHost = arguments.netHost {
+		if let netHost = options.netHost {
 			config.netHost = netHost
 		}
-		
+
+		if options.resetForwardedPort {
+			config.forwardedPort = []
+		} else if options.forwardedPort.count > 0 {
+			config.forwardedPort = options.forwardedPort
+		}
+
 		try config.save(to: vmLocation.configURL)
 
-		if let diskSize = arguments.diskSize {
+		if let diskSize = options.diskSize {
 			try vmLocation.expandDiskTo(diskSize)
 		}
 	}
 
 	func run(asSystem: Bool) async throws -> String {
-		try await Self.configure(name: self.name, arguments: self, asSystem: asSystem)
+		try await Self.configure(name: self.options.name, options: options, asSystem: asSystem)
 
 		return ""
 	}

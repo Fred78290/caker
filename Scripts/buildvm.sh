@@ -76,9 +76,9 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/caked delete linux
-#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --cloud-image ${CLOUD_IMAGE} 
-${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --alias-image ${LXD_IMAGE}
-#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} --oci-image ${OCI_IMAGE}
+#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${LXD_IMAGE}
+#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}

@@ -116,55 +116,63 @@ extension Caked_LoginRequest {
 }
 
 extension Caked_ConfigureRequest {
-	init (command: Configure) {
+	init (options: ConfigureOptions) {
 		self.init()
-		self.name = command.name
+		self.name = options.name
 
-		if let cpu = command.cpu {
+		if let cpu = options.cpu {
 			self.cpu = Int32(cpu)
 		}
 
-		if let memory = command.memory {
+		if let memory = options.memory {
 			self.memory = Int32(memory)
 		}
 
-		if let diskSize = command.diskSize {
+		if let diskSize = options.diskSize {
 			self.diskSize = Int32(diskSize)
 		}
 
-		if let displayRefit = command.displayRefit {
+		if let displayRefit = options.displayRefit {
 			self.displayRefit = displayRefit
 		}
 
-		if let autostart = command.autostart {
+		if let autostart = options.autostart {
 			self.autostart = autostart
 		}
 
-		if let nested = command.nested {
+		if let nested = options.nested {
 			self.nested = nested
 		}
 
-		if command.dir.contains("unset") == false {
-			self.dir = command.dir.joined(separator: ",")
+		if let mounts = options.mounts {
+			self.mounts = mounts.joined(separator: ",")
 		}
 
-		if command.netBridged.contains("unset") == false {
-			self.netBridged = command.netBridged.joined(separator: ",")
+		if options.netBridged.contains("unset") == false {
+			self.netBridged = options.netBridged.joined(separator: ",")
 		}
 
-		if let netSoftnet = command.netSoftnet {
+		if let netSoftnet = options.netSoftnet {
 			self.netSoftnet = netSoftnet
 		}
 
-		if let netSoftnetAllow = command.netSoftnetAllow {
+		if let netSoftnetAllow = options.netSoftnetAllow {
 			self.netSoftnetAllow = netSoftnetAllow
 		}
 
-		if let netHost = command.netHost {
+		if let netHost = options.netHost {
 			self.netHost = netHost
 		}
 
-		self.randomMac = command.randomMAC
+		if options.resetForwardedPort {
+			self.forwardedPort = ""
+		} else if options.forwardedPort.count > 0 {
+			self.forwardedPort = options.forwardedPort.map { port in
+				port.description
+			}.joined(separator: ",")
+		}
+
+		self.randomMac = options.randomMAC
 	}
 }
 
