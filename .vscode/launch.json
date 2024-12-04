@@ -41,6 +41,8 @@
 				"--cpu=2",
 				"--memory=2048",
 				"--disk-size=20",
+				"--bridged=en0",
+				"--nested",
 				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
 				"--network-config=/tmp/network-config.yaml",
 				"--user-data=/tmp/user-data.yaml",

@@ -18,6 +18,7 @@ service Service {
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
+	rpc Networks(NetworkRequest) returns (Reply) {}
 //	rpc Stream(stream Bytes) returns (stream Bytes);
 }
 
@@ -31,6 +32,10 @@ enum RemoteCommand {
 	add = 1;
 	delete = 2;
 	list = 3;
+}
+
+message NetworkRequest {
+	Format format = 1;
 }
 
 message RemoteRequestAdd {

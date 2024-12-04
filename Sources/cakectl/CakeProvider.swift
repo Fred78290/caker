@@ -37,8 +37,8 @@ extension Caked_BuildRequest {
 		self.image = buildOptions.image
 		self.mounts = buildOptions.mounts.joined(separator: ",")
 		self.netBridged = buildOptions.netBridged.joined(separator: ",")
-		self.netSofnet = buildOptions.netSoftnet
-		self.netHost = buildOptions.netHost
+//		self.netSofnet = buildOptions.netSoftnet
+//		self.netHost = buildOptions.netHost
 
 		if buildOptions.forwardedPort.isEmpty == false {
 			self.forwardedPort = buildOptions.forwardedPort.map { forwardedPort in
@@ -55,16 +55,22 @@ extension Caked_BuildRequest {
 		}
 
 		if let userData = buildOptions.userData {
-			self.userData = try Data(contentsOf: URL(filePath: userData))
+			if userData == "-" {
+				if let input = (readLine(strippingNewline: true))?.split(whereSeparator: {$0 == " "}).map (String.init) {
+					self.userData = input.joined(separator: "\n").data(using: .utf8)!
+				}
+			} else {
+				self.userData = try Data(contentsOf: URL(filePath: userData))
+			}
 		}
 
 		if let networkConfig = buildOptions.networkConfig {
 			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
 		}
 
-		if let netSoftnetAllow: String = buildOptions.netSoftnetAllow {
-			self.netSoftnetAllow = netSoftnetAllow
-		}
+//		if let netSoftnetAllow: String = buildOptions.netSoftnetAllow {
+//			self.netSoftnetAllow = netSoftnetAllow
+//		}
 
 	}
 }
@@ -105,6 +111,7 @@ extension Caked_LoginRequest {
 		if let username = command.username {
 			self.username = username
 		}
+
 		if command.passwordStdin {
 			if let password = readLine(strippingNewline: true) {
 				self.password = password
@@ -152,17 +159,17 @@ extension Caked_ConfigureRequest {
 			self.netBridged = options.netBridged.joined(separator: ",")
 		}
 
-		if let netSoftnet = options.netSoftnet {
-			self.netSoftnet = netSoftnet
-		}
-
-		if let netSoftnetAllow = options.netSoftnetAllow {
-			self.netSoftnetAllow = netSoftnetAllow
-		}
-
-		if let netHost = options.netHost {
-			self.netHost = netHost
-		}
+//		if let netSoftnet = options.netSoftnet {
+//			self.netSoftnet = netSoftnet
+//		}
+//
+//		if let netSoftnetAllow = options.netSoftnetAllow {
+//			self.netSoftnetAllow = netSoftnetAllow
+//		}
+//
+//		if let netHost = options.netHost {
+//			self.netHost = netHost
+//		}
 
 		if options.resetForwardedPort {
 			self.forwardedPort = ""
@@ -196,6 +203,14 @@ extension Caked_RemoteRequest {
 	}
 
 	init(command: Remote.ListRemote) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+	}
+}
+
+extension Caked_NetworkRequest {
+	init(command: Networks) {
 		self.init()
 
 		self.format = command.format == .text ? .text : .json

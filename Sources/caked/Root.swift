@@ -41,6 +41,7 @@ struct Root: AsyncParsableCommand {
 			Launch.self,
 			Configure.self,
 			Remote.self,
+			Networks.self,
 			Purge.self
 		])
 
@@ -101,7 +102,7 @@ struct Root: AsyncParsableCommand {
 			}
 		} catch {
 			if let shellError = error as? ShellError {
-				fputs("\(shellError.error)\n", stderr)
+				//fputs("\(shellError.error)\n", stderr)
 
 				Foundation.exit(shellError.terminationStatus)
 			}

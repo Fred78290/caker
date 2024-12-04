@@ -43,17 +43,17 @@ struct ConfigureHandler: CakedCommand {
 			config.netBridged = bridged
 		}
 
-		if let netSoftnet = options.netSoftnet {
-			config.netSoftnet = netSoftnet
-		}
-
-		if let netSoftnetAllow = options.netSoftnetAllow {
-			config.netSoftnetAllow = netSoftnetAllow
-		}
-
-		if let netHost = options.netHost {
-			config.netHost = netHost
-		}
+//		if let netSoftnet = options.netSoftnet {
+//			config.netSoftnet = netSoftnet
+//		}
+//
+//		if let netSoftnetAllow = options.netSoftnetAllow {
+//			config.netSoftnetAllow = netSoftnetAllow
+//		}
+//
+//		if let netHost = options.netHost {
+//			config.netHost = netHost
+//		}
 
 		if options.resetForwardedPort {
 			config.forwardedPort = []

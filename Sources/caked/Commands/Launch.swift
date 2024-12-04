@@ -7,7 +7,7 @@ struct Launch : AsyncParsableCommand {
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
-	@Flag(help: ArgumentHelp("Run VM in foreground"))
+	@Flag(help: .hidden)
 	var foreground: Bool = false
 
 	func validate() throws {

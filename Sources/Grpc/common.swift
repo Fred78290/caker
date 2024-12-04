@@ -138,17 +138,17 @@ public struct ConfigureOptions: ParsableArguments {
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
 	public var mount: [String] = ["unset"]
 
-	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
+	@Option(name: [.customLong("bridged")], help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
 	public var netBridged: [String] = ["unset"]
 
-	@Option(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
-	public var netSoftnet: Bool? = nil
+//	@Option(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
+//	public var netSoftnet: Bool? = nil
 
-	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
-	public var netSoftnetAllow: String? = nil
+//	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
+//	public var netSoftnetAllow: String? = nil
 
-	@Option(help: ("Restrict network access to the host-only network"))
-	public var netHost: Bool? = nil
+//	@Option(help: ("Restrict network access to the host-only network"))
+//	public var netHost: Bool? = nil
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
@@ -222,7 +222,7 @@ public struct BuildOptions: ParsableArguments {
 	@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
 	public var vendorData: String?
 
-	@Option(help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "path"))
+	@Option(name: [.long, .customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"))
 	public var userData: String?
 
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
@@ -237,17 +237,17 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
 	public var mounts: [String] = []
 
-	@Option(help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
+	@Option(name: [.long, .customLong("bridged")], help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
 	public var netBridged: [String] = []
 
-	@Flag(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
-	public var netSoftnet: Bool = false
+//	@Flag(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
+//	public var netSoftnet: Bool = false
 
-	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
-	public var netSoftnetAllow: String?
+//	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
+//	public var netSoftnetAllow: String?
 
-	@Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
-	public var netHost: Bool = false
+//	@Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
+//	public var netHost: Bool = false
 
 	public init() {
 	}
@@ -257,13 +257,13 @@ public struct BuildOptions: ParsableArguments {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		var netFlags = 0
-		if netBridged.count > 0 { netFlags += 1 }
-		if netSoftnet { netFlags += 1 }
-		if netHost { netFlags += 1 }
+//		var netFlags = 0
+//		if netBridged.count > 0 { netFlags += 1 }
+//		if netSoftnet { netFlags += 1 }
+//		if netHost { netFlags += 1 }
 
-		if netFlags > 1 {
-			throw ValidationError("--net-bridged, --net-softnet and --net-host are mutually exclusive")
-		}
+//		if netFlags > 1 {
+//			throw ValidationError("--net-bridged, --net-softnet and --net-host are mutually exclusive")
+//		}
 	}
 }

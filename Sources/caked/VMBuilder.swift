@@ -26,10 +26,11 @@ struct VMBuilder {
 		config.displayRefit = options.displayRefit
 		config.autostart = options.autostart
 		config.netBridged = options.netBridged
-		config.netSoftnet = options.netSoftnet
-		config.netSoftnetAllow = options.netSoftnetAllow
-		config.netHost = options.netHost
+//		config.netSoftnet = options.netSoftnet
+//		config.netSoftnetAllow = options.netSoftnetAllow
+//		config.netHost = options.netHost
 		config.mounts = options.mounts
+		config.forwardedPort = options.forwardedPort
 
 		try config.save(to: vmLocation.configURL)
 

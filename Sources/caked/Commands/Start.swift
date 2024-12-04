@@ -3,7 +3,7 @@ import ArgumentParser
 struct Start: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
-	@Flag(help: "VM name")
+	@Flag(help: .hidden)
 	var foreground: Bool = false
 
 	@Argument(help: "VM name")

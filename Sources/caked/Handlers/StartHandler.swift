@@ -42,7 +42,7 @@ struct StartHandler: CakedCommand {
 	}
 
 	static func runningArguments(vmLocation: VMLocation) throws -> [String] {
-		let config = try CakeConfig(baseURL: vmLocation.rootURL)
+		let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
 		var arguments: [String] = []
 
@@ -58,17 +58,17 @@ struct StartHandler: CakedCommand {
 			arguments.append("--net-bridged=\(net)")
 		}
 
-		if config.netSoftnet {
-			arguments.append("--net-softnet")
-		}
-
-		if let netSoftnetAllow = config.netSoftnetAllow {
-			arguments.append("--net-softnet-allow=\(netSoftnetAllow)")
-		}
-
-		if config.netHost {
-			arguments.append("--net-host")
-		}
+//		if config.netSoftnet {
+//			arguments.append("--net-softnet")
+//		}
+//
+//		if let netSoftnetAllow = config.netSoftnetAllow {
+//			arguments.append("--net-softnet-allow=\(netSoftnetAllow)")
+//		}
+//
+//		if config.netHost {
+//			arguments.append("--net-host")
+//		}
 
 		if try cdrom.exists() {
 			arguments.append("--disk=\(cdrom.path())")
@@ -78,6 +78,7 @@ struct StartHandler: CakedCommand {
 	}
 
 	private static func startVM(vmLocation: VMLocation, args: [String], foreground: Bool) throws {
+		//let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 		let process: Process = Process()
 		let cakeHome = try Utils.getHome(asSystem: runAsSystem)

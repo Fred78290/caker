@@ -146,23 +146,23 @@ extension Caked_BuildRequest: CreateCakedCommand {
 			options.netBridged = []
 		}
 
-		if self.hasNetHost {
-			options.netHost = self.netHost
-		} else {
-			options.netHost = false
-		}
-
-		if self.hasNetSofnet {
-			options.netSoftnet = self.netSofnet
-		} else {
-			options.netSoftnet = false
-		}
-
-		if self.hasNetSoftnetAllow {
-			options.netSoftnetAllow = self.netSoftnetAllow
-		} else {
-			options.netSoftnetAllow = nil
-		}
+//		if self.hasNetHost {
+//			options.netHost = self.netHost
+//		} else {
+//			options.netHost = false
+//		}
+//
+//		if self.hasNetSofnet {
+//			options.netSoftnet = self.netSofnet
+//		} else {
+//			options.netSoftnet = false
+//		}
+//
+//		if self.hasNetSoftnetAllow {
+//			options.netSoftnetAllow = self.netSoftnetAllow
+//		} else {
+//			options.netSoftnetAllow = nil
+//		}
 
 		return BuildHandler(options: options)
 	}
@@ -237,23 +237,23 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 			options.netBridged = []
 		}
 
-		if self.hasNetHost {
-			options.netHost = self.netHost
-		} else {
-			options.netHost = false
-		}
-
-		if self.hasNetSoftnet {
-			options.netSoftnet = self.netSoftnet
-		} else {
-			options.netSoftnet = false
-		}
-
-		if self.hasNetSoftnetAllow {
-			options.netSoftnetAllow = self.netSoftnetAllow
-		} else {
-			options.netSoftnetAllow = nil
-		}
+//		if self.hasNetHost {
+//			options.netHost = self.netHost
+//		} else {
+//			options.netHost = false
+//		}
+//
+//		if self.hasNetSoftnet {
+//			options.netSoftnet = self.netSoftnet
+//		} else {
+//			options.netSoftnet = false
+//		}
+//
+//		if self.hasNetSoftnetAllow {
+//			options.netSoftnetAllow = self.netSoftnetAllow
+//		} else {
+//			options.netSoftnetAllow = nil
+//		}
 
 		if self.hasRandomMac {
 			options.randomMAC = self.randomMac
@@ -286,6 +286,12 @@ extension Caked_LoginRequest: CreateCakedCommand {
 extension Caked_RemoteRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return RemoteHandler(request: self)
+	}
+}
+
+extension Caked_NetworkRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return NetworksHandler(format: self.format == .text ? .text : .json)
 	}
 }
 
@@ -352,8 +358,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try await self.execute(command: request)
 	}
 	
-	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try await self.execute(command: request)
 	}
-	
+
+	func networks(request: Caked_NetworkRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
 }

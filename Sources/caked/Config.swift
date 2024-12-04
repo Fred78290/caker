@@ -115,20 +115,20 @@ struct CakeConfig {
 		get { self.cake["netBridged"] as? [String] ?? []}
 	}
 
-	var netSoftnet: Bool {
-		set { self.cake["netSoftnet"] = newValue }
-		get { self.cake["netSoftnet"] as? Bool ?? false}
-	}
-
-	var netHost: Bool {
-		set { self.cake["netHost"] = newValue }
-		get { self.cake["netHost"] as? Bool ?? false }
-	}
-
-	var netSoftnetAllow: String? {
-		set { self.cake["netSoftnetAllow"] = newValue }
-		get { self.cake["netSoftnetAllow"] as? String ?? nil }
-	}
+//	var netSoftnet: Bool {
+//		set { self.cake["netSoftnet"] = newValue }
+//		get { self.cake["netSoftnet"] as? Bool ?? false}
+//	}
+//
+//	var netHost: Bool {
+//		set { self.cake["netHost"] = newValue }
+//		get { self.cake["netHost"] as? Bool ?? false }
+//	}
+//
+//	var netSoftnetAllow: String? {
+//		set { self.cake["netSoftnetAllow"] = newValue }
+//		get { self.cake["netSoftnetAllow"] as? String ?? nil }
+//	}
 
 	var forwardedPort: [ForwardedPort] {
 		set { self.cake["forwardedPort"] = newValue.description }

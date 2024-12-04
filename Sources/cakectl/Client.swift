@@ -135,14 +135,18 @@ struct Client: AsyncParsableCommand {
 		version: CI.version,
 		subcommands: [
 			Build.self,
+			Launch.self,
 			Start.self,
-			Create.self,
-			Clone.self,
+			Stop.self,
+			List.self,
 			Configure.self,
 			Remote.self,
+			Delete.self,
+			Networks.self,
+
+			Create.self,
+			Clone.self,
 			Get.self,
-			Launch.self,
-			List.self,
 			Login.self,
 			Logout.self,
 			IP.self,
@@ -152,8 +156,6 @@ struct Client: AsyncParsableCommand {
 			Export.self,
 			Purge.self,
 			Rename.self,
-			Stop.self,
-			Delete.self,
 			FQN.self,
 		])
 

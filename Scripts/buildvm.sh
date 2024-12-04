@@ -7,7 +7,7 @@ CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-
 LXD_IMAGE=ubuntu/noble/cloud
 #LXD_IMAGE=centos/9-Stream/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
-DESKTOP=YES
+DESKTOP=NO
 
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
@@ -21,7 +21,7 @@ network:
     enp0s1:
       match:
         name: enp0s1
-      dhcp4: false
+      dhcp4: true
       dhcp-identifier: mac
       addresses:
       - ${SHARED_NET_ADDRESS}.10/24
@@ -76,9 +76,9 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --bridged=en0 --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/caked delete linux
-#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
-${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${LXD_IMAGE}
+${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+#${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${LXD_IMAGE}
 #${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}
