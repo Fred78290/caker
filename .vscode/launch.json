@@ -16,14 +16,15 @@
 			"request": "launch",
 			"args": [
 				"build",
-				"linux",
+				"--name=linux",
 				"--cpu=2",
 				"--memory=2048",
 				"--disk-size=20",
+				"--bridged=en0",
+				"--nested",
 				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
 				"--network-config=/tmp/network-config.yaml",
-				"--user-data=/tmp/user-data.yaml",
-				"--oci-image=devregistry.aldunelabs.com/ubuntu:latest"
+				"--user-data=/tmp/user-data.yaml"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build",
@@ -35,18 +36,18 @@
 			"request": "launch",
 			"args": [
 				"launch",
-				"linux",
+				"--name=linux",
 				"--foreground",
 				"--display-refit",
 				"--cpu=2",
 				"--memory=2048",
 				"--disk-size=20",
-				"--bridged=en0",
 				"--nested",
+				"--clear-password",
+				"--password=admin",
 				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
 				"--network-config=/tmp/network-config.yaml",
-				"--user-data=/tmp/user-data.yaml",
-				"--oci-image=devregistry.aldunelabs.com/ubuntu:latest"
+				"--user-data=/tmp/user-data.yaml"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch",

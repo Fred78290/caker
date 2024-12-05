@@ -233,6 +233,15 @@ public struct Caked_BuildRequest: @unchecked Sendable {
   /// Clears the value of `user`. Subsequent reads from it will return its default value.
   public mutating func clearUser() {_uniqueStorage()._user = nil}
 
+  public var password: String {
+    get {return _storage._password ?? String()}
+    set {_uniqueStorage()._password = newValue}
+  }
+  /// Returns true if `password` has been explicitly set.
+  public var hasPassword: Bool {return _storage._password != nil}
+  /// Clears the value of `password`. Subsequent reads from it will return its default value.
+  public mutating func clearPassword() {_uniqueStorage()._password = nil}
+
   public var mainGroup: String {
     get {return _storage._mainGroup ?? String()}
     set {_uniqueStorage()._mainGroup = newValue}
@@ -927,6 +936,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     2: .same(proto: "cpu"),
     3: .same(proto: "memory"),
     4: .same(proto: "user"),
+    22: .same(proto: "password"),
     5: .same(proto: "mainGroup"),
     6: .same(proto: "sshPwAuth"),
     7: .same(proto: "image"),
@@ -950,6 +960,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
     var _cpu: Int32? = nil
     var _memory: Int32? = nil
     var _user: String? = nil
+    var _password: String? = nil
     var _mainGroup: String? = nil
     var _sshPwAuth: Bool? = nil
     var _image: String? = nil
@@ -984,6 +995,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       _cpu = source._cpu
       _memory = source._memory
       _user = source._user
+      _password = source._password
       _mainGroup = source._mainGroup
       _sshPwAuth = source._sshPwAuth
       _image = source._image
@@ -1038,6 +1050,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         case 18: try { try decoder.decodeSingularBoolField(value: &_storage._netSofnet) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._netSoftnetAllow) }()
         case 21: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
+        case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         default: break
         }
       }
@@ -1110,6 +1123,9 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       try { if let v = _storage._netHost {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 21)
       } }()
+      try { if let v = _storage._password {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 22)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -1123,6 +1139,7 @@ extension Caked_BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
         if _storage._cpu != rhs_storage._cpu {return false}
         if _storage._memory != rhs_storage._memory {return false}
         if _storage._user != rhs_storage._user {return false}
+        if _storage._password != rhs_storage._password {return false}
         if _storage._mainGroup != rhs_storage._mainGroup {return false}
         if _storage._sshPwAuth != rhs_storage._sshPwAuth {return false}
         if _storage._image != rhs_storage._image {return false}

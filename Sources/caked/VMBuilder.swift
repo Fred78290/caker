@@ -35,12 +35,13 @@ struct VMBuilder {
 		try config.save(to: vmLocation.configURL)
 
 		let cloudInit = try CloudInit(userName: options.user,
-												 mainGroup: options.mainGroup,
-												 clearPassword: options.clearPassword,
-												 sshAuthorizedKeyPath: options.sshAuthorizedKey,
-												 vendorDataPath: options.vendorData,
-												 userDataPath: options.userData,
-												 networkConfigPath: options.networkConfig)
+									  password: options.password,
+									  mainGroup: options.mainGroup,
+									  clearPassword: options.clearPassword,
+									  sshAuthorizedKeyPath: options.sshAuthorizedKey,
+									  vendorDataPath: options.vendorData,
+									  userDataPath: options.userData,
+									  networkConfigPath: options.networkConfig)
 
 		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
 	}

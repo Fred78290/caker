@@ -66,6 +66,7 @@ message BuildRequest {
 	optional int32 cpu = 2;
 	optional int32 memory = 3;
 	optional string user = 4;
+	optional string password = 22;
 	optional string mainGroup = 5;
 	optional bool sshPwAuth = 6;
 	optional string image = 7;

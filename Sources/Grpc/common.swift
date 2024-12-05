@@ -193,6 +193,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
 	public var user: String = "admin"
 
+	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default")
+	public var password: String?
+
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	public var mainGroup: String = "admin"
 

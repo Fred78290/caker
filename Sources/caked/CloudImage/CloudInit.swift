@@ -95,14 +95,14 @@ struct VendorData: Codable {
 		case writeFiles = "write_files"
 	}
 
-	init(defaultUser: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKeys: [String]?, tz: String, packages: [String]?, writeFiles: [WriteFile]?, growPart: Bool) {
+	init(defaultUser: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeys: [String]?, tz: String, packages: [String]?, writeFiles: [WriteFile]?, growPart: Bool) {
 		self.manageEtcHosts = true
 		self.packages = packages
 		self.sshAuthorizedKeys = sshAuthorizedKeys
 		self.sshPwAuth = clearPassword
 		self.systemInfo = SystemInfo(defaultUser: defaultUser)
 		self.timezone = tz
-		self.users = [User.userClass(UserClass(name: defaultUser, password: clearPassword ? defaultUser : nil, sshAuthorizedKeys: sshAuthorizedKeys, primaryGroup: mainGroup, groups: nil, sudo: true))]
+		self.users = [User.userClass(UserClass(name: defaultUser, password: password, shell: "/bin/bash", sshAuthorizedKeys: sshAuthorizedKeys, primaryGroup: mainGroup, groups: nil, sudo: true))]
 		self.writeFiles = writeFiles
 
 		if growPart {
@@ -235,8 +235,15 @@ struct UserClass: Codable {
 		case system
 	}
 
-	init(name: String, password: String?, sshAuthorizedKeys: [String]?, primaryGroup: String?, groups: [String]?, sudo: Bool?) {
+	init(name: String,
+		password: String?,
+		shell :String?,
+		sshAuthorizedKeys: [String]?,
+		primaryGroup: String?,
+		groups: [String]?,
+		sudo: Bool?) {
 		self.name = name
+		self.shell = shell
 		self.plainTextPasswd = password
 		self.primaryGroup = primaryGroup
 		self.groups = groups?.joined(separator: ",")
@@ -313,7 +320,8 @@ class CloudInit {
 	var vendorData: Data?
 	var networkConfig: Data?
 	var userName: String = "admin"
-	var mainGroup: String = "adm"
+	var password: String? = nil
+	var mainGroup: String = "admin"
 	var sshAuthorizedKeys: [String]?
 	var clearPassword: Bool = false
 
@@ -365,8 +373,9 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?) throws {
+	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?) throws {
 		self.userName = userName
+		self.password = password
 		self.mainGroup = mainGroup
 		self.clearPassword = clearPassword
 		self.sshAuthorizedKeys = sshAuthorizedKey
@@ -375,8 +384,9 @@ class CloudInit {
 		self.networkConfig = networkConfig
 	}
 
-	convenience init(userName: String, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
+	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
 		try self.init(userName: userName,
+					  password: password,
 					  mainGroup: mainGroup,
 					  clearPassword: clearPassword,
 					  sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath),
@@ -408,6 +418,7 @@ class CloudInit {
 	private func createVendorData() throws -> Data {
 		guard let vendorData = self.vendorData else {
 			let vendorData = VendorData(defaultUser: self.userName,
+										password: self.password,
 										mainGroup: self.mainGroup,
 										clearPassword: self.clearPassword,
 										sshAuthorizedKeys: sshAuthorizedKeys,

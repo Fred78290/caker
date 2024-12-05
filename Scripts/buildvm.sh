@@ -25,6 +25,7 @@ network:
       dhcp-identifier: mac
       addresses:
       - ${SHARED_NET_ADDRESS}.10/24
+      - 10.0.0.99/24
       nameservers:
         addresses:
         - ${DNS}
@@ -76,7 +77,7 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --bridged=en0 --foreground --display-refit --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --bridged=en0 --foreground --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/caked delete linux
 ${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 

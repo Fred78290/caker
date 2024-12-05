@@ -189,6 +189,6 @@ struct CakeConfig {
 
 	func save(to: URL) throws {
 		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: to))
-		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: to))
+		try self.cake.write(to: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: to))
 	}
 }
