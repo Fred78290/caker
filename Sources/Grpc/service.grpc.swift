@@ -51,6 +51,16 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply>
 
+  func waitIP(
+    _ request: Caked_WaitIPRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_WaitIPRequest, Caked_Reply>
+
+  func stop(
+    _ request: Caked_StopRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_StopRequest, Caked_Reply>
+
   func remote(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions?
@@ -193,6 +203,42 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
+  /// Unary call to WaitIP
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to WaitIP.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func waitIP(
+    _ request: Caked_WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_WaitIPRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Stop
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Stop.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func stop(
+    _ request: Caked_StopRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_StopRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
   /// Unary call to Remote
   ///
   /// - Parameters:
@@ -327,6 +373,16 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply>
 
+  func makeWaitIpCall(
+    _ request: Caked_WaitIPRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_WaitIPRequest, Caked_Reply>
+
+  func makeStopCall(
+    _ request: Caked_StopRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_StopRequest, Caked_Reply>
+
   func makeRemoteCall(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions?
@@ -429,6 +485,30 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
+    )
+  }
+
+  public func makeWaitIpCall(
+    _ request: Caked_WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_WaitIPRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  public func makeStopCall(
+    _ request: Caked_StopRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_StopRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
     )
   }
 
@@ -543,6 +623,30 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func waitIP(
+    _ request: Caked_WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  public func stop(
+    _ request: Caked_StopRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
   public func remote(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions? = nil
@@ -608,6 +712,12 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'configure'.
   func makeConfigureInterceptors() -> [ClientInterceptor<Caked_ConfigureRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'waitIP'.
+  func makeWaitIPInterceptors() -> [ClientInterceptor<Caked_WaitIPRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'stop'.
+  func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'remote'.
   func makeRemoteInterceptors() -> [ClientInterceptor<Caked_RemoteRequest, Caked_Reply>]
 
@@ -627,6 +737,8 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.login,
       Caked_ServiceClientMetadata.Methods.purge,
       Caked_ServiceClientMetadata.Methods.configure,
+      Caked_ServiceClientMetadata.Methods.waitIP,
+      Caked_ServiceClientMetadata.Methods.stop,
       Caked_ServiceClientMetadata.Methods.remote,
       Caked_ServiceClientMetadata.Methods.networks,
     ]
@@ -675,6 +787,18 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    public static let waitIP = GRPCMethodDescriptor(
+      name: "WaitIP",
+      path: "/caked.Service/WaitIP",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
     public static let remote = GRPCMethodDescriptor(
       name: "Remote",
       path: "/caked.Service/Remote",
@@ -707,6 +831,10 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func purge(request: Caked_PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func configure(request: Caked_ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func waitIP(request: Caked_WaitIPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func stop(request: Caked_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func remote(request: Caked_RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -788,6 +916,24 @@ extension Caked_ServiceProvider {
         userFunction: self.configure(request:context:)
       )
 
+    case "WaitIP":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_WaitIPRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
+        userFunction: self.waitIP(request:context:)
+      )
+
+    case "Stop":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_StopRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        userFunction: self.stop(request:context:)
+      )
+
     case "Remote":
       return UnaryServerHandler(
         context: context,
@@ -851,6 +997,16 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func configure(
     request: Caked_ConfigureRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func waitIP(
+    request: Caked_WaitIPRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func stop(
+    request: Caked_StopRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
@@ -947,6 +1103,24 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.configure(request: $0, context: $1) }
       )
 
+    case "WaitIP":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_WaitIPRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
+        wrapping: { try await self.waitIP(request: $0, context: $1) }
+      )
+
+    case "Stop":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_StopRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        wrapping: { try await self.stop(request: $0, context: $1) }
+      )
+
     case "Remote":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1001,6 +1175,14 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeConfigureInterceptors() -> [ServerInterceptor<Caked_ConfigureRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'waitIP'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeWaitIPInterceptors() -> [ServerInterceptor<Caked_WaitIPRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when handling 'stop'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStopInterceptors() -> [ServerInterceptor<Caked_StopRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'remote'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRemoteInterceptors() -> [ServerInterceptor<Caked_RemoteRequest, Caked_Reply>]
@@ -1022,6 +1204,8 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.login,
       Caked_ServiceServerMetadata.Methods.purge,
       Caked_ServiceServerMetadata.Methods.configure,
+      Caked_ServiceServerMetadata.Methods.waitIP,
+      Caked_ServiceServerMetadata.Methods.stop,
       Caked_ServiceServerMetadata.Methods.remote,
       Caked_ServiceServerMetadata.Methods.networks,
     ]
@@ -1067,6 +1251,18 @@ public enum Caked_ServiceServerMetadata {
     public static let configure = GRPCMethodDescriptor(
       name: "Configure",
       path: "/caked.Service/Configure",
+      type: GRPCCallType.unary
+    )
+
+    public static let waitIP = GRPCMethodDescriptor(
+      name: "WaitIP",
+      path: "/caked.Service/WaitIP",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/caked.Service/Stop",
       type: GRPCCallType.unary
     )
 

@@ -1,5 +1,4 @@
 {
-  "originHash" : "2e4dc40bd01633d9a5275f98c61f14873a3491d3cfe6ea94e809a427f620c8be",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -8,6 +7,15 @@
       "state" : {
         "revision" : "cc82115a4e7f53d71d9d905caa2c2dfa4da58899",
         "version" : "4.13.2"
+      }
+    },
+    {
+      "identity" : "bluesocket",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/IBM-Swift/BlueSocket",
+      "state" : {
+        "revision" : "7b23a867008e0027bfd6f4d398d44720707bc8ca",
+        "version" : "2.0.4"
       }
     },
     {
@@ -38,6 +46,15 @@
       }
     },
     {
+      "identity" : "libssh2prebuild",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/DimaRU/Libssh2Prebuild.git",
+      "state" : {
+        "revision" : "56e4285f64a34f543cba5d40805537ac927f9723",
+        "version" : "1.11.0-OpenSSL-1-1-1w"
+      }
+    },
+    {
       "identity" : "semaphore",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/Semaphore",
@@ -53,6 +70,15 @@
       "state" : {
         "revision" : "56bfb7e723c76614be4c0861ee820ccbaed14c6d",
         "version" : "8.41.0"
+      }
+    },
+    {
+      "identity" : "shout",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/DimaRU/Shout.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "7aa5090f3664963b21b5290791ef778b4ae0e0fb"
       }
     },
     {
@@ -173,6 +199,15 @@
       }
     },
     {
+      "identity" : "swift-nio-ssh",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-nio-ssh.git",
+      "state" : {
+        "revision" : "e0ad5be6b474d24849b5b6ba8263bdfd0ede2eae",
+        "version" : "0.9.1"
+      }
+    },
+    {
       "identity" : "swift-nio-ssl",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
@@ -290,5 +325,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

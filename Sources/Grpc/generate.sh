@@ -79,6 +79,8 @@ function generate_service {
 
   generate_message "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
   generate_grpc "$proto" "$(dirname "$proto")" "$output" "Visibility=Public"
+
+  swift build --target GRPCLib
 }
 
 #------------------------------------------------------------------------------

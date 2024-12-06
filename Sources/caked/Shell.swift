@@ -71,7 +71,7 @@ struct Shell {
 		                      errorHandle: errorPipe.fileHandleForWriting,
 							  environment: environment)
 
-		return String(data: outputData,  encoding: .utf8)!
+		return String(data: outputData,  encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 
 	@discardableResult static public func bash(
@@ -94,7 +94,6 @@ struct Shell {
 			environment: environment
 		)
 	}
-
 }
 
 private extension FileHandle {

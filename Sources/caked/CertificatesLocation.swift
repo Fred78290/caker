@@ -29,10 +29,10 @@ struct CertificatesLocation: Codable {
 
 		if FileManager.default.fileExists(atPath: certs.serverKeyURL.path()) == false {
 			try FileManager.default.createDirectory(at: certs.certHome, withIntermediateDirectories: true)
-			try CypherKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
-																caKeyURL: certs.caKeyURL, caCertURL: certs.caCertURL,
-																serverKeyURL: certs.serverKeyURL, serverCertURL: certs.serverCertURL,
-																clientKeyURL: certs.clientKeyURL, clientCertURL: certs.clientCertURL)
+			try RSAKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
+																	caKeyURL: certs.caKeyURL, caCertURL: certs.caCertURL,
+																	serverKeyURL: certs.serverKeyURL, serverCertURL: certs.serverCertURL,
+																	clientKeyURL: certs.clientKeyURL, clientCertURL: certs.clientCertURL)
 		}
 
 		return certs

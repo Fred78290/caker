@@ -82,6 +82,14 @@ extension Caked_StartRequest {
 	}
 }
 
+extension Caked_StopRequest {
+	init(command: Stop) {
+		self.init()
+		self.name = command.name
+		self.force = command.force
+	}
+}
+
 extension Caked_PurgeRequest {
 	init (command: Purge) {
 		self.init()
@@ -214,5 +222,14 @@ extension Caked_NetworkRequest {
 		self.init()
 
 		self.format = command.format == .text ? .text : .json
+	}
+}
+
+extension Caked_WaitIPRequest {
+	init(command: WaitIP) {
+		self.init()
+
+		self.name = command.name
+		self.timeout = Int32(command.wait)
 	}
 }

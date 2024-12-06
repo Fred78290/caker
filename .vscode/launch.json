@@ -57,6 +57,18 @@
 		{
 			"type": "lldb",
 			"request": "launch",
+			"args": [
+				"stop",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked stop",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Release caked",

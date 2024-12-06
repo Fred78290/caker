@@ -32,6 +32,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-certificates.git", from: "1.6.1"),
 		.package(url: "https://github.com/apple/swift-crypto.git", from: "3.9.1"),
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.23.0"),
+		.package(url: "https://github.com/apple/swift-nio-ssh.git", from: "0.9.1"),
 		.package(url: "https://github.com/grpc/grpc-swift.git", from: "1.24.2"),
 		.package(url: "https://github.com/apple/swift-nio.git", from: "2.65.0"),
 		.package(url: "https://github.com/apple/swift-nio-http2.git", from: "1.32.0"),
@@ -39,6 +40,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-collections.git", from: "1.0.5"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
+		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -74,6 +76,7 @@ let package = Package(
 			.product(name: "Crypto", package: "swift-crypto"),
 			.product(name: "GRPC", package: "grpc-swift"),
 			.product(name: "NIOCore", package: "swift-nio"),
+			.product(name: "NIOSSH", package: "swift-nio-ssh"),
 			.product(name: "NIOEmbedded", package: "swift-nio"),
 			.product(name: "NIOExtras", package: "swift-nio-extras"),
 			.product(name: "NIOFoundationCompat", package: "swift-nio"),
@@ -81,7 +84,8 @@ let package = Package(
 			.product(name: "NIOHTTP2", package: "swift-nio-http2"),
 			.product(name: "NIOPosix", package: "swift-nio"),
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
-			.product(name: "NIOTLS", package: "swift-nio")
+			.product(name: "NIOTLS", package: "swift-nio"),
+			.product(name: "Shout", package: "Shout"),
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),

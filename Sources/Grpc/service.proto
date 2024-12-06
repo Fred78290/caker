@@ -17,6 +17,8 @@ service Service {
 	rpc Login (LoginRequest) returns (Reply) {}
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
+	rpc WaitIP (WaitIPRequest) returns (Reply) {}
+	rpc Stop (StopRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
 //	rpc Stream(stream Bytes) returns (stream Bytes);
@@ -32,6 +34,16 @@ enum RemoteCommand {
 	add = 1;
 	delete = 2;
 	list = 3;
+}
+
+message StopRequest {
+	string name = 1;
+	bool force = 2;
+}
+
+message WaitIPRequest {
+	string name = 1;
+	int32 timeout = 2;
 }
 
 message NetworkRequest {

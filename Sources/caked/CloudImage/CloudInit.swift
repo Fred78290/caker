@@ -102,8 +102,15 @@ struct VendorData: Codable {
 		self.sshPwAuth = clearPassword
 		self.systemInfo = SystemInfo(defaultUser: defaultUser)
 		self.timezone = tz
-		self.users = [User.userClass(UserClass(name: defaultUser, password: password, shell: "/bin/bash", sshAuthorizedKeys: sshAuthorizedKeys, primaryGroup: mainGroup, groups: nil, sudo: true))]
 		self.writeFiles = writeFiles
+		self.users = [User.userClass(UserClass(name: defaultUser,
+											   password: password,
+											   lockPasswd: password == nil,
+											   shell: "/bin/bash",
+											   sshAuthorizedKeys: sshAuthorizedKeys,
+											   primaryGroup: mainGroup,
+											   groups: nil,
+											   sudo: true))]
 
 		if growPart {
 			self.growpart = Growpart()
@@ -237,6 +244,7 @@ struct UserClass: Codable {
 
 	init(name: String,
 		password: String?,
+		lockPasswd: Bool?,
 		shell :String?,
 		sshAuthorizedKeys: [String]?,
 		primaryGroup: String?,
@@ -248,6 +256,7 @@ struct UserClass: Codable {
 		self.primaryGroup = primaryGroup
 		self.groups = groups?.joined(separator: ",")
 		self.sshAuthorizedKeys = sshAuthorizedKeys
+		self.lockPasswd = lockPasswd
 
 		if let sudo = sudo {
 			if sudo {
@@ -325,18 +334,6 @@ class CloudInit {
 	var sshAuthorizedKeys: [String]?
 	var clearPassword: Bool = false
 
-	private static func loadSharedPublicKey(home: Home) throws -> String? {
-		let publicKeyURL = URL(fileURLWithPath: "id_rsa.pub", relativeTo: home.homeDir)
-
-		if FileManager.default.fileExists(atPath: publicKeyURL.path) {
-			let content = try Data(contentsOf: publicKeyURL)
-
-			return String(data: content, encoding: .ascii)
-		} else {
-			return nil
-		}
-	}
-
 	private static func loadPublicKey(sshAuthorizedKey: String) throws -> String {
 		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey))
 
@@ -348,28 +345,14 @@ class CloudInit {
 	}
 
 	public static func sshAuthorizedKeys(sshAuthorizedKeyPath: String?) throws -> [String] {
-		let sharedPublicKey = try createSharedSshKeys()
+		let home: Home = try Home(asSystem: runAsSystem)
+		let sharedPublicKey = try home.getSharedPublicKey()
 
 		if var sshAuthorizedKey = sshAuthorizedKeyPath {
 			sshAuthorizedKey = try loadPublicKey(sshAuthorizedKey: sshAuthorizedKey)
 			return [sharedPublicKey, sshAuthorizedKey]
 		} else {
 			return [sharedPublicKey]
-		}
-	}
-
-	private static func createSharedSshKeys() throws -> String {
-		let home: Home = try Home(asSystem: runAsSystem)
-
-		if let key = try loadSharedPublicKey(home: home) {
-			return key
-		} else {
-			let cypher = try CypherKeyGenerator(identifier: "com.cirruslabs.keys.ssh")
-			let key = try cypher.generateKey()
-
-			try key.save(privateURL: URL(fileURLWithPath: "id_rsa", relativeTo: home.homeDir), publicURL: URL(fileURLWithPath: "id_rsa.pub", relativeTo: home.homeDir))
-
-			return try key.publicKeyString()
 		}
 	}
 

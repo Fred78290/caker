@@ -11,10 +11,10 @@ struct Stop: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	@Option(name: [.short, .long], help: "Seconds to wait for graceful termination before forcefully terminating the VM")
-	var timeout: UInt64 = 30
+	@Option(name: [.short, .long], help: "Force to stop")
+	var force: Bool = false
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "stop", arguments: arguments), callOptions: callOptions).response.wait()
+		return try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

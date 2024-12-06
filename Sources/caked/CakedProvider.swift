@@ -295,6 +295,18 @@ extension Caked_NetworkRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_WaitIPRequest: CreateCakedCommand {
+	func createCommand() -> any CakedCommand {
+		return WaitIPHandler(name: self.name, wait: UInt16(self.timeout))
+	}
+}
+
+extension Caked_StopRequest: CreateCakedCommand {
+	func createCommand() -> any CakedCommand {
+		return StopHandler(name: self.name, force: self.force)
+	}
+}
+
 extension Caked_Error {
 	init(code: Int32, reason: String) {
 		self.init()
@@ -335,12 +347,12 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try await self.execute(command: request)
 	}
 	
-	func launch(request: Caked_BuildRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
+	func launch(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
 	
-	func start(request: Caked_StartRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
+	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
@@ -349,7 +361,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try await self.execute(command: request)
 	}
 	
-	func purge(request: Caked_PurgeRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply
+	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}
@@ -361,8 +373,16 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try await self.execute(command: request)
 	}
+	
+	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
+	
+	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try await self.execute(command: request)
+	}
 
-	func networks(request: Caked_NetworkRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+	func stop(request: Caked_StopRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try await self.execute(command: request)
 	}
 }

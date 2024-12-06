@@ -40,7 +40,7 @@ class RemoteDatabase {
 		return self.remote[key]
 	}
 
-    @inlinable public func map<T>(_ transform: ((key: String, value: String)) throws -> T) throws -> [T] {
+	@inlinable public func map<T>(_ transform: ((key: String, value: String)) throws -> T) throws -> [T] {
 		return try self.remote.map(transform)
 	}
 
@@ -58,12 +58,17 @@ struct Home {
 	let cacheDir: URL
 	let temporaryDir: URL
 	let remoteDb: URL
+	let sshPrivateKey: URL
+	let sshPublicKey: URL
 
 	init(asSystem: Bool) throws {
 		self.homeDir = try Utils.getHome(asSystem: asSystem)
 		self.cacheDir = self.homeDir.appendingPathComponent("cache", isDirectory: true).absoluteURL
 		self.temporaryDir = self.homeDir.appendingPathComponent("tmp", isDirectory: true).absoluteURL
 		self.remoteDb = self.homeDir.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
+
+		self.sshPrivateKey = self.homeDir.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL
+		self.sshPublicKey = self.homeDir.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL
 
 		try FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
 		try FileManager.default.createDirectory(at: temporaryDir, withIntermediateDirectories: true)
@@ -75,5 +80,27 @@ struct Home {
 
 	func remoteDatabase() throws -> RemoteDatabase {
 		return try RemoteDatabase(self.remoteDb)
+	}
+
+	func getSharedPublicKey() throws -> String {
+		if try self.sshPublicKey.exists() {
+			let content = try Data(contentsOf: self.sshPublicKey)
+
+			return String(data: content, encoding: .ascii)!
+		} else {
+#if false
+			let cypher = try CypherKeyGenerator(identifier: "com.aldunelabs.caker.ssh")
+			let key = try cypher.generateKey()
+
+			try key.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
+
+			return try key.publicKeyString()
+#else
+			let cypher = try RSAKeyGenerator()
+			
+			try cypher.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
+			return cypher.publicKeyString
+#endif
+		}
 	}
 }

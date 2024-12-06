@@ -143,6 +143,8 @@ struct Client: AsyncParsableCommand {
 			Remote.self,
 			Delete.self,
 			Networks.self,
+			WaitIP.self,
+			Purge.self,
 
 			Create.self,
 			Clone.self,
@@ -154,7 +156,6 @@ struct Client: AsyncParsableCommand {
 			Push.self,
 			Import.self,
 			Export.self,
-			Purge.self,
 			Rename.self,
 			FQN.self,
 		])

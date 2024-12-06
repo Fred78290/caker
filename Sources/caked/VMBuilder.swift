@@ -31,6 +31,7 @@ struct VMBuilder {
 //		config.netHost = options.netHost
 		config.mounts = options.mounts
 		config.forwardedPort = options.forwardedPort
+		config.useCloudInit = true
 
 		try config.save(to: vmLocation.configURL)
 

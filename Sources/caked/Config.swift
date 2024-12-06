@@ -115,6 +115,11 @@ struct CakeConfig {
 		get { self.cake["netBridged"] as? [String] ?? []}
 	}
 
+	var useCloudInit: Bool {
+		set { self.cake["cloud-init"] = newValue }
+		get { self.cake["cloud-init"] as? Bool ?? false}
+	}
+
 //	var netSoftnet: Bool {
 //		set { self.cake["netSoftnet"] = newValue }
 //		get { self.cake["netSoftnet"] as? Bool ?? false}
