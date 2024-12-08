@@ -5,8 +5,9 @@
 
 qcow2convert/Qcow2convert.xcframework/
 DerivedData/
+dist/
 
 *.log
 *.pkg
 *.jpg
-//*.xcf
+*.xcf
