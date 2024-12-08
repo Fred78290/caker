@@ -2,7 +2,7 @@
 
 set -e
 
-ln -s "/Library/Application Support/Caker/cakectl" /usr/local/bin
-ln -s "/Library/Application Support/Caker/caked" /usr/local/bin
+ln -s "/Library/Application Support/Caker/Caker.app/bin/cakectl" /usr/local/bin
+ln -s "/Library/Application Support/Caker/Caker.app/bin/caked" /usr/local/bin
 
 caked service install --system

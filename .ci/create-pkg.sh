@@ -4,9 +4,22 @@ if [ -f .env ]; then
 fi
 
 VERSION=${VERSION:=SNAPSHOT}
+CURDIR=${PWD}
+PKGDIR=.ci/pkg/Caker.app
 
-lipo -create .build/x86_64-apple-macosx/release/caked .build/arm64-apple-macosx/release/caked -output .ci/pkg/caked
-lipo -create .build/x86_64-apple-macosx/release/cakectl .build/arm64-apple-macosx/release/cakectl -output .ci/pkg/cakectl
+mkdir -p ${PKGDIR}/bin ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
+
+lipo -create .build/x86_64-apple-macosx/release/caked .build/arm64-apple-macosx/release/caked -output ${PKGDIR}/bin/caked
+lipo -create .build/x86_64-apple-macosx/release/cakectl .build/arm64-apple-macosx/release/cakectl -output ${PKGDIR}/bin/cakectl
+
+pushd ${PKGDIR}/Contents/MacOS >/dev/null
+ln -s ../../bin/caked .
+ln -s ../../bin/cakectl .
+popd >/dev/null
+
+cp -c ${CURDIR}/Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
+cp -c ${CURDIR}/Resources/cakectl.plist ${PKGDIR}/Contents/Info.plist
+cp -c ${CURDIR}/Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
 
 if [ -n "$1" ]; then
 	KEYCHAIN_OPTIONS="--keychain $1"

@@ -1,14 +1,12 @@
 
 .build/
+.swiftpm/
+.env
 
+qcow2convert/Qcow2convert.xcframework/
 DerivedData/
 
 *.log
-
-.swiftpm/
-
-qcow2convert/Qcow2convert.xcframework/
-
-.env
-
 *.pkg
+*.jpg
+//*.xcf

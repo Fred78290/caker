@@ -8,8 +8,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
 		},
 		{
 			"type": "lldb",
@@ -28,8 +28,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
 		},
 		{
 			"type": "lldb",
@@ -51,8 +51,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
 		},
 		{
 			"type": "lldb",
@@ -63,8 +63,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked stop",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
 		},
 		{
 			"type": "lldb",
@@ -121,8 +121,8 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caked",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
 		}
 	]
 }

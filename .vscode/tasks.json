@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build signed caked",
+			"group": "build",
+			"command": "${workspaceFolder:caker}/.vscode/taskes/build-caked.sh",
+			"args": [
+				"${workspaceFolder:caker}"
+			]
+		},
+		{
+			"type": "shell",
+			"label": "Build signed cackectl",
+			"group": "build",
+			"command": "${workspaceFolder:caker}/.vscode/taskes/build-cakectl.sh",
+			"args": [
+				"${workspaceFolder:caker}"
+			]
+		}		
+	]
+}
