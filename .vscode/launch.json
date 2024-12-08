@@ -8,7 +8,7 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
-			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
 		{
@@ -28,7 +28,7 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build",
-			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
 		{
@@ -51,7 +51,7 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch",
-			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
 		{
@@ -63,7 +63,7 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked stop",
-			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
 		{
@@ -121,7 +121,7 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caked",
-			"program": "${workspaceFolder:caker}/dist/Cake.app/Contents/MacOS/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		}
 	]
