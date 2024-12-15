@@ -40,7 +40,8 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-collections.git", from: "1.0.5"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
-		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master")
+		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
+		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", branch: "main")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),

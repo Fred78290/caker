@@ -76,7 +76,7 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --foreground --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --foreground --ssh-authorized-key=$HOME/.ssh/id_zenika.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/caked delete linux
 ${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 

@@ -35,10 +35,9 @@ struct StartHandler: CakedCommand {
 
 	func run(asSystem: Bool) async throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
 
-		try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
-
-		return "started \(name)"
+		return "started \(name) with IP:\(runningIP)"
 	}
 
 	static func runningArguments(vmLocation: VMLocation) throws -> [String] {
@@ -77,7 +76,7 @@ struct StartHandler: CakedCommand {
 		return arguments
 	}
 
-	private static func startVM(vmLocation: VMLocation, args: [String], foreground: Bool) throws {
+	private static func startVM(vmLocation: VMLocation, args: [String], foreground: Bool) throws -> String {
 		//let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 		let process: Process = Process()
@@ -114,6 +113,14 @@ struct StartHandler: CakedCommand {
 
 		do {
 			try process.run()
+
+			let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 120, asSystem: runAsSystem)
+			var config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
+
+			config.runningIP = runningIP
+			try config.save(to: vmLocation.configURL)
+
+			return runningIP
 		} catch {
 			print(error)
 			if process.terminationStatus != 0 {
@@ -124,7 +131,7 @@ struct StartHandler: CakedCommand {
 		}
 	}
 
-	public static func startVM(vmLocation: VMLocation, foreground: Bool = false) throws {
-		try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), foreground: foreground)
+	public static func startVM(vmLocation: VMLocation, foreground: Bool = false) throws -> String {
+		return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), foreground: foreground)
 	}
 }

@@ -199,6 +199,15 @@
       }
     },
     {
+      "identity" : "swift-nio-portforwarding",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Fred78290/swift-nio-portforwarding.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "06bae605d40685369801daf6148ac3016cbf4e51"
+      }
+    },
+    {
       "identity" : "swift-nio-ssh",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssh.git",

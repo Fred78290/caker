@@ -19,6 +19,8 @@ struct Launch : AsyncParsableCommand {
 	}
 
 	mutating func run() async throws {
-		try await LaunchHandler.buildAndLaunchVM(asSystem: false, options: options, foreground: self.foreground)
+		let runningIP = try await LaunchHandler.buildAndLaunchVM(asSystem: false, options: options, foreground: self.foreground)
+
+		Logger.appendNewLine("launched \(options.name) with IP: \(runningIP)")
 	}
 }

@@ -148,6 +148,11 @@ struct CakeConfig {
 		}
 	}
 
+	var runningIP: String? {
+		set { self.cake["runningIP"] = newValue }
+		get { self.cake["runningIP"] as? String ?? nil }
+	}
+
 	var nestedVirtualization: Bool {
 		get {
 			if self.os == .linux && Utils.isNestedVirtualizationSupported() {

@@ -4,7 +4,7 @@ import GRPCLib
 struct LaunchHandler: CakedCommand {
 	var options: BuildOptions
 
-	private static func launch(asSystem: Bool, options: BuildOptions, foreground: Bool) throws {
+	private static func launch(asSystem: Bool, options: BuildOptions, foreground: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
 		var config = try CakeConfig(baseURL: vmLocation.rootURL)
 
@@ -20,22 +20,23 @@ struct LaunchHandler: CakedCommand {
 
 		try config.save(to: vmLocation.rootURL)
 
-		try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
+		return try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
 	}
 
-	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, foreground: Bool) async throws {
+	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, foreground: Bool) async throws -> String {
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
 		let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 		try tmpVMDirLock.lock()
 
-		try await withTaskCancellationHandler(
+		return try await withTaskCancellationHandler(
 			operation: {
 				try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
 				try tmpVMDirLock.unlock()
 				try StorageLocation(asSystem: asSystem).relocate(options.name, from: tempVMLocation)
-				try Self.launch(asSystem: asSystem, options: options, foreground: foreground)
+				
+				return try Self.launch(asSystem: asSystem, options: options, foreground: foreground)
 			},
 			onCancel: {
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
@@ -43,8 +44,8 @@ struct LaunchHandler: CakedCommand {
 	}
 
 	func run(asSystem: Bool) async throws  -> String {
-		try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, foreground: false)
-		return "launched \(options.name)"
+		let runningIP = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, foreground: false)
+		return "launched \(options.name) with IP: \(runningIP)"
 	}
 
 }
