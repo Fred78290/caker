@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import NIOPortForwarding
 
 protocol CakedCommand {
 	mutating func run(asSystem: Bool) async throws -> String
@@ -41,9 +42,9 @@ extension Caked_CakedCommandRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_BuildRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		var options = BuildOptions()
+extension Caked_CommonBuildRequest {
+	func buildOptions() -> BuildOptions {
+		var options: BuildOptions = BuildOptions()
 
 		options.name = self.name
 		options.displayRefit = false
@@ -70,6 +71,12 @@ extension Caked_BuildRequest: CreateCakedCommand {
 			options.user = self.user
 		} else {
 			options.user = "admin"
+		}
+
+		if self.hasPassword {
+			options.password = self.password
+		} else {
+			options.password = nil
 		}
 
 		if self.hasMainGroup {
@@ -164,7 +171,19 @@ extension Caked_BuildRequest: CreateCakedCommand {
 //			options.netSoftnetAllow = nil
 //		}
 
-		return BuildHandler(options: options)
+		return options
+	} 
+}
+
+extension Caked_BuildRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return BuildHandler(options: self.options.buildOptions())
+	}
+}
+
+extension Caked_LaunchRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return LaunchHandler(options: self.options.buildOptions(), waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
 	}
 }
 
@@ -273,7 +292,7 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
-		return StartHandler(name: self.name)
+		return StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120)
 	}
 }
 
@@ -297,7 +316,7 @@ extension Caked_NetworkRequest: CreateCakedCommand {
 
 extension Caked_WaitIPRequest: CreateCakedCommand {
 	func createCommand() -> any CakedCommand {
-		return WaitIPHandler(name: self.name, wait: UInt16(self.timeout))
+		return WaitIPHandler(name: self.name, wait: Int(self.timeout))
 	}
 }
 
@@ -331,7 +350,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		do {
 			reply.output = try await command.run(asSystem: self.asSystem)
 		} catch {
-			reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
+			if let shellError = error as? ShellError {
+				reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
+			} else {
+				reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
+			}
 		}
 		
 		return reply
@@ -347,7 +370,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try await self.execute(command: request)
 	}
 	
-	func launch(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
+	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
 	{
 		return try await self.execute(command: request)
 	}

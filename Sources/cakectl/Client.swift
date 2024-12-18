@@ -27,7 +27,21 @@ protocol GrpcParsableCommand: ParsableCommand {
 
 extension GrpcParsableCommand {
 	public mutating func run() throws {
-		print(try self.options.execute(command: self, arguments: self.options.arguments))
+		do {
+			let response = try self.options.execute(command: self, arguments: self.options.arguments)
+
+			if response.count > 0 {
+				print(response)
+			}
+		} catch {
+			if let err = error as? GrpcError {
+				fputs("\(err.reason)\n", stderr)
+
+				Foundation.exit(Int32(err.code))
+			}
+			// Handle any other exception, including ArgumentParser's ones
+			Self.exit(withError: error)
+		}
 	}
 }
 
@@ -39,17 +53,13 @@ struct Client: AsyncParsableCommand {
 
 		init() {
 			let discardedOptions: [String] = [
+				"--insecure",
 				"--timeout",
 				"--system",
 				"--address",
 				"--ca-cert",
 				"--tls-cert",
 				"--tls-key",
-				"-i",
-				"-a",
-				"-c",
-				"-t",
-				"-k"
 			]
 
 			for argument in CommandLine.arguments.dropFirst() {
@@ -64,24 +74,24 @@ struct Client: AsyncParsableCommand {
 		}
 
 		@Option(help: "Connection timeout in seconds")
-		var timeout: Int64 = 30
+		var timeout: Int64 = 120
 
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
+		@Flag(name: [.customLong("insecure")], help: "don't use TLS")
 		var insecure: Bool = false
 
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Caked run as system agent")
+		@Flag(name: [.customLong("system")], help: "Caked run as system agent")
 		var asSystem: Bool = false
 
-		@Option(name: [.customLong("address"), .customShort("a")], help: "connect to address")
+		@Option(name: [.customLong("address")], help: "connect to address")
 		var address: String = try! Client.getDefaultServerAddress(asSystem: false)
 
-		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		@Option(name: [.customLong("ca-cert")], help: "CA TLS certificate")
 		var caCert: String?
 
-		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		@Option(name: [.customLong("tls-cert")], help: "Client TLS certificate")
 		var tlsCert: String?
 
-		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		@Option(name: [.customLong("tls-key")], help: "Client private key")
 		var tlsKey: String?
 
 		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
@@ -104,9 +114,16 @@ struct Client: AsyncParsableCommand {
 			}
 
 			let grpcClient = Caked_ServiceNIOClient(channel: connection)
-			let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
+			let reply: Caked_Reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
 
-			return reply.output
+			switch reply.response {
+			case let .error(err):
+				throw GrpcError(code: Int(err.code), reason: err.reason)
+			case let .output(msg):
+				return msg
+			case .none:
+				throw GrpcError(code: -1, reason: "No reply")
+			}
 		}
 
 		mutating func validate() throws {
@@ -247,19 +264,31 @@ struct Client: AsyncParsableCommand {
 			guard let command = try Self.parse() else {
 				if let commandName = self.options.commandName {
 					let command: any GrpcParsableCommand = Cake(command: commandName)
+					let response = try self.options.execute(command: command, arguments: self.options.arguments)
 
-					print(try self.options.execute(command: command, arguments: self.options.arguments))
+					if response.count > 0 {
+						print(response)
+					}
+				} else {
+					let usage = Self.usageString() + "\n"
+
+					FileHandle.standardError.write(usage.data(using: .utf8)!)
 				}
-
-				let usage = Self.usageString() + "\n"
-
-				FileHandle.standardError.write(usage.data(using: .utf8)!)
 
 				Foundation.exit(-1)
 			}
 
-			print(try self.options.execute(command: command, arguments: self.options.arguments))
+			let response = try self.options.execute(command: command, arguments: self.options.arguments)
+
+			if response.count > 0 {
+				print(response)
+			}
 		} catch {
+			if let err = error as? GrpcError {
+				fputs("\(err.reason)\n", stderr)
+
+				Foundation.exit(Int32(err.code))
+			}
 			// Handle any other exception, including ArgumentParser's ones
 			Self.exit(withError: error)
 		}

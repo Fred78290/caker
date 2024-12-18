@@ -224,6 +224,7 @@ extension Service {
 		                         caCert: String?,
 		                         tlsCert: String?,
 		                         tlsKey: String?) throws -> EventLoopFuture<Server> {
+
 			if let listeningAddress = listeningAddress {
 				let target: ConnectionTarget
 
@@ -269,16 +270,22 @@ extension Service {
 
 			try StartHandler.autostart(asSystem: self.asSystem)
 
-			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+			
+			PortForwardingServer.createPortForwardingServer(on: group)
 
 			defer {
 				try! group.syncShutdownGracefully()
 			}
 
+			let listenAddress = try self.getServerAddress()
+
+			Logger.info("Start listening on \(listenAddress)")
+
 			// Start the server and print its address once it has started.
 			let server = try Self.createServer(on: group,
 			                                   asSystem: self.asSystem,
-			                                   listeningAddress: URL(string: try self.getServerAddress()),
+			                                   listeningAddress: URL(string: listenAddress),
 			                                   caCert: self.caCert,
 			                                   tlsCert: self.tlsCert,
 			                                   tlsKey: self.tlsKey).wait()
@@ -296,7 +303,7 @@ extension Service {
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			try server.onClose.wait()
 			
-			Logger.appendNewLine("Server stopped")
+			Logger.info("Server stopped")
 		}
 	}
 }

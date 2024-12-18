@@ -5,8 +5,8 @@ import GRPCLib
 
 struct Networks: GrpcParsableCommand {
 	static var configuration = CommandConfiguration(abstract: """
-	List host network devices (physical interfaces, virtual switches, bridges) available
-	to integrate with using the `--bridged` switch to the `launch` command
+List host network devices (physical interfaces, virtual switches, bridges) available
+to integrate with using the `--bridged` switch to the `launch` command
 """)
 
 	@OptionGroup var options: Client.Options

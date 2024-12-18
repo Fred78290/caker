@@ -9,9 +9,9 @@ class CloudImageConverter {
 				from.path(),
 				to.path()
 			])
-			Logger.appendNewLine(convertOuput)
+			Logger.info(convertOuput)
 		} catch {
-			Logger.appendError(error)
+			Logger.error(error)
 
 			throw error
 		}
@@ -38,7 +38,7 @@ class CloudImageConverter {
 			if converter.convert() < 0 {
 				throw ServiceError(String(data: errorData, encoding: .utf8)!)
 			} else {
-				Logger.appendNewLine(String(data: outputData, encoding: .utf8)!)
+				Logger.info(String(data: outputData, encoding: .utf8)!)
 			}
 		}
 	}
@@ -49,7 +49,7 @@ class CloudImageConverter {
 		}
 
 		// Download the cloud-image
-		Logger.appendNewLine("Fetching \(fromURL.lastPathComponent)...")
+		Logger.info("Fetching \(fromURL.lastPathComponent)...")
 
 		let downloadProgress = Progress(totalUnitCount: 100)
 		let channel = try await Curl(fromURL: fromURL).get(progress: downloadProgress)
@@ -76,7 +76,7 @@ class CloudImageConverter {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				}
 			} catch {
-				Logger.appendNewLine("Unexpected error: \(error).")
+				Logger.error(error)
 			}
 		}
 
@@ -90,7 +90,7 @@ class CloudImageConverter {
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
+			Logger.info("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate()
 			return cacheLocation
 		}
@@ -114,17 +114,17 @@ class CloudImageConverter {
 				do {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				} catch {
-					Logger.appendNewLine("Unexpected error: \(error).")
+					Logger.error(error)
 				}
 			}
 		}
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			Logger.appendNewLine("Using cached \(cacheLocation.path) file...")
+			Logger.info("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate() 
 		} else {
 			// Download the cloud-image
-			Logger.appendNewLine("Fetching \(from.lastPathComponent)...")
+			Logger.info("Fetching \(from.lastPathComponent)...")
 
 			let progress = Progress(totalUnitCount: 100)
 			ProgressObserver(progress).log()

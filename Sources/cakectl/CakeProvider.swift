@@ -21,8 +21,7 @@ extension Caked_CakedCommandRequest {
 	}
 }
 
-extension Caked_BuildRequest {
-
+extension Caked_CommonBuildRequest {
 	init(buildOptions: BuildOptions) throws {
 		self.init()
 		self.name = buildOptions.name
@@ -71,9 +70,24 @@ extension Caked_BuildRequest {
 //		if let netSoftnetAllow: String = buildOptions.netSoftnetAllow {
 //			self.netSoftnetAllow = netSoftnetAllow
 //		}
-
 	}
 }
+
+extension Caked_BuildRequest {
+	init(buildOptions: BuildOptions) throws {
+		self.init()
+		self.options = try Caked_CommonBuildRequest(buildOptions: buildOptions)
+	}
+}
+
+extension Caked_LaunchRequest {
+	init(command: Launch) throws {
+		self.init()
+		self.options = try Caked_CommonBuildRequest(buildOptions: command.buildOptions)
+		self.waitIptimeout = Int32(command.waitIPTimeout)
+	}
+}
+
 
 extension Caked_StartRequest {
 	init(command: Start) {

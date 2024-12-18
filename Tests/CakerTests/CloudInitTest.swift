@@ -1,6 +1,10 @@
 import XCTest
+
+@testable import NIOCore
+@testable import NIOPosix
 @testable import caked
 @testable import GRPCLib
+@testable import NIOPortForwarding
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -13,7 +17,7 @@ network:
     enp0s1:
       match:
         name: enp0s1
-      dhcp4: false
+      dhcp4: true
       dhcp-identifier: mac
       addresses:
       - $$Shared_Net_Address$$/24
@@ -59,10 +63,11 @@ runcmd:
 """
 
 final class CloudInitTests: XCTestCase {
-	static let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
-	static let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
+	let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
+	let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
+	let group: MultiThreadedEventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 
-	override class func setUp() {
+	override func setUp() {
 		do {
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
@@ -78,6 +83,10 @@ final class CloudInitTests: XCTestCase {
 		}
 	}
 
+	override func tearDown() {
+		try? group.syncShutdownGracefully()
+	}
+
 	/*
 	 * Assume sudoer
 	 */
@@ -85,7 +94,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
 		} catch {
-			Logger.appendError(error)
+			Logger.error(error)
 			throw error
 		}
 	}
@@ -97,7 +106,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
 		} catch {
-			Logger.appendError(error)
+			Logger.error(error)
 
 			throw error
 		}
@@ -133,20 +142,23 @@ final class CloudInitTests: XCTestCase {
 		options.memory = 512
 		options.diskSize = 20
 		options.user = "admin"
+		options.password = nil
 		options.mainGroup = "admin"
 		options.clearPassword = true
 		options.image = image
 		options.nested = true
 		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
-		options.userData = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
+		options.userData = self.userDataPath.path()
 		options.vendorData = nil
-		options.networkConfig = CloudInitTests.networkConfigPath.path()
-		options.forwardedPort = []
+		options.networkConfig = self.networkConfigPath.path()
+		options.forwardedPort = [
+			ForwardedPort(argument: "2222:22/tcp")
+		]
 		options.mounts = []
 		options.netBridged = []
-		options.netSoftnet = false
-		options.netSoftnetAllow = nil
-		options.netHost = false
+		//options.netSoftnet = false
+		//options.netSoftnetAllow = nil
+		//options.netHost = false
 
 		try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
 
@@ -190,5 +202,37 @@ final class CloudInitTests: XCTestCase {
 	        XCTFail("Error needs to be thrown")
 		} catch {
 		}
+	}
+
+	func testLaunchVMWithCloudImage() async throws {
+		try await buildVM(name: "noble-cloud-image", image: ubuntuCloudImage)
+		let vmLocation: VMLocation = try StorageLocation(asSystem: false).find("noble-cloud-image")
+		let eventLoop = self.group.any()
+		let promise = eventLoop.makePromise(of: Void.self)
+
+		promise.futureResult.whenComplete { result in
+			switch result {
+				case .success:
+					break
+				case let .failure(err):
+					XCTFail(err.localizedDescription)
+			}
+		}
+
+		PortForwardingServer.createPortForwardingServer(on: self.group)
+
+		let runningIP = StartHandler.startVM(on: eventLoop, vmLocation: vmLocation, waitIPTimeout: 180, promise: promise)
+		
+		runningIP.whenComplete { result in
+			switch result {
+				case let .success(ip):
+					print("running ip: \(ip)")
+				case let .failure(err):
+					XCTFail(err.localizedDescription)
+			}
+		}
+
+		// Wait VM die
+		XCTAssertNoThrow(try promise.futureResult.wait())
 	}
 }

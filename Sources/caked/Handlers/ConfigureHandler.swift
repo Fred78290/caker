@@ -56,9 +56,9 @@ struct ConfigureHandler: CakedCommand {
 //		}
 
 		if options.resetForwardedPort {
-			config.forwardedPort = []
+			config.forwardedPorts = []
 		} else if options.forwardedPort.count > 0 {
-			config.forwardedPort = options.forwardedPort
+			config.forwardedPorts = options.forwardedPort
 		}
 
 		try config.save(to: vmLocation.configURL)

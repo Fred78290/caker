@@ -7,6 +7,9 @@ struct Launch : AsyncParsableCommand {
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
+	@Option(help:"Maximum of seconds to getting IP")
+	var waitIPTimeout = 180
+
 	@Flag(help: .hidden)
 	var foreground: Bool = false
 
@@ -19,8 +22,8 @@ struct Launch : AsyncParsableCommand {
 	}
 
 	mutating func run() async throws {
-		let runningIP = try await LaunchHandler.buildAndLaunchVM(asSystem: false, options: options, foreground: self.foreground)
+		let runningIP = try await LaunchHandler.buildAndLaunchVM(asSystem: false, options: options, waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
 
-		Logger.appendNewLine("launched \(options.name) with IP: \(runningIP)")
+		Logger.info("launched \(options.name) with IP: \(runningIP)")
 	}
 }

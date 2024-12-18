@@ -13,7 +13,7 @@ service Service {
 	rpc Build (BuildRequest) returns (Reply) {}
 	rpc Start (StartRequest) returns (Reply) {}
 	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
-	rpc Launch (BuildRequest) returns (Reply) {}
+	rpc Launch (LaunchRequest) returns (Reply) {}
 	rpc Login (LoginRequest) returns (Reply) {}
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
@@ -73,7 +73,7 @@ message CakedCommandRequest {
 	repeated string arguments = 2;
 }
 
-message BuildRequest {
+message CommonBuildRequest {
 	string name = 1;
 	optional int32 cpu = 2;
 	optional int32 memory = 3;
@@ -97,8 +97,18 @@ message BuildRequest {
 	optional bool netHost = 21;
 }
 
+message BuildRequest {
+	CommonBuildRequest options = 1;
+}
+
+message LaunchRequest {
+	CommonBuildRequest options = 1;
+	optional int32 waitIPTimeout = 2;
+}
+
 message StartRequest {
 	string name = 1;
+	optional int32 waitIPTimeout = 2;
 }
 
 message Error {

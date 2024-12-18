@@ -8,7 +8,7 @@ LXD_IMAGE=ubuntu/noble/cloud
 #LXD_IMAGE=centos/9-Stream/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
-
+CMD="cakectl --insecure "
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -76,10 +76,10 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --foreground --ssh-authorized-key=$HOME/.ssh/id_zenika.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_zenika.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
-${BIN_PATH}/caked delete linux
-${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
-#${BIN_PATH}/caked launch ${BUILD_OPTIONS} ${LXD_IMAGE}
-#${BIN_PATH}/caked launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}
-${BIN_PATH}/caked waitip linux --wait 60
+${BIN_PATH}/${CMD} delete linux
+${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+#${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${LXD_IMAGE}
+#${BIN_PATH}/${CMD} launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}
+${BIN_PATH}/${CMD} waitip linux --wait 60

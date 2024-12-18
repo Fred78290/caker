@@ -2,10 +2,13 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 import GRPCLib
+import NIOCore
+import NIOPortForwarding
 
 struct StartHandler: CakedCommand {
 	var foreground: Bool = false
 	var name: String
+	var waitIPTimeout: Int = 180
 
 	static func autostart(asSystem: Bool) throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
@@ -21,12 +24,12 @@ struct StartHandler: CakedCommand {
 
 							_ = try await handler.run(asSystem: asSystem)
 						} catch {
-							Logger.appendError(error)
+							Logger.error(error)
 						}
 					}
 				}
 			} catch {
-				Logger.appendError(error)
+				Logger.error(error)
 			}
 
 			return vmLocation
@@ -35,7 +38,7 @@ struct StartHandler: CakedCommand {
 
 	func run(asSystem: Bool) async throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
+		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: self.waitIPTimeout, foreground: foreground)
 
 		return "started \(name) with IP:\(runningIP)"
 	}
@@ -76,13 +79,14 @@ struct StartHandler: CakedCommand {
 		return arguments
 	}
 
-	private static func startVM(vmLocation: VMLocation, args: [String], foreground: Bool) throws -> String {
+	private static func startVM(vmLocation: VMLocation, args: [String], waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<Void>? = nil) throws -> String {
 		//let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 		let process: Process = Process()
 		let cakeHome = try Utils.getHome(asSystem: runAsSystem)
 		var environment = ProcessInfo.processInfo.environment
 		var arguments: [String] = []
+		var identifier: String? = nil
 
 		environment["TART_HOME"] = cakeHome.path()
 
@@ -110,28 +114,64 @@ struct StartHandler: CakedCommand {
 		process.environment = environment
 		process.arguments = [ "-c", "exec tart run \(vmLocation.name) " + arguments.joined(separator: " ")]
 		process.executableURL = URL(fileURLWithPath: "/bin/bash")
+		process.terminationHandler = { process in
+			Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+
+			if let identifier = identifier {
+				try? PortForwardingServer.closeForwardedPort(identifier: identifier)
+			}
+
+			if let promise = promise {
+				if process.terminationStatus == 0 {
+					promise.succeed()
+				} else {
+					promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: ""))
+				}
+			}
+		}
+
+		try process.run()
 
 		do {
-			try process.run()
-
-			let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 120, asSystem: runAsSystem)
+			let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
 			var config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 
 			config.runningIP = runningIP
 			try config.save(to: vmLocation.configURL)
 
+			identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+
 			return runningIP
 		} catch {
-			print(error)
-			if process.terminationStatus != 0 {
+			Logger.error(error)
+
+			if process.isRunning == false {
 				throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
 			} else {
+				process.terminationHandler = { process in
+					if let identifier = identifier {
+						try? PortForwardingServer.closeForwardedPort(identifier: identifier)
+					}
+
+					if let promise = promise {
+						promise.fail(error)
+					}
+				}
+
+				process.terminate()
+
 				throw error
 			}
 		}
 	}
 
-	public static func startVM(vmLocation: VMLocation, foreground: Bool = false) throws -> String {
-		return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), foreground: foreground)
+	public static func startVM(on: EventLoopGroup, vmLocation: VMLocation, waitIPTimeout: Int, promise: EventLoopPromise<Void>?) -> EventLoopFuture<String> {
+		return on.any().submit {
+			return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
+		}
+	}
+
+	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool = false) throws -> String {
+		return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), waitIPTimeout: waitIPTimeout, foreground: foreground, promise: nil)
 	}
 }

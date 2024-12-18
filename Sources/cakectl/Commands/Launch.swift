@@ -9,11 +9,14 @@ struct Launch : GrpcParsableCommand {
 	@OptionGroup var options: Client.Options
 	@OptionGroup var buildOptions: GRPCLib.BuildOptions
 
+	@Option(help:"Maximum of seconds to getting IP")
+	var waitIPTimeout = 180
+
 	func validate() throws {
 		try self.buildOptions.validate()
 	}
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.launch(Caked_BuildRequest(buildOptions: self.buildOptions), callOptions: callOptions).response.wait()
+		return try client.launch(Caked_LaunchRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

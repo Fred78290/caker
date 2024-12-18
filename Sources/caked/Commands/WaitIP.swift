@@ -7,7 +7,7 @@ struct WaitIP: ParsableCommand {
 	var name: String
 
 	@Option(help: "Number of seconds to wait for a potential VM booting")
-	var wait: UInt16 = 0
+	var wait: Int = 0
 
 	mutating func run() throws {
 		Logger.appendNewLine(try WaitIPHandler.waitIP(name: self.name, wait: self.wait, asSystem: false))

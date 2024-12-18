@@ -3,8 +3,9 @@ import GRPCLib
 
 struct LaunchHandler: CakedCommand {
 	var options: BuildOptions
+	var waitIPTimeout = 180
 
-	private static func launch(asSystem: Bool, options: BuildOptions, foreground: Bool) throws -> String {
+	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
 		var config = try CakeConfig(baseURL: vmLocation.rootURL)
 
@@ -16,14 +17,14 @@ struct LaunchHandler: CakedCommand {
 //		config.netSoftnetAllow = options.netSoftnetAllow
 //		config.netHost = options.netHost
 		config.mounts = options.mounts
-		config.forwardedPort = options.forwardedPort
+		config.forwardedPorts = options.forwardedPort
 
 		try config.save(to: vmLocation.rootURL)
 
-		return try StartHandler.startVM(vmLocation: vmLocation, foreground: foreground)
+		return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
 	}
 
-	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, foreground: Bool) async throws -> String {
+	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) async throws -> String {
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
@@ -36,7 +37,7 @@ struct LaunchHandler: CakedCommand {
 				try tmpVMDirLock.unlock()
 				try StorageLocation(asSystem: asSystem).relocate(options.name, from: tempVMLocation)
 				
-				return try Self.launch(asSystem: asSystem, options: options, foreground: foreground)
+				return try Self.launch(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: foreground)
 			},
 			onCancel: {
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
@@ -44,7 +45,7 @@ struct LaunchHandler: CakedCommand {
 	}
 
 	func run(asSystem: Bool) async throws  -> String {
-		let runningIP = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, foreground: false)
+		let runningIP = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: false)
 		return "launched \(options.name) with IP: \(runningIP)"
 	}
 

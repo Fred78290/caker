@@ -40,14 +40,16 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio-extras.git", from: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-collections.git", from: "1.0.5"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
+		.package(url: "https://github.com/apple/swift-log.git", from: "1.6.2"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", branch: "main")
+		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git",  from: "0.1.1")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
-			.product(name: "GRPC", package: "grpc-swift")
+			.product(name: "GRPC", package: "grpc-swift"),
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 		],
 		path: "Sources/grpc",
 		exclude: [
@@ -86,7 +88,9 @@ let package = Package(
 			.product(name: "NIOPosix", package: "swift-nio"),
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
 			.product(name: "NIOTLS", package: "swift-nio"),
+			.product(name: "Logging", package: "swift-log"),
 			.product(name: "Shout", package: "Shout"),
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
@@ -117,7 +121,8 @@ let package = Package(
 			.product(name: "NIOHTTP2", package: "swift-nio-http2"),
 			.product(name: "NIOPosix", package: "swift-nio"),
 			.product(name: "NIOSSL", package: "swift-nio-ssl"),
-			.product(name: "NIOTLS", package: "swift-nio")
+			.product(name: "NIOTLS", package: "swift-nio"),
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 		]),
 		.testTarget(name: "CakerTests", dependencies: ["GRPCLib", "caked", "cakectl"])
 	]

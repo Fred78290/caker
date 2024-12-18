@@ -30,7 +30,7 @@ struct VMBuilder {
 //		config.netSoftnetAllow = options.netSoftnetAllow
 //		config.netHost = options.netHost
 		config.mounts = options.mounts
-		config.forwardedPort = options.forwardedPort
+		config.forwardedPorts = options.forwardedPort
 		config.useCloudInit = true
 
 		try config.save(to: vmLocation.configURL)

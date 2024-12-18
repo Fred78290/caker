@@ -1,6 +1,7 @@
 import Foundation
 import Virtualization
 import GRPCLib
+import NIOPortForwarding
 
 enum ConfigFileName: String {
 	case config = "config.json"
@@ -135,10 +136,13 @@ struct CakeConfig {
 //		get { self.cake["netSoftnetAllow"] as? String ?? nil }
 //	}
 
-	var forwardedPort: [ForwardedPort] {
-		set { self.cake["forwardedPort"] = newValue.description }
+	var forwardedPorts: [ForwardedPort] {
+		set { self.cake["forwardedPorts"] = newValue.map { port in
+				port.description
+			}
+		}
 		get {
-			if let forwardedPort = self.cake["forwardedPort"] as? [String] {
+			if let forwardedPort = self.cake["forwardedPorts"] as? [String] {
 				return forwardedPort.map { value in 
 					return ForwardedPort(argument: value)
 				}

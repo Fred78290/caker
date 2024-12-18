@@ -24,7 +24,7 @@ class Streamable {
 			if FileManager.default.fileExists(atPath: indexLocation.path) {
 				if let cached = simpleStreamCache.getCache(name: cachedFile) {
 					if cached.fingerprint == etag {
-						Logger.appendNewLine("Using cached \(cachedFile) file...")
+						Logger.info("Using cached \(cachedFile) file...")
 						try indexLocation.updateAccessDate()
 						return try T(fromURL: indexLocation)
 					}
@@ -35,7 +35,7 @@ class Streamable {
 		}
 
 		// Download the index
-		Logger.appendNewLine("Fetching \(remoteURL.lastPathComponent)...")
+		Logger.info("Fetching \(remoteURL.lastPathComponent)...")
 
 		let progress = Progress(totalUnitCount: 100)
 		ProgressObserver(progress).log()

@@ -1,8 +1,13 @@
 import Foundation
+import Logging
 
 struct Logger {
-	static public func appendError(_ err: Error) {
-		"\(err.localizedDescription)\n".data(using: .utf8).map(FileHandle.standardError.write)
+	static public func error(_ err: Error) {
+		Logging.Logger(label: "com.aldunelabs.caker").error(.init(stringLiteral: err.localizedDescription))
+	}
+
+	static public func info(_ line: String) {
+		Logging.Logger(label: "com.aldunelabs.caker").info(.init(stringLiteral: line))
 	}
 
 	static public func appendNewLine(_ line: String) {

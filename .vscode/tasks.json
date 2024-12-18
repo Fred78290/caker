@@ -12,7 +12,7 @@
 		},
 		{
 			"type": "shell",
-			"label": "Build signed cackectl",
+			"label": "Build signed cakectl",
 			"group": "build",
 			"command": "${workspaceFolder:caker}/.vscode/taskes/build-cakectl.sh",
 			"args": [

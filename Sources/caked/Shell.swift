@@ -12,6 +12,12 @@ public struct ShellError: Swift.Error {
 			return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
 		}
 	}
+
+	var localizedDescription: String {
+		get {
+			self.description
+		}
+	}
 }
 
 struct Shell {
@@ -84,7 +90,7 @@ struct Shell {
 		errorHandle: FileHandle? = nil,
 		environment: [String : String]? = nil
 	) throws -> String {
-		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && \(command) \(arguments.joined(separator: " "))"
+		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && exec \(command) \(arguments.joined(separator: " "))"
 
 		return try process.bash(
 			with: command,
