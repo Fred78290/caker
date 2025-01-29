@@ -1,13 +1,13 @@
 import Dispatch
 import Foundation
-import SwiftUI
 import Virtualization
 import GRPCLib
+import NIOCore
 
 struct ConfigureHandler: CakedCommand {
 	var options: ConfigureOptions
 
-	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) async throws {
+	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
 		var config = try CakeConfig(baseURL: vmLocation.rootURL)
 
@@ -68,9 +68,11 @@ struct ConfigureHandler: CakedCommand {
 		}
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		try await Self.configure(name: self.options.name, options: options, asSystem: asSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		return on.submit {
+			try Self.configure(name: self.options.name, options: options, asSystem: asSystem)
 
-		return ""
+			return ""
+		}
 	}
 }

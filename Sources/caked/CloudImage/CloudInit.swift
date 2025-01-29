@@ -2,8 +2,30 @@ import Foundation
 import ISO9660
 import Virtualization
 import Yams
+import GRPCLib
+import Gzip
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
+
+let instal_cakeagent = """
+#!/bin/sh
+CIDATA=$(blkid -L CIDATA || :)
+if [ -n \"$CIDATA\" ]; then
+	MOUNT=$(mktemp -d)
+	mount -L CIDATA $MOUNT || exit 1
+	cp $MOUNT/cakeagent /usr/local/bin/cakeagent
+	umount $MOUNT
+	chmod +x /usr/local/bin/cakeagent
+	/usr/local/bin/cakeagent --install \\
+		--listen=vsock://any:5000 \\
+		--ca-cert=/etc/cakeagent/ssl/ca.pem \\
+		--tls-cert=/etc/cakeagent/ssl/server.pem \\
+		--tls-key=/etc/cakeagent/ssl/server.key
+else
+  echo \"CIDATA not found\"
+  exit 1
+fi
+"""
 
 extension Dictionary {
 	init(contentsOf: URL) throws {
@@ -32,11 +54,37 @@ extension Dictionary {
 	}
 }
 
+struct Compression {
+	static func compress(_ data: Data) throws -> Data {
+		return try (data as NSData).compressed(using: .zlib) as Data
+	}
+
+	static func compressEncoded(_ data: Data) throws -> String {
+		let data = try data.gzipped()
+
+		return data.base64EncodedString()
+	}
+
+	static func compressEncoded(contentOf: URL) throws -> String {
+		try Self.compressEncoded(try Data(contentsOf: contentOf))
+	}
+
+	static func decompress(_ data: Data) throws -> Data {
+		return try (data as NSData).decompressed(using: .zlib) as Data
+	}
+}
+
+func newYAMLEncoder() -> YAMLEncoder {
+	let encoder: YAMLEncoder = YAMLEncoder()
+
+	encoder.options = .init(indent: 2, width: -1)
+	return encoder
+}
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
 	func toCloudInit() throws -> Data {
-		let encoder: YAMLEncoder = YAMLEncoder()
+		let encoder: YAMLEncoder = newYAMLEncoder()
 		let encoded: String = try encoder.encode(self)
 
 		guard let result = "#cloud-config\n\(encoded)".data(using: .ascii) else {
@@ -72,7 +120,13 @@ struct Match: Codable {
 	var name: String = "en*"
 }
 
-struct VendorData: Codable {
+struct Merging: Codable {
+	var name: String
+	var settings: [String]
+}
+
+struct CloudConfigData: Codable {
+	var merge: [Merging]? = nil
 	var growpart: Growpart? = Growpart()
 	var manageEtcHosts: Bool?
 	var packages: [String]?
@@ -82,8 +136,10 @@ struct VendorData: Codable {
 	var timezone: String?
 	var users: [User]?
 	var writeFiles: [WriteFile]?
+	var runcmd: [String]?
 
 	enum CodingKeys: String, CodingKey {
+		case merge = "merge_how"
 		case growpart = "growpart"
 		case manageEtcHosts = "manage_etc_hosts"
 		case packages = "packages"
@@ -93,24 +149,38 @@ struct VendorData: Codable {
 		case timezone = "timezone"
 		case users = "users"
 		case writeFiles = "write_files"
+		case runcmd = "runcmd"
 	}
 
-	init(defaultUser: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeys: [String]?, tz: String, packages: [String]?, writeFiles: [WriteFile]?, growPart: Bool) {
+	init(defaultUser: String = "admin",
+	     password: String? = nil,
+	     mainGroup: String = "adm",
+	     clearPassword: Bool = false,
+	     sshAuthorizedKeys: [String]? = nil,
+	     tz: String = "UTC",
+	     packages: [String]?,
+	     writeFiles: [WriteFile]? = nil,
+	     runcmd: [String]? = nil,
+	     growPart: Bool = true,
+	     merge: [Merging]? = nil) {
+
+		self.merge = merge
 		self.manageEtcHosts = true
 		self.packages = packages
-		self.sshAuthorizedKeys = sshAuthorizedKeys
+		//self.sshAuthorizedKeys = sshAuthorizedKeys
 		self.sshPwAuth = clearPassword
-		self.systemInfo = SystemInfo(defaultUser: defaultUser)
+		//self.systemInfo = SystemInfo(defaultUser: defaultUser)
 		self.timezone = tz
 		self.writeFiles = writeFiles
+		self.runcmd = runcmd
 		self.users = [User.userClass(UserClass(name: defaultUser,
-											   password: password,
-											   lockPasswd: password == nil,
-											   shell: "/bin/bash",
-											   sshAuthorizedKeys: sshAuthorizedKeys,
-											   primaryGroup: mainGroup,
-											   groups: nil,
-											   sudo: true))]
+		                                       password: password,
+		                                       lockPasswd: password == nil,
+		                                       shell: "/bin/bash",
+		                                       sshAuthorizedKeys: sshAuthorizedKeys,
+		                                       primaryGroup: mainGroup,
+		                                       groups: nil,
+		                                       sudo: true))]
 
 		if growPart {
 			self.growpart = Growpart()
@@ -118,8 +188,9 @@ struct VendorData: Codable {
 	}
 
 	init(from decoder: Decoder) throws {
-		let container: KeyedDecodingContainer<VendorData.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+		let container: KeyedDecodingContainer<CloudConfigData.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
 
+		self.merge = try container.decodeIfPresent([Merging].self, forKey: .merge)
 		self.growpart = try container.decodeIfPresent(Growpart.self, forKey: .growpart)
 		self.users = try container.decodeIfPresent([User].self, forKey: .users)
 		self.manageEtcHosts = try container.decodeIfPresent(Bool.self, forKey: .manageEtcHosts)
@@ -129,11 +200,13 @@ struct VendorData: Codable {
 		self.systemInfo = try container.decodeIfPresent(SystemInfo.self, forKey: .systemInfo)
 		self.packages = try container.decodeIfPresent([String].self, forKey: .packages)
 		self.writeFiles = try container.decodeIfPresent([WriteFile].self, forKey: .writeFiles)
+		self.runcmd = try container.decodeIfPresent([String].self, forKey: .runcmd)
 	}
 
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
+		try container.encodeIfPresent(merge, forKey: .merge)
 		try container.encodeIfPresent(growpart, forKey: .growpart)
 		try container.encodeIfPresent(users, forKey: .users)
 		try container.encodeIfPresent(manageEtcHosts, forKey: .manageEtcHosts)
@@ -143,13 +216,68 @@ struct VendorData: Codable {
 		try container.encodeIfPresent(systemInfo, forKey: .systemInfo)
 		try container.encodeIfPresent(packages, forKey: .packages)
 		try container.encodeIfPresent(writeFiles, forKey: .writeFiles)
+		try container.encodeIfPresent(runcmd, forKey: .runcmd)
 	}
 
-	func toCloudInit() throws -> Data {
-		let encoder: YAMLEncoder = YAMLEncoder()
-		let encoded: String = try encoder.encode(self)
+	func toCloudInit(_ encodedPart1: Data? = nil) throws -> Data {
+		let encoder: YAMLEncoder = newYAMLEncoder()
+		let encoded: String
 
-		guard let result = "#cloud-config\n\(encoded)".data(using: .ascii) else {
+		if let encodedPart1 = encodedPart1 {
+			guard let encodedPart2 = try encoder.encode(self).data(using: .ascii) else {
+				throw CloudInitGenerateError("Failed to encode userData")
+			}
+
+			encoded =
+"""
+Content-Type: multipart/mixed; boundary="===============2389165605550749110=="
+MIME-Version: 1.0
+Number-Attachments: 2
+
+--===============2389165605550749110==
+Content-Type: text/cloud-config; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="user-data"
+
+
+"""
+
++ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
+
+"""
+
+
+--===============2389165605550749110==
+Content-Type: text/cloud-config; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="vendor-data"
+
+
+
+"""
++ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
+
+"""
+
+
+--===============2389165605550749110==--
+"""
+
+		print("==========================================================================\n")
+		print("encodedPart1: " + String(data: encodedPart1, encoding: .utf8)! + "\n\n")
+		print("encodedPart2: " + String(data: encodedPart2, encoding: .utf8)! + "\n\n")
+		print("==========================================================================\n\n")
+		} else {
+			encoded = "#cloud-config\n\(try encoder.encode(self))"
+		}
+
+		print("==========================================================================\n")
+		print("encoded: \(encoded)\n\n")
+		print("==========================================================================\n\n")
+
+		guard let result = encoded.data(using: .ascii) else {
 			throw CloudInitGenerateError("Failed to encode vendorData")
 		}
 
@@ -186,7 +314,47 @@ struct DefaultUser: Codable {
 }
 
 struct WriteFile: Codable {
-	var path, content: String
+	var path: String
+	var content: String
+	var encoding: String?
+	var permissions: String?
+	var owner: String?
+
+	init(path: String,  content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = "root:adm") {
+		self.path = path
+		self.content = content
+		self.encoding = encoding
+		self.permissions = permissions
+		self.owner = owner
+	}
+
+	init(from decoder: Decoder) throws {
+		let container: KeyedDecodingContainer<WriteFile.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.path = try container.decode(String.self, forKey: .path)
+		self.content = try container.decode(String.self, forKey: .content)
+		self.encoding = try container.decodeIfPresent(String.self, forKey: .encoding)
+		self.permissions = try container.decodeIfPresent(String.self, forKey: .permissions)
+		self.owner = try container.decodeIfPresent(String.self, forKey: .owner)
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+
+		try container.encode(path, forKey: .path)
+		try container.encode(content, forKey: .content)
+		try container.encodeIfPresent(encoding, forKey: .encoding)
+		try container.encodeIfPresent(permissions, forKey: .permissions)
+		try container.encodeIfPresent(owner, forKey: .owner)
+	}
+
+	enum CodingKeys: String, CodingKey {
+		case path = "path"
+		case content = "content"
+		case encoding = "encoding"
+		case permissions = "permissions"
+		case owner = "owner"
+	}
 }
 
 enum User: Codable {
@@ -243,13 +411,13 @@ struct UserClass: Codable {
 	}
 
 	init(name: String,
-		password: String?,
-		lockPasswd: Bool?,
-		shell :String?,
-		sshAuthorizedKeys: [String]?,
-		primaryGroup: String?,
-		groups: [String]?,
-		sudo: Bool?) {
+	     password: String?,
+	     lockPasswd: Bool?,
+	     shell :String?,
+	     sshAuthorizedKeys: [String]?,
+	     primaryGroup: String?,
+	     groups: [String]?,
+	     sudo: Bool?) {
 		self.name = name
 		self.shell = shell
 		self.plainTextPasswd = password
@@ -369,13 +537,13 @@ class CloudInit {
 
 	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
 		try self.init(userName: userName,
-					  password: password,
-					  mainGroup: mainGroup,
-					  clearPassword: clearPassword,
-					  sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath),
-					  vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
-					  userData:userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
-					  networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil)
+		              password: password,
+		              mainGroup: mainGroup,
+		              clearPassword: clearPassword,
+		              sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath),
+		              vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
+		              userData:userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
+		              networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil)
 	}
 
 	private func createMetaData(hostname: String) throws -> Data {
@@ -386,11 +554,69 @@ class CloudInit {
 		return metadata
 	}
 
+	private func cakeagentBinary() throws -> URL {
+		let arch = CurrentArchitecture().rawValue
+		let home: Home = try Home(asSystem: runAsSystem)
+		let localAgent = home.agentDir.appendingPathComponent("cakeagent-linux-\(arch)", isDirectory: false)
+
+		if FileManager.default.fileExists(atPath: localAgent.path) == false {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-888b629c/cakeagent-linux-\(arch)") else {
+				throw CloudInitGenerateError("unable to get remote cakeagent")
+			}
+
+			let data = try Data(contentsOf: remoteURL)
+			try data.write(to: localAgent)
+		}
+
+		return localAgent
+	}
+
+	private func buildVendorData() throws -> CloudConfigData {
+		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
+		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
+		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let merge: [Merging] = [
+			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
+			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
+		]
+		let vendorData = CloudConfigData(defaultUser: self.userName,
+		                                 password: self.password,
+		                                 mainGroup: self.mainGroup,
+		                                 clearPassword: self.clearPassword,
+		                                 sshAuthorizedKeys: sshAuthorizedKeys,
+		                                 tz: TimeZone.current.identifier,
+		                                 packages: ["pollinate"],
+		                                 writeFiles: [
+		                                 	WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: instal_cakeagent.data(using: .ascii)?.base64EncodedString() ?? "", encoding: "base64", permissions: "0755"),
+		                                 	WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
+		                                 	WriteFile(path: "/etc/pollinate/add-user-agent", content: "caked/vz/1.0 # Written by caked"),
+		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),
+		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
+		                                 	WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),
+		                                 ],
+		                                 runcmd: [ "/usr/local/bin/install-cakeagent.sh" ],
+		                                 growPart: true,
+		                                 merge: merge)
+
+		return vendorData
+	}
+
+	private func buildConfigData(_ userData: Data) throws -> Data {
+		guard var cloudConfigHeader: Data = "#cloud-config\n".data(using: .ascii) else {
+			throw CloudInitGenerateError("unable to encode buildConfigData")
+		}
+
+		cloudConfigHeader.append(userData)
+
+		return cloudConfigHeader
+	}
+
 	private func createUserData() throws -> Data {
 		if let userData = self.userData {
-			return userData
+			return try buildVendorData().toCloudInit(userData)
 		} else {
-			guard let userData = "#cloud-config\n{}".data(using: .ascii) else {
+			guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 				throw CloudInitGenerateError("unable to encode userdata")
 			}
 
@@ -400,23 +626,31 @@ class CloudInit {
 
 	private func createVendorData() throws -> Data {
 		guard let vendorData = self.vendorData else {
-			let vendorData = VendorData(defaultUser: self.userName,
-										password: self.password,
-										mainGroup: self.mainGroup,
-										clearPassword: self.clearPassword,
-										sshAuthorizedKeys: sshAuthorizedKeys,
-										tz: TimeZone.current.identifier,
-										packages: ["pollinate"],
-										writeFiles: [
-											WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
-											WriteFile(path: "/etc/pollinate/add-user-agent", content: "caked/vz/1.0 # Written by caked")
-										],
-										growPart: true)
+			if self.userData == nil {
+				return try buildVendorData().toCloudInit()
+			} else {
+				guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
+					throw CloudInitGenerateError("unable to encode userdata")
+				}
 
-			return try vendorData.toCloudInit()
+				return userData
+			}
 		}
 
-		return vendorData
+		return try buildConfigData(vendorData)
+	}
+
+	private func createSeed(writer: ISOWriter, path: String, configUrl: URL) throws -> URL {
+		guard configUrl.isFileURL else {
+			throw CloudInitGenerateError("configUrl is not a file URL")
+		}
+
+		let attr = try FileManager.default.attributesOfItem(atPath: configUrl.absoluteURL.path)
+		let fileSize = attr[FileAttributeKey.size] as! UInt64
+
+		try writer.addFile(path: path, size: fileSize, metadata: nil)
+
+		return configUrl
 	}
 
 	private func createSeed(writer: ISOWriter, path: String, configData: Data) throws -> Data {
@@ -436,11 +670,7 @@ class CloudInit {
 	}
 
 	func createDefaultCloudInit(name: String, cdromURL: URL) throws {
-		self.userData = try self.createUserData()
-		self.vendorData = try self.createVendorData()
-		self.networkConfig = try self.createNetworkConfig()
-
-		var seed: [String: Data] = [:]
+		var seed: [String: Any] = [:]
 
 		try? cdromURL.delete()
 
@@ -451,8 +681,10 @@ class CloudInit {
 
 		let writer: ISOWriter = ISOWriter(
 			media: media, options: writeOptions, contentCallback: { (path: String) -> InputStream in
-				if let data = seed[path] {
+				if let data = seed[path] as? Data {
 					return InputStream(data: data)
+				} else if let url = seed[path] as? URL, let input = InputStream(url: url) {
+					return input
 				}
 
 				return InputStream(data: emptyCloudInit)
@@ -462,6 +694,7 @@ class CloudInit {
 		seed["/vendor-data"] = try createSeed(writer: writer, path: "vendor-data", configData: createVendorData())
 		seed["/meta-data"] = try createSeed(writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name))
 		seed["/network-config"] = try createSeed(writer: writer, path: "network-config", configData: createNetworkConfig())
+		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary())
 
 		// write
 		try writer.writeAndClose()

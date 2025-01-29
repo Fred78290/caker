@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 import Virtualization
 import GRPCLib
-
+import NIOCore
 
 struct BuildHandler: CakedCommand {
 	var options: BuildOptions
@@ -25,9 +25,11 @@ struct BuildHandler: CakedCommand {
 			})
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		try await Self.build(name: self.options.name, options: self.options, asSystem: asSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		return on.makeFutureWithTask {
+			try await Self.build(name: self.options.name, options: self.options, asSystem: asSystem)
 
-		return ""
+			return ""
+		}
 	}
 }

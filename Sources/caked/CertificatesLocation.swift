@@ -20,6 +20,18 @@ struct CertificatesLocation: Codable {
 		self.serverCertURL = URL(fileURLWithPath: "server.pem", relativeTo: certHome).absoluteURL
 	}
 
+	func createCertificats() throws -> CertificatesLocation {
+		if FileManager.default.fileExists(atPath: self.serverKeyURL.path()) == false {
+			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
+			try RSAKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
+																	caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
+																	serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
+																	clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
+		}
+
+		return self
+	}
+
 	static func getCertificats(asSystem: Bool) throws -> CertificatesLocation {
 		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
 	}
@@ -27,15 +39,7 @@ struct CertificatesLocation: Codable {
 	static func createCertificats(asSystem: Bool) throws -> CertificatesLocation {
 		let certs: CertificatesLocation = try getCertificats(asSystem: asSystem)
 
-		if FileManager.default.fileExists(atPath: certs.serverKeyURL.path()) == false {
-			try FileManager.default.createDirectory(at: certs.certHome, withIntermediateDirectories: true)
-			try RSAKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
-																	caKeyURL: certs.caKeyURL, caCertURL: certs.caCertURL,
-																	serverKeyURL: certs.serverKeyURL, serverCertURL: certs.serverCertURL,
-																	clientKeyURL: certs.clientKeyURL, clientCertURL: certs.clientCertURL)
-		}
-
-		return certs
+		return try certs.createCertificats()
 	}
 }
 

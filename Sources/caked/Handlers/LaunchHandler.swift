@@ -1,5 +1,6 @@
 import Foundation
 import GRPCLib
+import NIOCore
 
 struct LaunchHandler: CakedCommand {
 	var options: BuildOptions
@@ -44,9 +45,11 @@ struct LaunchHandler: CakedCommand {
 			})
 	}
 
-	func run(asSystem: Bool) async throws  -> String {
-		let runningIP = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: false)
-		return "launched \(options.name) with IP: \(runningIP)"
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		return on.makeFutureWithTask {
+			let runningIP: String = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: false)
+			return "launched \(options.name) with IP: \(runningIP)"
+		}
 	}
 
 }

@@ -1,4 +1,6 @@
 #!/bin/bash
+swift build
+
 BIN_PATH=$(swift build --show-bin-path)
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
@@ -9,6 +11,7 @@ LXD_IMAGE=ubuntu/noble/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 CMD="cakectl --insecure "
+CMD="caked "
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -34,11 +37,11 @@ cat > /tmp/user-data.yaml <<EOF
 #cloud-config
 package_update: true
 package_upgrade: true
-timezone: Europe/Paris
-growpart:
-  mode: auto
-  devices: ["/"]
-  ignore_growroot_disabled: false
+#timezone: Europe/Paris
+#growpart:
+#  mode: auto
+#  devices: ["/"]
+#  ignore_growroot_disabled: false
 write_files:
 - content: |
     apiVersion: kubelet.config.k8s.io/v1
@@ -76,7 +79,7 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_zenika.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 set -x
 ${BIN_PATH}/${CMD} delete linux
 ${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 

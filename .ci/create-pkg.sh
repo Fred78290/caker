@@ -1,11 +1,11 @@
 #!/bin/bash
+VERSION=${VERSION_TAG:=SNAPSHOT}
+CURDIR=${PWD}
+PKGDIR=.ci/pkg/Caker.app
+
 if [ -f .env ]; then
 	source .env
 fi
-
-VERSION=${VERSION:=SNAPSHOT}
-CURDIR=${PWD}
-PKGDIR=.ci/pkg/Caker.app
 
 mkdir -p ${PKGDIR}/bin ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
 

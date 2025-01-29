@@ -3,6 +3,7 @@ import Foundation
 import SystemConfiguration
 import GRPCLib
 import Shout
+import NIOCore
 
 struct StopHandler: CakedCommand {
 	var name: String
@@ -32,7 +33,9 @@ struct StopHandler: CakedCommand {
 		return "stopped \(name)"
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		return try StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			return try StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
+		}
 	}
 }

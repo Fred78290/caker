@@ -1,13 +1,14 @@
 import ArgumentParser
 import Foundation
 import SystemConfiguration
+import NIOCore
 
 struct PurgeHandler: CakedCommand, PurgeArguments {
 	var entries: String = "caches"
 	var olderThan: UInt?
 	var spaceBudget: UInt?
 
-	@discardableResult static func purge(direct: Bool, _ self: PurgeArguments) async throws -> String {
+	@discardableResult static func purge(direct: Bool, _ self: PurgeArguments) throws -> String {
 		var arguments: [String] = [ self.entries ]
 
 		if let olderThan = self.olderThan {
@@ -66,7 +67,9 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		try purgeablesToDelete.forEach { try $0.delete() }
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		return try await Self.purge(direct: false, self)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			try Self.purge(direct: false, self)
+		}
 	}
 }

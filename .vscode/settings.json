@@ -1,1 +1,10 @@
-{}
+{
+	"files.exclude": {
+		"**/.build": true,
+		"DerivedData": true,
+		".swiftpm": true,
+	},
+	"python.testing.pytestArgs": [
+		"integration-tests"
+	],
+}

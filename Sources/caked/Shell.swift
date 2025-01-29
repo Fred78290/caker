@@ -1,6 +1,8 @@
 import Foundation
 import GRPCLib
 
+private var tartLocation : String = ""
+
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
 	public let terminationStatus: Int32
@@ -25,10 +27,11 @@ struct Shell {
 		to command: String,
 		arguments: [String] = [],
 		at path: String = ".",
-		process: Process = .init(),
+		process: ProcessWithSharedFileHandle = .init(),
 		input: String? = nil,
 		outputHandle: FileHandle? = nil,
-		errorHandle: FileHandle? = nil
+		errorHandle: FileHandle? = nil,
+		sharedFileHandles: [FileHandle]? = nil
 	) throws -> String {
 		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && \(command) \(arguments.joined(separator: " "))"
 
@@ -36,11 +39,13 @@ struct Shell {
 			with: command,
 			input: input,
 			outputHandle: outputHandle,
-			errorHandle: errorHandle
+			errorHandle: errorHandle,
+			sharedFileHandles: sharedFileHandles
 		)
 	}
 
-	@discardableResult static func runTart(command: String, arguments: [String], direct: Bool = false, input: String? = nil) throws -> String{
+	@discardableResult static func runTart(command: String, arguments: [String],
+		direct: Bool = false, input: String? = nil, sharedFileHandles: [FileHandle]? = nil) throws -> String{
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
@@ -75,7 +80,8 @@ struct Shell {
 							  input: input,
 		                      outputHandle: outputPipe.fileHandleForWriting,
 		                      errorHandle: errorPipe.fileHandleForWriting,
-							  environment: environment)
+							  environment: environment,
+							  sharedFileHandles: sharedFileHandles)
 
 		return String(data: outputData,  encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
 	}
@@ -84,11 +90,12 @@ struct Shell {
 		to command: String,
 		arguments: [String] = [],
 		at path: String = ".",
-		process: Process = .init(),
+		process: ProcessWithSharedFileHandle = .init(),
 		input: String? = nil,
 		outputHandle: FileHandle? = nil,
 		errorHandle: FileHandle? = nil,
-		environment: [String : String]? = nil
+		environment: [String : String]? = nil,
+		sharedFileHandles: [FileHandle]? = nil
 	) throws -> String {
 		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && exec \(command) \(arguments.joined(separator: " "))"
 
@@ -97,7 +104,8 @@ struct Shell {
 			input: input,
 			outputHandle: outputHandle,
 			errorHandle: errorHandle,
-			environment: environment
+			environment: environment,
+			sharedFileHandles: sharedFileHandles
 		)
 	}
 }
@@ -110,12 +118,13 @@ private extension FileHandle {
 	}
 }
 
-private extension Process {
+private extension ProcessWithSharedFileHandle {
 	@discardableResult func bash(with command: String,
 								 input: String? = nil,
 								 outputHandle: FileHandle? = nil,
 								 errorHandle: FileHandle? = nil,
-								 environment: [String : String]? = nil) throws -> String {
+								 environment: [String : String]? = nil,
+								 sharedFileHandles: [FileHandle]? = nil) throws -> String {
 
 		if #available(OSX 10.13, *) {
 			self.executableURL = URL(fileURLWithPath: "/bin/bash")
@@ -123,6 +132,7 @@ private extension Process {
 			self.launchPath = "/bin/bash"
 		}
 		self.arguments = ["-c", command]
+		self.sharedFileHandles = sharedFileHandles
 
 		if environment != nil {
 			self.environment = environment

@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import SystemConfiguration
+import NIOCore
 
 struct LoginHandler: CakedCommand {
 	var username: String
@@ -22,7 +23,9 @@ struct LoginHandler: CakedCommand {
 		return try Shell.runTart(command: "login", arguments: arguments, direct: direct, input: password)
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		return try Self.login(username: self.username, password: password, insecure: insecure, noValidate: insecure, direct: false)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			return try Self.login(username: self.username, password: password, insecure: insecure, noValidate: insecure, direct: false)
+		}
 	}
 }

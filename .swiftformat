@@ -2,4 +2,4 @@
 --enable indent
 --indent 4
 --tabwidth 4
---swiftversion 5.7
+--swiftversion 5.10

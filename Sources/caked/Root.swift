@@ -25,6 +25,7 @@ let delegatedCommand: [String] = [
 ]
 
 let COMMAND_NAME="caked"
+
 @main
 struct Root: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(
@@ -43,7 +44,10 @@ struct Root: AsyncParsableCommand {
 			WaitIP.self,
 			Remote.self,
 			Networks.self,
-			Purge.self
+			Purge.self,
+			Infos.self,
+			Exec.self,
+			Sh.self,
 		])
 
 	static func parse() throws -> ParsableCommand? {
@@ -106,6 +110,10 @@ struct Root: AsyncParsableCommand {
 				//fputs("\(shellError.error)\n", stderr)
 
 				Foundation.exit(shellError.terminationStatus)
+			}
+
+			if let errorWithExitCode = error as? HasExitCode {
+				Foundation.exit(errorWithExitCode.exitCode)
 			}
 
 			// Handle any other exception, including ArgumentParser's ones

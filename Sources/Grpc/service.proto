@@ -21,7 +21,9 @@ service Service {
 	rpc Stop (StopRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
-//	rpc Stream(stream Bytes) returns (stream Bytes);
+	rpc Info (InfoRequest) returns (InfoReply);
+	rpc Execute (ExecuteRequest) returns (ExecuteReply);
+	rpc Shell(stream ShellRequest) returns (stream ShellResponse);
 }
 
 enum Format {
@@ -62,10 +64,6 @@ message RemoteRequest {
 		string delete = 3;
 		Format format = 4;
 	}
-}
-
-message Bytes {
-	bytes data = 1;
 }
 
 message CakedCommandRequest {
@@ -154,4 +152,55 @@ message Reply {
     Error error = 1;
     string output = 2;
   }
+}
+
+message InfoRequest {
+	string name = 1;
+}
+
+message InfoReply {
+	message MemoryInfo {
+		uint64 total = 1;
+		uint64 free = 2;
+		uint64 used = 3;
+	}
+
+	string version = 1;
+	int64 uptime = 2;
+	MemoryInfo memory = 3;
+	int32 cpuCount = 4;
+	repeated string ipaddresses = 5;
+	string osname = 6;
+	string hostname = 7;
+	string release = 8;
+}
+
+message ExecuteRequest {
+	string name = 1;
+	optional bytes input = 2;
+	string command = 3;
+	repeated string args = 4;
+}
+
+message ExecuteReply {
+	optional bytes input = 1;
+	optional bytes output = 2;
+	optional bytes error = 3;
+	int32 exitCode = 4;
+}
+
+message ShellRequest {
+	string name = 1;
+	bytes datas = 2;
+}
+
+enum ReponseFormat {
+	stdout = 0;
+	stderr = 1;
+	end = 2;
+}
+
+message ShellResponse {
+	ReponseFormat format = 1;
+	optional bytes datas = 2;
 }

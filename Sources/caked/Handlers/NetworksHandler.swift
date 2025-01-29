@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPCLib
 import Virtualization
+import NIOCore
 
 struct BridgedNetwork: Codable {
 	var name: String
@@ -17,7 +18,9 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		self.format.renderList(Self.networks())
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			self.format.renderList(Self.networks())
+		}
 	}
 }

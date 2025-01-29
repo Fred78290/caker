@@ -29,6 +29,10 @@ struct VMLocation {
 		rootURL.appendingPathComponent("manifest.json")
 	}
 
+	var agentURL: URL {
+		rootURL.appendingPathComponent("agent.sock")
+	}
+
 	var name: String {
 		rootURL.lastPathComponent
 	}

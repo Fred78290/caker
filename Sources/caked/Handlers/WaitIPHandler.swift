@@ -2,12 +2,13 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 import GRPCLib
+import NIOCore
 
 struct WaitIPHandler: CakedCommand {
 	var name: String
 	var wait: Int
 
-	static func waitIP(name: String, wait: Int, asSystem: Bool) throws -> String {
+	static func waitIP(name: String, wait: Int, asSystem: Bool, tartProcess: Process? = nil) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 		let config = try CakeConfig(baseURL: vmLocation.configURL)
 /*		let arguments: [String]
@@ -26,6 +27,10 @@ struct WaitIPHandler: CakedCommand {
 		var count = 0
 
 		repeat {
+			if let tartProcess = tartProcess, tartProcess.isRunning == false {
+				throw ShellError(terminationStatus: -1, error: "Tart process is not running", message: "")
+			}
+
 			// Try also arp if dhcp is disabled
 			if config.netBridged.isEmpty == false || count & 1 == 1 {
 				arguments = [ name, "--wait=1", "--resolver=arp"]
@@ -43,8 +48,10 @@ struct WaitIPHandler: CakedCommand {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(name)", message: "")
 	}
 
-	mutating func run(asSystem: Bool) async throws -> String {
-		return try Self.waitIP(name: self.name, wait: self.wait, asSystem: runAsSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			return try Self.waitIP(name: self.name, wait: self.wait, asSystem: runAsSystem)
+		}
 	}
 
 }

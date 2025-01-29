@@ -8,6 +8,6 @@ struct Configure: AsyncParsableCommand {
 	@OptionGroup var options: ConfigureOptions
 	
 	mutating func run() async throws {
-		try await ConfigureHandler.configure(name: self.options.name, options: options, asSystem: false)
+		try ConfigureHandler.configure(name: self.options.name, options: options, asSystem: false)
 	}
 }

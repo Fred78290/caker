@@ -10,7 +10,7 @@ struct StartHandler: CakedCommand {
 	var name: String
 	var waitIPTimeout: Int = 180
 
-	static func autostart(asSystem: Bool) throws {
+	static func autostart(on: EventLoop, asSystem: Bool) throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
 
 		_ = try storageLocation.list().map { (name: String, vmLocation: VMLocation) in
@@ -22,7 +22,7 @@ struct StartHandler: CakedCommand {
 						do {
 							let handler: StartHandler = StartHandler(foreground: false, name: name)
 
-							_ = try await handler.run(asSystem: asSystem)
+							_ = try handler.run(on: on, asSystem: asSystem)
 						} catch {
 							Logger.error(error)
 						}
@@ -36,11 +36,13 @@ struct StartHandler: CakedCommand {
 		}
 	}
 
-	func run(asSystem: Bool) async throws -> String {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: self.waitIPTimeout, foreground: foreground)
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			let vmLocation: VMLocation = try StorageLocation(asSystem: asSystem).find(name)
+			let runningIP = try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: self.waitIPTimeout, foreground: foreground)
 
-		return "started \(name) with IP:\(runningIP)"
+			return "started \(name) with IP:\(runningIP)"
+		}
 	}
 
 	static func runningArguments(vmLocation: VMLocation) throws -> [String] {
@@ -87,10 +89,11 @@ struct StartHandler: CakedCommand {
 		var environment = ProcessInfo.processInfo.environment
 		var arguments: [String] = []
 		var identifier: String? = nil
-
+		let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path()
 		environment["TART_HOME"] = cakeHome.path()
 
 		arguments.append(contentsOf: args)
+		arguments.append("--vsock=bind://any:5000\(vsock)")
 
 		if foreground == false {
 			arguments.append("--no-graphics")
@@ -130,10 +133,12 @@ struct StartHandler: CakedCommand {
 			}
 		}
 
+		Logger.info(process.arguments?.joined(separator: " ") ?? "")	
+
 		try process.run()
 
 		do {
-			let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
+			let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem, tartProcess: process)
 			var config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 
 			config.runningIP = runningIP
@@ -146,6 +151,10 @@ struct StartHandler: CakedCommand {
 			Logger.error(error)
 
 			if process.isRunning == false {
+				if let promise: EventLoopPromise<Void> = promise {
+					promise.fail(error)
+				}
+
 				throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
 			} else {
 				process.terminationHandler = { process in
@@ -153,7 +162,7 @@ struct StartHandler: CakedCommand {
 						try? PortForwardingServer.closeForwardedPort(identifier: identifier)
 					}
 
-					if let promise = promise {
+					if let promise: EventLoopPromise<Void> = promise {
 						promise.fail(error)
 					}
 				}
@@ -165,8 +174,8 @@ struct StartHandler: CakedCommand {
 		}
 	}
 
-	public static func startVM(on: EventLoopGroup, vmLocation: VMLocation, waitIPTimeout: Int, promise: EventLoopPromise<Void>?) -> EventLoopFuture<String> {
-		return on.any().submit {
+	public static func startVM(on: EventLoop, vmLocation: VMLocation, waitIPTimeout: Int, promise: EventLoopPromise<Void>?) -> EventLoopFuture<String> {
+		return on.submit {
 			return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
 		}
 	}

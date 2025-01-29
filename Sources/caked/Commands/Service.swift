@@ -11,11 +11,18 @@ import X509
 import Security
 import GRPCLib
 
+protocol HasExitCode {
+  var exitCode: Int32 { get }
+}
+
+
 class ServiceError : Error, CustomStringConvertible {
 	let description: String
+	let exitCode: Int32
 
-	init(_ what: String) {
+	init(_ what: String, _ code: Int32 = 1) {
 		self.description = what
+		self.exitCode = code
 	}
 }
 
@@ -175,7 +182,7 @@ extension Service {
 	}
 
 	struct Listen : ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "tart daemon listening")
+		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
 
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
@@ -238,7 +245,7 @@ extension Service {
 
 				var serverConfiguration = Server.Configuration.default(target: target,
 				                                                       eventLoopGroup: on,
-				                                                       serviceProviders: [CakedProvider(asSystem: asSystem)])
+				                                                       serviceProviders: [try CakedProvider(group: on, asSystem: asSystem)])
 
 				if let tlsCert = tlsCert, let tlsKey = tlsKey {
 					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
@@ -268,8 +275,6 @@ extension Service {
 		mutating func run() throws {
 			runAsSystem = self.asSystem
 
-			try StartHandler.autostart(asSystem: self.asSystem)
-
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 			
 			PortForwardingServer.createPortForwardingServer(on: group)
@@ -277,6 +282,8 @@ extension Service {
 			defer {
 				try! group.syncShutdownGracefully()
 			}
+
+			try StartHandler.autostart(on: group.any(), asSystem: self.asSystem)
 
 			let listenAddress = try self.getServerAddress()
 

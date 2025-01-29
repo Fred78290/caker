@@ -56,6 +56,7 @@ class RemoteDatabase {
 struct Home {
 	let homeDir: URL
 	let cacheDir: URL
+	let agentDir: URL
 	let temporaryDir: URL
 	let remoteDb: URL
 	let sshPrivateKey: URL
@@ -64,6 +65,7 @@ struct Home {
 	init(asSystem: Bool) throws {
 		self.homeDir = try Utils.getHome(asSystem: asSystem)
 		self.cacheDir = self.homeDir.appendingPathComponent("cache", isDirectory: true).absoluteURL
+		self.agentDir = self.homeDir.appendingPathComponent("agent", isDirectory: true).absoluteURL
 		self.temporaryDir = self.homeDir.appendingPathComponent("tmp", isDirectory: true).absoluteURL
 		self.remoteDb = self.homeDir.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
 

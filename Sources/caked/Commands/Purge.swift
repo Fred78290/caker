@@ -31,6 +31,6 @@ struct Purge: AsyncParsableCommand, PurgeArguments {
 	}
 
 	mutating func run() async throws {
-		try await PurgeHandler.purge(direct: true, self)
+		try PurgeHandler.purge(direct: true, self)
 	}
 }
