@@ -6,8 +6,7 @@ import NIOSSL
 import GRPC
 import GRPCLib
 import Logging
-
-typealias CakeAgentClient = Cakeagent_AgentNIOClient
+import CakeAgentLib
 
 class Queue<T> {
 	/// A concurrent queue to allow multiple reads at once.

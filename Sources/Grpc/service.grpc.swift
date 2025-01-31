@@ -61,6 +61,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_StopRequest, Caked_Reply>
 
+  func image(
+    _ request: Caked_ImageRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_ImageRequest, Caked_Reply>
+
   func remote(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions?
@@ -251,6 +256,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Image
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Image.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func image(
+    _ request: Caked_ImageRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_ImageRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
     )
   }
 
@@ -455,6 +478,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_StopRequest, Caked_Reply>
 
+  func makeImageCall(
+    _ request: Caked_ImageRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_ImageRequest, Caked_Reply>
+
   func makeRemoteCall(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions?
@@ -595,6 +623,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func makeImageCall(
+    _ request: Caked_ImageRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_ImageRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
     )
   }
 
@@ -767,6 +807,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func image(
+    _ request: Caked_ImageRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
+    )
+  }
+
   public func remote(
     _ request: Caked_RemoteRequest,
     callOptions: CallOptions? = nil
@@ -886,6 +938,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'stop'.
   func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'image'.
+  func makeImageInterceptors() -> [ClientInterceptor<Caked_ImageRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'remote'.
   func makeRemoteInterceptors() -> [ClientInterceptor<Caked_RemoteRequest, Caked_Reply>]
 
@@ -916,6 +971,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.configure,
       Caked_ServiceClientMetadata.Methods.waitIP,
       Caked_ServiceClientMetadata.Methods.stop,
+      Caked_ServiceClientMetadata.Methods.image,
       Caked_ServiceClientMetadata.Methods.remote,
       Caked_ServiceClientMetadata.Methods.networks,
       Caked_ServiceClientMetadata.Methods.info,
@@ -979,6 +1035,12 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    public static let image = GRPCMethodDescriptor(
+      name: "Image",
+      path: "/caked.Service/Image",
+      type: GRPCCallType.unary
+    )
+
     public static let remote = GRPCMethodDescriptor(
       name: "Remote",
       path: "/caked.Service/Remote",
@@ -1033,6 +1095,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func waitIP(request: Caked_WaitIPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func stop(request: Caked_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func image(request: Caked_ImageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func remote(request: Caked_RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -1138,6 +1202,15 @@ extension Caked_ServiceProvider {
         userFunction: self.stop(request:context:)
       )
 
+    case "Image":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_ImageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
+        userFunction: self.image(request:context:)
+      )
+
     case "Remote":
       return UnaryServerHandler(
         context: context,
@@ -1238,6 +1311,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func stop(
     request: Caked_StopRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func image(
+    request: Caked_ImageRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
@@ -1368,6 +1446,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.stop(request: $0, context: $1) }
       )
 
+    case "Image":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_ImageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
+        wrapping: { try await self.image(request: $0, context: $1) }
+      )
+
     case "Remote":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1457,6 +1544,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStopInterceptors() -> [ServerInterceptor<Caked_StopRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'image'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeImageInterceptors() -> [ServerInterceptor<Caked_ImageRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'remote'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRemoteInterceptors() -> [ServerInterceptor<Caked_RemoteRequest, Caked_Reply>]
@@ -1492,6 +1583,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.configure,
       Caked_ServiceServerMetadata.Methods.waitIP,
       Caked_ServiceServerMetadata.Methods.stop,
+      Caked_ServiceServerMetadata.Methods.image,
       Caked_ServiceServerMetadata.Methods.remote,
       Caked_ServiceServerMetadata.Methods.networks,
       Caked_ServiceServerMetadata.Methods.info,
@@ -1552,6 +1644,12 @@ public enum Caked_ServiceServerMetadata {
     public static let stop = GRPCMethodDescriptor(
       name: "Stop",
       path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let image = GRPCMethodDescriptor(
+      name: "Image",
+      path: "/caked.Service/Image",
       type: GRPCCallType.unary
     )
 

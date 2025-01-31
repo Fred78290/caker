@@ -42,6 +42,7 @@ struct Root: AsyncParsableCommand {
 			Launch.self,
 			Configure.self,
 			WaitIP.self,
+			ImagesManagement.self,
 			Remote.self,
 			Networks.self,
 			Purge.self,

@@ -157,6 +157,7 @@ struct Client: AsyncParsableCommand {
 			Stop.self,
 			List.self,
 			Configure.self,
+			ImagesManagement.self,
 			Remote.self,
 			Delete.self,
 			Networks.self,
@@ -197,7 +198,7 @@ struct Client: AsyncParsableCommand {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
-			if listeningAddress.scheme == "unix" {
+			if listeningAddress.scheme == "unix" && listeningAddress.isFileURL {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 			} else if listeningAddress.scheme == "tcp" {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)

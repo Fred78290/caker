@@ -255,7 +255,6 @@ Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="vendor-data"
 
 
-
 """
 + encodedPart2.base64EncodedString(options: .lineLength76Characters) +
 
@@ -264,18 +263,9 @@ Content-Disposition: attachment; filename="vendor-data"
 
 --===============2389165605550749110==--
 """
-
-		print("==========================================================================\n")
-		print("encodedPart1: " + String(data: encodedPart1, encoding: .utf8)! + "\n\n")
-		print("encodedPart2: " + String(data: encodedPart2, encoding: .utf8)! + "\n\n")
-		print("==========================================================================\n\n")
 		} else {
 			encoded = "#cloud-config\n\(try encoder.encode(self))"
 		}
-
-		print("==========================================================================\n")
-		print("encoded: \(encoded)\n\n")
-		print("==========================================================================\n\n")
 
 		guard let result = encoded.data(using: .ascii) else {
 			throw CloudInitGenerateError("Failed to encode vendorData")
@@ -560,7 +550,7 @@ class CloudInit {
 		let localAgent = home.agentDir.appendingPathComponent("cakeagent-linux-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-888b629c/cakeagent-linux-\(arch)") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-f902f259/cakeagent-linux-\(arch)") else {
 				throw CloudInitGenerateError("unable to get remote cakeagent")
 			}
 

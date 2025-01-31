@@ -37,6 +37,10 @@ class RemoteDatabase {
 	}
 
 	func get(_ key: String) -> String? {
+		if key == "" {
+			return self.remote["images"]
+		}
+
 		return self.remote[key]
 	}
 

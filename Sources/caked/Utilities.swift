@@ -1,11 +1,6 @@
 import Foundation
 import System
 
-enum Architecture: String, Codable {
-	case arm64
-	case amd64
-}
-
 func CurrentArchitecture() -> Architecture {
 	#if arch(arm64)
 		return .arm64

@@ -2,14 +2,9 @@
 	"configurations": [
 		{
 			"type": "lldb",
-			"request": "launch",
-			"args": [
-				"list"
-			],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "caked list",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"request": "attach",
+			"name": "caked attach",
+			"program": "/opt/bin/caked"
 		},
 		{
 			"type": "lldb",
@@ -51,6 +46,18 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"shell",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked shell",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

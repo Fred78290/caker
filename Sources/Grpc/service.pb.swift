@@ -63,6 +63,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
   case add // = 1
   case delete // = 2
   case list // = 3
+  case info // = 4
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -75,6 +76,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case 1: self = .add
     case 2: self = .delete
     case 3: self = .list
+    case 4: self = .info
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -85,6 +87,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case .add: return 1
     case .delete: return 2
     case .list: return 3
+    case .info: return 4
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -95,6 +98,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     .add,
     .delete,
     .list,
+    .info,
   ]
 
 }
@@ -169,6 +173,22 @@ public struct Caked_NetworkRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  public var format: Caked_Format = .text
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Caked_ImageRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var command: Caked_RemoteCommand = .none
+
+  public var name: String = String()
 
   public var format: Caked_Format = .text
 
@@ -989,6 +1009,7 @@ extension Caked_RemoteCommand: SwiftProtobuf._ProtoNameProviding {
     1: .same(proto: "add"),
     2: .same(proto: "delete"),
     3: .same(proto: "list"),
+    4: .same(proto: "info"),
   ]
 }
 
@@ -1102,6 +1123,50 @@ extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 
   public static func ==(lhs: Caked_NetworkRequest, rhs: Caked_NetworkRequest) -> Bool {
+    if lhs.format != rhs.format {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ImageRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "command"),
+    2: .same(proto: "name"),
+    3: .same(proto: "format"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.command) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.format) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.command != .none {
+      try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if self.format != .text {
+      try visitor.visitSingularEnumField(value: self.format, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_ImageRequest, rhs: Caked_ImageRequest) -> Bool {
+    if lhs.command != rhs.command {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.format != rhs.format {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

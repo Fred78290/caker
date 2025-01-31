@@ -19,6 +19,7 @@ service Service {
 	rpc Configure (ConfigureRequest) returns (Reply) {}
 	rpc WaitIP (WaitIPRequest) returns (Reply) {}
 	rpc Stop (StopRequest) returns (Reply) {}
+	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
 	rpc Info (InfoRequest) returns (InfoReply);
@@ -36,6 +37,7 @@ enum RemoteCommand {
 	add = 1;
 	delete = 2;
 	list = 3;
+	info = 4;
 }
 
 message StopRequest {
@@ -50,6 +52,12 @@ message WaitIPRequest {
 
 message NetworkRequest {
 	Format format = 1;
+}
+
+message ImageRequest {
+	RemoteCommand command = 1;
+	string name = 2;
+	Format format = 3;
 }
 
 message RemoteRequestAdd {

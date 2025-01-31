@@ -30,7 +30,9 @@ struct VMLocation {
 	}
 
 	var agentURL: URL {
-		rootURL.appendingPathComponent("agent.sock")
+		let agentURL = rootURL.appendingPathComponent("agent.sock")
+
+		return URL(string: "unix://\(agentURL.path)")!
 	}
 
 	var name: String {

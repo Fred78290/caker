@@ -205,6 +205,22 @@ extension Caked_ConfigureRequest {
 	}
 }
 
+extension Caked_ImageRequest {
+	init(command: Image.ListImage) {
+		self.init()
+
+		self.name = command.name
+		self.format = command.format == .text ? .text : .json
+	}
+
+	init(command: Image.InfoImage) {
+		self.init()
+
+		self.name = command.name
+		self.format = command.format == .text ? .text : .json
+	}
+}
+
 extension Caked_RemoteRequest {
 	init(command: Remote.AddRemote) {
 		self.init()

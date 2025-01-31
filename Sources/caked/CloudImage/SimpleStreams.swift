@@ -1,5 +1,71 @@
 import Foundation
 
+enum Architecture: String, Codable, CustomStringConvertible {
+    var description: String {
+		switch self {
+		case .arm64:
+			return "aarch64"
+		case .amd64:
+			return "x86_64"
+		case .aarch64:
+			return "aarch64"
+		case .armv7l:
+			return "armv7l"
+		case .i686:
+			return "i686"
+		case .ppc:
+			return "ppc"
+		case .ppc64le:
+			return "ppc64le"
+		case .riscv64:
+			return "riscv64"
+		case .s390x:
+			return "s390x"
+		case .x86_64:
+			return "x86_64"
+		}
+	}
+
+	init(rawValue: String) {
+		switch rawValue {
+		case "arm64":
+			self = .arm64
+		case "amd64":
+			self = .amd64
+		case "aarch64":
+			self = .aarch64
+		case "armv7l":
+			self = .armv7l
+		case "i686":
+			self = .i686
+		case "ppc":
+			self = .ppc
+		case "ppc64le":
+			self = .ppc64le
+		case "riscv64":
+			self = .riscv64
+		case "s390x":
+			self = .s390x
+		case "x86_64":
+			self = .x86_64
+		default:
+			self = .amd64
+		}
+	}
+
+	case arm64
+	case amd64
+	case aarch64
+	case armv7l
+	case i686
+	case ppc
+	case ppc64le
+	case riscv64
+	case s390x
+	case x86_64
+}
+
+
 struct SimpleStreamError: Error {
 	let description: String
 
@@ -125,7 +191,7 @@ struct SimpleStreamImageInfos: Codable {
 	}
 }
 
-// SimpleStream image index format (https://images.linuxcontainers.org/streams/v1/index.json)
+// SimpleStream image index format (https://images.linuxcontainers.org/streams/v1/image.json)
 struct SimpleStreamImageIndex: JsonDecodable {
 	let contentID: String
 	let format: String
@@ -170,7 +236,7 @@ struct SimpleStreamImageIndex: JsonDecodable {
 
 struct SimpleStreamProduct: Codable {
 	let aliases: String
-	let arch: String
+	let arch: Architecture
 	let distro: String?
 	let os: String
 	let release: String
@@ -179,6 +245,7 @@ struct SimpleStreamProduct: Codable {
 	let supportedEOL: String?
 	let supported: Bool?
 	let variant: String
+	let version: String?
 	let versions: Dictionary<String, ImageVersion>
 
 	enum CodingKeys: String, CodingKey {
@@ -189,9 +256,10 @@ struct SimpleStreamProduct: Codable {
 		case release
 		case releaseTitle = "release_title"
 		case releaseCodeName = "release_codename"
-		case supportedEOL = "supported_eol"
+		case supportedEOL = "support_eol"
 		case supported
 		case variant
+		case version
 		case versions
 	}
 
@@ -199,7 +267,7 @@ struct SimpleStreamProduct: Codable {
 		let container: KeyedDecodingContainer<SimpleStreamProduct.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
 
 		aliases = try container.decode(String.self, forKey: .aliases)
-		arch = try container.decode(String.self, forKey: .arch)
+		arch = try container.decode(Architecture.self, forKey: .arch)
 		distro = try container.decodeIfPresent(String.self, forKey: .distro)
 		os = try container.decode(String.self, forKey: .os)
 		release = try container.decode(String.self, forKey: .release)
@@ -208,28 +276,46 @@ struct SimpleStreamProduct: Codable {
 		supported = try container.decodeIfPresent(Bool.self, forKey: .supported)
 		supportedEOL = try container.decodeIfPresent(String.self, forKey: .supportedEOL)
 		variant = try container.decodeIfPresent(String.self, forKey: .variant) ?? "cloud"
+		version = try container.decodeIfPresent(String.self, forKey: .version)
 		versions = try container.decode(Dictionary<String, ImageVersion>.self, forKey: .versions)
+	}
+
+	func latest() -> ImageVersion? {
+		if let latest: Dictionary<String, ImageVersion>.Keys.Element = self.versions.keys.sorted().last {
+			if let version = self.versions[latest] {
+				if version.items.imageDisk != nil {
+					return version
+				}
+			}
+		}
+
+		return nil
 	}
 }
 
 struct ImageVersion: Codable {
 	let items: ImageVersionItems
+	let label: String?
+	let pubname: String?
 
 	enum CodingKeys: String, CodingKey {
+		case label
 		case items
+		case pubname
 	}
 
 	init(from decoder: Decoder) throws {
 		let container: KeyedDecodingContainer<ImageVersion.CodingKeys> = try decoder.container(keyedBy: ImageVersion.CodingKeys.self)
 
 		items = try container.decode(ImageVersionItems.self, forKey: .items)
+
+		// Ubuntu server
+		label = try container.decodeIfPresent(String.self, forKey: .label)
+		pubname = try container.decode(String.self, forKey: .pubname)
 	}
 }
 
 struct ImageVersionItems: Codable {
-	let label: String?
-	let pubname: String?
-
 	let diskImg: ImageVersionItem?
 	let qcow2: ImageVersionItem?
 	let lxd: ImageVersionItem?
@@ -240,8 +326,6 @@ struct ImageVersionItems: Codable {
 	let vhd: ImageVersionItem?
 
 	enum CodingKeys: String, CodingKey {
-		case label = "label"
-		case pubname = "pubname"
 		case diskImg = "disk1.img"
 		case qcow2 = "disk.qcow2"
 		case lxd = "lxd.tar.xz"
@@ -261,8 +345,6 @@ struct ImageVersionItems: Codable {
 		squashfs = try container.decodeIfPresent(ImageVersionItem.self, forKey: .squashfs)
 
 		// Ubuntu server
-		label = try container.decodeIfPresent(String.self, forKey: .label)
-		pubname = try container.decodeIfPresent(String.self, forKey: .pubname)
 		diskImg = try container.decodeIfPresent(ImageVersionItem.self, forKey: .diskImg)
 		vmdk = try container.decodeIfPresent(ImageVersionItem.self, forKey: .vmdk)
 		ova = try container.decodeIfPresent(ImageVersionItem.self, forKey: .ova)
@@ -410,14 +492,30 @@ class SimpleStreamProtocol {
 		return try await Streamable.loadSimpleStreamObject(remoteURL: imageURL, remoteName: self.name, cachedFile: "images.json")
 	}
 
-	public func GetImageAlias(alias: String) async throws -> LinuxContainerImage {
-		let currentArch = HostArchitecture.current().rawValue
+	public func GetImages() async throws -> [SimpleStreamProduct] {
+		let currentArch = CurrentArchitecture()
+
+		// Try to load images index
+		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages()
+		var foundProducts: [SimpleStreamProduct] = []
+
+		imageIndex.products.forEach { (key: String, value: SimpleStreamProduct) in
+			if value.arch == currentArch && value.variant == "cloud" {
+				foundProducts.append(value)
+			}
+		}
+
+		return foundProducts
+	}
+
+	public func GetImage(alias: String) async throws -> SimpleStreamProduct {
+		let currentArch = CurrentArchitecture()
 		let images = try self.index.images
 
 		// Check if alias exists in product
 		// Ubuntu streams doesn't have the same semantic.
 		if self.index.linuxContainers {
-			let found: [String] = images.filter(arch: currentArch).filter { (v: String) in
+			let found: [String] = images.filter(arch: currentArch.rawValue).filter { (v: String) in
 				var item: String = v
 
 				if let range: Range<String.Index> = item.range(of: ":\(currentArch)") {
@@ -457,20 +555,21 @@ class SimpleStreamProtocol {
 			throw SimpleStreamError("image alias (\(alias)) doesn't support cloud-init")
 		}
 
-		if let latest = foundVersions.versions.keys.sorted().last {
-			if let version = foundVersions.versions[latest] {
-				if let imageDisk = version.items.imageDisk {
-					return LinuxContainerImage(
-						remoteName: self.name,
-						alias: alias,
-						path: URL(string: imageDisk.path, relativeTo: self.baseURL)!, size: imageDisk.size,
-						fingerprint: imageDisk.sha256)
-				} else {
-					throw SimpleStreamError("alias (\(alias)) doesn't offer qcow2 image")
-				}
-			}
+		return foundVersions
+	}
+
+	public func GetImageAlias(alias: String) async throws -> LinuxContainerImage {
+		if let imageVersion = try await self.GetImage(alias: alias).latest() {
+			let imageDisk: ImageVersionItem = imageVersion.items.imageDisk!
+
+			return LinuxContainerImage(
+				remoteName: self.name,
+				alias: alias,
+				path: URL(string: imageDisk.path, relativeTo: self.baseURL)!,
+				size: imageDisk.size,
+				fingerprint: imageDisk.sha256)
 		}
 
-		throw SimpleStreamError("qcow2 image alias (\(alias)) not found")
+		throw SimpleStreamError("alias (\(alias)) doesn't offer qcow2 image")
 	}
 }

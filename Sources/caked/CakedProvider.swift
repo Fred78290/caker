@@ -304,6 +304,12 @@ extension Caked_LoginRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_ImageRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return ImageHandler(request: self)
+	}
+}
+
 extension Caked_RemoteRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return RemoteHandler(request: self)
@@ -397,6 +403,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
+    func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+    }
+
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
