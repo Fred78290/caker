@@ -156,6 +156,7 @@ struct Client: AsyncParsableCommand {
 			Start.self,
 			Stop.self,
 			List.self,
+			Infos.self,
 			Configure.self,
 			ImagesManagement.self,
 			Remote.self,

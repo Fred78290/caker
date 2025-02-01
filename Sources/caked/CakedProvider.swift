@@ -5,11 +5,25 @@ import GRPCLib
 import NIOCore
 import NIOPosix
 import NIOPortForwarding
+import CakeAgentLib
 
 protocol CakedCommand {
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String>
 }
 
+extension CakedCommand {
+	func createCakeAgentClient(on: EventLoop, asSystem: Bool, name: String) throws -> CakeAgentClient {
+		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
+
+		return try CakeAgentHelper.createClient(on: on,
+		                                        listeningAddress: listeningAddress,
+		                                        connectionTimeout: 30,
+		                                        caCert: certificates.caCertURL.path(),
+		                                        tlsCert: certificates.clientCertURL.path(),
+		                                        tlsKey: certificates.clientKeyURL.path())
+	}
+}
 protocol CreateCakedCommand {
 	func createCommand() -> CakedCommand
 }
@@ -310,6 +324,11 @@ extension Caked_ImageRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_InfoRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return InfosHandler(request: self)
+	}
+}
 extension Caked_RemoteRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return RemoteHandler(request: self)
@@ -423,10 +442,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
-		let conn = try createCakeAgentConnection(vmName: String(request.name))
-
-		return try await conn.info(context: context)
+	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
 	}
 
 	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {

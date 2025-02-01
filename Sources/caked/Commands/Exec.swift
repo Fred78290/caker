@@ -16,8 +16,15 @@ final class Exec: CakeAgentAsyncParsableCommand {
 	@Argument(help: "Command to execute")
 	var arguments: [String]
 
+	func validate() throws {
+		if arguments.count < 1 {
+			throw ValidationError("At least one argument is required")
+		}
+	}
+
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		let exitCode = try await CakeAgentHelper(on: on, client: client).exec(arguments: self.arguments, callOptions: callOptions)
+		let command = self.arguments.remove(at: 0)
+		let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: self.arguments, callOptions: callOptions)
 
 		if exitCode != 0 {
 			throw ServiceError("exec failed", exitCode)

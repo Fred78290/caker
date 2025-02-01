@@ -204,16 +204,39 @@ extension Caked_ConfigureRequest {
 		self.randomMac = options.randomMAC
 	}
 }
+extension Caked_InfoRequest {
+	init(command: Infos) {
+		self.init()
+		self.name = command.name
+		self.format = command.format == .text ? .text : .json
+	}
+}
+
+extension Caked_ExecuteRequest {
+	init(command: Exec) {
+		var args = command.arguments
+
+		self.init()
+		
+		self.name = command.name
+		self.command = args.remove(at: 0)
+		self.args = args
+
+		if isatty(FileHandle.standardInput.fileDescriptor) == 0 {
+			self.input = FileHandle.standardInput.readDataToEndOfFile()
+		}
+	}
+}
 
 extension Caked_ImageRequest {
-	init(command: Image.ListImage) {
+	init(command: ImagesManagement.ListImage) {
 		self.init()
 
 		self.name = command.name
 		self.format = command.format == .text ? .text : .json
 	}
 
-	init(command: Image.InfoImage) {
+	init(command: ImagesManagement.InfoImage) {
 		self.init()
 
 		self.name = command.name
