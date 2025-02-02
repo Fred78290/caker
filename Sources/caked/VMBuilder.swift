@@ -47,7 +47,11 @@ struct VMBuilder {
 		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
 	}
 
-	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
+	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
+		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) {
+			throw ServiceError("VM already exists")
+		}
+
 		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
 		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://"]
 		let remotes = remoteDb.keys
@@ -106,7 +110,10 @@ struct VMBuilder {
 		} else {
 			throw ServiceError("unsupported image url: \(options.image)")
 		}
+	}
 
+	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
+		try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
 		try self.build(vmName: vmName, vmLocation: vmLocation, options: options)
 	}
 }

@@ -3,9 +3,13 @@ import Dispatch
 import SwiftUI
 import GRPCLib
 import GRPC
+import Logging
 
 struct Login: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Login to a registry")
+
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
 
 	@Argument(help: "host")
 	var host: String
@@ -28,6 +32,8 @@ struct Login: AsyncParsableCommand {
 	func validate() throws {
 		let usernameProvided = username != nil
 		let passwordProvided = password != nil
+
+		Logger.setLevel(self.logLevel)
 
 		if !usernameProvided {
 			throw ValidationError("--username is required")

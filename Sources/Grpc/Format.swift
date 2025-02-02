@@ -13,18 +13,18 @@ public enum Format: String, ExpressibleByArgument, CaseIterable {
 
 	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}
 
-	public func renderSingle<T>(_ data: T) -> String where T: Encodable {
+	public func renderSingle<T>(style: TextTableStyle.Type = Style.plain, uppercased: Bool = false, _ data: T) -> String where T: Encodable {
 		switch self {
 		case .text:
-			return renderList([data])
+			return renderList(style: style, uppercased: uppercased, [data])
 		case .json:
 			let encoder = JSONEncoder()
-			encoder.outputFormatting = .prettyPrinted
+			encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
 			return try! encoder.encode(data).toString()
 		}
 	}
 
-	public func renderList<T>(_ data: Array<T>) -> String where T: Encodable {
+	public func renderList<T>(style: TextTableStyle.Type = Style.plain, uppercased: Bool = false, _ data: Array<T>) -> String where T: Encodable {
 		switch self {
 		case .text:
 			if (data.count == 0) {
@@ -34,14 +34,14 @@ public enum Format: String, ExpressibleByArgument, CaseIterable {
 				return Mirror(reflecting: item).children.enumerated()
 					.map { (_, element) in
 						let label = element.label ?? "<unknown>"
-						return Column(title: label, value: element.value)
+						return Column(title: uppercased ? label.uppercased() : label, value: element.value)
 					}
 			}
 
-			return table.string(for: data, style: Style.plain)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+			return table.string(for: data, style: style)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 		case .json:
 			let encoder = JSONEncoder()
-			encoder.outputFormatting = .prettyPrinted
+			encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
 			return try! encoder.encode(data).toString()
 		}
 	}

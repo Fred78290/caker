@@ -12,7 +12,7 @@ protocol CakedCommand {
 }
 
 extension CakedCommand {
-	func createCakeAgentClient(on: EventLoop, asSystem: Bool, name: String) throws -> CakeAgentClient {
+	func createCakeAgentClient(on: EventLoopGroup, asSystem: Bool, name: String) throws -> CakeAgentClient {
 		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
 
@@ -324,11 +324,6 @@ extension Caked_ImageRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_InfoRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		return InfosHandler(request: self)
-	}
-}
 extension Caked_RemoteRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return RemoteHandler(request: self)
@@ -378,6 +373,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		var command = command.createCommand()
 		var reply: Caked_Reply = Caked_Reply()
 		
+		Logger.debug("execute: \(command)")
+
 		do {
 			let future = try command.run(on: self.group.any(), asSystem: self.asSystem)
 
@@ -413,8 +410,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
-	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply
-	{
+	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 	
@@ -442,20 +438,31 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
+		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
+		
+		Logger.debug("execute: \(request)")
+
+		return try await conn.info(context: context)
 	}
 
 	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
-		let conn = try createCakeAgentConnection(vmName: String(request.name))
+		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
+
+		Logger.debug("execute: \(request)")
 
 		return try await conn.execute(request: request, context: context)
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
+
 		guard let vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
+			Logger.error(ServiceError("no CAKEAGENT_VMNAME header"))
+
 			throw ServiceError("no CAKEAGENT_VMNAME header")
 		}
+
+		Logger.debug("shell: \(vmname)")
 
 		let conn = try createCakeAgentConnection(vmName: vmname)
 		

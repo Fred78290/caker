@@ -1,6 +1,7 @@
 import ArgumentParser
 import Darwin
 import Foundation
+import Logging
 
 var runAsSystem: Bool = false
 

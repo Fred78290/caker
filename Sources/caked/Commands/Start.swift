@@ -1,8 +1,12 @@
 import ArgumentParser
 import NIOPortForwarding
+import Logging
 
 struct Start: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
+
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
 
 	@Flag(help: .hidden)
 	var foreground: Bool = false
@@ -12,6 +16,10 @@ struct Start: ParsableCommand {
 
 	@Option(help:"Maximum of seconds to getting IP")
 	var waitIPTimeout = 180
+
+	mutating func validate() throws {
+		Logger.setLevel(self.logLevel)
+	}
 
 	mutating func run() throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)

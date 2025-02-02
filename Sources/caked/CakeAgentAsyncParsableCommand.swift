@@ -4,16 +4,29 @@ import CakeAgentLib
 import NIO
 import GRPC
 import GRPCLib
+import Logging
 
 protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var name: String { get }	
 	var options: CakeAgentClientOptions { set get }
-
+	var logLevel: Logging.Logger.Level { get }
+	
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws
 }
 
 extension CakeAgentAsyncParsableCommand {
-	mutating func validate() throws {
+	func startVM(waitIPTimeout: Int, foreground: Bool = false) throws {
+		let vmLocation = try StorageLocation(asSystem: false).find(name)
+
+		if vmLocation.status != .running {
+			Logger.info("Starting VM \(name)")
+			Logger.appendNewLine(try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground))
+		}
+	}
+
+	mutating func validateOptions() throws {
+		Logger.setLevel(self.logLevel)
+
 		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
 
 		if name.contains("/") {
@@ -37,6 +50,10 @@ extension CakeAgentAsyncParsableCommand {
 		}
 
 		try self.options.validate(listeningAddress.absoluteString)
+	}
+
+	mutating func validate() throws {
+		try self.validateOptions()
 	}
 	
 	mutating func run() async throws {

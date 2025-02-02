@@ -245,3 +245,53 @@ public struct ClientCertificatesLocation: Codable {
 		return FileManager.default.fileExists(atPath: self.clientKeyURL.path()) && FileManager.default.fileExists(atPath: self.clientCertURL.path())
 	}
 }
+
+public struct FullInfoReply: Sendable, Codable {
+	public let name: String
+	public let version: String
+	public let uptime: Int64
+	public let memory: MemoryInfo?
+	public let cpuCount: Int32
+	public let ipaddresses: [String]
+	public let osname: String
+	public let hostname: String
+	public let release: String 
+
+	public struct MemoryInfo: Sendable, Codable {
+		public let total: UInt64
+		public let free: UInt64
+		public let used: UInt64
+
+		public init(total: UInt64, free: UInt64, used: UInt64) {
+			self.total = total
+			self.free = free
+			self.used = used
+		}
+	}
+
+	public init(name: String, version: String, uptime: Int64, memory: MemoryInfo?, cpuCount: Int32, ipaddresses: [String], osname: String, hostname: String, release: String) {
+		self.name = name
+		self.version = version
+		self.uptime = uptime
+		self.memory = memory
+		self.cpuCount = cpuCount
+		self.ipaddresses = ipaddresses
+		self.osname = osname
+		self.hostname = hostname
+		self.release = release
+	}
+}
+
+public struct ShortInfoReply: Sendable, Codable {
+	public let name: String
+	public let ipaddresses: [String]
+	public let cpuCount: Int32
+	public let memory: UInt64
+
+	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64) {
+		self.name = name
+		self.ipaddresses = ipaddresses
+		self.cpuCount = cpuCount
+		self.memory = memory
+	}
+}

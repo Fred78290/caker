@@ -208,7 +208,6 @@ extension Caked_InfoRequest {
 	init(command: Infos) {
 		self.init()
 		self.name = command.name
-		self.format = command.format == .text ? .text : .json
 	}
 }
 

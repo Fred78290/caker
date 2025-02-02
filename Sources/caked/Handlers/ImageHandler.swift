@@ -1,18 +1,14 @@
 import Foundation
 import GRPCLib
 import NIOCore
+import TextTable
 
 struct ImageEntry: Codable {
 	let name: String
 }
 
-struct ImageAlias: Codable {
-	let name: String
-	let description: String
-}
-
 struct ImageInfo: Codable {
-	let aliases: [ImageAlias]
+	let aliases: [String]
 	let architecture: String
 	let pub: Bool
 	let fileName: String
@@ -24,11 +20,42 @@ struct ImageInfo: Codable {
 	let uploaded: String?
 	let properties: [String: String]
 
+	func toText() -> String {
+		var text = "Fingerprint: \(fingerprint)\n"
+
+		text += "Size: \(Double(size) / 1024 / 1024)MiB\n"
+		text += "Architecture: \(architecture)\n"
+		text += "Type: \(type)\n"
+		text += "Public: \(pub ? "yes" : "no")\n"
+		text += "Timestamps:\n"
+		text += "    Created: \(created ?? "")\n"
+		text += "    Uploaded: \(uploaded ?? "")\n"
+		text += "    Expires: \(expires ?? "")\n"
+		text += "    Last used: never\n"
+		text += "Properties:\n"
+		for (key, value) in properties {
+			text += "    \(key): \(value)\n"
+		}
+		text += "Aliases:\n"
+		for alias in aliases {
+			text += "    - \(alias)\n"
+		}
+		text += "Cached: no\n"
+		text += "Auto update: disabled\n"
+		text += "Profiles: []\n"
+
+		return text
+	}
+
 	init(product: SimpleStreamProduct) throws {
 		guard let imageVersion = product.latest() else {
 			throw ServiceError("image not found")
 		}
 
+		self.init(product: product, imageVersion: imageVersion)
+	}
+
+	init(product: SimpleStreamProduct, imageVersion: ImageVersion) {
 		let imageDisk: ImageVersionItem = imageVersion.items.imageDisk!
 		let serial: Dictionary<String, ImageVersion>.Keys.Element = product.versions.keys.first { key in
 			if let version = product.versions[key] {
@@ -40,10 +67,7 @@ struct ImageInfo: Codable {
 			return false
 		}!
 
-		let aliases: [ImageAlias] = product.aliases.components(separatedBy: ",").map { alias in
-			return ImageAlias(name: alias, description: "")
-		}
-
+		let aliases: [String] = product.aliases.components(separatedBy: ",")
 		let dateFormatter = DateFormatter()
 
 		dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
@@ -64,7 +88,7 @@ struct ImageInfo: Codable {
 		}
 
 		if let supportedEOL = product.supportedEOL {
-			dateFormatter.dateFormat = "yyyyMMdd"
+			dateFormatter.dateFormat = "yyyy-MM-dd"
 			if let dd = dateFormatter.date(from: supportedEOL) {
 				expires = dd.toFormat(String(format: "yyyy-MM-dd'T'HH:mm:ss'Z'"))
 			}
@@ -134,10 +158,15 @@ struct ImageHandler : CakedCommand {
 	static func listImage(remote: String, asSystem: Bool) async throws -> [ImageInfo] {
 		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
 		let images = try await simpleStream.GetImages()
+		var result: [ImageInfo] = []
 
-		return try images.map { product in
-			return try ImageInfo(product: product)
+		images.forEach { product in
+			if let image = product.latest()  {
+				result.append(ImageInfo(product: product, imageVersion: image))
+			}
 		}
+
+		return result
 	}
 
 	static func info(name: String, asSystem: Bool) async throws -> ImageInfo {
@@ -150,15 +179,29 @@ struct ImageHandler : CakedCommand {
 		return try ImageInfo(product: product)
 	}
 
+	static func pull(name: String, asSystem: Bool) async throws -> LinuxContainerImage {
+		let split = name.components(separatedBy: ":")
+		let remote = split.count > 1 ? split[0] : ""
+		let imageAlias = split.count > 1 ? split[1] : split[0]
+		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
+		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias)
+
+		try await image.pullSimpleStreamImageAndConvert()
+
+		return image
+	}
+
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		return on.makeFutureWithTask {
 			let format: Format = request.format == .text ? Format.text : Format.json
 
 			switch request.command {
 			case .info:
-				return format.renderSingle(try await Self.info(name: request.name, asSystem: asSystem))
+				return format.renderSingle(style: Style.grid, uppercased: true, try await Self.info(name: request.name, asSystem: asSystem))
+			case .pull:
+				return format.renderSingle(style: Style.grid, uppercased: true, try await Self.pull(name: request.name, asSystem: asSystem))
 			case .list:
-				return format.renderList(try await Self.listImage(remote: request.name, asSystem: runAsSystem))
+				return format.renderList(style: Style.grid, uppercased: true, try await Self.listImage(remote: request.name, asSystem: runAsSystem))
 			default:
 				throw ServiceError("Unknown command \(request.command)")
 			}

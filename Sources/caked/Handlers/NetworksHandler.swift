@@ -3,6 +3,7 @@ import Foundation
 import GRPCLib
 import Virtualization
 import NIOCore
+import TextTable
 
 struct BridgedNetwork: Codable {
 	var name: String
@@ -20,7 +21,7 @@ struct NetworksHandler: CakedCommand {
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		on.submit {
-			self.format.renderList(Self.networks())
+			self.format.renderList(style: Style.grid, uppercased: true, Self.networks())
 		}
 	}
 }

@@ -10,6 +10,7 @@ import SwiftASN1
 import X509
 import Security
 import GRPCLib
+import Logging
 
 protocol HasExitCode {
   var exitCode: Int32 { get }
@@ -34,7 +35,7 @@ struct Certs {
 
 struct Service: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "caked as launchctl agent",
-	                                                subcommands: [Install.self, Listen.self])
+	                                                subcommands: [Install.self, Listen.self, Show.self])
 	static let SyncSemaphore = DispatchSemaphore(value: 0)
 
 }
@@ -76,6 +77,9 @@ extension Service {
 	struct Install : ParsableCommand {    
 		static var configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
 
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
 		var asSystem: Bool = false
 
@@ -116,6 +120,10 @@ extension Service {
 			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
 		}
 
+		mutating func validate() throws {
+			Logger.setLevel(self.logLevel)
+		}
+
 		mutating func run() throws {
 			runAsSystem = self.asSystem
 
@@ -128,6 +136,7 @@ extension Service {
 				try Install.findMe(),
 				"service",
 				"listen",
+				"--log-level=\(self.logLevel.rawValue)",
 				"--address=\(listenAddress)"
 			]
 
@@ -143,11 +152,11 @@ extension Service {
 				}
 
 				if let key = certs.key {
-					arguments.append("--tls-cert=\(key)")
+					arguments.append("--tls-key=\(key)")
 				}
 
 				if let cert = certs.cert {
-					arguments.append("--tls-key=\(cert)")
+					arguments.append("--tls-cert=\(cert)")
 				}
 			}
 
@@ -184,6 +193,9 @@ extension Service {
 	struct Listen : ParsableCommand {
 		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
 
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
@@ -200,6 +212,8 @@ extension Service {
 		var tlsKey: String?
 
 		func validate() throws {
+			Logger.setLevel(self.logLevel)
+
 			if let caCert = self.caCert, let tlsCert = self.tlsCert, let tlsKey = self.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
 					throw ServiceError("Root certificate file not found: \(caCert)")
@@ -311,6 +325,93 @@ extension Service {
 			try server.onClose.wait()
 			
 			Logger.info("Server stopped")
+		}
+	}
+
+	struct Show : ParsableCommand {    
+		static var configuration = CommandConfiguration(abstract: "Help to run caked daemon")
+
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
+		var asSystem: Bool = false
+
+		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
+		var address: String?
+
+		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
+		var insecure: Bool = false
+
+		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
+		var caCert: String?
+
+		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
+		var tlsCert: String?
+
+		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
+		var tlsKey: String?
+
+		static func findMe() throws -> String {
+			return try Shell.execute(to: "command", arguments: ["-v", "caked"])
+		}
+
+		func getCertificats() throws -> Certs {
+			if self.tlsCert == nil && self.tlsKey == nil {
+				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+
+				return Certs(ca: certs.caCertURL.path(), key: certs.serverKeyURL.path(), cert: certs.serverCertURL.path())
+			}
+
+			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
+		}
+
+		func getListenAddress() throws -> String {
+			if let address = self.address {
+				return address
+			}
+
+			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
+		}
+
+		mutating func validate() throws {
+			Logger.setLevel(self.logLevel)
+		}
+
+		mutating func run() throws {
+			runAsSystem = self.asSystem
+
+			let listenAddress: String = try getListenAddress()
+
+			var arguments: [String] = [
+				try Install.findMe(),
+				"service",
+				"listen",
+				"--log-level=\(self.logLevel.rawValue)",
+				"--address=\(listenAddress)"
+			]
+
+			if asSystem {
+				arguments.append("--system")
+			}
+
+			if self.insecure == false {
+				let certs = try getCertificats()
+
+				if let ca = certs.ca {
+					arguments.append("--ca-cert=\(ca)")
+				}
+
+				if let key = certs.key {
+					arguments.append("--tls-key=\(key)")
+				}
+
+				if let cert = certs.cert {
+					arguments.append("--tls-cert=\(cert)")
+				}
+			}
+
+			print(arguments.joined(separator: " "))
 		}
 	}
 }

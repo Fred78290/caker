@@ -82,6 +82,10 @@ struct StartHandler: CakedCommand {
 	}
 
 	private static func startVM(vmLocation: VMLocation, args: [String], waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<Void>? = nil) throws -> String {
+		if vmLocation.status == .running {
+			return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
+		}
+
 		//let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 		let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 		let process: Process = Process()
@@ -176,6 +180,10 @@ struct StartHandler: CakedCommand {
 
 	public static func startVM(on: EventLoop, vmLocation: VMLocation, waitIPTimeout: Int, promise: EventLoopPromise<Void>?) -> EventLoopFuture<String> {
 		return on.submit {
+			if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
+				throw ServiceError("VM does not exist")
+			}
+
 			return try Self.startVM(vmLocation: vmLocation, args: try Self.runningArguments(vmLocation: vmLocation), waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
 		}
 	}

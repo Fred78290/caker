@@ -22,7 +22,7 @@ service Service {
 	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
-	rpc Info (InfoRequest) returns (Reply);
+	rpc Info (InfoRequest) returns (InfoReply);
 	rpc Execute (ExecuteRequest) returns (ExecuteReply);
 	rpc Shell(stream ShellRequest) returns (stream ShellResponse);
 }
@@ -38,6 +38,7 @@ enum RemoteCommand {
 	delete = 2;
 	list = 3;
 	info = 4;
+	pull = 5;
 }
 
 message StopRequest {
@@ -164,7 +165,6 @@ message Reply {
 
 message InfoRequest {
 	string name = 1;
-	Format format = 2;
 }
 
 message InfoReply {

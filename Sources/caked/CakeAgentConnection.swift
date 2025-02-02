@@ -13,10 +13,19 @@ class Queue<T> {
 	private var queue = DispatchQueue(label: "chicken.feeder.queue.\(randomUUID())", attributes: .concurrent)
 	private var elements: [T] = []
 	private var isClosed = false
+    let semaphore = DispatchSemaphore(value: 0)
 
 	func push(_ element: T) {
 		queue.sync {
 			elements.append(element)
+			semaphore.signal()
+		}
+	}
+
+	func close() {
+		queue.sync(flags: .barrier) {
+			isClosed = true
+			semaphore.signal()
 		}
 	}
 
@@ -28,6 +37,12 @@ class Queue<T> {
 		}
 	}
 
+	var isEmpty: Bool {
+		queue.sync {
+			elements.isEmpty
+		}
+	}
+
 	private static func randomUUID() -> String {
 		UUID().uuidString
 	}
@@ -35,7 +50,11 @@ class Queue<T> {
 
 extension Queue: AsyncSequence, AsyncIteratorProtocol {
 	func next() async -> T? {
-		self.pop()
+		if isEmpty {
+			self.semaphore.wait()
+		}
+
+		return self.pop()
 	}
 
 	nonisolated func makeAsyncIterator() -> Queue<T> {
@@ -141,9 +160,14 @@ struct CakeAgentConnection {
 		do {
 
 			let streamShell = client.shell(callOptions: .init(), handler: { response in
+				Logger.debug("Receive shell output \(String(describing: response))")
+
 				shellQueue.push(Caked_ShellResponse.with { reply in
+
 					reply.format = .init(rawValue: response.format.rawValue) ?? .end
 					reply.datas = response.datas
+
+					Logger.debug("Enqueue shell output \(String(describing: reply))")
 				})
 			})
 
@@ -153,9 +177,13 @@ struct CakeAgentConnection {
 				group.addTask {
 					do {
 						for try await message in requestStream {
+							Logger.debug("Receive client input \(String(describing: message))")
+
 							try await streamShell.sendMessage(Cakeagent_ShellMessage.with{msg in
 								msg.datas = message.datas
 							}).get()
+
+							Logger.debug("Client input \(String(describing: message)) sent")
 						}
 					} catch {
 						if error is CancellationError == false {
@@ -171,9 +199,17 @@ struct CakeAgentConnection {
 
 				group.addTask {
 					do {
+						Logger.debug("Dequeue shell output start")
+
 						for try await message in shellQueue {
+							Logger.debug("Dequeue shell output \(String(describing: message))")
+
 							try await responseStream.send(message)
+
+							Logger.debug("Shell output \(String(describing: message)) sent")
 						}
+
+						Logger.debug("Dequeue shell output end")
 					} catch {
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {

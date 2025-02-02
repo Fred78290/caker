@@ -8,6 +8,7 @@ import NIOPosix
 import NIOSSL
 import Sentry
 import SwiftDate
+import Logging
 
 class GrpcError: Error {
 	let code: Int
@@ -54,6 +55,7 @@ struct Client: AsyncParsableCommand {
 		init() {
 			let discardedOptions: [String] = [
 				"--insecure",
+				"--log-level",
 				"--timeout",
 				"--system",
 				"--connect",
@@ -164,6 +166,8 @@ struct Client: AsyncParsableCommand {
 			Networks.self,
 			WaitIP.self,
 			Purge.self,
+			Exec.self,
+			Sh.self,
 
 			Create.self,
 			Clone.self,
@@ -199,7 +203,7 @@ struct Client: AsyncParsableCommand {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
-			if listeningAddress.scheme == "unix" && listeningAddress.isFileURL {
+			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 				target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 			} else if listeningAddress.scheme == "tcp" {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)

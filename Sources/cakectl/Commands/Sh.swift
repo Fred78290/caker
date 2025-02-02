@@ -40,7 +40,7 @@ extension FileHandle {
 }
 
 struct Sh: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Run a shell command in a VM")
+	static var configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
 
 	@OptionGroup var options: Client.Options
 

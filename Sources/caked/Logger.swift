@@ -1,13 +1,48 @@
 import Foundation
 import Logging
+import ArgumentParser
+
+extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
+	public init?(argument: String) {
+		switch argument {
+		case "trace":
+			self = .trace
+		case "debug":
+			self = .debug
+		case "info":
+			self = .info
+		case "notice":
+			self = .notice
+		case "warning":
+			self = .warning
+		case "error":
+			self = .error
+		case "critical":
+			self = .critical
+		default:
+			return nil
+		}
+	}
+}
+
 
 struct Logger {
+	static var logger = Logging.Logger(label: "com.aldunelabs.caker") 
+
+	static public func setLevel(_ level: Logging.Logger.Level) {
+		logger.logLevel = level
+	}
+
 	static public func error(_ err: Error) {
-		Logging.Logger(label: "com.aldunelabs.caker").error(.init(stringLiteral: err.localizedDescription))
+		logger.error(.init(stringLiteral: err.localizedDescription))
 	}
 
 	static public func info(_ line: String) {
-		Logging.Logger(label: "com.aldunelabs.caker").info(.init(stringLiteral: line))
+		logger.info(.init(stringLiteral: line))
+	}
+
+	static public func debug(_ line: String) {
+		logger.debug(.init(stringLiteral: line))
 	}
 
 	static public func appendNewLine(_ line: String) {

@@ -1,9 +1,13 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import Logging
 
 struct Launch : AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
+
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
@@ -14,6 +18,8 @@ struct Launch : AsyncParsableCommand {
 	var foreground: Bool = false
 
 	func validate() throws {
+		Logger.setLevel(self.logLevel)
+
 		try self.options.validate()
 
 		if StorageLocation(asSystem: false).exists(self.options.name) {

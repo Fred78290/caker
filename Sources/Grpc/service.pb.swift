@@ -64,6 +64,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
   case delete // = 2
   case list // = 3
   case info // = 4
+  case pull // = 5
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -77,6 +78,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case 2: self = .delete
     case 3: self = .list
     case 4: self = .info
+    case 5: self = .pull
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -88,6 +90,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case .delete: return 2
     case .list: return 3
     case .info: return 4
+    case .pull: return 5
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -99,6 +102,7 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     .delete,
     .list,
     .info,
+    .pull,
   ]
 
 }
@@ -829,8 +833,6 @@ public struct Caked_InfoRequest: Sendable {
 
   public var name: String = String()
 
-  public var format: Caked_Format = .text
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1012,6 +1014,7 @@ extension Caked_RemoteCommand: SwiftProtobuf._ProtoNameProviding {
     2: .same(proto: "delete"),
     3: .same(proto: "list"),
     4: .same(proto: "info"),
+    5: .same(proto: "pull"),
   ]
 }
 
@@ -2028,7 +2031,6 @@ extension Caked_InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   public static let protoMessageName: String = _protobuf_package + ".InfoRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "name"),
-    2: .same(proto: "format"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2038,7 +2040,6 @@ extension Caked_InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self.format) }()
       default: break
       }
     }
@@ -2048,15 +2049,11 @@ extension Caked_InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     if !self.name.isEmpty {
       try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
     }
-    if self.format != .text {
-      try visitor.visitSingularEnumField(value: self.format, fieldNumber: 2)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_InfoRequest, rhs: Caked_InfoRequest) -> Bool {
     if lhs.name != rhs.name {return false}
-    if lhs.format != rhs.format {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -311,7 +311,7 @@ struct ImageVersion: Codable {
 
 		// Ubuntu server
 		label = try container.decodeIfPresent(String.self, forKey: .label)
-		pubname = try container.decode(String.self, forKey: .pubname)
+		pubname = try container.decodeIfPresent(String.self, forKey: .pubname)
 	}
 }
 
@@ -391,7 +391,7 @@ struct ImageVersionItem: Codable {
 	}
 }
 
-class LinuxContainerImage {
+class LinuxContainerImage: Codable {
 	let alias: String
 	let path: URL
 	let size: Int
@@ -412,6 +412,21 @@ class LinuxContainerImage {
 		self.size = size
 		self.fingerprint = fingerprint
 		self.remoteName = remoteName
+	}
+
+	func pullSimpleStreamImageAndConvert() async throws {
+		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName)
+		let cacheLocation = try imageCache.directoryFor(directoryName: self.aliasDirectory).appendingPathComponent("disk.img", isDirectory: false)
+
+		if let cached = imageCache.getCache(name: alias) {
+			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
+				return
+			}
+		}
+
+		imageCache.addCache(name: alias, url: self.path.absoluteURL, fingerprint: self.fingerprint)
+
+		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation)
 	}
 
 	func retrieveSimpleStreamImageAndConvert(to: URL) async throws {

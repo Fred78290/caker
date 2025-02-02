@@ -9,6 +9,11 @@ struct BuildHandler: CakedCommand {
 	var options: BuildOptions
 
 	static func build(name: String, options: BuildOptions, asSystem: Bool) async throws {
+
+		if StorageLocation(asSystem: asSystem).exists(name) {
+			throw ServiceError("VM already exists")
+		}
+
 		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
 
 		// Lock the temporary VM directory to prevent it's garbage collection
