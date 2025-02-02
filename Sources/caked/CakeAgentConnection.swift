@@ -8,60 +8,6 @@ import GRPCLib
 import Logging
 import CakeAgentLib
 
-class Queue<T> {
-	/// A concurrent queue to allow multiple reads at once.
-	private var queue = DispatchQueue(label: "chicken.feeder.queue.\(randomUUID())", attributes: .concurrent)
-	private var elements: [T] = []
-	private var isClosed = false
-    let semaphore = DispatchSemaphore(value: 0)
-
-	func push(_ element: T) {
-		queue.sync {
-			elements.append(element)
-			semaphore.signal()
-		}
-	}
-
-	func close() {
-		queue.sync(flags: .barrier) {
-			isClosed = true
-			semaphore.signal()
-		}
-	}
-
-	func pop() -> T? {
-		guard !isClosed else { return nil }
-
-		return queue.sync {
-			return elements.isEmpty ? nil : elements.removeFirst()
-		}
-	}
-
-	var isEmpty: Bool {
-		queue.sync {
-			elements.isEmpty
-		}
-	}
-
-	private static func randomUUID() -> String {
-		UUID().uuidString
-	}
-}
-
-extension Queue: AsyncSequence, AsyncIteratorProtocol {
-	func next() async -> T? {
-		if isEmpty {
-			self.semaphore.wait()
-		}
-
-		return self.pop()
-	}
-
-	nonisolated func makeAsyncIterator() -> Queue<T> {
-		self
-	}
-}
-
 struct CakeAgentConnection {
 	let caCert: String?
 	let tlsCert: String?
@@ -153,96 +99,65 @@ struct CakeAgentConnection {
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
-		let shellQueue = Queue<Caked_ShellResponse>()
+		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ShellResponse.self)
 		let client = try createClient()
-		let result: [Error?]
+		let finish = {
+			continuation.finish()
+			try? await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
+			try? await client.close()
+		}
 
 		do {
 
 			let streamShell = client.shell(callOptions: .init(), handler: { response in
-				Logger.debug("Receive shell output \(String(describing: response))")
-
-				shellQueue.push(Caked_ShellResponse.with { reply in
-
+				continuation.yield(Caked_ShellResponse.with { reply in
 					reply.format = .init(rawValue: response.format.rawValue) ?? .end
 					reply.datas = response.datas
-
-					Logger.debug("Enqueue shell output \(String(describing: reply))")
 				})
 			})
 
-			result = await withTaskGroup(of: Error?.self, returning: [Error?].self) { group in
-				var lastError: [Error?] = []
-
+			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 				group.addTask {
 					do {
 						for try await message in requestStream {
-							Logger.debug("Receive client input \(String(describing: message))")
-
 							try await streamShell.sendMessage(Cakeagent_ShellMessage.with{msg in
 								msg.datas = message.datas
 							}).get()
-
-							Logger.debug("Client input \(String(describing: message)) sent")
 						}
 					} catch {
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logging.Logger(label: "CakeAgentConnection").error("Error reading from shell, \(error)")
-								return error
+								Logger.error(error)
+								throw error
 							}
 						}
 					}
-
-					return nil
 				}
 
 				group.addTask {
 					do {
-						Logger.debug("Dequeue shell output start")
-
-						for try await message in shellQueue {
-							Logger.debug("Dequeue shell output \(String(describing: message))")
-
+						for try await message in stream {
 							try await responseStream.send(message)
-
-							Logger.debug("Shell output \(String(describing: message)) sent")
 						}
-
-						Logger.debug("Dequeue shell output end")
 					} catch {
+						continuation.finish()
+			
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logging.Logger(label: "CakeAgentConnection").error("Error reading from shell, \(error)")
-								return error
+								Logger.error(error)
+								throw error
 							}
 						}
 					}
-
-					return nil
 				}
 
-				for await result in group {
-					if let error = result {
-						lastError.append(error)
-					}
-				}
+				try await group.waitForAll()
 
-				return lastError
+				await finish()
 			}
-
-			try await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
-
-			try! await client.close()
-		}
-		catch {
-			try await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
-			try! await client.close()
+		} catch {
+			await finish()
 			throw error
-		}
-
-		if let error = result.first(where: { $0 != nil }) {
-			throw error!
 		}
 	}
 

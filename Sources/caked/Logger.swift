@@ -45,6 +45,10 @@ struct Logger {
 		logger.debug(.init(stringLiteral: line))
 	}
 
+	static public func trace(_ line: String) {
+		logger.trace(.init(stringLiteral: line))
+	}
+
 	static public func appendNewLine(_ line: String) {
 		print(line, terminator: "\n")
 	}
