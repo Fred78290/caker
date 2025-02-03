@@ -66,6 +66,14 @@ extension URL: Purgeable {
 		self
 	}
 
+	func source() -> String {
+		self.deletingLastPathComponent().lastPathComponent
+	}
+
+	func name() -> String {
+		self.lastPathComponent.stringBeforeLast(before: ".")
+	}
+
 	func exists() throws -> Bool {
 		if self.isFileURL {
 			return FileManager.default.fileExists(atPath: self.absoluteURL.path())
@@ -106,6 +114,22 @@ extension URL: Purgeable {
 }
 
 extension String {
+	func stringBeforeLast(before: Character) -> String {
+		if let r = self.lastIndex(of: before) {
+			return String(self[self.startIndex..<r])
+		} else {
+			return self
+		}
+	}
+
+	func stringBefore(before: String) -> String {
+		if let r = self.range(of: before) {
+			return String(self[self.startIndex..<r.lowerBound])
+		} else {
+			return self
+		}
+	}
+
 	func stringAfter(after: String) -> String {
 		if let r = self.range(of: after) {
 			return String(self[r.upperBound..<self.endIndex])

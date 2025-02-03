@@ -107,6 +107,44 @@ public enum Caked_RemoteCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+public enum Caked_VMState: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case running // = 0
+  case stopped // = 1
+  case paused // = 2
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .running
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .running
+    case 1: self = .stopped
+    case 2: self = .paused
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .running: return 0
+    case .stopped: return 1
+    case .paused: return 2
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Caked_VMState] = [
+    .running,
+    .stopped,
+    .paused,
+  ]
+
+}
+
 public enum Caked_ReponseFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case stdout // = 0
@@ -143,6 +181,56 @@ public enum Caked_ReponseFormat: SwiftProtobuf.Enum, Swift.CaseIterable {
     .end,
   ]
 
+}
+
+public struct Caked_VMInfo: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var disk: Int32 = 0
+
+  public var size: Int32 = 0
+
+  public var sizeOnDisk: Int32 = 0
+
+  public var running: Bool = false
+
+  public var state: Caked_VMState = .running
+
+  public var source: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Caked_ListRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var vmonly: Bool = false
+
+  public var format: Caked_Format = .text
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Caked_ListReply: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var vms: [Caked_VMInfo] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
 }
 
 public struct Caked_StopRequest: Sendable {
@@ -1018,12 +1106,158 @@ extension Caked_RemoteCommand: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Caked_VMState: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "running"),
+    1: .same(proto: "stopped"),
+    2: .same(proto: "paused"),
+  ]
+}
+
 extension Caked_ReponseFormat: SwiftProtobuf._ProtoNameProviding {
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "stdout"),
     1: .same(proto: "stderr"),
     2: .same(proto: "end"),
   ]
+}
+
+extension Caked_VMInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VMInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "Name"),
+    2: .same(proto: "Disk"),
+    3: .same(proto: "Size"),
+    4: .same(proto: "SizeOnDisk"),
+    5: .same(proto: "Running"),
+    6: .same(proto: "State"),
+    7: .same(proto: "Source"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.disk) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self.size) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.sizeOnDisk) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.running) }()
+      case 6: try { try decoder.decodeSingularEnumField(value: &self.state) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.source) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.disk != 0 {
+      try visitor.visitSingularInt32Field(value: self.disk, fieldNumber: 2)
+    }
+    if self.size != 0 {
+      try visitor.visitSingularInt32Field(value: self.size, fieldNumber: 3)
+    }
+    if self.sizeOnDisk != 0 {
+      try visitor.visitSingularInt32Field(value: self.sizeOnDisk, fieldNumber: 4)
+    }
+    if self.running != false {
+      try visitor.visitSingularBoolField(value: self.running, fieldNumber: 5)
+    }
+    if self.state != .running {
+      try visitor.visitSingularEnumField(value: self.state, fieldNumber: 6)
+    }
+    if !self.source.isEmpty {
+      try visitor.visitSingularStringField(value: self.source, fieldNumber: 7)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_VMInfo, rhs: Caked_VMInfo) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.disk != rhs.disk {return false}
+    if lhs.size != rhs.size {return false}
+    if lhs.sizeOnDisk != rhs.sizeOnDisk {return false}
+    if lhs.running != rhs.running {return false}
+    if lhs.state != rhs.state {return false}
+    if lhs.source != rhs.source {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ListRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "vmonly"),
+    2: .same(proto: "format"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.vmonly) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.format) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.vmonly != false {
+      try visitor.visitSingularBoolField(value: self.vmonly, fieldNumber: 1)
+    }
+    if self.format != .text {
+      try visitor.visitSingularEnumField(value: self.format, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_ListRequest, rhs: Caked_ListRequest) -> Bool {
+    if lhs.vmonly != rhs.vmonly {return false}
+    if lhs.format != rhs.format {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_ListReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ListReply"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "vms"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.vms) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.vms.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.vms, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_ListReply, rhs: Caked_ListReply) -> Bool {
+    if lhs.vms != rhs.vms {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
 }
 
 extension Caked_StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

@@ -53,6 +53,17 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"list"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked list",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"shell",
 				"linux"
 			],
@@ -147,6 +158,42 @@
 			"name": "cakectl shell linux",
 			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
 			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug caked",
+			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"preLaunchTask": "swift: Build Debug caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release caked",
+			"program": "${workspaceFolder:caker}/.build/release/caked",
+			"preLaunchTask": "swift: Build Release caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug cakectl",
+			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
+			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release cakectl",
+			"program": "${workspaceFolder:caker}/.build/release/cakectl",
+			"preLaunchTask": "swift: Build Release cakectl"
 		}
 	]
 }

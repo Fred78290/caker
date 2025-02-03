@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import NIOCore
+import TextTable
 
 struct RemoteEntry: Codable {
 	let name: String
@@ -58,8 +59,8 @@ struct RemoteHandler: CakedCommand {
 			case .delete:
 				return try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
 			case .list:
-				let format = request.format == .text ? Format.text : Format.json
-				return format.renderList(try Self.listRemote(asSystem: runAsSystem))
+				let format: Format = request.format == .text ? Format.text : Format.json
+				return format.renderList(style: Style.grid, uppercased: true, try Self.listRemote(asSystem: runAsSystem))
 			default:
 				throw ServiceError("Unknown command \(request.command)")
 			}

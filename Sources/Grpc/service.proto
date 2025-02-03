@@ -19,6 +19,7 @@ service Service {
 	rpc Configure (ConfigureRequest) returns (Reply) {}
 	rpc WaitIP (WaitIPRequest) returns (Reply) {}
 	rpc Stop (StopRequest) returns (Reply) {}
+	rpc List(ListRequest) returns (Reply) {}
 	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
@@ -39,6 +40,31 @@ enum RemoteCommand {
 	list = 3;
 	info = 4;
 	pull = 5;
+}
+
+enum VMState {
+	running = 0;
+	stopped = 1;
+	paused = 2;
+}
+
+message VMInfo {
+	string Name = 1;
+	int32 Disk = 2;
+	int32 Size = 3;
+	int32 SizeOnDisk = 4;
+	bool Running = 5;
+	VMState State = 6;
+	string Source = 7;
+}
+
+message ListRequest {
+	bool vmonly = 1;
+	Format format = 2;
+}
+
+message ListReply {
+	repeated VMInfo vms = 1;
 }
 
 message StopRequest {

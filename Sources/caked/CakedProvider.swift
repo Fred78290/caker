@@ -306,6 +306,12 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_ListRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return ListHandler(format: self.format == .text ? .text : .json, vmonly: self.vmonly)
+	}
+}
+
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120)
@@ -418,6 +424,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
+    func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+    }
+
     func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
     }

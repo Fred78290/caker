@@ -13,6 +13,14 @@ private func saveToTempFile(_ data: Data) throws -> String {
 	return url.absoluteURL.path()
 }
 
+extension Caked_ListRequest {
+	init(command: List) {
+		self.init()
+		self.format = command.format == .text ? .text : .json
+		self.vmonly = command.vmonly
+	}
+}
+
 extension Caked_CakedCommandRequest {
 	init(command: String, arguments: [String]) {
 		self.init()

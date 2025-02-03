@@ -3,6 +3,8 @@ import Virtualization
 
 protocol Purgeable {
   var url: URL { get }
+  func source() -> String
+  func name() -> String
   func delete() throws
   func accessDate() throws -> Date
   func sizeBytes() throws -> Int
@@ -25,9 +27,9 @@ class CommonCacheImageCache: PurgeableStorage {
 	let baseURL: URL
 	let name: String
 	let location: String
-	let ext: String
+	private let ext: String
 
-	init(location: String, name: String, ext: String) throws {
+	init(location: String, name: String, ext: String = "img") throws {
 		self.name = name
 		self.location = location
 		self.ext = ext
@@ -37,7 +39,7 @@ class CommonCacheImageCache: PurgeableStorage {
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
-	init(location: String, ext: String) throws {
+	init(location: String, ext: String = "img") throws {
 		self.name = ""
 		self.location = location
 		self.ext = ext
@@ -59,8 +61,17 @@ class CommonCacheImageCache: PurgeableStorage {
 	}
 
 	func purgeables() throws -> [Purgeable] {
-		try FileManager.default.contentsOfDirectory(at: baseURL, includingPropertiesForKeys: nil)
-			.filter { $0.lastPathComponent.hasSuffix(self.ext)}
+		var purgeableItems: [Purgeable] = []
+
+		if let fileURLs: FileManager.DirectoryEnumerator = FileManager.default.enumerator(at: baseURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsHiddenFiles) {
+			for case let fileURL as URL in fileURLs {
+				if fileURL.pathExtension == self.ext {
+					purgeableItems.append(fileURL)
+				}
+			}
+		}
+
+		return purgeableItems
 	}
 }
 
@@ -70,24 +81,31 @@ class CloudImageCache: CommonCacheImageCache {
 	}
 
 	init(name: String) throws {
-		try super.init(location: "cloud-images", name: name, ext: ".img")
+		try super.init(location: "cloud-images", name: name)
 	}
 }
 
 class RawImageCache: CommonCacheImageCache {
 	init() throws {
-		try super.init(location: "raw-images", ext: ".img")
+		try super.init(location: "raw-images")
 	}
+}
+
+enum CacheEntryKind: String, Codable {
+	case index = "index"
+	case stream = "stream"
+	case image = "image"
 }
 
 struct CacheEntry: Codable {
 	let url: URL
+	let kind: CacheEntryKind
 	let fingerprint: String
 }
 
 struct SimpleStreamCache: Codable {
-	var cache: Dictionary<String, CacheEntry>
-	var dirty: Bool = false
+	private var cache: Dictionary<String, CacheEntry>
+	private var dirty: Bool = false
 
 	enum CodingKeys: String, CodingKey {
 		case cache
@@ -107,8 +125,25 @@ struct SimpleStreamCache: Codable {
 		return SimpleStreamCache()
 	}
 
+	func compactMap<ElementOfResult>(_ transform: ((key: String, value: CacheEntry)) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
+		return try self.cache.compactMap { (key: String, value: CacheEntry) in
+			try transform((key: key, value: value))
+		}
+	}
+
+	func map<T>(_ transform: ((key: String, value: CacheEntry)) throws -> T) throws -> [T] {
+		return try self.cache.map { (key: String, value: CacheEntry) in
+			try transform((key: key, value: value))
+		}
+	}
+
 	func getCache(name: String) -> CacheEntry? {
 		return self.cache[name]
+	}
+
+	mutating func deleteCache(name: String) -> CacheEntry?{
+		self.dirty = true
+		return self.cache.removeValue(forKey: name)
 	}
 
 	mutating func addCache(name: String, entry: CacheEntry) {
@@ -152,8 +187,14 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		return self.cache?.getCache(name: name)
 	}
 
-	func addCache(name: String, url: URL, fingerprint: String) {
-		self.cache?.addCache(name: name, entry: CacheEntry(url: url, fingerprint: fingerprint))
+	func deleteCache(name: String) throws {
+		if self.cache?.deleteCache(name: name) != nil {
+			try? self.cache?.save(to: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
+		}
+	}
+
+	func addCache(name: String, url: URL, kind: CacheEntryKind, fingerprint: String) throws {
+		self.cache?.addCache(name: name, entry: CacheEntry(url: url, kind: kind, fingerprint: fingerprint))
 		try? self.cache?.save(to: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
 	}
 
@@ -168,5 +209,130 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		alias.replace("/", with: ":")
 
 		return try self.directoryFor(directoryName: alias)
+	}
+
+	private class SimpleStreamsImageCachePurgeable: Purgeable {
+		let _url: URL
+		let _name: String
+		let _source: String
+		let _cache: SimpleStreamsImageCache
+
+		init(name: String, url: URL, source: String, cache: SimpleStreamsImageCache) {
+			self._url = url
+			self._name = name
+			self._source = source
+			self._cache = cache
+		}
+
+	    var url: URL {
+	        self._url
+		}
+
+	    func source() -> String {
+	        self._source
+	    }
+
+	    func name() -> String {
+	        self._name
+	    }
+
+	    func delete() throws {
+			try _cache.deleteCache(name: self._name)
+
+			try FileManager.default.removeItem(at: self._url.deletingLastPathComponent())
+	    }
+
+	    func accessDate() throws -> Date {
+	        try self._url.accessDate()
+	    }
+
+	    func sizeBytes() throws -> Int {
+	        try self._url.sizeBytes()
+	    }
+
+	    func allocatedSizeBytes() throws -> Int {
+	        try self._url.allocatedSizeBytes()
+	    }
+	}
+
+	override func purgeables() throws -> [Purgeable] {
+		var purgeableItems: [Purgeable] = []
+
+		if let cache = self.cache {
+			purgeableItems.append(contentsOf: cache.compactMap { (key: String, value: CacheEntry) in
+				var result: SimpleStreamsImageCachePurgeable? = nil
+
+				if value.kind == .image {
+					result = SimpleStreamsImageCachePurgeable(name: key, url: self.baseURL.appendingPathComponent("\(key)/disk.img"), source: self.baseURL.lastPathComponent, cache: self)
+				}
+
+				return result
+			})
+		} else {
+			try FileManager.default.contentsOfDirectory(at: self.baseURL, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles).forEach { url in
+				let cache = try SimpleStreamsImageCache(name: url.lastPathComponent)
+
+				try purgeableItems.append(contentsOf: cache.purgeables())
+			}
+		}
+
+		return purgeableItems
+	}
+}
+
+class OCIImageCache: CommonCacheImageCache {
+	init() throws {
+		try super.init(location: "OCIs")
+	}
+
+	private class OCIImageCachePurgeable: Purgeable {
+		let _url: URL
+		let _name: String
+		let _source: String
+
+		init(name: String, url: URL, source: String) {
+			self._url = url
+			self._name = name
+			self._source = source
+		}
+
+	    var url: URL {
+	        self._url
+		}
+
+	    func source() -> String {
+	        self._source
+	    }
+
+	    func name() -> String {
+	        self._name
+	    }
+
+	    func delete() throws {
+			try self._url.deletingLastPathComponent().delete()
+	    }
+
+	    func accessDate() throws -> Date {
+	        try self._url.accessDate()
+	    }
+
+	    func sizeBytes() throws -> Int {
+	        try self._url.sizeBytes()
+	    }
+
+	    func allocatedSizeBytes() throws -> Int {
+	        try self._url.allocatedSizeBytes()
+	    }
+	}
+
+	override func purgeables() throws -> [Purgeable] {
+		return try super.purgeables().map { purgeable in
+			let root = purgeable.url.deletingLastPathComponent()
+			let container = root.deletingLastPathComponent()
+			let name = root.lastPathComponent
+			let source = container.absoluteURL.path().stringAfter(after: self.baseURL.absoluteURL.path()).stringBeforeLast(before: "/")
+
+			return OCIImageCachePurgeable(name: name, url: purgeable.url, source: source)
+		}
 	}
 }

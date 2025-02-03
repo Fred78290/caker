@@ -20,8 +20,8 @@ extension Error {
 struct StorageLocation {
 	let rootURL: URL
 
-	init(asSystem: Bool) {
-		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent("vms", isDirectory: true)
+	init(asSystem: Bool, name: String = "vms") {
+		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent(name, isDirectory: true)
 	}
 
 	private func vmURL(_ name: String) -> URL {
@@ -42,9 +42,9 @@ struct StorageLocation {
 		return location
 	}
 
-	func list() throws -> [(String, VMLocation)] {
+	func list() throws -> [String: VMLocation] {
 		do {
-			return try FileManager.default.contentsOfDirectory(
+			let vms: [VMLocation] = try FileManager.default.contentsOfDirectory(
 				at: rootURL,
 				includingPropertiesForKeys: [.isDirectoryKey],
 				options: .skipsSubdirectoryDescendants).compactMap { url in
@@ -54,11 +54,18 @@ struct StorageLocation {
 					return nil
 				}
 
-				return (vmDir.name, vmDir)
+				return vmDir
 			}
+			var result: [String: VMLocation] = [:]
+
+			for vm in vms {
+				result[vm.name] = vm
+			}
+
+			return result
 		} catch {
 			if error.fileNotFound() {
-				return []
+				return [:]
 			}
 
 			throw error

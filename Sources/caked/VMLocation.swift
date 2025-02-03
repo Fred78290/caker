@@ -76,6 +76,14 @@ struct VMLocation {
 		}
 	}
 
+	func diskSize() throws -> Int {
+		try self.diskURL.sizeBytes()
+	}
+
+	func allocatedSize() throws -> Int {
+		try diskSize() + nvramURL.sizeBytes() + configURL.sizeBytes()
+	}
+
 	func lock() -> Bool {
 		let fd = open(configURL.path, O_RDWR) 
 

@@ -9,16 +9,13 @@ struct List: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Option(help: ArgumentHelp("Only display VMs from the specified source (e.g. --source local, --source oci)."))
-	var source: String?
+	@Flag(help: ArgumentHelp("Only display VMs", valueName: "vmonly"))
+	var vmonly: Bool = false
 
 	@Option(help: "Output format: text or json")
 	var format: Format = .text
 
-	@Flag(name: [.short, .long], help: ArgumentHelp("Only display VM names."))
-	var quiet: Bool = false
-
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "list", arguments: arguments), callOptions: callOptions).response.wait()
+		return try client.list(Caked_ListRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

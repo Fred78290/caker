@@ -81,7 +81,7 @@ public protocol JsonDecodable: Decodable {
 }
 
 class Streamable {
-	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String) async throws -> T {
+	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String, kind: CacheEntryKind) async throws -> T {
 		let simpleStreamCache = try SimpleStreamsImageCache(name: remoteName)
 		let indexLocation: URL = simpleStreamCache.locationFor(fileName: cachedFile)
 		let (_, headResponse) = try await Curl(fromURL: remoteURL).head()
@@ -97,7 +97,7 @@ class Streamable {
 				}
 			}
 
-			simpleStreamCache.addCache(name: cachedFile, url: remoteURL, fingerprint: etag)
+			try simpleStreamCache.addCache(name: cachedFile, url: remoteURL, kind: kind, fingerprint: etag)
 		}
 
 		// Download the index
@@ -424,7 +424,7 @@ class LinuxContainerImage: Codable {
 			}
 		}
 
-		imageCache.addCache(name: alias, url: self.path.absoluteURL, fingerprint: self.fingerprint)
+		try imageCache.addCache(name: alias, url: self.path.absoluteURL, kind: CacheEntryKind.image, fingerprint: self.fingerprint)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation)
 	}
@@ -444,7 +444,7 @@ class LinuxContainerImage: Codable {
 			}
 		}
 
-		imageCache.addCache(name: alias, url: self.path.absoluteURL, fingerprint: self.fingerprint)
+		try imageCache.addCache(name: alias, url: self.path.absoluteURL, kind: CacheEntryKind.image, fingerprint: self.fingerprint)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation)
 	}
@@ -487,7 +487,7 @@ class SimpleStreamProtocol {
 
 		self.baseURL = baseURL
 		self.name = name
-		self.index = try await Streamable.loadSimpleStreamObject(remoteURL: indexURL, remoteName: name, cachedFile: "index.json")
+		self.index = try await Streamable.loadSimpleStreamObject(remoteURL: indexURL, remoteName: name, cachedFile: "index.json", kind: CacheEntryKind.index)
 	}
 
 	public func GetImagesIndexURL() throws -> URL {
@@ -504,7 +504,7 @@ class SimpleStreamProtocol {
 	private func loadSimpleStreamImages() async throws -> SimpleStreamImageIndex {
 		let imageURL = try self.GetImagesIndexURL()
 
-		return try await Streamable.loadSimpleStreamObject(remoteURL: imageURL, remoteName: self.name, cachedFile: "images.json")
+		return try await Streamable.loadSimpleStreamObject(remoteURL: imageURL, remoteName: self.name, cachedFile: "images.json", kind: CacheEntryKind.stream)
 	}
 
 	public func GetImages() async throws -> [SimpleStreamProduct] {
