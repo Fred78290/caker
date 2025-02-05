@@ -10,7 +10,7 @@ struct Build: AsyncParsableCommand {
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 
 		try self.options.validate()

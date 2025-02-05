@@ -85,46 +85,96 @@ public struct ConfigureOptions: ParsableArguments {
 	public var displayRefit: Bool? = nil
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
-	public var forwardedPort: [ForwardedPort] = []
+	public var published: [String] = ["unset"]
 
-	@Flag(name: [.customLong("reset-publish")], help: ArgumentHelp("Reset published port."))
-	public var resetForwardedPort: Bool = false
-
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("mount"), .customShort("v")],
+	        help: ArgumentHelp("Additional directory shares",
+	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
 	public var mount: [String] = ["unset"]
 
-	@Option(name: [.customLong("bridged")], help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
-	public var netBridged: [String] = ["unset"]
-
-//	@Option(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
-//	public var netSoftnet: Bool? = nil
-
-//	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
-//	public var netSoftnetAllow: String? = nil
-
-//	@Option(help: ("Restrict network access to the host-only network"))
-//	public var netHost: Bool? = nil
+	@Option(help: ArgumentHelp("Add a network interface to the instance",
+	                           discussion: """
+	                           Add a network interface to the instance, where
+	                           <spec> is in the \"key=value,key=value\" format,
+	                           with the following keys available:
+	                           name: the network to connect to (required), use
+	                           the networks command for a list of possible
+	                           values.
+	                           mode: auto|manual (default: auto)
+	                           mac: hardware address (default: random).
+	                           You can also use a shortcut of \"<name>\" to mean
+	                           \"name=<name>\".
+	                           """	, valueName: "<spec>"))
+	public var network: [String] = ["unset"]
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
 
-	public var mounts: [String]? {
+	@Option(name: [.customLong("socket")],
+	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
+	                           discussion: """
+	                           The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+	                           The mode is as follows:
+	                           - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+	                           - connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+	                           - tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
+	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+	                           """))
+	public var socket: [String] = ["unset"]
+
+	@Option(name: [.customLong("console")],
+	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
+	                           discussion: """
+	                           - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+	                           - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+	                           - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+	                           - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
+	                           """,
+	                           valueName: "url"))
+	public var consoleURL: String?
+
+	public var forwardedPort: [ForwardedPort]? {
 		get {
-			if mount.contains("unset") == false {
+			if published.contains("unset") {
 				return nil
 			}
-			
-			return mount
+
+			return published.compactMap {
+				ForwardedPort(argument: $0)
+			}
 		}
 	}
 
-	public var bridged: [String]? {
+	public var sockets: [SocketDevice]? {
 		get {
-			if netBridged.contains("unset") == false {
+			if socket.contains("unset") {
 				return nil
 			}
-			
-			return netBridged
+
+			return socket.compactMap { SocketDevice(argument: $0) }
+		}
+	}
+
+	public var mounts: [DirectorySharingAttachment]? {
+		get {
+			if mount.contains("unset") {
+				return nil
+			}
+
+			return mount.compactMap { DirectorySharingAttachment(argument: $0)
+			}
+		}
+	}
+
+	public var networks: [BridgeAttachement]? {
+		get {
+			if network.contains("unset") {
+				return nil
+			}
+
+			return network.compactMap { BridgeAttachement(argument: $0) }
 		}
 	}
 
@@ -192,37 +242,108 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
 	public var forwardedPort: [ForwardedPort] = []
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares with an optional read-only and mount tag options (e.g. --dir=\"~/src/build\" or --dir=\"~/src/sources:ro\")", discussion: "See tart help for more infos", valueName: "[name:]path[:options]"))
-	public var mounts: [String] = []
+	@Option(name: [.customLong("mount"), .customShort("v")],
+	        help: ArgumentHelp("Additional directory shares",
+	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
+	public var mounts: [DirectorySharingAttachment] = []
 
-	@Option(name: [.long, .customLong("bridged")], help: ArgumentHelp("Use bridged networking instead of the default shared (NAT) networking \n(e.g. --net-bridged=en0 or --net-bridged=\"Wi-Fi\")", discussion: "See tart help for more infos", valueName: "interface name"))
-	public var netBridged: [String] = []
+	@Option(help: ArgumentHelp("Add a network interface to the instance",
+	                           discussion: """
+	                           Add a network interface to the instance, where
+	                           <spec> is in the \"key=value,key=value\" format,
+	                           with the following keys available:
+	                           name: the network to connect to (required), use
+	                           the networks command for a list of possible
+	                           values.
+	                           mode: auto|manual (default: auto)
+	                           mac: hardware address (default: random).
+	                           You can also use a shortcut of \"<name>\" to mean
+	                           \"name=<name>\".
+	                           """	, valueName: "<spec>"))
+	public var networks: [BridgeAttachement] = []
 
-//	@Flag(help: ArgumentHelp("Use software networking instead of the default shared (NAT) networking", discussion: "See tart help for more infos"))
-//	public var netSoftnet: Bool = false
+	@Option(name: [.customLong("socket")],
+	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
+	                           discussion: """
+	                           The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+	                           The mode is as follows:
+	                           - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+	                           - connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+	                           - tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
+	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+	                           """))
+	public var sockets: [SocketDevice] = []
 
-//	@Option(help: ArgumentHelp("Comma-separated list of CIDRs to allow the traffic to when using Softnet isolation\n(e.g. --net-softnet-allow=192.168.0.0/24)", valueName: "comma-separated CIDRs"))
-//	public var netSoftnetAllow: String?
-
-//	@Flag(help: ArgumentHelp("Restrict network access to the host-only network"))
-//	public var netHost: Bool = false
+	@Option(name: [.customLong("console")],
+	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
+	                           discussion: """
+	                           - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+	                           - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+	                           - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+	                           - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
+	                           """,
+	                           valueName: "url"))
+	public var consoleURL: String?
 
 	public init() {
 	}
 
-	public func validate() throws {
+	mutating public func validate(vmLocation: URL) throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-//		var netFlags = 0
-//		if netBridged.count > 0 { netFlags += 1 }
-//		if netSoftnet { netFlags += 1 }
-//		if netHost { netFlags += 1 }
+		if nested && Utils.isNestedVirtualizationSupported() == false {
+			self.nested = false
+		}
 
-//		if netFlags > 1 {
-//			throw ValidationError("--net-bridged, --net-softnet and --net-host are mutually exclusive")
-//		}
+		if self.consoleURL == "file" {
+			let  console = vmLocation.appending(path: "console.log").absoluteURL
+
+			self.consoleURL = console.absoluteString
+		} else if self.consoleURL == "unix" {
+			let  console = vmLocation.appending(path: "console.sock").absoluteURL
+
+			self.consoleURL = console.absoluteString.replacingOccurrences(of: "file:/", with: "unix:/")
+		}
+
+		if let consoleURL = consoleURL {
+			guard let u: URL = URL(string: consoleURL) else {
+				throw ValidationError("Invalid serial console URL")
+			}
+
+			if u.scheme != "unix" && u.scheme != "fd" && u.isFileURL == false {
+				throw ValidationError("Invalid serial console URL scheme: must be unix, fd or file")
+			}
+
+			if u.scheme == "fd" {
+				let host = u.host?.split(separator: ",")
+
+				if host == nil || host!.count == 0 {
+					throw ValidationError("Invalid console URL: file descriptor is not specified")
+				}
+
+				for fd in host! {
+					guard let fd = Int32(fd) else {
+						throw ValidationError("Invalid console URL: file descriptor \(fd) is not a number")
+					}
+
+					if fcntl(fd, F_GETFD) == -1 {
+						throw ValidationError("Invalid console URL: file descriptor \(fd) is not valid errno=\(errno)")
+					}
+				}
+			} else {
+				if u.path == "" {
+					throw ValidationError("Invalid console URL")
+				}
+
+				if u.scheme == "unix" && u.path.utf8.count > 103 {
+					throw ValidationError("The unix socket is too long")
+				}
+			}
+		}
 	}
 }
 

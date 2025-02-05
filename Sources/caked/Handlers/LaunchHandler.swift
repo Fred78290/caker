@@ -13,12 +13,11 @@ struct LaunchHandler: CakedCommand {
 		config.nested = options.nested
 		config.displayRefit = options.displayRefit
 		config.autostart = options.autostart
-		config.netBridged = options.netBridged
-//		config.netSoftnet = options.netSoftnet
-//		config.netSoftnetAllow = options.netSoftnetAllow
-//		config.netHost = options.netHost
+		config.networks = options.networks
 		config.mounts = options.mounts
 		config.forwardedPorts = options.forwardedPort
+		config.sockets = options.sockets
+		config.console = options.consoleURL
 
 		try config.save(to: vmLocation.rootURL)
 

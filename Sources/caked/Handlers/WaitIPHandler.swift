@@ -32,7 +32,7 @@ struct WaitIPHandler: CakedCommand {
 			}
 
 			// Try also arp if dhcp is disabled
-			if config.netBridged.isEmpty == false || count & 1 == 1 {
+			if config.networks.isEmpty == false || count & 1 == 1 {
 				arguments = [ name, "--wait=1", "--resolver=arp"]
 			} else {
 				arguments = [ name, "--wait=1"]

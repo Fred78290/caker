@@ -1,5 +1,6 @@
 import Foundation
 import Qcow2convert
+import GRPCLib
 
 class CloudImageConverter {
 	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {

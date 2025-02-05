@@ -1,0 +1,75 @@
+import Foundation
+import ArgumentParser
+import Virtualization
+
+public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument {
+	case manual, auto
+
+	public init?(argument: String) {
+		switch argument {
+		case "manual":
+			self = .manual
+		case "auto":
+			self = .auto
+		default:
+			return nil
+		}
+	}
+}
+
+public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument {
+    let network: String
+	let mode: NetworkMode?
+	let macAddress: VZMACAddress?
+
+	public var description: String {
+		var value: [String]	= ["name=\(network)"]
+
+		if let mode = mode {
+			value.append("mode=\(mode)")
+		}
+
+		if let macAddress = macAddress {
+			value.append("mac=\(macAddress.string)")
+		}
+
+		return value.joined(separator: ",")
+	}
+
+    public init?(argument: String) {
+        do {
+			try self.init(parseFrom: argument)
+		} catch {
+			return nil
+		}
+    }
+
+	public init(parseFrom: String) throws {
+		let parts = parseFrom.split(separator: ",")
+		var network: String = ""
+		var mode: NetworkMode?
+		var macAddress: VZMACAddress?
+
+		guard parts.count <= 3 else {
+			throw ValidationError("Invalid network attachment: \(parseFrom)")
+		}
+
+		try parts.forEach { part in
+			if part.starts(with: "name=") {
+				network = String(part.dropFirst("name=".count))
+			} else if part.starts(with: "mode=") {
+				mode = NetworkMode(argument: String(part.dropFirst("mode=".count)))
+			} else if part.starts(with: "mac=") {
+				macAddress = VZMACAddress(string: String(part.dropFirst("mac=".count)))
+			} else if network.isEmpty {
+				network = String(part)
+			} else {
+				throw ValidationError("Invalid network attachment: \(parseFrom)")
+			}
+		}
+
+		self.network = network
+		self.macAddress = macAddress
+		self.mode = mode
+	}
+}

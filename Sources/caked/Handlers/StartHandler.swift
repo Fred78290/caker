@@ -47,35 +47,30 @@ struct StartHandler: CakedCommand {
 
 	static func runningArguments(vmLocation: VMLocation) throws -> [String] {
 		let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
-		let cdrom = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
 		var arguments: [String] = []
 
 		if config.nestedVirtualization {
 			arguments.append("--nested")
 		}
 
-		for mount in config.mounts {
-			arguments.append("--dir=\(mount)")
+		config.mounts.forEach {
+			arguments.append("--mount=\($0)")
 		}
 
-		for net in config.netBridged {
-			arguments.append("--net-bridged=\(net)")
+		config.networks.forEach {
+			arguments.append("--network=\($0)")
 		}
 
-//		if config.netSoftnet {
-//			arguments.append("--net-softnet")
-//		}
-//
-//		if let netSoftnetAllow = config.netSoftnetAllow {
-//			arguments.append("--net-softnet-allow=\(netSoftnetAllow)")
-//		}
-//
-//		if config.netHost {
-//			arguments.append("--net-host")
-//		}
+		config.forwardedPorts.forEach {
+			arguments.append("--publish=\($0)")
+		}
 
-		if try cdrom.exists() {
-			arguments.append("--disk=\(cdrom.path())")
+		config.networks.forEach {
+			arguments.append("--socket=\($0.description)")
+		}
+
+		if let console = config.console {
+			arguments.append("--console=\(console)")
 		}
 
 		return arguments
@@ -119,7 +114,7 @@ struct StartHandler: CakedCommand {
 		}
 
 		process.environment = environment
-		process.arguments = [ "-c", "exec tart run \(vmLocation.name) " + arguments.joined(separator: " ")]
+		process.arguments = [ "-c", "exec caked vmrun \(vmLocation.name) " + arguments.joined(separator: " ")]
 		process.executableURL = URL(fileURLWithPath: "/bin/bash")
 		process.terminationHandler = { process in
 			Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")

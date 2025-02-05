@@ -150,7 +150,7 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if self.hasForwardedPort {
-			options.forwardedPort = self.forwardedPort.components(separatedBy: ",").map { argument in
+			options.forwardedPort = self.forwardedPort.components(separatedBy: ",").compactMap { argument in
 				return ForwardedPort(argument: argument)
 			}
 		} else {
@@ -158,34 +158,34 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if self.hasMounts {
-			options.mounts = self.mounts.components(separatedBy: ",")
+			options.mounts = self.mounts.components(separatedBy: ",").compactMap { argument in
+				return DirectorySharingAttachment(argument: argument)
+			}
 		} else {
 			options.mounts = []
 		}
 
-		if self.hasNetBridged {
-			options.netBridged = self.netBridged.components(separatedBy: ",")
+		if self.hasNetworks {
+			options.networks = self.networks.components(separatedBy: ",").compactMap { argument in
+				return BridgeAttachement(argument: argument)
+			}
 		} else {
-			options.netBridged = []
+			options.networks = []
 		}
 
-//		if self.hasNetHost {
-//			options.netHost = self.netHost
-//		} else {
-//			options.netHost = false
-//		}
-//
-//		if self.hasNetSofnet {
-//			options.netSoftnet = self.netSofnet
-//		} else {
-//			options.netSoftnet = false
-//		}
-//
-//		if self.hasNetSoftnetAllow {
-//			options.netSoftnetAllow = self.netSoftnetAllow
-//		} else {
-//			options.netSoftnetAllow = nil
-//		}
+		if self.hasSockets {
+			options.sockets = self.sockets.components(separatedBy: ",").compactMap { argument in
+				return SocketDevice(argument: argument)
+			}
+		} else {
+			options.sockets = []
+		}
+
+		if self.hasConsole {
+			options.consoleURL = self.console
+		} else {
+			options.consoleURL = nil
+		}
 
 		return options
 	} 
@@ -266,40 +266,24 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 			options.mount = []
 		}
 
-		if self.hasNetBridged {
-			options.netBridged = self.netBridged.components(separatedBy: ",")
-		} else {
-			options.netBridged = []
+		if self.hasNetworks {
+			options.network = self.networks.components(separatedBy: ",")
 		}
-
-//		if self.hasNetHost {
-//			options.netHost = self.netHost
-//		} else {
-//			options.netHost = false
-//		}
-//
-//		if self.hasNetSoftnet {
-//			options.netSoftnet = self.netSoftnet
-//		} else {
-//			options.netSoftnet = false
-//		}
-//
-//		if self.hasNetSoftnetAllow {
-//			options.netSoftnetAllow = self.netSoftnetAllow
-//		} else {
-//			options.netSoftnetAllow = nil
-//		}
 
 		if self.hasRandomMac {
 			options.randomMAC = self.randomMac
 		}
 
 		if self.hasForwardedPort {
-			options.forwardedPort = []
+			options.published = self.forwardedPort.components(separatedBy: ",")
+		}
 
-			for forwardedPort in self.forwardedPort.components(separatedBy: ",") {
-				options.forwardedPort.append(ForwardedPort(argument: forwardedPort))
-			}
+		if self.hasSockets {
+			options.socket = self.sockets.components(separatedBy: ",")
+		}
+
+		if self.hasConsole {
+			options.consoleURL = self.console
 		}
 
 		return ConfigureHandler(options: options)

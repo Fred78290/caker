@@ -516,41 +516,32 @@ public struct Caked_CommonBuildRequest: @unchecked Sendable {
   /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
   public mutating func clearMounts() {_uniqueStorage()._mounts = nil}
 
-  public var netBridged: String {
-    get {return _storage._netBridged ?? String()}
-    set {_uniqueStorage()._netBridged = newValue}
+  public var networks: String {
+    get {return _storage._networks ?? String()}
+    set {_uniqueStorage()._networks = newValue}
   }
-  /// Returns true if `netBridged` has been explicitly set.
-  public var hasNetBridged: Bool {return _storage._netBridged != nil}
-  /// Clears the value of `netBridged`. Subsequent reads from it will return its default value.
-  public mutating func clearNetBridged() {_uniqueStorage()._netBridged = nil}
+  /// Returns true if `networks` has been explicitly set.
+  public var hasNetworks: Bool {return _storage._networks != nil}
+  /// Clears the value of `networks`. Subsequent reads from it will return its default value.
+  public mutating func clearNetworks() {_uniqueStorage()._networks = nil}
 
-  public var netSofnet: Bool {
-    get {return _storage._netSofnet ?? false}
-    set {_uniqueStorage()._netSofnet = newValue}
+  public var sockets: String {
+    get {return _storage._sockets ?? String()}
+    set {_uniqueStorage()._sockets = newValue}
   }
-  /// Returns true if `netSofnet` has been explicitly set.
-  public var hasNetSofnet: Bool {return _storage._netSofnet != nil}
-  /// Clears the value of `netSofnet`. Subsequent reads from it will return its default value.
-  public mutating func clearNetSofnet() {_uniqueStorage()._netSofnet = nil}
+  /// Returns true if `sockets` has been explicitly set.
+  public var hasSockets: Bool {return _storage._sockets != nil}
+  /// Clears the value of `sockets`. Subsequent reads from it will return its default value.
+  public mutating func clearSockets() {_uniqueStorage()._sockets = nil}
 
-  public var netSoftnetAllow: String {
-    get {return _storage._netSoftnetAllow ?? String()}
-    set {_uniqueStorage()._netSoftnetAllow = newValue}
+  public var console: String {
+    get {return _storage._console ?? String()}
+    set {_uniqueStorage()._console = newValue}
   }
-  /// Returns true if `netSoftnetAllow` has been explicitly set.
-  public var hasNetSoftnetAllow: Bool {return _storage._netSoftnetAllow != nil}
-  /// Clears the value of `netSoftnetAllow`. Subsequent reads from it will return its default value.
-  public mutating func clearNetSoftnetAllow() {_uniqueStorage()._netSoftnetAllow = nil}
-
-  public var netHost: Bool {
-    get {return _storage._netHost ?? false}
-    set {_uniqueStorage()._netHost = newValue}
-  }
-  /// Returns true if `netHost` has been explicitly set.
-  public var hasNetHost: Bool {return _storage._netHost != nil}
-  /// Clears the value of `netHost`. Subsequent reads from it will return its default value.
-  public mutating func clearNetHost() {_uniqueStorage()._netHost = nil}
+  /// Returns true if `console` has been explicitly set.
+  public var hasConsole: Bool {return _storage._console != nil}
+  /// Clears the value of `console`. Subsequent reads from it will return its default value.
+  public mutating func clearConsole() {_uniqueStorage()._console = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -779,41 +770,32 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
   public mutating func clearMounts() {self._mounts = nil}
 
-  public var netBridged: String {
-    get {return _netBridged ?? String()}
-    set {_netBridged = newValue}
+  public var networks: String {
+    get {return _networks ?? String()}
+    set {_networks = newValue}
   }
-  /// Returns true if `netBridged` has been explicitly set.
-  public var hasNetBridged: Bool {return self._netBridged != nil}
-  /// Clears the value of `netBridged`. Subsequent reads from it will return its default value.
-  public mutating func clearNetBridged() {self._netBridged = nil}
+  /// Returns true if `networks` has been explicitly set.
+  public var hasNetworks: Bool {return self._networks != nil}
+  /// Clears the value of `networks`. Subsequent reads from it will return its default value.
+  public mutating func clearNetworks() {self._networks = nil}
 
-  public var netSoftnet: Bool {
-    get {return _netSoftnet ?? false}
-    set {_netSoftnet = newValue}
+  public var sockets: String {
+    get {return _sockets ?? String()}
+    set {_sockets = newValue}
   }
-  /// Returns true if `netSoftnet` has been explicitly set.
-  public var hasNetSoftnet: Bool {return self._netSoftnet != nil}
-  /// Clears the value of `netSoftnet`. Subsequent reads from it will return its default value.
-  public mutating func clearNetSoftnet() {self._netSoftnet = nil}
+  /// Returns true if `sockets` has been explicitly set.
+  public var hasSockets: Bool {return self._sockets != nil}
+  /// Clears the value of `sockets`. Subsequent reads from it will return its default value.
+  public mutating func clearSockets() {self._sockets = nil}
 
-  public var netSoftnetAllow: String {
-    get {return _netSoftnetAllow ?? String()}
-    set {_netSoftnetAllow = newValue}
+  public var console: String {
+    get {return _console ?? String()}
+    set {_console = newValue}
   }
-  /// Returns true if `netSoftnetAllow` has been explicitly set.
-  public var hasNetSoftnetAllow: Bool {return self._netSoftnetAllow != nil}
-  /// Clears the value of `netSoftnetAllow`. Subsequent reads from it will return its default value.
-  public mutating func clearNetSoftnetAllow() {self._netSoftnetAllow = nil}
-
-  public var netHost: Bool {
-    get {return _netHost ?? false}
-    set {_netHost = newValue}
-  }
-  /// Returns true if `netHost` has been explicitly set.
-  public var hasNetHost: Bool {return self._netHost != nil}
-  /// Clears the value of `netHost`. Subsequent reads from it will return its default value.
-  public mutating func clearNetHost() {self._netHost = nil}
+  /// Returns true if `console` has been explicitly set.
+  public var hasConsole: Bool {return self._console != nil}
+  /// Clears the value of `console`. Subsequent reads from it will return its default value.
+  public mutating func clearConsole() {self._console = nil}
 
   public var randomMac: Bool {
     get {return _randomMac ?? false}
@@ -833,15 +815,6 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
   public mutating func clearForwardedPort() {self._forwardedPort = nil}
 
-  public var resetForwardedPort: Bool {
-    get {return _resetForwardedPort ?? false}
-    set {_resetForwardedPort = newValue}
-  }
-  /// Returns true if `resetForwardedPort` has been explicitly set.
-  public var hasResetForwardedPort: Bool {return self._resetForwardedPort != nil}
-  /// Clears the value of `resetForwardedPort`. Subsequent reads from it will return its default value.
-  public mutating func clearResetForwardedPort() {self._resetForwardedPort = nil}
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -853,13 +826,11 @@ public struct Caked_ConfigureRequest: Sendable {
   fileprivate var _autostart: Bool? = nil
   fileprivate var _nested: Bool? = nil
   fileprivate var _mounts: String? = nil
-  fileprivate var _netBridged: String? = nil
-  fileprivate var _netSoftnet: Bool? = nil
-  fileprivate var _netSoftnetAllow: String? = nil
-  fileprivate var _netHost: Bool? = nil
+  fileprivate var _networks: String? = nil
+  fileprivate var _sockets: String? = nil
+  fileprivate var _console: String? = nil
   fileprivate var _randomMac: Bool? = nil
   fileprivate var _forwardedPort: String? = nil
-  fileprivate var _resetForwardedPort: Bool? = nil
 }
 
 public struct Caked_LoginRequest: Sendable {
@@ -1592,10 +1563,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     14: .same(proto: "nested"),
     15: .same(proto: "forwardedPort"),
     16: .same(proto: "mounts"),
-    17: .same(proto: "netBridged"),
-    18: .same(proto: "netSofnet"),
-    19: .same(proto: "netSoftnetAllow"),
-    21: .same(proto: "netHost"),
+    17: .same(proto: "networks"),
+    18: .same(proto: "sockets"),
+    19: .same(proto: "console"),
   ]
 
   fileprivate class _StorageClass {
@@ -1616,10 +1586,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     var _nested: Bool? = nil
     var _forwardedPort: String? = nil
     var _mounts: String? = nil
-    var _netBridged: String? = nil
-    var _netSofnet: Bool? = nil
-    var _netSoftnetAllow: String? = nil
-    var _netHost: Bool? = nil
+    var _networks: String? = nil
+    var _sockets: String? = nil
+    var _console: String? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -1651,10 +1620,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       _nested = source._nested
       _forwardedPort = source._forwardedPort
       _mounts = source._mounts
-      _netBridged = source._netBridged
-      _netSofnet = source._netSofnet
-      _netSoftnetAllow = source._netSoftnetAllow
-      _netHost = source._netHost
+      _networks = source._networks
+      _sockets = source._sockets
+      _console = source._console
     }
   }
 
@@ -1689,10 +1657,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
         case 14: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
         case 15: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
         case 16: try { try decoder.decodeSingularStringField(value: &_storage._mounts) }()
-        case 17: try { try decoder.decodeSingularStringField(value: &_storage._netBridged) }()
-        case 18: try { try decoder.decodeSingularBoolField(value: &_storage._netSofnet) }()
-        case 19: try { try decoder.decodeSingularStringField(value: &_storage._netSoftnetAllow) }()
-        case 21: try { try decoder.decodeSingularBoolField(value: &_storage._netHost) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._networks) }()
+        case 18: try { try decoder.decodeSingularStringField(value: &_storage._sockets) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._console) }()
         case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         default: break
         }
@@ -1754,17 +1721,14 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       try { if let v = _storage._mounts {
         try visitor.visitSingularStringField(value: v, fieldNumber: 16)
       } }()
-      try { if let v = _storage._netBridged {
+      try { if let v = _storage._networks {
         try visitor.visitSingularStringField(value: v, fieldNumber: 17)
       } }()
-      try { if let v = _storage._netSofnet {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 18)
+      try { if let v = _storage._sockets {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 18)
       } }()
-      try { if let v = _storage._netSoftnetAllow {
+      try { if let v = _storage._console {
         try visitor.visitSingularStringField(value: v, fieldNumber: 19)
-      } }()
-      try { if let v = _storage._netHost {
-        try visitor.visitSingularBoolField(value: v, fieldNumber: 21)
       } }()
       try { if let v = _storage._password {
         try visitor.visitSingularStringField(value: v, fieldNumber: 22)
@@ -1795,10 +1759,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
         if _storage._nested != rhs_storage._nested {return false}
         if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
         if _storage._mounts != rhs_storage._mounts {return false}
-        if _storage._netBridged != rhs_storage._netBridged {return false}
-        if _storage._netSofnet != rhs_storage._netSofnet {return false}
-        if _storage._netSoftnetAllow != rhs_storage._netSoftnetAllow {return false}
-        if _storage._netHost != rhs_storage._netHost {return false}
+        if _storage._networks != rhs_storage._networks {return false}
+        if _storage._sockets != rhs_storage._sockets {return false}
+        if _storage._console != rhs_storage._console {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -2037,13 +2000,11 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     6: .same(proto: "autostart"),
     7: .same(proto: "nested"),
     8: .same(proto: "mounts"),
-    9: .same(proto: "netBridged"),
-    10: .same(proto: "netSoftnet"),
-    1120: .same(proto: "netSoftnetAllow"),
-    12: .same(proto: "netHost"),
-    13: .same(proto: "randomMAC"),
-    24: .same(proto: "forwardedPort"),
-    25: .same(proto: "resetForwardedPort"),
+    9: .same(proto: "networks"),
+    10: .same(proto: "sockets"),
+    11: .same(proto: "console"),
+    12: .same(proto: "randomMAC"),
+    13: .same(proto: "forwardedPort"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2060,13 +2021,11 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 6: try { try decoder.decodeSingularBoolField(value: &self._autostart) }()
       case 7: try { try decoder.decodeSingularBoolField(value: &self._nested) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self._mounts) }()
-      case 9: try { try decoder.decodeSingularStringField(value: &self._netBridged) }()
-      case 10: try { try decoder.decodeSingularBoolField(value: &self._netSoftnet) }()
-      case 12: try { try decoder.decodeSingularBoolField(value: &self._netHost) }()
-      case 13: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
-      case 24: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
-      case 25: try { try decoder.decodeSingularBoolField(value: &self._resetForwardedPort) }()
-      case 1120: try { try decoder.decodeSingularStringField(value: &self._netSoftnetAllow) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self._networks) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self._sockets) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self._console) }()
+      case 12: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
+      case 13: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
       default: break
       }
     }
@@ -2101,26 +2060,20 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._mounts {
       try visitor.visitSingularStringField(value: v, fieldNumber: 8)
     } }()
-    try { if let v = self._netBridged {
+    try { if let v = self._networks {
       try visitor.visitSingularStringField(value: v, fieldNumber: 9)
     } }()
-    try { if let v = self._netSoftnet {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 10)
+    try { if let v = self._sockets {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 10)
     } }()
-    try { if let v = self._netHost {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 12)
+    try { if let v = self._console {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 11)
     } }()
     try { if let v = self._randomMac {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 13)
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 12)
     } }()
     try { if let v = self._forwardedPort {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 24)
-    } }()
-    try { if let v = self._resetForwardedPort {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 25)
-    } }()
-    try { if let v = self._netSoftnetAllow {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 1120)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 13)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -2134,13 +2087,11 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._autostart != rhs._autostart {return false}
     if lhs._nested != rhs._nested {return false}
     if lhs._mounts != rhs._mounts {return false}
-    if lhs._netBridged != rhs._netBridged {return false}
-    if lhs._netSoftnet != rhs._netSoftnet {return false}
-    if lhs._netSoftnetAllow != rhs._netSoftnetAllow {return false}
-    if lhs._netHost != rhs._netHost {return false}
+    if lhs._networks != rhs._networks {return false}
+    if lhs._sockets != rhs._sockets {return false}
+    if lhs._console != rhs._console {return false}
     if lhs._randomMac != rhs._randomMac {return false}
     if lhs._forwardedPort != rhs._forwardedPort {return false}
-    if lhs._resetForwardedPort != rhs._resetForwardedPort {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

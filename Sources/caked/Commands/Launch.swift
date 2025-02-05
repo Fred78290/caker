@@ -17,7 +17,7 @@ struct Launch : AsyncParsableCommand {
 	@Flag(help: .hidden)
 	var foreground: Bool = false
 
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 
 		try self.options.validate()

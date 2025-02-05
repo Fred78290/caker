@@ -115,7 +115,7 @@ final class CloudInitTests: XCTestCase {
 	func testSimpleStreamsFindImage() async throws {
 		if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
 			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL)
-			let arch = HostArchitecture.current().rawValue
+			let arch = Architecture.current().rawValue
 			let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud")
 

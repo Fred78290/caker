@@ -1,4 +1,5 @@
 import Foundation
+import Virtualization
 
 struct VMLocation {
 	enum Status: String {
@@ -49,11 +50,18 @@ struct VMLocation {
 			FileManager.default.fileExists(atPath: nvramURL.path)
 	}
 
+	var config: CakeConfig? {
+		try? CakeConfig(baseURL: self.rootURL)
+	}
+
 	var status: Status {
 		get {
 			if FileManager.default.fileExists(atPath: stateURL.path) {
 				return .suspended
+			} else if isPIDRunning() {
+				return .running
 			} else {
+				// Run with tart?
 				let fd = open(configURL.path, O_RDWR)
 
 				if fd != -1 {
@@ -74,6 +82,14 @@ struct VMLocation {
 				return .stopped
 			}
 		}
+	}
+
+	var macAddress: VZMACAddress? {
+		if let config = try? CakeConfig(baseURL: rootURL) {
+			return config.macAddress
+		}
+
+		return nil
 	}
 
 	func diskSize() throws -> Int {
@@ -139,4 +155,44 @@ struct VMLocation {
 		}
 	}
 
+	func writePID() throws {
+		let pid = getpid()
+		let pidFile = rootURL.appendingPathComponent("run.pid")
+
+		try "\(pid)".write(to: pidFile, atomically: true, encoding: .ascii)
+	}
+
+	func readPID() -> Int32? {
+		let pidFile = rootURL.appendingPathComponent("run.pid")
+
+		if FileManager.default.fileExists(atPath: pidFile.path()) == false {
+			return nil
+		}
+
+		guard let pidString = try? String(contentsOf: pidFile, encoding: .ascii) else {
+			return nil
+		}
+
+		guard let pid = Int32(pidString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+			return nil
+		}
+
+		return pid
+	}
+
+	func isPIDRunning() -> Bool {
+		if let pid = readPID() {
+			return kill(pid, 0) == 0
+		}
+
+		return false
+	}
+
+	func removePID() {
+		let pidFile = rootURL.appendingPathComponent("run.pid")
+
+		if FileManager.default.fileExists(atPath: pidFile.path) {
+			try? FileManager.default.removeItem(at: pidFile)
+		}
+	}
 }

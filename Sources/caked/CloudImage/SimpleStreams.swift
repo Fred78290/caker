@@ -1,70 +1,5 @@
 import Foundation
-
-enum Architecture: String, Codable, CustomStringConvertible {
-    var description: String {
-		switch self {
-		case .arm64:
-			return "aarch64"
-		case .amd64:
-			return "x86_64"
-		case .aarch64:
-			return "aarch64"
-		case .armv7l:
-			return "armv7l"
-		case .i686:
-			return "i686"
-		case .ppc:
-			return "ppc"
-		case .ppc64le:
-			return "ppc64le"
-		case .riscv64:
-			return "riscv64"
-		case .s390x:
-			return "s390x"
-		case .x86_64:
-			return "x86_64"
-		}
-	}
-
-	init(rawValue: String) {
-		switch rawValue {
-		case "arm64":
-			self = .arm64
-		case "amd64":
-			self = .amd64
-		case "aarch64":
-			self = .aarch64
-		case "armv7l":
-			self = .armv7l
-		case "i686":
-			self = .i686
-		case "ppc":
-			self = .ppc
-		case "ppc64le":
-			self = .ppc64le
-		case "riscv64":
-			self = .riscv64
-		case "s390x":
-			self = .s390x
-		case "x86_64":
-			self = .x86_64
-		default:
-			self = .amd64
-		}
-	}
-
-	case arm64
-	case amd64
-	case aarch64
-	case armv7l
-	case i686
-	case ppc
-	case ppc64le
-	case riscv64
-	case s390x
-	case x86_64
-}
-
+import GRPCLib
 
 struct SimpleStreamError: Error {
 	let description: String
@@ -508,7 +443,7 @@ class SimpleStreamProtocol {
 	}
 
 	public func GetImages() async throws -> [SimpleStreamProduct] {
-		let currentArch = CurrentArchitecture()
+		let currentArch = Architecture.current()
 
 		// Try to load images index
 		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages()
@@ -524,7 +459,7 @@ class SimpleStreamProtocol {
 	}
 
 	public func GetImage(alias: String) async throws -> SimpleStreamProduct {
-		let currentArch = CurrentArchitecture()
+		let currentArch = Architecture.current()
 		let images = try self.index.images
 
 		// Check if alias exists in product

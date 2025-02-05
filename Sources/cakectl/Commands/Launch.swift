@@ -12,7 +12,7 @@ struct Launch : GrpcParsableCommand {
 	@Option(help:"Maximum of seconds to getting IP")
 	var waitIPTimeout = 180
 
-	func validate() throws {
+	mutating func validate() throws {
 		try self.buildOptions.validate()
 	}
 

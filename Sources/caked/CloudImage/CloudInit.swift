@@ -545,7 +545,7 @@ class CloudInit {
 	}
 
 	private func cakeagentBinary() throws -> URL {
-		let arch = CurrentArchitecture().rawValue
+		let arch = Architecture.current().rawValue
 		let home: Home = try Home(asSystem: runAsSystem)
 		let localAgent = home.agentDir.appendingPathComponent("cakeagent-linux-\(arch)", isDirectory: false)
 

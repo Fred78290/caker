@@ -20,7 +20,7 @@ struct ConfigureHandler: CakedCommand {
 		}
 
 		if options.randomMAC {
-			config.macAddress = VZMACAddress.randomLocallyAdministered().string
+			config.macAddress = VZMACAddress.randomLocallyAdministered()
 		}
 
 		if let displayRefit = options.displayRefit {
@@ -39,26 +39,20 @@ struct ConfigureHandler: CakedCommand {
 			config.mounts = mounts
 		}
 
-		if let bridged = options.bridged {
-			config.netBridged = bridged
+		if let networks = options.networks {
+			config.networks = networks
 		}
 
-//		if let netSoftnet = options.netSoftnet {
-//			config.netSoftnet = netSoftnet
-//		}
-//
-//		if let netSoftnetAllow = options.netSoftnetAllow {
-//			config.netSoftnetAllow = netSoftnetAllow
-//		}
-//
-//		if let netHost = options.netHost {
-//			config.netHost = netHost
-//		}
+		if let sockets = options.sockets {
+			config.sockets = sockets
+		}
 
-		if options.resetForwardedPort {
-			config.forwardedPorts = []
-		} else if options.forwardedPort.count > 0 {
-			config.forwardedPorts = options.forwardedPort
+		if let consoleURL = options.consoleURL {
+			config.console = consoleURL
+		}
+
+		if let forwardedPort = options.forwardedPort {
+			config.forwardedPorts = forwardedPort
 		}
 
 		try config.save(to: vmLocation.configURL)

@@ -37,6 +37,10 @@ struct Logger {
 		logger.error(.init(stringLiteral: err.localizedDescription))
 	}
 
+	static public func warn(_ line: String) {
+		logger.warning(.init(stringLiteral: line))
+	}
+
 	static public func info(_ line: String) {
 		logger.info(.init(stringLiteral: line))
 	}

@@ -42,10 +42,13 @@ extension Caked_CommonBuildRequest {
 		self.autostart = buildOptions.autostart
 		self.nested = buildOptions.nested
 		self.image = buildOptions.image
-		self.mounts = buildOptions.mounts.joined(separator: ",")
-		self.netBridged = buildOptions.netBridged.joined(separator: ",")
-//		self.netSofnet = buildOptions.netSoftnet
-//		self.netHost = buildOptions.netHost
+		self.mounts = buildOptions.mounts.map{$0.description}.joined(separator: ",")
+		self.networks = buildOptions.networks.map{$0.description}.joined(separator: ",")
+		self.sockets = buildOptions.sockets.map{$0.description}.joined(separator: ",")
+
+		if let console = buildOptions.consoleURL {
+			self.console = console
+		}
 
 		if buildOptions.forwardedPort.isEmpty == false {
 			self.forwardedPort = buildOptions.forwardedPort.map { forwardedPort in
@@ -182,31 +185,23 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let mounts = options.mounts {
-			self.mounts = mounts.joined(separator: ",")
+			self.mounts = mounts.map{$0.description}.joined(separator: ",")
 		}
 
-		if options.netBridged.contains("unset") == false {
-			self.netBridged = options.netBridged.joined(separator: ",")
+		if let networks = options.networks {
+			self.networks = networks.map{$0.description}.joined(separator: ",")
 		}
 
-//		if let netSoftnet = options.netSoftnet {
-//			self.netSoftnet = netSoftnet
-//		}
-//
-//		if let netSoftnetAllow = options.netSoftnetAllow {
-//			self.netSoftnetAllow = netSoftnetAllow
-//		}
-//
-//		if let netHost = options.netHost {
-//			self.netHost = netHost
-//		}
+		if let sockets = options.sockets {
+			self.networks = sockets.map{$0.description}.joined(separator: ",")
+		}
 
-		if options.resetForwardedPort {
-			self.forwardedPort = ""
-		} else if options.forwardedPort.count > 0 {
-			self.forwardedPort = options.forwardedPort.map { port in
-				port.description
-			}.joined(separator: ",")
+		if let consoleURL = options.consoleURL {
+			self.console = consoleURL
+		}
+
+		if let forwardedPort = options.forwardedPort {
+			self.forwardedPort = forwardedPort.map{$0.description}.joined(separator: ",")
 		}
 
 		self.randomMac = options.randomMAC
