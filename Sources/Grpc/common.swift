@@ -85,12 +85,12 @@ public struct ConfigureOptions: ParsableArguments {
 	public var displayRefit: Bool? = nil
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
-	public var published: [String] = ["unset"]
+	internal var published: [String] = ["unset"]
 
 	@Option(name: [.customLong("mount"), .customShort("v")],
 	        help: ArgumentHelp("Additional directory shares",
 	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
-	public var mount: [String] = ["unset"]
+	internal var mount: [String] = ["unset"]
 
 	@Option(help: ArgumentHelp("Add a network interface to the instance",
 	                           discussion: """
@@ -105,7 +105,7 @@ public struct ConfigureOptions: ParsableArguments {
 	                           You can also use a shortcut of \"<name>\" to mean
 	                           \"name=<name>\".
 	                           """	, valueName: "<spec>"))
-	public var network: [String] = ["unset"]
+	internal var network: [String] = ["unset"]
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
@@ -121,7 +121,7 @@ public struct ConfigureOptions: ParsableArguments {
 	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
 	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
 	                           """))
-	public var socket: [String] = ["unset"]
+	internal var socket: [String] = ["unset"]
 
 	@Option(name: [.customLong("console")],
 	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
@@ -133,7 +133,17 @@ public struct ConfigureOptions: ParsableArguments {
 	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
 	                           """,
 	                           valueName: "url"))
-	public var consoleURL: String?
+	public var console: String?
+
+	public var consoleURL: ConsoleAttachment? {
+		get {
+			if let console = self.console {
+				return ConsoleAttachment(argument: console)
+			}
+
+			return nil
+		}
+	}
 
 	public var forwardedPort: [ForwardedPort]? {
 		get {
@@ -240,12 +250,12 @@ public struct BuildOptions: ParsableArguments {
 	public var displayRefit: Bool = false
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
-	public var forwardedPort: [ForwardedPort] = []
+	internal var published: [String] = []
 
 	@Option(name: [.customLong("mount"), .customShort("v")],
 	        help: ArgumentHelp("Additional directory shares",
 	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
-	public var mounts: [DirectorySharingAttachment] = []
+	internal var shares: [String] = []
 
 	@Option(help: ArgumentHelp("Add a network interface to the instance",
 	                           discussion: """
@@ -260,7 +270,7 @@ public struct BuildOptions: ParsableArguments {
 	                           You can also use a shortcut of \"<name>\" to mean
 	                           \"name=<name>\".
 	                           """	, valueName: "<spec>"))
-	public var networks: [BridgeAttachement] = []
+	internal var bridged: [String] = []
 
 	@Option(name: [.customLong("socket")],
 	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
@@ -273,7 +283,7 @@ public struct BuildOptions: ParsableArguments {
 	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
 	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
 	                           """))
-	public var sockets: [SocketDevice] = []
+	public var vsock: [String] = []
 
 	@Option(name: [.customLong("console")],
 	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
@@ -285,12 +295,18 @@ public struct BuildOptions: ParsableArguments {
 	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
 	                           """,
 	                           valueName: "url"))
-	public var consoleURL: String?
+	internal var console: String?
+
+	public var consoleURL: ConsoleAttachment?
+	public var forwardedPorts: [ForwardedPort] = []
+	public var sockets: [SocketDevice] = []
+	public var mounts: [DirectorySharingAttachment] = []
+	public var networks: [BridgeAttachement] = []
 
 	public init() {
 	}
 
-	mutating public func validate(vmLocation: URL) throws {
+	mutating public func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
@@ -299,51 +315,15 @@ public struct BuildOptions: ParsableArguments {
 			self.nested = false
 		}
 
-		if self.consoleURL == "file" {
-			let  console = vmLocation.appending(path: "console.log").absoluteURL
-
-			self.consoleURL = console.absoluteString
-		} else if self.consoleURL == "unix" {
-			let  console = vmLocation.appending(path: "console.sock").absoluteURL
-
-			self.consoleURL = console.absoluteString.replacingOccurrences(of: "file:/", with: "unix:/")
+		if let console = console {
+			self.consoleURL = ConsoleAttachment(argument: console)
+			try self.consoleURL!.validate()
 		}
 
-		if let consoleURL = consoleURL {
-			guard let u: URL = URL(string: consoleURL) else {
-				throw ValidationError("Invalid serial console URL")
-			}
-
-			if u.scheme != "unix" && u.scheme != "fd" && u.isFileURL == false {
-				throw ValidationError("Invalid serial console URL scheme: must be unix, fd or file")
-			}
-
-			if u.scheme == "fd" {
-				let host = u.host?.split(separator: ",")
-
-				if host == nil || host!.count == 0 {
-					throw ValidationError("Invalid console URL: file descriptor is not specified")
-				}
-
-				for fd in host! {
-					guard let fd = Int32(fd) else {
-						throw ValidationError("Invalid console URL: file descriptor \(fd) is not a number")
-					}
-
-					if fcntl(fd, F_GETFD) == -1 {
-						throw ValidationError("Invalid console URL: file descriptor \(fd) is not valid errno=\(errno)")
-					}
-				}
-			} else {
-				if u.path == "" {
-					throw ValidationError("Invalid console URL")
-				}
-
-				if u.scheme == "unix" && u.path.utf8.count > 103 {
-					throw ValidationError("The unix socket is too long")
-				}
-			}
-		}
+		self.sockets = self.vsock.compactMap { SocketDevice(argument: $0) }
+		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
+		self.mounts = self.shares.compactMap { DirectorySharingAttachment(argument: $0) }
+		self.networks = self.bridged.compactMap { BridgeAttachement(argument: $0) }
 	}
 }
 

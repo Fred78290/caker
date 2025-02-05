@@ -2,7 +2,7 @@ import Foundation
 import ArgumentParser
 import Virtualization
 
-public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument {
+public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument, Codable {
 	case manual, auto
 
 	public init?(argument: String) {
@@ -17,10 +17,10 @@ public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument {
 	}
 }
 
-public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument {
+public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
     let network: String
 	let mode: NetworkMode?
-	let macAddress: VZMACAddress?
+	let macAddress: String?
 
 	public var description: String {
 		var value: [String]	= ["name=\(network)"]
@@ -30,7 +30,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument 
 		}
 
 		if let macAddress = macAddress {
-			value.append("mac=\(macAddress.string)")
+			value.append("mac=\(macAddress)")
 		}
 
 		return value.joined(separator: ",")
@@ -69,7 +69,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument 
 		}
 
 		self.network = network
-		self.macAddress = macAddress
+		self.macAddress = macAddress?.string
 		self.mode = mode
 	}
 }

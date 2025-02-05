@@ -108,7 +108,7 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 	}
 }
 
-public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument {
+public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
 	private let diskPath: String
 	private let diskOptions: DiskOptions
 
@@ -123,7 +123,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument {
 		return value.joined(separator: ":")
 	}
 
-	private struct DiskOptions: CustomStringConvertible {
+	private struct DiskOptions: CustomStringConvertible, Codable {
 		let readOnly: Bool
 		let syncMode: String
 		let cachingMode: String

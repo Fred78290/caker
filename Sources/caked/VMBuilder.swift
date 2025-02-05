@@ -29,7 +29,7 @@ struct VMBuilder {
 		config.mounts = options.mounts
 		config.sockets = options.sockets
 		config.console = options.consoleURL
-		config.forwardedPorts = options.forwardedPort
+		config.forwardedPorts = options.forwardedPorts
 		config.useCloudInit = true
 
 		try config.save(to: vmLocation.configURL)

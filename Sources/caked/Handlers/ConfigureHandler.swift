@@ -48,7 +48,7 @@ struct ConfigureHandler: CakedCommand {
 		}
 
 		if let consoleURL = options.consoleURL {
-			config.console = consoleURL
+			config.console = consoleURL.description
 		}
 
 		if let forwardedPort = options.forwardedPort {

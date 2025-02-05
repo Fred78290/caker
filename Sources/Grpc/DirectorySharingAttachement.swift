@@ -12,7 +12,7 @@ extension String {
 	}
 }
 
-public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument {
+public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
 	public let name: String?
 	public let readOnly: Bool
 	

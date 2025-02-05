@@ -47,11 +47,11 @@ extension Caked_CommonBuildRequest {
 		self.sockets = buildOptions.sockets.map{$0.description}.joined(separator: ",")
 
 		if let console = buildOptions.consoleURL {
-			self.console = console
+			self.console = console.description
 		}
 
-		if buildOptions.forwardedPort.isEmpty == false {
-			self.forwardedPort = buildOptions.forwardedPort.map { forwardedPort in
+		if buildOptions.forwardedPorts.isEmpty == false {
+			self.forwardedPort = buildOptions.forwardedPorts.map { forwardedPort in
 				return forwardedPort.description
 			}.joined(separator: ",")
 		}

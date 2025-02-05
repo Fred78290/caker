@@ -15,7 +15,7 @@ struct LaunchHandler: CakedCommand {
 		config.autostart = options.autostart
 		config.networks = options.networks
 		config.mounts = options.mounts
-		config.forwardedPorts = options.forwardedPort
+		config.forwardedPorts = options.forwardedPorts
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 

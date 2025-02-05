@@ -150,11 +150,11 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if self.hasForwardedPort {
-			options.forwardedPort = self.forwardedPort.components(separatedBy: ",").compactMap { argument in
+			options.forwardedPorts = self.forwardedPort.components(separatedBy: ",").compactMap { argument in
 				return ForwardedPort(argument: argument)
 			}
 		} else {
-			options.forwardedPort = []
+			options.forwardedPorts = []
 		}
 
 		if self.hasMounts {
@@ -182,7 +182,7 @@ extension Caked_CommonBuildRequest {
 		}
 
 		if self.hasConsole {
-			options.consoleURL = self.console
+			options.consoleURL = ConsoleAttachment(argument: self.console)
 		} else {
 			options.consoleURL = nil
 		}
