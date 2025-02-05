@@ -197,7 +197,7 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let consoleURL = options.consoleURL {
-			self.console = consoleURL
+			self.console = consoleURL.description
 		}
 
 		if let forwardedPort = options.forwardedPort {

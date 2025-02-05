@@ -87,12 +87,13 @@ public struct ConfigureOptions: ParsableArguments {
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = ["unset"]
 
-	@Option(name: [.customLong("mount"), .customShort("v")],
+	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")],
 	        help: ArgumentHelp("Additional directory shares",
 	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
 	internal var mount: [String] = ["unset"]
 
-	@Option(help: ArgumentHelp("Add a network interface to the instance",
+	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("n")],
+			help: ArgumentHelp("Add a network interface to the instance",
 	                           discussion: """
 	                           Add a network interface to the instance, where
 	                           <spec> is in the \"key=value,key=value\" format,
@@ -110,7 +111,7 @@ public struct ConfigureOptions: ParsableArguments {
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
 
-	@Option(name: [.customLong("socket")],
+	@Option(name: [.customLong("vsock"), .customLong("socket")],
 	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
 	                           discussion: """
 	                           The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
@@ -134,6 +135,71 @@ public struct ConfigureOptions: ParsableArguments {
 	                           """,
 	                           valueName: "url"))
 	public var console: String?
+
+	public init(request: Caked_ConfigureRequest) {
+		self.name = self.name
+		self.displayRefit = false
+
+		if request.hasCpu {
+			self.cpu = UInt16(request.cpu)
+		} else {
+			self.cpu = 1
+		}
+
+		if request.hasMemory {
+			self.memory = UInt64(request.memory)
+		} else {
+			self.memory = 512
+		}
+
+		if request.hasDiskSize {
+			self.diskSize = UInt16(request.diskSize)
+		} else {
+			self.diskSize = 20
+		}
+
+		if request.hasNested {
+			self.nested = request.nested
+		} else {
+			self.nested = false
+		}
+
+		if request.hasAutostart {
+			self.autostart = request.autostart
+		} else {
+			self.autostart = false
+		}
+
+		if request.hasMounts {
+			self.mount = request.mounts.components(separatedBy: ",")
+		} else {
+			self.mount = []
+		}
+
+		if request.hasNetworks {
+			self.network = request.networks.components(separatedBy: ",")
+		} else {
+			self.network = []
+		}
+
+		if request.hasRandomMac {
+			self.randomMAC = request.randomMac
+		}
+
+		if request.hasForwardedPort {
+			self.published = request.forwardedPort.components(separatedBy: ",")
+		}
+
+		if request.hasSockets {
+			self.socket = request.sockets.components(separatedBy: ",")
+		} else {
+			self.socket = []
+		}
+
+		if request.hasConsole {
+			self.console = request.console
+		}
+	}
 
 	public var consoleURL: ConsoleAttachment? {
 		get {
@@ -188,6 +254,22 @@ public struct ConfigureOptions: ParsableArguments {
 		}
 	}
 
+	mutating public func setMount(value: [String] = []) {
+		mount = value
+	}
+
+	mutating public func setNetwork(value: [String] = []) {
+		network = value
+	}
+	
+	mutating public func setPublished(value: [String] = []) {
+		published = value
+	}
+	
+	mutating public func setSocket(value: [String] = []) {
+		socket = value
+	}
+
 	public init() {
 	}
 }
@@ -195,135 +277,269 @@ public struct ConfigureOptions: ParsableArguments {
 public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("n")], help: "VM name")
 	public var name: String
-
+	
 	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
 	public var cpu: UInt16 = 1
-
+	
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
 	public var memory: UInt64 = 512
-
+	
 	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
 	public var diskSize: UInt16 = 10
-
+	
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
 	public var user: String = "admin"
-
+	
 	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default")
 	public var password: String?
-
+	
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	public var mainGroup: String = "admin"
-
+	
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
 	public var clearPassword: Bool = false
-
+	
 	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
 	public var autostart: Bool = false
-
+	
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool = false
-
+	
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion:"""
-	The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
-	The url image form are:
-	- local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
-	- cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
-	- lxc images: images:ubuntu/noble/cloud, see remote command for detail
-	- secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
-	- unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
-	""", valueName: "url"))
+ The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
+ The url image form are:
+ - local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
+ - cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+ - lxc images: images:ubuntu/noble/cloud, see remote command for detail
+ - secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
+ - unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
+ """, valueName: "url"))
 	public var image: String = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
-
+	
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
 	public var sshAuthorizedKey: String?
-
+	
 	@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
 	public var vendorData: String?
-
+	
 	@Option(name: [.long, .customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"))
 	public var userData: String?
-
+	
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
 	public var networkConfig: String?
-
+	
 	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	public var displayRefit: Bool = false
-
+	
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = []
-
-	@Option(name: [.customLong("mount"), .customShort("v")],
-	        help: ArgumentHelp("Additional directory shares",
-	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
+	
+	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")],
+			help: ArgumentHelp("Additional directory shares",
+							   discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
 	internal var shares: [String] = []
-
-	@Option(help: ArgumentHelp("Add a network interface to the instance",
-	                           discussion: """
-	                           Add a network interface to the instance, where
-	                           <spec> is in the \"key=value,key=value\" format,
-	                           with the following keys available:
-	                           name: the network to connect to (required), use
-	                           the networks command for a list of possible
-	                           values.
-	                           mode: auto|manual (default: auto)
-	                           mac: hardware address (default: random).
-	                           You can also use a shortcut of \"<name>\" to mean
-	                           \"name=<name>\".
-	                           """	, valueName: "<spec>"))
-	internal var bridged: [String] = []
-
-	@Option(name: [.customLong("socket")],
-	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
-	                           discussion: """
-	                           The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
-	                           The mode is as follows:
-	                           - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
-	                           - connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
-	                           - tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
-	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
-	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
-	                           """))
+	
+	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("n")],
+			help: ArgumentHelp("Add a network interface to the instance",
+							   discussion: """
+							Add a network interface to the instance, where
+							<spec> is in the \"key=value,key=value\" format,
+							with the following keys available:
+							name: the network to connect to (required), use
+							the networks command for a list of possible
+							values.
+							mode: auto|manual (default: auto)
+							mac: hardware address (default: random).
+							You can also use a shortcut of \"<name>\" to mean
+							\"name=<name>\".
+							"""	, valueName: "<spec>"))
+	internal var network: [String] = []
+	
+	@Option(name: [.customLong("vsock"), .customLong("socket")],
+			help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
+							   discussion: """
+							The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+							The mode is as follows:
+							- bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+							- connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+							- tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+							- udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
+							- fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+							"""))
 	public var vsock: [String] = []
-
+	
 	@Option(name: [.customLong("console")],
-	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
-	                           discussion: """
-	                           - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
-	                           - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
-	                           - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
-	                           - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
-	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
-	                           """,
-	                           valueName: "url"))
+			help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
+							   discussion: """
+							- --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+							- --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+							- --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+							- --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+							** INFO: The console doesn't work on MacOS sonoma and earlier  **
+							""",
+							   valueName: "url"))
 	internal var console: String?
-
-	public var consoleURL: ConsoleAttachment?
-	public var forwardedPorts: [ForwardedPort] = []
-	public var sockets: [SocketDevice] = []
-	public var mounts: [DirectorySharingAttachment] = []
-	public var networks: [BridgeAttachement] = []
-
+	
+	public private(set) var consoleURL: ConsoleAttachment?
+	public private(set) var forwardedPorts: [ForwardedPort] = []
+	public private(set) var sockets: [SocketDevice] = []
+	public private(set) var mounts: [DirectorySharingAttachment] = []
+	public private(set) var networks: [BridgeAttachement] = []
+	
 	public init() {
 	}
-
+	
+	public init(request: Caked_CommonBuildRequest) throws {
+		self.name = request.name
+		self.displayRefit = false
+		
+		if request.hasCpu {
+			self.cpu = UInt16(request.cpu)
+		} else {
+			self.cpu = 1
+		}
+		
+		if request.hasMemory {
+			self.memory = UInt64(request.memory)
+		} else {
+			self.memory = 512
+		}
+		
+		if request.hasDiskSize {
+			self.diskSize = UInt16(request.diskSize)
+		} else {
+			self.diskSize = 20
+		}
+		
+		if request.hasUser {
+			self.user = request.user
+		} else {
+			self.user = "admin"
+		}
+		
+		if request.hasPassword {
+			self.password = request.password
+		} else {
+			self.password = nil
+		}
+		
+		if request.hasMainGroup {
+			self.mainGroup = request.mainGroup
+		} else {
+			self.mainGroup = "admin"
+		}
+		
+		if request.hasSshPwAuth {
+			self.clearPassword = request.sshPwAuth
+		} else {
+			self.clearPassword = false
+		}
+		
+		if request.hasNested {
+			self.nested = request.nested
+		} else {
+			self.nested = true
+		}
+		
+		if request.hasAutostart {
+			self.autostart = request.autostart
+		} else {
+			self.autostart = false
+		}
+		
+		if request.hasImage {
+			self.image = request.image
+		} else {
+			self.image = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+		}
+		
+		if request.hasSshAuthorizedKey {
+			self.sshAuthorizedKey = try saveToTempFile(request.sshAuthorizedKey)
+		} else {
+			self.sshAuthorizedKey = nil
+		}
+		
+		if request.hasUserData {
+			self.userData = try saveToTempFile(request.userData)
+		} else {
+			self.userData = nil
+		}
+		
+		if request.hasVendorData {
+			self.vendorData = try saveToTempFile(request.vendorData)
+		} else {
+			self.vendorData = nil
+		}
+		
+		if request.hasNetworkConfig {
+			self.networkConfig = try saveToTempFile(request.networkConfig)
+		} else {
+			self.networkConfig = nil
+		}
+		
+		if request.hasForwardedPort {
+			self.forwardedPorts = request.forwardedPort.components(separatedBy: ",").compactMap { argument in
+				return ForwardedPort(argument: argument)
+			}
+		} else {
+			self.forwardedPorts = []
+		}
+		
+		if request.hasMounts {
+			self.mounts = try request.mounts.components(separatedBy: ",").compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+		} else {
+			self.mounts = []
+		}
+		
+		if request.hasNetworks {
+			self.networks = try request.networks.components(separatedBy: ",").compactMap {
+				try BridgeAttachement(parseFrom: $0) }
+		} else {
+			self.networks = []
+		}
+		
+		if request.hasSockets {
+			self.sockets = try request.sockets.components(separatedBy: ",").compactMap { try SocketDevice(parseFrom: $0)
+			}
+		} else {
+			self.sockets = []
+		}
+		
+		if request.hasConsole {
+			self.consoleURL = ConsoleAttachment(argument: request.console)
+		} else {
+			self.consoleURL = nil
+		}
+	}
+	
 	mutating public func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
-
+		
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
-
+		
 		if let console = console {
 			self.consoleURL = ConsoleAttachment(argument: console)
 			try self.consoleURL!.validate()
 		}
-
-		self.sockets = self.vsock.compactMap { SocketDevice(argument: $0) }
+		
+		self.sockets = try self.vsock.compactMap { try SocketDevice(parseFrom: $0) }
 		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
-		self.mounts = self.shares.compactMap { DirectorySharingAttachment(argument: $0) }
-		self.networks = self.bridged.compactMap { BridgeAttachement(argument: $0) }
+		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+		self.networks = try self.network.compactMap { try BridgeAttachement(parseFrom: $0) }
+	}
+	
+	private func saveToTempFile(_ data: Data) throws -> String {
+		let url = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString)
+			.appendingPathExtension("txt")
+
+		try data.write(to: url)
+
+		return url.absoluteURL.path()
 	}
 }
 

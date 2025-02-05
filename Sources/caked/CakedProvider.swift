@@ -25,7 +25,7 @@ extension CakedCommand {
 	}
 }
 protocol CreateCakedCommand {
-	func createCommand() -> CakedCommand
+	func createCommand() throws -> CakedCommand
 }
 
 private func saveToTempFile(_ data: Data) throws -> String {
@@ -59,152 +59,25 @@ extension Caked_CakedCommandRequest: CreateCakedCommand {
 }
 
 extension Caked_CommonBuildRequest {
-	func buildOptions() -> BuildOptions {
-		var options: BuildOptions = BuildOptions()
-
-		options.name = self.name
-		options.displayRefit = false
-
-		if self.hasCpu {
-			options.cpu = UInt16(self.cpu)
-		} else {
-			options.cpu = 1
-		}
-
-		if self.hasMemory {
-			options.memory = UInt64(self.memory)
-		} else {
-			options.memory = 512
-		}
-
-		if self.hasDiskSize {
-			options.diskSize = UInt16(self.diskSize)
-		} else {
-			options.diskSize = 20
-		}
-
-		if self.hasUser {
-			options.user = self.user
-		} else {
-			options.user = "admin"
-		}
-
-		if self.hasPassword {
-			options.password = self.password
-		} else {
-			options.password = nil
-		}
-
-		if self.hasMainGroup {
-			options.mainGroup = self.mainGroup
-		} else {
-			options.mainGroup = "admin"
-		}
-
-		if self.hasSshPwAuth {
-			options.clearPassword = self.sshPwAuth
-		} else {
-			options.clearPassword = false
-		}
-
-		if self.hasNested {
-			options.nested = self.nested
-		} else {
-			options.nested = true
-		}
-
-		if self.hasAutostart {
-			options.autostart = self.autostart
-		} else {
-			options.autostart = false
-		}
-
-		if self.hasImage {
-			options.image = self.image
-		} else {
-			options.image = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
-		}
-
-		if self.hasSshAuthorizedKey {
-			options.sshAuthorizedKey = try? saveToTempFile(self.sshAuthorizedKey)
-		} else {
-			options.sshAuthorizedKey = nil
-		}
-
-		if self.hasUserData {
-			options.userData = try? saveToTempFile(self.userData)
-		} else {
-			options.userData = nil
-		}
-
-		if self.hasVendorData {
-			options.vendorData = try? saveToTempFile(self.vendorData)
-		} else {
-			options.vendorData = nil
-		}
-
-		if self.hasNetworkConfig {
-			options.networkConfig = try? saveToTempFile(self.networkConfig)
-		} else {
-			options.networkConfig = nil
-		}
-
-		if self.hasForwardedPort {
-			options.forwardedPorts = self.forwardedPort.components(separatedBy: ",").compactMap { argument in
-				return ForwardedPort(argument: argument)
-			}
-		} else {
-			options.forwardedPorts = []
-		}
-
-		if self.hasMounts {
-			options.mounts = self.mounts.components(separatedBy: ",").compactMap { argument in
-				return DirectorySharingAttachment(argument: argument)
-			}
-		} else {
-			options.mounts = []
-		}
-
-		if self.hasNetworks {
-			options.networks = self.networks.components(separatedBy: ",").compactMap { argument in
-				return BridgeAttachement(argument: argument)
-			}
-		} else {
-			options.networks = []
-		}
-
-		if self.hasSockets {
-			options.sockets = self.sockets.components(separatedBy: ",").compactMap { argument in
-				return SocketDevice(argument: argument)
-			}
-		} else {
-			options.sockets = []
-		}
-
-		if self.hasConsole {
-			options.consoleURL = ConsoleAttachment(argument: self.console)
-		} else {
-			options.consoleURL = nil
-		}
-
-		return options
-	} 
+	func buildOptions() throws -> BuildOptions {
+		try BuildOptions(request: self)
+	}
 }
 
 extension Caked_BuildRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		return BuildHandler(options: self.options.buildOptions())
+	func createCommand() throws -> CakedCommand {
+		return BuildHandler(options: try self.options.buildOptions())
 	}
 }
 
 extension Caked_LaunchRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		return LaunchHandler(options: self.options.buildOptions(), waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
+	func createCommand() throws -> CakedCommand {
+		return LaunchHandler(options: try self.options.buildOptions(), waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
 	}
 }
 
 extension Caked_PurgeRequest : CreateCakedCommand {
-  func createCommand() -> CakedCommand {
+  func createCommand() throws -> CakedCommand {
 	var command = PurgeHandler()
 
 	if self.hasEntries {
@@ -224,116 +97,55 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 }
 
 extension Caked_ConfigureRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
-		var options = ConfigureOptions()
-
-		options.name = self.name
-		options.displayRefit = false
-
-		if self.hasCpu {
-			options.cpu = UInt16(self.cpu)
-		} else {
-			options.cpu = 1
-		}
-
-		if self.hasMemory {
-			options.memory = UInt64(self.memory)
-		} else {
-			options.memory = 512
-		}
-
-		if self.hasDiskSize {
-			options.diskSize = UInt16(self.diskSize)
-		} else {
-			options.diskSize = 20
-		}
-
-		if self.hasNested {
-			options.nested = self.nested
-		} else {
-			options.nested = false
-		}
-
-		if self.hasAutostart {
-			options.autostart = self.autostart
-		} else {
-			options.autostart = false
-		}
-
-		if self.hasMounts {
-			options.mount = self.mounts.components(separatedBy: ",")
-		} else {
-			options.mount = []
-		}
-
-		if self.hasNetworks {
-			options.network = self.networks.components(separatedBy: ",")
-		}
-
-		if self.hasRandomMac {
-			options.randomMAC = self.randomMac
-		}
-
-		if self.hasForwardedPort {
-			options.published = self.forwardedPort.components(separatedBy: ",")
-		}
-
-		if self.hasSockets {
-			options.socket = self.sockets.components(separatedBy: ",")
-		}
-
-		if self.hasConsole {
-			options.consoleURL = self.console
-		}
-
-		return ConfigureHandler(options: options)
+	func createCommand() throws -> CakedCommand {
+		return ConfigureHandler(options: ConfigureOptions(request: self))
 	}
 }
 
 extension Caked_ListRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return ListHandler(format: self.format == .text ? .text : .json, vmonly: self.vmonly)
 	}
 }
 
 extension Caked_StartRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120)
 	}
 }
 
 extension Caked_LoginRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return LoginHandler(username: self.username, password: self.password, insecure: insecure, noValidate: noValidate)
 	}
 }
 
 extension Caked_ImageRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return ImageHandler(request: self)
 	}
 }
 
 extension Caked_RemoteRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return RemoteHandler(request: self)
 	}
 }
 
 extension Caked_NetworkRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand() throws -> CakedCommand {
 		return NetworksHandler(format: self.format == .text ? .text : .json)
 	}
 }
 
 extension Caked_WaitIPRequest: CreateCakedCommand {
-	func createCommand() -> any CakedCommand {
+	func createCommand() throws -> any CakedCommand {
 		return WaitIPHandler(name: self.name, wait: Int(self.timeout))
 	}
 }
 
 extension Caked_StopRequest: CreateCakedCommand {
-	func createCommand() -> any CakedCommand {
+	func createCommand() throws -> any CakedCommand {
 		return StopHandler(name: self.name, force: self.force)
 	}
 }
@@ -360,7 +172,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
-		var command = command.createCommand()
+		var command = try command.createCommand()
 		var reply: Caked_Reply = Caked_Reply()
 		
 		Logger.debug("execute: \(command)")
