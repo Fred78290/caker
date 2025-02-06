@@ -5,24 +5,32 @@ import Virtualization
 import GRPCLib
 
 class SocketState {
-	let mode: SocketMode
-	let port: Int
-	let bind: String
+	let socket: SocketDevice
 	var connection: VZVirtioSocketConnection?
 	var channel: Channel?
 
-	var description: String {
-		if mode == .tcp || mode == .udp || mode == .fd {
-			return "\(mode)://\(bind):\(port)"
-		}
+	var mode: SocketMode {
+		self.socket.mode
+	}
 
-		return "unix:\(bind)"
+	var bind: String {
+		self.socket.bind
+	}
+
+	var port: Int {
+		self.socket.port
+	}
+
+	var description: String {
+		self.socket.description
+	}
+
+	var fileDescriptors: (Int32, Int32) {
+		socket.fileDescriptors
 	}
 
 	init(vsock: SocketDevice) {
-		self.mode = vsock.mode
-		self.port = vsock.port
-		self.bind = vsock.bind
+		self.socket = vsock
 		self.connection = nil
 	}
 
@@ -68,12 +76,6 @@ class SocketState {
 
 		return nil
 	}
-
-	func fileDescriptors() -> (Int32, Int32) {
-		let fd = bind.split(separator: Character(",")).map { Int32($0) ?? 1 }
-
-		return (fd[0], fd.count == 2 ? fd[1] : dup(fd[0]))
-	}
 }
 
 class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemoteCloseDelegate {
@@ -91,8 +93,8 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 	private init(on: EventLoopGroup, sockets: [SocketDevice]) {
 		var socketStates: [Int: SocketState] = [:]
 
-		for socket in sockets.map({ SocketState(vsock: $0) }) {
-			socketStates[socket.port] = socket
+		sockets.map({ SocketState(vsock: $0) }).forEach {
+			socketStates[$0.socket.port] = $0
 		}
 
 		self.channels = []
@@ -354,7 +356,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			// The connection is initiated by the guest
 			do {
 				return try self.queue.sync {
-					let (input, output) = socket.fileDescriptors()
+					let (input, output) = socket.fileDescriptors
 
 					let channel = try NIOPipeBootstrap(group: mainGroup)
 						.channelInitializer { channel in

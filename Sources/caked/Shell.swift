@@ -8,7 +8,7 @@ public struct ShellError: Swift.Error {
 	public let terminationStatus: Int32
 	public let error: String
 	public let message: String
-	
+
 	var description: String {
 		get {
 			return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
@@ -45,7 +45,9 @@ struct Shell {
 	}
 
 	@discardableResult static func runTart(command: String, arguments: [String],
-		direct: Bool = false, input: String? = nil, sharedFileHandles: [FileHandle]? = nil) throws -> String{
+	                                       direct: Bool = false,
+	                                       input: String? = nil,
+	                                       sharedFileHandles: [FileHandle]? = nil) throws -> String{
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
@@ -77,11 +79,11 @@ struct Shell {
 		environment["TART_HOME"] = cakeHomeDir.path()
 
 		let _ = try Self.bash(to: "tart", arguments: args,
-							  input: input,
+		                      input: input,
 		                      outputHandle: outputPipe.fileHandleForWriting,
 		                      errorHandle: errorPipe.fileHandleForWriting,
-							  environment: environment,
-							  sharedFileHandles: sharedFileHandles)
+		                      environment: environment,
+		                      sharedFileHandles: sharedFileHandles)
 
 		return String(data: outputData,  encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
 	}
@@ -120,11 +122,11 @@ private extension FileHandle {
 
 private extension ProcessWithSharedFileHandle {
 	@discardableResult func bash(with command: String,
-								 input: String? = nil,
-								 outputHandle: FileHandle? = nil,
-								 errorHandle: FileHandle? = nil,
-								 environment: [String : String]? = nil,
-								 sharedFileHandles: [FileHandle]? = nil) throws -> String {
+	                             input: String? = nil,
+	                             outputHandle: FileHandle? = nil,
+	                             errorHandle: FileHandle? = nil,
+	                             environment: [String : String]? = nil,
+	                             sharedFileHandles: [FileHandle]? = nil) throws -> String {
 
 		if #available(OSX 10.13, *) {
 			self.executableURL = URL(fileURLWithPath: "/bin/bash")
@@ -172,7 +174,7 @@ private extension ProcessWithSharedFileHandle {
 		if var input = input {
 			input = input + "\n"
 			let inputPipe = Pipe()
-			
+
 			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
 				handler.write(input.data(using: .utf8)!)
 			}

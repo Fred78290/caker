@@ -3,6 +3,75 @@ import ArgumentParser
 import Virtualization
 import NIOPortForwarding
 
+private let cloudimage_help =
+"""
+                   The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
+                   The url image form are:
+                     - local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
+
+                     - cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+
+                     - lxc images: images:ubuntu/noble/cloud, see remote command for detail
+
+                     - secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
+
+                     - unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
+
+"""
+
+private let mount_help =
+"""
+                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]
+
+"""
+
+private let network_help =
+"""
+                  Add a network interface to the instance, where
+                  <spec> is in the \"key=value,key=value\" format,
+                  with the following keys available:
+                  name: the network to connect to (required), use
+                  the networks command for a list of possible values.
+                    - mode: auto|manual (default: auto)
+                    - mac: hardware address (default: random).
+                  You can also use a shortcut of \"<name>\" to mean \"name=<name>\".
+
+"""
+
+private let socket_help =
+"""
+                  The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+                  The mode is as follows:
+                    - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+
+                    - connect: uses an existing socket file on the host,
+                               eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+
+                    - tcp:     listen TCP on address. The VM must listen on the same port number,
+                               eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+
+                    - udp:     listen UDP on address. The VM must listen on the same port number,
+                               eg. udp://127.0.0.1:1234, udp://[::1]:1234
+
+                    - fd:      use file descriptor. The VM must connect on the same port number,
+                               eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+                               not supported with cakectl and with command build
+
+"""
+
+private let console_help =
+"""
+                    - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+
+                    - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+
+                    - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+
+                    - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+                                         ** INFO: The console doesn't work on MacOS sonoma and earlier  **
+
+"""
+
 public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
 
@@ -66,74 +135,40 @@ public struct ConfigureOptions: ParsableArguments {
 	@Argument(help: "VM name")
 	public var name: String
 
-	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
+	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs\n")
 	public var cpu: UInt16? = nil
 
-	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64? = nil
 
-	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16? = nil
 
-	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot\n"))
 	public var autostart: Bool? = nil
 
-	@Option(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
+	@Option(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible\n"))
 	public var nested: Bool?
 
-	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window\n"))
 	public var displayRefit: Bool? = nil
 
-	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker\n", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = ["unset"]
 
-	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")],
-	        help: ArgumentHelp("Additional directory shares",
-	                           discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help, valueName: "[name:]path[:options]"))
 	internal var mount: [String] = ["unset"]
 
-	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("n")],
-			help: ArgumentHelp("Add a network interface to the instance",
-	                           discussion: """
-	                           Add a network interface to the instance, where
-	                           <spec> is in the \"key=value,key=value\" format,
-	                           with the following keys available:
-	                           name: the network to connect to (required), use
-	                           the networks command for a list of possible
-	                           values.
-	                           mode: auto|manual (default: auto)
-	                           mac: hardware address (default: random).
-	                           You can also use a shortcut of \"<name>\" to mean
-	                           \"name=<name>\".
-	                           """	, valueName: "<spec>"))
+	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help, valueName: "<spec>"))
 	internal var network: [String] = ["unset"]
 
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
 
-	@Option(name: [.customLong("vsock"), .customLong("socket")],
-	        help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
-	                           discussion: """
-	                           The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
-	                           The mode is as follows:
-	                           - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
-	                           - connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
-	                           - tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
-	                           - udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
-	                           - fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
-	                           """))
+	@Option(name: [.customLong("vsock"), .customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock\n", discussion: socket_help))
 	internal var socket: [String] = ["unset"]
 
-	@Option(name: [.customLong("console")],
-	        help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
-	                           discussion: """
-	                           - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
-	                           - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
-	                           - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
-	                           - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
-	                           ** INFO: The console doesn't work on MacOS sonoma and earlier  **
-	                           """,
-	                           valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")\n", discussion: console_help,  valueName: "url"))
 	public var console: String?
 
 	public init(request: Caked_ConfigureRequest) {
@@ -275,109 +310,68 @@ public struct ConfigureOptions: ParsableArguments {
 }
 
 public struct BuildOptions: ParsableArguments {
-	@Option(name: [.long, .customShort("n")], help: "VM name")
+	@Option(name: [.long, .customShort("n")], help: "VM name\n")
 	public var name: String
 	
-	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs")
+	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs\n")
 	public var cpu: UInt16 = 1
 	
-	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64 = 512
 	
-	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16 = 10
 	
-	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
+	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM\n")
 	public var user: String = "admin"
 	
-	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default")
+	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default\n")
 	public var password: String?
 	
-	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
+	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user\n")
 	public var mainGroup: String = "admin"
 	
-	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh\n"))
 	public var clearPassword: Bool = false
 	
-	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
+	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot\n"))
 	public var autostart: Bool = false
 	
-	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
+	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible\n"))
 	public var nested: Bool = false
 	
-	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion:"""
- The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
- The url image form are:
- - local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
- - cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
- - lxc images: images:ubuntu/noble/cloud, see remote command for detail
- - secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
- - unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
- """, valueName: "url"))
+	@Argument(help: ArgumentHelp("create a linux VM using a cloud image\n", discussion: cloudimage_help, valueName: "url"))
 	public var image: String = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 	
-	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
+	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM\n", valueName: "path"))
 	public var sshAuthorizedKey: String?
 	
-	@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
+	//@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
+	@Option(help: .hidden)
 	public var vendorData: String?
 	
-	@Option(name: [.long, .customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", valueName: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"))
+	@Option(name: [.long, .customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM\n", valueName: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"))
 	public var userData: String?
 	
-	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM", valueName: "path"))
+	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM\n", valueName: "path"))
 	public var networkConfig: String?
 	
-	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
+	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window\n"))
 	public var displayRefit: Bool = false
 	
-	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", valueName: "host:guest/(tcp|udp|both)"))
+	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker\n", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = []
 	
-	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")],
-			help: ArgumentHelp("Additional directory shares",
-							   discussion: "Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]"))
+	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
 	internal var shares: [String] = []
 	
-	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("n")],
-			help: ArgumentHelp("Add a network interface to the instance",
-							   discussion: """
-							Add a network interface to the instance, where
-							<spec> is in the \"key=value,key=value\" format,
-							with the following keys available:
-							name: the network to connect to (required), use
-							the networks command for a list of possible
-							values.
-							mode: auto|manual (default: auto)
-							mac: hardware address (default: random).
-							You can also use a shortcut of \"<name>\" to mean
-							\"name=<name>\".
-							"""	, valueName: "<spec>"))
+	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help , valueName: "<spec>"))
 	internal var network: [String] = []
 	
-	@Option(name: [.customLong("vsock"), .customLong("socket")],
-			help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock",
-							   discussion: """
-							The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
-							The mode is as follows:
-							- bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
-							- connect: uses an existing socket file on the host, eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
-							- tcp: listen TCP on address. The VM must listen on the same port number, eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
-							- udp: listen UDP on address. The VM must listen on the same port number,  eg. udp://127.0.0.1:1234, udp://[::1]:1234
-							- fd: use file descriptor. The VM must connect on the same port number,  eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
-							"""))
+	@Option(name: [.customLong("vsock"), .customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock\n", discussion: socket_help))
 	public var vsock: [String] = []
 	
-	@Option(name: [.customLong("console")],
-			help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")",
-							   discussion: """
-							- --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
-							- --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
-							- --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
-							- --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
-							** INFO: The console doesn't work on MacOS sonoma and earlier  **
-							""",
-							   valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")\n", discussion: console_help, valueName: "url"))
 	internal var console: String?
 	
 	public private(set) var consoleURL: ConsoleAttachment?

@@ -9,9 +9,11 @@ struct Build: GrpcParsableCommand {
 	@OptionGroup var options: Client.Options
 	@OptionGroup var buildOptions: GRPCLib.BuildOptions
 
-	func validate() throws {
-		if buildOptions.name.contains("/") {
-			throw ValidationError("\(buildOptions.name) should be a local name")
+	mutating func validate() throws {
+		try buildOptions.validate()
+
+		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
+			throw ValidationError("Shared file descriptors are not supported, use launch instead")
 		}
 	}
 

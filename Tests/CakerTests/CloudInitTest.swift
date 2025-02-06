@@ -208,7 +208,7 @@ final class CloudInitTests: XCTestCase {
 		try await buildVM(name: "noble-cloud-image", image: ubuntuCloudImage)
 		let vmLocation: VMLocation = try StorageLocation(asSystem: false).find("noble-cloud-image")
 		let eventLoop = self.group.any()
-		let promise = eventLoop.makePromise(of: Void.self)
+		let promise = eventLoop.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
 			switch result {
@@ -220,9 +220,11 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		PortForwardingServer.createPortForwardingServer(on: self.group)
-
-		let runningIP = StartHandler.startVM(on: eventLoop, vmLocation: vmLocation, waitIPTimeout: 180, promise: promise)
 		
+		let runningIP = eventLoop.submit {
+			return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
+		}
+
 		runningIP.whenComplete { result in
 			switch result {
 				case let .success(ip):

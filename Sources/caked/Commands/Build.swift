@@ -18,6 +18,10 @@ struct Build: AsyncParsableCommand {
 		if StorageLocation(asSystem: false).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")
 		}
+
+		if options.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
+			throw ValidationError("Shared file descriptors are not supported, use launch instead")
+		}
 	}
 
 	mutating func run() async throws {

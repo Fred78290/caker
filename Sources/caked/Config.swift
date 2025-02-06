@@ -143,6 +143,17 @@ struct CakeConfig {
 		get { self.cake["nested"] as? Bool ?? false }
 	}
 
+	var disks: [DiskAttachement] {
+		set { self.cake["disks"] = newValue.map{$0.description} }
+		get {
+			guard let mounts:[String] = self.cake["disks"] as? [String] else {
+				return []
+			}
+
+			return mounts.compactMap { DiskAttachement(argument: $0) }
+		}
+	}
+
 	var mounts: [DirectorySharingAttachment] {
 		set { self.cake["mounts"] = newValue.map{$0.description} }
 		get {

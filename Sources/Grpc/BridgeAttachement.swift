@@ -18,9 +18,9 @@ public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument, Codable {
 }
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
-    let network: String
-	let mode: NetworkMode?
-	let macAddress: String?
+    public let network: String
+	public let mode: NetworkMode?
+	public let macAddress: String?
 
 	public var description: String {
 		var value: [String]	= ["name=\(network)"]

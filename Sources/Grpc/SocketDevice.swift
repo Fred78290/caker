@@ -92,5 +92,19 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			self.bind = url.path
 		}
 	}
+
+	public var fileDescriptors: (Int32, Int32) {
+		let fd = bind.split(separator: Character(",")).compactMap { Int32($0) ?? nil }
+
+		return (fd[0], fd.count == 2 ? fd[1] : dup(fd[0]))
+	}
+
+	public var sharedFileDescriptors: [Int32]? {
+		if self.mode == .fd {
+			return bind.split(separator: Character(",")).compactMap { Int32($0) ?? nil }
+		}
+
+		return nil
+	}
 }
 

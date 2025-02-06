@@ -8,7 +8,7 @@ struct WaitIPHandler: CakedCommand {
 	var name: String
 	var wait: Int
 
-	static func waitIP(name: String, wait: Int, asSystem: Bool, tartProcess: Process? = nil) throws -> String {
+	static func waitIP(name: String, wait: Int, asSystem: Bool, tartProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 		let config = try CakeConfig(baseURL: vmLocation.configURL)
 /*		let arguments: [String]
