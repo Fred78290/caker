@@ -30,6 +30,7 @@ enum VirtualizedOS: String, Codable {
 struct CakeConfig {
 	var config: Dictionary<String, Any>
 	var cake: Dictionary<String, Any>
+	let location: URL
 
 	var version: Int {
 		set { self.config["version"] = newValue }
@@ -233,7 +234,8 @@ struct CakeConfig {
 		get { self.config["display"] as! DisplaySize }
 	}
 
-	init(os: VirtualizedOS,
+	init(baseURL: URL,
+		 os: VirtualizedOS,
 	     autostart: Bool,
 	     configuredUser: String,
 	     displayRefit: Bool,
@@ -259,14 +261,17 @@ struct CakeConfig {
 		self.configuredUser = configuredUser
 		self.autostart = autostart
 		self.display = display
+		self.location = baseURL
 	}
 
 	init(baseURL: URL) throws {
+		self.location = baseURL
 		self.config = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: baseURL)) as [String: Any]
 		self.cake = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: baseURL)) as [String: Any]
 	}
 
 	func save(to: URL) throws {
+		self.location = to
 		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: to))
 		try self.cake.write(to: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: to))
 	}

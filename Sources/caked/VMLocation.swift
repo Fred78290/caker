@@ -110,6 +110,10 @@ struct VMLocation {
 		return fd != -1
 	}
 
+	func loadConfig() throws -> CakeConfig {
+		try CakeConfig(baseURL: self.rootURL)
+	}
+
 	static func tempDirectory() throws -> VMLocation {
 		let tmpDir = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: false)

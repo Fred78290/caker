@@ -67,6 +67,7 @@ struct StartHandler: CakedCommand {
 		private func runningArguments(vmLocation: VMLocation, foreground: Bool) throws -> ([String], [Int32]) {
 			let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
 			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path()
+			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 
 			var arguments: [String] = ["exec", "tart", "run", vmLocation.name]
@@ -98,10 +99,14 @@ struct StartHandler: CakedCommand {
 					sharedFileDescriptors.append(contentsOf: fds)
 				}
 
-				return "--socket=\($0.description)"
+				return "--vsock=\($0.description)"
 			})
 
 			arguments.append("--vsock=bind://any:5000\(vsock)")
+
+			if FileManager.default.fileExists(atPath: cloudInit) {
+				arguments.append("--disk=\(cloudInit)")
+			}
 
 			if let console = config.console {
 				arguments.append("--console=\(console.description)")
