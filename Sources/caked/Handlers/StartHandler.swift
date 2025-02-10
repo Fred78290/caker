@@ -4,6 +4,7 @@ import SystemConfiguration
 import GRPCLib
 import NIOCore
 import NIOPortForwarding
+import Semaphore
 
 struct StartHandler: CakedCommand {
 	var foreground: Bool = false
@@ -11,8 +12,10 @@ struct StartHandler: CakedCommand {
 	var waitIPTimeout: Int = 180
 
 	private class StartHandlerVMRun {
+		var identifier: String? = nil
+
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
-			let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
+			var config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let arguments: [String] = ["exec", "caked", "vmrun", vmLocation.name, "2>&1", ">", log]
 			var sharedFileDescriptors: [Int32] = []
@@ -26,6 +29,10 @@ struct StartHandler: CakedCommand {
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, foreground: foreground) { process in
 				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
+				if let id = self.identifier {	
+					try? PortForwardingServer.closeForwardedPort(identifier: id)
+				}
+
 				if let promise = promise {
 					if process.terminationStatus == 0 {
 						promise.succeed(vmLocation.name)
@@ -36,7 +43,14 @@ struct StartHandler: CakedCommand {
 			}
 
 			do {
-				return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem, tartProcess: process)
+				let runningIP = try WaitIPHandler.waitIPWithAgent(name: vmLocation.name, wait: 180, asSystem: runAsSystem, vmrunProcess: process)
+
+				config.runningIP = runningIP
+				try config.save()
+
+				self.identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+
+				return runningIP
 			} catch {
 				Logger.error(error)
 
@@ -48,6 +62,10 @@ struct StartHandler: CakedCommand {
 					throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
 				} else {
 					process.terminationHandler = { (p: ProcessWithSharedFileHandle) in
+						if let id = self.identifier {
+							try? PortForwardingServer.closeForwardedPort(identifier: id)
+						}
+
 						if let promise: EventLoopPromise<String> = promise {
 							promise.fail(error)
 						}
@@ -65,7 +83,7 @@ struct StartHandler: CakedCommand {
 		var identifier: String? = nil
 
 		private func runningArguments(vmLocation: VMLocation, foreground: Bool) throws -> ([String], [Int32]) {
-			let config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
+			let config: CakeConfig = try vmLocation.config()
 			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
@@ -139,11 +157,11 @@ struct StartHandler: CakedCommand {
 			}
 
 			do {
-				let runningIP = try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem, tartProcess: process)
-				var config: CakeConfig = try CakeConfig(baseURL: vmLocation.rootURL)
+				let runningIP = try WaitIPHandler.waitIPWithTart(name: vmLocation.name, wait: 180, asSystem: runAsSystem, tartProcess: process)
+				var config: CakeConfig = try vmLocation.config()
 
 				config.runningIP = runningIP
-				try config.save(to: vmLocation.configURL)
+				try config.save()
 
 				self.identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
 
@@ -187,7 +205,7 @@ struct StartHandler: CakedCommand {
 
 		_ = try storageLocation.list().map { (name: String, vmLocation: VMLocation) in
 			do {
-				let config = try CakeConfig(baseURL: vmLocation.rootURL)
+				let config = try vmLocation.config()
 
 				if config.autostart && vmLocation.status != .running {
 					Task {
@@ -265,7 +283,7 @@ struct StartHandler: CakedCommand {
 			return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
 		}
 
-		if Self.vmrunAvailable() {
+		if Root.vmrunAvailable() {
 			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
 		} else {
 			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)

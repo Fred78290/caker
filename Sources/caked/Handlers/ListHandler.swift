@@ -9,10 +9,20 @@ struct VirtualMachineInfos: Codable {
 	let type: String
 	let source: String
 	let name: String
+	let fqn: String
 	let diskSize: String
 	let totalSize: String
 	let state: String
 }
+
+struct ShortVirtualMachineInfos: Codable {
+	let type: String
+	let fqn: String
+	let diskSize: String
+	let totalSize: String
+	let state: String
+}
+
 
 struct ListHandler: CakedCommand {
 	let format: Format
@@ -24,6 +34,7 @@ struct ListHandler: CakedCommand {
 				type: "local",
 				source: "vms",
 				name: name,
+				fqn: "local://\(name)",
 				diskSize: try ByteCountFormatter.string(fromByteCount: Int64(location.diskSize()), countStyle: .file),
 				totalSize: try ByteCountFormatter.string(fromByteCount: Int64(location.allocatedSize()), countStyle: .file),
 				state: location.status.rawValue
@@ -31,7 +42,7 @@ struct ListHandler: CakedCommand {
 		}
 
 		vmInfos.sort { vm1, vm2 in
-			vm1.name < vm2.name
+			vm1.fqn < vm2.fqn
 		}
 
 		if vmonly == false {
@@ -50,6 +61,7 @@ struct ListHandler: CakedCommand {
 							type: imageCache.location,
 							source: purgeable.source(),
 							name: purgeable.name(),
+							fqn: imageCache.fqn(purgeable),
 							diskSize: try ByteCountFormatter.string(fromByteCount: Int64(purgeable.allocatedSizeBytes()), countStyle: .file),
 							totalSize: try ByteCountFormatter.string(fromByteCount: Int64(purgeable.allocatedSizeBytes()), countStyle: .file),
 							state: "cached"
@@ -62,9 +74,21 @@ struct ListHandler: CakedCommand {
 		return vmInfos
 	}
 
+	static func listVM(vmonly: Bool, format: Format, asSystem: Bool) throws -> String {
+		let result: [VirtualMachineInfos] = try Self.listVM(vmonly: vmonly, asSystem: asSystem)
+
+		if format == .json {
+			return format.renderList(style: Style.grid, uppercased: true, result)
+		} else {
+			return format.renderList(style: Style.grid, uppercased: true, result.map {
+				ShortVirtualMachineInfos(type: $0.type, fqn: $0.fqn, diskSize: $0.diskSize, totalSize: $0.totalSize, state: $0.state)
+			})
+		}
+	}
+
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		on.submit {
-			return format.renderList(style: Style.grid, uppercased: true, try Self.listVM(vmonly: vmonly, asSystem: asSystem))
+			try Self.listVM(vmonly: self.vmonly, format: self.format, asSystem: asSystem)
 		}
 	}
 }

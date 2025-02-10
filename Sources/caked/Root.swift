@@ -2,16 +2,13 @@ import ArgumentParser
 import Darwin
 import Foundation
 import Logging
+import NIO
 
 var runAsSystem: Bool = false
 
 let delegatedCommand: [String] = [
 	"create",
 	"clone",
-	"run",
-	"set",
-	"get",
-	"login",
 	"logout",
 	"ip",
 	"pull",
@@ -20,7 +17,6 @@ let delegatedCommand: [String] = [
 	"export",
 	"prune",
 	"rename",
-	"delete",
 	"suspend"
 ]
 
@@ -28,6 +24,7 @@ let COMMAND_NAME="caked"
 
 @main
 struct Root: AsyncParsableCommand {
+	static var group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	static var configuration = CommandConfiguration(
 		commandName: "\(COMMAND_NAME)",
 		usage: "\(COMMAND_NAME) <subcommand or tart subcommand>",
@@ -39,10 +36,12 @@ struct Root: AsyncParsableCommand {
 			Build.self,
 			Start.self,
 			Stop.self,
+			Delete.self,
 			Launch.self,
 			Configure.self,
 			List.self,
 			WaitIP.self,
+			Login.self,
 			ImagesManagement.self,
 			Remote.self,
 			Networks.self,
@@ -50,7 +49,14 @@ struct Root: AsyncParsableCommand {
 			Infos.self,
 			Exec.self,
 			Sh.self,
+			VMRun.self
 		])
+
+	static func vmrunAvailable() -> Bool {
+		Self.configuration.subcommands.first { cmd in
+			cmd.configuration.commandName == "vmrun"
+		} != nil
+	}
 
 	static func parse() throws -> ParsableCommand? {
 		do {
@@ -66,6 +72,7 @@ struct Root: AsyncParsableCommand {
 	}
 
 	public static func main() async throws {
+
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
 		signal(SIGINT, SIG_IGN)
@@ -95,7 +102,7 @@ struct Root: AsyncParsableCommand {
 			if let commandName = commandName {
 				if delegatedCommand.contains(commandName) {
 					try Shell.runTart(command: commandName, arguments: arguments, direct: true)
-
+					try? await Self.group.shutdownGracefully()
 					return
 				}
 			}
@@ -107,7 +114,11 @@ struct Root: AsyncParsableCommand {
 			} else {
 				try command.run()
 			}
+
+			try? await Self.group.shutdownGracefully()
 		} catch {
+			try? await Self.group.shutdownGracefully()
+
 			if let shellError = error as? ShellError {
 				//fputs("\(shellError.error)\n", stderr)
 

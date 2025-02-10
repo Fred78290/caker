@@ -43,7 +43,8 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-log.git", from: "1.6.2"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git",  from: "0.1.1"),
-		.package(url: "https://github.com/1024jp/GzipSwift", branch: "main"),
+//		.package(url: "https://github.com/1024jp/GzipSwift", branch: "main"),
+		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/cakeagent.git",  branch: "main")
 		//.package(url: "../cakeagent",  branch: "main")
 	],

@@ -11,7 +11,7 @@ struct StopHandler: CakedCommand {
 
 	static func stopVM(name: String, force: Bool, asSystem: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-		let config = try CakeConfig(baseURL: vmLocation.rootURL)
+		let config = try vmLocation.config()
 		let home = try Home(asSystem: asSystem)
 
 		if vmLocation.status != .running {

@@ -8,7 +8,7 @@ struct LaunchHandler: CakedCommand {
 
 	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
-		var config = try CakeConfig(baseURL: vmLocation.rootURL)
+		var config = try vmLocation.config()
 
 		config.nested = options.nested
 		config.displayRefit = options.displayRefit
@@ -19,7 +19,7 @@ struct LaunchHandler: CakedCommand {
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 
-		try config.save(to: vmLocation.rootURL)
+		try config.save()
 
 		return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
 	}

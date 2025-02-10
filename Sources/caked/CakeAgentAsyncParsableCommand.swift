@@ -15,7 +15,7 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 }
 
 extension CakeAgentAsyncParsableCommand {
-	func startVM(waitIPTimeout: Int, foreground: Bool = false) throws {
+	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
 		if vmLocation.status != .running {

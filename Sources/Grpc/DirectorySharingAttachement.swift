@@ -13,11 +13,19 @@ extension String {
 }
 
 public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
-	public let name: String?
 	public let readOnly: Bool
 	
+	let _name: String?
 	let _mountTag: String?
 	let _path: String
+
+	public var name: String {
+		if let name = _name {
+			return name
+		}
+		
+		return path.lastPathComponent
+	}
 
 	public var path: URL {
 		URL(fileURLWithPath: _path.expandingTildeInPath)
@@ -39,7 +47,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 			options.append("tag=\(mountTag)")
 		}
 
-		if let name = self.name {
+		if let name = self._name {
 			result = "\(name):\(_path)"
 		} else {
 			result = _path
@@ -61,7 +69,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	}
 
 	public init(parseFrom: String) throws {
-		(self.readOnly, self._mountTag, self.name, self._path) = try Self.parseOptions(parseFrom)
+		(self.readOnly, self._mountTag, self._name, self._path) = try Self.parseOptions(parseFrom)
 	}
 
 	private static func parseOptions(_ description: String) throws -> (Bool, String?, String?, String) {
@@ -101,7 +109,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		return (readOnly, mountTag, name, path)
 	}
 
-	var configuration: VZSharedDirectory? {
+	public var configuration: VZSharedDirectory? {
 		if path.isFileURL {
 			return VZSharedDirectory(url: path, readOnly: readOnly)
 		}

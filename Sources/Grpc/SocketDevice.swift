@@ -13,6 +13,12 @@ public struct SocketDevice: Codable {
 	public var mode: SocketMode = .bind
 	public var port: Int = -1
 	public var bind: String
+
+	public init(mode: SocketMode, port: Int, bind: String) {
+		self.mode = mode
+		self.port = port
+		self.bind = bind
+	}
 }
 
 extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {

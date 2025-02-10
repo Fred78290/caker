@@ -96,6 +96,12 @@ extension Caked_PurgeRequest : CreateCakedCommand {
   }
 }
 
+extension Caked_DeleteRequest : CreateCakedCommand {
+  func createCommand() throws -> CakedCommand {
+	return DeleteHandler(request: self)
+  }
+}
+
 extension Caked_ConfigureRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
 		return ConfigureHandler(options: ConfigureOptions(request: self))
@@ -208,6 +214,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
+	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+		return try self.execute(command: request)
+	}
+
 	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -249,7 +259,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		Logger.debug("execute: \(request)")
 
-		return try await conn.info(context: context)
+		return try await conn.info()
 	}
 
 	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
@@ -257,7 +267,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		Logger.debug("execute: \(request)")
 
-		return try await conn.execute(request: request, context: context)
+		return try await conn.execute(request: request)
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
@@ -272,7 +282,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		let conn = try createCakeAgentConnection(vmName: vmname)
 		
-		return try await conn.shell(requestStream: requestStream, responseStream: responseStream, context: context)
+		return try await conn.shell(requestStream: requestStream, responseStream: responseStream)
 	}
 
 	func createCakeAgentConnection(vmName: String) throws -> CakeAgentConnection {

@@ -8,7 +8,7 @@ struct Remote: ParsableCommand {
 	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
 	struct AddRemote : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Add new remote servers")
+		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")
 
 		@OptionGroup var options: Client.Options
 
@@ -24,7 +24,7 @@ struct Remote: ParsableCommand {
 	}
 
 	struct DeleteRemote : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Remove remotes")
+		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
 
 		@OptionGroup var options: Client.Options
 
@@ -37,7 +37,7 @@ struct Remote: ParsableCommand {
 	}
 
 	struct ListRemote : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "List the available remotes")
+		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
 
 		@OptionGroup var options: Client.Options
 

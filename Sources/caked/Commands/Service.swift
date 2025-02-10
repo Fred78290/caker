@@ -288,23 +288,19 @@ extension Service {
 
 		mutating func run() throws {
 			runAsSystem = self.asSystem
-
-			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 			
-			PortForwardingServer.createPortForwardingServer(on: group)
-
-			defer {
-				try! group.syncShutdownGracefully()
+			if Root.vmrunAvailable() == false {
+				PortForwardingServer.createPortForwardingServer(on: Root.group)
 			}
 
-			try StartHandler.autostart(on: group.any(), asSystem: self.asSystem)
+			try StartHandler.autostart(on: Root.group.any(), asSystem: self.asSystem)
 
 			let listenAddress = try self.getServerAddress()
 
 			Logger.info("Start listening on \(listenAddress)")
 
 			// Start the server and print its address once it has started.
-			let server = try Self.createServer(on: group,
+			let server = try Self.createServer(on: Root.group,
 			                                   asSystem: self.asSystem,
 			                                   listeningAddress: URL(string: listenAddress),
 			                                   caCert: self.caCert,

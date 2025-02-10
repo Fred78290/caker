@@ -13,7 +13,8 @@ struct VMBuilder {
 		try vmLocation.expandDiskTo(options.diskSize)
 
 		// Create config
-		var config = CakeConfig(os: .linux,
+		var config = CakeConfig(location: vmLocation.rootURL,
+			os: .linux,
 			autostart: options.autostart,
 			configuredUser: options.user,
 			displayRefit: options.displayRefit,
@@ -32,7 +33,7 @@ struct VMBuilder {
 		config.forwardedPorts = options.forwardedPorts
 		config.useCloudInit = true
 
-		try config.save(to: vmLocation.configURL)
+		try config.save()
 
 		let cloudInit = try CloudInit(userName: options.user,
 									  password: options.password,
@@ -43,7 +44,7 @@ struct VMBuilder {
 									  userDataPath: options.userData,
 									  networkConfigPath: options.networkConfig)
 
-		try cloudInit.createDefaultCloudInit(name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
+		try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
 	}
 
 	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {

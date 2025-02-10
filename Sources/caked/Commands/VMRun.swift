@@ -5,56 +5,82 @@ import Virtualization
 import GRPCLib
 import Cocoa
 import NIOPortForwarding
+import System
 
 extension CakeConfig {
+	func collectNetworks() throws -> [NetworkAttachement] {
+		if networks.isEmpty {
+			return [SharedNetworkInterface()]
+		}
+
+		return networks.compactMap { inf in
+			if inf.network == "nat" || inf.network == "NAT shared network" {
+				return SharedNetworkInterface()
+			}
+
+			let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
+				$0.identifier == inf.network || $0.localizedDisplayName == inf.network
+			}
+
+			if let interface = foundInterface {
+				return BridgedNetworkInterface(interface: interface)
+			}
+
+			Logger.warn("Network interface \(inf.network) not found")
+
+			return nil
+		}
+	}
+
 	func additionalDiskAttachments() throws -> [VZStorageDeviceConfiguration] {
 		let cloudInit = URL(fileURLWithPath: "cloud-init.iso", relativeTo: self.location).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
-		
-		attachedDisks.append(contentsOf: self.disks)
-		
-		if cloudInit.exists() {
-			let attachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)
+
+		attachedDisks.append(contentsOf: self.disks.compactMap { try? $0.configuration() })
+
+		if try cloudInit.exists() {
+			let attachment = try VZDiskImageStorageDeviceAttachment(url: cloudInit, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)
 
 			let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
 
 			cdrom.blockDeviceIdentifier = "CIDATA"
-			
+
 			attachedDisks.append(cdrom)
 		}
 
 		return attachedDisks
 	}
-	
+
 	func directorySharingAttachments() throws -> [VZDirectorySharingDeviceConfiguration] {
-		return Dictionary(grouping: self.mounts, by: {$0.mountTag}).map { mountTag, directoryShares in
+		return Dictionary(grouping: self.mounts, by: {$0.mountTag}).map { (mountTag: String, directoryShares: [DirectorySharingAttachment]) in
 			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mountTag)
 			var directories: [String : VZSharedDirectory] = [:]
-			
+
 			directoryShares.forEach {
 				if let config = $0.configuration {
 					directories[$0.name] = config
 				}
 			}
-			
+
 			sharingDevice.share = VZMultipleDirectoryShare(directories: directories)
-			
+
 			return sharingDevice
 		}
 	}
-	
+
 	func socketDeviceAttachments() throws -> [SocketDevice] {
 		let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: self.location).absoluteURL.path()
-		let agent = try SocketDevice(parseFrom: "--vsock=bind://any:5000\(vsock)")
-		var sockets: [SocketDevice] = [agent]
+		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: 5000, bind: vsock)]
 
-		FileManager.default.removeItem(atPath: vsock)
-		
+		if FileManager.default.fileExists(atPath: vsock) {
+			try FileManager.default.removeItem(atPath: vsock)
+		}
+
 		sockets.append(contentsOf: self.sockets)
-		
+
 		return sockets
 	}
-	
+
 	func consoleAttachment() throws -> URL? {
 		if let console = self.console {
 			return try console.consoleURL(vmDir: self.location)
@@ -96,22 +122,21 @@ struct VMRun: AsyncParsableCommand {
 	mutating func run() async throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
 		let vmLocation = try storageLocation.find(name)
-
-		try vmLocation.writePID()
+		var config = try vmLocation.config()
 
 		defer {
 			vmLocation.removePID()
 		}
 
-		var config = try vmLocation.loadConfig()
-		
 		if let macAddress = config.macAddress {
 			let vmHavingSameMacAddress = try storageLocation.list().first {
+				var result = false
+
 				if let addr = $1.macAddress {
-					return $1.status == .running && addr.string == macAddress.string
+					result = $1.status == .running && addr.string == macAddress.string
 				}
 
-				return false
+				return result
 			}
 
 			if vmHavingSameMacAddress != nil {
@@ -121,21 +146,21 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		let vm = try VirtualMachine(vmLocation: vmLocation,
-									networks: try config.collectNetworks(),
-									additionalDiskAttachments: try config.additionalDiskAttachments(),
-									directorySharingAttachments: try config.directorySharingAttachments(),
-									socketDeviceAttachments: try config.socketDeviceAttachments(),
-									consoleURL: try config.consoleAttachment(),
-									nested: config.nested)
+		                            networks: try config.collectNetworks(),
+		                            additionalDiskAttachments: try config.additionalDiskAttachments(),
+		                            directorySharingAttachments: try config.directorySharingAttachments(),
+		                            socketDeviceAttachments: try config.socketDeviceAttachments(),
+		                            consoleURL: try config.consoleAttachment(),
+		                            nested: config.nested)
 
 		let task: Task<Void, Error> = Task {
+			try vmLocation.writePID()
+
 			try await vm.start()
 			try await vm.run()
 		}
 
-		vm.catchSIGINT(task)
-		vm.catchSIGUSR1(task)
-		vm.catchSIGUSR2(task)
+		vm.catchUserSignals(task)
 
 		NSApplication.shared.setActivationPolicy(.prohibited)
 		NSApplication.shared.run()

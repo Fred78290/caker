@@ -79,10 +79,11 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
-set -x
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=en0 --user-data=/tmp/user-data.yaml"
+#BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+
 ${BIN_PATH}/${CMD} delete linux
-${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 #${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${LXD_IMAGE}
 #${BIN_PATH}/${CMD} launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}
-${BIN_PATH}/${CMD} waitip linux --wait 60
+#${BIN_PATH}/${CMD} waitip linux --wait 60

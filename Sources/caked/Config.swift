@@ -115,7 +115,7 @@ struct CakeConfig {
 	}
 
 	var macAddress: VZMACAddress? {
-		set { self.config["macAddress"] = newValue }
+		set { if let value = newValue { self.config["macAddress"] = value.string } else { self.config["macAddress"] = nil } }
 		get { if let addr = self.config["macAddress"] as? String {
 				return VZMACAddress(string: addr)
 			}
@@ -234,7 +234,7 @@ struct CakeConfig {
 		get { self.config["display"] as! DisplaySize }
 	}
 
-	init(baseURL: URL,
+	init(location: URL,
 		 os: VirtualizedOS,
 	     autostart: Bool,
 	     configuredUser: String,
@@ -248,6 +248,7 @@ struct CakeConfig {
 		display.width = 1024
 		display.height = 768
 
+		self.location = location
 		self.config = Dictionary<String, Any>()
 		self.cake = Dictionary<String, Any>()
 		self.version = 1
@@ -261,19 +262,17 @@ struct CakeConfig {
 		self.configuredUser = configuredUser
 		self.autostart = autostart
 		self.display = display
-		self.location = baseURL
 	}
 
-	init(baseURL: URL) throws {
-		self.location = baseURL
-		self.config = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: baseURL)) as [String: Any]
-		self.cake = try Dictionary(contentsOf: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: baseURL)) as [String: Any]
+	init(location: URL) throws {
+		self.location = location
+		self.config = try Dictionary(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue)) as [String: Any]
+		self.cake = try Dictionary(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue)) as [String: Any]
 	}
 
-	func save(to: URL) throws {
-		self.location = to
-		try self.config.write(to: URL(fileURLWithPath: ConfigFileName.config.rawValue, relativeTo: to))
-		try self.cake.write(to: URL(fileURLWithPath: ConfigFileName.cake.rawValue, relativeTo: to))
+	func save() throws {
+		try self.config.write(to: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		try self.cake.write(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
 	}
 
 	mutating func resetMacAddress() {

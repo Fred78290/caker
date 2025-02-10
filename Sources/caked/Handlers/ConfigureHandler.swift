@@ -9,7 +9,7 @@ struct ConfigureHandler: CakedCommand {
 
 	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
-		var config = try CakeConfig(baseURL: vmLocation.rootURL)
+		var config = try vmLocation.config()
 
 		if let cpu = options.cpu {
 			config.cpuCount = Int(cpu)
@@ -55,7 +55,7 @@ struct ConfigureHandler: CakedCommand {
 			config.forwardedPorts = forwardedPort
 		}
 
-		try config.save(to: vmLocation.configURL)
+		try config.save()
 
 		if let diskSize = options.diskSize {
 			try vmLocation.expandDiskTo(diskSize)

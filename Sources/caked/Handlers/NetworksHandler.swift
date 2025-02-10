@@ -14,9 +14,13 @@ struct NetworksHandler: CakedCommand {
 	var format: Format
 
 	static func networks() -> [BridgedNetwork] {
-		VZBridgedNetworkInterface.networkInterfaces.map { inf in
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network")]
+		
+		networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
 			BridgedNetwork(name: inf.identifier, description: inf.localizedDisplayName)
-		}
+		})
+
+		return networks
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {

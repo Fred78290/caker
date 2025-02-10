@@ -80,8 +80,29 @@ func newYAMLEncoder() -> YAMLEncoder {
 	encoder.options = .init(indent: 2, width: -1)
 	return encoder
 }
+
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
+
+	init(config: CakeConfig) {
+		var index: Int = 2
+
+		if let macAddress = config.macAddress {
+			self.network.ethernets["enp0s1"] = Interface(match: Match(macAddress: macAddress.string), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+		} else if config.networks.isEmpty {
+			self.network.ethernets["all"] = Interface(match: Match(name: "en*"), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+		} else {
+			self.network.ethernets["enp0s1"] = Interface(dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+		}
+
+		config.networks.forEach { network in
+			if network.mode == nil || network.mode == .auto {
+				self.network.ethernets["enp0s\(index)"] = Interface(match: Match(macAddress: network.macAddress), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+			}
+
+			index += 1
+		}	
+	}
 
 	func toCloudInit() throws -> Data {
 		let encoder: YAMLEncoder = newYAMLEncoder()
@@ -95,29 +116,55 @@ struct NetworkConfig: Codable {
 	}
 }
 
+typealias Ethernets = [String: Interface]
+
 struct CloudInitNetwork: Codable {
 	var version: Int = 2
-	var ethernets: Ethernets = Ethernets()
+	var ethernets: Ethernets = [:]
+
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+	
+		try container.encodeIfPresent(version, forKey: .version)
+		try container.encodeIfPresent(ethernets, forKey: .ethernets)
+	}
 }
 
-struct Ethernets: Codable {
-	var all: All = All()
-}
 
-struct All: Codable {
-	var match: Match = Match()
-	var dhcp4: Bool = true
-	var dhcpIdentifier: String = "mac"
+
+struct Interface: Codable {
+	var match: Match? = nil
+	var dhcp4: Bool? = nil
+	var dhcp6: Bool? = nil
+	var dhcpIdentifier: String? = nil
 
 	enum CodingKeys: String, CodingKey {
 		case match = "match"
 		case dhcp4 = "dhcp4"
+		case dhcp6 = "dhcp6"
 		case dhcpIdentifier = "dhcp-identifier"
+	}
+
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+	
+		try container.encodeIfPresent(match, forKey: .match)
+		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
+		try container.encodeIfPresent(dhcp6, forKey: .dhcp6)
+		try container.encodeIfPresent(dhcpIdentifier, forKey: .dhcpIdentifier)
 	}
 }
 
 struct Match: Codable {
-	var name: String = "en*"
+	var name: String? = "en*"
+	var macAddress: String? = nil
+
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+	
+		try container.encodeIfPresent(name, forKey: .name)
+		try container.encodeIfPresent(macAddress, forKey: .macAddress)
+	}
 }
 
 struct Merging: Codable {
@@ -561,7 +608,7 @@ class CloudInit {
 		return localAgent
 	}
 
-	private func buildVendorData() throws -> CloudConfigData {
+	private func buildVendorData(config: CakeConfig) throws -> CloudConfigData {
 		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
@@ -570,6 +617,7 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
 		]
+		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh" ] : ["/usr/local/bin/install-cakeagent.sh", "mount -t virtiofs com.apple.virtio-fs.automount /mnt"]
 		let vendorData = CloudConfigData(defaultUser: self.userName,
 		                                 password: self.password,
 		                                 mainGroup: self.mainGroup,
@@ -585,7 +633,7 @@ class CloudInit {
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),
 		                                 ],
-		                                 runcmd: [ "/usr/local/bin/install-cakeagent.sh" ],
+		                                 runcmd: runCommand,
 		                                 growPart: true,
 		                                 merge: merge)
 
@@ -602,9 +650,9 @@ class CloudInit {
 		return cloudConfigHeader
 	}
 
-	private func createUserData() throws -> Data {
+	private func createUserData(config: CakeConfig) throws -> Data {
 		if let userData = self.userData {
-			return try buildVendorData().toCloudInit(userData)
+			return try buildVendorData(config: config).toCloudInit(userData)
 		} else {
 			guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 				throw CloudInitGenerateError("unable to encode userdata")
@@ -614,10 +662,10 @@ class CloudInit {
 		}
 	}
 
-	private func createVendorData() throws -> Data {
+	private func createVendorData(config: CakeConfig) throws -> Data {
 		guard let vendorData = self.vendorData else {
 			if self.userData == nil {
-				return try buildVendorData().toCloudInit()
+				return try buildVendorData(config: config).toCloudInit()
 			} else {
 				guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 					throw CloudInitGenerateError("unable to encode userdata")
@@ -649,17 +697,17 @@ class CloudInit {
 		return configData
 	}
 
-	private func createNetworkConfig() throws -> Data {
+	private func createNetworkConfig(config: CakeConfig) throws -> Data {
 		if let networkConfig = self.networkConfig {
 			return networkConfig
 		} else {
-			let networkConfig: NetworkConfig = NetworkConfig()
+			let networkConfig: NetworkConfig = NetworkConfig(config: config)
 
 			return try networkConfig.toCloudInit()
 		}
 	}
 
-	func createDefaultCloudInit(name: String, cdromURL: URL) throws {
+	func createDefaultCloudInit(config: CakeConfig, name: String, cdromURL: URL) throws {
 		var seed: [String: Any] = [:]
 
 		try? cdromURL.delete()
@@ -680,10 +728,10 @@ class CloudInit {
 				return InputStream(data: emptyCloudInit)
 			})
 
-		seed["/user-data"] = try createSeed(writer: writer, path: "user-data", configData: self.createUserData())
-		seed["/vendor-data"] = try createSeed(writer: writer, path: "vendor-data", configData: createVendorData())
+		seed["/user-data"] = try createSeed(writer: writer, path: "user-data", configData: self.createUserData(config: config))
+		seed["/vendor-data"] = try createSeed(writer: writer, path: "vendor-data", configData: createVendorData(config: config))
 		seed["/meta-data"] = try createSeed(writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name))
-		seed["/network-config"] = try createSeed(writer: writer, path: "network-config", configData: createNetworkConfig())
+		seed["/network-config"] = try createSeed(writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
 		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary())
 
 		// write

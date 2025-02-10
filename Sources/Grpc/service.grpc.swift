@@ -66,6 +66,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_ListRequest, Caked_Reply>
 
+  func delete(
+    _ request: Caked_DeleteRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_DeleteRequest, Caked_Reply>
+
   func image(
     _ request: Caked_ImageRequest,
     callOptions: CallOptions?
@@ -279,6 +284,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeListInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Delete
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Delete.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func delete(
+    _ request: Caked_DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_DeleteRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
     )
   }
 
@@ -506,6 +529,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_ListRequest, Caked_Reply>
 
+  func makeDeleteCall(
+    _ request: Caked_DeleteRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_DeleteRequest, Caked_Reply>
+
   func makeImageCall(
     _ request: Caked_ImageRequest,
     callOptions: CallOptions?
@@ -663,6 +691,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeListInterceptors() ?? []
+    )
+  }
+
+  public func makeDeleteCall(
+    _ request: Caked_DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_DeleteRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
     )
   }
 
@@ -859,6 +899,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func delete(
+    _ request: Caked_DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+    )
+  }
+
   public func image(
     _ request: Caked_ImageRequest,
     callOptions: CallOptions? = nil
@@ -993,6 +1045,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'list'.
   func makeListInterceptors() -> [ClientInterceptor<Caked_ListRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'delete'.
+  func makeDeleteInterceptors() -> [ClientInterceptor<Caked_DeleteRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'image'.
   func makeImageInterceptors() -> [ClientInterceptor<Caked_ImageRequest, Caked_Reply>]
 
@@ -1027,6 +1082,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.waitIP,
       Caked_ServiceClientMetadata.Methods.stop,
       Caked_ServiceClientMetadata.Methods.list,
+      Caked_ServiceClientMetadata.Methods.delete,
       Caked_ServiceClientMetadata.Methods.image,
       Caked_ServiceClientMetadata.Methods.remote,
       Caked_ServiceClientMetadata.Methods.networks,
@@ -1097,6 +1153,12 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    public static let delete = GRPCMethodDescriptor(
+      name: "Delete",
+      path: "/caked.Service/Delete",
+      type: GRPCCallType.unary
+    )
+
     public static let image = GRPCMethodDescriptor(
       name: "Image",
       path: "/caked.Service/Image",
@@ -1159,6 +1221,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func stop(request: Caked_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func list(request: Caked_ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func delete(request: Caked_DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func image(request: Caked_ImageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -1275,6 +1339,15 @@ extension Caked_ServiceProvider {
         userFunction: self.list(request:context:)
       )
 
+    case "Delete":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_DeleteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+        userFunction: self.delete(request:context:)
+      )
+
     case "Image":
       return UnaryServerHandler(
         context: context,
@@ -1389,6 +1462,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func list(
     request: Caked_ListRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func delete(
+    request: Caked_DeleteRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
@@ -1533,6 +1611,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.list(request: $0, context: $1) }
       )
 
+    case "Delete":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_DeleteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+        wrapping: { try await self.delete(request: $0, context: $1) }
+      )
+
     case "Image":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1635,6 +1722,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListInterceptors() -> [ServerInterceptor<Caked_ListRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'delete'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeDeleteInterceptors() -> [ServerInterceptor<Caked_DeleteRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'image'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeImageInterceptors() -> [ServerInterceptor<Caked_ImageRequest, Caked_Reply>]
@@ -1675,6 +1766,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.waitIP,
       Caked_ServiceServerMetadata.Methods.stop,
       Caked_ServiceServerMetadata.Methods.list,
+      Caked_ServiceServerMetadata.Methods.delete,
       Caked_ServiceServerMetadata.Methods.image,
       Caked_ServiceServerMetadata.Methods.remote,
       Caked_ServiceServerMetadata.Methods.networks,
@@ -1742,6 +1834,12 @@ public enum Caked_ServiceServerMetadata {
     public static let list = GRPCMethodDescriptor(
       name: "List",
       path: "/caked.Service/List",
+      type: GRPCCallType.unary
+    )
+
+    public static let delete = GRPCMethodDescriptor(
+      name: "Delete",
+      path: "/caked.Service/Delete",
       type: GRPCCallType.unary
     )
 

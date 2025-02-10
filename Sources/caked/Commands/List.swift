@@ -14,6 +14,6 @@ struct List: AsyncParsableCommand {
 	var vmonly: Bool = false
 
 	mutating func run() async throws {
-		print(format.renderList(style: Style.grid, uppercased: true, try ListHandler.listVM(vmonly: vmonly, asSystem: false)))
+		print(try ListHandler.listVM(vmonly: vmonly, format: format, asSystem: false))
 	}
 }

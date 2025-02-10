@@ -21,87 +21,85 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		consoleURL: URL? = nil,
 		nested: Bool = false) throws {
 
-		if let config = vmLocation.config {
-			if config.arch != Architecture.current() {
-				throw ServiceError("Unsupported architecture")
-			}
+		let config = try vmLocation.config()
 
-			let configuration = VZVirtualMachineConfiguration()
-			let plateform = try config.platform(nvramURL: vmLocation.nvramURL, needsNestedVirtualization: nested)
-			let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
-
-			var devices: [VZStorageDeviceConfiguration] = [VZVirtioBlockDeviceConfiguration(attachment: try VZDiskImageStorageDeviceAttachment(
-				url: vmLocation.diskURL,
-				readOnly: false,
-				cachingMode: config.os == .linux ? .cached : .automatic,
-				synchronizationMode: .full
-			))]
-			
-			let networkDevices = networks.map {
-				let vio = VZVirtioNetworkDeviceConfiguration()
-
-				vio.attachment = $0.attachment()
-				vio.macAddress = config.macAddress!
-
-				return vio
-			}
-
-			devices.append(contentsOf: additionalDiskAttachments)
-
-			soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
-
-			configuration.bootLoader = try plateform.bootLoader()
-			configuration.cpuCount = config.cpuCount
-			configuration.memorySize = config.memorySize
-			configuration.platform = try plateform.platform()
-			configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
-			configuration.audioDevices = [soundDeviceConfiguration]
-			configuration.keyboards = plateform.keyboards()
-			configuration.pointingDevices = plateform.pointingDevices()
-			configuration.networkDevices = networkDevices
-			configuration.storageDevices = devices
-			configuration.directorySharingDevices = directorySharingAttachments
-		    configuration.serialPorts = []
-
-			if config.os == .linux {
-				let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
-				let spiceAgentPort = VZVirtioConsolePortConfiguration()
-
-				spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
-				spiceAgentPort.attachment = VZSpiceAgentPortAttachment()
-				spiceAgentConsoleDevice.ports[0] = spiceAgentPort
-
-				configuration.consoleDevices.append(spiceAgentConsoleDevice)
-
-				let cdromURL = URL(fileURLWithPath: "cloud-init.iso", relativeTo: vmLocation.diskURL).absoluteURL
-
-				if FileManager.default.fileExists(atPath: cdromURL.path()) {
-					devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
-				}
-			}
-
-			let communicationDevices = try CommunicationDevices.setup(configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
-
-			try configuration.validate()
-
-			let virtualMachine = VZVirtualMachine(configuration: configuration)
-
-			self.config = config
-			self.vmLocation = vmLocation
-			self.name = vmLocation.name
-			self.config = config
-			self.configuration = configuration
-			self.communicationDevices = communicationDevices
-			self.virtualMachine = virtualMachine
-
-			communicationDevices.connect(virtualMachine: virtualMachine)
-
-			super.init()
-
-			virtualMachine.delegate = self
-		} else {
-			throw ServiceError("Unexpected missing config")
+		if config.arch != Architecture.current() {
+			throw ServiceError("Unsupported architecture")
 		}
+
+		let configuration = VZVirtualMachineConfiguration()
+		let plateform = try config.platform(nvramURL: vmLocation.nvramURL, needsNestedVirtualization: nested)
+		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
+
+		var devices: [VZStorageDeviceConfiguration] = [VZVirtioBlockDeviceConfiguration(attachment: try VZDiskImageStorageDeviceAttachment(
+			url: vmLocation.diskURL,
+			readOnly: false,
+			cachingMode: config.os == .linux ? .cached : .automatic,
+			synchronizationMode: .full
+		))]
+		
+		let networkDevices = networks.map {
+			let vio = VZVirtioNetworkDeviceConfiguration()
+
+			vio.attachment = $0.attachment()
+			vio.macAddress = config.macAddress!
+
+			return vio
+		}
+
+		devices.append(contentsOf: additionalDiskAttachments)
+
+		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
+
+		configuration.bootLoader = try plateform.bootLoader()
+		configuration.cpuCount = config.cpuCount
+		configuration.memorySize = config.memorySize
+		configuration.platform = try plateform.platform()
+		configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
+		configuration.audioDevices = [soundDeviceConfiguration]
+		configuration.keyboards = plateform.keyboards()
+		configuration.pointingDevices = plateform.pointingDevices()
+		configuration.networkDevices = networkDevices
+		configuration.storageDevices = devices
+		configuration.directorySharingDevices = directorySharingAttachments
+		configuration.serialPorts = []
+
+		if config.os == .linux {
+			let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
+			let spiceAgentPort = VZVirtioConsolePortConfiguration()
+
+			spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
+			spiceAgentPort.attachment = VZSpiceAgentPortAttachment()
+			spiceAgentConsoleDevice.ports[0] = spiceAgentPort
+
+			configuration.consoleDevices.append(spiceAgentConsoleDevice)
+
+			let cdromURL = URL(fileURLWithPath: "cloud-init.iso", relativeTo: vmLocation.diskURL).absoluteURL
+
+			if FileManager.default.fileExists(atPath: cdromURL.path()) {
+				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
+			}
+		}
+
+		let communicationDevices = try CommunicationDevices.setup(configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+
+		try configuration.validate()
+
+		let virtualMachine = VZVirtualMachine(configuration: configuration)
+
+		self.config = config
+		self.vmLocation = vmLocation
+		self.name = vmLocation.name
+		self.config = config
+		self.configuration = configuration
+		self.communicationDevices = communicationDevices
+		self.virtualMachine = virtualMachine
+
+		communicationDevices.connect(virtualMachine: virtualMachine)
+
+		super.init()
+
+		virtualMachine.delegate = self
 	}
 
 	static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
@@ -182,9 +180,14 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 				try await resume()
 			} else {
 				Logger.info("Start VM...")
-				try await start()
+				try await self.startVM()
 			}
 		}
+	}
+
+	@MainActor
+	private func startVM() async throws {
+		try await self.virtualMachine!.start()
 	}
 
 	@MainActor
@@ -199,6 +202,19 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 
 	@MainActor
 	func run() async throws {
+		let runningIP = try WaitIPHandler.waitIPWithAgent(name: self.name, wait: 120, asSystem: runAsSystem)
+		let identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+
+		defer {
+			if let id = identifier {
+				try? PortForwardingServer.closeForwardedPort(identifier: id)
+			}
+
+			if let communicationDevices {
+				communicationDevices.close()
+			}
+		}
+
 		do {
 			try await semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
@@ -211,10 +227,6 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 					try await self.stop()
 				}
 			}
-		}
-
-		if let communicationDevices {
-			communicationDevices.close()
 		}
 	}
 
@@ -263,5 +275,11 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		}
 
 		sig.activate()
+	}
+	
+	func catchUserSignals(_ task: Task<Void, Error>) {
+		self.catchSIGINT(task)
+		self.catchSIGUSR1(task)
+		self.catchSIGUSR2(task)
 	}
 }

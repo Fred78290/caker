@@ -222,7 +222,7 @@ final class CloudInitTests: XCTestCase {
 		PortForwardingServer.createPortForwardingServer(on: self.group)
 		
 		let runningIP = eventLoop.submit {
-			return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
+			return try StartHandler.startVM(on: eventLoop.next(), vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
 		}
 
 		runningIP.whenComplete { result in

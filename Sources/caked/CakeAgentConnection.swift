@@ -14,14 +14,27 @@ struct CakeAgentConnection {
 	let tlsKey: String?
 	let eventLoop: EventLoopGroup
 	let listeningAddress: URL
-	let timeout: Int64 = 10
+	let timeout: Int64
+	let retries: ConnectionBackoff.Retries
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?) {
+	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 10, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
 		self.caCert = caCert
 		self.tlsCert = tlsCert
 		self.tlsKey = tlsKey
 		self.eventLoop = eventLoop
+		self.timeout = timeout
 		self.listeningAddress = listeningAddress
+		self.retries = retries
+	}
+
+	init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 10, retries: ConnectionBackoff.Retries = .unlimited) {
+		self.init(eventLoop: eventLoop,
+		          listeningAddress: listeningAddress,
+		          caCert: certLocation.caCertURL.path(),
+		          tlsCert: certLocation.serverCertURL.path(),
+		          tlsKey: certLocation.serverKeyURL.path(),
+				  timeout: timeout,
+				  retries: retries)
 	}
 
 	func createClient() throws -> CakeAgentClient {
@@ -30,10 +43,12 @@ struct CakeAgentConnection {
 		                                        connectionTimeout: self.timeout,
 		                                        caCert: self.caCert,
 		                                        tlsCert: self.tlsCert,
-		                                        tlsKey: self.tlsKey)
+		                                        tlsKey: self.tlsKey,
+		                                        retries: self.retries)
+
 	}
 
-	func info(context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
+	func info() async throws -> Caked_InfoReply {
 		let client = try createClient()
 
 		do {
@@ -66,7 +81,7 @@ struct CakeAgentConnection {
 		}
 	}
 
-	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
+	func execute(request: Caked_ExecuteRequest) async throws -> Caked_ExecuteReply {
 		let client = try createClient()
 
 		do {
@@ -98,7 +113,7 @@ struct CakeAgentConnection {
 		}
 	}
 
-	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
+	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>) async throws {
 		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ShellResponse.self)
 		let client = try createClient()
 		let finish = {
@@ -141,7 +156,7 @@ struct CakeAgentConnection {
 						}
 					} catch {
 						continuation.finish()
-			
+
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
 								Logger.error(error)

@@ -15,10 +15,10 @@
 				"--cpu=2",
 				"--memory=2048",
 				"--disk-size=20",
-				"--bridged=en0",
+				"--network=en0",
+				"--mount=~",
 				"--nested",
 				"--ssh-authorized-key=${env:HOME}/.ssh/id_rsa.pub",
-				"--network-config=/tmp/network-config.yaml",
 				"--user-data=/tmp/user-data.yaml"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -57,6 +57,44 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"waitip",
+				"linux",
+				"--wait",
+				"60"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked waitip",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"delete",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked delete",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"vmrun",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vmrun",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

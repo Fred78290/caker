@@ -171,7 +171,6 @@ struct Client: AsyncParsableCommand {
 
 			Create.self,
 			Clone.self,
-			Get.self,
 			Login.self,
 			Logout.self,
 			IP.self,

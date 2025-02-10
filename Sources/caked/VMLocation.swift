@@ -50,8 +50,8 @@ struct VMLocation {
 			FileManager.default.fileExists(atPath: nvramURL.path)
 	}
 
-	var config: CakeConfig? {
-		try? CakeConfig(baseURL: self.rootURL)
+	func config() throws -> CakeConfig {
+		try CakeConfig(location: self.rootURL)
 	}
 
 	var status: Status {
@@ -85,7 +85,7 @@ struct VMLocation {
 	}
 
 	var macAddress: VZMACAddress? {
-		if let config = try? CakeConfig(baseURL: rootURL) {
+		if let config = try? CakeConfig(location: rootURL) {
 			return config.macAddress
 		}
 
@@ -108,10 +108,6 @@ struct VMLocation {
 		}
 
 		return fd != -1
-	}
-
-	func loadConfig() throws -> CakeConfig {
-		try CakeConfig(baseURL: self.rootURL)
 	}
 
 	static func tempDirectory() throws -> VMLocation {

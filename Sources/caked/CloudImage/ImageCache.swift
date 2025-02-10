@@ -25,11 +25,13 @@ class CacheError : Error {
 
 class CommonCacheImageCache: PurgeableStorage {
 	let baseURL: URL
+	let scheme: String
 	let name: String
 	let location: String
 	private let ext: String
 
-	init(location: String, name: String, ext: String = "img") throws {
+	init(scheme: String, location: String, name: String, ext: String = "img") throws {
+		self.scheme = scheme
 		self.name = name
 		self.location = location
 		self.ext = ext
@@ -39,7 +41,8 @@ class CommonCacheImageCache: PurgeableStorage {
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
-	init(location: String, ext: String = "img") throws {
+	init(scheme: String, location: String, ext: String = "img") throws {
+		self.scheme = scheme
 		self.name = ""
 		self.location = location
 		self.ext = ext
@@ -73,21 +76,29 @@ class CommonCacheImageCache: PurgeableStorage {
 
 		return purgeableItems
 	}
+
+	func fqn(_ purgeable: Purgeable) -> String {
+		"\(self.scheme)://\(purgeable.source())/\(purgeable.name())"
+	}
 }
 
 class CloudImageCache: CommonCacheImageCache {
+	static let scheme = "cloud"
+
 	convenience init() throws {
 		try self.init(name: "")
 	}
 
 	init(name: String) throws {
-		try super.init(location: "cloud-images", name: name)
+		try super.init(scheme: Self.scheme, location: "cloud-images", name: name)
 	}
 }
 
 class RawImageCache: CommonCacheImageCache {
+	static let scheme = "img"
+
 	init() throws {
-		try super.init(location: "raw-images")
+		try super.init(scheme: Self.scheme, location: "raw-images")
 	}
 }
 
@@ -163,6 +174,7 @@ struct SimpleStreamCache: Codable {
 }
 
 class SimpleStreamsImageCache: CommonCacheImageCache {
+	static let scheme = "stream"
 	private var cache: SimpleStreamCache?
 
 	convenience init() throws {
@@ -170,7 +182,7 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 	}
 
 	init(name: String) throws {
-		try super.init(location: "container-images", name: name, ext: ".img")
+		try super.init(scheme: Self.scheme, location: "container-images", name: name, ext: ".img")
 
 		if name.count > 0 {
 			self.cache = try SimpleStreamCache.createSimpleStreamCache(from: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
@@ -253,6 +265,10 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 	    func allocatedSizeBytes() throws -> Int {
 	        try self._url.allocatedSizeBytes()
 	    }
+
+		func fqn() -> String {
+			"\(_cache.scheme)://\(_source)/@\(_name)"
+		}
 	}
 
 	override func purgeables() throws -> [Purgeable] {
@@ -281,8 +297,10 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 }
 
 class OCIImageCache: CommonCacheImageCache {
+	static let scheme = "oci"
+
 	init() throws {
-		try super.init(location: "OCIs")
+		try super.init(scheme: Self.scheme, location: "OCIs")
 	}
 
 	private class OCIImageCachePurgeable: Purgeable {
@@ -334,5 +352,9 @@ class OCIImageCache: CommonCacheImageCache {
 
 			return OCIImageCachePurgeable(name: name, url: purgeable.url, source: source)
 		}
+	}
+
+	override func fqn(_ purgeable: Purgeable) -> String {
+		"\(self.scheme)://\(purgeable.source())@\(purgeable.name())"
 	}
 }

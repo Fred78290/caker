@@ -68,6 +68,10 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			}
 		}
 
+		if macAddress == nil {
+			macAddress = VZMACAddress.randomLocallyAdministered()
+		}
+
 		self.network = network
 		self.macAddress = macAddress?.string
 		self.mode = mode

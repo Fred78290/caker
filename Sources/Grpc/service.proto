@@ -20,6 +20,7 @@ service Service {
 	rpc WaitIP (WaitIPRequest) returns (Reply) {}
 	rpc Stop (StopRequest) returns (Reply) {}
 	rpc List(ListRequest) returns (Reply) {}
+	rpc Delete(DeleteRequest) returns (Reply) {}
 	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
@@ -56,6 +57,11 @@ message VMInfo {
 	bool Running = 5;
 	VMState State = 6;
 	string Source = 7;
+}
+
+message DeleteRequest {
+	Format format = 1;
+	repeated string name = 2;
 }
 
 message ListRequest {

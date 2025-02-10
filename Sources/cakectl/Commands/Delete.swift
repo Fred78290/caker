@@ -11,7 +11,10 @@ struct Delete: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: [String]
 
+	@Option(name: [.customLong("format")], help: "Output format")
+	var format: Format = .text
+
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "delete", arguments: arguments), callOptions: callOptions).response.wait()
+		return try client.delete(Caked_DeleteRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

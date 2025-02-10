@@ -24,7 +24,7 @@
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
         "branch" : "main",
-        "revision" : "5d9df32499194aa400576051a9fe26b06f7b0f67"
+        "revision" : "d30128bb0595fdf1cfb007209d5236051436211e"
       }
     },
     {
@@ -48,10 +48,10 @@
     {
       "identity" : "gzipswift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/1024jp/GzipSwift",
+      "location" : "https://github.com/Fred78290/GzipSwift",
       "state" : {
         "branch" : "main",
-        "revision" : "e0f41175a8b3fa051fccebc89629e6e1dee42026"
+        "revision" : "41211ca1645aa6ab64076b5992809f12b869a5fd"
       }
     },
     {
@@ -167,8 +167,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "ff0f781cf7c6a22d52957e50b104f5768b50c779",
-        "version" : "3.10.0"
+        "revision" : "f2f3774fd116a305136b6866e5e7cb7dff39d8f2",
+        "version" : "3.10.1"
       }
     },
     {
@@ -239,8 +239,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "c7e95421334b1068490b5d41314a50e70bab23d1",
-        "version" : "2.29.0"
+        "revision" : "0cc3528ff48129d64ab9cab0b1cd621634edfc6b",
+        "version" : "2.29.3"
       }
     },
     {
