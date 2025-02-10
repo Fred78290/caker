@@ -11,3 +11,7 @@ dist/
 *.pkg
 *.jpg
 *.xcf
+
+Caker/Caker.xcodeproj/project.xcworkspace/
+
+Caker/Caker.xcodeproj/xcuserdata/fboltz.xcuserdatad/

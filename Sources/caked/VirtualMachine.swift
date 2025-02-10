@@ -2,9 +2,10 @@ import Foundation
 import Virtualization
 import Semaphore
 import GRPCLib
+import NIO
 
 class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
-	@Published var virtualMachine: VZVirtualMachine?
+	@Published var virtualMachine: VZVirtualMachine
 
 	var name: String
 	var config: CakeConfig
@@ -14,12 +15,12 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 	var vmLocation: VMLocation
 
 	init(vmLocation: VMLocation,
-		networks: [NetworkAttachement],
-		additionalDiskAttachments: [VZStorageDeviceConfiguration] = [],
-		directorySharingAttachments: [VZDirectorySharingDeviceConfiguration] = [],
-		socketDeviceAttachments: [SocketDevice] = [],
-		consoleURL: URL? = nil,
-		nested: Bool = false) throws {
+	     networks: [NetworkAttachement],
+	     additionalDiskAttachments: [VZStorageDeviceConfiguration] = [],
+	     directorySharingAttachments: [VZDirectorySharingDeviceConfiguration] = [],
+	     socketDeviceAttachments: [SocketDevice] = [],
+	     consoleURL: URL? = nil,
+	     nested: Bool = false) throws {
 
 		let config = try vmLocation.config()
 
@@ -37,12 +38,11 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 			cachingMode: config.os == .linux ? .cached : .automatic,
 			synchronizationMode: .full
 		))]
-		
+
 		let networkDevices = networks.map {
 			let vio = VZVirtioNetworkDeviceConfiguration()
 
-			vio.attachment = $0.attachment()
-			vio.macAddress = config.macAddress!
+			(vio.macAddress, vio.attachment) = $0.attachment()
 
 			return vio
 		}
@@ -104,9 +104,9 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 
 	static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
-			readOnly: true,
-			cachingMode: .cached,
-			synchronizationMode: VZDiskImageSynchronizationMode.none)
+		                                                                                            readOnly: true,
+		                                                                                            cachingMode: .cached,
+		                                                                                            synchronizationMode: VZDiskImageSynchronizationMode.none)
 
 		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
 
@@ -134,8 +134,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 	}
 
 	func pause() async throws -> Bool{
-		if let virtualMachine = self.virtualMachine {
-			#if arch(arm64)
+		#if arch(arm64)
 			if #available(macOS 14, *) {
 				try configuration!.validateSaveRestoreSupport()
 
@@ -152,17 +151,15 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 				Logger.warn("Snapshot is only supported on macOS 14 or newer")
 				Foundation.exit(1)
 			}
-			#endif
-		}
-
-		return false
+		#else
+			return false
+		#endif
 	}
 
 	func start() async throws {
-		if let virtualMachine = self.virtualMachine {
-			var resumeVM: Bool = false
+		var resumeVM: Bool = false
 
-			#if arch(arm64)
+		#if arch(arm64)
 			if #available(macOS 14, *) {
 				if FileManager.default.fileExists(atPath: vmLocation.stateURL.path) {
 					Logger.info("Restore VM snapshot...")
@@ -173,37 +170,41 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 					resumeVM = true
 				}
 			}
-			#endif
+		#endif
 
-			if resumeVM == false {
-				Logger.info("Resume VM...")
-				try await resume()
-			} else {
-				Logger.info("Start VM...")
-				try await self.startVM()
-			}
+		if resumeVM {
+			Logger.info("Resume VM...")
+			try await resume()
+		} else {
+			Logger.info("Start VM...")
+			try await self.startVM()
 		}
 	}
 
 	@MainActor
 	private func startVM() async throws {
-		try await self.virtualMachine!.start()
+		try await self.virtualMachine.start()
 	}
 
 	@MainActor
 	private func resume() async throws {
-		try await self.virtualMachine!.resume()
+		try await self.virtualMachine.resume()
 	}
 
 	@MainActor
 	private func stop() async throws {
-		try await self.virtualMachine!.stop()
+		try await self.virtualMachine.stop()
 	}
 
 	@MainActor
 	func run() async throws {
-		let runningIP = try WaitIPHandler.waitIPWithAgent(name: self.name, wait: 120, asSystem: runAsSystem)
-		let identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+		var identifier: String? = nil
+
+		if config.forwardedPorts.isEmpty == false {
+			let runningIP: String = try WaitIPHandler.waitIPWithAgent(name: self.name, wait: 120, asSystem: runAsSystem)
+
+			identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+		}
 
 		defer {
 			if let id = identifier {
@@ -221,11 +222,9 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		}
 
 		if Task.isCancelled {
-			if let virtualMachine = self.virtualMachine {
-				if virtualMachine.state == VZVirtualMachine.State.running {
-					Logger.info("Stopping VM...")
-					try await self.stop()
-				}
+			if virtualMachine.state == VZVirtualMachine.State.running {
+				Logger.info("Stopping VM...")
+				try await self.stop()
 			}
 		}
 	}
@@ -234,6 +233,8 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		let sig: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 
 		sig.setEventHandler {
+			Logger.info("Receive SIGINT")
+
 			task.cancel()
 		}
 
@@ -242,10 +243,12 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 
 	func catchSIGUSR1(_ task: Task<Void, Error>) {
 		signal(SIGUSR1, SIG_IGN)
-		
+
 		let sig = DispatchSource.makeSignalSource(signal: SIGUSR1)
-		
+
 		sig.setEventHandler {
+			Logger.info("Receive SIGUSR1")
+
 			Task {
 				do {
 					if try await self.pause() {
@@ -264,22 +267,57 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 
 	func catchSIGUSR2(_ task: Task<Void, Error>) {
 		signal(SIGUSR2, SIG_IGN)
-		
+
 		let sig = DispatchSource.makeSignalSource(signal: SIGUSR1)
-		
+
 		sig.setEventHandler {
+			Logger.info("Receive SIGUSR1")
+
 			Task {
 				Logger.info("Request guest OS to stop...")
-				try self.virtualMachine!.requestStop()
+				try self.virtualMachine.requestStop()
 			}
 		}
 
 		sig.activate()
 	}
-	
+
 	func catchUserSignals(_ task: Task<Void, Error>) {
 		self.catchSIGINT(task)
 		self.catchSIGUSR1(task)
 		self.catchSIGUSR2(task)
+	}
+
+	func waitIP(wait: Int, asSystem: Bool) throws -> String {
+		let listeningAddress = vmLocation.agentURL
+		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 1, retries: .none)
+
+		let start: Date = Date.now
+		var count = 0
+
+		repeat {
+			let result: EventLoopFuture<String?> = Root.group.any().makeFutureWithTask {
+				if let infos = try? await conn.info() {
+					if let runningIP = infos.ipaddresses.first {
+						return runningIP
+					}
+				} else {
+					return nil
+				}
+
+				return nil
+			}
+
+			if let runningIP = try result.wait() {
+				return runningIP
+			}
+
+			count += 1
+		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
+
+		Logger.warn("Unable to get IP for VM \(name)")
+
+		return ""
 	}
 }

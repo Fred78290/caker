@@ -1,7 +1,20 @@
 #!/bin/bash
 swift build
 
+codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
+
+PKGDIR=./dist/Caker.app
+
+rm -Rf ${PKGDIR}
+mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
+cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
+cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
+cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
+cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+
 BIN_PATH=$(swift build --show-bin-path)
+BIN_PATH=${PKGDIR}/Contents/MacOS
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
@@ -10,7 +23,7 @@ LXD_IMAGE=ubuntu/noble/cloud
 #LXD_IMAGE=centos/9-Stream/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
-CMD="cakectl --insecure "
+#CMD="cakectl --insecure "
 CMD="caked "
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
@@ -79,7 +92,8 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=en0 --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --user-data=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 
 ${BIN_PATH}/${CMD} delete linux

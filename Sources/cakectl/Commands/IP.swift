@@ -2,7 +2,6 @@ import ArgumentParser
 import Foundation
 import Network
 import SystemConfiguration
-import Sentry
 import GRPCLib
 import GRPC
 

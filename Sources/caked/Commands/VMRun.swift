@@ -10,12 +10,20 @@ import System
 extension CakeConfig {
 	func collectNetworks() throws -> [NetworkAttachement] {
 		if networks.isEmpty {
-			return [SharedNetworkInterface()]
+			if let macAddress = self.macAddress {
+				return [SharedNetworkInterface(macAddress: macAddress)]
+			}
+
+			return [SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())]
 		}
 
 		return networks.compactMap { inf in
 			if inf.network == "nat" || inf.network == "NAT shared network" {
-				return SharedNetworkInterface()
+				if let macAddress = self.macAddress {
+					return SharedNetworkInterface(macAddress: macAddress)
+				}
+
+				return SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
 			}
 
 			let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
@@ -23,7 +31,11 @@ extension CakeConfig {
 			}
 
 			if let interface = foundInterface {
-				return BridgedNetworkInterface(interface: interface)
+				if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
+					return BridgedNetworkInterface(interface: interface, macAddress: mac)
+				}
+
+				return BridgedNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())	
 			}
 
 			Logger.warn("Network interface \(inf.network) not found")
@@ -153,7 +165,7 @@ struct VMRun: AsyncParsableCommand {
 		                            consoleURL: try config.consoleAttachment(),
 		                            nested: config.nested)
 
-		let task: Task<Void, Error> = Task {
+		let task = Task {
 			try vmLocation.writePID()
 
 			try await vm.start()
@@ -161,6 +173,10 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		vm.catchUserSignals(task)
+
+		MainApp.runUI(vm: vm, false, false)
+
+		Logger.info("Running IP: \(try vm.waitIP(wait: 60, asSystem: asSystem))")
 
 		NSApplication.shared.setActivationPolicy(.prohibited)
 		NSApplication.shared.run()

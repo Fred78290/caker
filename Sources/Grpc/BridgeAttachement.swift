@@ -68,7 +68,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 			}
 		}
 
-		if macAddress == nil {
+		if macAddress == nil && network != "nat" && network != "NAT shared network" {
 			macAddress = VZMACAddress.randomLocallyAdministered()
 		}
 

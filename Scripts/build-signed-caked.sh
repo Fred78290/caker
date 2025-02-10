@@ -19,5 +19,3 @@ cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprof
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
-
-${PKGDIR}/Contents/MacOS/caked "$@"

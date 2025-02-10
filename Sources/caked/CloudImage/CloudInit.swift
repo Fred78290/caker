@@ -77,7 +77,7 @@ struct Compression {
 func newYAMLEncoder() -> YAMLEncoder {
 	let encoder: YAMLEncoder = YAMLEncoder()
 
-	encoder.options = .init(indent: 2, width: -1)
+	encoder.options = .init(indent: 2, width: -1, sortKeys: true)
 	return encoder
 }
 
@@ -85,23 +85,32 @@ struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
 	init(config: CakeConfig) {
-		var index: Int = 2
 
-		if let macAddress = config.macAddress {
-			self.network.ethernets["enp0s1"] = Interface(match: Match(macAddress: macAddress.string), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-		} else if config.networks.isEmpty {
-			self.network.ethernets["all"] = Interface(match: Match(name: "en*"), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-		} else {
-			self.network.ethernets["enp0s1"] = Interface(dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-		}
-
-		config.networks.forEach { network in
-			if network.mode == nil || network.mode == .auto {
-				self.network.ethernets["enp0s\(index)"] = Interface(match: Match(macAddress: network.macAddress), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+		if config.networks.isEmpty {
+			if let macAddress = config.macAddress {
+				self.network.ethernets["enp0s1"] = Interface(match: Match(macAddress: macAddress.string), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+			} else {
+				self.network.ethernets["all"] = Interface(match: Match(name: "en*"), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 			}
+		} else {
+			var index: Int = 1
 
-			index += 1
-		}	
+			config.networks.forEach { network in
+				let name = "enp0s\(index)"
+
+				index += 1
+
+				if network.network == "nat" {
+					if let macAddress = config.macAddress {
+						self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress.string), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+					} else {
+						self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+					}
+				} else if network.mode == nil || network.mode == .auto {
+					self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
+				}
+			}
+		}
 	}
 
 	func toCloudInit() throws -> Data {
@@ -131,32 +140,48 @@ struct CloudInitNetwork: Codable {
 }
 
 
+struct DHCPOverides: Codable {
+	var routeMetric: Int = 200
+
+	enum CodingKeys: String, CodingKey {
+		case routeMetric = "route-metric"
+	}
+}
 
 struct Interface: Codable {
 	var match: Match? = nil
+	var setName: String? = nil
 	var dhcp4: Bool? = nil
 	var dhcp6: Bool? = nil
 	var dhcpIdentifier: String? = nil
+	var dhcp4Overrides: DHCPOverides? = nil
+	var dhcp6Overrides: DHCPOverides? = nil
 
 	enum CodingKeys: String, CodingKey {
 		case match = "match"
+		case setName = "set-name"
 		case dhcp4 = "dhcp4"
 		case dhcp6 = "dhcp6"
 		case dhcpIdentifier = "dhcp-identifier"
+		case dhcp4Overrides = "dhcp4-overrides"
+		case dhcp6Overrides = "dhcp6-overrides"
 	}
 
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 	
 		try container.encodeIfPresent(match, forKey: .match)
+		try container.encodeIfPresent(setName, forKey: .setName)
 		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
 		try container.encodeIfPresent(dhcp6, forKey: .dhcp6)
 		try container.encodeIfPresent(dhcpIdentifier, forKey: .dhcpIdentifier)
+		try container.encodeIfPresent(dhcp4Overrides, forKey: .dhcp4Overrides)
+		try container.encodeIfPresent(dhcp6Overrides, forKey: .dhcp6Overrides)
 	}
 }
 
 struct Match: Codable {
-	var name: String? = "en*"
+	var name: String? = nil
 	var macAddress: String? = nil
 
 	func encode(to encoder: Encoder) throws {
@@ -164,6 +189,11 @@ struct Match: Codable {
 	
 		try container.encodeIfPresent(name, forKey: .name)
 		try container.encodeIfPresent(macAddress, forKey: .macAddress)
+	}
+
+	enum CodingKeys: String, CodingKey {
+		case name = "name"
+		case macAddress = "macaddress"
 	}
 }
 
@@ -691,8 +721,9 @@ class CloudInit {
 		return configUrl
 	}
 
-	private func createSeed(writer: ISOWriter, path: String, configData: Data) throws -> Data {
+	private func createSeed(config: CakeConfig, writer: ISOWriter, path: String, configData: Data) throws -> Data {
 		try writer.addFile(path: path, size: UInt64(configData.count), metadata: nil)
+		try configData.write(to: config.location.appendingPathComponent(path))
 
 		return configData
 	}
@@ -728,10 +759,10 @@ class CloudInit {
 				return InputStream(data: emptyCloudInit)
 			})
 
-		seed["/user-data"] = try createSeed(writer: writer, path: "user-data", configData: self.createUserData(config: config))
-		seed["/vendor-data"] = try createSeed(writer: writer, path: "vendor-data", configData: createVendorData(config: config))
-		seed["/meta-data"] = try createSeed(writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name))
-		seed["/network-config"] = try createSeed(writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
+		seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
+		seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
+		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name))
+		seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
 		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary())
 
 		// write

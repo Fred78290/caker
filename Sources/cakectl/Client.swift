@@ -6,7 +6,6 @@ import GRPCLib
 import NIOCore
 import NIOPosix
 import NIOSSL
-import Sentry
 import SwiftDate
 import Logging
 
