@@ -176,9 +176,7 @@ struct VMRun: AsyncParsableCommand {
 
 		MainApp.runUI(vm: vm, false, false)
 
-		Logger.info("Running IP: \(try vm.waitIP(wait: 60, asSystem: asSystem))")
-
-		NSApplication.shared.setActivationPolicy(.prohibited)
-		NSApplication.shared.run()
+//		NSApplication.shared.setActivationPolicy(.prohibited)
+//		NSApplication.shared.run()
 	}
 }

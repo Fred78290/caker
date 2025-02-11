@@ -37,7 +37,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
+		try await startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
 
 		var arguments = self.arguments
 		let command = arguments.remove(at: 0)

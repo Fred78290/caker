@@ -14,7 +14,7 @@ struct StartHandler: CakedCommand {
 	private class StartHandlerVMRun {
 		var identifier: String? = nil
 
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
+		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
 			var config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let arguments: [String] = ["exec", "caked", "vmrun", vmLocation.name, "2>&1", ">", log]
@@ -43,7 +43,7 @@ struct StartHandler: CakedCommand {
 			}
 
 			do {
-				let runningIP = try WaitIPHandler.waitIPWithAgent(name: vmLocation.name, wait: 180, asSystem: runAsSystem, vmrunProcess: process)
+				let runningIP = try await WaitIPHandler.waitIPWithAgent(name: vmLocation.name, wait: 180, asSystem: runAsSystem, vmrunProcess: process)
 
 				config.runningIP = runningIP
 				try config.save()
@@ -239,8 +239,8 @@ struct StartHandler: CakedCommand {
 			}
 		}
 
-		return on.submit {
-			return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
+		return on.makeFutureWithTask {
+			return try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
 		}
 	}
 
@@ -274,17 +274,17 @@ struct StartHandler: CakedCommand {
 		return process
 	}
 
-	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
+	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
 			throw ServiceError("VM does not exist")
 		}
 
 		if vmLocation.status == .running {
-			return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
+			return try await WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
 		}
 
 		if Root.vmrunAvailable() {
-			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
+			return try await StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
 		} else {
 			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
 		}

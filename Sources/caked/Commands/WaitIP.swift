@@ -1,7 +1,7 @@
 import ArgumentParser
 import Logging
 
-struct WaitIP: ParsableCommand {
+struct WaitIP: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "waitip", abstract: "Run linux VM in background")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -17,7 +17,7 @@ struct WaitIP: ParsableCommand {
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() throws {
-		Logger.appendNewLine(try WaitIPHandler.waitIP(name: self.name, wait: self.wait, asSystem: false))
+	mutating func run() async throws {
+		Logger.appendNewLine(try await WaitIPHandler.waitIP(name: self.name, wait: self.wait, asSystem: false))
 	}
 }

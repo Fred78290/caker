@@ -207,11 +207,11 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					// Notify the promise that the connection is successful
 					promise.succeed(())
 				} catch {
-					Logger.info("Failed to connect to socket device on port:\(port), \(error)")
+					Logger.error("Failed to connect to socket device on port:\(port), \(error)")
 					promise.fail(error)
 				}
 			case let .failure(error):
-				Logger.info("Failed to connect to socket device on port:\(port), \(error)")
+				Logger.error("Failed to connect to socket device on port:\(port), \(error)")
 				// Notify the promise that the connection is failed
 				promise.fail(error)
 			}
@@ -349,7 +349,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 			} catch {
 				// Reject vsock connection if the connection to unix socket failed
-				Logger.info("Failed to connect the socket device on \(socket.description), \(error)")
+				Logger.error("Failed to connect the socket device on \(socket.description), \(error)")
 				return false
 			}
 		} else if socket.mode == .fd {
@@ -374,7 +374,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 			} catch {
 				// Reject vsock connection if the connection to unix socket failed
-				Logger.info("Failed to connect the socket device on \(socket.description), \(error)")
+				Logger.error("Failed to connect the socket device on \(socket.description), \(error)")
 				return false
 			}
 

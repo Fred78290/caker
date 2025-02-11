@@ -4,13 +4,12 @@ import Semaphore
 import GRPCLib
 import NIO
 
-class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
-	@Published var virtualMachine: VZVirtualMachine
-
+final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
+	var virtualMachine: VZVirtualMachine
 	var name: String
 	var config: CakeConfig
 	var communicationDevices: CommunicationDevices?
-	var configuration: VZVirtualMachineConfiguration?
+	var configuration: VZVirtualMachineConfiguration
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmLocation: VMLocation
 
@@ -136,7 +135,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 	func pause() async throws -> Bool{
 		#if arch(arm64)
 			if #available(macOS 14, *) {
-				try configuration!.validateSaveRestoreSupport()
+				try configuration.validateSaveRestoreSupport()
 
 				Logger.info("Pause VM...")
 				try await virtualMachine.pause()
@@ -201,7 +200,7 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		var identifier: String? = nil
 
 		if config.forwardedPorts.isEmpty == false {
-			let runningIP: String = try WaitIPHandler.waitIPWithAgent(name: self.name, wait: 120, asSystem: runAsSystem)
+			let runningIP: String = try await waitIP(wait: 120, asSystem: runAsSystem)
 
 			identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
 		}
@@ -288,31 +287,20 @@ class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
 		self.catchSIGUSR2(task)
 	}
 
-	func waitIP(wait: Int, asSystem: Bool) throws -> String {
+	private func waitIP(wait: Int, asSystem: Bool) async throws -> String {
 		let listeningAddress = vmLocation.agentURL
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 1, retries: .none)
+		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 10, retries: .unlimited)
 
 		let start: Date = Date.now
 		var count = 0
 
 		repeat {
-			let result: EventLoopFuture<String?> = Root.group.any().makeFutureWithTask {
-				if let infos = try? await conn.info() {
-					if let runningIP = infos.ipaddresses.first {
-						return runningIP
-					}
-				} else {
-					return nil
+			if let infos = try? await conn.info() {
+				if let runningIP = infos.ipaddresses.first {
+					return runningIP
 				}
-
-				return nil
 			}
-
-			if let runningIP = try result.wait() {
-				return runningIP
-			}
-
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
