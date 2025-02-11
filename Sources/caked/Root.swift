@@ -15,8 +15,6 @@ let delegatedCommand: [String] = [
 	"push",
 	"import",
 	"export",
-	"prune",
-	"rename",
 	"suspend"
 ]
 
@@ -34,6 +32,7 @@ struct Root: AsyncParsableCommand {
 			Service.self,
 			Certificates.self,
 			Build.self,
+			Rename.self,
 			Start.self,
 			Stop.self,
 			Delete.self,

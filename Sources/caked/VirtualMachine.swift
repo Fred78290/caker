@@ -204,6 +204,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		if config.forwardedPorts.isEmpty == false {
 			let runningIP: String = try await waitIP(wait: 120, asSystem: runAsSystem)
 
+			Logger.info("Forwarding ports from \(runningIP)")
+
+			PortForwardingServer.createPortForwardingServer(on: Root.group)
+
 			identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
 		}
 
@@ -228,6 +232,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				try await self.stop()
 			}
 		}
+
+		Logger.info("VM exited")
 	}
 
 	func catchSIGINT(_ task: Task<Void, Error>) {

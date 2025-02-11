@@ -117,6 +117,8 @@ struct VMRun: AsyncParsableCommand {
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 
+		runAsSystem = asSystem
+
 		let storageLocation = StorageLocation(asSystem: asSystem)
 
 		if storageLocation.exists(name) == false {
@@ -168,15 +170,20 @@ struct VMRun: AsyncParsableCommand {
 		let task = Task {
 			try vmLocation.writePID()
 
-			try await vm.start()
-			try await vm.run()
+			do {
+				try await vm.start()
+				try await vm.run()
+		
+		        Foundation.exit(0)
+
+			} catch {
+		        Foundation.exit(1)
+			}
 		}
 
 		vm.catchUserSignals(task)
 
-		MainApp.runUI(vm: vm, false, false)
-
-//		NSApplication.shared.setActivationPolicy(.prohibited)
-//		NSApplication.shared.run()
+		NSApplication.shared.setActivationPolicy(.prohibited)
+		NSApplication.shared.run()
 	}
 }

@@ -24,6 +24,7 @@ service Service {
 	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
+	rpc Rename(RenameRequest) returns (Reply);
 	rpc Info (InfoRequest) returns (InfoReply);
 	rpc Execute (ExecuteRequest) returns (ExecuteReply);
 	rpc Shell(stream ShellRequest) returns (stream ShellResponse);
@@ -241,4 +242,9 @@ enum ReponseFormat {
 message ShellResponse {
 	ReponseFormat format = 1;
 	optional bytes datas = 2;
+}
+
+message RenameRequest {
+	string oldname = 1;
+	string newname = 2;
 }

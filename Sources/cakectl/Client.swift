@@ -178,7 +178,6 @@ struct Client: AsyncParsableCommand {
 			Import.self,
 			Export.self,
 			Rename.self,
-			FQN.self,
 		])
 
 	static func getDefaultServerAddress(asSystem: Bool) throws -> String {

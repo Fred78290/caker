@@ -1069,6 +1069,20 @@ public struct Caked_ShellResponse: @unchecked Sendable {
   fileprivate var _datas: Data? = nil
 }
 
+public struct Caked_RenameRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var oldname: String = String()
+
+  public var newname: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "caked"
@@ -2601,6 +2615,44 @@ extension Caked_ShellResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static func ==(lhs: Caked_ShellResponse, rhs: Caked_ShellResponse) -> Bool {
     if lhs.format != rhs.format {return false}
     if lhs._datas != rhs._datas {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_RenameRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RenameRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "oldname"),
+    2: .same(proto: "newname"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.oldname) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.newname) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.oldname.isEmpty {
+      try visitor.visitSingularStringField(value: self.oldname, fieldNumber: 1)
+    }
+    if !self.newname.isEmpty {
+      try visitor.visitSingularStringField(value: self.newname, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_RenameRequest, rhs: Caked_RenameRequest) -> Bool {
+    if lhs.oldname != rhs.oldname {return false}
+    if lhs.newname != rhs.newname {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

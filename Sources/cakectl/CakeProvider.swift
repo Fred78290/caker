@@ -13,6 +13,14 @@ private func saveToTempFile(_ data: Data) throws -> String {
 	return url.absoluteURL.path()
 }
 
+extension Caked_RenameRequest {
+	init(command: Rename) {
+		self.init()
+		self.oldname = command.name
+		self.newname = command.newName
+	}
+}
+
 extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()

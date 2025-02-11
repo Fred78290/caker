@@ -15,6 +15,6 @@ struct Rename: GrpcParsableCommand {
 	var newName: String
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "rename", arguments: arguments), callOptions: callOptions).response.wait()
+		return try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

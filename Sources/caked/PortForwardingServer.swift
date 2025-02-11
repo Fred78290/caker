@@ -84,6 +84,12 @@ class PortForwardingServer {
 	static func createForwardedPort(remoteHost: String, forwardedPorts: [ForwardedPort]) throws -> String? {
 		if forwardedPorts.count > 0 {
 			if let portForwardingServer = portForwardingServer {
+				let details = forwardedPorts.map { port in
+					return port.description
+				}
+
+				Logger.info("Add forwarded ports\(details.joined(separator: ", "))")
+	
 				return try portForwardingServer.add(remoteHost: remoteHost, forwardedPorts: forwardedPorts)
 			}
 		}

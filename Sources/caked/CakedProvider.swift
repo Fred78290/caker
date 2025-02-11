@@ -46,6 +46,12 @@ class Unimplemented: Error {
 	}
 }
 
+extension Caked_RenameRequest: CreateCakedCommand {
+	func createCommand() throws -> CakedCommand {
+		return RenameHandler(request: self)
+	}
+}
+
 extension Caked_CakedCommandRequest: CreateCakedCommand {
 	init(command: String, arguments: [String]) {
 		self.init()
@@ -253,6 +259,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func stop(request: Caked_StopRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
+
+    func rename(request: GRPCLib.Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+		return try self.execute(command: request)
+    }
 
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
 		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
