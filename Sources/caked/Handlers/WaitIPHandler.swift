@@ -20,8 +20,6 @@ struct WaitIPHandler: CakedCommand {
 		repeat {
 			if let tartProcess = tartProcess, tartProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: "Tart process is not running", message: "")
-			} else if vmLocation.status != .running {
-				throw ServiceError("VM \(name) is not running")
 			}
 
 			// Try also arp if dhcp is disabled
@@ -53,8 +51,6 @@ struct WaitIPHandler: CakedCommand {
 		repeat {
 			if let vmrunProcess = vmrunProcess, vmrunProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
-			} else if vmLocation.status != .running {
-				throw ServiceError("VM \(name) is not running")
 			}
 
 			if let infos = try? await conn.info() {

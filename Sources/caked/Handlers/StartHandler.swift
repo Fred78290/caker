@@ -48,8 +48,6 @@ struct StartHandler: CakedCommand {
 				config.runningIP = runningIP
 				try config.save()
 
-				self.identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
-
 				return runningIP
 			} catch {
 				Logger.error(error)
@@ -267,7 +265,7 @@ struct StartHandler: CakedCommand {
 		process.executableURL = URL(fileURLWithPath: "/bin/sh")
 		process.terminationHandler = terminationHandler
 
-		Logger.info(process.arguments?.joined(separator: " ") ?? "")	
+		Logger.debug(process.arguments?.joined(separator: " ") ?? "")	
 
 		try process.run()
 
