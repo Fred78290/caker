@@ -169,15 +169,17 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 					resumeVM = true
 				}
 			}
-		#endif
-
-		if resumeVM {
-			Logger.info("Resume VM...")
-			try await resume()
-		} else {
+			if resumeVM {
+				Logger.info("Resume VM...")
+				try await resume()
+			} else {
+				Logger.info("Start VM...")
+				try await self.startVM()
+			}
+		#else
 			Logger.info("Start VM...")
 			try await self.startVM()
-		}
+		#endif
 	}
 
 	@MainActor

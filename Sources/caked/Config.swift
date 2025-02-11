@@ -69,6 +69,7 @@ struct CakeConfig {
 	}
 
 
+#if arch(arm64)
 	var ecid: VZMacMachineIdentifier {
 		set {
 				self.config["ecid"] = newValue.dataRepresentation.base64EncodedString()
@@ -98,6 +99,7 @@ struct CakeConfig {
 				return nil
 			}
 	}
+#endif
 
 	var cpuCount: Int {
 		set { self.config["cpuCount"] = newValue }
@@ -281,10 +283,16 @@ struct CakeConfig {
 
 	func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
 		switch self.os {
+		#if arch(arm64)
 		case .darwin:
 			return DarwinPlateform(nvramURL: nvramURL, ecid: self.ecid, hardwareModel: self.hardwareModel!)
+		#endif
 		case .linux:
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
+		#if !arch(arm64)
+		default:
+			throw ServiceError("Unsupported plateform")
+		#endif
 		}
 	}
 }

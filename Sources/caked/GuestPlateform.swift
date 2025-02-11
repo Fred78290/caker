@@ -53,6 +53,7 @@ struct LinuxPlateform: GuestPlateForm {
 	}
 }
 
+#if arch(arm64)
 struct DarwinPlateform: GuestPlateForm {
 	let nvramURL: URL
     let ecid: VZMacMachineIdentifier
@@ -112,5 +113,5 @@ struct DarwinPlateform: GuestPlateForm {
 	func pointingDevices() -> [VZPointingDeviceConfiguration] {
 		[VZUSBScreenCoordinatePointingDeviceConfiguration(), VZMacTrackpadConfiguration()]
 	}
-
 }
+#endif
