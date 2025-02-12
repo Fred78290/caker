@@ -5,21 +5,33 @@ import GRPCLib
 let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
-	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions) throws {
-		// Create NVRAM
-		_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
-
+	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, clone: Bool) throws {
+		var config: CakeConfig
+		
 		// Create disk
 		try vmLocation.expandDiskTo(options.diskSize)
 
 		// Create config
-		var config = CakeConfig(location: vmLocation.rootURL,
-			os: .linux,
-			autostart: options.autostart,
-			configuredUser: options.user,
-			displayRefit: options.displayRefit,
-			cpuCountMin: 1,
-			memorySizeMin: 512 * 1024 * 1024)
+
+		if clone {
+			config = try CakeConfig(location: vmLocation.rootURL)
+
+			config.useCloudInit = config.os == .linux
+			config.agent = false
+		} else {
+			// Create NVRAM
+			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
+			config = CakeConfig(location: vmLocation.rootURL,
+				os: .linux,
+				autostart: options.autostart,
+				configuredUser: options.user,
+				displayRefit: options.displayRefit,
+				cpuCountMin: 1,
+				memorySizeMin: 512 * 1024 * 1024)
+
+			config.useCloudInit = true
+			config.agent = true
+		}
 
 		config.cpuCount = Int(options.cpu)
 		config.memorySize = options.memory * 1024 * 1024
@@ -31,27 +43,28 @@ struct VMBuilder {
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 		config.forwardedPorts = options.forwardedPorts
-		config.useCloudInit = true
 
 		try config.save()
 
-		let cloudInit = try CloudInit(userName: options.user,
-									  password: options.password,
-									  mainGroup: options.mainGroup,
-									  clearPassword: options.clearPassword,
-									  sshAuthorizedKeyPath: options.sshAuthorizedKey,
-									  vendorDataPath: options.vendorData,
-									  userDataPath: options.userData,
-									  networkConfigPath: options.networkConfig)
+		if config.useCloudInit {
+			let cloudInit = try CloudInit(userName: options.user,
+										password: options.password,
+										mainGroup: options.mainGroup,
+										clearPassword: options.clearPassword,
+										sshAuthorizedKeyPath: options.sshAuthorizedKey,
+										vendorDataPath: options.vendorData,
+										userDataPath: options.userData,
+										networkConfigPath: options.networkConfig)
 
-		try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
+			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
+		}
 	}
 
-	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
+	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> Bool{
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) {
 			throw ServiceError("VM already exists")
 		}
-
+		var clonedImage = false
 		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
 		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://"]
 		let remotes = remoteDb.keys
@@ -79,6 +92,10 @@ struct VMBuilder {
 		} else if imageURL.scheme == "http" || imageURL.scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL)
 		} else if imageURL.scheme == "oci" || imageURL.scheme == "ocis" {
+			if Root.tartIsPresent == false {
+				throw ServiceError("tart is not installed")
+			}
+
 			let ociImage = options.image.stringAfter(after: "//")
 			let arguments: [String]
 
@@ -95,6 +112,7 @@ struct VMBuilder {
 			_ = try FileManager.default.copyItem(at: clonedLocation.diskURL, to: vmLocation.diskURL)
 
 			try FileManager.default.removeItem(at: clonedLocation.rootURL)
+			clonedImage = true
 		} else if let remote = remotes.first(where: { start in return options.image.starts(with: start) }) {
 			let aliasImage: Dictionary<String, String>.Keys.Element = options.image.stringAfter(after: remote+":")
 			let remoteContainerServer = remoteDb.get(remote)!
@@ -110,10 +128,12 @@ struct VMBuilder {
 		} else {
 			throw ServiceError("unsupported image url: \(options.image)")
 		}
+
+		return clonedImage
 	}
 
 	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
-		try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
-		try self.build(vmName: vmName, vmLocation: vmLocation, options: options)
+		let clonedImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
+		try self.build(vmName: vmName, vmLocation: vmLocation, options: options, clone: clonedImage)
 	}
 }

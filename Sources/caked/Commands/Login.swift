@@ -53,6 +53,6 @@ struct Login: AsyncParsableCommand {
 			self.password = readLine(strippingNewline: true)
 		}
 
-		try LoginHandler.login(username: self.username!, password: self.password!, insecure: self.insecure, noValidate: self.noValidate, direct: true)
+		try LoginHandler.login(host: host, username: self.username!, password: self.password!, insecure: self.insecure, noValidate: self.noValidate, direct: true)
 	}
 }

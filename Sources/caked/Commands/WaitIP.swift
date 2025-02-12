@@ -2,7 +2,7 @@ import ArgumentParser
 import Logging
 
 struct WaitIP: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "waitip", abstract: "Run linux VM in background")
+	static var configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait for ip of a running VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

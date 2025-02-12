@@ -141,6 +141,16 @@ struct CakeConfig {
 		get { self.cake["autostart"] as? Bool ?? false }
 	}
 
+	var agent: Bool {
+		set { self.cake["agent"] = newValue }
+		get { self.cake["agent"] as? Bool ?? false }
+	}
+
+	var firstLaunch: Bool {
+		set { self.cake["firstLaunch"] = newValue }
+		get { self.cake["firstLaunch"] as? Bool ?? true }
+	}
+
 	var nested: Bool {
 		set { self.cake["nested"] = newValue }
 		get { self.cake["nested"] as? Bool ?? false }

@@ -11,8 +11,20 @@ struct StartHandler: CakedCommand {
 	var name: String
 	var waitIPTimeout: Int = 180
 
+	internal static func installAgent(runningIP: String) throws -> Bool {
+		return false
+	}
+
 	private class StartHandlerVMRun {
 		var identifier: String? = nil
+
+		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
+			if agent {
+				return try await WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
+			} else {
+				return try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
+			}
+		}
 
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
 			var config: CakeConfig = try vmLocation.config()
@@ -43,9 +55,15 @@ struct StartHandler: CakedCommand {
 			}
 
 			do {
-				let runningIP = try await WaitIPHandler.waitIPWithAgent(name: vmLocation.name, wait: 180, asSystem: runAsSystem, vmrunProcess: process)
+				let runningIP = try await waitIP(agent: config.agent, vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
+
+				if config.firstLaunch && config.agent == false {
+					config.agent = try StartHandler.installAgent(runningIP: runningIP)
+				}
 
 				config.runningIP = runningIP
+				config.firstLaunch = false
+
 				try config.save()
 
 				return runningIP
@@ -155,10 +173,16 @@ struct StartHandler: CakedCommand {
 			}
 
 			do {
-				let runningIP = try WaitIPHandler.waitIPWithTart(name: vmLocation.name, wait: 180, asSystem: runAsSystem, tartProcess: process)
+				let runningIP = try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, tartProcess: process)
 				var config: CakeConfig = try vmLocation.config()
 
+				if config.firstLaunch && config.agent == false {
+					config.agent = try AgentInstaller.installAgent(runningIP: runningIP)
+				}
+
 				config.runningIP = runningIP
+				config.firstLaunch = false
+
 				try config.save()
 
 				self.identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)

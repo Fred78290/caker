@@ -2,15 +2,13 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 import NIOCore
+import GRPCLib
 
 struct LoginHandler: CakedCommand {
-	var username: String
-	var password: String
-	var insecure: Bool = false
-	var noValidate: Bool = false
+	let request: Caked_LoginRequest
 
-	@discardableResult static func login(username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool) throws -> String {
-		var arguments: [String] = ["--user=\(username)", "--password-stdin"]
+	@discardableResult static func login(host: String, username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool) throws -> String {
+		var arguments: [String] = [host, "--user=\(username)", "--password-stdin"]
 
 		if insecure {
 			arguments.append("--insecure")
@@ -25,7 +23,7 @@ struct LoginHandler: CakedCommand {
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		on.submit {
-			return try Self.login(username: self.username, password: password, insecure: insecure, noValidate: insecure, direct: false)
+			return try Self.login(host: self.request.host, username: self.request.username, password: self.request.password, insecure: self.request.insecure, noValidate: self.request.insecure, direct: false)
 		}
 	}
 }

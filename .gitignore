@@ -6,6 +6,7 @@
 qcow2convert/Qcow2convert.xcframework/
 DerivedData/
 dist/
+Sources/cakectl/Ignored/
 
 *.log
 *.pkg

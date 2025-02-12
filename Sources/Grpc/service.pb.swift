@@ -847,10 +847,24 @@ public struct Caked_ConfigureRequest: Sendable {
   fileprivate var _forwardedPort: String? = nil
 }
 
+public struct Caked_LogoutRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var host: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Caked_LoginRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  public var host: String = String()
 
   public var username: String = String()
 
@@ -2163,13 +2177,10 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   }
 }
 
-extension Caked_LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".LoginRequest"
+extension Caked_LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".LogoutRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "username"),
-    2: .same(proto: "password"),
-    3: .same(proto: "insecure"),
-    4: .same(proto: "noValidate"),
+    1: .same(proto: "host"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2178,32 +2189,73 @@ extension Caked_LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.username) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.password) }()
-      case 3: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
-      case 4: try { try decoder.decodeSingularBoolField(value: &self.noValidate) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.host) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.host.isEmpty {
+      try visitor.visitSingularStringField(value: self.host, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_LogoutRequest, rhs: Caked_LogoutRequest) -> Bool {
+    if lhs.host != rhs.host {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".LoginRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "host"),
+    2: .same(proto: "username"),
+    3: .same(proto: "password"),
+    4: .same(proto: "insecure"),
+    5: .same(proto: "noValidate"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.host) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.username) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.password) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.noValidate) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.host.isEmpty {
+      try visitor.visitSingularStringField(value: self.host, fieldNumber: 1)
+    }
     if !self.username.isEmpty {
-      try visitor.visitSingularStringField(value: self.username, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.username, fieldNumber: 2)
     }
     if !self.password.isEmpty {
-      try visitor.visitSingularStringField(value: self.password, fieldNumber: 2)
+      try visitor.visitSingularStringField(value: self.password, fieldNumber: 3)
     }
     if self.insecure != false {
-      try visitor.visitSingularBoolField(value: self.insecure, fieldNumber: 3)
+      try visitor.visitSingularBoolField(value: self.insecure, fieldNumber: 4)
     }
     if self.noValidate != false {
-      try visitor.visitSingularBoolField(value: self.noValidate, fieldNumber: 4)
+      try visitor.visitSingularBoolField(value: self.noValidate, fieldNumber: 5)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_LoginRequest, rhs: Caked_LoginRequest) -> Bool {
+    if lhs.host != rhs.host {return false}
     if lhs.username != rhs.username {return false}
     if lhs.password != rhs.password {return false}
     if lhs.insecure != rhs.insecure {return false}

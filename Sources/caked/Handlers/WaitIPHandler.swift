@@ -10,8 +10,7 @@ struct WaitIPHandler: CakedCommand {
 	var name: String
 	var wait: Int
 
-	static func waitIPWithTart(name: String, wait: Int, asSystem: Bool, tartProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+	static func waitIPWithTart(vmLocation: VMLocation, wait: Int, asSystem: Bool, tartProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let config = try vmLocation.config()
 		let start: Date = Date.now
 		var arguments: [String]
@@ -24,9 +23,9 @@ struct WaitIPHandler: CakedCommand {
 
 			// Try also arp if dhcp is disabled
 			if config.networks.isEmpty == false || count & 1 == 1 {
-				arguments = [ name, "--wait=1", "--resolver=arp"]
+				arguments = [ vmLocation.name, "--wait=1", "--resolver=arp"]
 			} else {
-				arguments = [ name, "--wait=1"]
+				arguments = [ vmLocation.name, "--wait=1"]
 			}
 
 			if let runningIP = try? Shell.runTart(command: "ip", arguments: arguments) {
@@ -36,11 +35,10 @@ struct WaitIPHandler: CakedCommand {
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(name)", message: "")
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(vmLocation.name)", message: "")
 	}
 
-	static func waitIPWithAgent(name: String, wait: Int, asSystem: Bool, vmrunProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+	static func waitIPWithAgent(vmLocation: VMLocation, wait: Int, asSystem: Bool, vmrunProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
 		let listeningAddress = vmLocation.agentURL
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 5, retries: .none)
@@ -62,23 +60,35 @@ struct WaitIPHandler: CakedCommand {
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(name)", message: "")
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(vmLocation.name)", message: "")
 	}
 
 	static func waitIP(name: String, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+
+		if vmLocation.status != .running {
+			throw ServiceError("VM \(name) is not running")
+		}
+
 		if Root.vmrunAvailable() {
-			return try await waitIPWithAgent(name: name, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
+			return try await waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
 		} else {
-			return try waitIPWithTart(name: name, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
+			return try waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
 		}
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.makeFutureWithTask {
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+
+		if vmLocation.status != .running {
+			throw ServiceError("VM \(name) is not running")
+		}
+
+		return on.makeFutureWithTask {
 			if Root.vmrunAvailable() {
-				return try await Self.waitIPWithAgent(name: name, wait: wait, asSystem: asSystem)
+				return try await Self.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem)
 			} else {
-				return try Self.waitIPWithTart(name: name, wait: wait, asSystem: asSystem)
+				return try Self.waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem)
 			}
 		}
 	}

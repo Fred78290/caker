@@ -129,6 +129,9 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
 			.target(name: "GRPCLib"),
+		],
+		exclude: [
+			"Ignored"
 		]),
 		.testTarget(name: "CakerTests", dependencies: ["GRPCLib", "caked", "cakectl"])
 	]

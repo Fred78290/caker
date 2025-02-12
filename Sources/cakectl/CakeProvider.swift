@@ -154,6 +154,7 @@ extension Caked_LoginRequest {
 	init (command: Login) throws {
 		self.init()
 
+		self.host = command.host
 		self.insecure = command.insecure
 		self.noValidate = command.noValidate
 
@@ -168,6 +169,13 @@ extension Caked_LoginRequest {
 		} else if let password = command.password {
 			self.password = password
 		}
+	}
+}
+
+extension Caked_LogoutRequest {
+	init (command: Logout) {
+		self.init()
+		self.host = command.host
 	}
 }
 

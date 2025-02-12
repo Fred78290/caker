@@ -15,6 +15,7 @@ service Service {
 	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
 	rpc Launch (LaunchRequest) returns (Reply) {}
 	rpc Login (LoginRequest) returns (Reply) {}
+	rpc Logout (LogoutRequest) returns (Reply) {}
 	rpc Purge (PurgeRequest) returns (Reply) {}
 	rpc Configure (ConfigureRequest) returns (Reply) {}
 	rpc WaitIP (WaitIPRequest) returns (Reply) {}
@@ -179,11 +180,16 @@ message ConfigureRequest {
 	optional string forwardedPort = 13;
 }
 
+message LogoutRequest {
+	string host = 1;
+}
+
 message LoginRequest {
-	string username = 1;
-	string password = 2;
-	bool insecure = 3;
-	bool noValidate = 4;
+	string host = 1;
+	string username = 2;
+	string password = 3;
+	bool insecure = 4;
+	bool noValidate = 5;
 }
 
 message Reply {

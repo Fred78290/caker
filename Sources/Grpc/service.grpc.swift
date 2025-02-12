@@ -41,6 +41,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_LoginRequest, Caked_Reply>
 
+  func logout(
+    _ request: Caked_LogoutRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_LogoutRequest, Caked_Reply>
+
   func purge(
     _ request: Caked_PurgeRequest,
     callOptions: CallOptions?
@@ -199,6 +204,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Logout
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Logout.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func logout(
+    _ request: Caked_LogoutRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_LogoutRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.logout.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
     )
   }
 
@@ -527,6 +550,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_LoginRequest, Caked_Reply>
 
+  func makeLogoutCall(
+    _ request: Caked_LogoutRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_LogoutRequest, Caked_Reply>
+
   func makePurgeCall(
     _ request: Caked_PurgeRequest,
     callOptions: CallOptions?
@@ -659,6 +687,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLoginInterceptors() ?? []
+    )
+  }
+
+  public func makeLogoutCall(
+    _ request: Caked_LogoutRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_LogoutRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.logout.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
     )
   }
 
@@ -879,6 +919,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func logout(
+    _ request: Caked_LogoutRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.logout.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeLogoutInterceptors() ?? []
+    )
+  }
+
   public func purge(
     _ request: Caked_PurgeRequest,
     callOptions: CallOptions? = nil
@@ -1082,6 +1134,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'login'.
   func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'logout'.
+  func makeLogoutInterceptors() -> [ClientInterceptor<Caked_LogoutRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'purge'.
   func makePurgeInterceptors() -> [ClientInterceptor<Caked_PurgeRequest, Caked_Reply>]
 
@@ -1132,6 +1187,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.cakeCommand,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.login,
+      Caked_ServiceClientMetadata.Methods.logout,
       Caked_ServiceClientMetadata.Methods.purge,
       Caked_ServiceClientMetadata.Methods.configure,
       Caked_ServiceClientMetadata.Methods.waitIP,
@@ -1176,6 +1232,12 @@ public enum Caked_ServiceClientMetadata {
     public static let login = GRPCMethodDescriptor(
       name: "Login",
       path: "/caked.Service/Login",
+      type: GRPCCallType.unary
+    )
+
+    public static let logout = GRPCMethodDescriptor(
+      name: "Logout",
+      path: "/caked.Service/Logout",
       type: GRPCCallType.unary
     )
 
@@ -1274,6 +1336,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func login(request: Caked_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
+  func logout(request: Caked_LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
   func purge(request: Caked_PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func configure(request: Caked_ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
@@ -1356,6 +1420,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
         userFunction: self.login(request:context:)
+      )
+
+    case "Logout":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_LogoutRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
+        userFunction: self.logout(request:context:)
       )
 
     case "Purge":
@@ -1513,6 +1586,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
+  func logout(
+    request: Caked_LogoutRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
   func purge(
     request: Caked_PurgeRequest,
     context: GRPCAsyncServerCallContext
@@ -1642,6 +1720,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
         wrapping: { try await self.login(request: $0, context: $1) }
+      )
+
+    case "Logout":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_LogoutRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
+        wrapping: { try await self.logout(request: $0, context: $1) }
       )
 
     case "Purge":
@@ -1789,6 +1876,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeLoginInterceptors() -> [ServerInterceptor<Caked_LoginRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'logout'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeLogoutInterceptors() -> [ServerInterceptor<Caked_LogoutRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'purge'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makePurgeInterceptors() -> [ServerInterceptor<Caked_PurgeRequest, Caked_Reply>]
@@ -1852,6 +1943,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.cakeCommand,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.login,
+      Caked_ServiceServerMetadata.Methods.logout,
       Caked_ServiceServerMetadata.Methods.purge,
       Caked_ServiceServerMetadata.Methods.configure,
       Caked_ServiceServerMetadata.Methods.waitIP,
@@ -1896,6 +1988,12 @@ public enum Caked_ServiceServerMetadata {
     public static let login = GRPCMethodDescriptor(
       name: "Login",
       path: "/caked.Service/Login",
+      type: GRPCCallType.unary
+    )
+
+    public static let logout = GRPCMethodDescriptor(
+      name: "Logout",
+      path: "/caked.Service/Logout",
       type: GRPCCallType.unary
     )
 

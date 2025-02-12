@@ -2,7 +2,7 @@ import ArgumentParser
 import Logging
 
 struct Stop: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
+	static var configuration = CommandConfiguration(abstract: "Stop VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

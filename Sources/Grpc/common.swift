@@ -7,15 +7,15 @@ private let cloudimage_help =
 """
                    The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
                    The url image form are:
-                     - local images: /Users/myhome/disk.img or file:///Users/myhome/disk.img
+                     - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
 
-                     - cloud images: https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+                     - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 
                      - lxc images: images:ubuntu/noble/cloud, see remote command for detail
+                   If tart is installed, you can use tart images:
+                     - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
 
-                     - secure oci images: ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
-
-                     - unsecure oci images: oci://unsecure.com/ubuntu:latest (http)
+                     - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
 
 """
 

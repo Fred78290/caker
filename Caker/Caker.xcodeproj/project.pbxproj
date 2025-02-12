@@ -79,7 +79,6 @@
 		9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6E2D5A3E0300164BF5 /* Exec.swift */; };
 		9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6B2D5A3E0300164BF5 /* Configure.swift */; };
 		9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7F2D5A3E0300164BF5 /* Rename.swift */; };
-		9B464B672D5A3E8900164BF5 /* FQN.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A702D5A3E0300164BF5 /* FQN.swift */; };
 		9B464B682D5A3E8900164BF5 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6A2D5A3E0300164BF5 /* Clone.swift */; };
 		9B464B692D5A3E8900164BF5 /* Export.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6F2D5A3E0300164BF5 /* Export.swift */; };
 		9B464B6A2D5A3E8900164BF5 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7E2D5A3E0300164BF5 /* Remote.swift */; };
@@ -89,7 +88,6 @@
 		9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A822D5A3E0300164BF5 /* Start.swift */; };
 		9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A812D5A3E0300164BF5 /* Sh.swift */; };
 		9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7B2D5A3E0300164BF5 /* Pull.swift */; };
-		9B464B712D5A3E8900164BF5 /* IP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A752D5A3E0300164BF5 /* IP.swift */; };
 		9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7C2D5A3E0300164BF5 /* Purge.swift */; };
 		9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A692D5A3E0300164BF5 /* Cake.swift */; };
 		9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7A2D5A3E0300164BF5 /* Networks.swift */; };
@@ -97,11 +95,7 @@
 		9B464B762D5A3E8900164BF5 /* Stop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A832D5A3E0300164BF5 /* Stop.swift */; };
 		9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6D2D5A3E0300164BF5 /* Delete.swift */; };
 		9B464B782D5A3E8900164BF5 /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A732D5A3E0300164BF5 /* Import.swift */; };
-		9B464B792D5A3E8900164BF5 /* Create.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6C2D5A3E0300164BF5 /* Create.swift */; };
-		9B464B7A2D5A3E8900164BF5 /* Get.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A712D5A3E0300164BF5 /* Get.swift */; };
 		9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A742D5A3E0300164BF5 /* Infos.swift */; };
-		9B464B7C2D5A3E8900164BF5 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A842D5A3E0300164BF5 /* Suspend.swift */; };
-		9B464B7D2D5A3E8900164BF5 /* Set.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A802D5A3E0300164BF5 /* Set.swift */; };
 		9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */; };
 		9B464B7F2D5A3E9000164BF5 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A662D5A3E0300164BF5 /* CI.swift */; };
 		9B464B822D5A3EEA00164BF5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464B812D5A3EEA00164BF5 /* ArgumentParser */; };
@@ -180,6 +174,8 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
+		9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AB2D5C9E19000CA07F /* Rename.swift */; };
+		9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -218,16 +214,12 @@
 		9B464A692D5A3E0300164BF5 /* Cake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cake.swift; sourceTree = "<group>"; };
 		9B464A6A2D5A3E0300164BF5 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9B464A6B2D5A3E0300164BF5 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
-		9B464A6C2D5A3E0300164BF5 /* Create.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Create.swift; sourceTree = "<group>"; };
 		9B464A6D2D5A3E0300164BF5 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
 		9B464A6E2D5A3E0300164BF5 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
 		9B464A6F2D5A3E0300164BF5 /* Export.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Export.swift; sourceTree = "<group>"; };
-		9B464A702D5A3E0300164BF5 /* FQN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FQN.swift; sourceTree = "<group>"; };
-		9B464A712D5A3E0300164BF5 /* Get.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Get.swift; sourceTree = "<group>"; };
 		9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
 		9B464A732D5A3E0300164BF5 /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B464A742D5A3E0300164BF5 /* Infos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Infos.swift; sourceTree = "<group>"; };
-		9B464A752D5A3E0300164BF5 /* IP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.swift; sourceTree = "<group>"; };
 		9B464A762D5A3E0300164BF5 /* Launch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launch.swift; sourceTree = "<group>"; };
 		9B464A772D5A3E0300164BF5 /* List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = List.swift; sourceTree = "<group>"; };
 		9B464A782D5A3E0300164BF5 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
@@ -238,11 +230,9 @@
 		9B464A7D2D5A3E0300164BF5 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
 		9B464A7E2D5A3E0300164BF5 /* Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Remote.swift; sourceTree = "<group>"; };
 		9B464A7F2D5A3E0300164BF5 /* Rename.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rename.swift; sourceTree = "<group>"; };
-		9B464A802D5A3E0300164BF5 /* Set.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Set.swift; sourceTree = "<group>"; };
 		9B464A812D5A3E0300164BF5 /* Sh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sh.swift; sourceTree = "<group>"; };
 		9B464A822D5A3E0300164BF5 /* Start.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Start.swift; sourceTree = "<group>"; };
 		9B464A832D5A3E0300164BF5 /* Stop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stop.swift; sourceTree = "<group>"; };
-		9B464A842D5A3E0300164BF5 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B464A852D5A3E0300164BF5 /* WaitIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIP.swift; sourceTree = "<group>"; };
 		9B464A872D5A3E0300164BF5 /* CakeProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeProvider.swift; sourceTree = "<group>"; };
 		9B464A882D5A3E0300164BF5 /* Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Client.swift; sourceTree = "<group>"; };
@@ -326,6 +316,8 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BE2E7AB2D5C9E19000CA07F /* Rename.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rename.swift; sourceTree = "<group>"; };
+		9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -463,16 +455,12 @@
 				9B464A692D5A3E0300164BF5 /* Cake.swift */,
 				9B464A6A2D5A3E0300164BF5 /* Clone.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
-				9B464A6C2D5A3E0300164BF5 /* Create.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
 				9B464A6E2D5A3E0300164BF5 /* Exec.swift */,
 				9B464A6F2D5A3E0300164BF5 /* Export.swift */,
-				9B464A702D5A3E0300164BF5 /* FQN.swift */,
-				9B464A712D5A3E0300164BF5 /* Get.swift */,
 				9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */,
 				9B464A732D5A3E0300164BF5 /* Import.swift */,
 				9B464A742D5A3E0300164BF5 /* Infos.swift */,
-				9B464A752D5A3E0300164BF5 /* IP.swift */,
 				9B464A762D5A3E0300164BF5 /* Launch.swift */,
 				9B464A772D5A3E0300164BF5 /* List.swift */,
 				9B464A782D5A3E0300164BF5 /* Login.swift */,
@@ -483,11 +471,9 @@
 				9B464A7D2D5A3E0300164BF5 /* Push.swift */,
 				9B464A7E2D5A3E0300164BF5 /* Remote.swift */,
 				9B464A7F2D5A3E0300164BF5 /* Rename.swift */,
-				9B464A802D5A3E0300164BF5 /* Set.swift */,
 				9B464A812D5A3E0300164BF5 /* Sh.swift */,
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
-				9B464A842D5A3E0300164BF5 /* Suspend.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -540,6 +526,7 @@
 				9B464A9C2D5A3E0300164BF5 /* Networks.swift */,
 				9B464A9D2D5A3E0300164BF5 /* Purge.swift */,
 				9B464A9E2D5A3E0300164BF5 /* Remote.swift */,
+				9BE2E7AB2D5C9E19000CA07F /* Rename.swift */,
 				9B464A9F2D5A3E0300164BF5 /* Service.swift */,
 				9B464AA02D5A3E0300164BF5 /* Sh.swift */,
 				9B464AA12D5A3E0300164BF5 /* Start.swift */,
@@ -563,6 +550,7 @@
 				9B464AAD2D5A3E0300164BF5 /* NetworksHandler.swift */,
 				9B464AAE2D5A3E0300164BF5 /* PurgeHandler.swift */,
 				9B464AAF2D5A3E0300164BF5 /* RemoteHandler.swift */,
+				9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */,
 				9B464AB02D5A3E0300164BF5 /* StartHandler.swift */,
 				9B464AB12D5A3E0300164BF5 /* StopHandler.swift */,
 				9B464AB22D5A3E0300164BF5 /* TartHandler.swift */,
@@ -888,6 +876,7 @@
 				9B464AE72D5A3E0300164BF5 /* Build.swift in Sources */,
 				9B464AE82D5A3E0300164BF5 /* Sh.swift in Sources */,
 				9B464AE92D5A3E0300164BF5 /* Login.swift in Sources */,
+				9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */,
 				9B464AED2D5A3E0300164BF5 /* CommunicationDevices.swift in Sources */,
 				9B464AEE2D5A3E0300164BF5 /* Root.swift in Sources */,
 				9B464AEF2D5A3E0300164BF5 /* GuestPlateform.swift in Sources */,
@@ -944,6 +933,7 @@
 				9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */,
 				9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */,
 				9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */,
+				9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -957,7 +947,6 @@
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
-				9B464B672D5A3E8900164BF5 /* FQN.swift in Sources */,
 				9B464B682D5A3E8900164BF5 /* Clone.swift in Sources */,
 				9B464B692D5A3E8900164BF5 /* Export.swift in Sources */,
 				9B464B6A2D5A3E8900164BF5 /* Remote.swift in Sources */,
@@ -968,7 +957,6 @@
 				9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */,
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
-				9B464B712D5A3E8900164BF5 /* IP.swift in Sources */,
 				9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */,
 				9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */,
 				9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */,
@@ -976,11 +964,7 @@
 				9B464B762D5A3E8900164BF5 /* Stop.swift in Sources */,
 				9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */,
 				9B464B782D5A3E8900164BF5 /* Import.swift in Sources */,
-				9B464B792D5A3E8900164BF5 /* Create.swift in Sources */,
-				9B464B7A2D5A3E8900164BF5 /* Get.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
-				9B464B7C2D5A3E8900164BF5 /* Suspend.swift in Sources */,
-				9B464B7D2D5A3E8900164BF5 /* Set.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
 				9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */,
 				9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */,
@@ -1144,6 +1128,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1162,6 +1147,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -1173,6 +1159,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1191,6 +1178,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

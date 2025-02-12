@@ -1,7 +1,7 @@
 import ArgumentParser
 
-public struct Rename: ParsableCommand {
-	public init() {}
+struct Rename: ParsableCommand {
+	static var configuration = CommandConfiguration(abstract: "Rename a VM")
 	
 	@Argument(help: "VM name")
 	var name: String

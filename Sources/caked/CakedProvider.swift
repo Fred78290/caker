@@ -128,7 +128,13 @@ extension Caked_StartRequest: CreateCakedCommand {
 
 extension Caked_LoginRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
-		return LoginHandler(username: self.username, password: self.password, insecure: insecure, noValidate: noValidate)
+		return LoginHandler(request: self)
+	}
+}
+
+extension Caked_LogoutRequest: CreateCakedCommand {
+	func createCommand() throws -> CakedCommand {
+		return LogoutHandler(request: self)
 	}
 }
 
@@ -236,6 +242,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
+	func logout(request: Caked_LogoutRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+
     func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
     }

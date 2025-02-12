@@ -10,8 +10,8 @@ import ArgumentParser
 import GRPCLib
 import TextTable
 
-public struct Delete: ParsableCommand {
-	public init() {}
+struct Delete: ParsableCommand {
+	static var configuration = CommandConfiguration(abstract: "Delete a VM")
 	
 	@Argument(help: "VM name")
 	var name: [String]

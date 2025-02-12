@@ -7,21 +7,20 @@ import NIO
 var runAsSystem: Bool = false
 
 let delegatedCommand: [String] = [
-	"create",
 	"clone",
 	"logout",
-	"ip",
 	"pull",
 	"push",
 	"import",
-	"export",
-	"suspend"
+	"export"
 ]
 
 let COMMAND_NAME="caked"
 
 @main
 struct Root: AsyncParsableCommand {
+	static let tartIsPresent = checkIfTartPresent()
+
 	static var group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	static var configuration = CommandConfiguration(
 		commandName: "\(COMMAND_NAME)",
@@ -40,7 +39,6 @@ struct Root: AsyncParsableCommand {
 			Configure.self,
 			List.self,
 			WaitIP.self,
-			Login.self,
 			ImagesManagement.self,
 			Remote.self,
 			Networks.self,
@@ -70,8 +68,15 @@ struct Root: AsyncParsableCommand {
 		}
 	}
 
-	public static func main() async throws {
+	private static func checkIfTartPresent() -> Bool {
+		let path = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/usr/local/bin:/bin:/sbin:/usr/sbin:/opt/bin"
 
+		return path.split(separator: ":").first { dir in
+			FileManager.default.isExecutableFile(atPath: "\(dir)/tart")
+		} != nil
+	}
+
+	public static func main() async throws {
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
 		signal(SIGINT, SIG_IGN)
@@ -88,21 +93,26 @@ struct Root: AsyncParsableCommand {
 
 		// Parse and run command
 		do {
-			var commandName: String?
-			var arguments: [String] = []
-			for argument in CommandLine.arguments.dropFirst() {
-				if argument.hasPrefix("-") || commandName != nil {
-					arguments.append(argument)
-				} else if commandName == nil {
-					commandName = argument
-				}
-			}
+			if Self.tartIsPresent {
+				configuration.subcommands.append(Login.self)
+				configuration.subcommands.append(Logout.self)
 
-			if let commandName = commandName {
-				if delegatedCommand.contains(commandName) {
-					try Shell.runTart(command: commandName, arguments: arguments, direct: true)
-					try? await Self.group.shutdownGracefully()
-					return
+				var commandName: String?
+				var arguments: [String] = []
+				for argument in CommandLine.arguments.dropFirst() {
+					if argument.hasPrefix("-") || commandName != nil {
+						arguments.append(argument)
+					} else if commandName == nil {
+						commandName = argument
+					}
+				}
+
+				if let commandName = commandName {
+					if delegatedCommand.contains(commandName) {
+						try Shell.runTart(command: commandName, arguments: arguments, direct: true)
+						try? await Self.group.shutdownGracefully()
+						return
+					}
 				}
 			}
 

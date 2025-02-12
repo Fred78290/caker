@@ -9,7 +9,7 @@ import TextTable
 struct Networks: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: """
 List host network devices (physical interfaces, virtual switches, bridges) available
-to integrate with using the `--bridged` switch to the `launch` command
+to integrate with using the `--network` switch to the `launch` command
 """)
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
