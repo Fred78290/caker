@@ -114,6 +114,18 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"infos",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked infos",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"stop",
 				"linux"
 			],
