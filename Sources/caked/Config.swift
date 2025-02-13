@@ -136,6 +136,11 @@ struct CakeConfig {
 		get { self.cake["configuredUser"] as? String ?? "admin" }
 	}
 
+	var configuredPassword: String {
+		set { self.cake["configuredPassword"] = newValue }
+		get { self.cake["configuredPassword"] as? String ?? "admin" }
+	}
+
 	var autostart: Bool {
 		set { self.cake["autostart"] = newValue }
 		get { self.cake["autostart"] as? Bool ?? false }

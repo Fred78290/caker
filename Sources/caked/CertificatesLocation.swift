@@ -10,6 +10,17 @@ struct CertificatesLocation: Codable {
 	let serverKeyURL: URL
 	let serverCertURL: URL
 
+	var files: [URL] {
+		[
+			self.caCertURL,
+			self.caKeyURL,
+			self.clientKeyURL,
+			self.clientCertURL,
+			self.serverKeyURL,
+			self.serverCertURL
+		]
+	}
+
 	init(certHome: URL) {
 		self.certHome = certHome
 		self.caCertURL = URL(fileURLWithPath: "ca.pem", relativeTo: certHome).absoluteURL
