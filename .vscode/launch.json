@@ -154,7 +154,7 @@
 			"args": [
 				"image",
 				"info",
-				"images:fedora/40/cloud"
+				"canonical:centos/9-Stream/cloud"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked image info",

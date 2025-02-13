@@ -36,12 +36,12 @@ class Streamable {
 		}
 
 		// Download the index
-		Logger.info("Fetching \(remoteURL.lastPathComponent)...")
+		Logger.debug("Fetching \(remoteURL.lastPathComponent)...")
 
-		let progress = Progress(totalUnitCount: 100)
-		ProgressObserver(progress).log()
+		//let progress = Progress(totalUnitCount: 100)
+		//ProgressObserver(progress).log()
 
-		let channel = try await Curl(fromURL: remoteURL).get(progress: progress)
+		let channel = try await Curl(fromURL: remoteURL).get(progress: nil)
 
 		FileManager.default.createFile(atPath: indexLocation.path, contents: nil)
 

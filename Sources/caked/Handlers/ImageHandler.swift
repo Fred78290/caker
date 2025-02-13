@@ -49,7 +49,7 @@ struct ImageInfo: Codable {
 
 	init(product: SimpleStreamProduct) throws {
 		guard let imageVersion = product.latest() else {
-			throw ServiceError("image not found")
+			throw ServiceError("image doesn't offer qcow2 image")
 		}
 
 		self.init(product: product, imageVersion: imageVersion)
