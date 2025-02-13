@@ -8,7 +8,7 @@ struct LaunchHandler: CakedCommand {
 
 	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) async throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
-		var config = try vmLocation.config()
+		let config = try vmLocation.config()
 
 		config.nested = options.nested
 		config.displayRefit = options.displayRefit

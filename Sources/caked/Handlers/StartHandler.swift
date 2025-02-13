@@ -5,19 +5,86 @@ import GRPCLib
 import NIOCore
 import NIOPortForwarding
 import Semaphore
+import Shout
 
 struct StartHandler: CakedCommand {
 	var foreground: Bool = false
 	var name: String
 	var waitIPTimeout: Int = 180
 
-	internal static func installAgent(runningIP: String) throws -> Bool {
-		return false
+	internal static func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
+		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)	
+		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
+		let serverKey = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
+		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
+		let ssh = try SSH(host: runningIP, timeout: 120)
+		let tempFileURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("install-agent.sh")
+		let install_agent = """
+#!/bin/bash
+set -e
+
+OSDISTRO=$([[ "$(uname -s)" =~ Darwin ]] && echo -n darwin || echo -n linux)
+ARCH=$([[ "$(uname -m)" =~ arm64|aarch64 ]] && echo -n arm64 || echo -n amd64)
+AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-b69570d8/cakeagent-${OSDISTRO}-${ARCH}"
+
+if [ $OSDISTRO = "Darwin" ]; then
+	CERTS="/Library/Application Support/CakeAgent/certs"
+else
+	CERTS="/etc/cakeagent/ssl"
+fi
+
+mkdir -p ${CERTS}
+
+CA="${CERTS}/ca.pem"
+SERVER="${CERTS}/server.pem"
+KEY="${CERTS}/server.key"
+
+curl -L $AGENT_URL -o /usr/local/bin/cakeagent
+
+cat | base64 -d <<EOF > "${CA}"
+\(caCert)
+EOF
+
+cat | base64 -d <<EOF > "${SERVER}"
+\(serverPem)
+EOF
+
+cat | base64 -d <<EOF > "${KEY}"
+\(serverKey)
+EOF
+
+chmod -R 600 "${CERTS}"
+
+if [ $OSDISTRO = "Darwin" ]; then
+	chown root:wheel /usr/local/bin/cakeagent
+	chown -R root:wheel "${CERTS}"
+else
+	chown root:adm /usr/local/bin/cakeagent
+	chown -R root:adm "${CERTS}"
+fi
+
+chmod 755 /usr/local/bin/cakeagent
+
+/usr/local/bin/cakeagent --install \\
+	--listen=vsock://any:5000 \\
+	--ca-cert=${CA} \\
+	--tls-cert=${SERVER} \\
+	--tls-key=${KEY}
+
+"""
+print(tempFileURL.absoluteString)
+		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
+		
+		try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+
+		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
+
+		try ssh.execute("sudo /tmp/install-agent.sh")
+
+		return true
 	}
 
 	private class StartHandlerVMRun {
-		var identifier: String? = nil
-
 		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
 			if agent {
 				return try await WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
@@ -27,7 +94,7 @@ struct StartHandler: CakedCommand {
 		}
 
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
-			var config: CakeConfig = try vmLocation.config()
+			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let arguments: [String] = ["exec", "caked", "vmrun", vmLocation.name, "2>&1", ">", log]
 			var sharedFileDescriptors: [Int32] = []
@@ -40,10 +107,6 @@ struct StartHandler: CakedCommand {
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, foreground: foreground) { process in
 				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
-
-				if let id = self.identifier {	
-					try? PortForwardingServer.closeForwardedPort(identifier: id)
-				}
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
@@ -58,7 +121,7 @@ struct StartHandler: CakedCommand {
 				let runningIP = try await waitIP(agent: config.agent, vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
 
 				if config.firstLaunch && config.agent == false {
-					config.agent = try StartHandler.installAgent(runningIP: runningIP)
+					config.agent = try StartHandler.installAgent(config: config, runningIP: runningIP)
 				}
 
 				config.runningIP = runningIP
@@ -78,10 +141,6 @@ struct StartHandler: CakedCommand {
 					throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
 				} else {
 					process.terminationHandler = { (p: ProcessWithSharedFileHandle) in
-						if let id = self.identifier {
-							try? PortForwardingServer.closeForwardedPort(identifier: id)
-						}
-
 						if let promise: EventLoopPromise<String> = promise {
 							promise.fail(error)
 						}
@@ -174,10 +233,10 @@ struct StartHandler: CakedCommand {
 
 			do {
 				let runningIP = try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, tartProcess: process)
-				var config: CakeConfig = try vmLocation.config()
+				let config: CakeConfig = try vmLocation.config()
 
 				if config.firstLaunch && config.agent == false {
-					config.agent = try AgentInstaller.installAgent(runningIP: runningIP)
+					config.agent = try installAgent(config: config, runningIP: runningIP)
 				}
 
 				config.runningIP = runningIP

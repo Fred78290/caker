@@ -28,25 +28,25 @@ struct Root: AsyncParsableCommand {
 		discussion: "\(COMMAND_NAME) is a tool to wrap tart command and add some features like run as daemon, build VM from cloud image",
 		version: CI.version,
 		subcommands: [
-			Service.self,
-			Certificates.self,
 			Build.self,
-			Rename.self,
-			Start.self,
-			Stop.self,
-			Delete.self,
-			Launch.self,
+			Certificates.self,
 			Configure.self,
-			List.self,
-			WaitIP.self,
+			Delete.self,
+			Exec.self,
 			ImagesManagement.self,
-			Remote.self,
+			Infos.self,
+			Launch.self,
+			List.self,
 			Networks.self,
 			Purge.self,
-			Infos.self,
-			Exec.self,
+			Remote.self,
+			Rename.self,
+			Service.self,
 			Sh.self,
-			VMRun.self
+			Start.self,
+			Stop.self,
+			VMRun.self,
+			WaitIP.self
 		])
 
 	static func vmrunAvailable() -> Bool {

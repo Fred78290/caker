@@ -930,9 +930,23 @@ public struct Caked_InfoReply: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var version: String = String()
+  public var version: String {
+    get {return _version ?? String()}
+    set {_version = newValue}
+  }
+  /// Returns true if `version` has been explicitly set.
+  public var hasVersion: Bool {return self._version != nil}
+  /// Clears the value of `version`. Subsequent reads from it will return its default value.
+  public mutating func clearVersion() {self._version = nil}
 
-  public var uptime: Int64 = 0
+  public var uptime: Int64 {
+    get {return _uptime ?? 0}
+    set {_uptime = newValue}
+  }
+  /// Returns true if `uptime` has been explicitly set.
+  public var hasUptime: Bool {return self._uptime != nil}
+  /// Clears the value of `uptime`. Subsequent reads from it will return its default value.
+  public mutating func clearUptime() {self._uptime = nil}
 
   public var memory: Caked_InfoReply.MemoryInfo {
     get {return _memory ?? Caked_InfoReply.MemoryInfo()}
@@ -949,9 +963,29 @@ public struct Caked_InfoReply: Sendable {
 
   public var osname: String = String()
 
-  public var hostname: String = String()
+  public var hostname: String {
+    get {return _hostname ?? String()}
+    set {_hostname = newValue}
+  }
+  /// Returns true if `hostname` has been explicitly set.
+  public var hasHostname: Bool {return self._hostname != nil}
+  /// Clears the value of `hostname`. Subsequent reads from it will return its default value.
+  public mutating func clearHostname() {self._hostname = nil}
 
-  public var release: String = String()
+  public var release: String {
+    get {return _release ?? String()}
+    set {_release = newValue}
+  }
+  /// Returns true if `release` has been explicitly set.
+  public var hasRelease: Bool {return self._release != nil}
+  /// Clears the value of `release`. Subsequent reads from it will return its default value.
+  public mutating func clearRelease() {self._release = nil}
+
+  public var status: String = String()
+
+  public var mounts: [String] = []
+
+  public var name: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -962,18 +996,39 @@ public struct Caked_InfoReply: Sendable {
 
     public var total: UInt64 = 0
 
-    public var free: UInt64 = 0
+    public var free: UInt64 {
+      get {return _free ?? 0}
+      set {_free = newValue}
+    }
+    /// Returns true if `free` has been explicitly set.
+    public var hasFree: Bool {return self._free != nil}
+    /// Clears the value of `free`. Subsequent reads from it will return its default value.
+    public mutating func clearFree() {self._free = nil}
 
-    public var used: UInt64 = 0
+    public var used: UInt64 {
+      get {return _used ?? 0}
+      set {_used = newValue}
+    }
+    /// Returns true if `used` has been explicitly set.
+    public var hasUsed: Bool {return self._used != nil}
+    /// Clears the value of `used`. Subsequent reads from it will return its default value.
+    public mutating func clearUsed() {self._used = nil}
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public init() {}
+
+    fileprivate var _free: UInt64? = nil
+    fileprivate var _used: UInt64? = nil
   }
 
   public init() {}
 
+  fileprivate var _version: String? = nil
+  fileprivate var _uptime: Int64? = nil
   fileprivate var _memory: Caked_InfoReply.MemoryInfo? = nil
+  fileprivate var _hostname: String? = nil
+  fileprivate var _release: String? = nil
 }
 
 public struct Caked_ExecuteRequest: @unchecked Sendable {
@@ -2373,6 +2428,9 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     6: .same(proto: "osname"),
     7: .same(proto: "hostname"),
     8: .same(proto: "release"),
+    9: .same(proto: "status"),
+    10: .same(proto: "mounts"),
+    11: .same(proto: "name"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2381,14 +2439,17 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.version) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self.uptime) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self._version) }()
+      case 2: try { try decoder.decodeSingularInt64Field(value: &self._uptime) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._memory) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.cpuCount) }()
       case 5: try { try decoder.decodeRepeatedStringField(value: &self.ipaddresses) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.osname) }()
-      case 7: try { try decoder.decodeSingularStringField(value: &self.hostname) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.release) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self._hostname) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self._release) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.status) }()
+      case 10: try { try decoder.decodeRepeatedStringField(value: &self.mounts) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self.name) }()
       default: break
       }
     }
@@ -2399,12 +2460,12 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.version.isEmpty {
-      try visitor.visitSingularStringField(value: self.version, fieldNumber: 1)
-    }
-    if self.uptime != 0 {
-      try visitor.visitSingularInt64Field(value: self.uptime, fieldNumber: 2)
-    }
+    try { if let v = self._version {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._uptime {
+      try visitor.visitSingularInt64Field(value: v, fieldNumber: 2)
+    } }()
     try { if let v = self._memory {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
@@ -2417,24 +2478,36 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.osname.isEmpty {
       try visitor.visitSingularStringField(value: self.osname, fieldNumber: 6)
     }
-    if !self.hostname.isEmpty {
-      try visitor.visitSingularStringField(value: self.hostname, fieldNumber: 7)
+    try { if let v = self._hostname {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
+    } }()
+    try { if let v = self._release {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 8)
+    } }()
+    if !self.status.isEmpty {
+      try visitor.visitSingularStringField(value: self.status, fieldNumber: 9)
     }
-    if !self.release.isEmpty {
-      try visitor.visitSingularStringField(value: self.release, fieldNumber: 8)
+    if !self.mounts.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.mounts, fieldNumber: 10)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 11)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_InfoReply, rhs: Caked_InfoReply) -> Bool {
-    if lhs.version != rhs.version {return false}
-    if lhs.uptime != rhs.uptime {return false}
+    if lhs._version != rhs._version {return false}
+    if lhs._uptime != rhs._uptime {return false}
     if lhs._memory != rhs._memory {return false}
     if lhs.cpuCount != rhs.cpuCount {return false}
     if lhs.ipaddresses != rhs.ipaddresses {return false}
     if lhs.osname != rhs.osname {return false}
-    if lhs.hostname != rhs.hostname {return false}
-    if lhs.release != rhs.release {return false}
+    if lhs._hostname != rhs._hostname {return false}
+    if lhs._release != rhs._release {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.mounts != rhs.mounts {return false}
+    if lhs.name != rhs.name {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2455,30 +2528,34 @@ extension Caked_InfoReply.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._Mess
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularUInt64Field(value: &self.total) }()
-      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.free) }()
-      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.used) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self._free) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self._used) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.total != 0 {
       try visitor.visitSingularUInt64Field(value: self.total, fieldNumber: 1)
     }
-    if self.free != 0 {
-      try visitor.visitSingularUInt64Field(value: self.free, fieldNumber: 2)
-    }
-    if self.used != 0 {
-      try visitor.visitSingularUInt64Field(value: self.used, fieldNumber: 3)
-    }
+    try { if let v = self._free {
+      try visitor.visitSingularUInt64Field(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._used {
+      try visitor.visitSingularUInt64Field(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_InfoReply.MemoryInfo, rhs: Caked_InfoReply.MemoryInfo) -> Bool {
     if lhs.total != rhs.total {return false}
-    if lhs.free != rhs.free {return false}
-    if lhs.used != rhs.used {return false}
+    if lhs._free != rhs._free {return false}
+    if lhs._used != rhs._used {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

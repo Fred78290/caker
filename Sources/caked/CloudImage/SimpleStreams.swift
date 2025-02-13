@@ -468,7 +468,7 @@ class SimpleStreamProtocol {
 			let found: [String] = images.filter(arch: currentArch.rawValue).filter { (v: String) in
 				var item: String = v
 
-				if let range: Range<String.Index> = item.range(of: ":\(currentArch)") {
+				if let range: Range<String.Index> = item.range(of: ":\(currentArch.rawValue)") {
 					item.removeSubrange(range)
 				}
 
@@ -489,6 +489,23 @@ class SimpleStreamProtocol {
 				let productAliases: [String] = value.aliases.components(separatedBy: ",")
 
 				if productAliases.firstIndex(of: alias) != nil {
+					return value
+				}
+
+				// Try to found by fingerprint
+				let version = value.versions.first { (key: String, value: ImageVersion) in
+					if let image = value.items.imageDisk {
+						if alias.count == 12 {
+							return image.sha256.starts(with: alias)
+						} else {
+							return image.sha256 == alias
+						}
+					}
+
+					return false
+				}
+
+				if version != nil {
 					return value
 				}
 			}

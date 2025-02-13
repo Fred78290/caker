@@ -27,10 +27,43 @@ enum VirtualizedOS: String, Codable {
 	case linux
 }
 
-struct CakeConfig {
-	var config: Dictionary<String, Any>
-	var cake: Dictionary<String, Any>
+final class CakeConfig {
+	var config: Config
+	var cake: Config
 	let location: URL
+
+	internal final class Config {
+		var data: Dictionary<String, Any>
+		var dirty: Bool
+
+		init() {
+			self.dirty = false
+			self.data = Dictionary<String, Any>()
+		}
+
+		init(contentsOf: URL) throws {
+			self.dirty = false
+			self.data = try Dictionary(contentsOf: contentsOf)
+		}
+
+		func save(to: URL) throws {
+			if self.dirty {
+				try self.data.write(to: to)
+				self.dirty = false
+			}
+		}
+
+		@inlinable public subscript(key: String) -> Any? {
+			get {
+				return self.data[key]
+			}
+			set {
+				self.data[key] = newValue
+				self.dirty = true
+			}
+		}
+	}
+
 
 	var version: Int {
 		set { self.config["version"] = newValue }
@@ -69,12 +102,12 @@ struct CakeConfig {
 	}
 
 
-#if arch(arm64)
-	var ecid: VZMacMachineIdentifier {
-		set {
+	#if arch(arm64)
+		var ecid: VZMacMachineIdentifier {
+			set {
 				self.config["ecid"] = newValue.dataRepresentation.base64EncodedString()
 			}
-		get {
+			get {
 				if let ecid = self.config["ecid"] as? String {
 					if let ecid = VZMacMachineIdentifier(dataRepresentation: Data(base64Encoded: ecid)!) {
 						return ecid
@@ -83,13 +116,13 @@ struct CakeConfig {
 
 				return VZMacMachineIdentifier()
 			}
-	}
+		}
 
-	var hardwareModel: VZMacHardwareModel? {
-		set {
+		var hardwareModel: VZMacHardwareModel? {
+			set {
 				self.config["hardwareModel"] = newValue!.dataRepresentation.base64EncodedString()
 			}
-		get {
+			get {
 				if let hardwareModel = self.config["hardwareModel"] as? String {
 					if let hardwareModel = VZMacHardwareModel(dataRepresentation: Data(base64Encoded: hardwareModel)!) {
 						return hardwareModel
@@ -98,8 +131,8 @@ struct CakeConfig {
 
 				return nil
 			}
-	}
-#endif
+		}
+	#endif
 
 	var cpuCount: Int {
 		set { self.config["cpuCount"] = newValue }
@@ -119,10 +152,10 @@ struct CakeConfig {
 	var macAddress: VZMACAddress? {
 		set { if let value = newValue { self.config["macAddress"] = value.string } else { self.config["macAddress"] = nil } }
 		get { if let addr = self.config["macAddress"] as? String {
-				return VZMACAddress(string: addr)
-			}
+			return VZMACAddress(string: addr)
+		}
 
-			return nil
+		return nil
 		}
 	}
 
@@ -136,9 +169,9 @@ struct CakeConfig {
 		get { self.cake["configuredUser"] as? String ?? "admin" }
 	}
 
-	var configuredPassword: String {
+	var configuredPassword: String? {
 		set { self.cake["configuredPassword"] = newValue }
-		get { self.cake["configuredPassword"] as? String ?? "admin" }
+		get { self.cake["configuredPassword"] as? String }
 	}
 
 	var autostart: Bool {
@@ -213,10 +246,10 @@ struct CakeConfig {
 	var console: ConsoleAttachment? {
 		set { self.cake["console"] = newValue?.description }
 		get { guard let consoleURL: String = self.cake["console"] as? String else {
-				return nil
-			}
+			return nil
+		}
 
-			return ConsoleAttachment(argument: consoleURL)
+		return ConsoleAttachment(argument: consoleURL)
 		}
 	}
 
@@ -252,9 +285,10 @@ struct CakeConfig {
 	}
 
 	init(location: URL,
-		 os: VirtualizedOS,
+	     os: VirtualizedOS,
 	     autostart: Bool,
 	     configuredUser: String,
+	     configuredPassword: String?,
 	     displayRefit: Bool,
 	     cpuCountMin: Int,
 	     memorySizeMin: UInt64,
@@ -266,8 +300,8 @@ struct CakeConfig {
 		display.height = 768
 
 		self.location = location
-		self.config = Dictionary<String, Any>()
-		self.cake = Dictionary<String, Any>()
+		self.config = Config()
+		self.cake = Config()
 		self.version = 1
 		self.os = os
 		self.cpuCountMin = cpuCountMin
@@ -277,36 +311,37 @@ struct CakeConfig {
 		self.memorySize = memorySizeMin
 		self.displayRefit = displayRefit
 		self.configuredUser = configuredUser
+		self.configuredPassword = configuredPassword
 		self.autostart = autostart
 		self.display = display
 	}
 
 	init(location: URL) throws {
 		self.location = location
-		self.config = try Dictionary(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue)) as [String: Any]
-		self.cake = try Dictionary(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue)) as [String: Any]
+		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.cake = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
 	}
 
 	func save() throws {
-		try self.config.write(to: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
-		try self.cake.write(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
+		try self.config.save(to: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		try self.cake.save(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
 	}
 
-	mutating func resetMacAddress() {
+	func resetMacAddress() {
 		self.macAddress = VZMACAddress.randomLocallyAdministered()
 	}
 
 	func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
 		switch self.os {
 		#if arch(arm64)
-		case .darwin:
-			return DarwinPlateform(nvramURL: nvramURL, ecid: self.ecid, hardwareModel: self.hardwareModel!)
+			case .darwin:
+				return DarwinPlateform(nvramURL: nvramURL, ecid: self.ecid, hardwareModel: self.hardwareModel!)
 		#endif
 		case .linux:
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
 		#if !arch(arm64)
-		default:
-			throw ServiceError("Unsupported plateform")
+			default:
+				throw ServiceError("Unsupported plateform")
 		#endif
 		}
 	}

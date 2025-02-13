@@ -29,9 +29,30 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	var waitIPTimeout = 180
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		try await startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
+		let vmLocation = try StorageLocation(asSystem: false).find(name)
+		let config: CakeConfig = try vmLocation.config()
+		var infos: InfoReply
 
-		let infos = try CakeAgentHelper(on: on, client: client).info(callOptions: callOptions)
+		if vmLocation.status == .running {
+			infos = try CakeAgentHelper(on: on, client: client).info(callOptions: callOptions)
+		} else {
+			
+			infos = InfoReply.with {
+				$0.osname = config.os.rawValue
+				$0.status = .stopped
+				$0.cpuCount = Int32(config.cpuCount)
+				$0.memory = .with {
+					$0.total = config.memorySize
+				}
+
+				if let runningIP = config.runningIP {
+					$0.ipaddresses = [runningIP]
+				}
+			}
+		}
+
+		infos.name = name
+		infos.mounts = config.mounts.map { $0.description }
 
 		if format == .json {
 			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, infos))

@@ -136,7 +136,7 @@ struct VMRun: AsyncParsableCommand {
 	mutating func run() async throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
 		let vmLocation = try storageLocation.find(name)
-		var config = try vmLocation.config()
+		let config = try vmLocation.config()
 
 		defer {
 			vmLocation.removePID()

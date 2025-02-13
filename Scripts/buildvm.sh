@@ -19,8 +19,8 @@ BIN_PATH=${PKGDIR}/Contents/MacOS
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
-LXD_IMAGE=ubuntu/noble/cloud
-#LXD_IMAGE=centos/9-Stream/cloud
+LXD_IMAGE=images:ubuntu/noble/cloud
+#LXD_IMAGE=images:centos/9-Stream/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 #CMD="cakectl --insecure "
@@ -97,7 +97,7 @@ BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --dis
 #BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 
 ${BIN_PATH}/${CMD} delete linux
-${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
-#${BIN_PATH}/${CMD} launch ${BUILD_OPTIONS} ${LXD_IMAGE}
+#${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${LXD_IMAGE}
 #${BIN_PATH}/${CMD} launch linux ${BUILD_OPTIONS} ${OCI_IMAGE}
 #${BIN_PATH}/${CMD} waitip linux --wait 60

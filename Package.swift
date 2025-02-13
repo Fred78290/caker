@@ -104,6 +104,7 @@ let package = Package(
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
 			.product(name: "Atomics", package: "swift-atomics"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
 			.product(name: "Crypto", package: "swift-crypto"),
 			.product(name: "DMRetry", package: "swift-retry"),
 			.product(name: "Dynamic", package: "Dynamic"),

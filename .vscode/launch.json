@@ -19,7 +19,8 @@
 				"--mount=~",
 				"--nested",
 				"--ssh-authorized-key=${env:HOME}/.ssh/id_rsa.pub",
-				"--user-data=/tmp/user-data.yaml"
+				"--user-data=/tmp/user-data.yaml",
+				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build",
@@ -42,7 +43,8 @@
 				"--password=admin",
 				"--ssh-authorized-key=/Users/fboltz/.ssh/id_rsa.pub",
 				"--network-config=/tmp/network-config.yaml",
-				"--user-data=/tmp/user-data.yaml"
+				"--user-data=/tmp/user-data.yaml",
+				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch",
@@ -150,13 +152,26 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"image",
+				"info",
+				"images:fedora/40/cloud"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked image info",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"exec",
 				"linux",
 				"ls"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cacked exec",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{

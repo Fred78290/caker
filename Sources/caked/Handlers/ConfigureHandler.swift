@@ -9,7 +9,7 @@ struct ConfigureHandler: CakedCommand {
 
 	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
-		var config = try vmLocation.config()
+		let config = try vmLocation.config()
 
 		if let cpu = options.cpu {
 			config.cpuCount = Int(cpu)

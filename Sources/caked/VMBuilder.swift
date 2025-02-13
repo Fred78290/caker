@@ -6,7 +6,7 @@ let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
 	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, clone: Bool) throws {
-		var config: CakeConfig
+		let config: CakeConfig
 		
 		// Create disk
 		try vmLocation.expandDiskTo(options.diskSize)
@@ -25,6 +25,7 @@ struct VMBuilder {
 				os: .linux,
 				autostart: options.autostart,
 				configuredUser: options.user,
+				configuredPassword: options.password,
 				displayRefit: options.displayRefit,
 				cpuCountMin: 1,
 				memorySizeMin: 512 * 1024 * 1024)

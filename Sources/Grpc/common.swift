@@ -4,76 +4,100 @@ import Virtualization
 import NIOPortForwarding
 
 private let cloudimage_help =
-"""
-                   The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
-                   The url image form are:
-                     - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
+	"""
+	                   The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
+	                   The url image form are:
+	                     - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
 
-                     - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+	                     - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 
-                     - lxc images: images:ubuntu/noble/cloud, see remote command for detail
-                   If tart is installed, you can use tart images:
-                     - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
+	                     - lxc images: images:ubuntu/noble/cloud, see remote command for detail
+	                   If tart is installed, you can use tart images:
+	                     - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
 
-                     - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
+	                     - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
 
-"""
+	"""
 
 private let mount_help =
-"""
-                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]
+	"""
+	                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]
 
-"""
+	"""
 
 private let network_help =
-"""
-                  Add a network interface to the instance, where
-                  <spec> is in the \"key=value,key=value\" format,
-                  with the following keys available:
-                  name: the network to connect to (required), use
-                  the networks command for a list of possible values.
-                    - mode: auto|manual (default: auto)
-                    - mac: hardware address (default: random).
-                  You can also use a shortcut of \"<name>\" to mean \"name=<name>\".
+	"""
+	                  Add a network interface to the instance, where
+	                  <spec> is in the \"key=value,key=value\" format,
+	                  with the following keys available:
+	                  name: the network to connect to (required), use
+	                  the networks command for a list of possible values.
+	                    - mode: auto|manual (default: auto)
+	                    - mac: hardware address (default: random).
+	                  You can also use a shortcut of \"<name>\" to mean \"name=<name>\".
 
-"""
+	"""
 
 private let socket_help =
-"""
-                  The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
-                  The mode is as follows:
-                    - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+	"""
+	                  The vsock option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+	                  The mode is as follows:
+	                    - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
 
-                    - connect: uses an existing socket file on the host,
-                               eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+	                    - connect: uses an existing socket file on the host,
+	                               eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
 
-                    - tcp:     listen TCP on address. The VM must listen on the same port number,
-                               eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+	                    - tcp:     listen TCP on address. The VM must listen on the same port number,
+	                               eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
 
-                    - udp:     listen UDP on address. The VM must listen on the same port number,
-                               eg. udp://127.0.0.1:1234, udp://[::1]:1234
+	                    - udp:     listen UDP on address. The VM must listen on the same port number,
+	                               eg. udp://127.0.0.1:1234, udp://[::1]:1234
 
-                    - fd:      use file descriptor. The VM must connect on the same port number,
-                               eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
-                               not supported with cakectl and with command build
+	                    - fd:      use file descriptor. The VM must connect on the same port number,
+	                               eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+	                               not supported with cakectl and with command build
 
-"""
+	"""
 
 private let console_help =
-"""
-                    - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+	"""
+	                    - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
 
-                    - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+	                    - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
 
-                    - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+	                    - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
 
-                    - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
-                                         ** INFO: The console doesn't work on MacOS sonoma and earlier  **
+	                    - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+	                                         ** INFO: The console doesn't work on MacOS sonoma and earlier  **
 
-"""
+	"""
+
+import Security
+
+extension Bundle {
+	var isSandboxed: Bool {
+		let defaultFlags: SecCSFlags = .init(rawValue: 0)
+		var staticCode: SecStaticCode? = nil
+
+		if SecStaticCodeCreateWithPath(self.bundleURL as CFURL, defaultFlags, &staticCode) == errSecSuccess {
+			if SecStaticCodeCheckValidityWithErrors(staticCode!, SecCSFlags(rawValue: kSecCSBasicValidateOnly), nil, nil) == errSecSuccess {
+				let requirementText = "entitlement[\"com.apple.security.app-sandbox\"] exists" as CFString
+				var sandboxRequirement: SecRequirement?
+				if SecRequirementCreateWithString(requirementText, defaultFlags, &sandboxRequirement) == errSecSuccess {
+					if SecStaticCodeCheckValidityWithErrors(staticCode!, defaultFlags, sandboxRequirement, nil) == errSecSuccess {
+						return true
+					}
+				}
+			}
+		}
+
+		return false
+	}
+}
 
 public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
+	private static var homeDirectories: [Bool:URL] = [:]
 
 	public static func isNestedVirtualizationSupported() -> Bool {
 		if #available(macOS 15, *) {
@@ -84,27 +108,36 @@ public struct Utils {
 	}
 
 	public static func getHome(asSystem: Bool = false) throws -> URL {
-		let cakeHomeDir: URL
+		guard let cakeHomeDir = homeDirectories[asSystem] else {
+			let cakeHomeDir: URL
 
-		if asSystem {
-			let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
-			var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
+			if asSystem {
+				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
+				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
-			applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
-			                                  isDirectory: true,
-			                                  relativeTo: applicationSupportDirectory)
-			try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
+				applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
+												isDirectory: true,
+												relativeTo: applicationSupportDirectory)
+				try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
 
-			cakeHomeDir = applicationSupportDirectory
-		} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
-			cakeHomeDir = URL(fileURLWithPath: customHome)
-		} else {
-			cakeHomeDir = FileManager.default
-				.homeDirectoryForCurrentUser
-				.appendingPathComponent(".cake", isDirectory: true)
+				cakeHomeDir = applicationSupportDirectory
+			} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
+				cakeHomeDir = URL(fileURLWithPath: customHome)
+			} else if Bundle.main.isSandboxed {
+				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
+			} else {
+				cakeHomeDir = FileManager.default
+					.homeDirectoryForCurrentUser
+					.appendingPathComponent(".cake", isDirectory: true)
+			}
+
+			try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
+
+			homeDirectories[asSystem] = cakeHomeDir
+			
+			return cakeHomeDir
 		}
 
-		try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
 
 		return cakeHomeDir
 	}
@@ -296,11 +329,11 @@ public struct ConfigureOptions: ParsableArguments {
 	mutating public func setNetwork(value: [String] = []) {
 		network = value
 	}
-	
+
 	mutating public func setPublished(value: [String] = []) {
 		published = value
 	}
-	
+
 	mutating public func setSocket(value: [String] = []) {
 		socket = value
 	}
@@ -312,165 +345,165 @@ public struct ConfigureOptions: ParsableArguments {
 public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("n")], help: "VM name\n")
 	public var name: String
-	
+
 	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs\n")
 	public var cpu: UInt16 = 1
-	
+
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64 = 512
-	
+
 	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16 = 10
-	
+
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM\n")
 	public var user: String = "admin"
-	
+
 	@Option(name: [.long, .customShort("w")], help: "The user password for login, none by default\n")
 	public var password: String?
-	
+
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user\n")
 	public var mainGroup: String = "admin"
-	
+
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh\n"))
 	public var clearPassword: Bool = false
-	
+
 	@Flag(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot\n"))
 	public var autostart: Bool = false
-	
+
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible\n"))
 	public var nested: Bool = false
-	
+
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image\n", discussion: cloudimage_help, valueName: "url"))
 	public var image: String = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
-	
+
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM\n", valueName: "path"))
 	public var sshAuthorizedKey: String?
-	
+
 	//@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
 	@Option(help: .hidden)
 	public var vendorData: String?
-	
+
 	@Option(name: [.long, .customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM\n", valueName: "Path or URL to a user-data cloud-init configuration, or '-' for stdin"))
 	public var userData: String?
-	
+
 	@Option(help: ArgumentHelp("Optional cloud-init network-config file path for linux VM\n", valueName: "path"))
 	public var networkConfig: String?
-	
+
 	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window\n"))
 	public var displayRefit: Bool = false
-	
+
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker\n", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = []
-	
+
 	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
 	internal var shares: [String] = []
-	
+
 	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help , valueName: "<spec>"))
 	internal var network: [String] = []
-	
+
 	@Option(name: [.customLong("vsock"), .customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock\n", discussion: socket_help))
 	public var vsock: [String] = []
-	
+
 	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")\n", discussion: console_help, valueName: "url"))
 	internal var console: String?
-	
+
 	public private(set) var consoleURL: ConsoleAttachment?
 	public private(set) var forwardedPorts: [ForwardedPort] = []
 	public private(set) var sockets: [SocketDevice] = []
 	public private(set) var mounts: [DirectorySharingAttachment] = []
 	public private(set) var networks: [BridgeAttachement] = []
-	
+
 	public init() {
 	}
-	
+
 	public init(request: Caked_CommonBuildRequest) throws {
 		self.name = request.name
 		self.displayRefit = false
-		
+
 		if request.hasCpu {
 			self.cpu = UInt16(request.cpu)
 		} else {
 			self.cpu = 1
 		}
-		
+
 		if request.hasMemory {
 			self.memory = UInt64(request.memory)
 		} else {
 			self.memory = 512
 		}
-		
+
 		if request.hasDiskSize {
 			self.diskSize = UInt16(request.diskSize)
 		} else {
 			self.diskSize = 20
 		}
-		
+
 		if request.hasUser {
 			self.user = request.user
 		} else {
 			self.user = "admin"
 		}
-		
+
 		if request.hasPassword {
 			self.password = request.password
 		} else {
 			self.password = nil
 		}
-		
+
 		if request.hasMainGroup {
 			self.mainGroup = request.mainGroup
 		} else {
 			self.mainGroup = "admin"
 		}
-		
+
 		if request.hasSshPwAuth {
 			self.clearPassword = request.sshPwAuth
 		} else {
 			self.clearPassword = false
 		}
-		
+
 		if request.hasNested {
 			self.nested = request.nested
 		} else {
 			self.nested = true
 		}
-		
+
 		if request.hasAutostart {
 			self.autostart = request.autostart
 		} else {
 			self.autostart = false
 		}
-		
+
 		if request.hasImage {
 			self.image = request.image
 		} else {
 			self.image = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 		}
-		
+
 		if request.hasSshAuthorizedKey {
 			self.sshAuthorizedKey = try saveToTempFile(request.sshAuthorizedKey)
 		} else {
 			self.sshAuthorizedKey = nil
 		}
-		
+
 		if request.hasUserData {
 			self.userData = try saveToTempFile(request.userData)
 		} else {
 			self.userData = nil
 		}
-		
+
 		if request.hasVendorData {
 			self.vendorData = try saveToTempFile(request.vendorData)
 		} else {
 			self.vendorData = nil
 		}
-		
+
 		if request.hasNetworkConfig {
 			self.networkConfig = try saveToTempFile(request.networkConfig)
 		} else {
 			self.networkConfig = nil
 		}
-		
+
 		if request.hasForwardedPort {
 			self.forwardedPorts = request.forwardedPort.components(separatedBy: ",").compactMap { argument in
 				return ForwardedPort(argument: argument)
@@ -478,54 +511,54 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.forwardedPorts = []
 		}
-		
+
 		if request.hasMounts {
 			self.mounts = try request.mounts.components(separatedBy: ",").compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		} else {
 			self.mounts = []
 		}
-		
+
 		if request.hasNetworks {
 			self.networks = try request.networks.components(separatedBy: ",").compactMap {
 				try BridgeAttachement(parseFrom: $0) }
 		} else {
 			self.networks = []
 		}
-		
+
 		if request.hasSockets {
 			self.sockets = try request.sockets.components(separatedBy: ",").compactMap { try SocketDevice(parseFrom: $0)
 			}
 		} else {
 			self.sockets = []
 		}
-		
+
 		if request.hasConsole {
 			self.consoleURL = ConsoleAttachment(argument: request.console)
 		} else {
 			self.consoleURL = nil
 		}
 	}
-	
+
 	mutating public func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
-		
+
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
-		
+
 		if let console = console {
 			self.consoleURL = ConsoleAttachment(argument: console)
 			try self.consoleURL!.validate()
 		}
-		
+
 		self.sockets = try self.vsock.compactMap { try SocketDevice(parseFrom: $0) }
 		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
 		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		self.networks = try self.network.compactMap { try BridgeAttachement(parseFrom: $0) }
 	}
-	
+
 	private func saveToTempFile(_ data: Data) throws -> String {
 		let url = FileManager.default.temporaryDirectory
 			.appendingPathComponent(UUID().uuidString)
@@ -554,42 +587,6 @@ public struct ClientCertificatesLocation: Codable {
 
 	public func exists() -> Bool {
 		return FileManager.default.fileExists(atPath: self.clientKeyURL.path()) && FileManager.default.fileExists(atPath: self.clientCertURL.path())
-	}
-}
-
-public struct FullInfoReply: Sendable, Codable {
-	public let name: String
-	public let version: String
-	public let uptime: Int64
-	public let memory: MemoryInfo?
-	public let cpuCount: Int32
-	public let ipaddresses: [String]
-	public let osname: String
-	public let hostname: String
-	public let release: String 
-
-	public struct MemoryInfo: Sendable, Codable {
-		public let total: UInt64
-		public let free: UInt64
-		public let used: UInt64
-
-		public init(total: UInt64, free: UInt64, used: UInt64) {
-			self.total = total
-			self.free = free
-			self.used = used
-		}
-	}
-
-	public init(name: String, version: String, uptime: Int64, memory: MemoryInfo?, cpuCount: Int32, ipaddresses: [String], osname: String, hostname: String, release: String) {
-		self.name = name
-		self.version = version
-		self.uptime = uptime
-		self.memory = memory
-		self.cpuCount = cpuCount
-		self.ipaddresses = ipaddresses
-		self.osname = osname
-		self.hostname = hostname
-		self.release = release
 	}
 }
 
