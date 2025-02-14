@@ -15,7 +15,7 @@ to integrate with using the `--network` switch to the `launch` command
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
 
-	@Option(help: "Output format: text or json")
+	@Option(name: .shortAndLong, help: "Output format: text or json")
 	var format: Format = .text
 
 	mutating func validate() throws {

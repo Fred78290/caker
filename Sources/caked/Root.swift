@@ -8,7 +8,6 @@ var runAsSystem: Bool = false
 
 let delegatedCommand: [String] = [
 	"clone",
-	"logout",
 	"pull",
 	"push",
 	"import",

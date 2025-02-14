@@ -16,7 +16,7 @@ struct Delete: ParsableCommand {
 	@Argument(help: "VM name")
 	var name: [String]
 
-	@Option(name: [.customLong("format")], help: "Output format")
+	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text
 
 	public mutating func run() throws {

@@ -7,7 +7,7 @@ import TextTable
 struct List: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "List all VMs")
 
-	@Option(name: [.customLong("format")], help: "Output format")
+	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text
 
 	@Flag(help: "List only VMs")

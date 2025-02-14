@@ -11,7 +11,7 @@ to integrate with using the `--bridged` switch to the `launch` command
 
 	@OptionGroup var options: Client.Options
 
-	@Option(help: "Output format: text or json")
+	@Option(name: .shortAndLong, help: "Output format: text or json")
 	var format: Format = .text
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

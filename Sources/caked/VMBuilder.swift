@@ -67,7 +67,7 @@ struct VMBuilder {
 		}
 		var clonedImage = false
 		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
-		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://"]
+		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://", "img://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
@@ -81,7 +81,7 @@ struct VMBuilder {
 			throw ServiceError("unsupported url: \(options.image)")
 		}
 
-		if imageURL.isFileURL {
+		if imageURL.isFileURL || imageURL.scheme == "img" {
 			imageURL.resolveSymlinksInPath()
 
 			let temporaryDiskURL: URL = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent("tmp-disk-\(UUID().uuidString)")

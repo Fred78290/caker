@@ -82,6 +82,18 @@ class CommonCacheImageCache: PurgeableStorage {
 	}
 }
 
+class TemplateImageCache: CommonCacheImageCache {
+	static let scheme = "template"
+
+	convenience init() throws {
+		try self.init(name: "")
+	}
+
+	init(name: String) throws {
+		try super.init(scheme: Self.scheme, location: "templates", name: name)
+	}
+}
+
 class CloudImageCache: CommonCacheImageCache {
 	static let scheme = "cloud"
 
