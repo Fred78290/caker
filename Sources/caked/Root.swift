@@ -23,8 +23,8 @@ struct Root: AsyncParsableCommand {
 	static var group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	static var configuration = CommandConfiguration(
 		commandName: "\(COMMAND_NAME)",
-		usage: "\(COMMAND_NAME) <subcommand or tart subcommand>",
-		discussion: "\(COMMAND_NAME) is a tool to wrap tart command and add some features like run as daemon, build VM from cloud image",
+		usage: "\(COMMAND_NAME) <subcommand>",
+		discussion: "\(COMMAND_NAME) is an hypervisor running VM",
 		version: CI.version,
 		subcommands: [
 			Build.self,
@@ -44,6 +44,7 @@ struct Root: AsyncParsableCommand {
 			Sh.self,
 			Start.self,
 			Stop.self,
+			Template.self,
 			VMRun.self,
 			WaitIP.self
 		])

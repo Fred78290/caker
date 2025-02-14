@@ -19,9 +19,18 @@ extension Error {
 
 struct StorageLocation {
 	let rootURL: URL
+	let template: Bool
 
 	init(asSystem: Bool, name: String = "vms") {
+		self.template = false
 		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent(name, isDirectory: true)
+	    try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
+	}
+
+	init(asSystem: Bool, template: Bool) {
+		self.template = template
+		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent("templates", isDirectory: true)
+	    try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
 	}
 
 	private func vmURL(_ name: String) -> URL {
@@ -29,11 +38,15 @@ struct StorageLocation {
 	}
 
 	func exists(_ name: String) -> Bool {
-		VMLocation(rootURL: vmURL(name)).inited
+		VMLocation(rootURL: vmURL(name), template: self.template).inited
+	}
+
+	func location(_ name: String) -> VMLocation {
+		VMLocation(rootURL: vmURL(name), template: self.template)
 	}
 
 	func find(_ name: String) throws -> VMLocation {
-		let location = VMLocation(rootURL: vmURL(name))
+		let location = self.location(name)
 
 		try location.validatate(userFriendlyName: name)
 
@@ -48,7 +61,7 @@ struct StorageLocation {
 				at: rootURL,
 				includingPropertiesForKeys: [.isDirectoryKey],
 				options: .skipsSubdirectoryDescendants).compactMap { url in
-				let vmDir = VMLocation(rootURL: url)
+				let vmDir = VMLocation(rootURL: url, template: self.template)
 
 				if !vmDir.inited {
 					return nil

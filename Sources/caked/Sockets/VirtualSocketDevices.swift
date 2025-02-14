@@ -48,7 +48,7 @@ class SocketState {
 			self.connection = nil
 			self.channel = nil
 
-			Logger.info("Socket connection on \(self.description) is closed by remote")
+			Logger.debug("Socket connection on \(self.description) is closed by remote")
 		}
 
 		return channel
@@ -307,9 +307,9 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 							case let .success(channel):
 								self.channels.append(channel)
 								self.sockets[port]?.channel = channel
-								Logger.info("Socket device connected on \(socket.description)")
+								Logger.debug("Socket device connected on \(socket.description)")
 							case let .failure(error):
-								Logger.info("Failed to connect socket device on \(socket.description), \(error)")
+								Logger.error("Failed to connect socket device on \(socket.description), \(error)")
 							}
 						}
 					}

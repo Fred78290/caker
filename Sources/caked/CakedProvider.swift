@@ -46,6 +46,12 @@ class Unimplemented: Error {
 	}
 }
 
+extension Caked_TemplateRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return TemplateHandler(request: self)
+	}
+}
+
 extension Caked_RenameRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
 		return RenameHandler(request: self)
@@ -258,6 +264,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
+    func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+    }
+
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}

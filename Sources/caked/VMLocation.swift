@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import GRPCLib
 
 struct VMLocation {
 	enum Status: String {
@@ -9,6 +10,7 @@ struct VMLocation {
 	}
 
 	var rootURL: URL
+	let template: Bool
 
 	var configURL: URL {
 		rootURL.appendingPathComponent("config.json")
@@ -45,7 +47,11 @@ struct VMLocation {
 	}
 
 	var inited: Bool {
-		FileManager.default.fileExists(atPath: configURL.path) &&
+		if self.template {
+			return FileManager.default.fileExists(atPath: diskURL.path)
+		}
+
+		return FileManager.default.fileExists(atPath: configURL.path) &&
 			FileManager.default.fileExists(atPath: diskURL.path) &&
 			FileManager.default.fileExists(atPath: nvramURL.path)
 	}
@@ -54,31 +60,27 @@ struct VMLocation {
 		try CakeConfig(location: self.rootURL)
 	}
 
+	func tartRunning() -> Bool {
+		guard let lock = try? PIDLock(lockURL: configURL) else {
+			return false
+		}
+
+		guard let pid = try? lock.pid() else {
+			return false
+		}
+
+		return pid != 0
+	}
+
 	var status: Status {
 		get {
-			if FileManager.default.fileExists(atPath: stateURL.path) {
-				return .suspended
-			} else if isPIDRunning() {
+			if isPIDRunning() {
 				return .running
+			} else if tartRunning() {
+				return .running
+			} else if FileManager.default.fileExists(atPath: stateURL.path) {
+				return .suspended
 			} else {
-				// Run with tart?
-				let fd = open(configURL.path, O_RDWR)
-
-				if fd != -1 {
-
-					defer {
-						close(fd)
-					}
-
-					var result = flock(l_start: 0, l_len: 0, l_pid: 0, l_type: Int16(F_RDLCK), l_whence: Int16(SEEK_SET))
-
-					if fcntl(fd, F_GETLK, &result) == 0 {
-						if result.l_pid != 0 {
-							return .running
-						}
-					}
-				}
-
 				return .stopped
 			}
 		}
@@ -97,7 +99,11 @@ struct VMLocation {
 	}
 
 	func allocatedSize() throws -> Int {
-		try diskSize() + nvramURL.sizeBytes() + configURL.sizeBytes()
+		if self.template {
+			return try diskSize()
+		}
+
+		return try diskSize() + nvramURL.sizeBytes() + configURL.sizeBytes()
 	}
 
 	func lock() -> Bool {
@@ -114,7 +120,7 @@ struct VMLocation {
 		let tmpDir = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: false)
 
-		return VMLocation(rootURL: tmpDir)
+		return VMLocation(rootURL: tmpDir, template: false)
 	}
 
 	func validatate(userFriendlyName: String) throws {
@@ -122,7 +128,7 @@ struct VMLocation {
 			throw ServiceError("VM not found \(userFriendlyName)")
 		}
 
-		if !self.inited {
+		if self.inited == false {
 			throw ServiceError("VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))")
 		}
 	}
@@ -194,5 +200,9 @@ struct VMLocation {
 		if FileManager.default.fileExists(atPath: pidFile.path) {
 			try? FileManager.default.removeItem(at: pidFile)
 		}
+	}
+
+	func delete() throws {
+		try FileManager.default.removeItem(at: rootURL)
 	}
 }

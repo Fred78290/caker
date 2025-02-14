@@ -104,6 +104,18 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"vmrun",
+				"test"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vmrun test",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"shell",
 				"linux"
 			],
@@ -158,6 +170,32 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked image info",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"template",
+				"create",
+				"linux",
+				"test-template"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked template create",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"template",
+				"list"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked template list",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

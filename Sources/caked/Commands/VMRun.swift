@@ -183,6 +183,7 @@ struct VMRun: AsyncParsableCommand {
 
 		vm.catchUserSignals(task)
 
+		MainApp.runUI(vm: vm, false, false)
 		NSApplication.shared.setActivationPolicy(.prohibited)
 		NSApplication.shared.run()
 	}

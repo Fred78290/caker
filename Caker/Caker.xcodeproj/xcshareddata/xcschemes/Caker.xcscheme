@@ -56,7 +56,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "linux"
+            argument = "test"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

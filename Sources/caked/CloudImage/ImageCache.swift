@@ -30,24 +30,33 @@ class CommonCacheImageCache: PurgeableStorage {
 	let location: String
 	private let ext: String
 
-	init(scheme: String, location: String, name: String, ext: String = "img") throws {
+	init(scheme: String, location: String, name: String, ext: String = "img", root: URL? = nil) throws {
 		self.scheme = scheme
 		self.name = name
 		self.location = location
 		self.ext = ext
 
-		let root = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(location, isDirectory: true)
-		self.baseURL = root.appendingPathComponent(self.name, isDirectory: true)
+		if let root = root {
+			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
+		} else {
+			self.baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
+		}
+
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
-	init(scheme: String, location: String, ext: String = "img") throws {
+	init(scheme: String, location: String, ext: String = "img", root: URL? = nil) throws {
 		self.scheme = scheme
 		self.name = ""
 		self.location = location
 		self.ext = ext
 
-		baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true).absoluteURL
+		if let root = root {
+			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true)
+		} else {
+			self.baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true)
+		}
+
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
@@ -90,7 +99,7 @@ class TemplateImageCache: CommonCacheImageCache {
 	}
 
 	init(name: String) throws {
-		try super.init(scheme: Self.scheme, location: "templates", name: name)
+		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(asSystem: runAsSystem).homeDir)
 	}
 }
 

@@ -91,6 +91,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_NetworkRequest, Caked_Reply>
 
+  func template(
+    _ request: Caked_TemplateRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_TemplateRequest, Caked_Reply>
+
   func rename(
     _ request: Caked_RenameRequest,
     callOptions: CallOptions?
@@ -387,6 +392,24 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
+  /// Unary call to Template
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Template.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func template(
+    _ request: Caked_TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_TemplateRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
+    )
+  }
+
   /// Unary call to Rename
   ///
   /// - Parameters:
@@ -600,6 +623,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_NetworkRequest, Caked_Reply>
 
+  func makeTemplateCall(
+    _ request: Caked_TemplateRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_TemplateRequest, Caked_Reply>
+
   func makeRenameCall(
     _ request: Caked_RenameRequest,
     callOptions: CallOptions?
@@ -807,6 +835,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeNetworksInterceptors() ?? []
+    )
+  }
+
+  public func makeTemplateCall(
+    _ request: Caked_TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_TemplateRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
     )
   }
 
@@ -1039,6 +1079,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func template(
+    _ request: Caked_TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
+    )
+  }
+
   public func rename(
     _ request: Caked_RenameRequest,
     callOptions: CallOptions? = nil
@@ -1164,6 +1216,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'networks'.
   func makeNetworksInterceptors() -> [ClientInterceptor<Caked_NetworkRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'template'.
+  func makeTemplateInterceptors() -> [ClientInterceptor<Caked_TemplateRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'rename'.
   func makeRenameInterceptors() -> [ClientInterceptor<Caked_RenameRequest, Caked_Reply>]
 
@@ -1197,6 +1252,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.image,
       Caked_ServiceClientMetadata.Methods.remote,
       Caked_ServiceClientMetadata.Methods.networks,
+      Caked_ServiceClientMetadata.Methods.template,
       Caked_ServiceClientMetadata.Methods.rename,
       Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.execute,
@@ -1295,6 +1351,12 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    public static let template = GRPCMethodDescriptor(
+      name: "Template",
+      path: "/caked.Service/Template",
+      type: GRPCCallType.unary
+    )
+
     public static let rename = GRPCMethodDescriptor(
       name: "Rename",
       path: "/caked.Service/Rename",
@@ -1355,6 +1417,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func remote(request: Caked_RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func networks(request: Caked_NetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func template(request: Caked_TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func rename(request: Caked_RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -1512,6 +1576,15 @@ extension Caked_ServiceProvider {
         userFunction: self.networks(request:context:)
       )
 
+    case "Template":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_TemplateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
+        userFunction: self.template(request:context:)
+      )
+
     case "Rename":
       return UnaryServerHandler(
         context: context,
@@ -1633,6 +1706,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func networks(
     request: Caked_NetworkRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func template(
+    request: Caked_TemplateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
@@ -1812,6 +1890,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.networks(request: $0, context: $1) }
       )
 
+    case "Template":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_TemplateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
+        wrapping: { try await self.template(request: $0, context: $1) }
+      )
+
     case "Rename":
       return GRPCAsyncServerHandler(
         context: context,
@@ -1916,6 +2003,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeNetworksInterceptors() -> [ServerInterceptor<Caked_NetworkRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'template'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeTemplateInterceptors() -> [ServerInterceptor<Caked_TemplateRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'rename'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeRenameInterceptors() -> [ServerInterceptor<Caked_RenameRequest, Caked_Reply>]
@@ -1953,6 +2044,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.image,
       Caked_ServiceServerMetadata.Methods.remote,
       Caked_ServiceServerMetadata.Methods.networks,
+      Caked_ServiceServerMetadata.Methods.template,
       Caked_ServiceServerMetadata.Methods.rename,
       Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.execute,
@@ -2048,6 +2140,12 @@ public enum Caked_ServiceServerMetadata {
     public static let networks = GRPCMethodDescriptor(
       name: "Networks",
       path: "/caked.Service/Networks",
+      type: GRPCCallType.unary
+    )
+
+    public static let template = GRPCMethodDescriptor(
+      name: "Template",
+      path: "/caked.Service/Template",
       type: GRPCCallType.unary
     )
 

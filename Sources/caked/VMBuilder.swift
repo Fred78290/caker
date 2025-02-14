@@ -5,15 +5,22 @@ import GRPCLib
 let cloudInitIso = "cloud-init.iso"
 
 struct VMBuilder {
-	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, clone: Bool) throws {
+	enum ImageSource: Int {
+		case raw
+		case cloud
+		case oci
+		case template
+		case stream
+	}
+
+	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource) throws {
 		let config: CakeConfig
 		
-		// Create disk
-		try vmLocation.expandDiskTo(options.diskSize)
+		// Create or resize disk
+		try? vmLocation.expandDiskTo(options.diskSize)
 
 		// Create config
-
-		if clone {
+		if try vmLocation.configURL.exists() {
 			config = try CakeConfig(location: vmLocation.rootURL)
 
 			config.useCloudInit = config.os == .linux
@@ -61,13 +68,13 @@ struct VMBuilder {
 		}
 	}
 
-	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> Bool{
+	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> ImageSource {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) {
 			throw ServiceError("VM already exists")
 		}
-		var clonedImage = false
+		var sourceImage: ImageSource = .cloud
 		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
-		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://", "img://"]
+		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
@@ -88,6 +95,15 @@ struct VMBuilder {
 
 			try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
 			_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)
+			try? FileManager.default.removeItem(at: temporaryDiskURL)
+
+			sourceImage = .raw
+		} else if imageURL.scheme == "template" {
+			let templateName = imageURL.host()!
+			let templateLocation = try StorageLocation(asSystem: runAsSystem, template: true).find(templateName)
+
+			try FileManager.default.copyItem(at: templateLocation.diskURL, to: vmLocation.diskURL)
+			sourceImage = .template
 		} else if imageURL.scheme == "qcow2" {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
 		} else if imageURL.scheme == "http" || imageURL.scheme == "https" {
@@ -113,7 +129,7 @@ struct VMBuilder {
 			_ = try FileManager.default.copyItem(at: clonedLocation.diskURL, to: vmLocation.diskURL)
 
 			try FileManager.default.removeItem(at: clonedLocation.rootURL)
-			clonedImage = true
+			sourceImage = .oci
 		} else if let remote = remotes.first(where: { start in return options.image.starts(with: start) }) {
 			let aliasImage: Dictionary<String, String>.Keys.Element = options.image.stringAfter(after: remote+":")
 			let remoteContainerServer = remoteDb.get(remote)!
@@ -126,15 +142,17 @@ struct VMBuilder {
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: aliasImage)
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL)
+
+			sourceImage = .stream
 		} else {
 			throw ServiceError("unsupported image url: \(options.image)")
 		}
 
-		return clonedImage
+		return sourceImage
 	}
 
 	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
-		let clonedImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
-		try self.build(vmName: vmName, vmLocation: vmLocation, options: options, clone: clonedImage)
+		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
+		try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
 	}
 }

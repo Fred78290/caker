@@ -25,6 +25,7 @@ service Service {
 	rpc Image(ImageRequest) returns (Reply) {}
 	rpc Remote(RemoteRequest) returns (Reply) {}
 	rpc Networks(NetworkRequest) returns (Reply) {}
+	rpc Template(TemplateRequest) returns (Reply) {}
 	rpc Rename(RenameRequest) returns (Reply);
 	rpc Info (InfoRequest) returns (InfoReply);
 	rpc Execute (ExecuteRequest) returns (ExecuteReply);
@@ -102,10 +103,24 @@ message RemoteRequestAdd {
 
 message RemoteRequest {
 	RemoteCommand command = 1;
+	Format format = 2;
 	oneof request {
-		RemoteRequestAdd add = 2;
-		string delete = 3;
-		Format format = 4;
+		RemoteRequestAdd add = 3;
+		string delete = 4;
+	}
+}
+
+message TemplateRequestAdd {
+	string sourceName = 1;
+	string templateName = 2;
+}
+
+message TemplateRequest {
+	RemoteCommand command = 1;
+	Format format = 2;
+	oneof request {
+		TemplateRequestAdd create = 3;
+		string delete = 4;
 	}
 }
 

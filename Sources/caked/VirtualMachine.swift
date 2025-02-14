@@ -115,7 +115,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	func guestDidStop(_ virtualMachine: VZVirtualMachine) {
-		Logger.info("VM stopped")
+		Logger.info("VM \(self.name) stopped")
 
 		semaphore.signal()
 	}
@@ -137,10 +137,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			if #available(macOS 14, *) {
 				try configuration.validateSaveRestoreSupport()
 
-				Logger.info("Pause VM...")
+				Logger.info("Pause VM \(self.name)...")
 				try await virtualMachine.pause()
 
-				Logger.info("Create a snapshot...")
+				Logger.info("Create a snapshot of VM \(self.name)...")
 				try await virtualMachine.saveMachineStateTo(url: vmLocation.stateURL)
 
 				Logger.info("Snap created successfully...")
@@ -161,7 +161,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#if arch(arm64)
 			if #available(macOS 14, *) {
 				if FileManager.default.fileExists(atPath: vmLocation.stateURL.path) {
-					Logger.info("Restore VM snapshot...")
+					Logger.info("Restore VM \(self.name) snapshot...")
 
 					try await virtualMachine.restoreMachineStateFrom(url: vmLocation.stateURL)
 					try FileManager.default.removeItem(at: vmLocation.stateURL)
@@ -170,14 +170,14 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				}
 			}
 			if resumeVM {
-				Logger.info("Resume VM...")
+				Logger.info("Resume VM \(self.name)...")
 				try await resume()
 			} else {
-				Logger.info("Start VM...")
+				Logger.info("Start VM \(self.name)...")
 				try await self.startVM()
 			}
 		#else
-			Logger.info("Start VM...")
+			Logger.info("Start VM \(self.name)...")
 			try await self.startVM()
 		#endif
 	}
@@ -201,14 +201,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	func run() async throws {
 		var identifier: String? = nil
 
-		if config.forwardedPorts.isEmpty == false {
-			let runningIP: String = try await waitIP(wait: 120, asSystem: runAsSystem)
+		if let runningIP = try? await waitIP(wait: 60, asSystem: runAsSystem) {
+			Logger.info("VM \(self.name) started with primary IP: \(runningIP)")
 
-			Logger.info("Forwarding ports from \(runningIP)")
+			if config.forwardedPorts.isEmpty == false {
+				Logger.info("Forwarding ports from \(runningIP)")
 
-			PortForwardingServer.createPortForwardingServer(on: Root.group)
+				PortForwardingServer.createPortForwardingServer(on: Root.group)
 
-			identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+				identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
+			}
 		}
 
 		defer {
@@ -228,15 +230,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {
-				Logger.info("Stopping VM...")
+				Logger.info("Stopping VM \(self.name)...")
 				try await self.stop()
 			}
 		}
 
-		Logger.info("VM exited")
+		Logger.info("VM \(self.name) exited")
 	}
 
 	func catchSIGINT(_ task: Task<Void, Error>) {
+		signal(SIGINT, SIG_IGN)
 		let sig: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 
 		sig.setEventHandler {
@@ -295,7 +298,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.catchSIGUSR2(task)
 	}
 
-	private func waitIP(wait: Int, asSystem: Bool) async throws -> String {
+	private func waitIP(wait: Int, asSystem: Bool) async throws -> String? {
 		let listeningAddress = vmLocation.agentURL
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 10, retries: .unlimited)
@@ -314,6 +317,6 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		Logger.warn("Unable to get IP for VM \(name)")
 
-		return ""
+		return nil
 	}
 }

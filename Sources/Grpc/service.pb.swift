@@ -324,6 +324,8 @@ public struct Caked_RemoteRequest: Sendable {
 
   public var command: Caked_RemoteCommand = .none
 
+  public var format: Caked_Format = .text
+
   public var request: Caked_RemoteRequest.OneOf_Request? = nil
 
   public var add: Caked_RemoteRequestAdd {
@@ -342,20 +344,63 @@ public struct Caked_RemoteRequest: Sendable {
     set {request = .delete(newValue)}
   }
 
-  public var format: Caked_Format {
-    get {
-      if case .format(let v)? = request {return v}
-      return .text
-    }
-    set {request = .format(newValue)}
-  }
-
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Request: Equatable, Sendable {
     case add(Caked_RemoteRequestAdd)
     case delete(String)
-    case format(Caked_Format)
+
+  }
+
+  public init() {}
+}
+
+public struct Caked_TemplateRequestAdd: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var sourceName: String = String()
+
+  public var templateName: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Caked_TemplateRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var command: Caked_RemoteCommand = .none
+
+  public var format: Caked_Format = .text
+
+  public var request: Caked_TemplateRequest.OneOf_Request? = nil
+
+  public var create: Caked_TemplateRequestAdd {
+    get {
+      if case .create(let v)? = request {return v}
+      return Caked_TemplateRequestAdd()
+    }
+    set {request = .create(newValue)}
+  }
+
+  public var delete: String {
+    get {
+      if case .delete(let v)? = request {return v}
+      return String()
+    }
+    set {request = .delete(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Request: Equatable, Sendable {
+    case create(Caked_TemplateRequestAdd)
+    case delete(String)
 
   }
 
@@ -1560,9 +1605,9 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static let protoMessageName: String = _protobuf_package + ".RemoteRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "command"),
-    2: .same(proto: "add"),
-    3: .same(proto: "delete"),
-    4: .same(proto: "format"),
+    2: .same(proto: "format"),
+    3: .same(proto: "add"),
+    4: .same(proto: "delete"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1572,7 +1617,8 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.command) }()
-      case 2: try {
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.format) }()
+      case 3: try {
         var v: Caked_RemoteRequestAdd?
         var hadOneofValue = false
         if let current = self.request {
@@ -1585,20 +1631,12 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
           self.request = .add(v)
         }
       }()
-      case 3: try {
+      case 4: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
           if self.request != nil {try decoder.handleConflictingOneOf()}
           self.request = .delete(v)
-        }
-      }()
-      case 4: try {
-        var v: Caked_Format?
-        try decoder.decodeSingularEnumField(value: &v)
-        if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .format(v)
         }
       }()
       default: break
@@ -1614,18 +1652,17 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if self.command != .none {
       try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
     }
+    if self.format != .text {
+      try visitor.visitSingularEnumField(value: self.format, fieldNumber: 2)
+    }
     switch self.request {
     case .add?: try {
       guard case .add(let v)? = self.request else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .delete?: try {
       guard case .delete(let v)? = self.request else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
-    }()
-    case .format?: try {
-      guard case .format(let v)? = self.request else { preconditionFailure() }
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }
@@ -1634,6 +1671,122 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
   public static func ==(lhs: Caked_RemoteRequest, rhs: Caked_RemoteRequest) -> Bool {
     if lhs.command != rhs.command {return false}
+    if lhs.format != rhs.format {return false}
+    if lhs.request != rhs.request {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TemplateRequestAdd"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "sourceName"),
+    2: .same(proto: "templateName"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.sourceName) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.templateName) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.sourceName.isEmpty {
+      try visitor.visitSingularStringField(value: self.sourceName, fieldNumber: 1)
+    }
+    if !self.templateName.isEmpty {
+      try visitor.visitSingularStringField(value: self.templateName, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_TemplateRequestAdd, rhs: Caked_TemplateRequestAdd) -> Bool {
+    if lhs.sourceName != rhs.sourceName {return false}
+    if lhs.templateName != rhs.templateName {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".TemplateRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "command"),
+    2: .same(proto: "format"),
+    3: .same(proto: "create"),
+    4: .same(proto: "delete"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.command) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.format) }()
+      case 3: try {
+        var v: Caked_TemplateRequestAdd?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .create(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .create(v)
+        }
+      }()
+      case 4: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.request != nil {try decoder.handleConflictingOneOf()}
+          self.request = .delete(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.command != .none {
+      try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
+    }
+    if self.format != .text {
+      try visitor.visitSingularEnumField(value: self.format, fieldNumber: 2)
+    }
+    switch self.request {
+    case .create?: try {
+      guard case .create(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .delete?: try {
+      guard case .delete(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_TemplateRequest, rhs: Caked_TemplateRequest) -> Bool {
+    if lhs.command != rhs.command {return false}
+    if lhs.format != rhs.format {return false}
     if lhs.request != rhs.request {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

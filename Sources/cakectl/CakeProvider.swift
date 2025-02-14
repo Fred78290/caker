@@ -115,7 +115,6 @@ extension Caked_LaunchRequest {
 	}
 }
 
-
 extension Caked_StartRequest {
 	init(command: Start) {
 		self.init()
@@ -266,6 +265,32 @@ extension Caked_ImageRequest {
 		self.init()
 
 		self.name = command.name
+		self.format = command.format == .text ? .text : .json
+	}
+}
+
+extension Caked_TemplateRequest {
+	init(command: Template.CreateTemplate) {
+		self.init()
+		var add: Caked_TemplateRequestAdd = Caked_TemplateRequestAdd()
+
+		add.sourceName = command.name
+		add.templateName = command.template
+
+		self.command = .add
+		self.create = add
+	}
+
+	init(command: Template.DeleteTemplate) {
+		self.init()
+
+		self.command = .delete
+		self.delete = command.name
+	}
+
+	init(command: Template.ListTemplate) {
+		self.init()
+
 		self.format = command.format == .text ? .text : .json
 	}
 }

@@ -176,6 +176,13 @@
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AB2D5C9E19000CA07F /* Rename.swift */; };
 		9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */; };
+		9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */; };
+		9BE2E7B92D5F85CE000CA07F /* TemplateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B72D5F85CE000CA07F /* TemplateHandler.swift */; };
+		9BE2E7BA2D5F85CE000CA07F /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B52D5F85CE000CA07F /* InfosHandler.swift */; };
+		9BE2E7BD2D5F85D8000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BC2D5F85D8000CA07F /* Template.swift */; };
+		9BE2E7BE2D5F85D8000CA07F /* Logout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BB2D5F85D8000CA07F /* Logout.swift */; };
+		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
+		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -318,6 +325,13 @@
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BE2E7AB2D5C9E19000CA07F /* Rename.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rename.swift; sourceTree = "<group>"; };
 		9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
+		9BE2E7B52D5F85CE000CA07F /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
+		9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoutHandler.swift; sourceTree = "<group>"; };
+		9BE2E7B72D5F85CE000CA07F /* TemplateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateHandler.swift; sourceTree = "<group>"; };
+		9BE2E7BB2D5F85D8000CA07F /* Logout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logout.swift; sourceTree = "<group>"; };
+		9BE2E7BC2D5F85D8000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
+		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
+		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -474,6 +488,7 @@
 				9B464A812D5A3E0300164BF5 /* Sh.swift */,
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
+				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -523,6 +538,7 @@
 				9B464A992D5A3E0300164BF5 /* Launch.swift */,
 				9B464A9A2D5A3E0300164BF5 /* List.swift */,
 				9B464A9B2D5A3E0300164BF5 /* Login.swift */,
+				9BE2E7BB2D5F85D8000CA07F /* Logout.swift */,
 				9B464A9C2D5A3E0300164BF5 /* Networks.swift */,
 				9B464A9D2D5A3E0300164BF5 /* Purge.swift */,
 				9B464A9E2D5A3E0300164BF5 /* Remote.swift */,
@@ -531,6 +547,7 @@
 				9B464AA02D5A3E0300164BF5 /* Sh.swift */,
 				9B464AA12D5A3E0300164BF5 /* Start.swift */,
 				9B464AA22D5A3E0300164BF5 /* Stop.swift */,
+				9BE2E7BC2D5F85D8000CA07F /* Template.swift */,
 				9B464AA32D5A3E0300164BF5 /* VMRun.swift */,
 				9B464AA42D5A3E0300164BF5 /* WaitIP.swift */,
 			);
@@ -544,9 +561,11 @@
 				9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */,
 				9B464AA82D5A3E0300164BF5 /* DeleteHandler.swift */,
 				9B464AA92D5A3E0300164BF5 /* ImageHandler.swift */,
+				9BE2E7B52D5F85CE000CA07F /* InfosHandler.swift */,
 				9B464AAA2D5A3E0300164BF5 /* LaunchHandler.swift */,
 				9B464AAB2D5A3E0300164BF5 /* ListHandler.swift */,
 				9B464AAC2D5A3E0300164BF5 /* LoginHandler.swift */,
+				9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */,
 				9B464AAD2D5A3E0300164BF5 /* NetworksHandler.swift */,
 				9B464AAE2D5A3E0300164BF5 /* PurgeHandler.swift */,
 				9B464AAF2D5A3E0300164BF5 /* RemoteHandler.swift */,
@@ -554,6 +573,7 @@
 				9B464AB02D5A3E0300164BF5 /* StartHandler.swift */,
 				9B464AB12D5A3E0300164BF5 /* StopHandler.swift */,
 				9B464AB22D5A3E0300164BF5 /* TartHandler.swift */,
+				9BE2E7B72D5F85CE000CA07F /* TemplateHandler.swift */,
 				9B464AB32D5A3E0300164BF5 /* WaitIPHandler.swift */,
 			);
 			path = Handlers;
@@ -613,6 +633,7 @@
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
+				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
@@ -895,6 +916,9 @@
 				9B464B002D5A3E0300164BF5 /* ListHandler.swift in Sources */,
 				9B464B012D5A3E0300164BF5 /* CakeAgentAsyncParsableCommand.swift in Sources */,
 				9B464B022D5A3E0300164BF5 /* Stop.swift in Sources */,
+				9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */,
+				9BE2E7B92D5F85CE000CA07F /* TemplateHandler.swift in Sources */,
+				9BE2E7BA2D5F85CE000CA07F /* InfosHandler.swift in Sources */,
 				9B464B032D5A3E0300164BF5 /* ImagesManagement.swift in Sources */,
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
@@ -902,6 +926,8 @@
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
 				9B464B0F2D5A3E0300164BF5 /* ImageHandler.swift in Sources */,
+				9BE2E7BD2D5F85D8000CA07F /* Template.swift in Sources */,
+				9BE2E7BE2D5F85D8000CA07F /* Logout.swift in Sources */,
 				9B464B122D5A3E0300164BF5 /* Purge.swift in Sources */,
 				9B464B142D5A3E0300164BF5 /* Launch.swift in Sources */,
 				9B464B172D5A3E0300164BF5 /* Certificate.swift in Sources */,
@@ -946,6 +972,7 @@
 				9B464B632D5A3E8900164BF5 /* Push.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
+				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
 				9B464B682D5A3E8900164BF5 /* Clone.swift in Sources */,
 				9B464B692D5A3E8900164BF5 /* Export.swift in Sources */,
@@ -978,6 +1005,7 @@
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B464C6C2D5A45EF00164BF5 /* SocketDevice.swift in Sources */,
+				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C682D5A45DF00164BF5 /* BridgeAttachement.swift in Sources */,

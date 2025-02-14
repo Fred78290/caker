@@ -23,6 +23,10 @@ public class FileLock {
 	public init(lockURL: URL) throws {
 		url = lockURL
 		fd = open(lockURL.path, 0)
+
+		if fd == -1 {
+			throw FileLockError.Failed("failed to open \(lockURL)")
+		}
 	}
 
 	public func trylock() throws -> Bool {
@@ -39,7 +43,7 @@ public class FileLock {
 
 	func flockWrapper(_ operation: Int32) throws -> Bool {
 		if flock(fd, operation) != 0 {
-			let details = Errno(rawValue: CInt(errno))
+			let details: Errno = Errno(rawValue: CInt(errno))
 
 			if (operation & LOCK_NB) != 0 && details == .wouldBlock {
 				return false

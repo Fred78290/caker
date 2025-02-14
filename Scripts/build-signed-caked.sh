@@ -4,6 +4,8 @@
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -e
 
+rm -rf .build *.o *.d *.swiftdeps
+
 pushd $(dirname $0) >/dev/null
 CURDIR=${PWD}
 PKGDIR=${PWD}/../dist/Caker.app

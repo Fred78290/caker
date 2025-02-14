@@ -167,6 +167,7 @@ struct Client: AsyncParsableCommand {
 			Sh.self,
 			Start.self,
 			Stop.self,
+			Template.self,
 			WaitIP.self,
 
 			Clone.self,
