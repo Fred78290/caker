@@ -395,10 +395,10 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker\n", valueName: "host:guest/(tcp|udp|both)"))
 	internal var published: [String] = []
 
-	@Option(name: [.customLong("dir"), .customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
 	internal var shares: [String] = []
 
-	@Option(name: [.customLong("net-bridged"), .customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help , valueName: "<spec>"))
+	@Option(name: [.customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help , valueName: "<spec>"))
 	internal var network: [String] = []
 
 	@Option(name: [.customLong("vsock"), .customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock\n", discussion: socket_help))
