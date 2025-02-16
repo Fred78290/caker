@@ -102,7 +102,7 @@ extension CakeConfig {
 	}
 }
 
-struct VMRun: AsyncParsableCommand {
+struct VMRun: ParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
 	@Argument
@@ -132,8 +132,8 @@ struct VMRun: AsyncParsableCommand {
 		}
 	}
 
-	@MainActor
-	mutating func run() async throws {
+//	@MainActor
+	mutating func run() throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
 		let vmLocation = try storageLocation.find(name)
 		let config = try vmLocation.config()
