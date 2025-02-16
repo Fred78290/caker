@@ -3,6 +3,7 @@ import Foundation
 import GRPCLib
 import NIO
 import TextTable
+import Shout
 
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest
@@ -24,7 +25,7 @@ struct TemplateHandler: CakedCommand {
 		let deleted: Bool
 	}
 
-	static func cleanCloudInit(location: VMLocation, config: CakeConfig) throws {
+	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
 		let semaphore = DispatchSemaphore(value: 0)
 
 		Task {
@@ -82,8 +83,8 @@ struct TemplateHandler: CakedCommand {
 		if location.status != .running {
 			let config = try location.config()
 
-			if config.os == .linux && config.cloudInit {
-				throw cleanCloudInit(location: location, config: config)
+			if config.os == .linux && config.useCloudInit {
+				try cleanCloudInit(location: location, config: config, asSystem: asSystem)
 			}
 
 			let templateLocation = storage.location(templateName)
