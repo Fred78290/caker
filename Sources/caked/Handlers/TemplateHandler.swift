@@ -26,18 +26,15 @@ struct TemplateHandler: CakedCommand {
 	}
 
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
-		let semaphore = DispatchSemaphore(value: 0)
+		let eventLoop = Root.group.next()
+		let promise = eventLoop.makePromise(of: String.self)
+		let configuredUser = config.configuredUser
 
-		Task {
-			defer {
-				semaphore.signal()
-			}
-
-			let runningIP = try await StartHandler.startVM(vmLocation: location, waitIPTimeout: 60, foreground: false)
-
-			if runningIP.count > 0 {
-				let home = try Home(asSystem: asSystem)
+ 		promise.futureResult.whenSuccess { runningIP in
+			do {
+				let home: Home = try Home(asSystem: asSystem)
 				let cloudInitCleanup = [
+					//"systemctl disable cakeagent",
 					"rm -f /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg",
 					"rm /etc/netplan/*",
 					"cloud-init clean",
@@ -51,23 +48,33 @@ struct TemplateHandler: CakedCommand {
 					"rm -f /var/lib/ubuntu-release-upgrader/release-upgrade-available",
 					"rm -f /var/lib/update-notifier/fsck-at-reboot /var/lib/update-notifier/hwe-eol",
 					"find /var/log -type f -exec rm -f {} +",
-					"rm -r /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
+					"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
 					"/bin/sync",
 					"shutdown now"
 				]
 
 				let ssh = try SSH(host: runningIP)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
+				try ssh.authenticate(username: configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
 				try ssh.execute("sudo sh -c '\(cloudInitCleanup.joined(separator: ";"))'")
+			} catch {
+				Logger.error("Failed to clean cloud-init: \(error)")
 			}
 		}
 
-		semaphore.wait()
+		promise.futureResult.whenFailure { error in
+			Logger.error("Failed to clean cloud-init: \(error)")
+		}
+
+		let vm = try location.startVirtualMachine(on: eventLoop, config: config, promise: promise)
+
+		_ = try promise.futureResult.wait()
+		
+		try? vm.requestStopVM()
 	}
 
 	static func createTemplate(sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {
 		let storage = StorageLocation(asSystem: asSystem, template: true)
-		let location: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
+		let source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
 		let lock: FileLock = try FileLock(lockURL: storage.rootURL)
 
 		try lock.lock()
@@ -80,17 +87,19 @@ struct TemplateHandler: CakedCommand {
 			throw ServiceError("template \(templateName) already exists")
 		}
 
-		if location.status != .running {
-			let config = try location.config()
-
-			if config.os == .linux && config.useCloudInit {
-				try cleanCloudInit(location: location, config: config, asSystem: asSystem)
-			}
-
+		if source.status != .running {
+			let config = try source.config()
 			let templateLocation = storage.location(templateName)
 
 			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
-			try FileManager.default.copyItem(at: location.diskURL, to: templateLocation.diskURL)
+
+			if config.os == .linux && config.useCloudInit {
+				let tmpVM = try source.duplicateTemporary()
+				try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
+				try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
+			} else {
+				try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
+			}
 
 			return .init(name: templateName, created: true)
 		}

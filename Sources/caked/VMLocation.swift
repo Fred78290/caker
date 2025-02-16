@@ -1,6 +1,7 @@
 import Foundation
 import Virtualization
 import GRPCLib
+import NIO
 
 struct VMLocation {
 	enum Status: String {
@@ -14,6 +15,10 @@ struct VMLocation {
 
 	var configURL: URL {
 		rootURL.appendingPathComponent("config.json")
+	}
+
+	var cakeURL: URL {
+		rootURL.appendingPathComponent("cake.json")
 	}
 
 	var diskURL: URL {
@@ -116,9 +121,22 @@ struct VMLocation {
 		return fd != -1
 	}
 
+	func copyTo(_ target: VMLocation) throws -> VMLocation{
+		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
+		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
+		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
+		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
+
+		return target
+	}
+
+	func duplicateTemporary() throws -> VMLocation {
+		return try self.copyTo(try Self.tempDirectory())
+	}
+
 	static func tempDirectory() throws -> VMLocation {
 		let tmpDir = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString)
-		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: false)
+		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 		return VMLocation(rootURL: tmpDir, template: false)
 	}
@@ -204,5 +222,28 @@ struct VMLocation {
 
 	func delete() throws {
 		try FileManager.default.removeItem(at: rootURL)
+	}
+
+	func startVirtualMachine(on: EventLoop, config: CakeConfig, promise: EventLoopPromise<String>? = nil) throws -> VirtualMachine {
+		let vm = try VirtualMachine(vmLocation: self, config: config)
+		let runningIPFuture = try vm.runInBackground(on: on)
+
+		try self.writePID()
+
+		if let runningIP = try runningIPFuture.wait() {
+			config.runningIP = runningIP
+
+			try? config.save()
+
+			if let promise = promise {
+				promise.succeed(runningIP)
+			}
+		} else {
+			if let promise = promise {
+				promise.fail(ServiceError("failed to get IP"))
+			}
+		}
+
+		return vm
 	}
 }

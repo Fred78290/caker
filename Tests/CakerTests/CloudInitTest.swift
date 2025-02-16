@@ -151,11 +151,11 @@ final class CloudInitTests: XCTestCase {
 		options.userData = self.userDataPath.path()
 		options.vendorData = nil
 		options.networkConfig = self.networkConfigPath.path()
-		options.forwardedPort = [
-			ForwardedPort(argument: "2222:22/tcp")
+		options.published = [
+			ForwardedPort(argument: "2222:22/tcp").description
 		]
-		options.mounts = []
-		options.netBridged = []
+		options.shares = []
+		options.network = []
 		//options.netSoftnet = false
 		//options.netSoftnetAllow = nil
 		//options.netHost = false
@@ -221,8 +221,8 @@ final class CloudInitTests: XCTestCase {
 
 		PortForwardingServer.createPortForwardingServer(on: self.group)
 		
-		let runningIP = eventLoop.submit {
-			return try StartHandler.startVM(on: eventLoop.next(), vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
+		let runningIP = eventLoop.makeFutureWithTask {
+			return try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
 		}
 
 		runningIP.whenComplete { result in
