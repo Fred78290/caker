@@ -192,6 +192,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#endif
 	}
 
+	@MainActor
 	public func startVM(completionHandler: StartCompletionHandler? = nil) async throws {
 		if let completionHandler = completionHandler {
 			self.virtualMachine.start(completionHandler: completionHandler)
@@ -200,6 +201,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 	}
 
+	@MainActor
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) async throws {
 		if let completionHandler = completionHandler {
 			self.virtualMachine.resume(completionHandler: completionHandler)
@@ -304,7 +306,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.catchSIGUSR2(task)
 	}
 
-	func waitIP(on: EventLoop, wait: Int, asSystem: Bool) async throws -> String? {
+	func waitIP(on: EventLoop, wait: Int, asSystem: Bool) throws -> String? {
 		let listeningAddress = vmLocation.agentURL
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: 10, retries: .unlimited)
@@ -313,7 +315,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		var count = 0
 
 		repeat {
-			if let infos = try? await conn.info() {
+			if let infos = try? conn.info() {
 				if let runningIP = infos.ipaddresses.first {
 					return runningIP
 				}
@@ -327,14 +329,11 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	func runInBackground(on: EventLoop) throws -> EventLoopFuture<String?> {
-//		let sema = DispatchSemaphore(value: 0)
-
 		let task = Task {
 			var status: Int32 = 0
 
 			do {
 				try await self.start()
-//				sema.signal()
 				try await self.run()
 			} catch {
 				status = 1
@@ -353,12 +352,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.catchUserSignals(task)
 		}
 
-//		sema.wait()
-
 		return on.makeFutureWithTask {
 			let config: CakeConfig = self.config
 
-			guard let runningIP = try? await self.waitIP(on: on.next(), wait: 60, asSystem: runAsSystem) else {
+			guard let runningIP = try? self.waitIP(on: on.next(), wait: 60, asSystem: runAsSystem) else {
 				return nil
 			}
 

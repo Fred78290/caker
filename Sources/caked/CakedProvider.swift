@@ -289,7 +289,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		Logger.debug("execute: \(request)")
 
-		return try await conn.info()
+		return try conn.info()
 	}
 
 	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
@@ -297,7 +297,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		Logger.debug("execute: \(request)")
 
-		return try await conn.execute(request: request)
+		return try conn.execute(request: request)
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {

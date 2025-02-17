@@ -48,11 +48,11 @@ struct CakeAgentConnection {
 
 	}
 
-	func info() async throws -> Caked_InfoReply {
+	func info() throws -> Caked_InfoReply {
 		let client = try createClient()
 
 		do {
-			let response = try await client.info(.init()).response.get()
+			let response = try client.info(.init()).response.wait()
 
 			let reply = Caked_InfoReply.with {reply in
 				reply.version = response.version
@@ -72,29 +72,29 @@ struct CakeAgentConnection {
 				}
 			}
 
-			try! await client.close()
+			try? client.closeSync()
 
 			return reply
 		} catch {
-			try! await client.close()
+			try? client.closeSync()
 			throw error
 		}
 	}
 
-	func execute(request: Caked_ExecuteRequest) async throws -> Caked_ExecuteReply {
+	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
 		let client = try createClient()
 
 		do {
-			let response = try await client.execute(Cakeagent_ExecuteRequest.with { req in
+			let response = try client.execute(Cakeagent_ExecuteRequest.with { req in
 				if request.hasInput {
 					req.input = Data(request.input)
 				}
 
 				req.command = request.command
 				req.args = request.args
-			}).response.get()
+			}).response.wait()
 
-			try! await client.close()
+			try? client.closeSync()
 
 			return Caked_ExecuteReply.with { reply in
 				reply.exitCode = response.exitCode
@@ -108,7 +108,7 @@ struct CakeAgentConnection {
 				}
 			}
 		} catch {
-			try! await client.close()
+			try! client.closeSync()
 			throw error
 		}
 	}
@@ -119,7 +119,7 @@ struct CakeAgentConnection {
 		let finish = {
 			continuation.finish()
 			try? await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
-			try? await client.close()
+			try? client.closeSync()
 		}
 
 		do {

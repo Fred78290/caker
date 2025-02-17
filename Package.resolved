@@ -20,11 +20,11 @@
     },
     {
       "identity" : "cakeagent",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Fred78290/cakeagent.git",
+      "kind" : "localSourceControl",
+      "location" : "/Users/fboltz/Projects/GitHub/cakeagent",
       "state" : {
         "branch" : "main",
-        "revision" : "b65be0aa69578aee7f21a3080544438d78897bb5"
+        "revision" : "4ec166bc12fc36a40dc5cf63dfb883ff2ffdbaf8"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa",
       "state" : {
-        "revision" : "0c34e4da899a1dd9183db04082d1ceb6e9c2b301",
-        "version" : "8.44.0"
+        "revision" : "3640aaf7849a9fc39996d777e6df866251bb98d6",
+        "version" : "8.45.0"
       }
     },
     {

@@ -51,7 +51,7 @@ struct WaitIPHandler: CakedCommand {
 				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
 			}
 
-			if let infos = try? await conn.info() {
+			if let infos = try? conn.info() {
 				if let runningIP = infos.ipaddresses.first {
 					return runningIP
 				}
