@@ -24,7 +24,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	var waitIPTimeout = 180
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		try await startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
+		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
 		try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
 	}
 }

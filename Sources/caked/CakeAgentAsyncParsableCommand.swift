@@ -15,12 +15,12 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 }
 
 extension CakeAgentAsyncParsableCommand {
-	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) async throws {
+	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
 		if vmLocation.status != .running {
 			Logger.info("Starting VM \(name)")
-			let _ = try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
+			let _ = try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
 		}
 	}
 
@@ -67,13 +67,13 @@ extension CakeAgentAsyncParsableCommand {
 				                      client: grpcClient,
 				                      callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout))))
 
-				try! await grpcClient.close()
+				try? await grpcClient.close()
 			} catch {
-				try! await grpcClient.close()
+				try? await grpcClient.close()
 				throw error
 			}
 
-			try! await group.shutdownGracefully()
+			try? await group.shutdownGracefully()
 		} catch {
 			try! await group.shutdownGracefully()
 			throw error

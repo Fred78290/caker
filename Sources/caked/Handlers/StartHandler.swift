@@ -85,15 +85,15 @@ print(tempFileURL.absoluteString)
 	}
 
 	private class StartHandlerVMRun {
-		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) async throws -> String {
+		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 			if agent {
-				return try await WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
+				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
 			} else {
 				return try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
 			}
 		}
 
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
+		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let arguments: [String] = ["exec", "caked", "vmrun", vmLocation.name, "2>&1", ">", log]
@@ -118,7 +118,7 @@ print(tempFileURL.absoluteString)
 			}
 
 			do {
-				let runningIP = try await waitIP(agent: config.agent, vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
+				let runningIP = try waitIP(agent: config.agent, vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
 
 				if config.firstLaunch && config.agent == false {
 					config.agent = try StartHandler.installAgent(config: config, runningIP: runningIP)
@@ -320,8 +320,8 @@ print(tempFileURL.absoluteString)
 			}
 		}
 
-		return on.makeFutureWithTask {
-			return try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
+		return on.submit {
+			return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
 		}
 	}
 
@@ -355,17 +355,17 @@ print(tempFileURL.absoluteString)
 		return process
 	}
 
-	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) async throws -> String {
+	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
 			throw ServiceError("VM does not exist")
 		}
 
 		if vmLocation.status == .running {
-			return try await WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
+			return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
 		}
 
 		if Root.vmrunAvailable() {
-			return try await StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
+			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
 		} else {
 			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
 		}

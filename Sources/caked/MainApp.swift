@@ -84,10 +84,10 @@ struct MainApp: App {
 			CommandGroup(replacing: .appInfo) { AboutTart(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
-					Task { try await MainApp.vm.startVM() }
+					Task { MainApp.vm.startVM() }
 				}
 				Button("Stop") {
-					Task { try await MainApp.vm.stopVM() }
+					Task { MainApp.vm.stopVM() }
 				}
 				Button("Request Stop") {
 					Task { try MainApp.vm.requestStopVM() }

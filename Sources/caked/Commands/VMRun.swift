@@ -13,6 +13,9 @@ struct VMRun: ParsableCommand {
 	@Argument
 	var name: String
 
+	@Option(help: "location of the VM")
+	var storage: String = "vms"
+
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
 
@@ -41,7 +44,7 @@ struct VMRun: ParsableCommand {
 	}
 
 	mutating func run() throws {
-		let storageLocation = StorageLocation(asSystem: asSystem)
+		let storageLocation = StorageLocation(asSystem: asSystem, name: storage)
 		let vmLocation = try storageLocation.find(name)
 		let config = try vmLocation.config()
 
@@ -67,7 +70,7 @@ struct VMRun: ParsableCommand {
 			}
 		}
 
-		let vm: VirtualMachine = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config)
+		let vm: VirtualMachine = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, asSystem: asSystem)
 
 		if display {
 			MainApp.runUI(name: name, vm: vm, config: config, false, false)

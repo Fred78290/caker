@@ -1,7 +1,7 @@
 import ArgumentParser
 import Logging
 
-struct Stop: AsyncParsableCommand {
+struct Stop: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Stop VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -17,7 +17,7 @@ struct Stop: AsyncParsableCommand {
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() async throws {
-		Logger.appendNewLine(try await StopHandler.stopVM(name: self.name, force: self.force, asSystem: false))
+	mutating func run() throws {
+		Logger.appendNewLine(try StopHandler.stopVM(name: self.name, force: self.force, asSystem: false))
 	}
 }

@@ -6,7 +6,7 @@ struct LaunchHandler: CakedCommand {
 	var options: BuildOptions
 	var waitIPTimeout = 180
 
-	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) async throws -> String {
+	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
 		let config = try vmLocation.config()
 
@@ -21,7 +21,7 @@ struct LaunchHandler: CakedCommand {
 
 		try config.save()
 
-		return try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
+		return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
 	}
 
 	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) async throws -> String {
@@ -37,7 +37,7 @@ struct LaunchHandler: CakedCommand {
 				try tmpVMDirLock.unlock()
 				try StorageLocation(asSystem: asSystem).relocate(options.name, from: tempVMLocation)
 				
-				return try await Self.launch(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: foreground)
+				return try Self.launch(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, foreground: foreground)
 			},
 			onCancel: {
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)

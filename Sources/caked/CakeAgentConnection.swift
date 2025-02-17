@@ -33,8 +33,8 @@ struct CakeAgentConnection {
 		          caCert: certLocation.caCertURL.path(),
 		          tlsCert: certLocation.serverCertURL.path(),
 		          tlsKey: certLocation.serverKeyURL.path(),
-				  timeout: timeout,
-				  retries: retries)
+		          timeout: timeout,
+		          retries: retries)
 	}
 
 	func createClient() throws -> CakeAgentClient {
@@ -48,11 +48,44 @@ struct CakeAgentConnection {
 
 	}
 
-	func info() throws -> Caked_InfoReply {
+	func infoFuture() throws -> EventLoopFuture<Caked_InfoReply?> {
+		let client = try createClient()
+		let response = client.info(.init()).response
+
+		response.whenComplete { _ in
+			client.close(promise: response.eventLoop.makePromise(of: Void.self))
+		}
+
+		return response.flatMapThrowing { response in
+			return Caked_InfoReply.with {
+				$0.version = response.version
+				$0.uptime = response.uptime
+				$0.cpuCount = response.cpuCount
+				$0.ipaddresses = response.ipaddresses
+				$0.osname = response.osname
+				$0.release = response.release
+
+				if response.hasMemory {
+					let mem = response.memory
+					$0.memory = .with{ memory in
+						memory.total = mem.total
+						memory.free = mem.free
+						memory.used = mem.used
+					}
+				}
+			}
+		}.flatMapError { error in
+			return response.eventLoop.submit {
+				return nil
+			}
+		}
+	}
+
+	func info() async throws -> Caked_InfoReply {
 		let client = try createClient()
 
 		do {
-			let response = try client.info(.init()).response.wait()
+			let response = try await client.info(.init()).response.get()
 
 			let reply = Caked_InfoReply.with {reply in
 				reply.version = response.version
@@ -72,29 +105,63 @@ struct CakeAgentConnection {
 				}
 			}
 
-			try? client.closeSync()
+			try? await client.close()
 
 			return reply
 		} catch {
-			try? client.closeSync()
+			try? await client.close()
 			throw error
 		}
 	}
 
-	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
+	func executeFuture(request: Caked_ExecuteRequest) throws -> EventLoopFuture<Caked_ExecuteReply?> {
+		let client = try createClient()
+		let response = client.execute(Cakeagent_ExecuteRequest.with { req in
+			if request.hasInput {
+				req.input = Data(request.input)
+			}
+
+			req.command = request.command
+			req.args = request.args
+		}).response
+
+		response.whenComplete { _ in
+			client.close(promise: response.eventLoop.makePromise(of: Void.self))
+		}
+
+		return response.flatMapThrowing { response in
+			return Caked_ExecuteReply.with { reply in
+				reply.exitCode = response.exitCode
+
+				if response.hasError {
+					reply.error = response.error
+				}
+
+				if response.hasOutput {
+					reply.output = response.output
+				}
+			}
+		}.flatMapError { error in
+			return response.eventLoop.submit {
+				return nil
+			}
+		}
+	}
+
+	func execute(request: Caked_ExecuteRequest) async throws -> Caked_ExecuteReply {
 		let client = try createClient()
 
 		do {
-			let response = try client.execute(Cakeagent_ExecuteRequest.with { req in
+			let response = try await client.execute(Cakeagent_ExecuteRequest.with { req in
 				if request.hasInput {
 					req.input = Data(request.input)
 				}
 
 				req.command = request.command
 				req.args = request.args
-			}).response.wait()
+			}).response.get()
 
-			try? client.closeSync()
+			try? await client.close()
 
 			return Caked_ExecuteReply.with { reply in
 				reply.exitCode = response.exitCode
@@ -108,7 +175,7 @@ struct CakeAgentConnection {
 				}
 			}
 		} catch {
-			try! client.closeSync()
+			try? await client.close()
 			throw error
 		}
 	}
@@ -119,7 +186,7 @@ struct CakeAgentConnection {
 		let finish = {
 			continuation.finish()
 			try? await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
-			try? client.closeSync()
+			try? await client.close()
 		}
 
 		do {

@@ -224,25 +224,12 @@ struct VMLocation {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
-	func startVirtualMachine(on: EventLoop, config: CakeConfig, promise: EventLoopPromise<String>? = nil) throws -> VirtualMachine {
+	func startVirtualMachine(on: EventLoop, config: CakeConfig, asSystem: Bool, promise: EventLoopPromise<String?>? = nil) throws -> VirtualMachine {
 		let vm = try VirtualMachine(vmLocation: self, config: config)
-		let runningIPFuture = try vm.runInBackground(on: on)
+		
+		_ = try vm.runInBackground(on: on, asSystem: asSystem)
 
 		try self.writePID()
-
-		if let runningIP = try runningIPFuture.wait() {
-			config.runningIP = runningIP
-
-			try? config.save()
-
-			if let promise = promise {
-				promise.succeed(runningIP)
-			}
-		} else {
-			if let promise = promise {
-				promise.fail(ServiceError("failed to get IP"))
-			}
-		}
 
 		return vm
 	}
