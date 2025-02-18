@@ -198,6 +198,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 					Logger.info("VM \(self.vmLocation.name) started")
 					if let communicationDevices = self.communicationDevices {
 						communicationDevices.connect(virtualMachine: self.virtualMachine)
+						Logger.info("Communication devices \(self.vmLocation.name) connected")
 					}
 					break
 				case .failure(let error):
@@ -358,12 +359,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		return nil
 	}
 
-	public func runInBackground(on: EventLoop, asSystem: Bool, promise: EventLoopPromise<String?>? = nil) throws -> EventLoopFuture<String?> {
+	public func runInBackground(on: EventLoop, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
 		let task = Task {
 			var status: Int32 = 0
 
 			do {
-				try await self.start()
+				try await self.start(completionHandler: completionHandler)
 			} catch {
 				status = 1
 			}

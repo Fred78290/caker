@@ -224,10 +224,10 @@ struct VMLocation {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
-	func startVirtualMachine(on: EventLoop, config: CakeConfig, asSystem: Bool, promise: EventLoopPromise<String?>? = nil) throws -> VirtualMachine {
+	func startVirtualMachine(on: EventLoop, config: CakeConfig, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: VirtualMachine.StartCompletionHandler? = nil) throws -> VirtualMachine {
 		let vm = try VirtualMachine(vmLocation: self, config: config)
 		
-		_ = try vm.runInBackground(on: on, asSystem: asSystem)
+		_ = try vm.runInBackground(on: on, asSystem: asSystem, completionHandler: completionHandler)
 
 		try self.writePID()
 
