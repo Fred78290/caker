@@ -70,7 +70,7 @@ struct VMRun: ParsableCommand {
 			}
 		}
 
-		let vm: VirtualMachine = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, asSystem: asSystem)
+		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, asSystem: asSystem)
 
 		if display {
 			MainApp.runUI(name: name, vm: vm, config: config, false, false)

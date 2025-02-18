@@ -48,6 +48,8 @@ struct Template: ParsableCommand {
 				FileHandle.standardError.write("\(error.localizedDescription)\n".data(using: .utf8)!)
 				Foundation.exit(0)
 			}
+
+			print(self.format.renderSingle(style: Style.grid, uppercased: true, try await r.get()))
 		}
 	}
 

@@ -17,7 +17,7 @@ struct CakeAgentConnection {
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 10, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
+	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
 		self.caCert = caCert
 		self.tlsCert = tlsCert
 		self.tlsKey = tlsKey
@@ -27,7 +27,7 @@ struct CakeAgentConnection {
 		self.retries = retries
 	}
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 10, retries: ConnectionBackoff.Retries = .unlimited) {
+	init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {
 		self.init(eventLoop: eventLoop,
 		          listeningAddress: listeningAddress,
 		          caCert: certLocation.caCertURL.path(),

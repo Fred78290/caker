@@ -3,8 +3,6 @@ import SwiftUI
 import Virtualization
 
 struct MainApp: App {
-	static var suspendable: Bool = false
-	static var capturesSystemKeys: Bool = false
 	static var _vm: VirtualMachine? = nil
 	static var _config: CakeConfig? = nil
 	static var _name: String? = nil
@@ -51,37 +49,29 @@ struct MainApp: App {
 	var body: some Scene {
 		WindowGroup(MainApp.name) {
 			let display = MainApp.config.display
+			let minWidth = CGFloat(display.width)
+			let idealWidth = CGFloat(display.width)
+			let minHeight = CGFloat(display.height)
+			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(config: MainApp.config, vm: MainApp.vm, virtualMachine: MainApp.virtualMachine, capturesSystemKeys: MainApp.capturesSystemKeys).onAppear {
+				VMView(config: MainApp.config, vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
-					let ret = kill(getpid(), MainApp.suspendable ? SIGUSR1 : SIGINT)
+					let ret = kill(getpid(), SIGINT)
 					if ret != 0 {
-						// Fallback to the old termination method that doesn't
-						// propagate the cancellation to Task's in case graceful
-						// termination via kill(2) is not successful
 						NSApplication.shared.terminate(self)
 					}
 				}
-			}.frame(
-				minWidth: CGFloat(display.width),
-				idealWidth: CGFloat(display.width),
-				maxWidth: .infinity,
-				minHeight: CGFloat(display.height),
-				idealHeight: CGFloat(display.height),
-				maxHeight: .infinity
-			)
+			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 		}.commands {
-			// Remove some standard menu options
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
 			CommandGroup(replacing: .pasteboard, addition: {})
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			// Replace some standard menu options
-			CommandGroup(replacing: .appInfo) { AboutTart(config: MainApp.config) }
+			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task { MainApp.vm.startVM() }
@@ -92,20 +82,11 @@ struct MainApp: App {
 				Button("Request Stop") {
 					Task { try MainApp.vm.requestStopVM() }
 				}
-				if #available(macOS 14, *) {
-					if (MainApp.suspendable) {
-						Button("Suspend") {
-							kill(getpid(), SIGUSR1)
-						}
-					}
-				}
 			}
 		}
 	}
 
-	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig, _ suspendable: Bool, _ captureSystemKeys: Bool) {
-		MainApp.suspendable = suspendable
-		MainApp.capturesSystemKeys = captureSystemKeys
+	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
 		MainApp.virtualMachine = vm.getVM()
 		MainApp.name = name
@@ -115,10 +96,8 @@ struct MainApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-	var suspendable: Bool = false
-
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if (kill(getpid(), self.suspendable ? SIGUSR1 : SIGINT) == 0) {
+		if (kill(getpid(), SIGINT) == 0) {
 			return .terminateLater
 		} else {
 			return .terminateNow
@@ -126,7 +105,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 }
 
-struct AboutTart: View {
+struct AboutCaker: View {
 	var infos: NSAttributedString
 
 	init(config: CakeConfig) {
@@ -168,19 +147,10 @@ struct VMView: NSViewRepresentable {
 	@ObservedObject
 	var vm: VirtualMachine
 	var virtualMachine: VZVirtualMachine
-	var capturesSystemKeys: Bool
 
 	func makeNSView(context: Context) -> NSViewType {
 		let machineView = VZVirtualMachineView()
-
-		machineView.capturesSystemKeys = capturesSystemKeys
-
-		// If not specified, enable automatic display
-		// reconfiguration for guests that support it
-		//
-		// This is disabled for Linux because of poor HiDPI
-		// support, which manifests in fonts being too small
-		if #available(macOS 14.0, *), config.displayRefit || (config.os != .linux) {
+		if #available(macOS 14.0, *), config.displayRefit || (config.os == .darwin) {
 			machineView.automaticallyReconfiguresDisplay = true
 		}
 

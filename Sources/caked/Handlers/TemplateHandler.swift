@@ -6,6 +6,26 @@ import TextTable
 import Shout
 import Cocoa
 
+private let cloudInitCleanup = [
+	"systemctl disable cakeagent",
+	"rm -f /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg",
+	"rm /etc/netplan/*",
+	"cloud-init clean",
+	"cloud-init clean -l",
+	"rm -rf /etc/apparmor.d/cache/* /etc/apparmor.d/cache/.features",
+	"/usr/bin/truncate --size 0 /etc/machine-id",
+	"rm -f /snap/README",
+	"find /usr/share/netplan -name __pycache__ -exec rm -r {} +",
+	"rm -rf /var/cache/pollinate/seeded /var/cache/snapd/* /var/cache/motd-news",
+	"rm -rf /var/lib/cloud /var/lib/dbus/machine-id /var/lib/private /var/lib/systemd/timers /var/lib/systemd/timesync /var/lib/systemd/random-seed",
+	"rm -f /var/lib/ubuntu-release-upgrader/release-upgrade-available",
+	"rm -f /var/lib/update-notifier/fsck-at-reboot /var/lib/update-notifier/hwe-eol",
+	"find /var/log -type f -exec rm -f {} +",
+	"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
+	"/bin/sync",
+	"shutdown now"
+]
+
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest
 
@@ -27,95 +47,70 @@ struct TemplateHandler: CakedCommand {
 		let deleted: Bool
 	}
 
-	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
+	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation) throws -> EventLoopFuture<String> {
+		on.submit {
+			return ""
+		}
+	}
+
+	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws -> EventLoopFuture<Caked_ExecuteReply> {
 		let eventLoop = Root.group.next()
-		let promise = eventLoop.makePromise(of: String?.self)
-		let configuredUser = config.configuredUser
+		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location)
 
-		promise.futureResult.whenSuccess {
-			if let runningIP = $0 {
-				do {
-					let home: Home = try Home(asSystem: asSystem)
-					let conn = CakeAgentConnection(eventLoop: eventLoop, listeningAddress: location.agentURL, caCert: self.certLocation.caCertURL.path(), tlsCert: self.certLocation.serverCertURL.path(), tlsKey: self.certLocation.serverKeyURL.path())
-					let cloudInitCleanup = [
-						//"systemctl disable cakeagent",
-						"rm -f /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg",
-						"rm /etc/netplan/*",
-						"cloud-init clean",
-						"cloud-init clean -l",
-						"rm -rf /etc/apparmor.d/cache/* /etc/apparmor.d/cache/.features",
-						"/usr/bin/truncate --size 0 /etc/machine-id",
-						"rm -f /snap/README",
-						"find /usr/share/netplan -name __pycache__ -exec rm -r {} +",
-						"rm -rf /var/cache/pollinate/seeded /var/cache/snapd/* /var/cache/motd-news",
-						"rm -rf /var/lib/cloud /var/lib/dbus/machine-id /var/lib/private /var/lib/systemd/timers /var/lib/systemd/timesync /var/lib/systemd/random-seed",
-						"rm -f /var/lib/ubuntu-release-upgrader/release-upgrade-available",
-						"rm -f /var/lib/update-notifier/fsck-at-reboot /var/lib/update-notifier/hwe-eol",
-						"find /var/log -type f -exec rm -f {} +",
-						"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
-						"/bin/sync",
-						"shutdown now"
-					]
+		return runningIP.flatMapWithEventLoop { runningIP, on in
+			on.makeFutureWithTask {
+				let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+				let conn = CakeAgentConnection(eventLoop: on.next(),
+				                               listeningAddress: location.agentURL,
+				                               caCert: certLocation.caCertURL.path(),
+				                               tlsCert: certLocation.serverCertURL.path(),
+				                               tlsKey: certLocation.serverKeyURL.path())
 
-					conn.execute(request: Caked_ExecuteRequest(command: "hostname -I", timeout: 5))
-				} catch {
-					Logger.error("Failed to clean cloud-init: \(error)")
-				}
+				return try await conn.execute(request: Caked_ExecuteRequest.with {
+					$0.command = cloudInitCleanup.joined(separator: " && ")
+				})
 			}
 		}
-
-		promise.futureResult.whenFailure { error in
-			Logger.error("Failed to clean cloud-init: \(error)")
-		}
-		
-		let completion: VirtualMachine.StartCompletionHandler = { result in
-			DispatchQueue.main.async {
-				NSApplication.shared.setActivationPolicy(.prohibited)
-				NSApplication.shared.run()
-			}
-		}
-
-		let vm = try location.startVirtualMachine(on: eventLoop, config: config, asSystem: false, promise: promise, completionHandler: completion)
-
-		_ = try promise.futureResult.wait()
-		
-		try? vm.requestStopVM()
 	}
 
 	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> EventLoopFuture<CreateTemplateReply> {
 		let storage = StorageLocation(asSystem: asSystem, template: true)
 		let source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
-		let lock: FileLock = try FileLock(lockURL: storage.rootURL)
-
-		try lock.lock()
-
-		defer {
-			try? lock.unlock()
-		}
 
 		if storage.exists(templateName) {
 			throw ServiceError("template \(templateName) already exists")
 		}
 
-		return on.submit {
-			if source.status != .running {
-				let config = try source.config()
-				let templateLocation = storage.location(templateName)
+		if source.status != .running {
+			let lock: FileLock = try FileLock(lockURL: storage.rootURL)
+			let config = try source.config()
+			let templateLocation = storage.location(templateName)
 
-				try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
+			try lock.lock()
 
-				if config.os == .linux && config.useCloudInit {
-					let tmpVM = try source.duplicateTemporary()
-					try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
+			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
+
+			if config.os == .linux && config.useCloudInit {
+				let tmpVM = try source.duplicateTemporary()
+
+				return try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem).flatMapThrowing { _ in
+					defer {
+						try? lock.unlock()
+					}
 					try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
-				} else {
-					try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
+					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 				}
-
-				return .init(name: templateName, created: true, reason: "")
+			} else {
+				return on.submit {
+					defer {
+						try? lock.unlock()
+					}
+					try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
+					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
+				}
 			}
-
-			return .init(name: templateName, created: false, reason: "source VM \(sourceName) is running")
+		} else {
+			throw ServiceError("source VM \(sourceName) is running")
 		}
 	}
 
@@ -164,12 +159,14 @@ struct TemplateHandler: CakedCommand {
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		let format: Format = request.format == .text ? Format.text : Format.json
 
+		if request.command == .add {
+			return try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem).flatMapThrowing { reply in
+				return format.renderSingle(style: Style.grid, uppercased: true, reply)
+			}
+		}
+
 		return on.submit {
 			switch request.command {
-			case .add:
-				return try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem).flatMapThrowing { reply in
-					return format.renderSingle(style: Style.grid, uppercased: true, reply)
-				}
 			case .delete:
 				return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
 			case .list:

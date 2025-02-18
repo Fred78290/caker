@@ -95,8 +95,9 @@ print(tempFileURL.absoluteString)
 
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
+			let storage = vmLocation.rootURL.deletingLastPathComponent().lastPathComponent
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
-			let arguments: [String] = ["exec", "caked", "vmrun", vmLocation.name, "2>&1", ">", log]
+			let arguments: [String] = ["exec", "caked", "vmrun", "--storage=\(storage)", vmLocation.name, "2>&1", ">", log]
 			var sharedFileDescriptors: [Int32] = []
 
 			config.sockets.forEach {

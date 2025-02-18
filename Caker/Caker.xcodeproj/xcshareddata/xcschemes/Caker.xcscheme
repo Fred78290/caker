@@ -52,11 +52,19 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "vmrun"
+            argument = "template"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "test"
+            argument = "create"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "test-template"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
