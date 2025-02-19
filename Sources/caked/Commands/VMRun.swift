@@ -48,35 +48,12 @@ struct VMRun: ParsableCommand {
 		let vmLocation = try storageLocation.find(name)
 		let config = try vmLocation.config()
 
-		defer {
-			vmLocation.removePID()
-		}
+		let handler = VMRunHandler(storageLocation: storageLocation,
+		                           vmLocation: vmLocation,
+		                           name: name, asSystem: asSystem,
+		                           display: display,
+		                           config: config)
 
-		if let macAddress = config.macAddress {
-			let vmHavingSameMacAddress = try storageLocation.list().first {
-				var result = false
-
-				if let addr = $1.macAddress {
-					result = $1.status == .running && addr.string == macAddress.string
-				}
-
-				return result
-			}
-
-			if vmHavingSameMacAddress != nil {
-				Logger.warn("This VM \(vmHavingSameMacAddress!.value.name) is running with the same mac address. Generating a new mac address")
-				config.resetMacAddress()
-				try config.save()
-			}
-		}
-
-		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, asSystem: asSystem)
-
-		if display {
-			MainApp.runUI(name: name, vm: vm, config: config, false, false)
-		} else {
-			NSApplication.shared.setActivationPolicy(.prohibited)
-			NSApplication.shared.run()
-		}
+		try handler.handle()
 	}
 }

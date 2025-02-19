@@ -9,11 +9,28 @@ import Shout
 
 struct StartHandler: CakedCommand {
 	var foreground: Bool = false
-	var name: String
+	var location: VMLocation
+	var config: CakeConfig
 	var waitIPTimeout: Int = 180
 
+	init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, foreground: Bool) {
+		self.foreground = foreground
+		self.location = location
+		self.config = config
+		self.waitIPTimeout = waitIPTimeout
+	}
+
+	init(name: String, waitIPTimeout: Int, foreground: Bool) throws {
+		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(name)
+		
+		self.location = vmLocation
+		self.config = try vmLocation.config()
+		self.waitIPTimeout = waitIPTimeout
+		self.foreground = foreground
+	}
+
 	internal static func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
-		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)	
+		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)
 		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
 		let serverKey = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
 		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
@@ -292,7 +309,7 @@ print(tempFileURL.absoluteString)
 				if config.autostart && vmLocation.status != .running {
 					Task {
 						do {
-							let handler: StartHandler = StartHandler(foreground: false, name: name)
+							let handler: StartHandler = StartHandler(location: vmLocation, config: config, waitIPTimeout: 120, foreground: false)
 
 							_ = try handler.run(on: on, asSystem: asSystem)
 						} catch {
@@ -309,7 +326,6 @@ print(tempFileURL.absoluteString)
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		let vmLocation: VMLocation = try StorageLocation(asSystem: asSystem).find(name)
 		let promise: EventLoopPromise<String> = on.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
@@ -317,12 +333,12 @@ print(tempFileURL.absoluteString)
 			case let .success(name):
 				Logger.info("VM \(name) terminated")
 			case let .failure(err):
-				Logger.error(ServiceError("Failed to start VM \(vmLocation.name), \(err.localizedDescription)"))
+				Logger.error(ServiceError("Failed to start VM \(self.location.name), \(err.localizedDescription)"))
 			}
 		}
 
 		return on.submit {
-			return try StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
+			return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
 		}
 	}
 
@@ -356,7 +372,7 @@ print(tempFileURL.absoluteString)
 		return process
 	}
 
-	public static func startVM(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
+	public static func startVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
 			throw ServiceError("VM does not exist")
 		}

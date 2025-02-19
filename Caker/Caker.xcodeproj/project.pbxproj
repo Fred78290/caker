@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
 		9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB02D5A3E0300164BF5 /* StartHandler.swift */; };
 		9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ACD2D5A3E0300164BF5 /* VMLocation.swift */; };
 		9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AC62D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift */; };
@@ -214,6 +215,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -555,6 +557,7 @@
 		9B464AB42D5A3E0300164BF5 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */,
 				9B464AA62D5A3E0300164BF5 /* BuildHandler.swift */,
 				9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */,
 				9B464AA82D5A3E0300164BF5 /* DeleteHandler.swift */,
@@ -952,6 +955,7 @@
 				9B464B3B2D5A3E0300164BF5 /* Exec.swift in Sources */,
 				9B464B3E2D5A3E0300164BF5 /* MainApp.swift in Sources */,
 				9B464B402D5A3E0300164BF5 /* Remote.swift in Sources */,
+				9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */,
 				9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */,
 				9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */,
 				9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */,

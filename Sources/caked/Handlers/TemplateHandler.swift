@@ -47,15 +47,15 @@ struct TemplateHandler: CakedCommand {
 		let deleted: Bool
 	}
 
-	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation) throws -> EventLoopFuture<String> {
+	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation, config: CakeConfig) throws -> EventLoopFuture<String> {
 		on.submit {
-			return ""
+			try StartHandler.startVM(vmLocation: location, config: config, waitIPTimeout: 120, foreground: false)
 		}
 	}
 
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws -> EventLoopFuture<Caked_ExecuteReply> {
 		let eventLoop = Root.group.next()
-		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location)
+		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location, config: config)
 
 		return runningIP.flatMapWithEventLoop { runningIP, on in
 			on.makeFutureWithTask {

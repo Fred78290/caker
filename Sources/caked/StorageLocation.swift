@@ -22,7 +22,7 @@ struct StorageLocation {
 	let template: Bool
 
 	init(asSystem: Bool, name: String = "vms") {
-		self.template = false
+		self.template = name != "vms"
 		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent(name, isDirectory: true)
 	    try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
 	}
