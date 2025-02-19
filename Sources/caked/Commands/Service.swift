@@ -13,7 +13,7 @@ import GRPCLib
 import Logging
 
 protocol HasExitCode {
-  var exitCode: Int32 { get }
+	var exitCode: Int32 { get }
 }
 
 
@@ -239,7 +239,7 @@ extension Service {
 			}
 		}
 
-		static func createServer(on: MultiThreadedEventLoopGroup,
+		static func createServer(eventLoopGroup: EventLoopGroup,
 		                         asSystem: Bool,
 		                         listeningAddress: URL?,
 		                         caCert: String?,
@@ -258,8 +258,8 @@ extension Service {
 				}
 
 				var serverConfiguration = Server.Configuration.default(target: target,
-				                                                       eventLoopGroup: on,
-				                                                       serviceProviders: [try CakedProvider(group: on, asSystem: asSystem)])
+				                                                       eventLoopGroup: eventLoopGroup,
+				                                                       serviceProviders: [try CakedProvider(group: eventLoopGroup, asSystem: asSystem)])
 
 				if let tlsCert = tlsCert, let tlsKey = tlsKey {
 					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
@@ -288,19 +288,19 @@ extension Service {
 
 		mutating func run() throws {
 			runAsSystem = self.asSystem
-			
+
 			if Root.vmrunAvailable() == false {
-				PortForwardingServer.createPortForwardingServer(on: Root.group)
+				PortForwardingServer.createPortForwardingServer(group: Root.group)
 			}
 
-			try StartHandler.autostart(on: Root.group.any(), asSystem: self.asSystem)
+			try StartHandler.autostart(on: Root.group.next(), asSystem: self.asSystem)
 
 			let listenAddress = try self.getServerAddress()
 
 			Logger.info("Start listening on \(listenAddress)")
 
 			// Start the server and print its address once it has started.
-			let server = try Self.createServer(on: Root.group,
+			let server = try Self.createServer(eventLoopGroup: Root.group,
 			                                   asSystem: self.asSystem,
 			                                   listeningAddress: URL(string: listenAddress),
 			                                   caCert: self.caCert,
@@ -310,7 +310,7 @@ extension Service {
 			signal(SIGINT, SIG_IGN)
 
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-			
+
 			sigintSrc.setEventHandler {
 				try? server.close().wait()
 			}
@@ -319,7 +319,7 @@ extension Service {
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
 			try server.onClose.wait()
-			
+
 			Logger.info("Server stopped")
 		}
 	}

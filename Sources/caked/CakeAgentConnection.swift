@@ -81,11 +81,11 @@ struct CakeAgentConnection {
 		}
 	}
 
-	func info() async throws -> Caked_InfoReply {
+	func info() throws -> Caked_InfoReply {
 		let client = try createClient()
 
 		do {
-			let response = try await client.info(.init()).response.get()
+			let response = try client.info(.init()).response.wait()
 
 			let reply = Caked_InfoReply.with {reply in
 				reply.version = response.version
@@ -105,11 +105,11 @@ struct CakeAgentConnection {
 				}
 			}
 
-			try? await client.close()
+			try? client.close().wait()
 
 			return reply
 		} catch {
-			try? await client.close()
+			try? client.close().wait()
 			throw error
 		}
 	}
@@ -148,20 +148,20 @@ struct CakeAgentConnection {
 		}
 	}
 
-	func execute(request: Caked_ExecuteRequest) async throws -> Caked_ExecuteReply {
+	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
 		let client = try createClient()
 
 		do {
-			let response = try await client.execute(Cakeagent_ExecuteRequest.with { req in
+			let response = try client.execute(Cakeagent_ExecuteRequest.with { req in
 				if request.hasInput {
 					req.input = Data(request.input)
 				}
 
 				req.command = request.command
 				req.args = request.args
-			}).response.get()
+			}).response.wait()
 
-			try? await client.close()
+			try? client.close().wait()
 
 			return Caked_ExecuteReply.with { reply in
 				reply.exitCode = response.exitCode
@@ -175,7 +175,7 @@ struct CakeAgentConnection {
 				}
 			}
 		} catch {
-			try? await client.close()
+			try? client.close().wait()
 			throw error
 		}
 	}

@@ -14,6 +14,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	private let communicationDevices: CommunicationDevices?
 	private let configuration: VZVirtualMachineConfiguration
 	private let vmLocation: VMLocation
+	private let sigint: DispatchSourceSignal
+	private let sigusr1: DispatchSourceSignal
+	private let sigusr2: DispatchSourceSignal
 	private var semaphore = AsyncSemaphore(value: 0)
 	private var identifier: String?
 	private func setIdentifier(_ id: String?) {
@@ -98,7 +101,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			}
 		}
 
-		let communicationDevices = try CommunicationDevices.setup(configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		let communicationDevices = try CommunicationDevices.setup(group: Root.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
 
 		try configuration.validate()
 
@@ -109,6 +112,14 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.configuration = configuration
 		self.communicationDevices = communicationDevices
 		self.virtualMachine = virtualMachine
+
+		signal(SIGINT, SIG_IGN)
+		signal(SIGUSR1, SIG_IGN)
+		signal(SIGUSR2, SIG_IGN)
+
+		self.sigint = DispatchSource.makeSignalSource(signal: SIGINT)
+		self.sigusr1 = DispatchSource.makeSignalSource(signal: SIGUSR1)
+		self.sigusr2 = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
 		super.init()
 
@@ -190,6 +201,22 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		Logger.info("VM \(self.vmLocation.name) exited")
 	}
 
+	public func startFromUI() {
+		self.virtualMachine.start{ result in
+			switch result {
+			case .success:
+				Logger.info("VM \(self.vmLocation.name) started")
+				if let communicationDevices = self.communicationDevices {
+					communicationDevices.connect(virtualMachine: self.virtualMachine)
+					Logger.info("Communication devices \(self.vmLocation.name) connected")
+				}
+				break
+			case .failure(let error):
+				Logger.error("VM \(self.vmLocation.name) failed to start: \(error)")
+			}
+		}
+	}
+
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			self.virtualMachine.start{ result in
@@ -233,6 +260,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 	}
 
+	public func stopFromUI() {
+		self.virtualMachine.stop { result in
+			Logger.info("VM \(self.vmLocation.name) stopped")
+
+			if let communicationDevices = self.communicationDevices {
+				communicationDevices.close()
+			}
+		}
+	}
+
 	public func stopVM(completionHandler: StopCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			self.virtualMachine.stop { result in
@@ -249,6 +286,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 	}
 
+	public func requestStopFromUI() throws {
+		try self.virtualMachine.requestStop()
+	}
+
 	public func requestStopVM() throws {
 		try DispatchQueue.main.sync {
 			try self.virtualMachine.requestStop()
@@ -263,26 +304,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.semaphore.signal()
 	}
 
-	private func catchSIGINT(_ task: Task<Int32, Never>) {
-		let sig: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
-
-		sig.setEventHandler {
-			Logger.info("Receive SIGINT")
-
+	private func catchUserSignals(_ task: Task<Int32, Never>) {
+		sigint.setEventHandler {
 			task.cancel()
 		}
 
-		sig.activate()
-	}
-
-	private func catchSIGUSR1(_ task: Task<Int32, Never>) {
-		signal(SIGUSR1, SIG_IGN)
-
-		let sig = DispatchSource.makeSignalSource(signal: SIGUSR1)
-
-		sig.setEventHandler {
-			Logger.info("Receive SIGUSR1")
-
+		sigusr1.setEventHandler {
 			Task {
 				do {
 					if try await self.pause() {
@@ -296,30 +323,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			}
 		}
 
-		sig.activate()
-	}
-
-	private func catchSIGUSR2(_ task: Task<Int32, Never>) {
-		signal(SIGUSR2, SIG_IGN)
-
-		let sig = DispatchSource.makeSignalSource(signal: SIGUSR1)
-
-		sig.setEventHandler {
-			Logger.info("Receive SIGUSR1")
-
+		sigusr2.setEventHandler {
 			Task {
 				Logger.info("Request guest OS to stop...")
 				try self.virtualMachine.requestStop()
 			}
 		}
 
-		sig.activate()
-	}
-
-	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		self.catchSIGINT(task)
-		self.catchSIGUSR1(task)
-		self.catchSIGUSR2(task)
+		sigint.activate()
+		sigusr1.activate()
+		sigusr2.activate()
 	}
 
 	private func waitIPFuture(on: EventLoop, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
@@ -327,7 +340,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(wait), retries: .unlimited)
 		let response = try conn.infoFuture()
-		
+
 		return response.flatMapThrowing {
 			return $0?.ipaddresses.first
 		}.flatMapErrorWithEventLoop {
@@ -384,7 +397,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		let response = try self.waitIPFuture(on: on, wait: 120, asSystem: asSystem)
 		let config = self.config
-		
+
 		response.whenSuccess { runningIP in
 			if let promise = promise {
 				promise.succeed(runningIP)
@@ -405,7 +418,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				if config.forwardedPorts.isEmpty == false {
 					Logger.info("Configure forwarding ports for VM \(self.vmLocation.name)")
 
-					PortForwardingServer.createPortForwardingServer(on: on.next())
+					PortForwardingServer.createPortForwardingServer(group: on.next())
 
 					if let identifier = try? PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: self.config.forwardedPorts) {
 						self.setIdentifier(identifier)

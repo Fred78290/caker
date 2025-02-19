@@ -24,7 +24,7 @@ struct Template: ParsableCommand {
 		}
 	}
 
-	struct CreateTemplate: AsyncParsableCommand {
+	struct CreateTemplate: ParsableCommand {
 		static var configuration = CommandConfiguration(commandName: "create", abstract: "Create template from existing VM")
 
 		@Argument(help: "Source VM name")
@@ -36,20 +36,8 @@ struct Template: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
 
-		func run() async throws {
-			let r = try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: name, templateName: template, asSystem: false)
-			
-			r.whenSuccess { reply in
-				print(self.format.renderSingle(style: Style.grid, uppercased: true, reply))
-				Foundation.exit(0)
-			}
-
-			r.whenFailure { error in
-				FileHandle.standardError.write("\(error.localizedDescription)\n".data(using: .utf8)!)
-				Foundation.exit(0)
-			}
-
-			print(self.format.renderSingle(style: Style.grid, uppercased: true, try await r.get()))
+		func run() throws {			
+			print(self.format.renderSingle(style: Style.grid, uppercased: true, try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: name, templateName: template, asSystem: false)))
 		}
 	}
 

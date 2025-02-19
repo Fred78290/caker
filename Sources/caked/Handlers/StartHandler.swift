@@ -8,25 +8,31 @@ import Semaphore
 import Shout
 
 struct StartHandler: CakedCommand {
-	var foreground: Bool = false
+	var startMode: StartMode = .background
 	var location: VMLocation
 	var config: CakeConfig
 	var waitIPTimeout: Int = 180
 
+	enum StartMode: Int {
+		case background = 0
+		case foreground = 1
+		case attach = 2
+	}
+
 	init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, foreground: Bool) {
-		self.foreground = foreground
+		self.startMode = foreground ? .foreground : .background
 		self.location = location
 		self.config = config
 		self.waitIPTimeout = waitIPTimeout
 	}
 
-	init(name: String, waitIPTimeout: Int, foreground: Bool) throws {
+	init(name: String, waitIPTimeout: Int, startMode: StartMode) throws {
 		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(name)
 		
 		self.location = vmLocation
 		self.config = try vmLocation.config()
 		self.waitIPTimeout = waitIPTimeout
-		self.foreground = foreground
+		self.startMode = startMode
 	}
 
 	internal static func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
@@ -110,12 +116,17 @@ print(tempFileURL.absoluteString)
 			}
 		}
 
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
+		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
-			let storage = vmLocation.rootURL.deletingLastPathComponent().lastPathComponent
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
-			let arguments: [String] = ["exec", "caked", "vmrun", "--storage=\(storage)", vmLocation.name, "2>&1", ">", log]
+			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path()]
 			var sharedFileDescriptors: [Int32] = []
+
+			if startMode == .background {
+				arguments.append(contentsOf: ["2>&1", ">", log])
+			} else if startMode == .foreground{
+				arguments.append("--display")
+			}
 
 			config.sockets.forEach {
 				if let fds = $0.sharedFileDescriptors {
@@ -123,7 +134,7 @@ print(tempFileURL.absoluteString)
 				}
 			}
 
-			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, foreground: foreground) { process in
+			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
 				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let promise = promise {
@@ -175,7 +186,7 @@ print(tempFileURL.absoluteString)
 	private class StartHandlerTart {
 		var identifier: String? = nil
 
-		private func runningArguments(vmLocation: VMLocation, foreground: Bool) throws -> ([String], [Int32]) {
+		private func runningArguments(vmLocation: VMLocation, startMode: StartMode) throws -> ([String], [Int32]) {
 			let config: CakeConfig = try vmLocation.config()
 			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path()
 			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
@@ -184,7 +195,7 @@ print(tempFileURL.absoluteString)
 			var arguments: [String] = ["exec", "tart", "run", vmLocation.name]
 			var sharedFileDescriptors: [Int32] = []
 
-			if foreground == false {
+			if startMode != .foreground {
 				arguments.append("--no-graphics")
 				arguments.append("--no-audio")
 			}
@@ -230,10 +241,10 @@ print(tempFileURL.absoluteString)
 			return (arguments, sharedFileDescriptors)
 		}
 
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>?) throws -> String {
-			let (arguments, sharedFileDescriptors) = try self.runningArguments(vmLocation: vmLocation, foreground: foreground)
+		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>?) throws -> String {
+			let (arguments, sharedFileDescriptors) = try self.runningArguments(vmLocation: vmLocation, startMode: startMode)
 
-			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, foreground: foreground) { process in
+			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
 				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let id = self.identifier {	
@@ -338,18 +349,18 @@ print(tempFileURL.absoluteString)
 		}
 
 		return on.submit {
-			return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, foreground: false, promise: promise)
+			return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .background, promise: promise)
 		}
 	}
 
-	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, foreground: Bool, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
+	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
 		let process = ProcessWithSharedFileHandle()
 		var environment = ProcessInfo.processInfo.environment
 		let cakeHome = try Utils.getHome(asSystem: runAsSystem)
 
 		environment["TART_HOME"] = cakeHome.path()
 
-		if foreground {
+		if startMode == .foreground || startMode == .attach {
 			process.standardError = FileHandle.standardError
 			process.standardOutput = FileHandle.standardOutput
 			process.standardInput = FileHandle.standardInput
@@ -372,7 +383,15 @@ print(tempFileURL.absoluteString)
 		return process
 	}
 
-	public static func startVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, foreground: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
+	public static func internalStartVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+		if Root.vmrunAvailable() {
+			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, promise: promise)
+		} else {
+			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, promise: promise)
+		}
+	}
+
+	public static func startVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
 			throw ServiceError("VM does not exist")
 		}
@@ -382,9 +401,9 @@ print(tempFileURL.absoluteString)
 		}
 
 		if Root.vmrunAvailable() {
-			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
+			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, promise: promise)
 		} else {
-			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground, promise: promise)
+			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, promise: promise)
 		}
 	}
 }

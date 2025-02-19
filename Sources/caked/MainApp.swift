@@ -74,13 +74,13 @@ struct MainApp: App {
 			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
-					Task { MainApp.vm.startVM() }
+					Task { MainApp.vm.startFromUI() }
 				}
 				Button("Stop") {
-					Task { MainApp.vm.stopVM() }
+					Task { MainApp.vm.stopFromUI() }
 				}
 				Button("Request Stop") {
-					Task { try MainApp.vm.requestStopVM() }
+					Task { try MainApp.vm.requestStopFromUI() }
 				}
 			}
 		}

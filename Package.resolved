@@ -229,8 +229,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/swift-nio-portforwarding.git",
       "state" : {
-        "revision" : "1d35e91633f6eaadfef08a8c4ecc04ea036d0bfa",
-        "version" : "0.1.2"
+        "revision" : "6a0413cefd139fa7e7cf7eee83c0f9c616ac2e47",
+        "version" : "0.1.3"
       }
     },
     {

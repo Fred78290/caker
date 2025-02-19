@@ -7,14 +7,11 @@ import Cocoa
 import NIOPortForwarding
 import System
 
-struct VMRun: ParsableCommand {
+struct VMRun: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
-	@Argument
-	var name: String
-
-	@Option(help: "location of the VM")
-	var storage: String = "vms"
+	@Argument(help: "Path to the VM disk.img")
+	var path: String
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
@@ -25,35 +22,44 @@ struct VMRun: ParsableCommand {
 	@Flag(help: .hidden)
 	var display: Bool = false
 
+	var locations: (StorageLocation, VMLocation) {
+		let u = URL(fileURLWithPath: path)
+		let parent = u.deletingLastPathComponent()
+		let storage = parent.deletingLastPathComponent()
+		let storageLocation = StorageLocation(asSystem: asSystem, name: storage.lastPathComponent)
+		let vm = VMLocation(rootURL: parent, template: storageLocation.template)
+
+		return (storageLocation, vm)
+	}
+
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 
+		let (_, vmLocation) = self.locations
+
 		runAsSystem = asSystem
 
-		let storageLocation = StorageLocation(asSystem: asSystem)
-
-		if storageLocation.exists(name) == false {
-			throw ValidationError("VM \(name) does not exist")
+		if vmLocation.inited == false {
+			throw ValidationError("VM at \(path) does not exist")
 		}
 
-		let vmLocation = try storageLocation.find(name)
-
 		if vmLocation.status == .running {
-			throw ValidationError("VM \(name) is already running")
+			throw ValidationError("VM at \(path) is already running")
 		}
 	}
 
-	mutating func run() throws {
-		let storageLocation = StorageLocation(asSystem: asSystem, name: storage)
-		let vmLocation = try storageLocation.find(name)
+	@MainActor
+	mutating func run() async throws {
+		let (storageLocation, vmLocation) = self.locations
 		let config = try vmLocation.config()
 
 		let handler = VMRunHandler(storageLocation: storageLocation,
 		                           vmLocation: vmLocation,
-		                           name: name, asSystem: asSystem,
+		                           name: vmLocation.name,
+								   asSystem: asSystem,
 		                           display: display,
 		                           config: config)
 
-		try handler.handle()
+		try handler.run()
 	}
 }

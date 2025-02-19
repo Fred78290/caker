@@ -13,7 +13,7 @@ struct VMRunHandler {
 	let display: Bool
 	let config: CakeConfig
 
-	func handle() throws {
+	func run() throws {
 		defer {
 			vmLocation.removePID()
 		}

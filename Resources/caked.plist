@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleName</key>
-	<string>Caked</string>
-	<key>CFBundleDisplayName</key>
-	<string>Caked</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.aldunelabs.caker</string>
-	<key>CFBundleExecutable</key>
-	<string>caked</string>
-	<key>LSBackgroundOnly</key>
-	<string>1</string>
-	<key>CFBundleIconFiles</key>
-	<array>
-		<string>AppIcon.png</string>
-	</array>
-	<key>NSAppTransportSecurity</key>
 	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
+		<key>CFBundleName</key>
+		<string>Caked</string>
+		<key>CFBundleDisplayName</key>
+		<string>Caked</string>
+		<key>CFBundleIdentifier</key>
+		<string>com.aldunelabs.caker</string>
+		<key>CFBundleExecutable</key>
+		<string>caked</string>
+		<key>CFBundleIconFiles</key>
+		<array>
+			<string>AppIcon.png</string>
+		</array>
+		<key>LSApplicationCategoryType</key>
+		<string>public.app-category.developer-tools</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true />
+		</dict>
 	</dict>
-</dict>
 </plist>

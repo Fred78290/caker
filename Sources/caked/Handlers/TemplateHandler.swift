@@ -47,33 +47,29 @@ struct TemplateHandler: CakedCommand {
 		let deleted: Bool
 	}
 
-	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation, config: CakeConfig) throws -> EventLoopFuture<String> {
-		on.submit {
-			try StartHandler.startVM(vmLocation: location, config: config, waitIPTimeout: 120, foreground: false)
-		}
+	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation, config: CakeConfig) throws -> String {
+		try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 	}
 
-	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws -> EventLoopFuture<Caked_ExecuteReply> {
+	@discardableResult
+	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws -> Caked_ExecuteReply {
 		let eventLoop = Root.group.next()
 		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location, config: config)
+		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		let conn = CakeAgentConnection(eventLoop: Root.group.next(),
+		                               listeningAddress: location.agentURL,
+		                               caCert: certLocation.caCertURL.path(),
+		                               tlsCert: certLocation.serverCertURL.path(),
+		                               tlsKey: certLocation.serverKeyURL.path())
 
-		return runningIP.flatMapWithEventLoop { runningIP, on in
-			on.makeFutureWithTask {
-				let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-				let conn = CakeAgentConnection(eventLoop: on.next(),
-				                               listeningAddress: location.agentURL,
-				                               caCert: certLocation.caCertURL.path(),
-				                               tlsCert: certLocation.serverCertURL.path(),
-				                               tlsKey: certLocation.serverKeyURL.path())
+		Logger.info("Clean cloud-init on \(runningIP)")
 
-				return try await conn.execute(request: Caked_ExecuteRequest.with {
-					$0.command = cloudInitCleanup.joined(separator: " && ")
-				})
-			}
-		}
+		return try conn.execute(request: Caked_ExecuteRequest.with {
+			$0.command = cloudInitCleanup.joined(separator: " && ")
+		})
 	}
 
-	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> EventLoopFuture<CreateTemplateReply> {
+	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {
 		let storage = StorageLocation(asSystem: asSystem, template: true)
 		let source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
 
@@ -88,27 +84,23 @@ struct TemplateHandler: CakedCommand {
 
 			try lock.lock()
 
+			defer {
+				try? lock.unlock()
+			}
+
 			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 
 			if config.os == .linux && config.useCloudInit {
 				let tmpVM = try source.duplicateTemporary()
 
-				return try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem).flatMapThrowing { _ in
-					defer {
-						try? lock.unlock()
-					}
-					try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
-					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
-				}
+				try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
+				try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
+				try FileManager.default.removeItem(at: tmpVM.rootURL)
 			} else {
-				return on.submit {
-					defer {
-						try? lock.unlock()
-					}
-					try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
-					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
-				}
+				try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
 			}
+
+			return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 		} else {
 			throw ServiceError("source VM \(sourceName) is running")
 		}
@@ -157,16 +149,12 @@ struct TemplateHandler: CakedCommand {
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		let format: Format = request.format == .text ? Format.text : Format.json
-
-		if request.command == .add {
-			return try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem).flatMapThrowing { reply in
-				return format.renderSingle(style: Style.grid, uppercased: true, reply)
-			}
-		}
-
 		return on.submit {
+			let format: Format = request.format == .text ? Format.text : Format.json
+
 			switch request.command {
+			case .add:
+				return format.renderSingle(style: Style.grid, uppercased: true, try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem))
 			case .delete:
 				return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
 			case .list:

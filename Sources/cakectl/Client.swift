@@ -191,7 +191,7 @@ struct Client: AsyncParsableCommand {
 		}
 	}
 
-	static func createClient(on: MultiThreadedEventLoopGroup,
+	static func createClient(on: EventLoopGroup,
 	                         listeningAddress: URL?,
 	                         caCert: String?,
 	                         tlsCert: String?,

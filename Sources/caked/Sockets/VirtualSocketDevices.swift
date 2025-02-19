@@ -86,10 +86,6 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 	private var socketDevice: VZVirtioSocketDevice?
 	private var idle: RepeatedTask?
 
-	deinit {
-		try? mainGroup.syncShutdownGracefully()
-	}
-
 	private init(on: EventLoopGroup, sockets: [SocketDevice]) {
 		var socketStates: [Int: SocketState] = [:]
 

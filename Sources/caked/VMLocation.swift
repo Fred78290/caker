@@ -37,6 +37,10 @@ struct VMLocation {
 		rootURL.appendingPathComponent("manifest.json")
 	}
 
+	var cdromISO: URL {
+		rootURL.appendingPathComponent("cloud-init.iso")
+	}
+
 	var agentURL: URL {
 		let agentURL = rootURL.appendingPathComponent("agent.sock")
 
@@ -126,6 +130,9 @@ struct VMLocation {
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
 		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
+		if FileManager.default.fileExists(atPath: self.cdromISO.path) {
+			try FileManager.default.copyItem(at: self.cdromISO, to: target.cdromISO)
+		}
 
 		return target
 	}

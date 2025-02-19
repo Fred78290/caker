@@ -25,6 +25,6 @@ struct Start: ParsableCommand {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 		let config = try vmLocation.config()
 
-		Logger.appendNewLine(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, foreground: self.foreground))
+		Logger.appendNewLine(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background))
 	}
 }
