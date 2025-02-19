@@ -12,7 +12,7 @@ enum PortForwardingServerError: Error {
 }
 
 class PortForwardingServer {
-	let serviceMainGroup: EventLoopGroup
+	let mainGroup: EventLoopGroup
 	let ttl: Int
 	let bindAddress: String
 	var portForwarders: [String:PortForwarder] = [:]
@@ -25,12 +25,10 @@ class PortForwardingServer {
 
 		portForwarders.removeAll()
 		closures.removeAll()
-
-		try? serviceMainGroup.syncShutdownGracefully()
 	}
 
-	private init(on: EventLoopGroup, bindAddress: String = "0.0.0.0", ttl: Int = 5) {
-		self.serviceMainGroup = on
+	private init(group: EventLoopGroup, bindAddress: String = "0.0.0.0", ttl: Int = 5) {
+		self.mainGroup = group
 		self.bindAddress = bindAddress
 		self.ttl = ttl
 	}
@@ -52,7 +50,7 @@ class PortForwardingServer {
 
 	private func add(remoteHost: String, forwardedPorts: [ForwardedPort]) throws -> String {
 		let uuid = UUID().uuidString
-		let pfw = PortForwarder(group: serviceMainGroup.next(), remoteHost: remoteHost,
+		let pfw = PortForwarder(group: mainGroup, remoteHost: remoteHost,
 			mappedPorts: forwardedPorts.map { forwarded in
 				Logger.info("Remote: \(remoteHost), forward port: \(forwarded.proto.rawValue) \(forwarded.guest) to \(forwarded.host)")
 				return MappedPort(host: forwarded.host, guest: forwarded.guest, proto: forwarded.proto)
@@ -69,8 +67,8 @@ class PortForwardingServer {
 		return uuid
 	}
 
-	static func createPortForwardingServer(on: EventLoopGroup) {
-		portForwardingServer = .init(on: on)
+	static func createPortForwardingServer(group: EventLoopGroup) {
+		portForwardingServer = .init(group: group)
 	}
 
 	static func closeForwardedPort(identifier: String) throws  {

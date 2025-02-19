@@ -3,9 +3,39 @@ import SwiftUI
 import Virtualization
 
 struct MainApp: App {
-	static var suspendable: Bool = false
-	static var capturesSystemKeys: Bool = false
 	static var _vm: VirtualMachine? = nil
+	static var _config: CakeConfig? = nil
+	static var _name: String? = nil
+	static var _virtualMachine: VZVirtualMachine? = nil
+
+	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+
+	static var virtualMachine: VZVirtualMachine {
+		get {
+			return _virtualMachine!
+		}
+		set {
+			_virtualMachine = newValue
+		}
+	}
+
+	static var name: String {
+		get {
+			return _name!
+		}
+		set {
+			_name = newValue
+		}
+	}
+
+	static var config: CakeConfig {
+		get {
+			return _config!
+		}
+		set {
+			_config = newValue
+		}
+	}
 
 	static var vm: VirtualMachine {
 		get {
@@ -16,76 +46,58 @@ struct MainApp: App {
 		}
 	}
 
-	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
-
 	var body: some Scene {
-		WindowGroup(MainApp.vm.name) {
-			let display = MainApp.vm.config.display
+		WindowGroup(MainApp.name) {
+			let display = MainApp.config.display
+			let minWidth = CGFloat(display.width)
+			let idealWidth = CGFloat(display.width)
+			let minHeight = CGFloat(display.height)
+			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(vm: MainApp.vm, capturesSystemKeys: MainApp.capturesSystemKeys).onAppear {
+				VMView(config: MainApp.config, vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
-					let ret = kill(getpid(), MainApp.suspendable ? SIGUSR1 : SIGINT)
+					let ret = kill(getpid(), SIGINT)
 					if ret != 0 {
-						// Fallback to the old termination method that doesn't
-						// propagate the cancellation to Task's in case graceful
-						// termination via kill(2) is not successful
 						NSApplication.shared.terminate(self)
 					}
 				}
-			}.frame(
-				minWidth: CGFloat(display.width),
-				idealWidth: CGFloat(display.width),
-				maxWidth: .infinity,
-				minHeight: CGFloat(display.height),
-				idealHeight: CGFloat(display.height),
-				maxHeight: .infinity
-			)
+			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 		}.commands {
-			// Remove some standard menu options
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
 			CommandGroup(replacing: .pasteboard, addition: {})
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			// Replace some standard menu options
-			CommandGroup(replacing: .appInfo) { AboutTart(config: MainApp.vm.config) }
+			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
-					Task { try await MainApp.vm.virtualMachine.start() }
+					Task { MainApp.vm.startFromUI() }
 				}
 				Button("Stop") {
-					Task { try await MainApp.vm.virtualMachine.stop() }
+					Task { MainApp.vm.stopFromUI() }
 				}
 				Button("Request Stop") {
-					Task { try MainApp.vm.virtualMachine.requestStop() }
-				}
-				if #available(macOS 14, *) {
-					if (MainApp.suspendable) {
-						Button("Suspend") {
-							kill(getpid(), SIGUSR1)
-						}
-					}
+					Task { try MainApp.vm.requestStopFromUI() }
 				}
 			}
 		}
 	}
 
-	static func runUI(vm: VirtualMachine, _ suspendable: Bool, _ captureSystemKeys: Bool) {
-		MainApp.suspendable = suspendable
-		MainApp.capturesSystemKeys = captureSystemKeys
+	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
+		MainApp.virtualMachine = vm.getVM()
+		MainApp.name = name
+		MainApp.config = config
 		MainApp.main()
 	}
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-	var suspendable: Bool = false
-
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if (kill(getpid(), self.suspendable ? SIGUSR1 : SIGINT) == 0) {
+		if (kill(getpid(), SIGINT) == 0) {
 			return .terminateLater
 		} else {
 			return .terminateNow
@@ -93,33 +105,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	}
 }
 
-struct AboutTart: View {
-	var credits: NSAttributedString
+struct AboutCaker: View {
+	var infos: NSAttributedString
 
 	init(config: CakeConfig) {
-		let mutableAttrStr = NSMutableAttributedString()
-		let style = NSMutableParagraphStyle()
+		let infos = NSMutableAttributedString()
+		let style: NSMutableParagraphStyle = NSMutableParagraphStyle()
+
 		style.alignment = NSTextAlignment.center
-		let attrCenter: [NSAttributedString.Key : Any] = [
-			.paragraphStyle: style,
-		]
-		mutableAttrStr.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: attrCenter))
-		mutableAttrStr.append(NSAttributedString(string: "Memory: \(config.memorySize / 1024 / 1024) MB\n", attributes: attrCenter))
-		mutableAttrStr.append(NSAttributedString(string: "Display: \(config.display.description)\n", attributes: attrCenter))
-		mutableAttrStr.append(NSAttributedString(string: "https://github.com/cirruslabs/tart", attributes: [
-			.paragraphStyle: style,
-			.link : "https://github.com/cirruslabs/tart"
-		]))
-		credits = mutableAttrStr
+
+		let center: [NSAttributedString.Key : Any] = [ .paragraphStyle: style ]
+
+		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
+		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
+		infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
+		
+		if let runningIP = config.runningIP {
+			infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
+		}
+
+		self.infos = infos
 	}
 
 	var body: some View {
-		Button("About Tart") {
+		Button("About Caked") {
 			NSApplication.shared.orderFrontStandardAboutPanel(options: [
 				NSApplication.AboutPanelOptionKey.applicationIcon: NSApplication.shared.applicationIconImage as Any,
-				NSApplication.AboutPanelOptionKey.applicationName: "Tart",
+				NSApplication.AboutPanelOptionKey.applicationName: "Caked",
 				NSApplication.AboutPanelOptionKey.applicationVersion: CI.version,
-				NSApplication.AboutPanelOptionKey.credits: credits,
+				NSApplication.AboutPanelOptionKey.credits: self.infos,
 			])
 		}
 	}
@@ -128,20 +142,15 @@ struct AboutTart: View {
 struct VMView: NSViewRepresentable {
 	typealias NSViewType = VZVirtualMachineView
 
-	@ObservedObject var vm: VirtualMachine
-	var capturesSystemKeys: Bool
+	let config: CakeConfig
+
+	@ObservedObject
+	var vm: VirtualMachine
+	var virtualMachine: VZVirtualMachine
 
 	func makeNSView(context: Context) -> NSViewType {
 		let machineView = VZVirtualMachineView()
-
-		machineView.capturesSystemKeys = capturesSystemKeys
-
-		// If not specified, enable automatic display
-		// reconfiguration for guests that support it
-		//
-		// This is disabled for Linux because of poor HiDPI
-		// support, which manifests in fonts being too small
-		if #available(macOS 14.0, *), vm.config.displayRefit || (vm.config.os != .linux) {
+		if #available(macOS 14.0, *), config.displayRefit || (config.os == .darwin) {
 			machineView.automaticallyReconfiguresDisplay = true
 		}
 
@@ -149,6 +158,6 @@ struct VMView: NSViewRepresentable {
 	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.virtualMachine = vm.virtualMachine
+		nsView.virtualMachine = virtualMachine
 	}
 }

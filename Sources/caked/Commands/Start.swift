@@ -2,7 +2,7 @@ import ArgumentParser
 import NIOPortForwarding
 import Logging
 
-struct Start: AsyncParsableCommand {
+struct Start: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -23,7 +23,8 @@ struct Start: AsyncParsableCommand {
 
 	mutating func run() async throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
+		let config = try vmLocation.config()
 
-		Logger.appendNewLine(try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: self.foreground))
+		Logger.appendNewLine(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background))
 	}
 }

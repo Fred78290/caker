@@ -93,7 +93,8 @@
 			"request": "launch",
 			"args": [
 				"vmrun",
-				"linux"
+				"/Volumes/Manix/Users/fboltz/.cake/vms/linux/disk.img",
+				"--display"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun",
@@ -105,7 +106,8 @@
 			"request": "launch",
 			"args": [
 				"vmrun",
-				"test"
+				"/Volumes/Manix/Users/fboltz/.cake/vms/test/disk.img",
+				"--display"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun test",

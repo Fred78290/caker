@@ -10,17 +10,19 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var name: String { get }	
 	var options: CakeAgentClientOptions { set get }
 	var logLevel: Logging.Logger.Level { get }
-	
+
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws
 }
 
 extension CakeAgentAsyncParsableCommand {
-	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) async throws {
+	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
 		if vmLocation.status != .running {
 			Logger.info("Starting VM \(name)")
-			let _ = try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, foreground: foreground)
+			let config = try vmLocation.config()
+
+			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background)
 		}
 	}
 
@@ -32,9 +34,9 @@ extension CakeAgentAsyncParsableCommand {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
-		
+
 		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
-		
+
 		if self.options.insecure == false{
 			if self.options.caCert == nil {
 				self.options.caCert = certificates.caCertURL.path()
@@ -55,27 +57,18 @@ extension CakeAgentAsyncParsableCommand {
 	mutating func validate() throws {
 		try self.validateOptions()
 	}
-	
+
 	mutating func run() async throws {
-		let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+		let grpcClient = try self.options.createClient(on: Root.group)
 
 		do {
-			let grpcClient = try self.options.createClient(on: group)
+			try await self.run(on: Root.group.next(),
+			                   client: grpcClient,
+			                   callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout))))
 
-			do {
-				try await self.run(on: group,
-				                      client: grpcClient,
-				                      callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout))))
-
-				try! await grpcClient.close()
-			} catch {
-				try! await grpcClient.close()
-				throw error
-			}
-
-			try! await group.shutdownGracefully()
+			try? await grpcClient.close()
 		} catch {
-			try! await group.shutdownGracefully()
+			try? await grpcClient.close()
 			throw error
 		}
 	}

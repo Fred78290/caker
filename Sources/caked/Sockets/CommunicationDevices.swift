@@ -6,20 +6,12 @@ import GRPCLib
 
 // This class represents the console device and socket devices that is used to communicate with the virtual machine.
 class CommunicationDevices {
-	let mainGroup: EventLoopGroup
 	let virtioSocketDevices: VirtioSocketDevices
 	let consoleDevice: ConsoleDevice
 
-	deinit {  
-		try? mainGroup.syncShutdownGracefully()
-	}
-
-	private init(configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws {
-		let mainGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
-		self.mainGroup = mainGroup
-		self.virtioSocketDevices = VirtioSocketDevices.setupVirtioSocketDevices(on: mainGroup, configuration: configuration, sockets: sockets)
-		self.consoleDevice = try ConsoleDevice.setupConsole(on: mainGroup, consoleURL: consoleURL, configuration: configuration)
+	private init(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws {
+		self.virtioSocketDevices = VirtioSocketDevices.setupVirtioSocketDevices(on: group, configuration: configuration, sockets: sockets)
+		self.consoleDevice = try ConsoleDevice.setupConsole(on: group, consoleURL: consoleURL, configuration: configuration)
 	}
 
 	// Close the communication devices
@@ -34,7 +26,7 @@ class CommunicationDevices {
 	}
 
 	// Create the communication devices console and socket devices
-	public static func setup(configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws -> CommunicationDevices {
-		return try CommunicationDevices(configuration: configuration, consoleURL: consoleURL, sockets: sockets)
+	public static func setup(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws -> CommunicationDevices {
+		return try CommunicationDevices(group: group, configuration: configuration, consoleURL: consoleURL, sockets: sockets)
 	}
 }

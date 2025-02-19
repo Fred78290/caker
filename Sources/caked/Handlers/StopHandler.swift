@@ -9,7 +9,7 @@ struct StopHandler: CakedCommand {
 	var name: String
 	var force: Bool = false
 
-	static func stopVM(name: String, force: Bool, asSystem: Bool) async throws -> String {
+	static func stopVM(name: String, force: Bool, asSystem: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 		let config = try vmLocation.config()
 		let home = try Home(asSystem: asSystem)
@@ -22,7 +22,7 @@ struct StopHandler: CakedCommand {
 			return try Shell.runTart(command: "stop", arguments: [name])
 		}
 
-		guard let ip = try? await WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) else {
+		guard let ip = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) else {
 			return try Shell.runTart(command: "stop", arguments: [name])
 		}
 
@@ -34,8 +34,8 @@ struct StopHandler: CakedCommand {
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.makeFutureWithTask {
-			return try await StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
+		on.submit {
+			return try StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
 		}
 	}
 }

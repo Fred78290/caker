@@ -17,7 +17,7 @@ codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug
 rm -Rf ${PKGDIR}
 mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
 cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
-cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
+cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png

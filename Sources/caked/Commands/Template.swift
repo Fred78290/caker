@@ -36,8 +36,8 @@ struct Template: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
 
-		func run() throws {
-			print(format.renderSingle(style: Style.grid, uppercased: true, try TemplateHandler.createTemplate(sourceName: name, templateName: template, asSystem: false)))
+		func run() throws {			
+			print(self.format.renderSingle(style: Style.grid, uppercased: true, try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: name, templateName: template, asSystem: false)))
 		}
 	}
 
