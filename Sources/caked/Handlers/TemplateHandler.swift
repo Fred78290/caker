@@ -23,8 +23,8 @@ private let cloudInitCleanup = [
 	"find /var/log -type f -exec rm -f {} +",
 	"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
 	"/bin/sync",
-	"echo shutdown now",
-	"shutdown -h now"
+//	"echo shutdown now",
+//	"shutdown -h now"
 ]
 
 struct TemplateHandler: CakedCommand {
@@ -53,8 +53,7 @@ struct TemplateHandler: CakedCommand {
 	}
 
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
-		let eventLoop = Root.group.next()
-		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location, config: config)
+		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: Root.group.next(),
 		                               listeningAddress: location.agentURL,
@@ -94,6 +93,10 @@ struct TemplateHandler: CakedCommand {
 				let tmpVM = try source.duplicateTemporary()
 
 				try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
+				try tmpVM.stopVirtualMachine(force: true, asSystem: asSystem)
+				while tmpVM.status == .running {
+					Thread.sleep(forTimeInterval: 5)
+				}
 				try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
 				try FileManager.default.removeItem(at: tmpVM.rootURL)
 			} else {
