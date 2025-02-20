@@ -10,25 +10,26 @@ struct WaitIPHandler: CakedCommand {
 	var name: String
 	var wait: Int
 
-	static func waitIPWithTart(vmLocation: VMLocation, wait: Int, asSystem: Bool, tartProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+	static func waitIPWithLease(vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let config = try vmLocation.config()
 		let start: Date = Date.now
-		var arguments: [String]
+		let macAddress = vmLocation.macAddress?.string ?? ""
+		var leases: DHCPLeaseProvider
 		var count = 0
 
 		repeat {
-			if let tartProcess = tartProcess, tartProcess.isRunning == false {
-				throw ShellError(terminationStatus: -1, error: "Tart process is not running", message: "")
+			if let startedProcess = startedProcess, startedProcess.isRunning == false {
+				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
 			}
 
 			// Try also arp if dhcp is disabled
 			if config.networks.isEmpty == false || count & 1 == 1 {
-				arguments = [ vmLocation.name, "--wait=1", "--resolver=arp"]
+				leases = try ARPParser()
 			} else {
-				arguments = [ vmLocation.name, "--wait=1"]
+				leases = try DHCPLeaseParser()
 			}
 
-			if let runningIP = try? Shell.runTart(command: "ip", arguments: arguments) {
+			if let runningIP = leases[macAddress] {
 				return runningIP
 			}
 
@@ -38,7 +39,7 @@ struct WaitIPHandler: CakedCommand {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(vmLocation.name)", message: "")
 	}
 
-	static func waitIPWithAgent(vmLocation: VMLocation, wait: Int, asSystem: Bool, vmrunProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+	static func waitIPWithAgent(vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let listeningAddress = vmLocation.agentURL
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 5, retries: .none)
@@ -47,7 +48,7 @@ struct WaitIPHandler: CakedCommand {
 		var count = 0
 
 		repeat {
-			if let vmrunProcess = vmrunProcess, vmrunProcess.isRunning == false {
+			if let startedProcess = startedProcess, startedProcess.isRunning == false {
 				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
 			}
 
@@ -65,31 +66,22 @@ struct WaitIPHandler: CakedCommand {
 
 	static func waitIP(name: String, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+		let config = try vmLocation.config()
 
 		if vmLocation.status != .running {
 			throw ServiceError("VM \(name) is not running")
 		}
 
-		if Root.vmrunAvailable() {
-			return try waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
+		if config.useCloudInit {
+			return try waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 		} else {
-			return try waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
+			return try waitIPWithLease(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 		}
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-
-		if vmLocation.status != .running {
-			throw ServiceError("VM \(name) is not running")
-		}
-
 		return on.submit {
-			if Root.vmrunAvailable() {
-				return try Self.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem)
-			} else {
-				return try Self.waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem)
-			}
+			try Self.waitIP(name: name, wait: wait, asSystem: asSystem)
 		}
 	}
 

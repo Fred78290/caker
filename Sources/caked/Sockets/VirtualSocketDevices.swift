@@ -203,11 +203,15 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					// Notify the promise that the connection is successful
 					promise.succeed(())
 				} catch {
-					Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+					if error.localizedDescription.contains("Connection reset by peer") == false {
+						Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+					}
 					promise.fail(error)
 				}
 			case let .failure(error):
-				Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+				if error.localizedDescription.contains("Connection reset by peer") == false {
+					Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+				}
 				// Notify the promise that the connection is failed
 				promise.fail(error)
 			}

@@ -7,7 +7,7 @@ import Shout
 import Cocoa
 
 private let cloudInitCleanup = [
-	"systemctl disable cakeagent",
+//	"systemctl disable cakeagent",
 	"rm -f /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg",
 	"rm /etc/netplan/*",
 	"cloud-init clean",
@@ -23,7 +23,8 @@ private let cloudInitCleanup = [
 	"find /var/log -type f -exec rm -f {} +",
 	"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
 	"/bin/sync",
-	"shutdown now"
+	"echo shutdown now",
+	"shutdown -h now"
 ]
 
 struct TemplateHandler: CakedCommand {
@@ -51,8 +52,7 @@ struct TemplateHandler: CakedCommand {
 		try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 	}
 
-	@discardableResult
-	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws -> Caked_ExecuteReply {
+	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
 		let eventLoop = Root.group.next()
 		let runningIP = try runTempVM(on: eventLoop, asSystem: false, location: location, config: config)
 		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
@@ -64,9 +64,9 @@ struct TemplateHandler: CakedCommand {
 
 		Logger.info("Clean cloud-init on \(runningIP)")
 
-		return try conn.execute(request: Caked_ExecuteRequest.with {
+		try conn.execute(request: Caked_ExecuteRequest.with {
 			$0.command = cloudInitCleanup.joined(separator: " && ")
-		})
+		}).log()
 	}
 
 	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {
@@ -102,7 +102,7 @@ struct TemplateHandler: CakedCommand {
 
 			return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 		} else {
-			throw ServiceError("source VM \(sourceName) is running")
+			return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(sourceName) is running")
 		}
 	}
 

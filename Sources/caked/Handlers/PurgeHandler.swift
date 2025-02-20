@@ -20,7 +20,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		}
 
 		if self.entries == "caches" {
-			let purgeableStorages = [try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
+			let purgeableStorages = [try OCIImageCache(), try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
 
 			if let olderThan = self.olderThan {
 				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
@@ -34,7 +34,11 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 			}
 		}
 
-		return try Shell.runTart(command: "prune", arguments: arguments, direct: direct)
+		if Root.tartIsPresent {
+			return try Shell.runTart(command: "prune", arguments: arguments, direct: direct)
+		}
+
+		return ""
 	}
 
 	static func purgeOlderThan(purgeableStorages: [PurgeableStorage], olderThanDate: Date) throws {

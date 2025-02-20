@@ -10,7 +10,7 @@ import System
 struct VMRun: AsyncParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
-	@Argument(help: "Path to the VM disk.img")
+	@Argument(help: "Path to the VM disk.img or his name")
 	var path: String
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -23,13 +23,20 @@ struct VMRun: AsyncParsableCommand {
 	var display: Bool = false
 
 	var locations: (StorageLocation, VMLocation) {
-		let u = URL(fileURLWithPath: path)
-		let parent = u.deletingLastPathComponent()
-		let storage = parent.deletingLastPathComponent()
-		let storageLocation = StorageLocation(asSystem: asSystem, name: storage.lastPathComponent)
-		let vm = VMLocation(rootURL: parent, template: storageLocation.template)
+		if StorageLocation(asSystem: asSystem).exists(path) {
+			let storageLocation = StorageLocation(asSystem: asSystem)
+			let vm = try! storageLocation.find(path)
 
-		return (storageLocation, vm)
+			return (storageLocation, vm)
+		} else {
+			let u: URL = URL(fileURLWithPath: path)
+			let parent = u.deletingLastPathComponent()
+			let storage = parent.deletingLastPathComponent()
+			let storageLocation = StorageLocation(asSystem: asSystem, name: storage.lastPathComponent)
+			let vm = VMLocation(rootURL: parent, template: storageLocation.template)
+
+			return (storageLocation, vm)
+		}
 	}
 
 	mutating func validate() throws {

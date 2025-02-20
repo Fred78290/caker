@@ -183,6 +183,30 @@ extension Caked_Error {
 	}
 }
 
+extension Caked_ExecuteReply {
+	private func print(_ out: Data, err: Bool) {
+		let output = String(data: out, encoding: .utf8) ?? ""
+		let lines = output.split(separator: "\n")
+
+		for line in lines {
+			if err {
+				Logger.error(String(line))
+			} else {
+				Logger.info(String(line))
+			}
+		}
+	}
+
+	func log() {
+		if self.hasError {
+			self.print(self.error, err: true)
+		}
+
+		if self.hasOutput {
+			self.print(self.output, err: false)
+		}
+	}
+}
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 	let asSystem: Bool

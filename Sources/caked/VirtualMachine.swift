@@ -264,9 +264,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.virtualMachine.stop { result in
 			Logger.info("VM \(self.vmLocation.name) stopped")
 
-			if let communicationDevices = self.communicationDevices {
-				communicationDevices.close()
-			}
+			self.closeCommunicationDevices()
 		}
 	}
 
@@ -275,9 +273,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.virtualMachine.stop { result in
 				Logger.info("VM \(self.vmLocation.name) stopped")
 
-				if let communicationDevices = self.communicationDevices {
-					communicationDevices.close()
-				}
+				self.closeCommunicationDevices()
 
 				if let completionHandler = completionHandler {
 					completionHandler(result)
@@ -297,11 +293,17 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	private func signalStop() {
+		closeCommunicationDevices()
+
+		Logger.info("Signal stop for VM \(self.vmLocation.name)")
+		self.semaphore.signal()
+	}
+
+	private func closeCommunicationDevices() {
 		if let communicationDevices = self.communicationDevices {
+			Logger.info("Close communication devices for VM \(self.vmLocation.name)")
 			communicationDevices.close()
 		}
-
-		self.semaphore.signal()
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {

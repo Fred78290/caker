@@ -11,26 +11,10 @@ struct StopHandler: CakedCommand {
 
 	static func stopVM(name: String, force: Bool, asSystem: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-		let config = try vmLocation.config()
-		let home = try Home(asSystem: asSystem)
 
-		if vmLocation.status != .running {
-			throw ServiceError("vm \(name) is not running")
-		}
+		try vmLocation.stopVirtualMachine(force: force, asSystem: asSystem)
 
-		if force || config.useCloudInit == false {
-			return try Shell.runTart(command: "stop", arguments: [name])
-		}
-
-		guard let ip = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) else {
-			return try Shell.runTart(command: "stop", arguments: [name])
-		}
-
-		let ssh = try SSH(host: ip)
-		try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
-		try ssh.execute("sudo shutdown now")
-
-		return "stopped \(name)"
+		return "VM \(name) stopped"
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {

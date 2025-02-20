@@ -2,8 +2,11 @@ import Foundation
 import Virtualization
 import GRPCLib
 import NIO
+import Shout
 
 struct VMLocation {
+	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
+
 	enum Status: String {
 		case running
 		case suspended
@@ -231,7 +234,45 @@ struct VMLocation {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
-	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
+	func stopVirtualMachine(force: Bool, asSystem: Bool) throws {
+		let killVMRun: () -> Void = {
+			if let pid = readPID() {
+				kill(pid, SIGINT)
+				removePID()
+			}
+		}
+
+		let config = try self.config()
+		let home = try Home(asSystem: asSystem)
+
+		if self.status != .running {
+			throw ServiceError("vm \(name) is not running")
+		}
+
+		if force || config.useCloudInit == false {
+			killVMRun()
+		} else if try self.agentURL.exists() {
+			let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+			let conn = CakeAgentConnection(eventLoop: Root.group.next(),
+										listeningAddress: self.agentURL,
+										caCert: certLocation.caCertURL.path(),
+										tlsCert: certLocation.serverCertURL.path(),
+										tlsKey: certLocation.serverKeyURL.path())
+
+			try conn.execute(request: Caked_ExecuteRequest.with {
+				$0.command = "shutdown -h now"
+			}).log()
+		} else {
+			guard let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) else {
+				killVMRun()
+				return
+			}
+
+			let ssh = try SSH(host: ip)
+			try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
+			try ssh.execute("sudo shutdown now")
+		}
+	}
 
 	func startVirtualMachine(on: EventLoop, config: CakeConfig, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
 		let vm = try VirtualMachine(vmLocation: self, config: config)

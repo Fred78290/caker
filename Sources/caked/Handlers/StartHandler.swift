@@ -110,9 +110,9 @@ print(tempFileURL.absoluteString)
 	private class StartHandlerVMRun {
 		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 			if agent {
-				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, vmrunProcess: startedProcess)
+				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 			} else {
-				return try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: wait, asSystem: asSystem, tartProcess: startedProcess)
+				return try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 			}
 		}
 
@@ -261,7 +261,7 @@ print(tempFileURL.absoluteString)
 			}
 
 			do {
-				let runningIP = try WaitIPHandler.waitIPWithTart(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, tartProcess: process)
+				let runningIP = try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
 				let config: CakeConfig = try vmLocation.config()
 
 				if config.firstLaunch && config.agent == false {
@@ -302,12 +302,6 @@ print(tempFileURL.absoluteString)
 				}
 			}
 		}
-	}
-
-	private static func vmrunAvailable() -> Bool {
-		Root.configuration.subcommands.first { cmd in
-			cmd.configuration.commandName == "vmrun"
-		} != nil
 	}
 
 	static func autostart(on: EventLoop, asSystem: Bool) throws {
@@ -361,8 +355,19 @@ print(tempFileURL.absoluteString)
 		environment["TART_HOME"] = cakeHome.path()
 
 		if startMode == .foreground || startMode == .attach {
-			process.standardError = FileHandle.standardError
-			process.standardOutput = FileHandle.standardOutput
+			let outputPipe = Pipe()
+			let errorPipe : Pipe = Pipe()
+
+			outputPipe.fileHandleForReading.readabilityHandler = { handler in
+				try? FileHandle.standardOutput.write(contentsOf: handler.availableData)
+			}
+
+			errorPipe.fileHandleForReading.readabilityHandler = { handler in
+				try? FileHandle.standardError.write(contentsOf: handler.availableData)
+			}
+
+			process.standardError = errorPipe
+			process.standardOutput = outputPipe
 			process.standardInput = FileHandle.standardInput
 		} else {
 			process.standardError = FileHandle.nullDevice
@@ -397,7 +402,11 @@ print(tempFileURL.absoluteString)
 		}
 
 		if vmLocation.status == .running {
-			return try WaitIPHandler.waitIP(name: vmLocation.name, wait: 180, asSystem: runAsSystem)
+			if config.useCloudInit {
+				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem)
+			} else {
+				return try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem)
+			}
 		}
 
 		if Root.vmrunAvailable() {
