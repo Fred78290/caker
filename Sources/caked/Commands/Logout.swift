@@ -5,7 +5,7 @@ import GRPCLib
 import GRPC
 import Logging
 
-struct Logout: AsyncParsableCommand {
+struct Logout: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Logout from a registry")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -14,7 +14,7 @@ struct Logout: AsyncParsableCommand {
 	@Argument(help: "host")
 	var host: String
 
-	mutating func run() async throws {
+	func run() throws {
 		Logger.setLevel(self.logLevel)
 
 		print(try LogoutHandler.logout(host: self.host, direct: true))

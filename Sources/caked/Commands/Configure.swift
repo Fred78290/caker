@@ -3,7 +3,7 @@ import Virtualization
 import GRPCLib
 import Logging
 
-struct Configure: AsyncParsableCommand {
+struct Configure: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Reconfigure VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -11,11 +11,11 @@ struct Configure: AsyncParsableCommand {
 
 	@OptionGroup var options: ConfigureOptions
 	
-	mutating func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() async throws {
+	func run() throws {
 		try ConfigureHandler.configure(name: self.options.name, options: options, asSystem: false)
 	}
 }

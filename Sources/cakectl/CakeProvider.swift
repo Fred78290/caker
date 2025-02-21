@@ -258,6 +258,7 @@ extension Caked_ImageRequest {
 		self.init()
 
 		self.name = command.name
+		self.command = .list
 		self.format = command.format == .text ? .text : .json
 	}
 
@@ -265,6 +266,15 @@ extension Caked_ImageRequest {
 		self.init()
 
 		self.name = command.name
+		self.command = .info
+		self.format = command.format == .text ? .text : .json
+	}
+
+	init(command: ImagesManagement.PullImage) {
+		self.init()
+
+		self.name = command.name
+		self.command = .pull
 		self.format = command.format == .text ? .text : .json
 	}
 }

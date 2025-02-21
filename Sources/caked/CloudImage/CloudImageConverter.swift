@@ -20,26 +20,17 @@ class CloudImageConverter {
 
 	static func convertCloudImageToRaw(from: URL, to: URL) throws {
 		var outputData: Data = Data()
-		var errorData: Data = Data()
 		let outputPipe = Pipe()
-		let errorPipe : Pipe = Pipe()
 
 		outputPipe.fileHandleForReading.readabilityHandler = { handler in
 			outputData.append(handler.availableData)
 		}
 
-		errorPipe.fileHandleForReading.readabilityHandler = { handler in
-			errorData.append(handler.availableData)
-		}
-
 		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path(),
 													  destination: to.absoluteURL.path(),
-													  outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor,
-													  errorFileHandle: errorPipe.fileHandleForWriting.fileDescriptor) {
+													  outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor) {
 			if converter.convert() < 0 {
-				throw ServiceError(String(data: errorData, encoding: .utf8)!)
-			} else {
-				Logger.info(String(data: outputData, encoding: .utf8)!)
+				throw ServiceError(String(data: outputData, encoding: .utf8)!)
 			}
 		}
 	}

@@ -7,7 +7,8 @@ import GRPCLib
 import Logging
 
 protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
-	var name: String { get }	
+	var name: String { get }
+	var createVM: Bool { get }	
 	var options: CakeAgentClientOptions { set get }
 	var logLevel: Logging.Logger.Level { get }
 
@@ -30,12 +31,17 @@ extension CakeAgentAsyncParsableCommand {
 		Logger.setLevel(self.logLevel)
 
 		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+		let listeningAddress: URL
 
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
+		if self.createVM {
+			listeningAddress = StorageLocation(asSystem: runAsSystem).location(name).agentURL
+		} else {
+			listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
+		}
 
 		if self.options.insecure == false{
 			if self.options.caCert == nil {

@@ -24,7 +24,7 @@ struct Build: AsyncParsableCommand {
 		}
 	}
 
-	mutating func run() async throws {
+	func run() async throws {
 		try await BuildHandler.build(name: self.options.name, options: self.options, asSystem: false)
 	}
 }

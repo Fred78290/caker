@@ -19,7 +19,7 @@ struct Delete: ParsableCommand {
 	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text
 
-	public mutating func run() throws {
+	func run() throws {
 		print(format.renderList(style: Style.grid, uppercased: true, try DeleteHandler.delete(names: name, asSystem: false)))
 	}
 }

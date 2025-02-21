@@ -3,6 +3,8 @@ import ArgumentParser
 import Virtualization
 import NIOPortForwarding
 
+public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+
 private let cloudimage_help =
 	"""
 	                   The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
@@ -116,8 +118,8 @@ public struct Utils {
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
 				applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
-												isDirectory: true,
-												relativeTo: applicationSupportDirectory)
+				                                  isDirectory: true,
+				                                  relativeTo: applicationSupportDirectory)
 				try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
 
 				cakeHomeDir = applicationSupportDirectory
@@ -134,7 +136,7 @@ public struct Utils {
 			try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
 
 			homeDirectories[asSystem] = cakeHomeDir
-			
+
 			return cakeHomeDir
 		}
 
@@ -374,7 +376,7 @@ public struct BuildOptions: ParsableArguments {
 	public var nested: Bool = false
 
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image\n", discussion: cloudimage_help, valueName: "url"))
-	public var image: String = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+	public var image: String = defaultUbuntuImage
 
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM\n", valueName: "path"))
 	public var sshAuthorizedKey: String?
@@ -414,6 +416,47 @@ public struct BuildOptions: ParsableArguments {
 	public private(set) var networks: [BridgeAttachement] = []
 
 	public init() {
+	}
+
+	public init(name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
+	            user: String = "admin",
+	            password: String? = "nil",
+	            mainGroup: String = "admin",
+	            clearPassword: Bool = false,
+	            autostart: Bool = true,
+	            nested: Bool = true,
+	            image: String = defaultUbuntuImage,
+	            sshAuthorizedKey: String? = nil,
+	            vendorData: String? = nil,
+	            userData: String? = nil,
+	            networkConfig: String? = nil,
+	            displayRefit: Bool = true,
+	            published: [String] = [],
+	            shares: [String] = ["~"],
+	            network: [String] = [],
+	            vsock: [String]	= [],
+	            console: String? = nil) {
+		self.name = name
+		self.cpu = cpu
+		self.memory = memory
+		self.diskSize = diskSize
+		self.user = user
+		self.password = password
+		self.mainGroup = mainGroup
+		self.clearPassword = clearPassword
+		self.autostart = autostart
+		self.nested = nested
+		self.image = image
+		self.sshAuthorizedKey = sshAuthorizedKey
+		self.vendorData = vendorData
+		self.userData = userData
+		self.networkConfig = networkConfig
+		self.displayRefit = displayRefit
+		self.published = published
+		self.shares = shares
+		self.network = network
+		self.vsock = vsock
+		self.console = console
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
@@ -477,7 +520,7 @@ public struct BuildOptions: ParsableArguments {
 		if request.hasImage {
 			self.image = request.image
 		} else {
-			self.image = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+			self.image = defaultUbuntuImage
 		}
 
 		if request.hasSshAuthorizedKey {

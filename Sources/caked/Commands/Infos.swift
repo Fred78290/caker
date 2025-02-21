@@ -28,6 +28,8 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@Option(help:"Maximum of seconds to getting IP")
 	var waitIPTimeout = 180
 
+    var createVM: Bool = false
+
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 		let config: CakeConfig = try vmLocation.config()

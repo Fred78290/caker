@@ -164,4 +164,17 @@ extension String {
 			return self
 		}
 	}
+
+	func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
+		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+
+		return String(self[self.startIndex..<endIndex])
+	}
+
+	func substring(_ bounds: Range<Int>) -> String {
+		let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound)
+		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+
+		return String(self[startIndex..<endIndex])
+	}
 }

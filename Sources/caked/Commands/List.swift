@@ -13,7 +13,7 @@ struct List: AsyncParsableCommand {
 	@Flag(help: "List only VMs")
 	var vmonly: Bool = false
 
-	mutating func run() async throws {
+	func run() async throws {
 		print(try ListHandler.listVM(vmonly: vmonly, format: format, asSystem: false))
 	}
 }

@@ -1,6 +1,23 @@
 import Foundation
 import GRPCLib
 
+let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
+let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
+
+extension String {
+	func isFingerPrint() -> Bool {
+		if fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+			return true
+		}
+
+		if fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+			return true
+		}
+
+		return false
+	}
+
+}
 struct SimpleStreamError: Error {
 	let description: String
 
@@ -23,16 +40,19 @@ class Streamable {
 
 		if let etag: String = headResponse.ETag() {
 			if FileManager.default.fileExists(atPath: indexLocation.path) {
-				if let cached = simpleStreamCache.getCache(name: cachedFile) {
+				if let cached = simpleStreamCache.findCache(fingerprintOrAlias: cachedFile) {
 					if cached.fingerprint == etag {
 						Logger.info("Using cached \(cachedFile) file...")
 						try indexLocation.updateAccessDate()
 						return try T(fromURL: indexLocation)
+					} else {
+						Logger.info("Cached \(cachedFile) file is outdated...")
+						try simpleStreamCache.deleteCache(fingerprint: cached.fingerprint)
 					}
 				}
 			}
 
-			try simpleStreamCache.addCache(name: cachedFile, url: remoteURL, kind: kind, fingerprint: etag)
+			try simpleStreamCache.addCache(fingerprint: etag, url: remoteURL, kind: kind, alias: [cachedFile])
 		}
 
 		// Download the index
@@ -215,11 +235,11 @@ struct SimpleStreamProduct: Codable {
 		versions = try container.decode(Dictionary<String, ImageVersion>.self, forKey: .versions)
 	}
 
-	func latest() -> ImageVersion? {
+	func latest() -> (String, ImageVersion)? {
 		if let latest: Dictionary<String, ImageVersion>.Keys.Element = self.versions.keys.sorted().last {
 			if let version = self.versions[latest] {
 				if version.items.imageDisk != nil {
-					return version
+					return (latest, version)
 				}
 			}
 		}
@@ -327,48 +347,42 @@ struct ImageVersionItem: Codable {
 }
 
 class LinuxContainerImage: Codable {
-	let alias: String
+	let alias: [String]?
 	let path: URL
 	let size: Int
 	let fingerprint: String
 	let remoteName: String
+	let description: String
 
-	private var aliasDirectory: String {
-		var str = self.alias
-
-		str.replace("/", with: ":")
-
-		return str
-	}
-
-	init(remoteName: String, alias: String, path: URL, size: Int, fingerprint: String) {
+	init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: Int) {
 		self.alias = alias
 		self.path = path
 		self.size = size
 		self.fingerprint = fingerprint
 		self.remoteName = remoteName
+		self.description = description
 	}
 
 	func pullSimpleStreamImageAndConvert() async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName)
-		let cacheLocation = try imageCache.directoryFor(directoryName: self.aliasDirectory).appendingPathComponent("disk.img", isDirectory: false)
+		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
-		if let cached = imageCache.getCache(name: alias) {
+		if let cached = imageCache.getCache(fingerprint: fingerprint) {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
 				return
 			}
 		}
 
-		try imageCache.addCache(name: alias, url: self.path.absoluteURL, kind: CacheEntryKind.image, fingerprint: self.fingerprint)
+		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation)
 	}
 
 	func retrieveSimpleStreamImageAndConvert(to: URL) async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName)
-		let cacheLocation = try imageCache.directoryFor(directoryName: self.aliasDirectory).appendingPathComponent("disk.img", isDirectory: false)
+		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
-		if let cached = imageCache.getCache(name: alias) {
+		if let cached = imageCache.getCache(fingerprint: fingerprint) {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
 				let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
@@ -379,7 +393,7 @@ class LinuxContainerImage: Codable {
 			}
 		}
 
-		try imageCache.addCache(name: alias, url: self.path.absoluteURL, kind: CacheEntryKind.image, fingerprint: self.fingerprint)
+		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation)
 	}
@@ -464,20 +478,22 @@ class SimpleStreamProtocol {
 
 		// Check if alias exists in product
 		// Ubuntu streams doesn't have the same semantic.
-		if self.index.linuxContainers {
-			let found: [String] = images.filter(arch: currentArch.rawValue).filter { (v: String) in
-				var item: String = v
+		if alias.isFingerPrint() == false {
+			if self.index.linuxContainers {
+				let found: [String] = images.filter(arch: currentArch.rawValue).filter { (v: String) in
+					var item: String = v
 
-				if let range: Range<String.Index> = item.range(of: ":\(currentArch.rawValue)") {
-					item.removeSubrange(range)
+					if let range: Range<String.Index> = item.range(of: ":\(currentArch.rawValue)") {
+						item.removeSubrange(range)
+					}
+
+					return item.replacing(":", with: "/").starts(with: alias)
 				}
 
-				return item.replacing(":", with: "/").starts(with: alias)
-			}
-
-			// Not found
-			if found.count == 0 {
-				throw SimpleStreamError("image alias (\(alias)) not found")
+				// Not found
+				if found.count == 0 {
+					throw SimpleStreamError("image alias (\(alias)) not found")
+				}
 			}
 		}
 
@@ -526,15 +542,18 @@ class SimpleStreamProtocol {
 	}
 
 	public func GetImageAlias(alias: String) async throws -> LinuxContainerImage {
-		if let imageVersion = try await self.GetImage(alias: alias).latest() {
-			let imageDisk: ImageVersionItem = imageVersion.items.imageDisk!
+		let product = try await self.GetImage(alias: alias)
+
+		if let imageVersion = product.latest() {
+			let imageDisk: ImageVersionItem = imageVersion.1.items.imageDisk!
 
 			return LinuxContainerImage(
 				remoteName: self.name,
-				alias: alias,
-				path: URL(string: imageDisk.path, relativeTo: self.baseURL)!,
-				size: imageDisk.size,
-				fingerprint: imageDisk.sha256)
+				fingerprint: imageDisk.sha256,
+				alias: product.aliases.components(separatedBy: ","),
+				description: "\(product.os) \(product.releaseTitle) \(product.arch) (\(product.release)) \(imageVersion.0)",
+				path: URL(string: imageDisk.path, relativeTo: self.baseURL)!.absoluteURL,
+				size: imageDisk.size)
 		}
 
 		throw SimpleStreamError("alias (\(alias)) doesn't offer qcow2 image")

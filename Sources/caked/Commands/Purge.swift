@@ -9,7 +9,7 @@ protocol PurgeArguments {
 	var spaceBudget: UInt? { get }
 }
 
-struct Purge: AsyncParsableCommand, PurgeArguments {
+struct Purge: ParsableCommand, PurgeArguments {
 	static var configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -28,7 +28,7 @@ struct Purge: AsyncParsableCommand, PurgeArguments {
 	                           valueName: "n"))
 	var spaceBudget: UInt?
 
-	mutating func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.logLevel)
 
 		if olderThan == nil && spaceBudget == nil {
@@ -36,7 +36,7 @@ struct Purge: AsyncParsableCommand, PurgeArguments {
 		}
 	}
 
-	mutating func run() async throws {
+	func run() throws {
 		try PurgeHandler.purge(direct: true, self)
 	}
 }

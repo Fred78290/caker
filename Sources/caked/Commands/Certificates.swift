@@ -18,11 +18,11 @@ struct Certificates: ParsableCommand {
 		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
 		var asSystem: Bool = false
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			let format: Format = .text
 
 			print(format.renderSingle(style: Style.grid, uppercased: true, try CertificatesLocation.getCertificats(asSystem: asSystem)))
@@ -38,11 +38,11 @@ struct Certificates: ParsableCommand {
 		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
 		var asSystem: Bool = false
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			let format: Format = .text
 
 			print(format.renderSingle(style: Style.grid, uppercased: true, try CertificatesLocation.createCertificats(asSystem: asSystem)))

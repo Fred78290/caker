@@ -93,7 +93,7 @@
 			"request": "launch",
 			"args": [
 				"vmrun",
-				"/Volumes/Manix/Users/fboltz/.cake/vms/linux/disk.img",
+				"linux",
 				"--display"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -118,8 +118,7 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
-				"shell",
-				"linux"
+				"shell"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked shell",
@@ -135,6 +134,18 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked infos",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"start",
+				"linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked start",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -159,6 +170,19 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked service listen",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"image",
+				"pull",
+				"ubuntu:noble"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked image pull",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -215,6 +239,9 @@
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
+			"name": "-----------------------------------------------------------------------------"
+		},
+		{
 			"type": "lldb",
 			"request": "launch",
 			"args": [
@@ -263,6 +290,9 @@
 			"name": "cakectl shell linux",
 			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
 			"preLaunchTask": "swift: Build Debug cakectl"
+		},
+		{
+			"name": "-----------------------------------------------------------------------------"
 		},
 		{
 			"type": "lldb",

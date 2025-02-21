@@ -21,7 +21,7 @@ struct Start: ParsableCommand {
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() async throws {
+	func run() throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 		let config = try vmLocation.config()
 

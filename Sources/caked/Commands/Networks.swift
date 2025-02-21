@@ -6,7 +6,7 @@ import GRPC
 import Logging
 import TextTable
 
-struct Networks: AsyncParsableCommand {
+struct Networks: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: """
 List host network devices (physical interfaces, virtual switches, bridges) available
 to integrate with using the `--network` switch to the `launch` command
@@ -22,7 +22,7 @@ to integrate with using the `--network` switch to the `launch` command
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() async throws {
+	func run() throws {
 		Logger.appendNewLine(self.format.renderList(style: Style.grid, uppercased: true, NetworksHandler.networks()))
 	}
 }

@@ -133,6 +133,7 @@ struct CacheEntry: Codable {
 	let url: URL
 	let kind: CacheEntryKind
 	let fingerprint: String
+	var alias: [String]? = nil
 }
 
 struct SimpleStreamCache: Codable {
@@ -169,18 +170,38 @@ struct SimpleStreamCache: Codable {
 		}
 	}
 
-	func getCache(name: String) -> CacheEntry? {
-		return self.cache[name]
+	func findCache(fingerprintOrAlias: String) -> CacheEntry? {
+		let first = self.cache.first { (key: String, value: CacheEntry) in
+			if key.contains(fingerprintOrAlias) {
+				return true
+			}
+
+			if let alias = value.alias {
+				return alias.contains(fingerprintOrAlias)
+			}
+
+			return false
+		}
+
+		if let first = first {
+			return first.value
+		}
+
+		return nil
 	}
 
-	mutating func deleteCache(name: String) -> CacheEntry?{
-		self.dirty = true
-		return self.cache.removeValue(forKey: name)
+	func getCache(fingerprint: String) -> CacheEntry? {
+		return self.cache[fingerprint]
 	}
 
-	mutating func addCache(name: String, entry: CacheEntry) {
+	mutating func deleteCache(fingerprint: String) -> CacheEntry?{
 		self.dirty = true
-		self.cache[name] = entry
+		return self.cache.removeValue(forKey: fingerprint)
+	}
+
+	mutating func addCache(fingerprint: String, entry: CacheEntry) {
+		self.dirty = true
+		self.cache[fingerprint] = entry
 	}
 
 	func save(to: URL) throws {
@@ -216,18 +237,22 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		}
 	}
 
-	func getCache(name: String) -> CacheEntry? {
-		return self.cache?.getCache(name: name)
+	func findCache(fingerprintOrAlias: String) -> CacheEntry? {
+		return self.cache?.findCache(fingerprintOrAlias: fingerprintOrAlias)
 	}
 
-	func deleteCache(name: String) throws {
-		if self.cache?.deleteCache(name: name) != nil {
+	func getCache(fingerprint: String) -> CacheEntry? {
+		return self.cache?.getCache(fingerprint: fingerprint)
+	}
+
+	func deleteCache(fingerprint: String) throws {
+		if self.cache?.deleteCache(fingerprint: fingerprint) != nil {
 			try? self.cache?.save(to: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
 		}
 	}
 
-	func addCache(name: String, url: URL, kind: CacheEntryKind, fingerprint: String) throws {
-		self.cache?.addCache(name: name, entry: CacheEntry(url: url, kind: kind, fingerprint: fingerprint))
+	func addCache(fingerprint: String, url: URL, kind: CacheEntryKind, alias: [String]?) throws {
+		self.cache?.addCache(fingerprint: fingerprint, entry: CacheEntry(url: url, kind: kind, fingerprint: fingerprint, alias: alias))
 		try? self.cache?.save(to: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
 	}
 
@@ -236,7 +261,7 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		try FileManager.default.createDirectory(at: self.baseURL, withIntermediateDirectories: true)
 	}
 
-	func aliasLocation(alias: String) throws -> URL {
+	func _aliasLocation(alias: String) throws -> URL {
 		var alias = alias
 
 		alias.replace("/", with: ":")
@@ -270,7 +295,7 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 	    }
 
 	    func delete() throws {
-			try _cache.deleteCache(name: self._name)
+			try _cache.deleteCache(fingerprint: self._name)
 
 			try FileManager.default.removeItem(at: self._url.deletingLastPathComponent())
 	    }

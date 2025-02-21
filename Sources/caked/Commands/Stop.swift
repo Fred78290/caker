@@ -13,11 +13,11 @@ struct Stop: ParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	mutating func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.logLevel)
 	}
 
-	mutating func run() throws {
+	func run() throws {
 		Logger.appendNewLine(try StopHandler.stopVM(name: self.name, force: self.force, asSystem: false))
 	}
 }

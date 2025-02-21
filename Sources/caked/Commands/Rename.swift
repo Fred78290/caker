@@ -9,7 +9,7 @@ struct Rename: ParsableCommand {
 	@Argument(help: "New VM name")
 	var newname: String
 
-	public mutating func run() throws {
+	func run() throws {
 		print(try RenameHandler.rename(oldname: name, newname: newname))
 	}
 }

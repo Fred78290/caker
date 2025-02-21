@@ -20,11 +20,11 @@ struct Remote: ParsableCommand {
 		@Argument(help: "url")
 		var url: String
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			Logger.appendNewLine(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, asSystem: false))
 		}
 	}
@@ -38,11 +38,11 @@ struct Remote: ParsableCommand {
 		@Argument(help: "Remote name")
 		var remote: String
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			Logger.appendNewLine(try RemoteHandler.deleteRemote(name: remote, asSystem: false))
 		}
 	}
@@ -56,11 +56,11 @@ struct Remote: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			let result: [RemoteEntry] = try RemoteHandler.listRemote(asSystem: false)
 
 			Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, result))

@@ -26,6 +26,8 @@ struct Exec: CakeAgentAsyncParsableCommand {
 	@Option(help:"Maximum of seconds to getting IP")
 	var waitIPTimeout = 180
 
+    var createVM: Bool = false
+
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 

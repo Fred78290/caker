@@ -120,11 +120,11 @@ extension Service {
 			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
 		}
 
-		mutating func validate() throws {
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			runAsSystem = self.asSystem
 
 			let listenAddress: String = try getListenAddress()
@@ -286,7 +286,7 @@ extension Service {
 			throw ServiceError("connection address must be specified")
 		}
 
-		mutating func run() throws {
+		func run() throws {
 			runAsSystem = self.asSystem
 
 			if Root.vmrunAvailable() == false {

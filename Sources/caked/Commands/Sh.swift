@@ -12,7 +12,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	var logLevel: Logging.Logger.Level = .info
 
 	@Argument(help: "VM name")
-	var name: String
+	var name: String = ""
 
 	@OptionGroup
 	var options: CakeAgentClientOptions
@@ -23,7 +23,23 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	@Option(help:"Maximum of seconds to getting IP")
 	var waitIPTimeout = 180
 
+	var createVM: Bool = false
+
+	mutating func validate() throws {
+		if self.name == "" {
+			self.name = "primary"
+
+			self.createVM = StorageLocation(asSystem: runAsSystem).exists(self.name) == false
+		}
+
+		try self.validateOptions()
+	}
+
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
+		if self.createVM {
+			try await BuildHandler.build(name: self.name, options: .init(name: self.name), asSystem: false)
+		}
+
 		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
 		try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
 	}

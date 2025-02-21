@@ -3,12 +3,26 @@ import GRPCLib
 import NIOCore
 import TextTable
 
+typealias Aliases = [String]
+
+extension Aliases {
+	var description: String {
+		if self.isEmpty {
+			return ""
+		} else if self.count == 1 {
+			return self[0]
+		} else {
+			return self[0] + " (" + String(self.count - 1) + " more)"
+		}
+	}
+}
+
 struct ImageEntry: Codable {
 	let name: String
 }
 
 struct ImageInfo: Codable {
-	let aliases: [String]
+	let aliases: Aliases
 	let architecture: String
 	let pub: Bool
 	let fileName: String
@@ -52,7 +66,7 @@ struct ImageInfo: Codable {
 			throw ServiceError("image doesn't offer qcow2 image")
 		}
 
-		self.init(product: product, imageVersion: imageVersion)
+		self.init(product: product, imageVersion: imageVersion.1)
 	}
 
 	init(product: SimpleStreamProduct, imageVersion: ImageVersion) {
@@ -67,7 +81,7 @@ struct ImageInfo: Codable {
 			return false
 		}!
 
-		let aliases: [String] = product.aliases.components(separatedBy: ",")
+		let aliases = product.aliases.components(separatedBy: ",")
 		let dateFormatter = DateFormatter()
 
 		dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
@@ -138,6 +152,60 @@ struct ImageInfo: Codable {
 	}
 }
 
+struct ShortImageInfo: Codable {
+	let alias: String
+	let fingerprint: String
+	let pub: String
+	let description: String
+	let architecture: String
+	let type: String
+	let size: String
+	let uploaded: String
+
+	enum CodingKeys: String, CodingKey {
+		case alias = "ALIAS"
+		case fingerprint = "FINGERPRINT"
+		case pub = "PUBLIC"
+		case description = "DESCRIPTION"
+		case architecture = "ARCHITECTURE"
+		case type = "TYPE"
+		case size = "SIZE"
+		case uploaded = "UPLOADED"
+	}
+
+	init(imageInfo: ImageInfo) {
+		self.alias = imageInfo.aliases.description
+		self.fingerprint = imageInfo.fingerprint.substring(..<12)
+		self.pub = imageInfo.pub ? "yes" : "no"
+		self.description = imageInfo.properties["description"] ?? ""
+		self.architecture = imageInfo.architecture
+		self.type = imageInfo.type
+		self.size = ByteCountFormatter.string(fromByteCount: Int64(imageInfo.size), countStyle: .file)
+		self.uploaded = imageInfo.uploaded ?? ""
+	}
+}
+
+struct ShortLinuxContainerImage: Codable {
+	let alias: String
+	let fingerprint: String
+	let description: String
+	let size: String
+
+	enum CodingKeys: String, CodingKey {
+		case alias = "ALIAS"
+		case fingerprint = "FINGERPRINT"
+		case description = "DESCRIPTION"
+		case size = "SIZE"
+	}
+
+	init(image: LinuxContainerImage) {
+		self.alias = image.alias?.description ?? ""
+		self.fingerprint = image.fingerprint.substring(..<12)
+		self.description = image.description
+		self.size = ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file)
+	}
+}
+
 struct ImageHandler : CakedCommand {
 	var request: Caked_ImageRequest
 
@@ -162,7 +230,7 @@ struct ImageHandler : CakedCommand {
 
 		images.forEach { product in
 			if let image = product.latest()  {
-				result.append(ImageInfo(product: product, imageVersion: image))
+				result.append(ImageInfo(product: product, imageVersion: image.1))
 			}
 		}
 
@@ -191,20 +259,39 @@ struct ImageHandler : CakedCommand {
 		return image
 	}
 
+
+	static func execute(command: Caked_RemoteCommand, name: String, format: Format, asSystem: Bool) async throws -> String {
+		switch command {
+		case .info:
+			let result = try await ImageHandler.info(name: name, asSystem: false)
+
+			if format == .json {
+				return format.renderSingle(result)
+			} else {
+				return result.toText()
+			}
+		case .pull:
+			let result = try await ImageHandler.pull(name: name, asSystem: asSystem)
+			if format == .json {
+				return format.renderSingle(style: Style.grid, uppercased: true, result)
+			} else {
+				return format.renderSingle(style: Style.grid, uppercased: true, ShortLinuxContainerImage(image: result))
+			}
+		case .list:
+			let result: [ImageInfo] = try await ImageHandler.listImage(remote: name, asSystem: asSystem)
+			if format == .json {
+				return format.renderList(style: Style.grid, uppercased: true, result)
+			} else {
+				return format.renderList(style: Style.grid, uppercased: true, result.map{ ShortImageInfo(imageInfo: $0)})
+			}
+		default:
+			throw ServiceError("Unknown command \(command)")
+		}
+	}
+
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		return on.makeFutureWithTask {
-			let format: Format = request.format == .text ? Format.text : Format.json
-
-			switch request.command {
-			case .info:
-				return format.renderSingle(style: Style.grid, uppercased: true, try await Self.info(name: request.name, asSystem: asSystem))
-			case .pull:
-				return format.renderSingle(style: Style.grid, uppercased: true, try await Self.pull(name: request.name, asSystem: asSystem))
-			case .list:
-				return format.renderList(style: Style.grid, uppercased: true, try await Self.listImage(remote: request.name, asSystem: runAsSystem))
-			default:
-				throw ServiceError("Unknown command \(request.command)")
-			}
+			try await Self.execute(command: request.command, name: request.name, format: request.format == .text ? Format.text : Format.json, asSystem: asSystem)
 		}
 	}
 }
