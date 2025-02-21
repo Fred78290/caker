@@ -135,7 +135,7 @@ print(tempFileURL.absoluteString)
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
-				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+				Logger.debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
@@ -245,7 +245,7 @@ print(tempFileURL.absoluteString)
 			let (arguments, sharedFileDescriptors) = try self.runningArguments(vmLocation: vmLocation, startMode: startMode)
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
-				Logger.info("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+				Logger.debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let id = self.identifier {	
 					try? PortForwardingServer.closeForwardedPort(identifier: id)

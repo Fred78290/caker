@@ -36,7 +36,7 @@ struct VMRunHandler {
 			}
 		}
 
-		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, asSystem: asSystem)
+		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, internalCall: false, asSystem: asSystem)
 
 		if display {
 			MainApp.runUI(name: name, vm: vm, config: config)

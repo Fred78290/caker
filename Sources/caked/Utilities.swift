@@ -94,7 +94,7 @@ extension URL: Purgeable {
 	}
 
 	func exists() throws -> Bool {
-		if self.isFileURL {
+		if self.isFileURL || self.scheme == "unix" || self.scheme == "vsock" {
 			return FileManager.default.fileExists(atPath: self.absoluteURL.path())
 		}
 

@@ -7,7 +7,7 @@ import Shout
 import Cocoa
 
 private let cloudInitCleanup = [
-//	"systemctl disable cakeagent",
+	"systemctl disable cakeagent",
 	"rm -f /etc/cloud/cloud.cfg.d/50-curtin-networking.cfg",
 	"rm /etc/netplan/*",
 	"cloud-init clean",
@@ -23,7 +23,6 @@ private let cloudInitCleanup = [
 	"find /var/log -type f -exec rm -f {} +",
 	"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
 	"/bin/sync",
-//	"echo shutdown now",
 //	"shutdown -h now"
 ]
 
@@ -46,10 +45,6 @@ struct TemplateHandler: CakedCommand {
 	struct DeleteTemplateReply: Codable {
 		let name: String
 		let deleted: Bool
-	}
-
-	static func runTempVM(on: EventLoop, asSystem: Bool, location: VMLocation, config: CakeConfig) throws -> String {
-		try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 	}
 
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
@@ -93,10 +88,8 @@ struct TemplateHandler: CakedCommand {
 				let tmpVM = try source.duplicateTemporary()
 
 				try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
-				try tmpVM.stopVirtualMachine(force: true, asSystem: asSystem)
-				while tmpVM.status == .running {
-					Thread.sleep(forTimeInterval: 5)
-				}
+				try tmpVM.stopVirtualMachine(force: false, asSystem: asSystem)
+
 				try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
 				try FileManager.default.removeItem(at: tmpVM.rootURL)
 			} else {

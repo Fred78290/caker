@@ -295,7 +295,6 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	private func signalStop() {
 		closeCommunicationDevices()
 
-		Logger.info("Signal stop for VM \(self.vmLocation.name)")
 		self.semaphore.signal()
 	}
 
@@ -374,7 +373,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		return nil
 	}
 
-	public func runInBackground(on: EventLoop, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
 		let task = Task {
 			var status: Int32 = 0
 
@@ -386,7 +385,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			self.vmLocation.removePID()
 
-			if self.vmLocation.template == false {
+			guard internalCall else {
 				Foundation.exit(status)
 			}
 
@@ -440,7 +439,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	func guestDidStop(_ virtualMachine: VZVirtualMachine) {
-		Logger.info("VM stopped")
+		Logger.info("VM \(self.vmLocation.name) stopped")
 
 		self.signalStop()
 	}

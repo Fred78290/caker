@@ -254,30 +254,33 @@ struct VMLocation {
 		} else if try self.agentURL.exists() {
 			let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 			let conn = CakeAgentConnection(eventLoop: Root.group.next(),
-										listeningAddress: self.agentURL,
-										caCert: certLocation.caCertURL.path(),
-										tlsCert: certLocation.serverCertURL.path(),
-										tlsKey: certLocation.serverKeyURL.path())
+			                               listeningAddress: self.agentURL,
+			                               caCert: certLocation.caCertURL.path(),
+			                               tlsCert: certLocation.serverCertURL.path(),
+			                               tlsKey: certLocation.serverKeyURL.path())
 
 			try conn.execute(request: Caked_ExecuteRequest.with {
 				$0.command = "shutdown -h now"
 			}).log()
 		} else {
-			guard let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) else {
+			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) {
+				let ssh = try SSH(host: ip)
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
+				try ssh.execute("sudo shutdown now")
+			} else {
 				killVMRun()
-				return
 			}
+		}
 
-			let ssh = try SSH(host: ip)
-			try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
-			try ssh.execute("sudo shutdown now")
+		while self.status == .running {
+			Thread.sleep(forTimeInterval: 1)
 		}
 	}
 
-	func startVirtualMachine(on: EventLoop, config: CakeConfig, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
+	func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
 		let vm = try VirtualMachine(vmLocation: self, config: config)
-		
-		let runningIP = try vm.runInBackground(on: on, asSystem: asSystem) {
+
+		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall, asSystem: asSystem) {
 			if let handler = completionHandler {
 				switch $0 {
 				case .success:
