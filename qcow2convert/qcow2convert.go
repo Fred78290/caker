@@ -15,7 +15,9 @@ func ConvertQCow2Raw(src, dst *C.char, sizeInMb, stdout int32) int32 {
 	var size int64 = int64(sizeInMb) * 1024
 
 	if stdout > 0 {
-		logrus.SetOutput(os.NewFile(uintptr(stdout), "/dev/stdout"))
+		os.Stdout = os.NewFile(uintptr(stdout), "/dev/stdout")
+		os.Stderr = os.Stdout
+		logrus.SetOutput(os.Stdout)
 	}
 
 	if err := nativeimgutil.ConvertToRaw(C.GoString(src), C.GoString(dst), &size, true); err != nil {
@@ -42,7 +44,9 @@ func NewQCow2Converter(source, destination string, outputFileHandle int32) *QCow
 
 func (q *QCow2Converter) Convert() int32 {
 	if q.stdout > 0 {
-		logrus.SetOutput(os.NewFile(uintptr(q.stdout), "/dev/stdout"))
+		os.Stdout = os.NewFile(uintptr(q.stdout), "/dev/stdout")
+		os.Stderr = os.Stdout
+		logrus.SetOutput(os.Stdout)
 	}
 
 	if err := nativeimgutil.ConvertToRaw(q.source, q.destination, nil, true); err != nil {
