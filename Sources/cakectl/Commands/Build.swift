@@ -13,7 +13,7 @@ struct Build: GrpcParsableCommand {
 		try buildOptions.validate()
 
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
-			throw ValidationError("Shared file descriptors are not supported, use launch instead")
+			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")
 		}
 	}
 

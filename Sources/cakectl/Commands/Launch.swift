@@ -14,6 +14,10 @@ struct Launch : GrpcParsableCommand {
 
 	mutating func validate() throws {
 		try self.buildOptions.validate()
+
+		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
+			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")
+		}
 	}
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
