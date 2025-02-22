@@ -10,8 +10,8 @@ struct VirtualMachineInfos: Codable {
 	let source: String
 	let name: String
 	let fqn: String
-	let diskSize: String
-	let totalSize: String
+	let diskSize: Int
+	let totalSize: Int
 	let state: String
 }
 
@@ -31,12 +31,12 @@ struct ListHandler: CakedCommand {
 	static func listVM(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfos] {
 		var vmInfos = try StorageLocation(asSystem: asSystem).list().map { (name: String, location: VMLocation) in
 			VirtualMachineInfos(
-				type: "local",
+				type: "vm",
 				source: "vms",
 				name: name,
-				fqn: "local://\(name)",
-				diskSize: try ByteCountFormatter.string(fromByteCount: Int64(location.diskSize()), countStyle: .file),
-				totalSize: try ByteCountFormatter.string(fromByteCount: Int64(location.allocatedSize()), countStyle: .file),
+				fqn: "vm://\(name)",
+				diskSize: try location.diskSize(),
+				totalSize: try location.allocatedSize(),
 				state: location.status.rawValue
 			)
 		}
@@ -62,8 +62,8 @@ struct ListHandler: CakedCommand {
 							source: purgeable.source(),
 							name: purgeable.name(),
 							fqn: imageCache.fqn(purgeable),
-							diskSize: try ByteCountFormatter.string(fromByteCount: Int64(purgeable.allocatedSizeBytes()), countStyle: .file),
-							totalSize: try ByteCountFormatter.string(fromByteCount: Int64(purgeable.allocatedSizeBytes()), countStyle: .file),
+							diskSize: try purgeable.allocatedSizeBytes(),
+							totalSize: try purgeable.allocatedSizeBytes(),
 							state: "cached"
 						)
 					)
@@ -81,7 +81,11 @@ struct ListHandler: CakedCommand {
 			return format.renderList(style: Style.grid, uppercased: true, result)
 		} else {
 			return format.renderList(style: Style.grid, uppercased: true, result.map {
-				ShortVirtualMachineInfos(type: $0.type, fqn: $0.fqn, diskSize: $0.diskSize, totalSize: $0.totalSize, state: $0.state)
+				ShortVirtualMachineInfos(type: $0.type,
+				fqn: $0.fqn,
+				diskSize: ByteCountFormatter.string(fromByteCount: Int64($0.diskSize), countStyle: .file),
+				totalSize: ByteCountFormatter.string(fromByteCount: Int64($0.totalSize), countStyle: .file),
+				state: $0.state)
 			})
 		}
 	}

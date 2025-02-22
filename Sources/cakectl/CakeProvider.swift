@@ -47,6 +47,10 @@ extension Caked_CakedCommandRequest {
 
 extension Caked_CommonBuildRequest {
 	init(buildOptions: BuildOptions) throws {
+		let mounts = buildOptions.mounts.map{$0.description}
+		let networks = buildOptions.networks.map{$0.description}
+		let sockets = buildOptions.sockets.map{$0.description}
+
 		self.init()
 		self.name = buildOptions.name
 		self.cpu = Int32(buildOptions.cpu)
@@ -58,9 +62,18 @@ extension Caked_CommonBuildRequest {
 		self.autostart = buildOptions.autostart
 		self.nested = buildOptions.nested
 		self.image = buildOptions.image
-		self.mounts = buildOptions.mounts.map{$0.description}.joined(separator: ",")
-		self.networks = buildOptions.networks.map{$0.description}.joined(separator: ",")
-		self.sockets = buildOptions.sockets.map{$0.description}.joined(separator: ",")
+		
+		if mounts.isEmpty == false {
+			self.mounts = mounts.joined(separator: ",")
+		}
+
+		if networks.isEmpty == false {
+			self.networks = networks.joined(separator: ",")
+		}
+
+		if sockets.isEmpty == false {
+			self.sockets = sockets.joined(separator: ",")
+		}
 
 		if let console = buildOptions.consoleURL {
 			self.console = console.description
@@ -326,6 +339,7 @@ extension Caked_RemoteRequest {
 	init(command: Remote.ListRemote) {
 		self.init()
 
+		self.command = .list
 		self.format = command.format == .text ? .text : .json
 	}
 }

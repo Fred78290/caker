@@ -22,16 +22,16 @@ struct DeleteHandler: CakedCommand {
 
 		if let location = try? StorageLocation(asSystem: false).find(name) {
 			vmLocation = location
-		} else if let u = URL(string: name), u.scheme == "local" {
+		} else if let u = URL(string: name), u.scheme == "vm" {
 			vmLocation = try? StorageLocation(asSystem: false).find(u.host()!)
 		}
 
 		if let location = vmLocation, location.status != .running {
 			if location.status != .running {
 				try? FileManager.default.removeItem(at: location.rootURL)
-				return DeleteReply(source: "local", name: location.name, deleted: true)
+				return DeleteReply(source: "vm", name: location.name, deleted: true)
 			} else {
-				return DeleteReply(source: "local", name: location.name, deleted: false)
+				return DeleteReply(source: "vm", name: location.name, deleted: false)
 			}
 		}
 

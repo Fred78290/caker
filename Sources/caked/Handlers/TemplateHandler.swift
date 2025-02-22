@@ -32,8 +32,22 @@ struct TemplateHandler: CakedCommand {
 	struct TemplateEntry: Codable {
 		let name: String
 		let fqn: String
+		let diskSize: Int
+		let totalSize: Int
+	}
+
+	struct ShortTemplateEntry: Codable {
+		let name: String
+		let fqn: String
 		let diskSize: String
 		let totalSize: String
+
+		init(_ from: TemplateEntry) {
+			self.name = from.name
+			self.fqn = from.fqn
+			self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
+			self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
+		}
 	}
 
 	struct CreateTemplateReply: Codable {
@@ -138,8 +152,8 @@ struct TemplateHandler: CakedCommand {
 			return TemplateEntry(
 				name: key,
 				fqn: "template://\(key)",
-				diskSize: try ByteCountFormatter.string(fromByteCount: Int64(value.diskSize()), countStyle: .file),
-				totalSize: try ByteCountFormatter.string(fromByteCount: Int64(value.allocatedSize()), countStyle: .file)
+				diskSize: try value.diskSize(),
+				totalSize: try value.allocatedSize()
 			)
 		}
 	}
@@ -153,7 +167,11 @@ struct TemplateHandler: CakedCommand {
 		case .delete:
 			return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
 		case .list:
-			return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem))
+			if format == .json {
+				return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem))
+			} else {
+				return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem).map { ShortTemplateEntry($0) })
+			}
 		default:
 			throw ServiceError("Unknown command \(request.command)")
 		}

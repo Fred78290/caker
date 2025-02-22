@@ -517,37 +517,37 @@ public struct BuildOptions: ParsableArguments {
 			self.autostart = false
 		}
 
-		if request.hasImage {
+		if request.hasImage && request.image.isEmpty == false {
 			self.image = request.image
 		} else {
 			self.image = defaultUbuntuImage
 		}
 
-		if request.hasSshAuthorizedKey {
+		if request.hasSshAuthorizedKey && request.sshAuthorizedKey.isEmpty == false {
 			self.sshAuthorizedKey = try saveToTempFile(request.sshAuthorizedKey)
 		} else {
 			self.sshAuthorizedKey = nil
 		}
 
-		if request.hasUserData {
+		if request.hasUserData && request.userData.isEmpty == false {
 			self.userData = try saveToTempFile(request.userData)
 		} else {
 			self.userData = nil
 		}
 
-		if request.hasVendorData {
+		if request.hasVendorData && request.vendorData.isEmpty == false {
 			self.vendorData = try saveToTempFile(request.vendorData)
 		} else {
 			self.vendorData = nil
 		}
 
-		if request.hasNetworkConfig {
+		if request.hasNetworkConfig && request.networkConfig.isEmpty == false {
 			self.networkConfig = try saveToTempFile(request.networkConfig)
 		} else {
 			self.networkConfig = nil
 		}
 
-		if request.hasForwardedPort {
+		if request.hasForwardedPort && request.forwardedPort.isEmpty == false {
 			self.forwardedPorts = request.forwardedPort.components(separatedBy: ",").compactMap { argument in
 				return ForwardedPort(argument: argument)
 			}
@@ -555,27 +555,27 @@ public struct BuildOptions: ParsableArguments {
 			self.forwardedPorts = []
 		}
 
-		if request.hasMounts {
+		if request.hasMounts && request.mounts.isEmpty == false {
 			self.mounts = try request.mounts.components(separatedBy: ",").compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		} else {
 			self.mounts = []
 		}
 
-		if request.hasNetworks {
+		if request.hasNetworks && request.networks.isEmpty == false {
 			self.networks = try request.networks.components(separatedBy: ",").compactMap {
 				try BridgeAttachement(parseFrom: $0) }
 		} else {
 			self.networks = []
 		}
 
-		if request.hasSockets {
+		if request.hasSockets && request.sockets.isEmpty == false {
 			self.sockets = try request.sockets.components(separatedBy: ",").compactMap { try SocketDevice(parseFrom: $0)
 			}
 		} else {
 			self.sockets = []
 		}
 
-		if request.hasConsole {
+		if request.hasConsole && request.console.isEmpty == false {
 			self.consoleURL = ConsoleAttachment(argument: request.console)
 		} else {
 			self.consoleURL = nil

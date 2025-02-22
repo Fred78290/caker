@@ -20,7 +20,11 @@ struct Template: ParsableCommand {
 		var format: Format = .text
 
 		func run() throws {
-			print(format.renderList(style: Style.grid, uppercased: true, try TemplateHandler.listTemplate(asSystem: false)))
+			if format == .json {
+				print(format.renderList(style: Style.grid, uppercased: true, try TemplateHandler.listTemplate(asSystem: runAsSystem)))
+			} else {
+				print(format.renderList(style: Style.grid, uppercased: true, try TemplateHandler.listTemplate(asSystem: runAsSystem).map { TemplateHandler.ShortTemplateEntry($0) }))
+			}
 		}
 	}
 

@@ -21,7 +21,8 @@ struct LaunchHandler: CakedCommandAsync {
 
 		try config.save()
 
-		return try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background)
+		return try StartHandler(location: vmLocation, config: config, waitIPTimeout: 180, foreground: false).run(on: Root.group.next(), asSystem: runAsSystem)
+//		return try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background)
 	}
 
 	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, foreground: Bool) async throws -> String {
