@@ -11,9 +11,7 @@ struct LogoutHandler: CakedCommand {
 		return try Shell.runTart(command: "logout", arguments: [host], direct: direct)
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			return try Self.logout(host: self.request.host, direct: false)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		return try Self.logout(host: self.request.host, direct: false)
 	}
 }

@@ -71,9 +71,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		try purgeablesToDelete.forEach { try $0.delete() }
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			try Self.purge(direct: false, self)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		try Self.purge(direct: false, self)
 	}
 }

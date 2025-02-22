@@ -23,9 +23,7 @@ struct NetworksHandler: CakedCommand {
 		return networks
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			self.format.renderList(style: Style.grid, uppercased: true, Self.networks())
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		self.format.renderList(style: Style.grid, uppercased: true, Self.networks())
 	}
 }

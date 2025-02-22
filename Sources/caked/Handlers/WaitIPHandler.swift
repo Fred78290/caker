@@ -79,10 +79,8 @@ struct WaitIPHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		return on.submit {
-			try Self.waitIP(name: name, wait: wait, asSystem: asSystem)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		try Self.waitIP(name: name, wait: wait, asSystem: asSystem)
 	}
 
 }

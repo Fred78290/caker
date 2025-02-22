@@ -8,6 +8,10 @@ import NIOPortForwarding
 import CakeAgentLib
 
 protocol CakedCommand {
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> String
+}
+
+protocol CakedCommandAsync: CakedCommand {
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String>
 }
 
@@ -24,6 +28,13 @@ extension CakedCommand {
 		                                        tlsKey: certificates.clientKeyURL.path())
 	}
 }
+
+extension CakedCommandAsync {
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> String {
+		return try self.run(on: on, asSystem: asSystem).wait()
+	}
+}
+
 protocol CreateCakedCommand {
 	func createCommand() throws -> CakedCommand
 }
@@ -89,29 +100,29 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 }
 
 extension Caked_PurgeRequest : CreateCakedCommand {
-  func createCommand() throws -> CakedCommand {
-	var command = PurgeHandler()
+	func createCommand() throws -> CakedCommand {
+		var command = PurgeHandler()
 
-	if self.hasEntries {
-	  command.entries = self.entries
+		if self.hasEntries {
+			command.entries = self.entries
+		}
+
+		if self.hasOlderThan {
+			command.olderThan = UInt(self.olderThan)
+		}
+
+		if self.hasSpaceBudget {
+			command.spaceBudget = UInt(self.spaceBudget)
+		}
+
+		return command
 	}
-
-	if self.hasOlderThan {
-	  command.olderThan = UInt(self.olderThan)
-	}
-
-	if self.hasSpaceBudget {
-	  command.spaceBudget = UInt(self.spaceBudget)
-	}
-
-	return command
-  }
 }
 
 extension Caked_DeleteRequest : CreateCakedCommand {
-  func createCommand() throws -> CakedCommand {
-	return DeleteHandler(request: self)
-  }
+	func createCommand() throws -> CakedCommand {
+		return DeleteHandler(request: self)
+	}
 }
 
 extension Caked_ConfigureRequest: CreateCakedCommand {
@@ -218,17 +229,22 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		self.group = group
 		self.certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
 	}
-	
+
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
 		var command = try command.createCommand()
 		var reply: Caked_Reply = Caked_Reply()
-		
+		let eventLoop = self.group.next()
+
 		Logger.debug("execute: \(command)")
 
 		do {
-			let future = try command.run(on: self.group.next(), asSystem: self.asSystem)
+			if var cmd = command as? CakedCommandAsync {
+				let future = try cmd.run(on: eventLoop, asSystem: self.asSystem)
 
-			reply.output = try future.wait()
+				reply.output = try future.wait()
+			} else {
+				reply.output = try command.run(on: eventLoop, asSystem: self.asSystem)
+			}
 		} catch {
 			if let shellError = error as? ShellError {
 				reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
@@ -236,26 +252,26 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
 			}
 		}
-		
+
 		return reply
 	}
-	
+
 	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply{
 		return try self.execute(command: request)
 	}
-	
+
 	func build(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -263,39 +279,39 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func logout(request: Caked_LogoutRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 
-    func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
-    }
+	}
 
-    func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+	func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
-    }
+	}
 
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
-    func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+
+	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
-    }
+	}
 
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -304,38 +320,57 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-    func rename(request: GRPCLib.Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+	func rename(request: GRPCLib.Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
 		return try self.execute(command: request)
-    }
+	}
 
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
 		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
-		
+
 		Logger.debug("execute: \(request)")
 
 		return try conn.info()
 	}
 
 	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
-		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
+		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(request.name)
 
-		Logger.debug("execute: \(request)")
+		if vmLocation.status != .running {
+			throw ServiceError("VM \(request.name) is not running")
+		}
+
+		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
 
 		return try conn.execute(request: request)
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
 
-		guard let vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
+		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
 			Logger.error(ServiceError("no CAKEAGENT_VMNAME header"))
 
 			throw ServiceError("no CAKEAGENT_VMNAME header")
 		}
 
-		Logger.debug("shell: \(vmname)")
+		if vmname == "" {
+			vmname = "primary"
+
+			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
+				Logger.info("Creating primary VM")
+				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
+			}
+		}
+		
+		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
+		
+		if vmLocation.status != .running {
+			Logger.info("Starting \(vmname)")
+
+			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
+		}
 
 		let conn = try createCakeAgentConnection(vmName: vmname)
-		
+
 		return try await conn.shell(requestStream: requestStream, responseStream: responseStream)
 	}
 

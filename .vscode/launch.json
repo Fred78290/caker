@@ -166,7 +166,8 @@
 			"request": "launch",
 			"args": [
 				"service",
-				"listen"
+				"listen",
+				"--secure"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked service listen",

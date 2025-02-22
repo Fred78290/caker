@@ -45,7 +45,7 @@ struct Sh: GrpcParsableCommand {
 	@OptionGroup var options: Client.Options
 
 	@Argument(help: "VM name")
-	var name: String
+	var name: String = ""
 
 	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		var shellStream: BidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse>?

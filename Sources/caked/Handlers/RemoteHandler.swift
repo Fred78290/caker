@@ -51,19 +51,17 @@ struct RemoteHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			switch request.command {
-			case .add:
-				return try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: runAsSystem)
-			case .delete:
-				return try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
-			case .list:
-				let format: Format = request.format == .text ? Format.text : Format.json
-				return format.renderList(style: Style.grid, uppercased: true, try Self.listRemote(asSystem: runAsSystem))
-			default:
-				throw ServiceError("Unknown command \(request.command)")
-			}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		switch request.command {
+		case .add:
+			return try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: runAsSystem)
+		case .delete:
+			return try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
+		case .list:
+			let format: Format = request.format == .text ? Format.text : Format.json
+			return format.renderList(style: Style.grid, uppercased: true, try Self.listRemote(asSystem: runAsSystem))
+		default:
+			throw ServiceError("Unknown command \(request.command)")
 		}
 	}
 }

@@ -43,8 +43,8 @@ class Curl {
 		return (channel, response as! HTTPURLResponse)
 	}
 
-	func get(progress: Progress? = nil) async throws -> (AsyncThrowingChannel<Data, Error>, HTTPURLResponse) {
-		let delegate = progress != nil ? try DownloadDelegate(progress!) : nil
+	func get(observer: ProgressObserver? = nil) async throws -> (AsyncThrowingChannel<Data, Error>, HTTPURLResponse) {
+		let delegate = observer != nil ? try DownloadDelegate(observer!.progress) : nil
 		let request: URLRequest = URLRequest(url: self.fromURL)
 		let channel = AsyncThrowingChannel<Data, Error>()
 		let (fileURL, response) = try await self.urlSession.download(for: request, delegate: delegate)

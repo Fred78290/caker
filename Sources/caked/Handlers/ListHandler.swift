@@ -86,9 +86,7 @@ struct ListHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			try Self.listVM(vmonly: self.vmonly, format: self.format, asSystem: asSystem)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		try Self.listVM(vmonly: self.vmonly, format: self.format, asSystem: asSystem)
 	}
 }

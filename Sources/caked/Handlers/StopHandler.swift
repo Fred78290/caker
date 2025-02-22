@@ -17,9 +17,7 @@ struct StopHandler: CakedCommand {
 		return "VM \(name) stopped"
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			return try StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		return try StopHandler.stopVM(name: self.name, force: self.force, asSystem: runAsSystem)
 	}
 }

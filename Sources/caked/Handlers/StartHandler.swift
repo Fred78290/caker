@@ -26,6 +26,13 @@ struct StartHandler: CakedCommand {
 		self.waitIPTimeout = waitIPTimeout
 	}
 
+	init(location: VMLocation, waitIPTimeout: Int, startMode: StartMode) throws {		
+		self.location = location
+		self.config = try location.config()
+		self.waitIPTimeout = waitIPTimeout
+		self.startMode = startMode
+	}
+
 	init(name: String, waitIPTimeout: Int, startMode: StartMode) throws {
 		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(name)
 		
@@ -313,10 +320,14 @@ print(tempFileURL.absoluteString)
 
 				if config.autostart && vmLocation.status != .running {
 					Task {
+						Logger.info("VM \(name) starting")
+
 						do {
 							let handler: StartHandler = StartHandler(location: vmLocation, config: config, waitIPTimeout: 120, foreground: false)
 
-							_ = try handler.run(on: on, asSystem: asSystem)
+							let runningIP: String = try handler.run(on: on, asSystem: asSystem)
+
+							Logger.info("VM \(name) started with IP \(runningIP)")
 						} catch {
 							Logger.error(error)
 						}
@@ -330,7 +341,7 @@ print(tempFileURL.absoluteString)
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
 		let promise: EventLoopPromise<String> = on.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
@@ -342,9 +353,7 @@ print(tempFileURL.absoluteString)
 			}
 		}
 
-		return on.submit {
-			return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .background, promise: promise)
-		}
+		return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .background, promise: promise)
 	}
 
 	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {

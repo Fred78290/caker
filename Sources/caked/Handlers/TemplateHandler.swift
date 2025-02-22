@@ -144,20 +144,18 @@ struct TemplateHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		return on.submit {
-			let format: Format = request.format == .text ? Format.text : Format.json
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		let format: Format = request.format == .text ? Format.text : Format.json
 
-			switch request.command {
-			case .add:
-				return format.renderSingle(style: Style.grid, uppercased: true, try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem))
-			case .delete:
-				return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
-			case .list:
-				return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem))
-			default:
-				throw ServiceError("Unknown command \(request.command)")
-			}
+		switch request.command {
+		case .add:
+			return format.renderSingle(style: Style.grid, uppercased: true, try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem))
+		case .delete:
+			return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
+		case .list:
+			return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem))
+		default:
+			throw ServiceError("Unknown command \(request.command)")
 		}
 	}
 }

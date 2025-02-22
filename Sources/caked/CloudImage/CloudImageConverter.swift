@@ -43,8 +43,7 @@ class CloudImageConverter {
 		// Download the cloud-image
 		Logger.debug("Fetching \(fromURL.lastPathComponent)...")
 
-		//let downloadProgress = Progress(totalUnitCount: 100)
-		let channel = try await Curl(fromURL: fromURL).get(progress: nil)
+		let channel = try await Curl(fromURL: fromURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
 		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
 
 		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
@@ -118,10 +117,7 @@ class CloudImageConverter {
 			// Download the cloud-image
 			Logger.info("Fetching \(from.lastPathComponent)...")
 
-			//let progress = Progress(totalUnitCount: 100)
-			//ProgressObserver(progress).log()
-
-			let channel = try await Curl(fromURL: from).get(progress: nil)
+			let channel = try await Curl(fromURL: from).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(from.lastPathComponent)"))
 
 			FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
 

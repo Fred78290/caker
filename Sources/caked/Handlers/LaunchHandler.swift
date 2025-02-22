@@ -2,7 +2,7 @@ import Foundation
 import GRPCLib
 import NIOCore
 
-struct LaunchHandler: CakedCommand {
+struct LaunchHandler: CakedCommandAsync {
 	var options: BuildOptions
 	var waitIPTimeout = 180
 

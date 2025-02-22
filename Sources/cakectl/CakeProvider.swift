@@ -93,10 +93,6 @@ extension Caked_CommonBuildRequest {
 		if let networkConfig = buildOptions.networkConfig {
 			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
 		}
-
-//		if let netSoftnetAllow: String = buildOptions.netSoftnetAllow {
-//			self.netSoftnetAllow = netSoftnetAllow
-//		}
 	}
 }
 
@@ -287,6 +283,7 @@ extension Caked_TemplateRequest {
 		add.sourceName = command.name
 		add.templateName = command.template
 
+		self.format = command.format == .text ? .text : .json
 		self.command = .add
 		self.create = add
 	}
@@ -294,6 +291,7 @@ extension Caked_TemplateRequest {
 	init(command: Template.DeleteTemplate) {
 		self.init()
 
+		self.format = command.format == .text ? .text : .json
 		self.command = .delete
 		self.delete = command.name
 	}
@@ -302,6 +300,7 @@ extension Caked_TemplateRequest {
 		self.init()
 
 		self.format = command.format == .text ? .text : .json
+		self.command = .list
 	}
 }
 

@@ -4,7 +4,7 @@ import Virtualization
 import GRPCLib
 import NIOCore
 
-struct ConfigureHandler: CakedCommand {
+struct ConfigureHandler: CakedCommandAsync {
 	var options: ConfigureOptions
 
 	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws {

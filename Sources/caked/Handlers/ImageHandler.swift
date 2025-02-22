@@ -206,7 +206,7 @@ struct ShortLinuxContainerImage: Codable {
 	}
 }
 
-struct ImageHandler : CakedCommand {
+struct ImageHandler : CakedCommandAsync {
 	var request: Caked_ImageRequest
 
 	static func getSimpleStreamProtocol(remote: String, asSystem: Bool) async throws -> SimpleStreamProtocol {

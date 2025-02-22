@@ -196,6 +196,9 @@ extension Service {
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
+		@Flag(help: .hidden)
+		var secure: Bool = false
+
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
@@ -211,10 +214,16 @@ extension Service {
 		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Server private key")
 		var tlsKey: String?
 
-		func validate() throws {
+		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
 
-			if let caCert = self.caCert, let tlsCert = self.tlsCert, let tlsKey = self.tlsKey {
+			if self.secure {
+				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+
+				self.caCert = certs.caCertURL.path()
+				self.tlsCert = certs.serverCertURL.path()
+				self.tlsKey = certs.serverKeyURL.path()
+			} else if let caCert = self.caCert, let tlsCert = self.tlsCert, let tlsKey = self.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
 					throw ServiceError("Root certificate file not found: \(caCert)")
 				}
@@ -249,7 +258,8 @@ extension Service {
 			if let listeningAddress = listeningAddress {
 				let target: ConnectionTarget
 
-				if listeningAddress.scheme == "unix" {
+				if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
+					try listeningAddress.deleteIfFileExists()
 					target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 				} else if listeningAddress.scheme == "tcp" {
 					target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)

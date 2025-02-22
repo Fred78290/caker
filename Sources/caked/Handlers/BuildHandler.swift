@@ -5,7 +5,7 @@ import Virtualization
 import GRPCLib
 import NIOCore
 
-struct BuildHandler: CakedCommand {
+struct BuildHandler: CakedCommandAsync {
 	var options: BuildOptions
 
 	static func build(name: String, options: BuildOptions, asSystem: Bool) async throws {

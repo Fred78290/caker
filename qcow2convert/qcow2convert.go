@@ -16,7 +16,7 @@ func ConvertQCow2Raw(src, dst *C.char, sizeInMb, stdout int32) int32 {
 
 	if stdout > 0 {
 		os.Stdout = os.NewFile(uintptr(stdout), "/dev/stdout")
-		os.Stderr = os.Stdout
+		os.Stderr, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0)
 		logrus.SetOutput(os.Stdout)
 	}
 
@@ -45,7 +45,7 @@ func NewQCow2Converter(source, destination string, outputFileHandle int32) *QCow
 func (q *QCow2Converter) Convert() int32 {
 	if q.stdout > 0 {
 		os.Stdout = os.NewFile(uintptr(q.stdout), "/dev/stdout")
-		os.Stderr = os.Stdout
+		os.Stderr, _ = os.OpenFile(os.DevNull, os.O_WRONLY, 0)
 		logrus.SetOutput(os.Stdout)
 	}
 

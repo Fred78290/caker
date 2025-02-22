@@ -68,11 +68,9 @@ struct DeleteHandler: CakedCommand {
 		}
 	}
 	
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		return on.submit {
-			let format: Format = request.format == .text ? Format.text : Format.json
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		let format: Format = request.format == .text ? Format.text : Format.json
 
-			return format.renderList(style: Style.grid, uppercased: true, try Self.delete(names: request.name, asSystem: runAsSystem))
-		}
+		return format.renderList(style: Style.grid, uppercased: true, try Self.delete(names: request.name, asSystem: runAsSystem))
 	}
 }

@@ -27,7 +27,12 @@ extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
 
 
 struct Logger {
-	static var logger = Logging.Logger(label: "com.aldunelabs.caker") 
+	private static let eraseCursorDown: String = "\u{001B}[J"
+	private static let moveUp = "\u{001B}[1A"
+	private static let moveBeginningOfLine = "\r"
+
+	static let label = "com.aldunelabs.caker"
+	static var logger = Logging.Logger(label: Self.label)
 
 	static public func setLevel(_ level: Logging.Logger.Level) {
 		logger.logLevel = level
@@ -62,34 +67,36 @@ struct Logger {
 	}
 
 	static public func updateLastLine(_ line: String) {
-		print(line, terminator: "\n")
+	    print(moveUp, moveBeginningOfLine, eraseCursorDown, line, separator: "", terminator: "\n")
 	}
 }
 
 public class ProgressObserver: NSObject {
-	@objc var progressToObserve: Progress
+	@objc var progress: Progress
 	var observation: NSKeyValueObservation?
 	var lastUpdate = Date.now
 
-	public init(_ progress: Progress) {
-		progressToObserve = progress
+	public init(totalUnitCount unitCount: Int64) {
+		self.progress = Progress(totalUnitCount: unitCount)
 	}
 
-	func log() {
-		Logger.appendNewLine(ProgressObserver.renderLine(progressToObserve))
+	func log(_ message: String) -> ProgressObserver {
+		Logger.appendNewLine(ProgressObserver.renderLine(message, self.progress))
 
-		observation = observe(\.progressToObserve.fractionCompleted) { progress, _ in
+		observation = observe(\.progress.fractionCompleted) { progress, _ in
 			let currentTime = Date.now
 
-			if self.progressToObserve.isFinished || currentTime.timeIntervalSince(self.lastUpdate) >= 1.0 {
+			if self.progress.isFinished || currentTime.timeIntervalSince(self.lastUpdate) >= 1.0 {
 				self.lastUpdate = currentTime
 
-				Logger.updateLastLine(ProgressObserver.renderLine(self.progressToObserve))
+				Logger.updateLastLine(ProgressObserver.renderLine(message, self.progress))
 			}
 		}
+
+		return self
 	}
 
-	private static func renderLine(_ progress: Progress) -> String {
-		String(Int(100 * progress.fractionCompleted)) + "%"
+	private static func renderLine(_ message: String, _ progress: Progress) -> String {
+		String("\(message): \(Int(100 * progress.fractionCompleted)) %")
 	}
 }

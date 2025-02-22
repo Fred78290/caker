@@ -88,6 +88,11 @@ struct Root: AsyncParsableCommand {
 		}
 		sigintSrc.activate()
 
+		// Set up logging to stderr
+		LoggingSystem.bootstrap{ label in
+			StreamLogHandler.standardError(label: label)
+		}
+
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
 

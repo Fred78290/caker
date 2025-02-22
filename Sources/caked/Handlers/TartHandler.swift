@@ -5,9 +5,7 @@ struct TartHandler: CakedCommand {
 	var command: String
 	var arguments: [String]
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
-		on.submit {
-			return try Shell.runTart(command: self.command, arguments: self.arguments)
-		}
+	func run(on: EventLoop, asSystem: Bool) throws -> String {
+		return try Shell.runTart(command: self.command, arguments: self.arguments)
 	}
 }
