@@ -336,41 +336,25 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		sigusr2.activate()
 	}
 
-	private func waitIPFuture(on: EventLoop, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
-		let listeningAddress = vmLocation.agentURL
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(wait), retries: .unlimited)
-		let response = try conn.infoFuture()
+	private func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
+		if config.agent {
+			let listeningAddress = vmLocation.agentURL
+			let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+			let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(wait), retries: .unlimited)
+			let response = try conn.infoFuture()
 
-		return response.flatMapThrowing {
-			return $0?.ipaddresses.first
-		}.flatMapErrorWithEventLoop {
-			$1.submit {
-				nil
-			}
-		}
-	}
-
-	private func waitIP(on: EventLoop, wait: Int, asSystem: Bool) throws -> String? {
-		let listeningAddress = vmLocation.agentURL
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: 10, retries: .unlimited)
-
-		let start: Date = Date.now
-		var count = 0
-
-		repeat {
-			if let infos = try? conn.infoFuture().wait() {
-				if let runningIP = infos.ipaddresses.first {
-					return runningIP
+			return response.flatMapThrowing {
+				return $0?.ipaddresses.first
+			}.flatMapErrorWithEventLoop {
+				$1.submit {
+					nil
 				}
 			}
-			count += 1
-		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
-
-		Logger.warn("Unable to get IP for VM \(self.vmLocation.name)")
-
-		return nil
+		} else {
+			return on.submit {
+				try? self.vmLocation.waitIPWithLease(wait: wait, asSystem: asSystem)
+			}
+		}
 	}
 
 	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
@@ -396,8 +380,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.catchUserSignals(task)
 		}
 
-		let response = try self.waitIPFuture(on: on, wait: 120, asSystem: asSystem)
 		let config = self.config
+		let response = try self.waitIP(on: on, config: config, wait: 120, asSystem: asSystem)
 
 		response.whenSuccess { runningIP in
 			if let promise = promise {

@@ -322,6 +322,30 @@ final class CakeConfig{
 		self.cake = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
 	}
 
+	init(location: URL, options: BuildOptions) throws {
+		self.location = location
+		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.cake = Config()
+		
+		self.configuredUser = options.user
+		self.configuredPassword = options.password
+		self.autostart = options.autostart
+		self.displayRefit = options.displayRefit
+		self.configuredPassword = configuredPassword
+		self.autostart = autostart
+		self.useCloudInit = false
+		self.agent = false
+
+		if self.os == .darwin {
+			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)
+			self.memorySize = max(options.memory * 1024 * 1024, UInt64(self.memorySizeMin))
+		} else {
+			self.cpuCount = Int(options.cpu)
+			self.memorySize = options.memory * 1024 * 1024
+			self.nested = options.nested
+		}
+	}
+
 	func save() throws {
 		try self.config.save(to: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		try self.cake.save(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))

@@ -23,7 +23,43 @@
 				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked build",
+			"name": "caked build linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"build",
+				"--name=sequoia",
+				"--cpu=4",
+				"--memory=8192",
+				"--disk-size=120",
+				"--mount=~",
+				"--ssh-authorized-key=${env:HOME}/.ssh/id_rsa.pub",
+				"ocis://ghcr.io/cirruslabs/macos-sequoia-vanilla:latest"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked build sequoia",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"launch",
+				"--name=sequoia",
+				"--cpu=4",
+				"--memory=8192",
+				"--disk-size=120",
+				"--mount=~",
+				"--ssh-authorized-key=${env:HOME}/.ssh/id_rsa.pub",
+				"ocis://ghcr.io/cirruslabs/macos-sequoia-vanilla:latest"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked launch sequoia",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -47,7 +83,7 @@
 				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked launch",
+			"name": "caked launch linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -66,13 +102,25 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"pull",
+				"ghcr.io/cirruslabs/macos-sequoia-vanilla:latest"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked pull ghcr.io/cirruslabs/macos-sequoia-vanilla:latest",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"waitip",
 				"linux",
 				"--wait",
 				"60"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked waitip",
+			"name": "caked waitip linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -84,7 +132,19 @@
 				"linux"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked delete",
+			"name": "caked delete linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"delete",
+				"sequoia"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked delete sequoia",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -97,7 +157,20 @@
 				"--display"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked vmrun",
+			"name": "caked vmrun linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"vmrun",
+				"sequoia",
+				"--display"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vmrun sequoia",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -110,7 +183,7 @@
 				"--display"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked vmrun test",
+			"name": "caked vmrun /Volumes/Manix/Users/fboltz/.cake/vms/test/disk.img",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -133,7 +206,19 @@
 				"linux"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked infos",
+			"name": "caked infos linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"infos",
+				"sequoia"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked infos linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -145,7 +230,19 @@
 				"linux"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked start",
+			"name": "caked start linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"start",
+				"sequoia"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked start sequoia",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -157,7 +254,7 @@
 				"linux"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked stop",
+			"name": "caked stop linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -183,7 +280,7 @@
 				"ubuntu:noble"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked image pull",
+			"name": "caked image pull ubuntu:noble",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -196,7 +293,7 @@
 				"canonical:centos/9-Stream/cloud"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked image info",
+			"name": "caked image info canonical:centos/9-Stream/cloud",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -210,7 +307,7 @@
 				"test-template"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked template create",
+			"name": "caked template create linux test-template",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -235,8 +332,8 @@
 				"ls"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "cacked exec",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
+			"name": "caked exec linux ls",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
@@ -276,7 +373,7 @@
 				"-al"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "cakectl exec linux",
+			"name": "cakectl exec linux ls -- -al",
 			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},

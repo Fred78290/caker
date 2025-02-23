@@ -22,8 +22,16 @@ struct BuildHandler: CakedCommandAsync {
 
 		try await withTaskCancellationHandler(
 			operation: {
-				try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options)
-				try StorageLocation(asSystem: asSystem).relocate(name, from: tempVMLocation)
+				do {
+					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options) == .oci {
+						try tempVMLocation.delete()
+					} else {
+						try StorageLocation(asSystem: asSystem).relocate(name, from: tempVMLocation)
+					}
+				} catch {
+					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+					throw error
+				}
 			},
 			onCancel: {
 				try? FileManager.default.removeItem(at: tempVMLocation.rootURL)

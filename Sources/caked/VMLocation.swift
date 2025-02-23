@@ -295,4 +295,73 @@ struct VMLocation {
 
 		return (runningIP, vm)
 	}
+
+	func waitIPWithLease(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		let config = try self.config()
+		let start: Date = Date.now
+		let macAddress = config.macAddress?.string ?? ""
+		var leases: DHCPLeaseProvider
+		var count = 0
+
+		repeat {
+			if let startedProcess = startedProcess, startedProcess.isRunning == false {
+				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
+			}
+
+			// Try also arp if dhcp is disabled
+			if config.networks.isEmpty == false || count & 1 == 1 {
+				leases = try ARPParser()
+			} else {
+				leases = try DHCPLeaseParser()
+			}
+
+			if let runningIP = leases[macAddress] {
+				return runningIP
+			}
+
+			count += 1
+		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
+
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
+	}
+
+	func waitIPWithAgent(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		let listeningAddress = self.agentURL
+		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 5, retries: .none)
+
+		let start: Date = Date.now
+		var count = 0
+
+		repeat {
+			if let startedProcess = startedProcess, startedProcess.isRunning == false {
+				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
+			}
+
+			if let infos = try? conn.infoFuture().wait() {
+				if let runningIP = infos.ipaddresses.first {
+					return runningIP
+				}
+			}
+
+			count += 1
+		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
+
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
+	}
+
+	func waitIP(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+		let config = try vmLocation.config()
+
+		if vmLocation.status != .running {
+			throw ServiceError("VM \(name) is not running")
+		}
+
+		if config.useCloudInit {
+			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+		} else {
+			return try waitIPWithLease(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+		}
+	}
 }

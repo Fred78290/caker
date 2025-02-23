@@ -15,16 +15,13 @@ struct VMBuilder {
 
 	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource) throws {
 		let config: CakeConfig
-		
+
 		// Create or resize disk
 		try? vmLocation.expandDiskTo(options.diskSize)
 
 		// Create config
-		if try vmLocation.configURL.exists() {
-			config = try CakeConfig(location: vmLocation.rootURL)
-
-			config.useCloudInit = config.os == .linux
-			config.agent = false
+		if source == .oci {
+			config = try CakeConfig(location: vmLocation.rootURL, options: options)
 		} else {
 			// Create NVRAM
 			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
@@ -34,18 +31,14 @@ struct VMBuilder {
 				configuredUser: options.user,
 				configuredPassword: options.password,
 				displayRefit: options.displayRefit,
-				cpuCountMin: 1,
-				memorySizeMin: 512 * 1024 * 1024)
+				cpuCountMin: Int(options.cpu),
+				memorySizeMin: options.memory * 1024 * 1024)
 
 			config.useCloudInit = true
 			config.agent = true
+			config.nested = options.nested
 		}
 
-		config.cpuCount = Int(options.cpu)
-		config.memorySize = options.memory * 1024 * 1024
-		config.nested = options.nested
-		config.displayRefit = options.displayRefit
-		config.autostart = options.autostart
 		config.networks = options.networks
 		config.mounts = options.mounts
 		config.sockets = options.sockets
@@ -54,7 +47,7 @@ struct VMBuilder {
 
 		try config.save()
 
-		if config.useCloudInit {
+		if config.os == .linux && config.useCloudInit {
 			let cloudInit = try CloudInit(userName: options.user,
 										password: options.password,
 										mainGroup: options.mainGroup,
@@ -124,11 +117,6 @@ struct VMBuilder {
 
 			try Shell.runTart(command: "clone", arguments: arguments)
 
-			let clonedLocation = try StorageLocation(asSystem: runAsSystem).find(vmName)
-
-			_ = try FileManager.default.copyItem(at: clonedLocation.diskURL, to: vmLocation.diskURL)
-
-			try FileManager.default.removeItem(at: clonedLocation.rootURL)
 			sourceImage = .oci
 		} else if let remote = remotes.first(where: { start in return options.image.starts(with: start) }) {
 			let aliasImage: Dictionary<String, String>.Keys.Element = options.image.stringAfter(after: remote+":")
@@ -151,8 +139,22 @@ struct VMBuilder {
 		return sourceImage
 	}
 
-	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws {
+	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> ImageSource {
 		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
-		try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
+
+		if sourceImage == .oci {
+			let vmLocation = try StorageLocation(asSystem: runAsSystem).find(vmName)
+
+			do {
+				try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
+			} catch {
+				try? vmLocation.delete()
+				throw error
+			}
+		} else {
+			try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
+		}
+
+		return sourceImage
 	}
 }
