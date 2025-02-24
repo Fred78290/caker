@@ -7,7 +7,8 @@ import NIOPortForwarding
 import Semaphore
 import Shout
 
-let CAKEAGENT_SNAPSHOT = "SNAPSHOT-386ddddb"
+let CAKEAGENT_SNAPSHOT = "386ddddb"
+
 struct StartHandler: CakedCommand {
 	var startMode: StartMode = .background
 	var location: VMLocation
@@ -74,7 +75,7 @@ set -xe
 
 OSDISTRO=$([[ "$(uname -s)" =~ Darwin ]] && echo -n darwin || echo -n linux)
 ARCH=$([[ "$(uname -m)" =~ arm64|aarch64 ]] && echo -n arm64 || echo -n amd64)
-AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
+AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
 
 if [ "${OSDISTRO}" = "darwin" ]; then
 	CERTS="/Library/Application Support/CakeAgent/certs"

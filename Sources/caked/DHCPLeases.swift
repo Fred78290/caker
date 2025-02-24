@@ -1,11 +1,34 @@
 import Foundation
 import SwiftRadix
 
+extension String {
+	init?(macAddress: String) {
+		let components = macAddress.split(separator: ":")
+
+		if components.count == 6 {
+			self = components.map{ String(format: "%02X", UInt8($0, radix: 16)!) }.joined(separator: ":")
+		} else {
+			return nil
+		}
+	}
+}
+
 struct DHCPLease {
 	let ipAddress: String
 	let macAddress: String
 	let hostname: String
 	let expireAt: Date
+
+	init?(ipAddress: String, macAddress: String, hostname: String, expireAt: Date) {
+		if let mac = String(macAddress: macAddress) {
+			self.ipAddress = ipAddress
+			self.macAddress = mac
+			self.hostname = hostname
+			self.expireAt = expireAt
+		} else {
+			return nil
+		}
+	}
 }
 
 protocol DHCPLeaseProvider {
@@ -20,7 +43,11 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 	}
 
 	subscript(macAddress: String) -> String? {
-		return leases[macAddress]?.ipAddress
+		if let mac = String(macAddress: macAddress) {
+			return leases[mac]?.ipAddress
+		} else {
+			return nil
+		}
 	}
 
 	private static func parseLeases(_ filePath: String) throws -> [String:DHCPLease] {
