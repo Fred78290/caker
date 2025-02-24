@@ -115,14 +115,6 @@ print(tempFileURL.absoluteString)
 	}
 
 	private class StartHandlerVMRun {
-		func waitIP(agent: Bool, vmLocation: VMLocation, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-			if agent {
-				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
-			} else {
-				return try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: wait, asSystem: asSystem, startedProcess: startedProcess)
-			}
-		}
-
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
@@ -154,7 +146,7 @@ print(tempFileURL.absoluteString)
 			}
 
 			do {
-				let runningIP = try waitIP(agent: config.agent, vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
+				let runningIP = try vmLocation.waitIP(config: config, wait: 180, asSystem: runAsSystem, startedProcess: process)
 
 				if config.firstLaunch && config.agent == false {
 					config.agent = try StartHandler.installAgent(config: config, runningIP: runningIP)
@@ -268,7 +260,7 @@ print(tempFileURL.absoluteString)
 			}
 
 			do {
-				let runningIP = try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem, startedProcess: process)
+				let runningIP = try vmLocation.waitIPWithLease(wait: 180, asSystem: runAsSystem, startedProcess: process)
 				let config: CakeConfig = try vmLocation.config()
 
 				if config.firstLaunch && config.agent == false {
@@ -411,11 +403,7 @@ print(tempFileURL.absoluteString)
 		}
 
 		if vmLocation.status == .running {
-			if config.useCloudInit {
-				return try WaitIPHandler.waitIPWithAgent(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem)
-			} else {
-				return try WaitIPHandler.waitIPWithLease(vmLocation: vmLocation, wait: 180, asSystem: runAsSystem)
-			}
+			return try vmLocation.waitIP(wait: 180, asSystem: runAsSystem)
 		}
 
 		if Root.vmrunAvailable() {

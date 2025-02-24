@@ -350,11 +350,18 @@ struct VMLocation {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
 	}
 
-	func waitIP(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
-		let config = try vmLocation.config()
+	func waitIP(config: CakeConfig, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		if config.useCloudInit {
+			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+		} else {
+			return try waitIPWithLease(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+		}
+	}
 
-		if vmLocation.status != .running {
+	func waitIP(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		let config = try self.config()
+
+		if self.status != .running {
 			throw ServiceError("VM \(name) is not running")
 		}
 
