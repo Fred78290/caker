@@ -218,7 +218,7 @@
 				"sequoia"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked infos linux",
+			"name": "caked infos sequoia",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

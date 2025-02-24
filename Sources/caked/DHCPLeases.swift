@@ -55,7 +55,9 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 		}
 
 		return leases.reduce(into: [:]) { result, lease in
-			result[lease.macAddress] = lease
+			if result[lease.macAddress] == nil || result[lease.macAddress]!.expireAt < lease.expireAt {
+				result[lease.macAddress] = lease
+			}
 		}
 	}
 

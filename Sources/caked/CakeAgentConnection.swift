@@ -243,4 +243,9 @@ struct CakeAgentConnection {
 		}
 	}
 
+	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
+		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		
+		return CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(timeout), retries: retries)
+	}
 }

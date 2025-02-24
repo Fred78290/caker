@@ -635,14 +635,14 @@ public struct ClientCertificatesLocation: Codable {
 
 public struct ShortInfoReply: Sendable, Codable {
 	public let name: String
-	public let ipaddresses: [String]
+	public let ipaddresses: String
 	public let cpuCount: Int32
-	public let memory: UInt64
+	public let memory: String
 
 	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64) {
 		self.name = name
-		self.ipaddresses = ipaddresses
+		self.ipaddresses = ipaddresses.joined(separator: "\n")
 		self.cpuCount = cpuCount
-		self.memory = memory
+		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
 	}
 }

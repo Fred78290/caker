@@ -252,14 +252,7 @@ struct VMLocation {
 		if force || config.useCloudInit == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
-			let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-			let conn = CakeAgentConnection(eventLoop: Root.group.next(),
-			                               listeningAddress: self.agentURL,
-			                               caCert: certLocation.caCertURL.path(),
-			                               tlsCert: certLocation.serverCertURL.path(),
-			                               tlsKey: certLocation.serverKeyURL.path())
-
-			try conn.execute(request: Caked_ExecuteRequest.with {
+			try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem).execute(request: Caked_ExecuteRequest.with {
 				$0.command = "shutdown -h now"
 			}).log()
 		} else {
@@ -326,10 +319,7 @@ struct VMLocation {
 	}
 
 	func waitIPWithAgent(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let listeningAddress = self.agentURL
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		let conn = CakeAgentConnection(eventLoop: Root.group.any(), listeningAddress: listeningAddress, certLocation: certLocation, timeout: 5, retries: .none)
-
+		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 5, asSystem: asSystem, retries: .none)
 		let start: Date = Date.now
 		var count = 0
 
@@ -351,6 +341,10 @@ struct VMLocation {
 	}
 
 	func waitIP(config: CakeConfig, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		if startedProcess == nil && self.status != .running {
+			throw ServiceError("VM \(name) is not running")
+		}
+
 		if config.useCloudInit {
 			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 		} else {
@@ -359,16 +353,24 @@ struct VMLocation {
 	}
 
 	func waitIP(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let config = try self.config()
+		return try self.waitIP(config: self.config(), wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+	}
 
-		if self.status != .running {
-			throw ServiceError("VM \(name) is not running")
-		}
+	func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
+		if config.agent {
+			let response = try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).infoFuture()
 
-		if config.useCloudInit {
-			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+			return response.flatMapThrowing {
+				return $0?.ipaddresses.first
+			}.flatMapErrorWithEventLoop {
+				$1.submit {
+					nil
+				}
+			}
 		} else {
-			return try waitIPWithLease(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+			return on.submit {
+				try? self.waitIPWithLease(wait: wait, asSystem: asSystem)
+			}
 		}
 	}
 }

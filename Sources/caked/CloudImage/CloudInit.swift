@@ -623,11 +623,12 @@ class CloudInit {
 
 	private func cakeagentBinary(config: CakeConfig) throws -> URL {
 		let arch = Architecture.current().rawValue
+		let os = config.os.rawValue
 		let home: Home = try Home(asSystem: runAsSystem)
-		let localAgent = home.agentDir.appendingPathComponent("cakeagent-linux-\(arch)", isDirectory: false)
+		let localAgent = home.agentDir.appendingPathComponent("cakeagent-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path) == false {
-			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-b69570d8/cakeagent-\(config.os.rawValue)-\(arch)") else {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
 				throw CloudInitGenerateError("unable to get remote cakeagent")
 			}
 

@@ -13,10 +13,6 @@ struct WaitIPHandler: CakedCommand {
 	static func waitIP(name: String, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 
-		if vmLocation.status != .running {
-			throw ServiceError("VM \(name) is not running")
-		}
-
 		return try vmLocation.waitIP(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 	}
 

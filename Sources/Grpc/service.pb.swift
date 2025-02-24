@@ -984,7 +984,7 @@ public struct Caked_InfoReply: Sendable {
   /// Clears the value of `version`. Subsequent reads from it will return its default value.
   public mutating func clearVersion() {self._version = nil}
 
-  public var uptime: Int64 {
+  public var uptime: UInt64 {
     get {return _uptime ?? 0}
     set {_uptime = newValue}
   }
@@ -1070,7 +1070,7 @@ public struct Caked_InfoReply: Sendable {
   public init() {}
 
   fileprivate var _version: String? = nil
-  fileprivate var _uptime: Int64? = nil
+  fileprivate var _uptime: UInt64? = nil
   fileprivate var _memory: Caked_InfoReply.MemoryInfo? = nil
   fileprivate var _hostname: String? = nil
   fileprivate var _release: String? = nil
@@ -2593,7 +2593,7 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._version) }()
-      case 2: try { try decoder.decodeSingularInt64Field(value: &self._uptime) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self._uptime) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._memory) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.cpuCount) }()
       case 5: try { try decoder.decodeRepeatedStringField(value: &self.ipaddresses) }()
@@ -2617,7 +2617,7 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       try visitor.visitSingularStringField(value: v, fieldNumber: 1)
     } }()
     try { if let v = self._uptime {
-      try visitor.visitSingularInt64Field(value: v, fieldNumber: 2)
+      try visitor.visitSingularUInt64Field(value: v, fieldNumber: 2)
     } }()
     try { if let v = self._memory {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)

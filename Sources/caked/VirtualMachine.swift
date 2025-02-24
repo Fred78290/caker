@@ -336,27 +336,6 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		sigusr2.activate()
 	}
 
-	private func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
-		if config.agent {
-			let listeningAddress = vmLocation.agentURL
-			let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-			let conn = CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(wait), retries: .unlimited)
-			let response = try conn.infoFuture()
-
-			return response.flatMapThrowing {
-				return $0?.ipaddresses.first
-			}.flatMapErrorWithEventLoop {
-				$1.submit {
-					nil
-				}
-			}
-		} else {
-			return on.submit {
-				try? self.vmLocation.waitIPWithLease(wait: wait, asSystem: asSystem)
-			}
-		}
-	}
-
 	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
 		let task = Task {
 			var status: Int32 = 0
@@ -381,7 +360,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 
 		let config = self.config
-		let response = try self.waitIP(on: on, config: config, wait: 120, asSystem: asSystem)
+		let response = try self.vmLocation.waitIP(on: on, config: config, wait: 120, asSystem: asSystem)
 
 		response.whenSuccess { runningIP in
 			if let promise = promise {

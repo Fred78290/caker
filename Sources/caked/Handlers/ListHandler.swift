@@ -13,11 +13,13 @@ struct VirtualMachineInfos: Codable {
 	let diskSize: Int
 	let totalSize: Int
 	let state: String
+	let ip: String
 }
 
 struct ShortVirtualMachineInfos: Codable {
 	let type: String
 	let fqn: String
+	let ip: String
 	let diskSize: String
 	let totalSize: String
 	let state: String
@@ -30,14 +32,17 @@ struct ListHandler: CakedCommand {
 
 	static func listVM(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfos] {
 		var vmInfos = try StorageLocation(asSystem: asSystem).list().map { (name: String, location: VMLocation) in
-			VirtualMachineInfos(
+			let ip = try location.config().runningIP ?? ""
+			let status = location.status
+			return VirtualMachineInfos(
 				type: "vm",
 				source: "vms",
 				name: name,
 				fqn: "vm://\(name)",
 				diskSize: try location.diskSize(),
 				totalSize: try location.allocatedSize(),
-				state: location.status.rawValue
+				state: status.rawValue,
+				ip: status == .running ? ip : ""
 			)
 		}
 
@@ -64,7 +69,8 @@ struct ListHandler: CakedCommand {
 							fqn: imageCache.fqn(purgeable),
 							diskSize: try purgeable.allocatedSizeBytes(),
 							totalSize: try purgeable.allocatedSizeBytes(),
-							state: "cached"
+							state: "cached",
+							ip: ""
 						)
 					)
 				}
@@ -83,6 +89,7 @@ struct ListHandler: CakedCommand {
 			return format.renderList(style: Style.grid, uppercased: true, result.map {
 				ShortVirtualMachineInfos(type: $0.type,
 				fqn: $0.fqn,
+				ip: $0.ip,
 				diskSize: ByteCountFormatter.string(fromByteCount: Int64($0.diskSize), countStyle: .file),
 				totalSize: ByteCountFormatter.string(fromByteCount: Int64($0.totalSize), countStyle: .file),
 				state: $0.state)
