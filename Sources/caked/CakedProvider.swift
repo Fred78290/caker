@@ -377,6 +377,6 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func createCakeAgentConnection(vmName: String) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(asSystem: asSystem).find(vmName).agentURL
 
-		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, caCert: self.certLocation.caCertURL.path(), tlsCert: self.certLocation.serverCertURL.path(), tlsKey: self.certLocation.serverKeyURL.path())
+		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation)
 	}
 }

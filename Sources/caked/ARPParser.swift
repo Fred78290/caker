@@ -14,6 +14,10 @@ class ARPParser: DHCPLeaseProvider {
 	}
 
 	subscript(macAddress: String) -> String? {
+		guard let macAddress = String(macAddress: macAddress) else {
+			return nil
+		}
+
 		return arp[macAddress]?.ipAddress
 	}
 
@@ -24,13 +28,14 @@ class ARPParser: DHCPLeaseProvider {
 		for line in lines {
 			let components = line.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ", omittingEmptySubsequences: true)
 
-			if components.count >= 8 {
-				let ipAddress = String(components[1].trimmingCharacters(in: CharacterSet(charactersIn: "()")))
-				let hwAddress = String(components[3])
-				let interface = String(components[5])
-				let entry = ARPEntry(ipAddress: ipAddress, macAddress: hwAddress, interface: interface)
+			if components.count >= 8 {			
+				if let hwAddress = String(macAddress: String(components[3])) {
+					let ipAddress = String(components[1].trimmingCharacters(in: CharacterSet(charactersIn: "()")))
+					let interface = String(components[5])
+					let entry = ARPEntry(ipAddress: ipAddress, macAddress: hwAddress, interface: interface)
 
-				entries.append(entry)
+					entries.append(entry)
+				}
 			}
 		}
 

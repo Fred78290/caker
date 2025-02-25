@@ -31,8 +31,8 @@ struct CertificatesLocation: Codable {
 		self.serverCertURL = URL(fileURLWithPath: "server.pem", relativeTo: certHome).absoluteURL
 	}
 
-	func createCertificats() throws -> CertificatesLocation {
-		if FileManager.default.fileExists(atPath: self.serverKeyURL.path()) == false {
+	func createCertificats(_ force: Bool = false) throws -> CertificatesLocation {
+		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path()) == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
 			try RSAKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
 																	caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
@@ -47,10 +47,10 @@ struct CertificatesLocation: Codable {
 		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
 	}
 
-	static func createCertificats(asSystem: Bool) throws -> CertificatesLocation {
+	static func createCertificats(asSystem: Bool, force: Bool = false) throws -> CertificatesLocation {
 		let certs: CertificatesLocation = try getCertificats(asSystem: asSystem)
 
-		return try certs.createCertificats()
+		return try certs.createCertificats(force)
 	}
 }
 

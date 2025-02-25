@@ -17,6 +17,12 @@ struct CakeAgentConnection {
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
 
+	init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
+		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+	
+		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
+	}
+
 	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
 		self.caCert = caCert
 		self.tlsCert = tlsCert
@@ -191,7 +197,7 @@ struct CakeAgentConnection {
 
 		do {
 
-			let streamShell = client.shell(callOptions: .init(), handler: { response in
+			let streamShell = client.shell(callOptions: .init(timeLimit: .none), handler: { response in
 				continuation.yield(Caked_ShellResponse.with { reply in
 					reply.format = .init(rawValue: response.format.rawValue) ?? .end
 					reply.datas = response.datas
@@ -243,9 +249,7 @@ struct CakeAgentConnection {
 		}
 	}
 
-	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		
-		return CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, certLocation: certLocation, timeout: Int64(timeout), retries: retries)
+	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {	
+		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries)
 	}
 }

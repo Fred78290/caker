@@ -57,6 +57,7 @@ struct Sh: GrpcParsableCommand {
 			FileHandle.standardInput.restoreState(&term)
 		}
 
+		callOptions.timeLimit = .none
 		callOptions.customMetadata.add(name: "CAKEAGENT_VMNAME", value: name)
 
 		shellStream = client.shell(callOptions: callOptions, handler: { response in

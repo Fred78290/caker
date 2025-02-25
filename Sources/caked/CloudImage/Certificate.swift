@@ -140,14 +140,16 @@ public struct RSAKeyGenerator {
 												clientKeyURL: URL, clientCertURL: URL) throws {
 		let notValidBefore = Date()
 		let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
-		let rootPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
+		let rootPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
 		let rootCertKey: Certificate.PrivateKey = Certificate.PrivateKey(rootPrivateKey)
 		let rootCertName = try! DistinguishedName {
+			CountryName("FR")
+			OrganizationName("AlduneLabs")
 			CommonName("Caked Root CA")
 		}
 		let rootCert = try! Certificate(
 			version: .v3,
-			serialNumber: .init(),
+			serialNumber: Certificate.SerialNumber(),
 			publicKey: rootCertKey.publicKey,
 			notValidBefore: notValidBefore,
 			notValidAfter: notValidAfter,
@@ -158,6 +160,12 @@ public struct RSAKeyGenerator {
 				Critical(
 					BasicConstraints.isCertificateAuthority(maxPathLength: nil)
 				)
+				Critical(
+					KeyUsage(digitalSignature: true, keyEncipherment: true, dataEncipherment: true, keyCertSign: true)
+				)
+				Critical(
+					try ExtendedKeyUsage([.any])
+				)
 			},
 			issuerPrivateKey: rootCertKey
 		)
@@ -167,7 +175,7 @@ public struct RSAKeyGenerator {
 			OrganizationName("AlduneLabs");
 		}
 
-		let serverPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
+		let serverPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
 		let serverCertKey = Certificate.PrivateKey(serverPrivateKey)
 		let serverCertificate = try Certificate(
 			version: .v3,
@@ -189,13 +197,14 @@ public struct RSAKeyGenerator {
 					try ExtendedKeyUsage([.serverAuth, .clientAuth])
 				)
 				SubjectAlternativeNames([
+					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1])),
 					.dnsName("localhost"),
 					.dnsName("*")
 				])
 			},
 			issuerPrivateKey: rootCertKey)
 
-		let clientPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits2048)
+		let clientPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
 		let clientCertKey = Certificate.PrivateKey(clientPrivateKey)
 		let clientCertificate = try Certificate(
 			version: .v3,

@@ -373,4 +373,125 @@ struct VMLocation {
 			}
 		}
 	}
+
+	internal func createSSH(host: String, timeout: UInt) throws -> SSH {
+		let start: Date = Date.now
+
+		repeat {
+			do {
+				return try SSH(host: host, timeout: timeout * 1000)
+			} catch {
+				if Date.now.timeIntervalSince(start) > TimeInterval(timeout) {
+					throw error
+				}
+
+				Thread.sleep(forTimeInterval: 1)
+			}
+		} while true
+	}
+
+	func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
+		Logger.info("Installing agent on \(self.name)")
+
+		let home: Home = try Home(asSystem: runAsSystem)
+		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)
+		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
+		let serverKey: String = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
+		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
+		let sharedPublicKey = try home.getSharedPublicKey()
+		let ssh = try createSSH(host: runningIP, timeout: 120)
+		let tempFileURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("install-agent.sh")
+		let install_agent = """
+#!/bin/sh
+set -xe
+
+case $(uname -m) in
+	x86_64)
+		ARCH=amd64
+		;;
+	aarch64|arm64)
+		ARCH=arm64
+		;;
+esac
+
+case $(uname -s) in
+	Darwin)
+		OSDISTRO=darwin
+		;;
+	*)
+		OSDISTRO=linux
+		;;
+esac
+
+AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
+
+if [ "${OSDISTRO}" = "darwin" ]; then
+	CERTS="/Library/Application Support/CakeAgent/certs"
+	SSHDIR="/Users/\(config.configuredUser)/.ssh"
+else
+	CERTS="/etc/cakeagent/ssl"
+	SSHDIR="/home/\(config.configuredUser)/.ssh"
+fi
+
+mkdir -p "${CERTS}"
+
+CA="${CERTS}/ca.pem"
+SERVER="${CERTS}/server.pem"
+KEY="${CERTS}/server.key"
+
+mkdir -p /usr/local/bin ${SSHDIR}
+
+curl -L $AGENT_URL -o /usr/local/bin/cakeagent
+
+echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
+
+cat <<EOF | base64 -d > "${CA}"
+\(caCert)
+EOF
+
+cat <<EOF | base64 -d > "${SERVER}"
+\(serverPem)
+EOF
+
+cat <<EOF | base64 -d > "${KEY}"
+\(serverKey)
+EOF
+
+chmod -R 600 "${CERTS}"
+
+if [ "${OSDISTRO}" = "darwin" ]; then
+	chown root:wheel /usr/local/bin/cakeagent
+	chown -R root:wheel "${CERTS}"
+else
+	chown root:adm /usr/local/bin/cakeagent
+	chown -R root:adm "${CERTS}"
+fi
+
+chmod 755 /usr/local/bin/cakeagent
+
+/usr/local/bin/cakeagent --install \\
+	--listen="vsock://any:5000" \\
+	--ca-cert="${CA}" \\
+	--tls-cert="${SERVER}" \\
+	--tls-key="${KEY}"
+
+"""
+		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
+		
+		try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+
+		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
+
+		let result = try ssh.capture("sudo sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'")
+		
+		if result.status == 0 {
+			Logger.info("Agent installed on \(self.name), exit code: \(result.status)")
+		} else {
+			Logger.error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
+		}
+
+		return result.status == 0
+	}
+
+
 }

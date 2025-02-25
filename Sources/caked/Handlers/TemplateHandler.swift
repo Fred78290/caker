@@ -63,12 +63,7 @@ struct TemplateHandler: CakedCommand {
 
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
 		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
-		let conn = CakeAgentConnection(eventLoop: Root.group.next(),
-		                               listeningAddress: location.agentURL,
-		                               caCert: certLocation.caCertURL.path(),
-		                               tlsCert: certLocation.serverCertURL.path(),
-		                               tlsKey: certLocation.serverKeyURL.path())
+		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL)
 
 		Logger.info("Clean cloud-init on \(runningIP)")
 

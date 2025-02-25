@@ -44,97 +44,6 @@ struct StartHandler: CakedCommand {
 		self.startMode = startMode
 	}
 
-	internal static func createSSH(host: String, timeout: UInt) throws -> SSH {
-		let start: Date = Date.now
-
-		repeat {
-			do {
-				return try SSH(host: host, timeout: timeout * 1000)
-			} catch {
-				if Date.now.timeIntervalSince(start) > TimeInterval(timeout) {
-					throw error
-				}
-
-				Thread.sleep(forTimeInterval: 1)
-			}
-		} while true
-	}
-
-	internal static func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
-		let home: Home = try Home(asSystem: runAsSystem)
-		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)
-		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
-		let serverKey = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
-		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
-		let sharedPublicKey = try home.getSharedPublicKey()
-		let ssh = try createSSH(host: runningIP, timeout: 120)
-		let tempFileURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("install-agent.sh")
-		let install_agent = """
-#!/bin/bash
-set -xe
-
-OSDISTRO=$([[ "$(uname -s)" =~ Darwin ]] && echo -n darwin || echo -n linux)
-ARCH=$([[ "$(uname -m)" =~ arm64|aarch64 ]] && echo -n arm64 || echo -n amd64)
-AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
-
-if [ "${OSDISTRO}" = "darwin" ]; then
-	CERTS="/Library/Application Support/CakeAgent/certs"
-else
-	CERTS="/etc/cakeagent/ssl"
-fi
-
-mkdir -p "${CERTS}"
-
-CA="${CERTS}/ca.pem"
-SERVER="${CERTS}/server.pem"
-KEY="${CERTS}/server.key"
-
-mkdir -p /usr/local/bin /Users/\(config.configuredUser)/.ssh
-
-curl -L $AGENT_URL -o /usr/local/bin/cakeagent
-
-echo "\(sharedPublicKey)" > /Users/\(config.configuredUser)/.ssh/authorized_keys
-
-cat <<EOF | base64 -d > "${CA}"
-\(caCert)
-EOF
-
-cat <<EOF | base64 -d > "${SERVER}"
-\(serverPem)
-EOF
-
-cat <<EOF | base64 -d > "${KEY}"
-\(serverKey)
-EOF
-
-chmod -R 600 "${CERTS}"
-
-if [ "${OSDISTRO}" = "darwin" ]; then
-	chown root:wheel /usr/local/bin/cakeagent
-	chown -R root:wheel "${CERTS}"
-else
-	chown root:adm /usr/local/bin/cakeagent
-	chown -R root:adm "${CERTS}"
-fi
-
-chmod 755 /usr/local/bin/cakeagent
-
-/usr/local/bin/cakeagent --install \\
-	--listen="vsock://any:5000" \\
-	--ca-cert="${CA}" \\
-	--tls-cert="${SERVER}" \\
-	--tls-key="${KEY}"
-
-"""
-		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
-		
-		try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-
-		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
-
-		return try ssh.execute("sudo sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'") == 0
-	}
-
 	private class StartHandlerVMRun {
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
@@ -172,7 +81,7 @@ chmod 755 /usr/local/bin/cakeagent
 				let runningIP = try vmLocation.waitIP(config: config, wait: 180, asSystem: runAsSystem, startedProcess: process)
 
 				if config.firstLaunch && config.agent == false {
-					config.agent = try StartHandler.installAgent(config: config, runningIP: runningIP)
+					config.agent = try vmLocation.installAgent(config: config, runningIP: runningIP)
 				}
 
 				config.runningIP = runningIP
@@ -287,7 +196,7 @@ chmod 755 /usr/local/bin/cakeagent
 				let config: CakeConfig = try vmLocation.config()
 
 				if config.firstLaunch && config.agent == false {
-					config.agent = try StartHandler.installAgent(config: config, runningIP: runningIP)
+					config.agent = try vmLocation.installAgent(config: config, runningIP: runningIP)
 				}
 
 				config.runningIP = runningIP
