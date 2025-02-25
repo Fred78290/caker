@@ -7,8 +7,6 @@ import NIOPortForwarding
 import Semaphore
 import Shout
 
-let CAKEAGENT_SNAPSHOT = "386ddddb"
-
 struct StartHandler: CakedCommand {
 	var startMode: StartMode = .background
 	var location: VMLocation

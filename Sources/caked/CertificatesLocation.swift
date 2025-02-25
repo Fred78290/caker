@@ -31,10 +31,10 @@ struct CertificatesLocation: Codable {
 		self.serverCertURL = URL(fileURLWithPath: "server.pem", relativeTo: certHome).absoluteURL
 	}
 
-	func createCertificats(_ force: Bool = false) throws -> CertificatesLocation {
+	func createCertificats(subject: String, numberOfYears: Int = 10, _ force: Bool = false) throws -> CertificatesLocation {
 		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path()) == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
-			try RSAKeyGenerator.generateClientServerCertificate(subject: "Caker", numberOfYears: 1,
+			try RSAKeyGenerator.generateClientServerCertificate(subject: subject, numberOfYears: numberOfYears,
 																	caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
 																	serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
 																	clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
@@ -50,7 +50,13 @@ struct CertificatesLocation: Codable {
 	static func createCertificats(asSystem: Bool, force: Bool = false) throws -> CertificatesLocation {
 		let certs: CertificatesLocation = try getCertificats(asSystem: asSystem)
 
-		return try certs.createCertificats(force)
+		return try certs.createCertificats(subject: "Caker", force)
+	}
+
+	static func createAgentCertificats(asSystem: Bool, force: Bool = false) throws -> CertificatesLocation {
+		let certs: CertificatesLocation = CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
+
+		return try certs.createCertificats(subject: "CakeAgent", force)
 	}
 }
 

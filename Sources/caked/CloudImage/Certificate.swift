@@ -145,7 +145,7 @@ public struct RSAKeyGenerator {
 		let rootCertName = try! DistinguishedName {
 			CountryName("FR")
 			OrganizationName("AlduneLabs")
-			CommonName("Caked Root CA")
+			CommonName("\(subject) Root CA")
 		}
 		let rootCert = try! Certificate(
 			version: .v3,
@@ -160,18 +160,12 @@ public struct RSAKeyGenerator {
 				Critical(
 					BasicConstraints.isCertificateAuthority(maxPathLength: nil)
 				)
-				Critical(
-					KeyUsage(digitalSignature: true, keyEncipherment: true, dataEncipherment: true, keyCertSign: true)
-				)
-				Critical(
-					try ExtendedKeyUsage([.any])
-				)
 			},
 			issuerPrivateKey: rootCertKey
 		)
 
 		let subjectName = try DistinguishedName {
-			CommonName(subject);
+			CommonName("\(subject) server");
 			OrganizationName("AlduneLabs");
 		}
 
@@ -194,7 +188,7 @@ public struct RSAKeyGenerator {
 					KeyUsage(digitalSignature: true, keyEncipherment: true, dataEncipherment: true, keyCertSign: true)
 				)
 				Critical(
-					try ExtendedKeyUsage([.serverAuth, .clientAuth])
+					try ExtendedKeyUsage([.serverAuth])
 				)
 				SubjectAlternativeNames([
 					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1])),
@@ -212,16 +206,13 @@ public struct RSAKeyGenerator {
 			publicKey: clientCertKey.publicKey,
 			notValidBefore: notValidBefore,
 			notValidAfter: notValidAfter,
-			issuer: subjectName,
+			issuer: rootCertName,
 			subject: try DistinguishedName {
-				CommonName("Caked client");
+				CommonName("\(subject) client");
 				OrganizationName("AlduneLabs");
 			},
 			signatureAlgorithm: .sha512WithRSAEncryption,
 			extensions: try Certificate.Extensions {
-				Critical(
-					BasicConstraints.isCertificateAuthority(maxPathLength: nil)
-				)
 				Critical(
 					KeyUsage(digitalSignature: true, keyEncipherment: true)
 				)
@@ -230,11 +221,10 @@ public struct RSAKeyGenerator {
 				)
 				SubjectAlternativeNames([
 					.dnsName("localhost"),
-					.dnsName("*"),
 					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1]))
 				])
 			},
-			issuerPrivateKey: serverCertKey)
+			issuerPrivateKey: rootCertKey)
 
 		// Save CA key & cert
 		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path(),

@@ -17,7 +17,7 @@ protocol CakedCommandAsync: CakedCommand {
 
 extension CakedCommand {
 	func createCakeAgentClient(on: EventLoopGroup, asSystem: Bool, name: String) throws -> CakeAgentClient {
-		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
 
 		return try CakeAgentHelper.createClient(on: on,
@@ -227,7 +227,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	init(group: EventLoopGroup, asSystem: Bool) throws {
 		self.asSystem = asSystem
 		self.group = group
-		self.certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem))).createCertificats()
+		self.certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 	}
 
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {

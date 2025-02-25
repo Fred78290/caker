@@ -18,7 +18,7 @@ struct CakeAgentConnection {
 	let retries: ConnectionBackoff.Retries
 
 	init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
-		let certLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 	
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
@@ -37,8 +37,8 @@ struct CakeAgentConnection {
 		self.init(eventLoop: eventLoop,
 		          listeningAddress: listeningAddress,
 		          caCert: certLocation.caCertURL.path(),
-		          tlsCert: certLocation.serverCertURL.path(),
-		          tlsKey: certLocation.serverKeyURL.path(),
+		          tlsCert: certLocation.clientCertURL.path(),
+		          tlsKey: certLocation.clientKeyURL.path(),
 		          timeout: timeout,
 		          retries: retries)
 	}

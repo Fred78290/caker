@@ -5,6 +5,8 @@ import Yams
 import GRPCLib
 import Gzip
 
+let CAKEAGENT_SNAPSHOT = "277726e5"
+
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
 let instal_cakeagent = """
@@ -640,7 +642,7 @@ class CloudInit {
 	}
 
 	private func buildVendorData(config: CakeConfig) throws -> CloudConfigData {
-		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)

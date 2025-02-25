@@ -28,7 +28,7 @@ extension CertificatesLocation {
 
 struct Certificates: ParsableCommand {
 	static var configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
-													subcommands: [Generate.self, Get.self])
+													subcommands: [Generate.self, Get.self, Agent.self])
 
 	struct Get: ParsableCommand {
 		static var configuration = CommandConfiguration(abstract: "Return certificates path")
@@ -69,6 +69,34 @@ struct Certificates: ParsableCommand {
 		func run() throws {
 			let format: Format = .text
 			let certs = try CertificatesLocation.createCertificats(asSystem: asSystem, force: self.force)
+
+			if format == .json {
+				print(format.renderSingle(style: Style.grid, uppercased: true, certs))
+			} else {
+				print(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
+			}
+		}
+	}
+
+	struct Agent: ParsableCommand {
+		static var configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
+
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
+		var asSystem: Bool = false
+
+		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
+		var force: Bool = false
+
+		func validate() throws {
+			Logger.setLevel(self.logLevel)
+		}
+
+		func run() throws {
+			let format: Format = .text
+			let certs = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem, force: self.force)
 
 			if format == .json {
 				print(format.renderSingle(style: Style.grid, uppercased: true, certs))

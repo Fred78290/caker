@@ -30,7 +30,7 @@ extension CakeAgentAsyncParsableCommand {
 	mutating func validateOptions() throws {
 		Logger.setLevel(self.logLevel)
 
-		let certificates: CertificatesLocation = try CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: runAsSystem))).createCertificats()
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 		let listeningAddress: URL
 
 		if name.contains("/") {
