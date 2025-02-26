@@ -25,7 +25,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@Flag(help: .hidden)
 	var foreground: Bool = false
 
-	@Option(help:"Maximum of seconds to getting IP")
+	@Option(help:"Maximum of seconds to getting infos")
 	var waitIPTimeout = 180
 
     var createVM: Bool = false
