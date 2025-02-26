@@ -162,6 +162,18 @@
 			"request": "launch",
 			"args": [
 				"delete",
+				"ubuntu://noble"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked delete stream ubuntu://noble",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"delete",
 				"sequoia"
 			],
 			"cwd": "${workspaceFolder:caker}",

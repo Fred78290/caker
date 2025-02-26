@@ -49,8 +49,6 @@ struct StartHandler: CakedCommand {
 			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path()]
 			var sharedFileDescriptors: [Int32] = []
 
-				arguments.append("--display")
-
 			if startMode == .background {
 				arguments.append(contentsOf: ["2>&1", ">", log])
 			} else if startMode == .foreground{

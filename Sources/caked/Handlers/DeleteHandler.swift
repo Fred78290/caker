@@ -42,11 +42,19 @@ struct DeleteHandler: CakedCommand {
 		return try names.compactMap { name in
 			guard let result = tryDeleteLocal(name: name) else {
 				if let u = URL(string: name) {
-					let purgeableStorages: [String: CommonCacheImageCache] = [
-							CloudImageCache.scheme: try CloudImageCache(),
-							RawImageCache.scheme: try RawImageCache(),
-							SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache()
-						]
+					var purgeableStorages: [String: CommonCacheImageCache] = [
+						CloudImageCache.scheme: try CloudImageCache(),
+						RawImageCache.scheme: try RawImageCache(),
+						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache()
+					]
+
+					if true {
+						let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
+	
+						try remoteDb.keys.forEach {
+							purgeableStorages[$0] = try SimpleStreamsImageCache()
+						}
+					}
 
 					if let scheme = u.scheme, let cache = purgeableStorages[scheme] {
 						let purgeables = try cache.purgeables()
@@ -67,7 +75,7 @@ struct DeleteHandler: CakedCommand {
 			return result
 		}
 	}
-	
+
 	func run(on: EventLoop, asSystem: Bool) throws -> String {
 		let format: Format = request.format == .text ? Format.text : Format.json
 
