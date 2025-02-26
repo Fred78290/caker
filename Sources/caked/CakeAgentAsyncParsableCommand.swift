@@ -49,11 +49,11 @@ extension CakeAgentAsyncParsableCommand {
 			}
 
 			if self.options.tlsCert == nil {
-				self.options.tlsCert = certificates.serverCertURL.path()
+				self.options.tlsCert = certificates.clientCertURL.path()
 			}
 
 			if self.options.tlsKey == nil {
-				self.options.tlsKey = certificates.serverKeyURL.path()
+				self.options.tlsKey = certificates.clientKeyURL.path()
 			}
 		}
 

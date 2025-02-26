@@ -5,10 +5,17 @@ protocol Purgeable {
 	var url: URL { get }
 	func source() -> String
 	func name() -> String
+	func fingerprint() -> String?
 	func delete() throws
 	func accessDate() throws -> Date
 	func sizeBytes() throws -> Int
 	func allocatedSizeBytes() throws -> Int
+}
+
+extension Purgeable {
+	func fingerprint() -> String? {
+		nil
+	}
 }
 
 protocol PurgeableStorage {
@@ -323,6 +330,10 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		}
 
 		func name() -> String {
+			self._fingerprint
+		}
+
+		func fingerprint() -> String? {
 			self._fingerprint
 		}
 

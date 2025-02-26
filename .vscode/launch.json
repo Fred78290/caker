@@ -23,7 +23,28 @@
 				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked build linux",
+			"name": "caked build linux cloud-image",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"build",
+				"--name=linux",
+				"--cpu=2",
+				"--memory=2048",
+				"--disk-size=20",
+				"--network=en0",
+				"--mount=~",
+				"--nested",
+				"--ssh-authorized-key=${env:HOME}/.ssh/id_rsa.pub",
+				"--user-data=/tmp/user-data.yaml",
+				"images:ubuntu/noble/cloud"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked build linux lxd",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

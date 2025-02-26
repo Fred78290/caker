@@ -13,7 +13,8 @@ struct VirtualMachineInfos: Codable {
 	let diskSize: Int
 	let totalSize: Int
 	let state: String
-	let ip: String
+	let ip: String?
+	let fingerprint: String?
 }
 
 struct ShortVirtualMachineInfos: Codable {
@@ -23,8 +24,18 @@ struct ShortVirtualMachineInfos: Codable {
 	let diskSize: String
 	let totalSize: String
 	let state: String
-}
+	let fingerprint: String
 
+	init(from: VirtualMachineInfos) {
+		self.type = from.type
+		self.fqn = from.fqn.joined(separator: " ")
+		self.ip = from.ip ?? ""
+		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
+		self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
+		self.state = from.state
+		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : ""
+	}
+}
 
 struct ListHandler: CakedCommand {
 	let format: Format
@@ -32,7 +43,6 @@ struct ListHandler: CakedCommand {
 
 	static func listVM(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfos] {
 		var vmInfos = try StorageLocation(asSystem: asSystem).list().map { (name: String, location: VMLocation) in
-			let ip = try location.config().runningIP ?? ""
 			let status = location.status
 			return VirtualMachineInfos(
 				type: "vm",
@@ -42,7 +52,8 @@ struct ListHandler: CakedCommand {
 				diskSize: try location.diskSize(),
 				totalSize: try location.allocatedSize(),
 				state: status.rawValue,
-				ip: status == .running ? ip : ""
+				ip: status == .running ? try location.config().runningIP : nil,
+				fingerprint: nil
 			)
 		}
 
@@ -70,7 +81,8 @@ struct ListHandler: CakedCommand {
 							diskSize: try purgeable.allocatedSizeBytes(),
 							totalSize: try purgeable.allocatedSizeBytes(),
 							state: "cached",
-							ip: ""
+							ip: nil,
+							fingerprint: purgeable.fingerprint()
 						)
 					)
 				}
@@ -86,13 +98,24 @@ struct ListHandler: CakedCommand {
 		if format == .json {
 			return format.renderList(style: Style.grid, uppercased: true, result)
 		} else {
-			return format.renderList(style: Style.grid, uppercased: true, result.map {
-				ShortVirtualMachineInfos(type: $0.type,
-				fqn: $0.fqn.joined(separator: " "),
-				ip: $0.ip,
-				diskSize: ByteCountFormatter.string(fromByteCount: Int64($0.diskSize), countStyle: .file),
-				totalSize: ByteCountFormatter.string(fromByteCount: Int64($0.totalSize), countStyle: .file),
-				state: $0.state)
+			return format.renderList(style: Style.grid, uppercased: true, result.reduce(into: [ShortVirtualMachineInfos]()) { result, vm in
+				if vm.fqn.count > 1 {
+					vm.fqn.forEach { fqn in
+						result.append(ShortVirtualMachineInfos(from: VirtualMachineInfos(
+							type: vm.type,
+							source: vm.source,
+							name: vm.name,
+							fqn: [fqn],
+							diskSize: vm.diskSize,
+							totalSize: vm.totalSize,
+							state: vm.state,
+							ip: vm.ip,
+							fingerprint: vm.fingerprint
+						)))
+					}
+				} else {
+					result.append(ShortVirtualMachineInfos(from: vm))
+				}
 			})
 		}
 	}

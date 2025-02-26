@@ -11,8 +11,8 @@ class RemoteDatabase {
 	var remote: Dictionary<String,String> = defaultRemotes
 	let url: URL
 	let lock: FileLock
-	var keys: Dictionary<String, String>.Keys {
-		return self.remote.keys
+	var keys: [String] {
+		return self.remote.keys.compactMap { $0 }
 	}
 
 	init(_ url: URL) throws {

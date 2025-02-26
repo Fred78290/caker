@@ -20,7 +20,8 @@ SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration
 DISK_SIZE=20
 CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 LXD_IMAGE=images:ubuntu/noble/cloud
-LXD_IMAGE=ubuntu:noble
+#LXD_IMAGE=ubuntu:noble
+LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 #CMD="cakectl --insecure "
@@ -81,6 +82,15 @@ write_files:
   permissions: '0644'
 runcmd:
 - hostnamectl set-hostname openstack-dev-k3s-worker-02
+users:
+- name: local
+  plain_text_passwd: admin
+  lock_passwd: false
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  groups: users, admin
+  shell: /bin/bash
+  ssh_authorized_keys:
+  - ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhniyEBZs0t7aQZhn8gWfYrFacYJKQQx9x6pckZvMJIceLsQPB/J9CbqARtcCKZkK47yDzlH/zZNwt/AJvOawKZp6LDIWMOMF6TGicVhA+0RD3dOuqKRT0uJmaSo3Cz0GAaanTJXkhsEDZzaPkyLWXYaf6LxGAuMKCxv69j4H9ffGhRxNZ+62bs7DY+SH12hlcObZaz9GRydvEI/PUDghKJ4h1QKgvCKM1Mre1vQ2DHOuSifQC0Qbh0zK/JiJpHyBgFWRvKz72e2ya6+RW0ZuDGa6Qc3Zt8FIfH6eoiX+WOG7BUsXRN3n5gcWSXyYA9kxzBlNdMyYtD0fRlyb3+HgL
 EOF
 
 if [ ${DESKTOP} != NO ]; then

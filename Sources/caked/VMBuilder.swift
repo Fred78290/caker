@@ -81,7 +81,11 @@ struct VMBuilder {
 			throw ServiceError("unsupported url: \(options.image)")
 		}
 
-		if imageURL.isFileURL || imageURL.scheme == "img" {
+		guard let scheme = imageURL.scheme else {
+			throw ServiceError("unsupported image url: \(options.image)")
+		}
+
+		if imageURL.isFileURL || scheme == "img" {
 			imageURL.resolveSymlinksInPath()
 
 			let temporaryDiskURL: URL = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
@@ -91,17 +95,17 @@ struct VMBuilder {
 			try? FileManager.default.removeItem(at: temporaryDiskURL)
 
 			sourceImage = .raw
-		} else if imageURL.scheme == "template" {
+		} else if scheme == "template" {
 			let templateName = imageURL.host()!
 			let templateLocation = try StorageLocation(asSystem: runAsSystem, template: true).find(templateName)
 
 			try FileManager.default.copyItem(at: templateLocation.diskURL, to: vmLocation.diskURL)
 			sourceImage = .template
-		} else if imageURL.scheme == "qcow2" {
+		} else if scheme == "qcow2" {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
-		} else if imageURL.scheme == "http" || imageURL.scheme == "https" {
+		} else if scheme == "http" || scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL)
-		} else if imageURL.scheme == "oci" || imageURL.scheme == "ocis" {
+		} else if scheme == "oci" || scheme == "ocis" {
 			if Root.tartIsPresent == false {
 				throw ServiceError("tart is not installed")
 			}
@@ -109,7 +113,7 @@ struct VMBuilder {
 			let ociImage = options.image.stringAfter(after: "//")
 			let arguments: [String]
 
-			if imageURL.scheme == "oci" {
+			if scheme == "oci" {
 				arguments = [ociImage, vmName, "--insecure"]
 			} else {
 				arguments = [ociImage, vmName]
@@ -118,16 +122,13 @@ struct VMBuilder {
 			try Shell.runTart(command: "clone", arguments: arguments)
 
 			sourceImage = .oci
-		} else if let remote = remotes.first(where: { start in return options.image.starts(with: start) }) {
-			let aliasImage: Dictionary<String, String>.Keys.Element = options.image.stringAfter(after: remote+":")
-			let remoteContainerServer = remoteDb.get(remote)!
-
+		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), maxSplits: 1, omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
 			}
 
 			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
-			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: aliasImage)
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage))
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL)
 
