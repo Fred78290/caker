@@ -51,7 +51,7 @@ struct DeleteHandler: CakedCommand {
 					if let scheme = u.scheme, let cache = purgeableStorages[scheme] {
 						let purgeables = try cache.purgeables()
 
-						if let purgeable = purgeables.first(where: { cache.fqn($0) == u.absoluteString }) {
+						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
 							return DeleteReply(source: cache.location, name: purgeable.name(), deleted: true)
 						}

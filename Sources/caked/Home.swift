@@ -44,6 +44,15 @@ class RemoteDatabase {
 		return self.remote[key]
 	}
 
+	func reverseLookup(_ value: String) -> String? {
+		return self.remote.first { (key: String, val: String) in
+			if let u = URL(string: val) {
+				return u.host() == value
+			}
+			return false
+		}?.key
+	}
+
 	@inlinable public func map<T>(_ transform: ((key: String, value: String)) throws -> T) throws -> [T] {
 		return try self.remote.map(transform)
 	}

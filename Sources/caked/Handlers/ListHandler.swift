@@ -9,7 +9,7 @@ struct VirtualMachineInfos: Codable {
 	let type: String
 	let source: String
 	let name: String
-	let fqn: String
+	let fqn: [String]
 	let diskSize: Int
 	let totalSize: Int
 	let state: String
@@ -38,7 +38,7 @@ struct ListHandler: CakedCommand {
 				type: "vm",
 				source: "vms",
 				name: name,
-				fqn: "vm://\(name)",
+				fqn: ["vm://\(name)"],
 				diskSize: try location.diskSize(),
 				totalSize: try location.allocatedSize(),
 				state: status.rawValue,
@@ -47,7 +47,7 @@ struct ListHandler: CakedCommand {
 		}
 
 		vmInfos.sort { vm1, vm2 in
-			vm1.fqn < vm2.fqn
+			vm1.fqn.joined(separator: ",") < vm2.fqn.joined(separator: ",")
 		}
 
 		if vmonly == false {
@@ -63,7 +63,7 @@ struct ListHandler: CakedCommand {
 				try purgeables.forEach { purgeable in
 					vmInfos.append(
 						VirtualMachineInfos(
-							type: imageCache.location,
+							type: imageCache.type(),
 							source: purgeable.source(),
 							name: purgeable.name(),
 							fqn: imageCache.fqn(purgeable),
@@ -88,7 +88,7 @@ struct ListHandler: CakedCommand {
 		} else {
 			return format.renderList(style: Style.grid, uppercased: true, result.map {
 				ShortVirtualMachineInfos(type: $0.type,
-				fqn: $0.fqn,
+				fqn: $0.fqn.joined(separator: " "),
 				ip: $0.ip,
 				diskSize: ByteCountFormatter.string(fromByteCount: Int64($0.diskSize), countStyle: .file),
 				totalSize: ByteCountFormatter.string(fromByteCount: Int64($0.totalSize), countStyle: .file),

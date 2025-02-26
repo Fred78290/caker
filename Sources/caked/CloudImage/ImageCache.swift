@@ -2,17 +2,17 @@ import Foundation
 import Virtualization
 
 protocol Purgeable {
-  var url: URL { get }
-  func source() -> String
-  func name() -> String
-  func delete() throws
-  func accessDate() throws -> Date
-  func sizeBytes() throws -> Int
-  func allocatedSizeBytes() throws -> Int
+	var url: URL { get }
+	func source() -> String
+	func name() -> String
+	func delete() throws
+	func accessDate() throws -> Date
+	func sizeBytes() throws -> Int
+	func allocatedSizeBytes() throws -> Int
 }
 
 protocol PurgeableStorage {
-  func purgeables() throws -> [Purgeable]
+	func purgeables() throws -> [Purgeable]
 }
 
 class CacheError : Error {
@@ -86,8 +86,12 @@ class CommonCacheImageCache: PurgeableStorage {
 		return purgeableItems
 	}
 
-	func fqn(_ purgeable: Purgeable) -> String {
-		"\(self.scheme)://\(purgeable.source())/\(purgeable.name())"
+	func fqn(_ purgeable: Purgeable) -> [String] {
+		["\(self.scheme)://\(purgeable.source())/\(purgeable.name())"]
+	}
+
+	func type() -> String {
+		self.location
 	}
 }
 
@@ -156,6 +160,18 @@ struct SimpleStreamCache: Codable {
 		}
 
 		return SimpleStreamCache()
+	}
+
+	func reduce<Result>(_ initialResult: Result, _ nextPartialResult: (Result, (key: String, value: CacheEntry)) throws -> Result) rethrows -> Result {
+		return try self.cache.reduce(initialResult) { (result: Result, element: (key: String, value: CacheEntry)) in
+			try nextPartialResult(result, element)
+		}
+	}
+
+	func reduce<Result>(into initialResult: Result, _ updateAccumulatingResult: (inout Result, String) throws -> ()) rethrows -> Result {
+		return try self.cache.reduce(into: initialResult) { (result: inout Result, element: (key: String, value: CacheEntry)) in
+			try updateAccumulatingResult(&result, element.key)
+		}
 	}
 
 	func compactMap<ElementOfResult>(_ transform: ((key: String, value: CacheEntry)) throws -> ElementOfResult?) rethrows -> [ElementOfResult] {
@@ -237,6 +253,18 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 		}
 	}
 
+	override func type() -> String {
+		"stream"
+	}
+
+	override func fqn(_ purgeable: Purgeable) -> [String] {
+		guard let purgeable = purgeable as? SimpleStreamsImageCachePurgeable else {
+			return super.fqn(purgeable)
+		}
+
+		return purgeable.fqn()
+	}
+
 	func findCache(fingerprintOrAlias: String) -> CacheEntry? {
 		return self.cache?.findCache(fingerprintOrAlias: fingerprintOrAlias)
 	}
@@ -271,70 +299,85 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 
 	private class SimpleStreamsImageCachePurgeable: Purgeable {
 		let _url: URL
-		let _name: String
+		let _remote: String
+		let _fingerprint: String
+		let _aliases: [String]?
 		let _source: String
 		let _cache: SimpleStreamsImageCache
 
-		init(name: String, url: URL, source: String, cache: SimpleStreamsImageCache) {
+		init(remote: String, fingerprint: String, aliases: [String]?, url: URL, source: String, cache: SimpleStreamsImageCache) {
 			self._url = url
-			self._name = name
+			self._remote = remote
+			self._fingerprint = fingerprint
+			self._aliases = aliases
 			self._source = source
 			self._cache = cache
 		}
 
-	    var url: URL {
-	        self._url
+		var url: URL {
+			self._url
 		}
 
-	    func source() -> String {
-	        self._source
-	    }
+		func source() -> String {
+			self._source
+		}
 
-	    func name() -> String {
-	        self._name
-	    }
+		func name() -> String {
+			self._fingerprint
+		}
 
-	    func delete() throws {
-			try _cache.deleteCache(fingerprint: self._name)
+		func delete() throws {
+			try _cache.deleteCache(fingerprint: self._fingerprint)
 
 			try FileManager.default.removeItem(at: self._url.deletingLastPathComponent())
-	    }
-
-	    func accessDate() throws -> Date {
-	        try self._url.accessDate()
-	    }
-
-	    func sizeBytes() throws -> Int {
-	        try self._url.sizeBytes()
-	    }
-
-	    func allocatedSizeBytes() throws -> Int {
-	        try self._url.allocatedSizeBytes()
-	    }
-
-		func fqn() -> String {
-			"\(_cache.scheme)://\(_source)/@\(_name)"
 		}
+
+		func accessDate() throws -> Date {
+			try self._url.accessDate()
+		}
+
+		func sizeBytes() throws -> Int {
+			try self._url.sizeBytes()
+		}
+
+		func allocatedSizeBytes() throws -> Int {
+			try self._url.allocatedSizeBytes()
+		}
+
+		func fqn() -> [String] {
+			if let aliases = self._aliases {
+				return aliases.reduce(into: ["\(_remote)://\(self._fingerprint)"]) { fqn, alias in
+					fqn.append("\(self._remote)://\(alias)")
+				}
+			} else {
+				return ["\(_remote)://\(self._fingerprint)"]
+			}
+		}			
+	}
+
+	func purgeables(remote: String) throws -> [Purgeable] {
+		let purgeableItems: [Purgeable] = []
+
+		return self.cache!.reduce(into: purgeableItems) { (result: inout [Purgeable], key: String) in
+			if let cache = self.cache?.getCache(fingerprint: key) {
+				if cache.kind == .image {
+					let baseURL = self.baseURL.appendingPathComponent("\(key)/disk.img")
+					let source = baseURL.lastPathComponent
+
+					result.append(SimpleStreamsImageCachePurgeable(remote: remote, fingerprint: key, aliases: cache.alias, url: baseURL, source: source, cache: self))
+				}
+			}
+		}
+
 	}
 
 	override func purgeables() throws -> [Purgeable] {
+		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
 		var purgeableItems: [Purgeable] = []
 
-		if let cache = self.cache {
-			purgeableItems.append(contentsOf: cache.compactMap { (key: String, value: CacheEntry) in
-				var result: SimpleStreamsImageCachePurgeable? = nil
-
-				if value.kind == .image {
-					result = SimpleStreamsImageCachePurgeable(name: key, url: self.baseURL.appendingPathComponent("\(key)/disk.img"), source: self.baseURL.lastPathComponent, cache: self)
-				}
-
-				return result
-			})
-		} else {
-			try FileManager.default.contentsOfDirectory(at: self.baseURL, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles).forEach { url in
-				let cache = try SimpleStreamsImageCache(name: url.lastPathComponent)
-
-				try purgeableItems.append(contentsOf: cache.purgeables())
+		try FileManager.default.contentsOfDirectory(at: self.baseURL, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles).forEach { url in
+			if let remote = remoteDb.reverseLookup(url.lastPathComponent) {
+				purgeableItems.append(contentsOf: try SimpleStreamsImageCache(name: url.lastPathComponent).purgeables(remote: remote))	
 			}
 		}
 
@@ -360,33 +403,33 @@ class OCIImageCache: CommonCacheImageCache {
 			self._source = source
 		}
 
-	    var url: URL {
-	        self._url
+		var url: URL {
+			self._url
 		}
 
-	    func source() -> String {
-	        self._source
-	    }
+		func source() -> String {
+			self._source
+		}
 
-	    func name() -> String {
-	        self._name
-	    }
+		func name() -> String {
+			self._name
+		}
 
-	    func delete() throws {
+		func delete() throws {
 			try self._url.deletingLastPathComponent().delete()
-	    }
+		}
 
-	    func accessDate() throws -> Date {
-	        try self._url.accessDate()
-	    }
+		func accessDate() throws -> Date {
+			try self._url.accessDate()
+		}
 
-	    func sizeBytes() throws -> Int {
-	        try self._url.sizeBytes()
-	    }
+		func sizeBytes() throws -> Int {
+			try self._url.sizeBytes()
+		}
 
-	    func allocatedSizeBytes() throws -> Int {
-	        try self._url.allocatedSizeBytes()
-	    }
+		func allocatedSizeBytes() throws -> Int {
+			try self._url.allocatedSizeBytes()
+		}
 	}
 
 	override func purgeables() throws -> [Purgeable] {
@@ -400,7 +443,7 @@ class OCIImageCache: CommonCacheImageCache {
 		}
 	}
 
-	override func fqn(_ purgeable: Purgeable) -> String {
-		"\(self.scheme)://\(purgeable.source())@\(purgeable.name())"
+	override func fqn(_ purgeable: Purgeable) -> [String] {
+		["\(self.scheme)://\(purgeable.source())@\(purgeable.name())"]
 	}
 }
