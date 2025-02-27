@@ -136,12 +136,12 @@
 			"request": "launch",
 			"args": [
 				"waitip",
-				"linux",
+				"ubuntu",
 				"--wait",
 				"60"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked waitip linux",
+			"name": "caked waitip ubuntu",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

@@ -295,6 +295,7 @@ struct VMLocation {
 		let macAddress = config.macAddress?.string ?? ""
 		var leases: DHCPLeaseProvider
 		var count = 0
+		let useNat = config.networks.first { $0.network == "nat" } != nil
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
@@ -302,7 +303,7 @@ struct VMLocation {
 			}
 
 			// Try also arp if dhcp is disabled
-			if config.networks.isEmpty == false || count & 1 == 1 {
+			if useNat == false || count & 1 == 1 {
 				leases = try ARPParser()
 			} else {
 				leases = try DHCPLeaseParser()
@@ -394,7 +395,7 @@ struct VMLocation {
 		Logger.info("Installing agent on \(self.name)")
 
 		let home: Home = try Home(asSystem: runAsSystem)
-		let certificates = try CertificatesLocation.createCertificats(asSystem: runAsSystem)
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
 		let serverKey: String = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
 		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)

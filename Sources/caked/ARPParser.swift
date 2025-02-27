@@ -40,7 +40,7 @@ class ARPParser: DHCPLeaseProvider {
 		}
 
 		return entries.reduce(into: [:]) { result, entry in
-			result[entry.ipAddress] = entry
+			result[entry.macAddress] = entry
 		}		
 	}
 }

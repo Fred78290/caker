@@ -35,7 +35,7 @@ struct StartHandler: CakedCommand {
 
 	init(name: String, waitIPTimeout: Int, startMode: StartMode) throws {
 		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(name)
-		
+
 		self.location = vmLocation
 		self.config = try vmLocation.config()
 		self.waitIPTimeout = waitIPTimeout
@@ -75,15 +75,6 @@ struct StartHandler: CakedCommand {
 
 			do {
 				let runningIP = try vmLocation.waitIP(config: config, wait: 180, asSystem: runAsSystem, startedProcess: process)
-
-				if config.firstLaunch && config.agent == false {
-					config.agent = try vmLocation.installAgent(config: config, runningIP: runningIP)
-				}
-
-				config.runningIP = runningIP
-				config.firstLaunch = false
-
-				try config.save()
 
 				return runningIP
 			} catch {

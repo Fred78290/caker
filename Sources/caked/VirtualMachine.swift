@@ -374,7 +374,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			Logger.info("VM \(self.vmLocation.name) started with primary IP: \(runningIP)")
 
+			if config.firstLaunch && config.agent == false {
+				do {
+					config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP)
+				} catch {
+					Logger.error("VM \(self.vmLocation.name) failed to install agent: \(error)")
+				}
+			}
+
 			config.runningIP = runningIP
+			config.firstLaunch = false
 
 			try? config.save()
 
