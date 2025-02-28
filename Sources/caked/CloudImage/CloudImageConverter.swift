@@ -44,7 +44,7 @@ class CloudImageConverter {
 		Logger.debug("Fetching \(fromURL.lastPathComponent)...")
 
 		let channel = try await Curl(fromURL: fromURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
-		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
+		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
 
@@ -98,7 +98,7 @@ class CloudImageConverter {
 	}
 
 	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL) async throws {
-		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
+		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
 			if FileManager.default.fileExists(atPath: temporaryLocation.path()) {

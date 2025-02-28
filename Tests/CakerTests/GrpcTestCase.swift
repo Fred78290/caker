@@ -4,6 +4,7 @@ import Synchronization
 import NIOCore
 import NIOPosix
 import GRPC
+import ArgumentParser
 
 @testable import caked
 @testable import cakectl
@@ -23,7 +24,7 @@ class GrpcTestCase {
 	}
 
 	func createServer(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> Server {
-		let server = try Service.Listen.createServer(on: on,
+		let server = try Service.Listen.createServer(eventLoopGroup: on,
 		                                             asSystem: false,
 		                                             listeningAddress: listeningAddress,
 		                                             caCert: tls ? certs.caCertURL.absoluteURL.path() : nil,
@@ -48,13 +49,14 @@ class GrpcTestCase {
 		}
 
 		let client = try self.createClient(listeningAddress: listeningAddress, on: group, tls: tls)
+		let serviceNIOClient = Caked_ServiceNIOClient(channel: client)
 
 		defer {
 			XCTAssertNoThrow(try client.close().wait())
 		}
 
-		let reply = try List().run(client: Caked_ServiceNIOClient(channel: client), arguments: [], callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
-
-		print(reply.output)
+		let reply = serviceNIOClient.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
+		
+		print(try reply.response.wait().output)
 	}
 }

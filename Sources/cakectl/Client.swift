@@ -75,25 +75,25 @@ struct Client: AsyncParsableCommand {
 		}
 
 		@Option(help: "Connection timeout in seconds")
-		var timeout: Int64 = 120
+		public var timeout: Int64 = 120
 
 		@Flag(name: [.customLong("insecure")], help: "don't use TLS")
-		var insecure: Bool = false
+		public var insecure: Bool = false
 
 		@Flag(name: [.customLong("system")], help: "Caked run as system agent")
-		var asSystem: Bool = false
+		public var asSystem: Bool = false
 
 		@Option(name: [.customLong("connect")], help: "connect to address")
-		var address: String = try! Client.getDefaultServerAddress(asSystem: false)
+		public var address: String = try! Client.getDefaultServerAddress(asSystem: false)
 
 		@Option(name: [.customLong("ca-cert")], help: "CA TLS certificate")
-		var caCert: String?
+		public var caCert: String? = nil
 
 		@Option(name: [.customLong("tls-cert")], help: "Client TLS certificate")
-		var tlsCert: String?
+		public var tlsCert: String? = nil
 
 		@Option(name: [.customLong("tls-key")], help: "Client private key")
-		var tlsKey: String?
+		public var tlsKey: String? = nil
 
 		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
 			let command = command

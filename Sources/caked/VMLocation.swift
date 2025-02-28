@@ -145,7 +145,7 @@ struct VMLocation {
 	}
 
 	static func tempDirectory() throws -> VMLocation {
-		let tmpDir = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString)
+		let tmpDir = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 		return VMLocation(rootURL: tmpDir, template: false)
@@ -401,7 +401,7 @@ struct VMLocation {
 		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
 		let sharedPublicKey = try home.getSharedPublicKey()
 		let ssh = try createSSH(host: runningIP, timeout: 120)
-		let tempFileURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("install-agent.sh")
+		let tempFileURL = try Home(asSystem: false).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
 #!/bin/sh
 set -xe

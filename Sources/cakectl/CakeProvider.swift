@@ -3,16 +3,6 @@ import Foundation
 import GRPC
 import GRPCLib
 
-private func saveToTempFile(_ data: Data) throws -> String {
-	let url = FileManager.default.temporaryDirectory
-		.appendingPathComponent(UUID().uuidString)
-		.appendingPathExtension("txt")
-
-	try data.write(to: url)
-
-	return url.absoluteURL.path()
-}
-
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()

@@ -121,7 +121,11 @@ final class CloudInitTests: XCTestCase {
 
 			XCTAssertEqual(image.fingerprint, fingerprint)
 
-			let temporaryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("alpine.img").absoluteURL
+			let temporaryURL = try Home(asSystem: false).temporaryDirectory.appendingPathComponent("alpine.img").absoluteURL
+
+			defer {
+				try? temporaryURL.delete()
+			}
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL)
 
@@ -160,7 +164,7 @@ final class CloudInitTests: XCTestCase {
 		//options.netSoftnetAllow = nil
 		//options.netHost = false
 
-		try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
+		_ = try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
 
 		XCTAssertNoThrow(try StorageLocation(asSystem: false).relocate(options.name, from: tempVMLocation))
 	}
@@ -170,15 +174,12 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithQCow2() async throws {
-		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!,
-			toURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2"))
+		let tmpQcow2 = try Home(asSystem: false).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
+		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2)
 		
 		defer {
-			if let exists = try? tempLocation.exists() {
-				if exists {
-					try? FileManager.default.removeItem(at: tempLocation)
-				}
-			}
+			try? tempLocation.delete()
+			try? tmpQcow2.delete()
 		}
 
 		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path())")
@@ -212,29 +213,36 @@ final class CloudInitTests: XCTestCase {
 
 		promise.futureResult.whenComplete { result in
 			switch result {
-				case .success:
+				case let .success(name):
+					print("VM Stopped: \(name)")
 					break
 				case let .failure(err):
 					XCTFail(err.localizedDescription)
 			}
 		}
 
-		PortForwardingServer.createPortForwardingServer(on: self.group)
+		PortForwardingServer.createPortForwardingServer(group: self.group)
 		
-		let runningIP = eventLoop.makeFutureWithTask {
-			return try await StartHandler.startVM(vmLocation: vmLocation, waitIPTimeout: 180, foreground: false, promise: promise)
-		}
+		// Start VM
+		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, promise: promise)
 
-		runningIP.whenComplete { result in
-			switch result {
-				case let .success(ip):
-					print("running ip: \(ip)")
-				case let .failure(err):
-					XCTFail(err.localizedDescription)
-			}
-		}
+		print("startVM got running ip: \(runningIP)")
+
+		try vmLocation.stopVirtualMachine(force: false, asSystem: false)
 
 		// Wait VM die
 		XCTAssertNoThrow(try promise.futureResult.wait())
+	}
+
+	func testDeleteVM() async throws {
+		let names = ["noble-cloud-image", "noble-qcow2-image", "noble-oci-image", "noble-container-image", "noble-lxd-image", "noble-must-fail-image"]
+		let storageLocation: StorageLocation = StorageLocation(asSystem: false)
+
+		for name in names {
+			if storageLocation.exists(name) {
+				let vmLocation: VMLocation = try storageLocation.find(name)
+				try vmLocation.delete()
+			}
+		}
 	}
 }

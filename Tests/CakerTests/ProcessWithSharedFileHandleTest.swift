@@ -4,6 +4,68 @@ import Foundation
 
 final class ProcessWithSharedFileHandleTests: XCTestCase {
 
+	func createScript(fileHandleForReading: FileHandle, fileHandleForWriting: FileHandle) throws -> URL {
+		let scriptPath: URL = URL(fileURLWithPath: "/tmp/echo.py").absoluteURL
+		let script = """
+#!/usr/bin/env python3
+import select
+import io
+
+# This script is a simple example of how to communicate with the console device in the guest.
+def readmessage(fd):
+	while True:
+		rlist, _, _ = select.select([fd], [], [], 60)
+		if fd in rlist:
+			data = fd.read(8)
+			if data:
+				length = int.from_bytes(data, byteorder='big')
+
+				print('Echo read message length: {0}'.format(length))
+
+				response = bytearray()
+
+				while length > 0:
+					data = fd.read(min(8192, length))
+					if data:
+						length -= len(data)
+						response.extend(data)
+
+				with open('/tmp/received.txt', 'w') as text_file:
+					text_file.write(response.decode())
+
+				return response
+		else:
+			raise Exception('Timeout while waiting for message')
+
+def writemessage(fd, message):
+	length = len(message).to_bytes(8, 'big')
+
+	print('Echo send message length: {0}'.format(len(message)))
+
+	fd.write(length)
+	fd.write(message)
+
+def echo_echomessage(in_pipe, out_pipe):
+	print('Reading pipe')
+	message = readmessage(in_pipe)
+
+	print('Writing pipe')
+	writemessage(out_pipe, message)
+
+	print('Acking pipe')
+	response = readmessage(in_pipe)
+
+	print('Received data: {0}'.format(response.decode()))
+
+echo_echomessage(io.FileIO(\(fileHandleForReading.fileDescriptor)), io.FileIO(\(fileHandleForWriting.fileDescriptor), 'w'))
+"""
+
+		try script.write(to: scriptPath, atomically: true, encoding: .ascii)
+		try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptPath.path)
+
+		return scriptPath
+	}
+
 	func writeMessage(_ message: String, to fileHandle: FileHandle) {
 		let strData = message.data(using: .utf8)!
 		let lengthBuffer = withUnsafeBytes(of: strData.count.bigEndian) {
@@ -42,23 +104,38 @@ final class ProcessWithSharedFileHandleTests: XCTestCase {
 		let inputPipe = Pipe()
 		let outputPipe = Pipe()
 		let content = "Hello, World!"
+		let location = try createScript(fileHandleForReading: inputPipe.fileHandleForReading, fileHandleForWriting: outputPipe.fileHandleForWriting)
+		
+		print("execute: \(location)")
 
-		process.executableURL = URL(fileURLWithPath: "/opt/bin/tart")
+		let out = Pipe()
+
+		out.fileHandleForReading.readabilityHandler = { handler in
+			let data = handler.availableData
+			if data.count > 0 {
+				print("\(String(data: data, encoding: .utf8)!)")
+			}
+		}
+
+		//process.executableURL = URL(fileURLWithPath: "/bin/bash")
+		process.executableURL = location
 		process.standardInput = FileHandle.standardInput
-		process.standardOutput = FileHandle.standardOutput
-		process.standardError = FileHandle.standardError
+		process.standardOutput = out
+		process.standardError = out
 		process.sharedFileHandles = [inputPipe.fileHandleForReading, outputPipe.fileHandleForWriting]
-		process.arguments = [
-			"run",
-			"noble-cloud-image",
-			"--disk=~/.cake/vms/noble-cloud-image/cloud-init.iso",
-			"--console=fd://\(inputPipe.fileHandleForReading.fileDescriptor),\(outputPipe.fileHandleForWriting.fileDescriptor)"
-		]
+		//process.arguments = ["-c", "exec \(location.path) | tee /tmp/output.txt"]
+		process.terminationHandler = { process in
+			print("Process terminated: \(process.terminationStatus)")
+			XCTAssertEqual(process.terminationStatus, 0)
+			//Foundation.exit(process.terminationStatus)
+		}
 
 		try process.run()
 
 		//sleep(30)
 		echoMessage(input: outputPipe.fileHandleForReading, output: inputPipe.fileHandleForWriting, message: content)
 		process.waitUntilExit()
+
+		print("Process terminated")
 	}
 }

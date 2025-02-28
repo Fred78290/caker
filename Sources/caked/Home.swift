@@ -67,26 +67,26 @@ class RemoteDatabase {
 }
 
 struct Home {
-	let homeDir: URL
-	let cacheDir: URL
-	let agentDir: URL
-	let temporaryDir: URL
+	let cakeHomeDirectory: URL
+	let cacheDirectory: URL
+	let agentDirectory: URL
+	let temporaryDirectory: URL
 	let remoteDb: URL
 	let sshPrivateKey: URL
 	let sshPublicKey: URL
 
 	init(asSystem: Bool) throws {
-		self.homeDir = try Utils.getHome(asSystem: asSystem)
-		self.cacheDir = self.homeDir.appendingPathComponent("cache", isDirectory: true).absoluteURL
-		self.agentDir = self.homeDir.appendingPathComponent("agent", isDirectory: true).absoluteURL
-		self.temporaryDir = self.homeDir.appendingPathComponent("tmp", isDirectory: true).absoluteURL
-		self.remoteDb = self.homeDir.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
+		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem)
+		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL
+		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL
+		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL
+		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
 
-		self.sshPrivateKey = self.homeDir.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL
-		self.sshPublicKey = self.homeDir.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL
+		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL
+		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL
 
-		try FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
-		try FileManager.default.createDirectory(at: temporaryDir, withIntermediateDirectories: true)
+		try FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+		try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
 
 		if try self.remoteDb.exists() == false {
 			try defaultRemotes.write(to: self.remoteDb)

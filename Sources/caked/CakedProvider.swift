@@ -39,16 +39,6 @@ protocol CreateCakedCommand {
 	func createCommand() throws -> CakedCommand
 }
 
-private func saveToTempFile(_ data: Data) throws -> String {
-	let url = FileManager.default.temporaryDirectory
-		.appendingPathComponent(UUID().uuidString)
-		.appendingPathExtension("txt")
-
-	try data.write(to: url)
-
-	return url.absoluteURL.path()
-}
-
 class Unimplemented: Error {
 	let description: String
 

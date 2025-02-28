@@ -381,7 +381,7 @@ class LinuxContainerImage: Codable {
 
 		if let cached = imageCache.getCache(fingerprint: fingerprint) {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
-				let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent(UUID().uuidString + ".img")
+				let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 				try cacheLocation.updateAccessDate() 
 				try FileManager.default.copyItem(at: cacheLocation, to: temporaryLocation)

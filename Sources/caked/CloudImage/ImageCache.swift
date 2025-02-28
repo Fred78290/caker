@@ -46,7 +46,7 @@ class CommonCacheImageCache: PurgeableStorage {
 		if let root = root {
 			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
 		} else {
-			self.baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
+			self.baseURL = try Home(asSystem: runAsSystem).cacheDirectory.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
 		}
 
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
@@ -61,7 +61,7 @@ class CommonCacheImageCache: PurgeableStorage {
 		if let root = root {
 			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true)
 		} else {
-			self.baseURL = try Home(asSystem: runAsSystem).cacheDir.appendingPathComponent(self.location, isDirectory: true)
+			self.baseURL = try Home(asSystem: runAsSystem).cacheDirectory.appendingPathComponent(self.location, isDirectory: true)
 		}
 
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
@@ -110,7 +110,7 @@ class TemplateImageCache: CommonCacheImageCache {
 	}
 
 	init(name: String) throws {
-		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(asSystem: runAsSystem).homeDir)
+		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(asSystem: runAsSystem).cakeHomeDirectory)
 	}
 }
 

@@ -88,7 +88,7 @@ struct VMBuilder {
 		if imageURL.isFileURL || scheme == "img" {
 			imageURL.resolveSymlinksInPath()
 
-			let temporaryDiskURL: URL = try Home(asSystem: runAsSystem).temporaryDir.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
+			let temporaryDiskURL: URL = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
 			try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
 			_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)

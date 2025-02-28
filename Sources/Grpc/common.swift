@@ -164,6 +164,16 @@ public struct Utils {
 		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(asSystem: false)).absoluteURL.path()
 	}
 
+	public static func saveToTempFile(_ data: Data) throws -> String {
+		let url = FileManager.default.temporaryDirectory
+			.appendingPathComponent(UUID().uuidString)
+			.appendingPathExtension("txt")
+
+		try data.write(to: url)
+
+		return url.absoluteURL.path()
+	}
+
 }
 
 public struct ConfigureOptions: ParsableArguments {
@@ -524,25 +534,25 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasSshAuthorizedKey && request.sshAuthorizedKey.isEmpty == false {
-			self.sshAuthorizedKey = try saveToTempFile(request.sshAuthorizedKey)
+			self.sshAuthorizedKey = try Utils.saveToTempFile(request.sshAuthorizedKey)
 		} else {
 			self.sshAuthorizedKey = nil
 		}
 
 		if request.hasUserData && request.userData.isEmpty == false {
-			self.userData = try saveToTempFile(request.userData)
+			self.userData = try Utils.saveToTempFile(request.userData)
 		} else {
 			self.userData = nil
 		}
 
 		if request.hasVendorData && request.vendorData.isEmpty == false {
-			self.vendorData = try saveToTempFile(request.vendorData)
+			self.vendorData = try Utils.saveToTempFile(request.vendorData)
 		} else {
 			self.vendorData = nil
 		}
 
 		if request.hasNetworkConfig && request.networkConfig.isEmpty == false {
-			self.networkConfig = try saveToTempFile(request.networkConfig)
+			self.networkConfig = try Utils.saveToTempFile(request.networkConfig)
 		} else {
 			self.networkConfig = nil
 		}
@@ -600,16 +610,6 @@ public struct BuildOptions: ParsableArguments {
 		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
 		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		self.networks = try self.network.compactMap { try BridgeAttachement(parseFrom: $0) }
-	}
-
-	private func saveToTempFile(_ data: Data) throws -> String {
-		let url = FileManager.default.temporaryDirectory
-			.appendingPathComponent(UUID().uuidString)
-			.appendingPathExtension("txt")
-
-		try data.write(to: url)
-
-		return url.absoluteURL.path()
 	}
 }
 
