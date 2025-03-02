@@ -1165,6 +1165,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1196,6 +1197,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1321,7 +1323,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
 			requirement = {
 				kind = exactVersion;
 				version = 1.5.0;
@@ -1369,7 +1371,7 @@
 		};
 		9B464B922D5A3F9B00164BF5 /* XCRemoteSwiftPackageReference "swift-atomics" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-atomics.git";
+			repositoryURL = "https://github.com/apple/swift-atomics";
 			requirement = {
 				kind = exactVersion;
 				version = 1.2.0;
@@ -1449,7 +1451,7 @@
 		};
 		9B464BB02D5A40A900164BF5 /* XCRemoteSwiftPackageReference "swift-certificates" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-certificates.git";
+			repositoryURL = "https://github.com/apple/swift-certificates";
 			requirement = {
 				kind = exactVersion;
 				version = 1.7.0;
@@ -1457,7 +1459,7 @@
 		};
 		9B464BB32D5A40BB00164BF5 /* XCRemoteSwiftPackageReference "swift-crypto" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-crypto.git";
+			repositoryURL = "https://github.com/apple/swift-crypto";
 			requirement = {
 				kind = exactVersion;
 				version = 3.10.2;
@@ -1489,7 +1491,7 @@
 		};
 		9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-nio.git";
+			repositoryURL = "https://github.com/apple/swift-nio";
 			requirement = {
 				kind = exactVersion;
 				version = 2.81.0;
@@ -1497,7 +1499,7 @@
 		};
 		9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-nio-http2.git";
+			repositoryURL = "https://github.com/apple/swift-nio-http2";
 			requirement = {
 				kind = exactVersion;
 				version = 1.35.0;
@@ -1505,7 +1507,7 @@
 		};
 		9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-nio-extras.git";
+			repositoryURL = "https://github.com/apple/swift-nio-extras";
 			requirement = {
 				kind = exactVersion;
 				version = 1.24.1;
@@ -1521,7 +1523,7 @@
 		};
 		9B464BF52D5A41B300164BF5 /* XCRemoteSwiftPackageReference "swift-log" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-log.git";
+			repositoryURL = "https://github.com/apple/swift-log";
 			requirement = {
 				kind = exactVersion;
 				version = 1.6.2;
@@ -1529,7 +1531,7 @@
 		};
 		9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/DimaRU/Shout.git";
+			repositoryURL = "https://github.com/DimaRU/Shout";
 			requirement = {
 				branch = master;
 				kind = branch;
@@ -1553,10 +1555,10 @@
 		};
 		9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
+			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = f3b9eb496fe9aee0f07ee317d7d4bd800b5ad36f;
+				revision = 386ddddb01215c78ac57b20eaf3fa1db88be7e32;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

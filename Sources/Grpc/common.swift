@@ -23,8 +23,12 @@ private let cloudimage_help =
 
 private let mount_help =
 	"""
-	                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build\" or --mount=\"~/src/sources:ro\")", valueName: "[name:]path[:options]
-
+	                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build:/opt/build\" or --mount=\"~/src/sources:/opt/sources,ro,name=Sources\")", valueName: "source:[target][,options]
+	                  The options are:
+	                    - ro: read-only
+	                    - name=name of the share
+	                    - uid=user id
+	                    - gid=group id
 	"""
 
 private let network_help =
@@ -180,13 +184,13 @@ public struct ConfigureOptions: ParsableArguments {
 	@Argument(help: "VM name")
 	public var name: String
 
-	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs\n")
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: "Number of VM CPUs\n")
 	public var cpu: UInt16? = nil
 
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64? = nil
 
-	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
+	@Option(name: [.customLong("disk"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16? = nil
 
 	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot\n"))
@@ -358,13 +362,13 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("n")], help: "VM name\n")
 	public var name: String
 
-	@Option(name: [.long, .customShort("c")], help: "Number of VM CPUs\n")
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: "Number of VM CPUs\n")
 	public var cpu: UInt16 = 1
 
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64 = 512
 
-	@Option(name: [.long, .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
+	@Option(name: [.customLong("disk"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16 = 10
 
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM\n")

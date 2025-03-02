@@ -19,6 +19,24 @@ let COMMAND_NAME="caked"
 @main
 struct Root: AsyncParsableCommand {
 	static let tartIsPresent = checkIfTartPresent()
+	static let sigintSrc: any DispatchSourceSignal = {
+		signal(SIGINT, SIG_IGN)
+		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
+
+		sigintSrc.setEventHandler {
+			Self.group.shutdownGracefully { error in
+				if let error = error {
+					exit(withError: error)
+				}
+			}
+
+			Foundation.exit(130)
+		}
+
+		sigintSrc.activate()
+
+		return sigintSrc
+	}()
 
 	static var group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	static var configuration = CommandConfiguration(
@@ -77,19 +95,6 @@ struct Root: AsyncParsableCommand {
 	}
 
 	public static func main() async throws {
-		signal(SIGINT, SIG_IGN)
-		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
-
-		sigintSrc.setEventHandler {
-			Self.group.shutdownGracefully { error in
-				if let error = error {
-					exit(withError: error)
-				}
-			}
-			Foundation.exit(130)
-		}
-		sigintSrc.activate()
-
 		// Set up logging to stderr
 		LoggingSystem.bootstrap{ label in
 			StreamLogHandler.standardError(label: label)

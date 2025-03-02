@@ -30,6 +30,14 @@ struct Infos: CakeAgentAsyncParsableCommand {
 
     var createVM: Bool = false
 
+    var retries: GRPC.ConnectionBackoff.Retries {
+		.unlimited
+	}
+
+    var callOptions: GRPC.CallOptions? {
+		CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout)))
+	}
+
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 		let config: CakeConfig = try vmLocation.config()

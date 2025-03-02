@@ -28,6 +28,14 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
     var createVM: Bool = false
 
+    var retries: GRPC.ConnectionBackoff.Retries {
+		.unlimited
+	}
+
+    var callOptions: GRPC.CallOptions? {
+		CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout)))
+	}
+
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 

@@ -12,7 +12,7 @@ let package = Package(
 		.library(name: "GRPCLib", targets: ["GRPCLib"])
 	],
 	dependencies: [
-		.package(url: "https://github.com/apple/swift-argument-parser", from: "1.3.1"),
+		.package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
 		.package(url: "https://github.com/mhdhejazi/Dynamic", branch: "master"),
 		.package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
 		.package(url: "https://github.com/apple/swift-async-algorithms", branch: "main"),

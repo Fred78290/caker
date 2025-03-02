@@ -326,7 +326,7 @@ final class CakeConfig{
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
-		
+
 		self.configuredUser = options.user
 		self.configuredPassword = options.password
 		self.autostart = options.autostart
@@ -428,19 +428,29 @@ extension CakeConfig {
 	}
 
 	func directorySharingAttachments() throws -> [VZDirectorySharingDeviceConfiguration] {
-		return Dictionary(grouping: self.mounts, by: {$0.mountTag}).map { (mountTag: String, directoryShares: [DirectorySharingAttachment]) in
-			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mountTag)
+		if self.mounts.isEmpty {
+			return []
+		}
+
+		if self.os == .darwin {
+			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: VZVirtioFileSystemDeviceConfiguration.macOSGuestAutomountTag)
 			var directories: [String : VZSharedDirectory] = [:]
 
-			directoryShares.forEach {
+			self.mounts.forEach {
 				if let config = $0.configuration {
-					directories[$0.name] = config
+					directories[$0.human] = config
 				}
 			}
 
 			sharingDevice.share = VZMultipleDirectoryShare(directories: directories)
 
-			return sharingDevice
+			return [sharingDevice]
+		}
+
+		return self.mounts.reduce(into: [VZDirectorySharingDeviceConfiguration]()) { configurations, mount in
+			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mount.name)
+
+			sharingDevice.share = VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
 		}
 	}
 

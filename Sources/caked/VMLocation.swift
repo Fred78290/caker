@@ -466,6 +466,10 @@ if [ "${OSDISTRO}" = "darwin" ]; then
 else
 	chown root:adm /usr/local/bin/cakeagent
 	chown -R root:adm "${CERTS}"
+	echo "com.apple.virtio-fs.automount /mnt/shared virtiofs rw,relatime 0 0" >> /etc/fstab
+	mkdir -p /mnt/shared
+	chmod 777 /mnt/shared
+	mount /mnt/shared
 fi
 
 chmod 755 /usr/local/bin/cakeagent

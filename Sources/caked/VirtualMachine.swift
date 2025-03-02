@@ -51,6 +51,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		let configuration = VZVirtualMachineConfiguration()
 		let plateform = try config.platform(nvramURL: vmLocation.nvramURL, needsNestedVirtualization: config.nested)
 		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
+		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
 
 		var devices: [VZStorageDeviceConfiguration] = [VZVirtioBlockDeviceConfiguration(attachment: try VZDiskImageStorageDeviceAttachment(
 			url: vmLocation.diskURL,
@@ -83,6 +84,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		configuration.storageDevices = devices
 		configuration.directorySharingDevices = directorySharingAttachments
 		configuration.serialPorts = []
+		configuration.memoryBalloonDevices = [memoryBallons]
 
 		if config.os == .linux {
 			let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()

@@ -25,6 +25,14 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 	var createVM: Bool = false
 
+    var retries: GRPC.ConnectionBackoff.Retries {
+		.none
+	}
+
+    var callOptions: GRPC.CallOptions? {
+		CallOptions(timeLimit: .none)
+	}
+
 	mutating func validate() throws {
 		if self.name == "" {
 			self.name = "primary"

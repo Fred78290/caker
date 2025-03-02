@@ -18,6 +18,10 @@ if [ -n \"$CIDATA\" ]; then
 	cp $MOUNT/cakeagent /usr/local/bin/cakeagent
 	umount $MOUNT
 	chmod +x /usr/local/bin/cakeagent
+	echo "com.apple.virtio-fs.automount /mnt/shared virtiofs rw,relatime 0 0" >> /etc/fstab
+	mkdir -p /mnt/shared
+	chmod 777 /mnt/shared
+	mount /mnt/shared
 	/usr/local/bin/cakeagent --install \\
 		--listen=vsock://any:5000 \\
 		--ca-cert=/etc/cakeagent/ssl/ca.pem \\
@@ -650,7 +654,7 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
 		]
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh" ] : ["/usr/local/bin/install-cakeagent.sh", "mount -t virtiofs com.apple.virtio-fs.automount /mnt"]
+		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh" ] : ["/usr/local/bin/install-cakeagent.sh"]
 		let vendorData = CloudConfigData(defaultUser: self.userName,
 		                                 password: self.password,
 		                                 mainGroup: self.mainGroup,
