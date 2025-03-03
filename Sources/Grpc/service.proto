@@ -152,6 +152,7 @@ message CommonBuildRequest {
 	optional string networks = 17;
 	optional string sockets = 18;
 	optional string console = 19;
+	optional string attachedDisks = 20;
 }
 
 message BuildRequest {
@@ -195,6 +196,7 @@ message ConfigureRequest {
 	optional string console = 11;
 	optional bool randomMAC = 12;
 	optional string forwardedPort = 13;
+	optional string attachedDisks = 14;
 }
 
 message LogoutRequest {

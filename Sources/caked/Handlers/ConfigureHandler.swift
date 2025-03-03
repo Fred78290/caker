@@ -55,6 +55,10 @@ struct ConfigureHandler: CakedCommandAsync {
 			config.forwardedPorts = forwardedPort
 		}
 
+		if let attachedDisks = options.attachedDisks {
+			config.attachedDisks = attachedDisks
+		}
+
 		try config.save()
 
 		if let diskSize = options.diskSize {

@@ -126,7 +126,7 @@ struct StartHandler: CakedCommand {
 				"--dir=\($0.description)"
 			})
 
-			arguments.append(contentsOf: config.disks.map {
+			arguments.append(contentsOf: config.attachedDisks.map {
 				"--disk=\($0.description)"
 			})
 

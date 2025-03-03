@@ -602,6 +602,15 @@ public struct Caked_CommonBuildRequest: @unchecked Sendable {
   /// Clears the value of `console`. Subsequent reads from it will return its default value.
   public mutating func clearConsole() {_uniqueStorage()._console = nil}
 
+  public var attachedDisks: String {
+    get {return _storage._attachedDisks ?? String()}
+    set {_uniqueStorage()._attachedDisks = newValue}
+  }
+  /// Returns true if `attachedDisks` has been explicitly set.
+  public var hasAttachedDisks: Bool {return _storage._attachedDisks != nil}
+  /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
+  public mutating func clearAttachedDisks() {_uniqueStorage()._attachedDisks = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -874,6 +883,15 @@ public struct Caked_ConfigureRequest: Sendable {
   /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
   public mutating func clearForwardedPort() {self._forwardedPort = nil}
 
+  public var attachedDisks: String {
+    get {return _attachedDisks ?? String()}
+    set {_attachedDisks = newValue}
+  }
+  /// Returns true if `attachedDisks` has been explicitly set.
+  public var hasAttachedDisks: Bool {return self._attachedDisks != nil}
+  /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
+  public mutating func clearAttachedDisks() {self._attachedDisks = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -890,6 +908,7 @@ public struct Caked_ConfigureRequest: Sendable {
   fileprivate var _console: String? = nil
   fileprivate var _randomMac: Bool? = nil
   fileprivate var _forwardedPort: String? = nil
+  fileprivate var _attachedDisks: String? = nil
 }
 
 public struct Caked_LogoutRequest: Sendable {
@@ -1999,6 +2018,7 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     17: .same(proto: "networks"),
     18: .same(proto: "sockets"),
     19: .same(proto: "console"),
+    20: .same(proto: "attachedDisks"),
   ]
 
   fileprivate class _StorageClass {
@@ -2022,6 +2042,7 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     var _networks: String? = nil
     var _sockets: String? = nil
     var _console: String? = nil
+    var _attachedDisks: String? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -2056,6 +2077,7 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       _networks = source._networks
       _sockets = source._sockets
       _console = source._console
+      _attachedDisks = source._attachedDisks
     }
   }
 
@@ -2093,6 +2115,7 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._networks) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._sockets) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._console) }()
+        case 20: try { try decoder.decodeSingularStringField(value: &_storage._attachedDisks) }()
         case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         default: break
         }
@@ -2163,6 +2186,9 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       try { if let v = _storage._console {
         try visitor.visitSingularStringField(value: v, fieldNumber: 19)
       } }()
+      try { if let v = _storage._attachedDisks {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 20)
+      } }()
       try { if let v = _storage._password {
         try visitor.visitSingularStringField(value: v, fieldNumber: 22)
       } }()
@@ -2195,6 +2221,7 @@ extension Caked_CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
         if _storage._networks != rhs_storage._networks {return false}
         if _storage._sockets != rhs_storage._sockets {return false}
         if _storage._console != rhs_storage._console {return false}
+        if _storage._attachedDisks != rhs_storage._attachedDisks {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -2438,6 +2465,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     11: .same(proto: "console"),
     12: .same(proto: "randomMAC"),
     13: .same(proto: "forwardedPort"),
+    14: .same(proto: "attachedDisks"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2459,6 +2487,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 11: try { try decoder.decodeSingularStringField(value: &self._console) }()
       case 12: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
       case 13: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
+      case 14: try { try decoder.decodeSingularStringField(value: &self._attachedDisks) }()
       default: break
       }
     }
@@ -2508,6 +2537,9 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     try { if let v = self._forwardedPort {
       try visitor.visitSingularStringField(value: v, fieldNumber: 13)
     } }()
+    try { if let v = self._attachedDisks {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 14)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2525,6 +2557,7 @@ extension Caked_ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs._console != rhs._console {return false}
     if lhs._randomMac != rhs._randomMac {return false}
     if lhs._forwardedPort != rhs._forwardedPort {return false}
+    if lhs._attachedDisks != rhs._attachedDisks {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

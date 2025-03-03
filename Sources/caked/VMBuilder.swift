@@ -37,6 +37,7 @@ struct VMBuilder {
 			config.useCloudInit = true
 			config.agent = true
 			config.nested = options.nested
+			config.attachedDisks = options.attachedDisks
 		}
 
 		config.networks = options.networks

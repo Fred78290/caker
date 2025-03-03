@@ -194,7 +194,7 @@ final class CakeConfig{
 		get { self.cake["nested"] as? Bool ?? false }
 	}
 
-	var disks: [DiskAttachement] {
+	var attachedDisks: [DiskAttachement] {
 		set { self.cake["disks"] = newValue.map{$0.description} }
 		get {
 			guard let mounts:[String] = self.cake["disks"] as? [String] else {
@@ -335,6 +335,7 @@ final class CakeConfig{
 		self.autostart = autostart
 		self.useCloudInit = false
 		self.agent = false
+		self.attachedDisks = options.attachedDisks
 
 		if self.os == .darwin {
 			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)
@@ -412,7 +413,7 @@ extension CakeConfig {
 		let cloudInit = URL(fileURLWithPath: "cloud-init.iso", relativeTo: self.location).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
 
-		attachedDisks.append(contentsOf: self.disks.compactMap { try? $0.configuration() })
+		attachedDisks.append(contentsOf: self.attachedDisks.compactMap { try? $0.configuration() })
 
 		if try cloudInit.exists() {
 			let attachment = try VZDiskImageStorageDeviceAttachment(url: cloudInit, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)

@@ -190,8 +190,11 @@ public struct ConfigureOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64? = nil
 
-	@Option(name: [.customLong("disk"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16? = nil
+
+	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk\n"))
+	public var disks: [String] = ["unset"]
 
 	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot\n"))
 	public var autostart: Bool? = nil
@@ -227,43 +230,49 @@ public struct ConfigureOptions: ParsableArguments {
 		if request.hasCpu {
 			self.cpu = UInt16(request.cpu)
 		} else {
-			self.cpu = 1
+			self.cpu = nil
 		}
 
 		if request.hasMemory {
 			self.memory = UInt64(request.memory)
 		} else {
-			self.memory = 512
+			self.memory = nil
 		}
 
 		if request.hasDiskSize {
 			self.diskSize = UInt16(request.diskSize)
 		} else {
-			self.diskSize = 20
+			self.diskSize = nil
 		}
 
 		if request.hasNested {
 			self.nested = request.nested
 		} else {
-			self.nested = false
+			self.nested = nil
 		}
 
 		if request.hasAutostart {
 			self.autostart = request.autostart
 		} else {
-			self.autostart = false
+			self.autostart = nil
+		}
+
+		if request.hasAttachedDisks {
+			self.disks = request.attachedDisks.components(separatedBy: ",")
+		} else {
+			self.disks = ["unset"]
 		}
 
 		if request.hasMounts {
 			self.mount = request.mounts.components(separatedBy: ",")
 		} else {
-			self.mount = []
+			self.mount = ["unset"]
 		}
 
 		if request.hasNetworks {
 			self.network = request.networks.components(separatedBy: ",")
 		} else {
-			self.network = []
+			self.network = ["unset"]
 		}
 
 		if request.hasRandomMac {
@@ -272,6 +281,8 @@ public struct ConfigureOptions: ParsableArguments {
 
 		if request.hasForwardedPort {
 			self.published = request.forwardedPort.components(separatedBy: ",")
+		} else {
+			self.published = ["unset"]
 		}
 
 		if request.hasSockets {
@@ -292,6 +303,18 @@ public struct ConfigureOptions: ParsableArguments {
 			}
 
 			return nil
+		}
+	}
+
+	public var attachedDisks: [DiskAttachement]? {
+		get {
+			if disks.contains("unset") {
+				return nil
+			}
+
+			return disks.compactMap {
+				DiskAttachement(argument: $0)
+			}
 		}
 	}
 
@@ -368,8 +391,11 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes\n")
 	public var memory: UInt64 = 512
 
-	@Option(name: [.customLong("disk"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB\n"))
 	public var diskSize: UInt16 = 10
+
+	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk\n"))
+	public var disks: [String] = []
 
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM\n")
 	public var user: String = "admin"
@@ -428,11 +454,13 @@ public struct BuildOptions: ParsableArguments {
 	public private(set) var sockets: [SocketDevice] = []
 	public private(set) var mounts: [DirectorySharingAttachment] = []
 	public private(set) var networks: [BridgeAttachement] = []
+	public private(set) var attachedDisks: [DiskAttachement] = []
 
 	public init() {
 	}
 
 	public init(name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
+				disks: [String] = [],
 	            user: String = "admin",
 	            password: String? = "nil",
 	            mainGroup: String = "admin",
@@ -454,6 +482,7 @@ public struct BuildOptions: ParsableArguments {
 		self.cpu = cpu
 		self.memory = memory
 		self.diskSize = diskSize
+		self.disks = disks
 		self.user = user
 		self.password = password
 		self.mainGroup = mainGroup
@@ -493,6 +522,12 @@ public struct BuildOptions: ParsableArguments {
 			self.diskSize = UInt16(request.diskSize)
 		} else {
 			self.diskSize = 20
+		}
+
+		if request.hasAttachedDisks {
+			self.disks = request.attachedDisks.components(separatedBy: ",")
+		} else {
+			self.disks = []
 		}
 
 		if request.hasUser {
@@ -614,6 +649,7 @@ public struct BuildOptions: ParsableArguments {
 		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
 		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 		self.networks = try self.network.compactMap { try BridgeAttachement(parseFrom: $0) }
+		self.attachedDisks = try self.disks.compactMap { try DiskAttachement(parseFrom: $0) }
 	}
 }
 

@@ -102,9 +102,9 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --network=nat --user-data=/tmp/user-data.yaml"
-#BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --user-data=/tmp/user-data.yaml"
-#BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpu=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --network=nat --user-data=/tmp/user-data.yaml"
+#BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --user-data=/tmp/user-data.yaml"
+#BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 
 ${BIN_PATH}/${CMD} delete linux
 #${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
