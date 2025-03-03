@@ -115,6 +115,16 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?,
     handler: @escaping (Caked_ShellResponse) -> Void
   ) -> BidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse>
+
+  func mount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_MountRequest, Caked_Reply>
+
+  func umount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_MountRequest, Caked_Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -484,6 +494,42 @@ extension Caked_ServiceClientProtocol {
       handler: handler
     )
   }
+
+  /// Unary call to Mount
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Mount.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func mount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_MountRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.mount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeMountInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Umount
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Umount.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func umount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_MountRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.umount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeUmountInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -646,6 +692,16 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   func makeShellCall(
     callOptions: CallOptions?
   ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse>
+
+  func makeMountCall(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply>
+
+  func makeUmountCall(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -893,6 +949,30 @@ extension Caked_ServiceAsyncClientProtocol {
       path: Caked_ServiceClientMetadata.Methods.shell.path,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeShellInterceptors() ?? []
+    )
+  }
+
+  public func makeMountCall(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.mount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeMountInterceptors() ?? []
+    )
+  }
+
+  public func makeUmountCall(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.umount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
 }
@@ -1150,6 +1230,30 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeShellInterceptors() ?? []
     )
   }
+
+  public func mount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.mount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeMountInterceptors() ?? []
+    )
+  }
+
+  public func umount(
+    _ request: Caked_MountRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.umount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeUmountInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1230,6 +1334,12 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'shell'.
   func makeShellInterceptors() -> [ClientInterceptor<Caked_ShellRequest, Caked_ShellResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'mount'.
+  func makeMountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'umount'.
+  func makeUmountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1257,6 +1367,8 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.execute,
       Caked_ServiceClientMetadata.Methods.shell,
+      Caked_ServiceClientMetadata.Methods.mount,
+      Caked_ServiceClientMetadata.Methods.umount,
     ]
   )
 
@@ -1380,6 +1492,18 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/Shell",
       type: GRPCCallType.bidirectionalStreaming
     )
+
+    public static let mount = GRPCMethodDescriptor(
+      name: "Mount",
+      path: "/caked.Service/Mount",
+      type: GRPCCallType.unary
+    )
+
+    public static let umount = GRPCMethodDescriptor(
+      name: "Umount",
+      path: "/caked.Service/Umount",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -1427,6 +1551,10 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func execute(request: Caked_ExecuteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_ExecuteReply>
 
   func shell(context: StreamingResponseCallContext<Caked_ShellResponse>) -> EventLoopFuture<(StreamEvent<Caked_ShellRequest>) -> Void>
+
+  func mount(request: Caked_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
+  func umount(request: Caked_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -1621,6 +1749,24 @@ extension Caked_ServiceProvider {
         observerFactory: self.shell(context:)
       )
 
+    case "Mount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeMountInterceptors() ?? [],
+        userFunction: self.mount(request:context:)
+      )
+
+    case "Umount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeUmountInterceptors() ?? [],
+        userFunction: self.umount(request:context:)
+      )
+
     default:
       return nil
     }
@@ -1734,6 +1880,16 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>,
     context: GRPCAsyncServerCallContext
   ) async throws
+
+  func mount(
+    request: Caked_MountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
+  func umount(
+    request: Caked_MountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1935,6 +2091,24 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.shell(requestStream: $0, responseStream: $1, context: $2) }
       )
 
+    case "Mount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeMountInterceptors() ?? [],
+        wrapping: { try await self.mount(request: $0, context: $1) }
+      )
+
+    case "Umount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeUmountInterceptors() ?? [],
+        wrapping: { try await self.umount(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -2022,6 +2196,14 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'shell'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeShellInterceptors() -> [ServerInterceptor<Caked_ShellRequest, Caked_ShellResponse>]
+
+  /// - Returns: Interceptors to use when handling 'mount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeMountInterceptors() -> [ServerInterceptor<Caked_MountRequest, Caked_Reply>]
+
+  /// - Returns: Interceptors to use when handling 'umount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeUmountInterceptors() -> [ServerInterceptor<Caked_MountRequest, Caked_Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -2049,6 +2231,8 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.execute,
       Caked_ServiceServerMetadata.Methods.shell,
+      Caked_ServiceServerMetadata.Methods.mount,
+      Caked_ServiceServerMetadata.Methods.umount,
     ]
   )
 
@@ -2171,6 +2355,18 @@ public enum Caked_ServiceServerMetadata {
       name: "Shell",
       path: "/caked.Service/Shell",
       type: GRPCCallType.bidirectionalStreaming
+    )
+
+    public static let mount = GRPCMethodDescriptor(
+      name: "Mount",
+      path: "/caked.Service/Mount",
+      type: GRPCCallType.unary
+    )
+
+    public static let umount = GRPCMethodDescriptor(
+      name: "Umount",
+      path: "/caked.Service/Umount",
+      type: GRPCCallType.unary
     )
   }
 }

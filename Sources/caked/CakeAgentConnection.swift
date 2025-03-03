@@ -8,6 +8,147 @@ import GRPCLib
 import Logging
 import CakeAgentLib
 
+extension CakeAgentClient {
+	func info() -> EventLoopFuture<Caked_InfoReply?> {
+		let response = self.info(.init(), callOptions: .init(timeLimit: .none)).response
+
+		return response.flatMapThrowing { response in
+			return Caked_InfoReply.with {
+				$0.version = response.version
+				$0.uptime = response.uptime
+				$0.cpuCount = response.cpuCount
+				$0.ipaddresses = response.ipaddresses
+				$0.osname = response.osname
+				$0.release = response.release
+
+				if response.hasMemory {
+					let mem = response.memory
+					$0.memory = .with{ memory in
+						memory.total = mem.total
+						memory.free = mem.free
+						memory.used = mem.used
+					}
+				}
+			}
+		}.flatMapError { error in
+			Logger.error(error)
+			return response.eventLoop.submit {
+				return nil
+			}
+		}
+	}
+
+	func info() throws -> Caked_InfoReply {
+		guard let response = try self.info().wait() else {
+			throw ServiceError("Failed to get info")
+		}
+
+		return response
+	}
+
+	func execute(request: Caked_ExecuteRequest) -> EventLoopFuture<Caked_ExecuteReply?> {
+		let response = self.execute(Cakeagent_ExecuteRequest.with { req in
+			if request.hasInput {
+				req.input = Data(request.input)
+			}
+
+			req.command = request.command
+			req.args = request.args
+		}, callOptions: .init(timeLimit: .none)).response
+
+		return response.flatMapThrowing { response in
+			return Caked_ExecuteReply.with { reply in
+				reply.exitCode = response.exitCode
+
+				if response.hasError {
+					reply.error = response.error
+				}
+
+				if response.hasOutput {
+					reply.output = response.output
+				}
+			}
+		}.flatMapError { error in
+			Logger.error(error)
+			return response.eventLoop.submit {
+				return nil
+			}
+		}
+	}
+
+	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
+		guard let response = try self.execute(request: request).wait() else {
+			throw ServiceError("Failed to execute command")
+		}
+
+		return response
+	}
+
+	func mount(request: Caked_MountRequest) throws -> Caked_MountReply {
+		let response: Cakeagent_MountReply = try self.mount(Cakeagent_MountRequest.with {
+			$0.mounts = request.mounts.map { option in
+				Cakeagent_MountVirtioFS.with { 
+					$0.uid = option.uid
+					$0.gid = option.gid
+					$0.name = option.name
+					$0.target = option.target
+				}
+			}
+		}, callOptions: .init(timeLimit: .none)).response.wait()
+
+		return Caked_MountReply.with { reply in
+			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
+				reply.error = v
+			} else if case Cakeagent_MountReply.OneOf_Response.success(let v)? = response.response {
+				reply.success = v
+				reply.mounts = response.mounts.map { mount in
+					Caked_MountVirtioFSReply.with {
+						$0.name = mount.name
+
+						if case Cakeagent_MountVirtioFSReply.OneOf_Response.error(let v)? = mount.response {
+							$0.error = v
+						} else if case Cakeagent_MountVirtioFSReply.OneOf_Response.success(let v)? = mount.response {
+							$0.success = v
+						}
+					}
+				}
+			}
+		}
+	}
+
+	func umount(request: Caked_MountRequest) throws -> Caked_MountReply {
+		let response: Cakeagent_MountReply = try self.umount(Cakeagent_MountRequest.with {
+			$0.mounts = request.mounts.map { option in
+				Cakeagent_MountVirtioFS.with { 
+					$0.uid = option.uid
+					$0.gid = option.gid
+					$0.name = option.name
+					$0.target = option.target
+				}
+			}
+		}, callOptions: .init(timeLimit: .none)).response.wait()
+
+		return Caked_MountReply.with { reply in
+			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
+				reply.error = v
+			} else if case Cakeagent_MountReply.OneOf_Response.success(let v)? = response.response {
+				reply.success = v
+				reply.mounts = response.mounts.map { mount in
+					Caked_MountVirtioFSReply.with {
+						$0.name = mount.name
+
+						if case Cakeagent_MountVirtioFSReply.OneOf_Response.error(let v)? = mount.response {
+							$0.error = v
+						} else if case Cakeagent_MountVirtioFSReply.OneOf_Response.success(let v)? = mount.response {
+							$0.success = v
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 struct CakeAgentConnection {
 	let caCert: String?
 	let tlsCert: String?
@@ -19,7 +160,7 @@ struct CakeAgentConnection {
 
 	init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
 		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
-	
+
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
 
@@ -54,136 +195,46 @@ struct CakeAgentConnection {
 
 	}
 
-	func infoFuture() throws -> EventLoopFuture<Caked_InfoReply?> {
+	func info() throws -> EventLoopFuture<Caked_InfoReply?> {
 		let client = try createClient()
-		let response = client.info(.init()).response
+		let response: EventLoopFuture<Caked_InfoReply?> = client.info()
 
 		response.whenComplete { _ in
 			client.close(promise: response.eventLoop.makePromise(of: Void.self))
 		}
 
-		return response.flatMapThrowing { response in
-			return Caked_InfoReply.with {
-				$0.version = response.version
-				$0.uptime = response.uptime
-				$0.cpuCount = response.cpuCount
-				$0.ipaddresses = response.ipaddresses
-				$0.osname = response.osname
-				$0.release = response.release
-
-				if response.hasMemory {
-					let mem = response.memory
-					$0.memory = .with{ memory in
-						memory.total = mem.total
-						memory.free = mem.free
-						memory.used = mem.used
-					}
-				}
-			}
-		}.flatMapError { error in
-			return response.eventLoop.submit {
-				return nil
-			}
-		}
+		return response
 	}
 
 	func info() throws -> Caked_InfoReply {
 		let client = try createClient()
 
-		do {
-			let response = try client.info(.init()).response.wait()
-
-			let reply = Caked_InfoReply.with {reply in
-				reply.version = response.version
-				reply.uptime = response.uptime
-				reply.cpuCount = response.cpuCount
-				reply.ipaddresses = response.ipaddresses
-				reply.osname = response.osname
-				reply.release = response.release
-
-				if response.hasMemory {
-					let mem = response.memory
-					reply.memory = .with{ memory in
-						memory.total = mem.total
-						memory.free = mem.free
-						memory.used = mem.used
-					}
-				}
-			}
-
+		defer {
 			try? client.close().wait()
-
-			return reply
-		} catch {
-			try? client.close().wait()
-			throw error
 		}
+
+		return try client.info()
 	}
 
-	func executeFuture(request: Caked_ExecuteRequest) throws -> EventLoopFuture<Caked_ExecuteReply?> {
+	func execute(request: Caked_ExecuteRequest) throws -> EventLoopFuture<Caked_ExecuteReply?> {
 		let client = try createClient()
-		let response = client.execute(Cakeagent_ExecuteRequest.with { req in
-			if request.hasInput {
-				req.input = Data(request.input)
-			}
-
-			req.command = request.command
-			req.args = request.args
-		}).response
+		let response: EventLoopFuture<Caked_ExecuteReply?> = client.execute(request: request)
 
 		response.whenComplete { _ in
 			client.close(promise: response.eventLoop.makePromise(of: Void.self))
 		}
 
-		return response.flatMapThrowing { response in
-			return Caked_ExecuteReply.with { reply in
-				reply.exitCode = response.exitCode
-
-				if response.hasError {
-					reply.error = response.error
-				}
-
-				if response.hasOutput {
-					reply.output = response.output
-				}
-			}
-		}.flatMapError { error in
-			return response.eventLoop.submit {
-				return nil
-			}
-		}
+		return response
 	}
 
 	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
 		let client = try createClient()
 
-		do {
-			let response = try client.execute(Cakeagent_ExecuteRequest.with { req in
-				if request.hasInput {
-					req.input = Data(request.input)
-				}
-
-				req.command = request.command
-				req.args = request.args
-			}).response.wait()
-
+		defer {
 			try? client.close().wait()
-
-			return Caked_ExecuteReply.with { reply in
-				reply.exitCode = response.exitCode
-
-				if response.hasError {
-					reply.error = response.error
-				}
-
-				if response.hasOutput {
-					reply.output = response.output
-				}
-			}
-		} catch {
-			try? client.close().wait()
-			throw error
 		}
+
+		return try client.execute(request: request)
 	}
 
 	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>) async throws {
@@ -247,6 +298,26 @@ struct CakeAgentConnection {
 			await finish()
 			throw error
 		}
+	}
+
+	func mount(request: Caked_MountRequest) throws -> Caked_MountReply {
+		let client = try createClient()
+
+		defer {
+			try? client.close().wait()
+		}
+
+		return try client.mount(request: request)
+	}
+
+	func umount(request: Caked_MountRequest) throws -> Caked_MountReply {
+		let client = try createClient()
+
+		defer {
+			try? client.close().wait()
+		}
+
+		return try client.umount(request: request)
 	}
 
 	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {	

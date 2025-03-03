@@ -177,6 +177,11 @@
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
 		9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */; };
 		9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */; };
+		9BD32F812D75F9520066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F7F2D75F9520066A01E /* Mount.swift */; };
+		9BD32F822D75F9520066A01E /* Unmount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F802D75F9520066A01E /* Unmount.swift */; };
+		9BD32F842D75F9630066A01E /* MountHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F832D75F9630066A01E /* MountHandler.swift */; };
+		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
+		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AB2D5C9E19000CA07F /* Rename.swift */; };
 		9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */; };
 		9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */; };
@@ -328,6 +333,11 @@
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPParser.swift; sourceTree = "<group>"; };
 		9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
+		9BD32F7F2D75F9520066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
+		9BD32F802D75F9520066A01E /* Unmount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Unmount.swift; sourceTree = "<group>"; };
+		9BD32F832D75F9630066A01E /* MountHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountHandler.swift; sourceTree = "<group>"; };
+		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
+		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BE2E7AB2D5C9E19000CA07F /* Rename.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rename.swift; sourceTree = "<group>"; };
 		9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenameHandler.swift; sourceTree = "<group>"; };
 		9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoutHandler.swift; sourceTree = "<group>"; };
@@ -483,6 +493,7 @@
 				9B464A772D5A3E0300164BF5 /* List.swift */,
 				9B464A782D5A3E0300164BF5 /* Login.swift */,
 				9B464A792D5A3E0300164BF5 /* Logout.swift */,
+				9BD32F852D75FF060066A01E /* Mount.swift */,
 				9B464A7A2D5A3E0300164BF5 /* Networks.swift */,
 				9B464A7B2D5A3E0300164BF5 /* Pull.swift */,
 				9B464A7C2D5A3E0300164BF5 /* Purge.swift */,
@@ -493,6 +504,7 @@
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
 				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
+				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -543,6 +555,7 @@
 				9B464A9A2D5A3E0300164BF5 /* List.swift */,
 				9B464A9B2D5A3E0300164BF5 /* Login.swift */,
 				9BE2E7BB2D5F85D8000CA07F /* Logout.swift */,
+				9BD32F7F2D75F9520066A01E /* Mount.swift */,
 				9B464A9C2D5A3E0300164BF5 /* Networks.swift */,
 				9B464A9D2D5A3E0300164BF5 /* Purge.swift */,
 				9B464A9E2D5A3E0300164BF5 /* Remote.swift */,
@@ -552,6 +565,7 @@
 				9B464AA12D5A3E0300164BF5 /* Start.swift */,
 				9B464AA22D5A3E0300164BF5 /* Stop.swift */,
 				9BE2E7BC2D5F85D8000CA07F /* Template.swift */,
+				9BD32F802D75F9520066A01E /* Unmount.swift */,
 				9B464AA32D5A3E0300164BF5 /* VMRun.swift */,
 				9B464AA42D5A3E0300164BF5 /* WaitIP.swift */,
 			);
@@ -561,7 +575,6 @@
 		9B464AB42D5A3E0300164BF5 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */,
 				9B464AA62D5A3E0300164BF5 /* BuildHandler.swift */,
 				9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */,
 				9B464AA82D5A3E0300164BF5 /* DeleteHandler.swift */,
@@ -570,6 +583,7 @@
 				9B464AAB2D5A3E0300164BF5 /* ListHandler.swift */,
 				9B464AAC2D5A3E0300164BF5 /* LoginHandler.swift */,
 				9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */,
+				9BD32F832D75F9630066A01E /* MountHandler.swift */,
 				9B464AAD2D5A3E0300164BF5 /* NetworksHandler.swift */,
 				9B464AAE2D5A3E0300164BF5 /* PurgeHandler.swift */,
 				9B464AAF2D5A3E0300164BF5 /* RemoteHandler.swift */,
@@ -578,6 +592,7 @@
 				9B464AB12D5A3E0300164BF5 /* StopHandler.swift */,
 				9B464AB22D5A3E0300164BF5 /* TartHandler.swift */,
 				9BE2E7B72D5F85CE000CA07F /* TemplateHandler.swift */,
+				9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */,
 				9B464AB32D5A3E0300164BF5 /* WaitIPHandler.swift */,
 			);
 			path = Handlers;
@@ -909,6 +924,8 @@
 				9B464AEF2D5A3E0300164BF5 /* GuestPlateform.swift in Sources */,
 				9B464AF22D5A3E0300164BF5 /* ConfigureHandler.swift in Sources */,
 				9B464AF42D5A3E0300164BF5 /* Home.swift in Sources */,
+				9BD32F812D75F9520066A01E /* Mount.swift in Sources */,
+				9BD32F822D75F9520066A01E /* Unmount.swift in Sources */,
 				9B464AF62D5A3E0300164BF5 /* Infos.swift in Sources */,
 				9B464AF72D5A3E0300164BF5 /* List.swift in Sources */,
 				9B464AF82D5A3E0300164BF5 /* WaitIPHandler.swift in Sources */,
@@ -951,6 +968,7 @@
 				9B464B2D2D5A3E0300164BF5 /* DeleteHandler.swift in Sources */,
 				9B464B2E2D5A3E0300164BF5 /* BuildHandler.swift in Sources */,
 				9B464B302D5A3E0300164BF5 /* NetworksHandler.swift in Sources */,
+				9BD32F842D75F9630066A01E /* MountHandler.swift in Sources */,
 				9B464B312D5A3E0300164BF5 /* CommunicationHandlers.swift in Sources */,
 				9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */,
 				9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */,
@@ -1001,6 +1019,8 @@
 				9B464B782D5A3E8900164BF5 /* Import.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
+				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
+				9BD32F882D75FF060066A01E /* Mount.swift in Sources */,
 				9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */,
 				9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */,
 			);
@@ -1558,7 +1578,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = 386ddddb01215c78ac57b20eaf3fa1db88be7e32;
+				revision = 960c8f37c35df4087e01fe4681e5e08ff84d36af;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -12,7 +12,6 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var options: CakeAgentClientOptions { set get }
 	var logLevel: Logging.Logger.Level { get }
 	var retries: ConnectionBackoff.Retries { get }
-	var callOptions: CallOptions? { get }
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws
 }
@@ -25,11 +24,19 @@ extension CakeAgentClientOptions {
 		                                        caCert: self.caCert,
 		                                        tlsCert: self.tlsCert,
 		                                        tlsKey: self.tlsKey,
-												retries: retries)
+		                                        retries: retries)
 	}
 }
 
 extension CakeAgentAsyncParsableCommand {
+	var retries: ConnectionBackoff.Retries {
+		.unlimited
+	}
+
+	var callOptions: GRPC.CallOptions? {
+		CallOptions(timeLimit: .none)
+	}
+
 	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) throws {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
@@ -81,10 +88,11 @@ extension CakeAgentAsyncParsableCommand {
 	mutating func run() async throws {
 		Root.sigintSrc.cancel()
 
-		let grpcClient = try self.options.createClient(on: Root.group, retries: self.retries)
+		let eventLoop = Root.group.next()
+		let grpcClient = try self.options.createClient(on: eventLoop, retries: self.retries)
 
 		do {
-			try await self.run(on: Root.group.next(), client: grpcClient, callOptions: self.callOptions)
+			try await self.run(on: eventLoop, client: grpcClient, callOptions: self.callOptions)
 
 			try? await grpcClient.close()
 		} catch {

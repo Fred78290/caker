@@ -14,7 +14,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	@Argument(help: "VM name")
 	var name: String = ""
 
-	@OptionGroup
+	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
 	@Flag(help: .hidden)
@@ -24,14 +24,6 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	var waitIPTimeout = 180
 
 	var createVM: Bool = false
-
-    var retries: GRPC.ConnectionBackoff.Retries {
-		.none
-	}
-
-    var callOptions: GRPC.CallOptions? {
-		CallOptions(timeLimit: .none)
-	}
 
 	mutating func validate() throws {
 		if self.name == "" {

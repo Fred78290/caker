@@ -54,6 +54,7 @@ struct Root: AsyncParsableCommand {
 			Infos.self,
 			Launch.self,
 			List.self,
+			Mount.self,
 			Networks.self,
 			Purge.self,
 			Remote.self,
@@ -63,8 +64,9 @@ struct Root: AsyncParsableCommand {
 			Start.self,
 			Stop.self,
 			Template.self,
+			Umount.self,
 			VMRun.self,
-			WaitIP.self
+			WaitIP.self,
 		])
 
 	static func vmrunAvailable() -> Bool {

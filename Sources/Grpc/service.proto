@@ -30,6 +30,8 @@ service Service {
 	rpc Info (InfoRequest) returns (InfoReply);
 	rpc Execute (ExecuteRequest) returns (ExecuteReply);
 	rpc Shell(stream ShellRequest) returns (stream ShellResponse);
+	rpc Mount(MountRequest) returns (Reply);
+	rpc Umount(MountRequest) returns (Reply);
 }
 
 enum Format {
@@ -271,4 +273,36 @@ message ShellResponse {
 message RenameRequest {
 	string oldname = 1;
 	string newname = 2;
+}
+
+message MountVirtioFS {
+	string source = 1;
+	optional string target = 2;
+	optional string name = 3;
+	optional int32 uid = 4;
+	optional int32 gid = 5;
+	bool readonly = 6;
+}
+
+message MountRequest {
+	RemoteCommand command = 1;
+	string name = 2;
+	Format format = 3;
+	repeated MountVirtioFS mounts = 4;
+}
+
+message MountVirtioFSReply {
+	string name = 1;
+	oneof response {
+		string error = 2;
+		bool success = 3;
+	}
+}
+
+message MountReply {
+	repeated MountVirtioFSReply mounts = 1;
+	oneof response {
+		string error = 2;
+		bool success = 3;
+	}
 }

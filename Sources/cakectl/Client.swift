@@ -106,6 +106,7 @@ struct Client: AsyncParsableCommand {
 
 			let connection = try Client.createClient(on: group,
 			                                         listeningAddress: URL(string: self.address),
+													 connectionTimeout: self.timeout,
 			                                         caCert: self.caCert,
 			                                         tlsCert: self.tlsCert,
 			                                         tlsKey: self.tlsKey)
@@ -115,7 +116,7 @@ struct Client: AsyncParsableCommand {
 			}
 
 			let grpcClient = Caked_ServiceNIOClient(channel: connection)
-			let reply: Caked_Reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(self.timeout))))
+			let reply: Caked_Reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
 
 			switch reply.response {
 			case let .error(err):
@@ -169,6 +170,8 @@ struct Client: AsyncParsableCommand {
 			Stop.self,
 			Template.self,
 			WaitIP.self,
+			Mount.self,
+			Umount.self,
 
 			Clone.self,
 			Login.self,
@@ -193,9 +196,11 @@ struct Client: AsyncParsableCommand {
 
 	static func createClient(on: EventLoopGroup,
 	                         listeningAddress: URL?,
+							 connectionTimeout: Int64 = 60,
 	                         caCert: String?,
 	                         tlsCert: String?,
-	                         tlsKey: String?) throws -> ClientConnection {
+	                         tlsKey: String?,
+							 retries: ConnectionBackoff.Retries = .unlimited) throws -> ClientConnection {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -228,6 +233,12 @@ struct Client: AsyncParsableCommand {
 					privateKey: .privateKey(tlsKey),
 					trustRoots: trustRoots,
 					certificateVerification: .noHostnameVerification)
+			}
+
+			if retries != .unlimited {
+				clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
+			} else {
+				clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout))
 			}
 
 			return ClientConnection(configuration: clientConfiguration)

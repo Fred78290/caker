@@ -474,4 +474,43 @@ extension CakeConfig {
 
 		return nil
 	}
+
+	func appendMount(_ values: [DirectorySharingAttachment]) -> Bool {
+		var existing = self.mounts
+		let descriptions = existing.map{ $0.description}
+		let appending = values.filter{
+			if descriptions.contains($0.description) {
+				return false
+			}
+
+			existing.append($0)
+
+			return true
+		}.isEmpty
+
+		if appending {
+			self.mounts = existing
+		}
+
+		return appending
+	}
+
+	func removeMount(_ values: [DirectorySharingAttachment]) -> Bool {
+		var existing = self.mounts
+		let descriptions = existing.map{ $0.description}
+		let removing = values.filter{
+			if let index = descriptions.firstIndex(of: $0.description) {
+				existing.remove(at: index)
+				return true
+			}
+
+			return false
+		}.isEmpty
+
+		if removing {
+			self.mounts = existing
+		}
+
+		return removing
+	}
 }

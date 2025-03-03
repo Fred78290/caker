@@ -14,7 +14,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
 
-	@OptionGroup
+	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
 	@Argument(help: "Command to execute")
@@ -27,14 +27,6 @@ struct Exec: CakeAgentAsyncParsableCommand {
 	var waitIPTimeout = 180
 
     var createVM: Bool = false
-
-    var retries: GRPC.ConnectionBackoff.Retries {
-		.unlimited
-	}
-
-    var callOptions: GRPC.CallOptions? {
-		CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout)))
-	}
 
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)

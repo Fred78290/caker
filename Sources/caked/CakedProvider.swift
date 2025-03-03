@@ -47,6 +47,23 @@ class Unimplemented: Error {
 	}
 }
 
+extension Caked_MountRequest: CreateCakedCommand {
+	func createCommand() -> CakedCommand {
+		return MountHandler(request: self)
+	}
+
+	func directorySharingAttachment() -> [DirectorySharingAttachment] {
+		return self.mounts.map { mount in
+			DirectorySharingAttachment(source: mount.source,
+			                           destination: mount.hasTarget ? mount.target : nil,
+			                           readOnly: mount.readonly,
+			                           name: mount.hasName ? mount.name : nil,
+			                           uid: mount.hasUid ? Int(mount.uid) : nil,
+			                           gid: mount.hasGid ? Int(mount.gid) : nil)
+		}
+	}
+}
+
 extension Caked_TemplateRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return TemplateHandler(request: self)
@@ -350,9 +367,9 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
 			}
 		}
-		
+
 		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
-		
+
 		if vmLocation.status != .running {
 			Logger.info("Starting \(vmname)")
 
@@ -362,6 +379,24 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		let conn = try createCakeAgentConnection(vmName: vmname)
 
 		return try await conn.shell(requestStream: requestStream, responseStream: responseStream)
+	}
+
+	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: Caked_MountRequest.with {
+			$0.command = .add
+			$0.name = request.name
+			$0.mounts = request.mounts
+			$0.format = request.format
+		})
+	}
+
+	func umount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: Caked_MountRequest.with {
+			$0.command = .delete
+			$0.name = request.name
+			$0.mounts = request.mounts
+			$0.format = request.format
+		})
 	}
 
 	func createCakeAgentConnection(vmName: String) throws -> CakeAgentConnection {

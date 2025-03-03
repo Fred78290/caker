@@ -21,9 +21,9 @@ private let cloudimage_help =
 
 	"""
 
-private let mount_help =
+public let mount_help =
 	"""
-	                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build:/opt/build\" or --mount=\"~/src/sources:/opt/sources,ro,name=Sources\")", valueName: "source:[target][,options]
+	                  Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build:/opt/build\" or --mount=\"~/src/sources:/opt/sources,ro,name=Sources\")"
 	                  The options are:
 	                    - ro: read-only
 	                    - name=name of the share

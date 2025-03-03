@@ -350,3 +350,43 @@ extension Caked_WaitIPRequest {
 		self.timeout = Int32(command.wait)
 	}
 }
+
+extension Caked_MountRequest {
+	init(command: Mount) {
+		self.init()
+
+		self.name = command.name
+		self.command = .add
+		self.format = command.format == .text ? .text : .json
+		self.mounts = command.mounts.map{ mount in
+			Caked_MountVirtioFS.with {
+				$0.name = mount.name
+				$0.source = mount.source
+				$0.uid = Int32(mount.uid)
+				$0.gid	= Int32(mount.gid)
+				if let destination = mount.destination {
+					$0.target = destination
+				}
+			}
+		}
+	}
+
+	init(command: Umount) {
+		self.init()
+
+		self.name = command.name
+		self.command = .delete
+		self.format = command.format == .text ? .text : .json
+		self.mounts = command.mounts.map{ mount in
+			Caked_MountVirtioFS.with {
+				$0.name = mount.name
+				$0.source = mount.source
+				$0.uid = Int32(mount.uid)
+				$0.gid	= Int32(mount.gid)
+				if let destination = mount.destination {
+					$0.target = destination
+				}
+			}
+		}
+	}
+}

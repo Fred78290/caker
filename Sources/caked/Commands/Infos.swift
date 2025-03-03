@@ -19,7 +19,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@Option(name: .shortAndLong, help: "Output format: text or json")
 	var format: Format = .text
 
-	@OptionGroup
+	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
 	@Flag(help: .hidden)

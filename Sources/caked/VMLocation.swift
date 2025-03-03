@@ -329,7 +329,7 @@ struct VMLocation {
 				throw ShellError(terminationStatus: -1, error: "Caked vmrun process is not running", message: "")
 			}
 
-			if let infos = try? conn.infoFuture().wait() {
+			if let infos = try? conn.info().wait() {
 				if let runningIP = infos.ipaddresses.first {
 					return runningIP
 				}
@@ -359,7 +359,7 @@ struct VMLocation {
 
 	func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
 		if config.agent {
-			let response = try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).infoFuture()
+			let response: EventLoopFuture<Caked_InfoReply?> = try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).info()
 
 			return response.flatMapThrowing {
 				return $0?.ipaddresses.first

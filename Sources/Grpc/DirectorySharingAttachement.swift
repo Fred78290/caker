@@ -41,6 +41,10 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		URL(fileURLWithPath: _source.expandingTildeInPath)
 	}
 
+	public var source: String {
+		_source
+	}
+
 	public var destination: String? {
 		_destination
 	}
@@ -84,6 +88,15 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		}
 
 		return result
+	}
+
+	public init(source: String, destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
+		self.readOnly = readOnly
+		self._name = name
+		self._source = source
+		self._destination = destination
+		self._uid = uid
+		self._gid = gid
 	}
 
 	public init?(argument: String) {
