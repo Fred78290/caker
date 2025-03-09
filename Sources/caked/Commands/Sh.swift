@@ -41,6 +41,6 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		}
 
 		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground)
-		try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
+		_ = try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
 	}
 }

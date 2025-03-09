@@ -43,7 +43,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
 		var arguments = self.arguments
 		let command = arguments.remove(at: 0)
-		let exitCode = try CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
+		let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
 
 		if exitCode != 0 {
 			throw ServiceError("exec failed", exitCode)

@@ -183,14 +183,14 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 
 	public func configuration() throws -> VZStorageDeviceConfiguration {
-		let diskURL = URL(string: diskPath)
+		let diskURL = URL(string: diskPath)!
 		let diskPath = NSString(string: diskPath).expandingTildeInPath
 		let diskFileURL = URL(fileURLWithPath: diskPath)
 
 		if #available(macOS 14, *) {
-			if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme) {
+			if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL.scheme) {
 				let nbdAttachment = try VZNetworkBlockDeviceStorageDeviceAttachment(
-					url: diskURL!,
+					url: diskURL,
 					timeout: 30,
 					isForcedReadOnly: self.diskOptions.readOnly,
 					synchronizationMode: try VZDiskSynchronizationMode(description: self.diskOptions.syncMode)
@@ -198,6 +198,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 				
 				return VZVirtioBlockDeviceConfiguration(attachment: nbdAttachment)
 			}
+		}
+
+		if FileManager.default.fileExists(atPath: diskPath) == false {
+			throw ValidationError("disk \(diskPath) does not exist")
 		}
 
 		if Self.isBlockingDevice(diskPath) {
@@ -256,6 +260,22 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		if (["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme)) {
 			guard #available(macOS 14, *) else {
 				throw ValidationError("Attaching Network Block Devices are not supported prior MacOS 14")
+			}
+		} else {
+			let diskPath = NSString(string: diskPath).expandingTildeInPath
+	
+			if diskPath.isEmpty {
+				throw ValidationError("Disk path is empty")
+			}
+
+			if FileManager.default.fileExists(atPath: diskPath) == false {
+				throw ValidationError("disk \(diskPath) does not exist")
+			}
+
+			if Self.isBlockingDevice(diskPath) {
+				guard #available(macOS 14, *) else {
+					throw ValidationError("Attaching block devices prior MacOS 14")
+				}
 			}
 		}
 
