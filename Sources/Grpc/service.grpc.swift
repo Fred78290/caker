@@ -107,14 +107,9 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
   ) -> UnaryCall<Caked_InfoRequest, Caked_InfoReply>
 
   func execute(
-    _ request: Caked_ExecuteRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_ExecuteRequest, Caked_ExecuteReply>
-
-  func shell(
     callOptions: CallOptions?,
-    handler: @escaping (Caked_ShellResponse) -> Void
-  ) -> BidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse>
+    handler: @escaping (Caked_ExecuteResponse) -> Void
+  ) -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
 
   func mount(
     _ request: Caked_MountRequest,
@@ -456,25 +451,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Execute
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Execute.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func execute(
-    _ request: Caked_ExecuteRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_ExecuteRequest, Caked_ExecuteReply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.execute.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-    )
-  }
-
-  /// Bidirectional streaming call to Shell
+  /// Bidirectional streaming call to Execute
   ///
   /// Callers should use the `send` method on the returned object to send messages
   /// to the server. The caller should send an `.end` after the final message has been sent.
@@ -483,14 +460,14 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   ///   - handler: A closure called when each response is received from the server.
   /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
-  public func shell(
+  public func execute(
     callOptions: CallOptions? = nil,
-    handler: @escaping (Caked_ShellResponse) -> Void
-  ) -> BidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse> {
+    handler: @escaping (Caked_ExecuteResponse) -> Void
+  ) -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
     return self.makeBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.shell.path,
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeShellInterceptors() ?? [],
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
       handler: handler
     )
   }
@@ -685,13 +662,8 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_InfoReply>
 
   func makeExecuteCall(
-    _ request: Caked_ExecuteRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_ExecuteRequest, Caked_ExecuteReply>
-
-  func makeShellCall(
-    callOptions: CallOptions?
-  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse>
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
 
   func makeMountCall(
     _ request: Caked_MountRequest,
@@ -931,24 +903,12 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeExecuteCall(
-    _ request: Caked_ExecuteRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_ExecuteRequest, Caked_ExecuteReply> {
-    return self.makeAsyncUnaryCall(
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
+    return self.makeAsyncBidirectionalStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.execute.path,
-      request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-    )
-  }
-
-  public func makeShellCall(
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ShellRequest, Caked_ShellResponse> {
-    return self.makeAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.shell.path,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeShellInterceptors() ?? []
     )
   }
 
@@ -1195,39 +1155,27 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func execute(
-    _ request: Caked_ExecuteRequest,
+  public func execute<RequestStream>(
+    _ requests: RequestStream,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_ExecuteReply {
-    return try await self.performAsyncUnaryCall(
+  ) -> GRPCAsyncResponseStream<Caked_ExecuteResponse> where RequestStream: Sequence, RequestStream.Element == Caked_ExecuteRequest {
+    return self.performAsyncBidirectionalStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.execute.path,
-      request: request,
+      requests: requests,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
     )
   }
 
-  public func shell<RequestStream>(
+  public func execute<RequestStream>(
     _ requests: RequestStream,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncResponseStream<Caked_ShellResponse> where RequestStream: Sequence, RequestStream.Element == Caked_ShellRequest {
+  ) -> GRPCAsyncResponseStream<Caked_ExecuteResponse> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_ExecuteRequest {
     return self.performAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.shell.path,
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
       requests: requests,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeShellInterceptors() ?? []
-    )
-  }
-
-  public func shell<RequestStream>(
-    _ requests: RequestStream,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncResponseStream<Caked_ShellResponse> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_ShellRequest {
-    return self.performAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.shell.path,
-      requests: requests,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeShellInterceptors() ?? []
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
     )
   }
 
@@ -1330,10 +1278,7 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_InfoReply>]
 
   /// - Returns: Interceptors to use when invoking 'execute'.
-  func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteReply>]
-
-  /// - Returns: Interceptors to use when invoking 'shell'.
-  func makeShellInterceptors() -> [ClientInterceptor<Caked_ShellRequest, Caked_ShellResponse>]
+  func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>]
 
   /// - Returns: Interceptors to use when invoking 'mount'.
   func makeMountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>]
@@ -1366,7 +1311,6 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.rename,
       Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.execute,
-      Caked_ServiceClientMetadata.Methods.shell,
       Caked_ServiceClientMetadata.Methods.mount,
       Caked_ServiceClientMetadata.Methods.umount,
     ]
@@ -1484,12 +1428,6 @@ public enum Caked_ServiceClientMetadata {
     public static let execute = GRPCMethodDescriptor(
       name: "Execute",
       path: "/caked.Service/Execute",
-      type: GRPCCallType.unary
-    )
-
-    public static let shell = GRPCMethodDescriptor(
-      name: "Shell",
-      path: "/caked.Service/Shell",
       type: GRPCCallType.bidirectionalStreaming
     )
 
@@ -1548,9 +1486,7 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func info(request: Caked_InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_InfoReply>
 
-  func execute(request: Caked_ExecuteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_ExecuteReply>
-
-  func shell(context: StreamingResponseCallContext<Caked_ShellResponse>) -> EventLoopFuture<(StreamEvent<Caked_ShellRequest>) -> Void>
+  func execute(context: StreamingResponseCallContext<Caked_ExecuteResponse>) -> EventLoopFuture<(StreamEvent<Caked_ExecuteRequest>) -> Void>
 
   func mount(request: Caked_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
@@ -1732,21 +1668,12 @@ extension Caked_ServiceProvider {
       )
 
     case "Execute":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ExecuteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ExecuteReply>(),
-        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
-        userFunction: self.execute(request:context:)
-      )
-
-    case "Shell":
       return BidirectionalStreamingServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ShellRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ShellResponse>(),
-        interceptors: self.interceptors?.makeShellInterceptors() ?? [],
-        observerFactory: self.shell(context:)
+        requestDeserializer: ProtobufDeserializer<Caked_ExecuteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_ExecuteResponse>(),
+        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
+        observerFactory: self.execute(context:)
       )
 
     case "Mount":
@@ -1871,13 +1798,8 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   ) async throws -> Caked_InfoReply
 
   func execute(
-    request: Caked_ExecuteRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_ExecuteReply
-
-  func shell(
-    requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>,
-    responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>,
+    requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>,
     context: GRPCAsyncServerCallContext
   ) async throws
 
@@ -2077,18 +1999,9 @@ extension Caked_ServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_ExecuteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ExecuteReply>(),
+        responseSerializer: ProtobufSerializer<Caked_ExecuteResponse>(),
         interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
-        wrapping: { try await self.execute(request: $0, context: $1) }
-      )
-
-    case "Shell":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ShellRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ShellResponse>(),
-        interceptors: self.interceptors?.makeShellInterceptors() ?? [],
-        wrapping: { try await self.shell(requestStream: $0, responseStream: $1, context: $2) }
+        wrapping: { try await self.execute(requestStream: $0, responseStream: $1, context: $2) }
       )
 
     case "Mount":
@@ -2191,11 +2104,7 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'execute'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeExecuteInterceptors() -> [ServerInterceptor<Caked_ExecuteRequest, Caked_ExecuteReply>]
-
-  /// - Returns: Interceptors to use when handling 'shell'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeShellInterceptors() -> [ServerInterceptor<Caked_ShellRequest, Caked_ShellResponse>]
+  func makeExecuteInterceptors() -> [ServerInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>]
 
   /// - Returns: Interceptors to use when handling 'mount'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2230,7 +2139,6 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.rename,
       Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.execute,
-      Caked_ServiceServerMetadata.Methods.shell,
       Caked_ServiceServerMetadata.Methods.mount,
       Caked_ServiceServerMetadata.Methods.umount,
     ]
@@ -2348,12 +2256,6 @@ public enum Caked_ServiceServerMetadata {
     public static let execute = GRPCMethodDescriptor(
       name: "Execute",
       path: "/caked.Service/Execute",
-      type: GRPCCallType.unary
-    )
-
-    public static let shell = GRPCMethodDescriptor(
-      name: "Shell",
-      path: "/caked.Service/Shell",
       type: GRPCCallType.bidirectionalStreaming
     )
 
