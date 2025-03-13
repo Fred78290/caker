@@ -1,7 +1,13 @@
 import ArgumentParser
 import Foundation
-import GRPC
+@preconcurrency import GRPC
 import GRPCLib
+import NIO
+import NIOPosix
+import NIOSSL
+import Semaphore
+
+typealias CakeAgentClient = Caked_ServiceNIOClient
 
 extension Caked_RenameRequest {
 	init(command: Rename) {
@@ -52,7 +58,7 @@ extension Caked_CommonBuildRequest {
 		self.autostart = buildOptions.autostart
 		self.nested = buildOptions.nested
 		self.image = buildOptions.image
-		
+
 		if mounts.isEmpty == false {
 			self.mounts = mounts.joined(separator: ",")
 		}
@@ -236,22 +242,6 @@ extension Caked_InfoRequest {
 	}
 }
 
-extension Caked_ExecuteRequest {
-	init(command: Exec) {
-		var args = command.arguments
-
-		self.init()
-		
-		self.name = command.name
-		self.command = args.remove(at: 0)
-		self.args = args
-
-		if isatty(FileHandle.standardInput.fileDescriptor) == 0 {
-			self.input = FileHandle.standardInput.readDataToEndOfFile()
-		}
-	}
-}
-
 extension Caked_ImageRequest {
 	init(command: ImagesManagement.ListImage) {
 		self.init()
@@ -388,5 +378,43 @@ extension Caked_MountRequest {
 				}
 			}
 		}
+	}
+}
+
+
+extension CakeAgentClient {
+	internal func exec(name: String,
+	                   command: CakedChannelStreamer.ExecuteCommand,
+	                   inputHandle: FileHandle = FileHandle.standardInput,
+	                   outputHandle: FileHandle = FileHandle.standardOutput,
+	                   errorHandle: FileHandle = FileHandle.standardError,
+	                   callOptions: CallOptions? = nil) async throws -> Int32 {
+		let handler = CakedChannelStreamer(inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle)
+		var callOptions = callOptions ?? CallOptions()
+
+		callOptions.timeLimit = .none
+		callOptions.customMetadata.add(name: "CAKEAGENT_VMNAME", value: name)
+
+		return try await handler.stream(command: command) {
+			self.execute(callOptions: callOptions, handler: handler.handleResponse)
+		}
+	}
+
+	public func exec(name: String,
+	                 command: String,
+	                 arguments: [String],
+	                 inputHandle: FileHandle = FileHandle.standardInput,
+	                 outputHandle: FileHandle = FileHandle.standardOutput,
+	                 errorHandle: FileHandle = FileHandle.standardError,
+	                 callOptions: CallOptions? = nil) async throws -> Int32 {
+		return try await self.exec(name: name, command: .execute(command, arguments), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
+	}
+
+	public func shell(name: String,
+	                  inputHandle: FileHandle = FileHandle.standardInput,
+	                  outputHandle: FileHandle = FileHandle.standardOutput,
+	                  errorHandle: FileHandle = FileHandle.standardError,
+	                  callOptions: CallOptions? = nil) async throws -> Int32 {
+		return try await self.exec(name: name, command: .shell(), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
 	}
 }

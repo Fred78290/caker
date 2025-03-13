@@ -12,7 +12,7 @@ struct Logout: GrpcParsableCommand {
 	@Argument(help: "host")
 	var host: String
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.logout(Caked_LogoutRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

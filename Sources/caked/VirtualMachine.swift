@@ -137,17 +137,17 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			if #available(macOS 14, *) {
 				try configuration.validateSaveRestoreSupport()
 
-				Logger.info("Pause VM \(self.vmLocation.name)...")
+				Logger(self).info("Pause VM \(self.vmLocation.name)...")
 				try await virtualMachine.pause()
 
-				Logger.info("Create a snapshot of VM \(self.vmLocation.name)...")
+				Logger(self).info("Create a snapshot of VM \(self.vmLocation.name)...")
 				try await virtualMachine.saveMachineStateTo(url: vmLocation.stateURL)
 
-				Logger.info("Snap created successfully...")
+				Logger(self).info("Snap created successfully...")
 
 				return true
 			} else {
-				Logger.warn("Snapshot is only supported on macOS 14 or newer")
+				Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
 				Foundation.exit(1)
 			}
 		#else
@@ -161,7 +161,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#if arch(arm64)
 			if #available(macOS 14, *) {
 				if FileManager.default.fileExists(atPath: vmLocation.stateURL.path) {
-					Logger.info("Restore VM \(self.vmLocation.name) snapshot...")
+					Logger(self).info("Restore VM \(self.vmLocation.name) snapshot...")
 
 					try await virtualMachine.restoreMachineStateFrom(url: vmLocation.stateURL)
 					try FileManager.default.removeItem(at: vmLocation.stateURL)
@@ -170,14 +170,14 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				}
 			}
 			if resumeVM {
-				Logger.info("Resume VM \(self.vmLocation.name)...")
+				Logger(self).info("Resume VM \(self.vmLocation.name)...")
 				self.resumeVM(completionHandler: completionHandler)
 			} else {
-				Logger.info("Start VM \(self.vmLocation.name)...")
+				Logger(self).info("Start VM \(self.vmLocation.name)...")
 				self.startVM(completionHandler: completionHandler)
 			}
 		#else
-			Logger.info("Start VM \(self.vmLocation.name)...")
+			Logger(self).info("Start VM \(self.vmLocation.name)...")
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
@@ -195,26 +195,26 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {
-				Logger.info("Stopping VM \(self.vmLocation.name)...")
+				Logger(self).info("Stopping VM \(self.vmLocation.name)...")
 				self.stopVM()
 			}
 		}
 
-		Logger.info("VM \(self.vmLocation.name) exited")
+		Logger(self).info("VM \(self.vmLocation.name) exited")
 	}
 
 	public func startFromUI() {
 		self.virtualMachine.start{ result in
 			switch result {
 			case .success:
-				Logger.info("VM \(self.vmLocation.name) started")
+				Logger(self).info("VM \(self.vmLocation.name) started")
 				if let communicationDevices = self.communicationDevices {
 					communicationDevices.connect(virtualMachine: self.virtualMachine)
-					Logger.info("Communication devices \(self.vmLocation.name) connected")
+					Logger(self).info("Communication devices \(self.vmLocation.name) connected")
 				}
 				break
 			case .failure(let error):
-				Logger.error("VM \(self.vmLocation.name) failed to start: \(error)")
+				Logger(self).error("VM \(self.vmLocation.name) failed to start: \(error)")
 			}
 		}
 	}
@@ -224,14 +224,14 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.virtualMachine.start{ result in
 				switch result {
 				case .success:
-					Logger.info("VM \(self.vmLocation.name) started")
+					Logger(self).info("VM \(self.vmLocation.name) started")
 					if let communicationDevices = self.communicationDevices {
 						communicationDevices.connect(virtualMachine: self.virtualMachine)
-						Logger.info("Communication devices \(self.vmLocation.name) connected")
+						Logger(self).info("Communication devices \(self.vmLocation.name) connected")
 					}
 					break
 				case .failure(let error):
-					Logger.error("VM \(self.vmLocation.name) failed to start: \(error)")
+					Logger(self).error("VM \(self.vmLocation.name) failed to start: \(error)")
 				}
 
 				if let completionHandler = completionHandler {
@@ -246,13 +246,13 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.virtualMachine.resume { result in
 				switch result {
 				case .success:
-					Logger.info("VM \(self.vmLocation.name) resumed")
+					Logger(self).info("VM \(self.vmLocation.name) resumed")
 					if let communicationDevices = self.communicationDevices {
 						communicationDevices.connect(virtualMachine: self.virtualMachine)
 					}
 					break
 				case .failure(let error):
-					Logger.error("VM \(self.vmLocation.name) failed to resume: \(error)")
+					Logger(self).error("VM \(self.vmLocation.name) failed to resume: \(error)")
 				}
 
 				if let completionHandler = completionHandler {
@@ -264,7 +264,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	public func stopFromUI() {
 		self.virtualMachine.stop { result in
-			Logger.info("VM \(self.vmLocation.name) stopped")
+			Logger(self).info("VM \(self.vmLocation.name) stopped")
 
 			self.closeCommunicationDevices()
 		}
@@ -273,7 +273,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public func stopVM(completionHandler: StopCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			self.virtualMachine.stop { result in
-				Logger.info("VM \(self.vmLocation.name) stopped")
+				Logger(self).info("VM \(self.vmLocation.name) stopped")
 
 				self.closeCommunicationDevices()
 
@@ -302,7 +302,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	private func closeCommunicationDevices() {
 		if let communicationDevices = self.communicationDevices {
-			Logger.info("Close communication devices for VM \(self.vmLocation.name)")
+			Logger(self).info("Close communication devices for VM \(self.vmLocation.name)")
 			communicationDevices.close()
 		}
 	}
@@ -319,7 +319,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 						task.cancel()
 					}
 				} catch {
-					Logger.error(error)
+					Logger(self).error(error)
 
 					Foundation.exit(1)
 				}
@@ -328,7 +328,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		sigusr2.setEventHandler {
 			Task {
-				Logger.info("Request guest OS to stop...")
+				Logger(self).info("Request guest OS to stop...")
 				try self.virtualMachine.requestStop()
 			}
 		}
@@ -370,17 +370,17 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			}
 
 			guard let runningIP = runningIP else {
-				Logger.error("VM \(self.vmLocation.name) failed to get primary IP")
+				Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP")
 				return
 			}
 
-			Logger.info("VM \(self.vmLocation.name) started with primary IP: \(runningIP)")
+			Logger(self).info("VM \(self.vmLocation.name) started with primary IP: \(runningIP)")
 
 			if config.firstLaunch && config.agent == false {
 				do {
 					config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP)
 				} catch {
-					Logger.error("VM \(self.vmLocation.name) failed to install agent: \(error)")
+					Logger(self).error("VM \(self.vmLocation.name) failed to install agent: \(error)")
 				}
 			}
 
@@ -391,7 +391,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			if self.vmLocation.template == false {
 				if config.forwardedPorts.isEmpty == false {
-					Logger.info("Configure forwarding ports for VM \(self.vmLocation.name)")
+					Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 
 					PortForwardingServer.createPortForwardingServer(group: on.next())
 
@@ -407,25 +407,25 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				promise.fail(error)
 			}
 
-			Logger.error("VM \(self.vmLocation.name) failed to get primary IP: \(error)")
+			Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP: \(error)")
 		}
 		return response
 	}
 
 	func guestDidStop(_ virtualMachine: VZVirtualMachine) {
-		Logger.info("VM \(self.vmLocation.name) stopped")
+		Logger(self).info("VM \(self.vmLocation.name) stopped")
 
 		self.signalStop()
 	}
 
 	func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
-		Logger.error(error)
+		Logger(self).error(error)
 
 		self.signalStop()
 	}
 
 	func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
-		Logger.error(error)
+		Logger(self).error(error)
 
 		self.signalStop()
 	}

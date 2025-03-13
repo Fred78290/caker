@@ -47,6 +47,31 @@ class Unimplemented: Error {
 	}
 }
 
+extension Caked_RunReply {
+	private func print(_ out: Data, err: Bool) {
+		let output = String(data: out, encoding: .utf8) ?? ""
+		let lines = output.split(separator: "\n")
+
+		for line in lines {
+			if err {
+				Logger(self).error(String(line))
+			} else {
+				Logger(self).info(String(line))
+			}
+		}
+	}
+
+	func log() {
+		if self.stderr.isEmpty == false {
+			self.print(self.stderr, err: true)
+		}
+
+		if self.stdout.isEmpty == false {
+			self.print(self.stdout, err: false)
+		}
+	}
+}
+
 extension Caked_MountRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return MountHandler(request: self)
@@ -201,30 +226,6 @@ extension Caked_Error {
 	}
 }
 
-extension Caked_ExecuteReply {
-	private func print(_ out: Data, err: Bool) {
-		let output = String(data: out, encoding: .utf8) ?? ""
-		let lines = output.split(separator: "\n")
-
-		for line in lines {
-			if err {
-				Logger.error(String(line))
-			} else {
-				Logger.info(String(line))
-			}
-		}
-	}
-
-	func log() {
-		if self.hasError {
-			self.print(self.error, err: true)
-		}
-
-		if self.hasOutput {
-			self.print(self.output, err: false)
-		}
-	}
-}
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 	let asSystem: Bool
@@ -242,7 +243,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		var reply: Caked_Reply = Caked_Reply()
 		let eventLoop = self.group.next()
 
-		Logger.debug("execute: \(command)")
+		Logger(self).debug("execute: \(command)")
 
 		do {
 			if var cmd = command as? CakedCommandAsync {
@@ -334,27 +335,13 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
 		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
 
-		Logger.debug("execute: \(request)")
-
+		Logger(self).debug("execute: \(request)")
 		return try conn.info()
 	}
 
-	func execute(request: Caked_ExecuteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_ExecuteReply {
-		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(request.name)
-
-		if vmLocation.status != .running {
-			throw ServiceError("VM \(request.name) is not running")
-		}
-
-		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
-
-		return try conn.execute(request: request)
-	}
-
-	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>, context: GRPCAsyncServerCallContext) async throws {
-
+	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_RunReply {
 		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger.error(ServiceError("no CAKEAGENT_VMNAME header"))
+			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
 
 			throw ServiceError("no CAKEAGENT_VMNAME header")
 		}
@@ -363,7 +350,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			vmname = "primary"
 
 			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
-				Logger.info("Creating primary VM")
+				Logger(self).info("Creating primary VM")
 				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
 			}
 		}
@@ -371,14 +358,43 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
 
 		if vmLocation.status != .running {
-			Logger.info("Starting \(vmname)")
+			Logger(self).info("Starting \(vmname)")
 
 			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
 		}
 
 		let conn = try createCakeAgentConnection(vmName: vmname)
 
-		return try await conn.shell(requestStream: requestStream, responseStream: responseStream)
+		return try conn.run(request: request)
+	}
+
+    func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
+		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
+			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
+
+			throw ServiceError("no CAKEAGENT_VMNAME header")
+		}
+
+		if vmname == "" {
+			vmname = "primary"
+
+			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
+				Logger(self).info("Creating primary VM")
+				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
+			}
+		}
+
+		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
+
+		if vmLocation.status != .running {
+			Logger(self).info("Starting \(vmname)")
+
+			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
+		}
+
+		let conn = try createCakeAgentConnection(vmName: vmname)
+
+		return try await conn.execute(requestStream: requestStream, responseStream: responseStream)
 	}
 
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

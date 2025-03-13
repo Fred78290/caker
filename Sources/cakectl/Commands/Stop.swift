@@ -14,7 +14,7 @@ struct Stop: GrpcParsableCommand {
 	@Option(name: [.short, .long], help: "Force to stop")
 	var force: Bool = false
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

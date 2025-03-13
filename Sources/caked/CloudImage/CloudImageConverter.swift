@@ -10,9 +10,9 @@ class CloudImageConverter {
 				from.path(),
 				to.path()
 			])
-			Logger.info(convertOuput)
+			Logger(self).info(convertOuput)
 		} catch {
-			Logger.error(error)
+			Logger(self).error(error)
 
 			throw error
 		}
@@ -41,7 +41,7 @@ class CloudImageConverter {
 		}
 
 		// Download the cloud-image
-		Logger.debug("Fetching \(fromURL.lastPathComponent)...")
+		Logger(self).debug("Fetching \(fromURL.lastPathComponent)...")
 
 		let channel = try await Curl(fromURL: fromURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
 		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
@@ -67,7 +67,7 @@ class CloudImageConverter {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				}
 			} catch {
-				Logger.error(error)
+				Logger(self).error(error)
 			}
 		}
 
@@ -81,7 +81,7 @@ class CloudImageConverter {
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			Logger.info("Using cached \(cacheLocation.path) file...")
+			Logger(self).info("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate()
 			return cacheLocation
 		}
@@ -105,17 +105,17 @@ class CloudImageConverter {
 				do {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				} catch {
-					Logger.error(error)
+					Logger(self).error(error)
 				}
 			}
 		}
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
-			Logger.info("Using cached \(cacheLocation.path) file...")
+			Logger(self).info("Using cached \(cacheLocation.path) file...")
 			try cacheLocation.updateAccessDate() 
 		} else {
 			// Download the cloud-image
-			Logger.info("Fetching \(from.lastPathComponent)...")
+			Logger(self).info("Fetching \(from.lastPathComponent)...")
 
 			let channel = try await Curl(fromURL: from).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(from.lastPathComponent)"))
 

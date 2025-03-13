@@ -22,7 +22,35 @@ class GrpcError: Error {
 protocol GrpcParsableCommand: ParsableCommand {
 	var options: Client.Options { get }
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply
+}
+
+protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcParsableCommand {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> Caked_Reply
+}
+
+extension AsyncGrpcParsableCommand {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		throw CleanExit.helpRequest(self)
+	}
+
+	public mutating func run() async throws {
+		do {
+			let response = try await self.options.execute(command: self, arguments: self.options.arguments)
+
+			if response.count > 0 {
+				print(response)
+			}
+		} catch {
+			if let err = error as? GrpcError {
+				fputs("\(err.reason)\n", stderr)
+
+				Foundation.exit(Int32(err.code))
+			}
+			// Handle any other exception, including ArgumentParser's ones
+			Self.exit(withError: error)
+		}
+	}
 }
 
 extension GrpcParsableCommand {
@@ -99,24 +127,25 @@ struct Client: AsyncParsableCommand {
 			let command = command
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
-			// Make sure the group is shutdown when we're done with it.
 			defer {
-				try! group.syncShutdownGracefully()
+				try? group.syncShutdownGracefully()
 			}
 
 			let connection = try Client.createClient(on: group,
 			                                         listeningAddress: URL(string: self.address),
-													 connectionTimeout: self.timeout,
+			                                         connectionTimeout: self.timeout,
 			                                         caCert: self.caCert,
 			                                         tlsCert: self.tlsCert,
 			                                         tlsKey: self.tlsKey)
 
+			let grpcClient = CakeAgentClient(channel: connection, interceptors: CakeAgentClientInterceptorFactory())
+			let reply: Caked_Reply
+
 			defer {
-				try! connection.close().wait()
+				try? connection.close().wait()
 			}
 
-			let grpcClient = Caked_ServiceNIOClient(channel: connection)
-			let reply: Caked_Reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+			reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
 
 			switch reply.response {
 			case let .error(err):
@@ -125,6 +154,47 @@ struct Client: AsyncParsableCommand {
 				return msg
 			case .none:
 				throw GrpcError(code: -1, reason: "No reply")
+			}
+		}
+
+		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
+			let command = command
+			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+			let connection: ClientConnection? = nil
+			let finish = {
+				if let connection {
+					try? await connection.close().get()
+				}
+
+				try? await group.shutdownGracefully()
+			}
+
+			do {
+				let connection = try Client.createClient(on: group,
+				                                         listeningAddress: URL(string: self.address),
+				                                         connectionTimeout: self.timeout,
+				                                         caCert: self.caCert,
+				                                         tlsCert: self.tlsCert,
+				                                         tlsKey: self.tlsKey)
+
+				let grpcClient = CakeAgentClient(channel: connection, interceptors: CakeAgentClientInterceptorFactory())
+				let reply: Caked_Reply
+
+				reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+
+				await finish()
+
+				switch reply.response {
+				case let .error(err):
+					throw GrpcError(code: Int(err.code), reason: err.reason)
+				case let .output(msg):
+					return msg
+				case .none:
+					throw GrpcError(code: -1, reason: "No reply")
+				}
+			} catch {
+				await finish()
+				throw error
 			}
 		}
 
@@ -196,11 +266,11 @@ struct Client: AsyncParsableCommand {
 
 	static func createClient(on: EventLoopGroup,
 	                         listeningAddress: URL?,
-							 connectionTimeout: Int64 = 60,
+	                         connectionTimeout: Int64 = 60,
 	                         caCert: String?,
 	                         tlsCert: String?,
 	                         tlsKey: String?,
-							 retries: ConnectionBackoff.Retries = .unlimited) throws -> ClientConnection {
+	                         retries: ConnectionBackoff.Retries = .unlimited) throws -> ClientConnection {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -255,7 +325,7 @@ struct Client: AsyncParsableCommand {
 		}
 	}
 
-	mutating func run() throws {
+	mutating func run() async throws {
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
 		signal(SIGINT, SIG_IGN)
@@ -291,7 +361,13 @@ struct Client: AsyncParsableCommand {
 				Foundation.exit(-1)
 			}
 
-			let response = try self.options.execute(command: command, arguments: self.options.arguments)
+			let response: String
+
+			if let command = command as? AsyncGrpcParsableCommand {
+				response = try await self.options.execute(command: command, arguments: self.options.arguments)
+			} else {
+				response = try self.options.execute(command: command, arguments: self.options.arguments)
+			}
 
 			if response.count > 0 {
 				print(response)

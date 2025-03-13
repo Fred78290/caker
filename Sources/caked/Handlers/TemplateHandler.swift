@@ -65,11 +65,9 @@ struct TemplateHandler: CakedCommand {
 		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL)
 
-		Logger.info("Clean cloud-init on \(runningIP)")
+		Logger(self).info("Clean cloud-init on \(runningIP)")
 
-		try conn.execute(request: Caked_ExecuteRequest.with {
-			$0.command = cloudInitCleanup.joined(separator: " && ")
-		}).log()
+		try conn.run(command: cloudInitCleanup.joined(separator: " && ")).log()
 	}
 
 	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {

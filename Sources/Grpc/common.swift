@@ -395,7 +395,7 @@ public struct BuildOptions: ParsableArguments {
 	public var diskSize: UInt16 = 10
 
 	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk\n"))
-	public var disks: [String] = []
+	public var attachedDisks: [DiskAttachement] = []
 
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM\n")
 	public var user: String = "admin"
@@ -435,32 +435,25 @@ public struct BuildOptions: ParsableArguments {
 	public var displayRefit: Bool = false
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker\n", valueName: "host:guest/(tcp|udp|both)"))
-	internal var published: [String] = []
+	public var forwardedPorts: [ForwardedPort] = []
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
-	internal var shares: [String] = []
+	public var mounts: [DirectorySharingAttachment] = []
 
 	@Option(name: [.customLong("network"), .customShort("b")], help: ArgumentHelp("Add a network interface to the instance\n", discussion: network_help , valueName: "<spec>"))
-	internal var network: [String] = []
+	public var networks: [BridgeAttachement] = []
 
 	@Option(name: [.customLong("vsock"), .customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock\n", discussion: socket_help))
-	public var vsock: [String] = []
+	public var sockets: [SocketDevice] = []
 
 	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")\n", discussion: console_help, valueName: "url"))
-	internal var console: String?
-
-	public private(set) var consoleURL: ConsoleAttachment?
-	public private(set) var forwardedPorts: [ForwardedPort] = []
-	public private(set) var sockets: [SocketDevice] = []
-	public private(set) var mounts: [DirectorySharingAttachment] = []
-	public private(set) var networks: [BridgeAttachement] = []
-	public private(set) var attachedDisks: [DiskAttachement] = []
+	public var consoleURL: ConsoleAttachment?
 
 	public init() {
 	}
 
 	public init(name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
-				disks: [String] = [],
+				attachedDisks: [DiskAttachement] = [],
 	            user: String = "admin",
 	            password: String? = "nil",
 	            mainGroup: String = "admin",
@@ -473,16 +466,16 @@ public struct BuildOptions: ParsableArguments {
 	            userData: String? = nil,
 	            networkConfig: String? = nil,
 	            displayRefit: Bool = true,
-	            published: [String] = [],
-	            shares: [String] = ["~"],
-	            network: [String] = [],
-	            vsock: [String]	= [],
-	            console: String? = nil) {
+	            forwardedPorts: [ForwardedPort] = [],
+	            mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0)},
+	            networks: [BridgeAttachement] = [],
+	            sockets: [SocketDevice]	= [],
+	            consoleURL: ConsoleAttachment? = nil) {
 		self.name = name
 		self.cpu = cpu
 		self.memory = memory
 		self.diskSize = diskSize
-		self.disks = disks
+		self.attachedDisks = attachedDisks
 		self.user = user
 		self.password = password
 		self.mainGroup = mainGroup
@@ -495,11 +488,11 @@ public struct BuildOptions: ParsableArguments {
 		self.userData = userData
 		self.networkConfig = networkConfig
 		self.displayRefit = displayRefit
-		self.published = published
-		self.shares = shares
-		self.network = network
-		self.vsock = vsock
-		self.console = console
+		self.forwardedPorts = forwardedPorts
+		self.mounts = mounts
+		self.networks = networks
+		self.sockets = sockets
+		self.consoleURL = consoleURL
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
@@ -525,9 +518,11 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasAttachedDisks {
-			self.disks = request.attachedDisks.components(separatedBy: ",")
+			self.attachedDisks = try request.attachedDisks.components(separatedBy: ",").compactMap {
+				try DiskAttachement(parseFrom: $0)
+			}
 		} else {
-			self.disks = []
+			self.attachedDisks = []
 		}
 
 		if request.hasUser {
@@ -605,7 +600,9 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasMounts && request.mounts.isEmpty == false {
-			self.mounts = try request.mounts.components(separatedBy: ",").compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+			self.mounts = try request.mounts.components(separatedBy: ",").compactMap {
+				try DirectorySharingAttachment(parseFrom: $0)
+			}
 		} else {
 			self.mounts = []
 		}
@@ -618,7 +615,8 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasSockets && request.sockets.isEmpty == false {
-			self.sockets = try request.sockets.components(separatedBy: ",").compactMap { try SocketDevice(parseFrom: $0)
+			self.sockets = try request.sockets.components(separatedBy: ",").compactMap {
+				try SocketDevice(parseFrom: $0)
 			}
 		} else {
 			self.sockets = []
@@ -639,17 +637,6 @@ public struct BuildOptions: ParsableArguments {
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
-
-		if let console = console {
-			self.consoleURL = ConsoleAttachment(argument: console)
-			try self.consoleURL!.validate()
-		}
-
-		self.sockets = try self.vsock.compactMap { try SocketDevice(parseFrom: $0) }
-		self.forwardedPorts = self.published.compactMap { ForwardedPort(argument: $0) }
-		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
-		self.networks = try self.network.compactMap { try BridgeAttachement(parseFrom: $0) }
-		self.attachedDisks = try self.disks.compactMap { try DiskAttachement(parseFrom: $0) }
 	}
 }
 

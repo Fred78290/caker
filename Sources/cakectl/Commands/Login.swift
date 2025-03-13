@@ -48,7 +48,7 @@ struct Login: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

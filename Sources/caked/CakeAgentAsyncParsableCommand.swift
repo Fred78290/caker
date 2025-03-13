@@ -41,7 +41,7 @@ extension CakeAgentAsyncParsableCommand {
 		let vmLocation = try StorageLocation(asSystem: false).find(name)
 
 		if vmLocation.status != .running {
-			Logger.info("Starting VM \(name)")
+			Logger(self).info("Starting VM \(name)")
 			let config = try vmLocation.config()
 
 			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background)

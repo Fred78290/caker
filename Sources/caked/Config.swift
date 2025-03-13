@@ -284,6 +284,30 @@ final class CakeConfig{
 		get { self.config["display"] as! DisplaySize }
 	}
 
+	var linuxMounts: String {
+		guard self.os == .linux else {
+			return ""
+		}
+
+		return self.mounts.compactMap { mount in
+			let target: String
+
+			if mount.destination == nil {
+				target = "\(mount.name):/mnt/shared/\(mount.human)"
+			} else {
+				target = "\(mount.name):\(mount.destination!)"
+			}
+
+			let options = mount.options.joined(separator: ",")
+
+			if options.isEmpty {
+				return "--mount=\(target)"
+			}
+
+			return "--mount=\(target),\(options)"
+		}.joined(separator: " ")
+	}
+
 	init(location: URL,
 	     os: VirtualizedOS,
 	     autostart: Bool,
@@ -403,7 +427,7 @@ extension CakeConfig {
 				return BridgedNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())	
 			}
 
-			Logger.warn("Network interface \(inf.network) not found")
+			Logger(self).warn("Network interface \(inf.network) not found")
 
 			return nil
 		}
@@ -448,10 +472,12 @@ extension CakeConfig {
 			return [sharingDevice]
 		}
 
-		return self.mounts.reduce(into: [VZDirectorySharingDeviceConfiguration]()) { configurations, mount in
+		return self.mounts.compactMap{ mount in
 			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mount.name)
 
 			sharingDevice.share = VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
+
+			return sharingDevice
 		}
 	}
 

@@ -22,6 +22,10 @@ public struct SocketDevice: Codable {
 }
 
 extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
+	public var defaultValueDescription: String {
+		"[bind|connect|tcp|udp|fd]://[host|fd[,fd]]:port"
+	}
+
 	public var description: String {
 		if mode == .bind || mode == .connect {
 			return "\(mode)://vsock:\(port)\(bind)"

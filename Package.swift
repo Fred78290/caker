@@ -42,10 +42,10 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
 		.package(url: "https://github.com/apple/swift-log.git", from: "1.6.2"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git",  from: "0.1.3"),
+		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git",  from: "0.1.4"),
 //		.package(url: "https://github.com/1024jp/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "9db720b6a14f6b4467f9320c4dfcf21194a81f0f"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "e9a9d8a56e27a6eca6783b546e64d9d5cde02265"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),

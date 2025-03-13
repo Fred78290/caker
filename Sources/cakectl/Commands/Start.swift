@@ -11,7 +11,7 @@ struct Start: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.start(Caked_StartRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

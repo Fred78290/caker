@@ -48,7 +48,7 @@ class SocketState {
 			self.connection = nil
 			self.channel = nil
 
-			Logger.debug("Socket connection on \(self.description) is closed by remote")
+			Logger(self).debug("Socket connection on \(self.description) is closed by remote")
 		}
 
 		return channel
@@ -62,14 +62,14 @@ class SocketState {
 
 				if let channel = channel {
 					channel.close().whenComplete { _ in
-						Logger.info("Socket connection on \(self.description) was closed by remote")
+						Logger(self).info("Socket connection on \(self.description) was closed by remote")
 					}
 
 					self.channel = nil
 
 					return channel
 				} else {
-					Logger.info("Socket connection on \(self.description) is broken")
+					Logger(self).info("Socket connection on \(self.description) is broken")
 				}
 			}
 		}
@@ -204,13 +204,13 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					promise.succeed(())
 				} catch {
 					if error.localizedDescription.contains("Connection reset by peer") == false {
-						Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+						Logger(self).error("Failed to connect to socket device on port:\(port), \(error)")
 					}
 					promise.fail(error)
 				}
 			case let .failure(error):
 				if error.localizedDescription.contains("Connection reset by peer") == false {
-					Logger.error("Failed to connect to socket device on port:\(port), \(error)")
+					Logger(self).error("Failed to connect to socket device on port:\(port), \(error)")
 				}
 				// Notify the promise that the connection is failed
 				promise.fail(error)
@@ -307,9 +307,9 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 							case let .success(channel):
 								self.channels.append(channel)
 								self.sockets[port]?.channel = channel
-								Logger.debug("Socket device connected on \(socket.description)")
+								Logger(self).debug("Socket device connected on \(socket.description)")
 							case let .failure(error):
-								Logger.error("Failed to connect socket device on \(socket.description), \(error)")
+								Logger(self).error("Failed to connect socket device on \(socket.description), \(error)")
 							}
 						}
 					}
@@ -349,7 +349,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 			} catch {
 				// Reject vsock connection if the connection to unix socket failed
-				Logger.error("Failed to connect the socket device on \(socket.description), \(error)")
+				Logger(self).error("Failed to connect the socket device on \(socket.description), \(error)")
 				return false
 			}
 		} else if socket.mode == .fd {
@@ -374,7 +374,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 			} catch {
 				// Reject vsock connection if the connection to unix socket failed
-				Logger.error("Failed to connect the socket device on \(socket.description), \(error)")
+				Logger(self).error("Failed to connect the socket device on \(socket.description), \(error)")
 				return false
 			}
 

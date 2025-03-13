@@ -260,7 +260,8 @@
 			"request": "launch",
 			"args": [
 				"start",
-				"linux"
+				"linux",
+				"--foreground"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked start linux",

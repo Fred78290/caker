@@ -4,6 +4,10 @@ import ArgumentParser
 public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
     let consoleURL: String
 
+	public var defaultValueDescription: String {
+		"[file|unix|fd]://[path|fd[,fd]]"
+	}
+
 	public var description: String {
 		consoleURL
 	}

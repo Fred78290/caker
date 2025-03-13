@@ -105,7 +105,7 @@ final class GlueHandler: ChannelDuplexHandler {
 	}
 
 	func errorCaught(context _: ChannelHandlerContext, error : Error) {
-		Logger.error(error)
+		Logger(self).error(error)
 		partner?.partnerCloseFull()
 	}
 

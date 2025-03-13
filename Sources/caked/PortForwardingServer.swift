@@ -52,7 +52,7 @@ class PortForwardingServer {
 		let uuid = UUID().uuidString
 		let pfw = PortForwarder(group: mainGroup, remoteHost: remoteHost,
 			mappedPorts: forwardedPorts.map { forwarded in
-				Logger.info("Remote: \(remoteHost), forward port: \(forwarded.proto.rawValue) \(forwarded.guest) to \(forwarded.host)")
+				Logger(self).info("Remote: \(remoteHost), forward port: \(forwarded.proto.rawValue) \(forwarded.guest) to \(forwarded.host)")
 				return MappedPort(host: forwarded.host, guest: forwarded.guest, proto: forwarded.proto)
 			},
 			bindAddress: self.bindAddress,
@@ -86,7 +86,7 @@ class PortForwardingServer {
 					return port.description
 				}
 
-				Logger.info("Add forwarded ports\(details.joined(separator: ", "))")
+				Logger(self).info("Add forwarded ports\(details.joined(separator: ", "))")
 	
 				return try portForwardingServer.add(remoteHost: remoteHost, forwardedPorts: forwardedPorts)
 			}

@@ -14,7 +14,7 @@ struct Rename: GrpcParsableCommand {
 	@Argument(help: "new VM name")
 	var newName: String
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

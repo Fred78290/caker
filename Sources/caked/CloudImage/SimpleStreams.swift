@@ -42,11 +42,11 @@ class Streamable {
 			if FileManager.default.fileExists(atPath: indexLocation.path) {
 				if let cached = simpleStreamCache.findCache(fingerprintOrAlias: cachedFile) {
 					if cached.fingerprint == etag {
-						Logger.info("Using cached \(cachedFile) file...")
+						Logger(self).info("Using cached \(cachedFile) file...")
 						try indexLocation.updateAccessDate()
 						return try T(fromURL: indexLocation)
 					} else {
-						Logger.info("Cached \(cachedFile) file is outdated...")
+						Logger(self).info("Cached \(cachedFile) file is outdated...")
 						try simpleStreamCache.deleteCache(fingerprint: cached.fingerprint)
 					}
 				}
@@ -56,7 +56,7 @@ class Streamable {
 		}
 
 		// Download the index
-		Logger.debug("Fetching \(remoteURL.lastPathComponent)...")
+		Logger(self).debug("Fetching \(remoteURL.lastPathComponent)...")
 
 		let channel = try await Curl(fromURL: remoteURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(remoteURL.lastPathComponent)"))
 

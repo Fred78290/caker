@@ -5,33 +5,9 @@ import Yams
 import GRPCLib
 import Gzip
 
-let CAKEAGENT_SNAPSHOT = "9db720b6"
+let CAKEAGENT_SNAPSHOT = "4e4754f7"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
-
-let instal_cakeagent = """
-#!/bin/sh
-CIDATA=$(blkid -L CIDATA || :)
-if [ -n \"$CIDATA\" ]; then
-	MOUNT=$(mktemp -d)
-	mount -L CIDATA $MOUNT || exit 1
-	cp $MOUNT/cakeagent /usr/local/bin/cakeagent
-	umount $MOUNT
-	chmod +x /usr/local/bin/cakeagent
-	echo "com.apple.virtio-fs.automount /mnt/shared virtiofs rw,relatime 0 0" >> /etc/fstab
-	mkdir -p /mnt/shared
-	chmod 777 /mnt/shared
-	mount /mnt/shared
-	/usr/local/bin/cakeagent --install \\
-		--listen=vsock://any:5000 \\
-		--ca-cert=/etc/cakeagent/ssl/ca.pem \\
-		--tls-cert=/etc/cakeagent/ssl/server.pem \\
-		--tls-key=/etc/cakeagent/ssl/server.key
-else
-  echo \"CIDATA not found\"
-  exit 1
-fi
-"""
 
 extension Dictionary {
 	init(contentsOf: URL) throws {
@@ -139,7 +115,7 @@ struct CloudInitNetwork: Codable {
 
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-	
+
 		try container.encodeIfPresent(version, forKey: .version)
 		try container.encodeIfPresent(ethernets, forKey: .ethernets)
 	}
@@ -175,7 +151,7 @@ struct Interface: Codable {
 
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-	
+
 		try container.encodeIfPresent(match, forKey: .match)
 		try container.encodeIfPresent(setName, forKey: .setName)
 		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
@@ -192,7 +168,7 @@ struct Match: Codable {
 
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-	
+
 		try container.encodeIfPresent(name, forKey: .name)
 		try container.encodeIfPresent(macAddress, forKey: .macAddress)
 	}
@@ -312,40 +288,40 @@ struct CloudConfigData: Codable {
 			}
 
 			encoded =
-"""
-Content-Type: multipart/mixed; boundary="===============2389165605550749110=="
-MIME-Version: 1.0
-Number-Attachments: 2
+				"""
+				Content-Type: multipart/mixed; boundary="===============2389165605550749110=="
+				MIME-Version: 1.0
+				Number-Attachments: 2
 
---===============2389165605550749110==
-Content-Type: text/cloud-config; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="user-data"
-
-
-"""
-
-+ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
-
-"""
+				--===============2389165605550749110==
+				Content-Type: text/cloud-config; charset="utf-8"
+				MIME-Version: 1.0
+				Content-Transfer-Encoding: base64
+				Content-Disposition: attachment; filename="user-data"
 
 
---===============2389165605550749110==
-Content-Type: text/cloud-config; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="vendor-data"
+				"""
+
+				+ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
+
+				"""
 
 
-"""
-+ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
+				--===============2389165605550749110==
+				Content-Type: text/cloud-config; charset="utf-8"
+				MIME-Version: 1.0
+				Content-Transfer-Encoding: base64
+				Content-Disposition: attachment; filename="vendor-data"
 
-"""
+
+				"""
+				+ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
+
+				"""
 
 
---===============2389165605550749110==--
-"""
+				--===============2389165605550749110==--
+				"""
 		} else {
 			encoded = "#cloud-config\n\(try encoder.encode(self))"
 		}
@@ -645,7 +621,33 @@ class CloudInit {
 		return localAgent
 	}
 
+	private func installCakeAgentScript(config: CakeConfig) -> String {
+		let install_cakeagent: String =
+			"""
+			#!/bin/sh
+			CIDATA=$(blkid -L CIDATA || :)
+			if [ -n \"$CIDATA\" ]; then
+				MOUNT=$(mktemp -d)
+				mount -L CIDATA $MOUNT || exit 1
+				cp $MOUNT/cakeagent /usr/local/bin/cakeagent
+				umount $MOUNT
+				chmod +x /usr/local/bin/cakeagent
+				/usr/local/bin/cakeagent --install \\
+					--listen=vsock://any:5000 \\
+					--ca-cert=/etc/cakeagent/ssl/ca.pem \\
+					--tls-cert=/etc/cakeagent/ssl/server.pem \\
+					--tls-key=/etc/cakeagent/ssl/server.key \(config.linuxMounts)
+			else
+			  echo \"CIDATA not found\"
+			  exit 1
+			fi
+			"""
+
+		return install_cakeagent.data(using: .ascii)?.base64EncodedString() ?? ""
+	}
+
 	private func buildVendorData(config: CakeConfig) throws -> CloudConfigData {
+		let installCakeagent = installCakeAgentScript(config: config)
 		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
@@ -663,7 +665,7 @@ class CloudInit {
 		                                 tz: TimeZone.current.identifier,
 		                                 packages: ["pollinate"],
 		                                 writeFiles: [
-		                                 	WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: instal_cakeagent.data(using: .ascii)?.base64EncodedString() ?? "", encoding: "base64", permissions: "0755"),
+		                                 	WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755"),
 		                                 	WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
 		                                 	WriteFile(path: "/etc/pollinate/add-user-agent", content: "caked/vz/1.0 # Written by caked"),
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),

@@ -112,6 +112,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	private let diskPath: String
 	private let diskOptions: DiskOptions
 
+	public var defaultValueDescription: String {
+		"[local path|nbd://url|nbds://url|nbd+unix://url|nbds+unix://url][,ro][,sync=none|full][,caching=automatic|cached|uncached]"
+	}
+
 	public var description: String {
 		var value: [String] = [diskPath]
 		let options = self.diskOptions.description

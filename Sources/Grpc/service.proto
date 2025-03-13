@@ -28,6 +28,7 @@ service Service {
 	rpc Template(TemplateRequest) returns (Reply) {}
 	rpc Rename(RenameRequest) returns (Reply);
 	rpc Info (InfoRequest) returns (InfoReply);
+	rpc Run (RunCommand) returns (RunReply);
 	rpc Execute (stream ExecuteRequest) returns (stream ExecuteResponse);
 	rpc Mount(MountRequest) returns (Reply);
 	rpc Umount(MountRequest) returns (Reply);
@@ -244,6 +245,17 @@ message InfoReply {
 message Command {
 	string command = 1;
 	repeated string args = 2;
+}
+
+message RunCommand {
+	Command command = 1;
+	optional bytes input = 2;
+}
+
+message RunReply {
+	int32 exitCode = 1;
+	bytes stdout = 2;
+	bytes stderr = 3;
 }
 
 message ExecuteCommand {

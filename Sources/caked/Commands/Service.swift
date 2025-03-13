@@ -190,7 +190,7 @@ extension Service {
 		}
 	}
 
-	struct Listen : ParsableCommand {
+	struct Listen : AsyncParsableCommand {
 		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
@@ -203,7 +203,7 @@ extension Service {
 		var asSystem: Bool = false
 
 		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
-		var address: String?
+		var address: [String] = []
 
 		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
 		var caCert: String?
@@ -240,11 +240,11 @@ extension Service {
 			}
 		}
 
-		private func getServerAddress() throws -> String {
-			if let address = self.address {
-				return address
+		private func getServerAddress() throws -> [String] {
+			if self.address.isEmpty {
+				return try [Utils.getDefaultServerAddress(asSystem: asSystem)]
 			} else {
-				return try Utils.getDefaultServerAddress(asSystem: asSystem)
+				return self.address
 			}
 		}
 
@@ -296,7 +296,7 @@ extension Service {
 			throw ServiceError("connection address must be specified")
 		}
 
-		func run() throws {
+		func run() async throws {
 			runAsSystem = self.asSystem
 
 			if Root.vmrunAvailable() == false {
@@ -307,30 +307,44 @@ extension Service {
 
 			let listenAddress = try self.getServerAddress()
 
-			Logger.info("Start listening on \(listenAddress)")
-
-			// Start the server and print its address once it has started.
-			let server = try Self.createServer(eventLoopGroup: Root.group,
-			                                   asSystem: self.asSystem,
-			                                   listeningAddress: URL(string: listenAddress),
-			                                   caCert: self.caCert,
-			                                   tlsCert: self.tlsCert,
-			                                   tlsKey: self.tlsKey).wait()
+			let servers: [Server] = try listenAddress.map { address in
+				Logger(self).info("Start listening on \(address)")
+				return try Self.createServer(eventLoopGroup: Root.group,
+				                             asSystem: self.asSystem,
+				                             listeningAddress: URL(string: address),
+				                             caCert: self.caCert,
+				                             tlsCert: self.tlsCert,
+				                             tlsKey: self.tlsKey).wait()
+			}
 
 			signal(SIGINT, SIG_IGN)
 
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 
 			sigintSrc.setEventHandler {
-				try? server.close().wait()
+				servers.forEach {
+					try? $0.close().wait()
+				}
 			}
 
 			sigintSrc.activate()
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
-			try server.onClose.wait()
+			if servers.count > 0 {
+				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
+					servers.forEach { server in
+						group.addTask {
+							try await server.onClose.get()
+						}
+					}
 
-			Logger.info("Server stopped")
+					try await group.waitForAll()
+				}
+			} else {
+				try await servers.first!.onClose.get()
+			}
+
+			Logger(self).info("Server stopped")
 		}
 	}
 

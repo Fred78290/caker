@@ -30,7 +30,7 @@ struct VMRunHandler {
 			}
 
 			if vmHavingSameMacAddress != nil {
-				Logger.warn("This VM \(vmHavingSameMacAddress!.value.name) is running with the same mac address. Generating a new mac address")
+				Logger(self).warn("This VM \(vmHavingSameMacAddress!.value.name) is running with the same mac address. Generating a new mac address")
 				config.resetMacAddress()
 				try config.save()
 			}

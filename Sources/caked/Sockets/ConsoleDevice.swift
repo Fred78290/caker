@@ -56,9 +56,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			switch result {
 			case let .success(channel):
 				self.setChannel(channel)
-				Logger.info("Console listening on \(consoleURL.absoluteString)")
+				Logger(self).info("Console listening on \(consoleURL.absoluteString)")
 			case let .failure(error):
-				Logger.info("Failed to bind console on \(consoleURL.absoluteString), \(error)")
+				Logger(self).info("Failed to bind console on \(consoleURL.absoluteString), \(error)")
 			}
 		}
 
@@ -72,7 +72,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 
 		FileManager.default.createFile(atPath: consoleURL.absoluteURL.path(), contents: nil)
 
-		Logger.info("Console binded to file \(consoleURL.absoluteString)")
+		Logger(self).info("Console binded to file \(consoleURL.absoluteString)")
 
 		return (try FileHandle(forReadingFrom: consoleURL), try FileHandle(forWritingTo: consoleURL))
 	}
@@ -129,9 +129,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			closeFuture.whenComplete { result in
 				switch result {
 				case .success:
-					Logger.info("Console closed \(consoleURL.absoluteString)")
+					Logger(self).info("Console closed \(consoleURL.absoluteString)")
 				case let .failure(error):
-					Logger.info("Failed to close console \(consoleURL.absoluteString), \(error)")
+					Logger(self).info("Failed to close console \(consoleURL.absoluteString), \(error)")
 				}
 			}
 
@@ -144,9 +144,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			self.pipeChannel = nil
 
 			if port == 0 {
-				Logger.info("Console closed by the host on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed by the host on \(consoleURL.absoluteString)")
 			} else {
-				Logger.info("Console closed by the guest on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed by the guest on \(consoleURL.absoluteString)")
 			}
 		}
 	}

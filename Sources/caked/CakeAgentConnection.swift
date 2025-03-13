@@ -3,17 +3,79 @@ import CakeAgentLib
 import NIOCore
 import NIOPosix
 import NIOSSL
-import GRPC
+@preconcurrency import GRPC
 import GRPCLib
 import Logging
 import CakeAgentLib
+import SwiftProtobuf
 
 extension CakeAgentClient {
-	func info() -> EventLoopFuture<Caked_InfoReply?> {
+	class CakeAgentClientInterceptor<Request, Response>: ClientInterceptor<Request, Response>, @unchecked Sendable {
+		internal func log(_ error: Error) {
+			if let err: GRPCStatus = error as? GRPCStatus {
+				if let message = err.message, err.code != .unavailable {
+					Logger(self).error(message)
+				}
+			} else /*if String(describing: type(of: error)) != "ConnectionFailure"*/ {
+				Logger(self).error(error)
+			}
+		}
+
+		override func errorCaught(_ error: Error, context: ClientInterceptorContext<Request, Response>) {
+			super.errorCaught(error, context: context)
+		}
+
+		override func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<Request, Response>) {
+			super.cancel(promise: promise, context: context)
+		}
+	}
+
+	internal final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
+		func makeInfoInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>] {
+			[ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>()]
+		}
+
+		/// - Returns: Interceptors to use when invoking 'run'.
+		func makeRunInterceptors() -> [ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>] {
+			[ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>()]
+		}
+
+		/// - Returns: Interceptors to use when invoking 'execute'.
+		func makeExecuteInterceptors() -> [ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>] {
+			[ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>()]
+		}
+
+		/// - Returns: Interceptors to use when invoking 'mount'.
+		func makeMountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
+			[ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>()]
+		}
+
+		/// - Returns: Interceptors to use when invoking 'umount'.
+		func makeUmountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
+			[ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>()]
+		}
+
+	}
+
+	public static func createInterceptor() -> CakeAgentInterceptor {
+		return CakeAgentClientInterceptorFactory()
+	}
+
+	internal func log(_ error: Error) {
+		if let err = error as? GRPCStatus {
+			if let message = err.message, err.code != .unavailable {
+				Logger(self).error(message)
+			}
+		} else if String(describing: type(of: error)) != "ConnectionFailure" {
+			Logger(self).error(error)
+		}
+	}
+
+	func info() -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
 		let response = self.info(.init(), callOptions: .init(timeLimit: .none)).response
 
 		return response.flatMapThrowing { response in
-			return Caked_InfoReply.with {
+			return .success(Caked_InfoReply.with {
 				$0.version = response.version
 				$0.uptime = response.uptime
 				$0.cpuCount = response.cpuCount
@@ -29,59 +91,66 @@ extension CakeAgentClient {
 						memory.used = mem.used
 					}
 				}
-			}
-		}.flatMapError { error in
-			Logger.error(error)
-			return response.eventLoop.submit {
-				return nil
+			})
+		}.flatMapErrorWithEventLoop { error, eventLoop in
+			log(error)
+
+			return eventLoop.submit {
+				return .failure(error)
 			}
 		}
 	}
 
 	func info() throws -> Caked_InfoReply {
-		guard let response = try self.info().wait() else {
-			throw ServiceError("Failed to get info")
-		}
+		let response = try self.info().wait()
 
-		return response
+		switch response {
+		case .success(let reply):
+			return reply
+		case .failure(let error):
+			throw error
+		}
 	}
 
-	func execute(request: Caked_ExecuteRequest) -> EventLoopFuture<Caked_ExecuteReply?> {
-		let response = self.execute(Cakeagent_ExecuteRequest.with { req in
-			if request.hasInput {
-				req.input = Data(request.input)
+	func run(request: Caked_RunCommand) -> EventLoopFuture<Result<Caked_RunReply, Error>> {
+		let response = self.run(Cakeagent_RunCommand.with { req in
+			req.input = request.input
+			req.command = Cakeagent_Command.with {
+				$0.command = request.command.command
+				$0.args = request.command.args
 			}
-
-			req.command = request.command
-			req.args = request.args
 		}, callOptions: .init(timeLimit: .none)).response
 
 		return response.flatMapThrowing { response in
-			return Caked_ExecuteReply.with { reply in
+			return .success(Caked_RunReply.with { reply in
 				reply.exitCode = response.exitCode
 
-				if response.hasError {
-					reply.error = response.error
+				if response.stderr.isEmpty == false {
+					reply.stderr = response.stderr
 				}
 
-				if response.hasOutput {
-					reply.output = response.output
+				if response.stdout.isEmpty == false {
+					reply.stdout = response.stdout
 				}
-			}
-		}.flatMapError { error in
-			Logger.error(error)
+			})
+		}.flatMapErrorWithEventLoop { error, eventLoop in
+			log(error)
+
 			return response.eventLoop.submit {
-				return nil
+				return .failure(error)
 			}
 		}
 	}
 
-	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
-		guard let response = try self.execute(request: request).wait() else {
-			throw ServiceError("Failed to execute command")
-		}
+	func run(request: Caked_RunCommand) throws -> Caked_RunReply {
+		let response = try self.run(request: request).wait()
 
-		return response
+		switch response {
+		case .success(let reply):
+			return reply
+		case .failure(let error):
+			throw error
+		}
 	}
 
 	func mount(request: Caked_MountRequest) throws -> Caked_MountReply {
@@ -149,7 +218,7 @@ extension CakeAgentClient {
 	}
 }
 
-struct CakeAgentConnection {
+class CakeAgentConnection {
 	let caCert: String?
 	let tlsCert: String?
 	let tlsKey: String?
@@ -158,13 +227,13 @@ struct CakeAgentConnection {
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
+	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
 		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
 
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
+	internal init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
 		self.caCert = caCert
 		self.tlsCert = tlsCert
 		self.tlsKey = tlsKey
@@ -174,7 +243,7 @@ struct CakeAgentConnection {
 		self.retries = retries
 	}
 
-	init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {
+	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {
 		self.init(eventLoop: eventLoop,
 		          listeningAddress: listeningAddress,
 		          caCert: certLocation.caCertURL.path(),
@@ -184,20 +253,21 @@ struct CakeAgentConnection {
 		          retries: retries)
 	}
 
-	func createClient() throws -> CakeAgentClient {
+	internal func createClient(interceptors: CakeAgentInterceptor = CakeAgentClient.createInterceptor()) throws -> CakeAgentClient {
 		return try CakeAgentHelper.createClient(on: self.eventLoop,
 		                                        listeningAddress: self.listeningAddress,
 		                                        connectionTimeout: self.timeout,
 		                                        caCert: self.caCert,
 		                                        tlsCert: self.tlsCert,
 		                                        tlsKey: self.tlsKey,
-		                                        retries: self.retries)
+		                                        retries: self.retries,
+		                                        interceptors: interceptors)
 
 	}
 
-	func info() throws -> EventLoopFuture<Caked_InfoReply?> {
+	public func info() throws -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
 		let client = try createClient()
-		let response: EventLoopFuture<Caked_InfoReply?> = client.info()
+		let response: EventLoopFuture<Result<Caked_InfoReply, Error>> = client.info()
 
 		response.whenComplete { _ in
 			client.close(promise: response.eventLoop.makePromise(of: Void.self))
@@ -206,67 +276,119 @@ struct CakeAgentConnection {
 		return response
 	}
 
-	func info() throws -> Caked_InfoReply {
+	public func info() throws -> Caked_InfoReply {
+		let response = try self.info().wait()
+
+		switch response {
+		case .success(let reply):
+			return reply
+		case .failure(let error):
+			throw error
+		}
+	}
+
+	public func run(command: String, arguments: [String] = [], input: Data? = nil) throws -> Caked_RunReply {
 		let client = try createClient()
 
-		defer {
+		do {
+			let response = try client.run(Cakeagent_RunCommand.with { req in
+				if let data = input {
+					req.input = data
+				}
+
+				req.command = Cakeagent_Command.with {
+					$0.command = command
+					$0.args = arguments
+				}
+			}).response.wait()
+
 			try? client.close().wait()
-		}
 
-		return try client.info()
-	}
+			return Caked_RunReply.with { reply in
+				reply.exitCode = response.exitCode
 
-	func execute(request: Caked_ExecuteRequest) throws -> EventLoopFuture<Caked_ExecuteReply?> {
-		let client = try createClient()
-		let response: EventLoopFuture<Caked_ExecuteReply?> = client.execute(request: request)
+				if response.stderr.isEmpty == false {
+					reply.stderr = response.stderr
+				}
 
-		response.whenComplete { _ in
-			client.close(promise: response.eventLoop.makePromise(of: Void.self))
-		}
-
-		return response
-	}
-
-	func execute(request: Caked_ExecuteRequest) throws -> Caked_ExecuteReply {
-		let client = try createClient()
-
-		defer {
+				if response.stdout.isEmpty == false {
+					reply.stdout = response.stdout
+				}
+			}
+		} catch {
 			try? client.close().wait()
+			throw error
 		}
-
-		return try client.execute(request: request)
 	}
 
-	func shell(requestStream: GRPCAsyncRequestStream<Caked_ShellRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ShellResponse>) async throws {
-		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ShellResponse.self)
+	public func run(request: Caked_RunCommand) throws -> Caked_RunReply {
+		try self.run(command: String(request.command.command), arguments: request.command.args, input: request.input)
+	}
+
+	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
+		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ExecuteResponse.self)
 		let client = try createClient()
+
 		let finish = {
 			continuation.finish()
-			try? await responseStream.send(Caked_ShellResponse.with { $0.format = .end })
 			try? await client.close()
 		}
 
 		do {
 
-			let streamShell = client.shell(callOptions: .init(timeLimit: .none), handler: { response in
-				continuation.yield(Caked_ShellResponse.with { reply in
-					reply.format = .init(rawValue: response.format.rawValue) ?? .end
-					reply.datas = response.datas
+			let streamShell: BidirectionalStreamingCall<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse> = client.execute(callOptions: .init(timeLimit: .none), handler: { response in
+				continuation.yield(Caked_ExecuteResponse.with { reply in
+					switch response.response {
+					case .exitCode(let exitCode):
+						reply.exitCode = exitCode
+					case .stdout(let stdout):
+						reply.stdout = stdout
+					case .stderr(let stderr):
+						reply.stderr = stderr
+					case .none:
+						break
+					}
 				})
 			})
 
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 				group.addTask {
 					do {
-						for try await message in requestStream {
-							try await streamShell.sendMessage(Cakeagent_ShellMessage.with{msg in
-								msg.datas = message.datas
+						for try await message: Caked_ExecuteRequest in requestStream {
+							try await streamShell.sendMessage(Cakeagent_ExecuteRequest.with{msg in
+								switch message.request {
+								case .command(let command):
+									msg.command = Cakeagent_ExecuteCommand.with{ cmd in
+										switch command.execute {
+										case .shell:
+											cmd.shell = true
+										case .command(let execute):
+											cmd.command = Cakeagent_Command.with{ cmd in
+												cmd.command = execute.command
+												cmd.args = execute.args
+											}
+										case .none:
+											break
+										}
+									}
+								case .input(let input):
+									msg.input = input
+								case .size(let size):
+									msg.size = Cakeagent_TerminalSize.with{ termSize in
+										termSize.cols = size.cols
+										termSize.rows = size.rows
+									}
+								case .eof(let eof):
+									msg.eof = eof
+								case .none:
+									break
+								}
 							}).get()
 						}
 					} catch {
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logger.error(error)
+								Logger(self).error(error)
 								throw error
 							}
 						}
@@ -277,13 +399,17 @@ struct CakeAgentConnection {
 					do {
 						for try await message in stream {
 							try await responseStream.send(message)
+
+							if case .exitCode = message.response {
+								break
+							}
 						}
 					} catch {
 						continuation.finish()
 
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logger.error(error)
+								Logger(self).error(error)
 								throw error
 							}
 						}
@@ -320,7 +446,7 @@ struct CakeAgentConnection {
 		return try client.umount(request: request)
 	}
 
-	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {	
+	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries)
 	}
 }

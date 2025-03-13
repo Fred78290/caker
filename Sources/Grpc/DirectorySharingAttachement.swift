@@ -21,6 +21,10 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	let _uid: Int?
 	let _gid: Int?
 
+	public var defaultValueDescription: String {
+		"<source>[:<destination>][,ro][,name=<name>][,uid=<uid>][,gid=<gid>]"
+	}
+
 	public var name: String {
 		if let name = _name {
 			return name
@@ -57,9 +61,8 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		_gid ?? 0
 	}
 
-	public var description: String {
+	public var options: [String] {
 		var options: [String] = []
-		var result: String
 
 		if readOnly {
 			options.append("ro")
@@ -76,6 +79,13 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		if let gid = _gid {
 			options.append("gid=\(gid)")
 		}
+
+		return options
+	}
+
+	public var description: String {
+		let options: [String] = self.options
+		var result: String
 
 		if let destination = _destination {
 			result = "\(path.path):\(destination)"

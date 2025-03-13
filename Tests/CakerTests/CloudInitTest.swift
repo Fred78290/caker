@@ -94,7 +94,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address")
 		} catch {
-			Logger.error(error)
+			Logger(self).error(error)
 			throw error
 		}
 	}
@@ -106,7 +106,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			return try Shell.execute(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
 		} catch {
-			Logger.error(error)
+			Logger(self).error(error)
 
 			throw error
 		}

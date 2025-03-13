@@ -62,7 +62,7 @@ struct StartHandler: CakedCommand {
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
-				Logger.debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+				Logger(self).debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
@@ -78,7 +78,7 @@ struct StartHandler: CakedCommand {
 
 				return runningIP
 			} catch {
-				Logger.error(error)
+				Logger(self).error(error)
 
 				if process.isRunning == false {
 					if let promise: EventLoopPromise<String> = promise {
@@ -163,7 +163,7 @@ struct StartHandler: CakedCommand {
 			let (arguments, sharedFileDescriptors) = try self.runningArguments(vmLocation: vmLocation, startMode: startMode)
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode) { process in
-				Logger.debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+				Logger(self).debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
 
 				if let id = self.identifier {	
 					try? PortForwardingServer.closeForwardedPort(identifier: id)
@@ -195,7 +195,7 @@ struct StartHandler: CakedCommand {
 
 				return runningIP
 			} catch {
-				Logger.error(error)
+				Logger(self).error(error)
 
 				if process.isRunning == false {
 					if let promise: EventLoopPromise<String> = promise {
@@ -231,21 +231,21 @@ struct StartHandler: CakedCommand {
 
 				if config.autostart && vmLocation.status != .running {
 					Task {
-						Logger.info("VM \(name) starting")
+						Logger(self).info("VM \(name) starting")
 
 						do {
 							let handler: StartHandler = StartHandler(location: vmLocation, config: config, waitIPTimeout: 120, foreground: false)
 
 							let runningIP: String = try handler.run(on: on, asSystem: asSystem)
 
-							Logger.info("VM \(name) started with IP \(runningIP)")
+							Logger(self).info("VM \(name) started with IP \(runningIP)")
 						} catch {
-							Logger.error(error)
+							Logger(self).error(error)
 						}
 					}
 				}
 			} catch {
-				Logger.error(error)
+				Logger(self).error(error)
 			}
 
 			return vmLocation
@@ -258,9 +258,9 @@ struct StartHandler: CakedCommand {
 		promise.futureResult.whenComplete { result in
 			switch result {
 			case let .success(name):
-				Logger.info("VM \(name) terminated")
+				Logger(self).info("VM \(name) terminated")
 			case let .failure(err):
-				Logger.error(ServiceError("Failed to start VM \(self.location.name), \(err.localizedDescription)"))
+				Logger(self).error(ServiceError("Failed to start VM \(self.location.name), \(err.localizedDescription)"))
 			}
 		}
 
@@ -301,7 +301,7 @@ struct StartHandler: CakedCommand {
 		process.executableURL = URL(fileURLWithPath: "/bin/sh")
 		process.terminationHandler = terminationHandler
 
-		Logger.debug(process.arguments?.joined(separator: " ") ?? "")	
+		Logger(self).debug(process.arguments?.joined(separator: " ") ?? "")	
 
 		try process.run()
 

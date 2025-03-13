@@ -18,7 +18,7 @@ struct Remote: ParsableCommand {
 		@Argument(help: "url")
 		var url: String
 
-		func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 			return try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait()
 		}
 	}
@@ -31,7 +31,7 @@ struct Remote: ParsableCommand {
 		@Argument(help: "Remote name")
 		var remote: String
 
-		func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 			return try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait()
 		}
 	}
@@ -44,7 +44,7 @@ struct Remote: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 			return try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait()
 		}
 	}

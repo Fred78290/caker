@@ -3,7 +3,7 @@ import Foundation
 import GRPCLib
 import GRPC
 
-struct Exec: GrpcParsableCommand {
+struct Exec: AsyncGrpcParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "exec", abstract: "Run a shell command in a VM")
 
 	@OptionGroup var options: Client.Options
@@ -14,20 +14,13 @@ struct Exec: GrpcParsableCommand {
 	@Argument(help: "Command to execute")
 	var arguments: [String]
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		let response = try client.execute(Caked_ExecuteRequest(command: self), callOptions: callOptions).response.wait()
-
-		if response.hasError {
-			return Caked_Reply.with {
-				$0.error = Caked_Error.with {
-					$0.code = response.exitCode
-					$0.reason = String(data: response.error, encoding: .utf8) ?? ""
-				}
-			}
-		} else {
-			return Caked_Reply.with {
-				$0.output = String(data: response.output, encoding: .utf8) ?? ""
-			}
+	func validate() throws {
+		if arguments.isEmpty {
+			throw ValidationError("No command specified")
 		}
+	}
+
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> Caked_Reply {
+		Foundation.exit(try await client.exec(name: name, command: arguments.first!, arguments: arguments.dropFirst().map { $0 }, callOptions: callOptions))
 	}
 }

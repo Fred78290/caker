@@ -14,7 +14,7 @@ struct WaitIP: GrpcParsableCommand {
 	@Option(help: "Number of seconds to wait for a potential VM booting")
 	var wait: UInt16 = 0
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.waitIP(Caked_WaitIPRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }

@@ -30,35 +30,47 @@ struct Logger {
 	private static let eraseCursorDown: String = "\u{001B}[J"
 	private static let moveUp = "\u{001B}[1A"
 	private static let moveBeginningOfLine = "\r"
+	private static var logLevel: Logging.Logger.Level = .info
 
-	static let label = "com.aldunelabs.caker"
-	static var logger = Logging.Logger(label: Self.label)
+	let label = "com.aldunelabs.caker"
+	var logger: Logging.Logger
 
-	static public func setLevel(_ level: Logging.Logger.Level) {
-		logger.logLevel = level
+	public init(_ target: Any) {
+        let thisType = type(of: target)
+		self.logger = Logging.Logger(label: "com.aldunelabs.caker.\(String(describing: thisType))")
+		self.logger.logLevel = Self.logLevel
 	}
 
-	static public func error(_ err: Error) {
+	public init(_ label: String) {
+		self.logger = Logging.Logger(label: "com.aldunelabs.caker.\(label)")
+		self.logger.logLevel = Self.logLevel
+	}
+
+	static public func setLevel(_ level: Logging.Logger.Level) {
+		Self.logLevel = level
+	}
+
+	public func error(_ err: Error) {
 		logger.error(.init(stringLiteral: err.localizedDescription))
 	}
 
-	static public func error(_ err: String) {
+	public func error(_ err: String) {
 		logger.error(.init(stringLiteral: err))
 	}
 
-	static public func warn(_ line: String) {
+	public func warn(_ line: String) {
 		logger.warning(.init(stringLiteral: line))
 	}
 
-	static public func info(_ line: String) {
+	public func info(_ line: String) {
 		logger.info(.init(stringLiteral: line))
 	}
 
-	static public func debug(_ line: String) {
+	public func debug(_ line: String) {
 		logger.debug(.init(stringLiteral: line))
 	}
 
-	static public func trace(_ line: String) {
+	public func trace(_ line: String) {
 		logger.trace(.init(stringLiteral: line))
 	}
 

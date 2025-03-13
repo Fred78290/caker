@@ -252,9 +252,9 @@ struct VMLocation {
 		if force || config.useCloudInit == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
-			try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem).execute(request: Caked_ExecuteRequest.with {
-				$0.command = "shutdown -h now"
-			}).log()
+			let client = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem)
+
+			try client.run(command: "shutdown", arguments: ["-h", "now"]).log()
 		} else {
 			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) {
 				let ssh = try SSH(host: ip)
@@ -330,7 +330,7 @@ struct VMLocation {
 			}
 
 			if let infos = try? conn.info().wait() {
-				if let runningIP = infos.ipaddresses.first {
+				if case let .success(infos) = infos, infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
 					return runningIP
 				}
 			}
@@ -359,13 +359,12 @@ struct VMLocation {
 
 	func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
 		if config.agent {
-			let response: EventLoopFuture<Caked_InfoReply?> = try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).info()
-
-			return response.flatMapThrowing {
-				return $0?.ipaddresses.first
-			}.flatMapErrorWithEventLoop {
-				$1.submit {
-					nil
+			return try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).info().flatMap { response in
+				switch response {
+				case .success(let infos):
+					return on.makeSucceededFuture(infos.ipaddresses.first)
+				case .failure:
+					return on.makeSucceededFuture(nil)
 				}
 			}
 		} else {
@@ -392,7 +391,7 @@ struct VMLocation {
 	}
 
 	func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
-		Logger.info("Installing agent on \(self.name)")
+		Logger(self).info("Installing agent on \(self.name)")
 
 		let home: Home = try Home(asSystem: runAsSystem)
 		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
@@ -403,96 +402,96 @@ struct VMLocation {
 		let ssh = try createSSH(host: runningIP, timeout: 120)
 		let tempFileURL = try Home(asSystem: false).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
-#!/bin/sh
-set -xe
+		#!/bin/sh
+		set -xe
 
-case $(uname -m) in
-	x86_64)
-		ARCH=amd64
-		;;
-	aarch64|arm64)
-		ARCH=arm64
-		;;
-esac
+		case $(uname -m) in
+			x86_64)
+				ARCH=amd64
+				;;
+			aarch64|arm64)
+				ARCH=arm64
+				;;
+		esac
 
-case $(uname -s) in
-	Darwin)
-		OSDISTRO=darwin
-		;;
-	*)
-		OSDISTRO=linux
-		;;
-esac
+		case $(uname -s) in
+			Darwin)
+				OSDISTRO=darwin
+				;;
+			*)
+				OSDISTRO=linux
+				;;
+		esac
 
-AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
+		AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
 
-if [ "${OSDISTRO}" = "darwin" ]; then
-	CERTS="/Library/Application Support/CakeAgent/certs"
-	SSHDIR="/Users/\(config.configuredUser)/.ssh"
-else
-	CERTS="/etc/cakeagent/ssl"
-	SSHDIR="/home/\(config.configuredUser)/.ssh"
-fi
+		if [ "${OSDISTRO}" = "darwin" ]; then
+			CERTS="/Library/Application Support/CakeAgent/certs"
+			SSHDIR="/Users/\(config.configuredUser)/.ssh"
+		else
+			CERTS="/etc/cakeagent/ssl"
+			SSHDIR="/home/\(config.configuredUser)/.ssh"
+		fi
 
-mkdir -p "${CERTS}"
+		mkdir -p "${CERTS}"
 
-CA="${CERTS}/ca.pem"
-SERVER="${CERTS}/server.pem"
-KEY="${CERTS}/server.key"
+		CA="${CERTS}/ca.pem"
+		SERVER="${CERTS}/server.pem"
+		KEY="${CERTS}/server.key"
 
-mkdir -p /usr/local/bin ${SSHDIR}
+		mkdir -p /usr/local/bin ${SSHDIR}
 
-curl -L $AGENT_URL -o /usr/local/bin/cakeagent
+		curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
-echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
+		echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
 
-cat <<EOF | base64 -d > "${CA}"
-\(caCert)
-EOF
+		cat <<EOF | base64 -d > "${CA}"
+		\(caCert)
+		EOF
 
-cat <<EOF | base64 -d > "${SERVER}"
-\(serverPem)
-EOF
+		cat <<EOF | base64 -d > "${SERVER}"
+		\(serverPem)
+		EOF
 
-cat <<EOF | base64 -d > "${KEY}"
-\(serverKey)
-EOF
+		cat <<EOF | base64 -d > "${KEY}"
+		\(serverKey)
+		EOF
 
-chmod -R 600 "${CERTS}"
+		chmod -R 600 "${CERTS}"
 
-if [ "${OSDISTRO}" = "darwin" ]; then
-	chown root:wheel /usr/local/bin/cakeagent
-	chown -R root:wheel "${CERTS}"
-else
-	chown root:adm /usr/local/bin/cakeagent
-	chown -R root:adm "${CERTS}"
-	echo "com.apple.virtio-fs.automount /mnt/shared virtiofs rw,relatime 0 0" >> /etc/fstab
-	mkdir -p /mnt/shared
-	chmod 777 /mnt/shared
-	mount /mnt/shared
-fi
+		if [ "${OSDISTRO}" = "darwin" ]; then
+			chown root:wheel /usr/local/bin/cakeagent
+			chown -R root:wheel "${CERTS}"
+		else
+			chown root:adm /usr/local/bin/cakeagent
+			chown -R root:adm "${CERTS}"
+			mkdir -p /mnt/shared
+			chmod 777 /mnt/shared
+			mount /mnt/shared
+		fi
 
-chmod 755 /usr/local/bin/cakeagent
+		chmod 755 /usr/local/bin/cakeagent
 
-/usr/local/bin/cakeagent --install \\
-	--listen="vsock://any:5000" \\
-	--ca-cert="${CA}" \\
-	--tls-cert="${SERVER}" \\
-	--tls-key="${KEY}"
+		/usr/local/bin/cakeagent --install \\
+			--listen="vsock://any:5000" \\
+			--ca-cert="${CA}" \\
+			--tls-cert="${SERVER}" \\
+			--tls-key="${KEY}" \(config.linuxMounts)
 
-"""
+		"""
+
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
-		
+
 		try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
 		let result = try ssh.capture("sudo sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'")
-		
+
 		if result.status == 0 {
-			Logger.info("Agent installed on \(self.name), exit code: \(result.status)")
+			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
 		} else {
-			Logger.error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
+			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 		}
 
 		return result.status == 0

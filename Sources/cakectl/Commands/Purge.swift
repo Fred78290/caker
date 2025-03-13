@@ -24,7 +24,7 @@ struct Purge: GrpcParsableCommand {
 	                           valueName: "n"))
 	var spaceBudget: UInt?
 
-	func run(client: Caked_ServiceNIOClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
 		return try client.purge(Caked_PurgeRequest(command: self), callOptions: callOptions).response.wait()
 	}
 }
