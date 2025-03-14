@@ -123,14 +123,8 @@ struct Client: AsyncParsableCommand {
 		@Option(name: [.customLong("tls-key")], help: "Client private key")
 		public var tlsKey: String? = nil
 
-		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
-			let command = command
+		func prepareClient() throws -> (EventLoopGroup, CakeAgentClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-
-			defer {
-				try? group.syncShutdownGracefully()
-			}
-
 			let connection = try Client.createClient(on: group,
 			                                         listeningAddress: URL(string: self.address),
 			                                         connectionTimeout: self.timeout,
@@ -138,14 +132,18 @@ struct Client: AsyncParsableCommand {
 			                                         tlsCert: self.tlsCert,
 			                                         tlsKey: self.tlsKey)
 
-			let grpcClient = CakeAgentClient(channel: connection, interceptors: CakeAgentClientInterceptorFactory())
-			let reply: Caked_Reply
+			return (group, CakeAgentClient(channel: connection, interceptors: CakeAgentClientInterceptorFactory()))
+		}
+
+		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
+			let (group, grpcClient) = try prepareClient()
 
 			defer {
-				try? connection.close().wait()
+				try? grpcClient.channel.close().wait()
+				try? group.syncShutdownGracefully()
 			}
 
-			reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+			let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
 
 			switch reply.response {
 			case let .error(err):
@@ -158,29 +156,14 @@ struct Client: AsyncParsableCommand {
 		}
 
 		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
-			let command = command
-			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-			let connection: ClientConnection? = nil
+			let (group, grpcClient) = try prepareClient()
 			let finish = {
-				if let connection {
-					try? await connection.close().get()
-				}
-
+				try? await grpcClient.channel.close().get()
 				try? await group.shutdownGracefully()
 			}
 
 			do {
-				let connection = try Client.createClient(on: group,
-				                                         listeningAddress: URL(string: self.address),
-				                                         connectionTimeout: self.timeout,
-				                                         caCert: self.caCert,
-				                                         tlsCert: self.tlsCert,
-				                                         tlsKey: self.tlsKey)
-
-				let grpcClient = CakeAgentClient(channel: connection, interceptors: CakeAgentClientInterceptorFactory())
-				let reply: Caked_Reply
-
-				reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+				let reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
 
 				await finish()
 
@@ -269,8 +252,7 @@ struct Client: AsyncParsableCommand {
 	                         connectionTimeout: Int64 = 60,
 	                         caCert: String?,
 	                         tlsCert: String?,
-	                         tlsKey: String?,
-	                         retries: ConnectionBackoff.Retries = .unlimited) throws -> ClientConnection {
+	                         tlsKey: String?) throws -> ClientConnection {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -305,11 +287,7 @@ struct Client: AsyncParsableCommand {
 					certificateVerification: .noHostnameVerification)
 			}
 
-			if retries != .unlimited {
-				clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
-			} else {
-				clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout))
-			}
+			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: .upTo(1))
 
 			return ClientConnection(configuration: clientConfiguration)
 		}

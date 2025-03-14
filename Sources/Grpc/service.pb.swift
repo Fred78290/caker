@@ -1249,12 +1249,21 @@ public struct Caked_ExecuteResponse: @unchecked Sendable {
     set {response = .stderr(newValue)}
   }
 
+  public var failure: String {
+    get {
+      if case .failure(let v)? = response {return v}
+      return String()
+    }
+    set {response = .failure(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public enum OneOf_Response: Equatable, @unchecked Sendable {
     case exitCode(Int32)
     case stdout(Data)
     case stderr(Data)
+    case failure(String)
 
   }
 
@@ -3272,6 +3281,7 @@ extension Caked_ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     1: .same(proto: "exitCode"),
     2: .same(proto: "stdout"),
     3: .same(proto: "stderr"),
+    4: .same(proto: "failure"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3304,6 +3314,14 @@ extension Caked_ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
           self.response = .stderr(v)
         }
       }()
+      case 4: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.response != nil {try decoder.handleConflictingOneOf()}
+          self.response = .failure(v)
+        }
+      }()
       default: break
       }
     }
@@ -3326,6 +3344,10 @@ extension Caked_ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     case .stderr?: try {
       guard case .stderr(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
+    }()
+    case .failure?: try {
+      guard case .failure(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }

@@ -227,7 +227,6 @@ extension Caked_Error {
 }
 
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
-	var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? = nil
 	let asSystem: Bool
 	let group: EventLoopGroup
 	let certLocation: CertificatesLocation

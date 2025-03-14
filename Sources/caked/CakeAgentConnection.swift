@@ -8,60 +8,10 @@ import GRPCLib
 import Logging
 import CakeAgentLib
 import SwiftProtobuf
+import Atomics
 
 extension CakeAgentClient {
-	class CakeAgentClientInterceptor<Request, Response>: ClientInterceptor<Request, Response>, @unchecked Sendable {
-		internal func log(_ error: Error) {
-			if let err: GRPCStatus = error as? GRPCStatus {
-				if let message = err.message, err.code != .unavailable {
-					Logger(self).error(message)
-				}
-			} else /*if String(describing: type(of: error)) != "ConnectionFailure"*/ {
-				Logger(self).error(error)
-			}
-		}
-
-		override func errorCaught(_ error: Error, context: ClientInterceptorContext<Request, Response>) {
-			super.errorCaught(error, context: context)
-		}
-
-		override func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<Request, Response>) {
-			super.cancel(promise: promise, context: context)
-		}
-	}
-
-	internal final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
-		func makeInfoInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>] {
-			[ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>()]
-		}
-
-		/// - Returns: Interceptors to use when invoking 'run'.
-		func makeRunInterceptors() -> [ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>] {
-			[ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>()]
-		}
-
-		/// - Returns: Interceptors to use when invoking 'execute'.
-		func makeExecuteInterceptors() -> [ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>] {
-			[ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>()]
-		}
-
-		/// - Returns: Interceptors to use when invoking 'mount'.
-		func makeMountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
-			[ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>()]
-		}
-
-		/// - Returns: Interceptors to use when invoking 'umount'.
-		func makeUmountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
-			[ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>()]
-		}
-
-	}
-
-	public static func createInterceptor() -> CakeAgentInterceptor {
-		return CakeAgentClientInterceptorFactory()
-	}
-
-	internal func log(_ error: Error) {
+	static func log(_ error: Error) {
 		if let err = error as? GRPCStatus {
 			if let message = err.message, err.code != .unavailable {
 				Logger(self).error(message)
@@ -93,7 +43,7 @@ extension CakeAgentClient {
 				}
 			})
 		}.flatMapErrorWithEventLoop { error, eventLoop in
-			log(error)
+			Self.log(error)
 
 			return eventLoop.submit {
 				return .failure(error)
@@ -134,7 +84,7 @@ extension CakeAgentClient {
 				}
 			})
 		}.flatMapErrorWithEventLoop { error, eventLoop in
-			log(error)
+			Self.log(error)
 
 			return response.eventLoop.submit {
 				return .failure(error)
@@ -218,7 +168,7 @@ extension CakeAgentClient {
 	}
 }
 
-class CakeAgentConnection {
+final class CakeAgentConnection: Sendable {
 	let caCert: String?
 	let tlsCert: String?
 	let tlsKey: String?
@@ -253,7 +203,7 @@ class CakeAgentConnection {
 		          retries: retries)
 	}
 
-	internal func createClient(interceptors: CakeAgentInterceptor = CakeAgentClient.createInterceptor()) throws -> CakeAgentClient {
+	internal func createClient(interceptors: CakeAgentInterceptor? = nil) throws -> CakeAgentClient {
 		return try CakeAgentHelper.createClient(on: self.eventLoop,
 		                                        listeningAddress: self.listeningAddress,
 		                                        connectionTimeout: self.timeout,
@@ -326,8 +276,23 @@ class CakeAgentConnection {
 	}
 
 	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
+		let errorWasCaught = ManagedAtomic<Bool>(false)
 		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ExecuteResponse.self)
-		let client = try createClient()
+		let interceptor = CakeAgentClientInterceptorFactory(responseStream: responseStream) {
+			errorWasCaught.store(true, ordering: .sequentiallyConsistent)
+		}
+		let client = try createClient(interceptors: interceptor)
+		var exitCodeSent = false
+
+		let failure = { (error: Error) in
+			if errorWasCaught.load(ordering: .sequentiallyConsistent) == false {
+				Logger(self).error(error)
+				errorWasCaught.store(true, ordering: .sequentiallyConsistent)
+				try? await responseStream.send(Caked_ExecuteResponse.with { 
+					$0.failure = error.localizedDescription
+				})
+			}
+		}
 
 		let finish = {
 			continuation.finish()
@@ -341,6 +306,7 @@ class CakeAgentConnection {
 					switch response.response {
 					case .exitCode(let exitCode):
 						reply.exitCode = exitCode
+						exitCodeSent = true
 					case .stdout(let stdout):
 						reply.stdout = stdout
 					case .stderr(let stderr):
@@ -386,10 +352,11 @@ class CakeAgentConnection {
 							}).get()
 						}
 					} catch {
+						continuation.finish()
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logger(self).error(error)
-								throw error
+								await failure(error)
+								return
 							}
 						}
 					}
@@ -409,8 +376,8 @@ class CakeAgentConnection {
 
 						if error is CancellationError == false {
 							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								Logger(self).error(error)
-								throw error
+								await failure(error)
+								return
 							}
 						}
 					}
@@ -418,9 +385,19 @@ class CakeAgentConnection {
 
 				try await group.waitForAll()
 
+				if errorWasCaught.load(ordering: .sequentiallyConsistent) == false && exitCodeSent == false {
+					try? await responseStream.send(Caked_ExecuteResponse.with { 
+						$0.failure = "canceled"
+					})
+				}
+
 				await finish()
 			}
 		} catch {
+			try? await responseStream.send(Caked_ExecuteResponse.with { 
+				$0.failure = error.localizedDescription
+			})
+
 			await finish()
 			throw error
 		}

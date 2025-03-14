@@ -97,13 +97,31 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		print("\u{001B}[0;31m\u{001B}[1m\(string)\u{001B}[0m")
 	}
 
+	func printError(_ string: String) {
+		let errMessage = "\(string)\n".data(using: .utf8)!
+
+		if FileHandle.standardError.fileDescriptor != self.errorHandle.fileDescriptor {
+			FileHandle.standardError.write(errMessage)
+		}
+
+		self.errorHandle.write(errMessage)
+	}
+
 	func handleResponse(response: Caked_ExecuteResponse) -> Void {
 		guard let pipeChannel = self.pipeChannel else {
 			return
 		}
 
 		do {
-			if case let .exitCode(code) = response.response {
+			if case .failure(let reason) = response.response {
+				#if TRACE
+					redbold("failure=\(code)")
+				#endif
+				printError("\(reason)")
+				self.exitCode = -1
+				_ = pipeChannel.channel.close()
+				self.semaphore.signal()
+			} else if case let .exitCode(code) = response.response {
 				#if TRACE
 					redbold("exitCode=\(code)")
 				#endif
@@ -123,13 +141,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		} catch {
 			if error is CancellationError == false {
 				guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-					let errMessage = "error: \(error)\n".data(using: .utf8)!
-
-					if FileHandle.standardError.fileDescriptor != self.errorHandle.fileDescriptor {
-						FileHandle.standardError.write(errMessage)
-					}
-
-					self.errorHandle.write(errMessage)
+					printError("error: \(error)\n")
 					return
 				}
 			}
@@ -146,13 +158,6 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	func stream(command: ExecuteCommand, handler: @escaping () -> CakedExecuteStream) async throws -> Int32 {
 		let shellStream: CakedExecuteStream = handler()
 		let sigwinch: DispatchSourceSignal?
-		var term: termios? = nil
-		
-		defer {
-			if var term = term {
-				inputHandle.restoreState(&term)
-			}
-		}
 		
 		if self.isTTY {
 			let sig = DispatchSource.makeSignalSource(signal: SIGWINCH)
@@ -207,10 +212,6 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		}
 
 		self.pipeChannel = try await shellStream.subchannel.flatMapThrowing { streamChannel in
-			if self.inputHandle.isTTY() {
-				term = self.inputHandle.makeRaw()
-			}
-			
 			return Task {
 				return try await NIOPipeBootstrap(group: streamChannel.eventLoop)
 					.takingOwnershipOfDescriptor(input: fd) { pipeChannel in

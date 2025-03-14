@@ -284,6 +284,7 @@ message ExecuteResponse {
 		int32 exitCode = 1;
 		bytes stdout = 2;
 		bytes stderr = 3;
+		string failure = 4;
 	}
 }
 
