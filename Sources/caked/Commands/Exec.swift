@@ -28,6 +28,10 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
     var createVM: Bool = false
 
+	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
+		CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput)
+	}
+
 	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
 

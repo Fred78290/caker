@@ -20,6 +20,10 @@ struct Exec: AsyncGrpcParsableCommand {
 		}
 	}
 
+	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
+		CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput)
+	}
+
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> Caked_Reply {
 		Foundation.exit(try await client.exec(name: name, command: arguments.first!, arguments: arguments.dropFirst().map { $0 }, callOptions: callOptions))
 	}

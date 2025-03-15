@@ -22,16 +22,8 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 
 			guard let err = error as? GRPCStatus else {
 				_ = context.eventLoop.makeFutureWithTask {
-					let description: String
-
-					if let err: CustomStringConvertible = error as? CustomStringConvertible {
-						description = err.description
-					} else {
-						description = error.localizedDescription
-					}
-
 					try? await self.responseStream.send(Caked_ExecuteResponse.with { 
-						$0.failure = description
+						$0.failure = error.localizedDescription
 					})
 				}
 				return

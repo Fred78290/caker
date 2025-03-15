@@ -7,4 +7,5 @@
 	"python.testing.pytestArgs": [
 		"integration-tests"
 	],
+	"java.compile.nullAnalysis.mode": "disabled",
 }

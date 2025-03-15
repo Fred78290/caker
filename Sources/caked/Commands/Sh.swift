@@ -25,6 +25,10 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 	var createVM: Bool = false
 
+	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
+		CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput)
+	}
+
 	mutating func validate() throws {
 		if self.name == "" {
 			self.name = "primary"

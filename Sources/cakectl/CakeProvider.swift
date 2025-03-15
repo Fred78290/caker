@@ -391,27 +391,11 @@ extension CakeAgentClient {
 	                   callOptions: CallOptions? = nil) async throws -> Int32 {
 		let handler = CakedChannelStreamer(inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle)
 		var callOptions = callOptions ?? CallOptions()
-		var state: termios? = nil
-
-		if inputHandle.isTTY() {
-			state = inputHandle.makeRaw()
-		}
 		
-		defer {
-			if var state = state {
-				inputHandle.restoreState(&state)
-			}
-
-			CakeAgentClientInterceptorFactory.clearState()
-		}
-
-
 		callOptions.timeLimit = .none
 		callOptions.customMetadata.add(name: "CAKEAGENT_VMNAME", value: name)
 
 		return try await handler.stream(command: command) {
-			CakeAgentClientInterceptorFactory.captureState(inputHandle: inputHandle, state: state)
-
 			return self.execute(callOptions: callOptions, handler: handler.handleResponse)
 		}
 	}
