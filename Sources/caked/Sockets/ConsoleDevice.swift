@@ -41,9 +41,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 
 						self.pipeChannel = childChannel
 
-						return childChannel.pipeline.addHandlers([CatchRemoteClose(port: 1, delegate: self), ours])
+						return childChannel.pipeline.addHandlers([CatchRemoteClose(port: 1, fd: output, delegate: self), ours])
 							.flatMap {
-								inboundChannel.pipeline.addHandlers([CatchRemoteClose(port: 0, delegate: self), theirs])
+								inboundChannel.pipeline.addHandlers([CatchRemoteClose(port: 0, fd: input, delegate: self), theirs])
 							}
 					}
 			}
@@ -139,14 +139,14 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		}
 	}
 
-	func closedByRemote(port: Int) {
+	func closedByRemote(port: Int, fd: Int32) {
 		if let consoleURL, self.pipeChannel != nil {
 			self.pipeChannel = nil
 
 			if port == 0 {
-				Logger(self).info("Console closed by the host on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed via \(fd) by the host on \(consoleURL.absoluteString)")
 			} else {
-				Logger(self).info("Console closed by the guest on \(consoleURL.absoluteString)")
+				Logger(self).info("Console closed via \(fd) by the guest on \(consoleURL.absoluteString)")
 			}
 		}
 	}

@@ -4,10 +4,27 @@ import NIOPosix
 import Virtualization
 import GRPCLib
 
+class EstablishedConnection {
+	let connection: VZVirtioSocketConnection
+	let channel: Channel
+
+	init(connection: VZVirtioSocketConnection, channel: Channel) {
+		self.connection = connection
+		self.channel = channel
+	}
+
+	func isFileDescriptorOpen(_ fd: Int32) -> Bool {
+		return fcntl(fd, F_GETFD) != -1 || errno != EBADF
+	}
+
+	func haveBeenDisconnected() -> Bool {
+		self.isFileDescriptorOpen(connection.fileDescriptor) == false
+	}
+}
+
 class SocketState {
 	let socket: SocketDevice
-	var connection: VZVirtioSocketConnection?
-	var channel: Channel?
+	var connections: [EstablishedConnection]
 
 	var mode: SocketMode {
 		self.socket.mode
@@ -31,50 +48,31 @@ class SocketState {
 
 	init(vsock: SocketDevice) {
 		self.socket = vsock
-		self.connection = nil
-	}
-
-	func isFileDescriptorOpen(_ fd: Int32) -> Bool {
-		return fcntl(fd, F_GETFD) != -1 || errno != EBADF
+		self.connections = []
 	}
 
 	// Called when the guest vsock is closed by remote or host socket is closed
-	func closedByRemote() -> Channel? {
-		let channel = self.channel
+	func closedByRemote(_ fd: Int32) -> Channel? {
+		self.connections.first { $0.connection.fileDescriptor == fd }.map { connection in
+			self.connections.removeAll { $0 === connection }
 
-		if let connection = self.connection {
-			connection.close()
+			Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
 
-			self.connection = nil
-			self.channel = nil
-
-			Logger(self).debug("Socket connection on \(self.description) is closed by remote")
+			return connection.channel
 		}
-
-		return channel
 	}
 
-	// Check if the connection is broken
-	func haveBeenDisconnected() -> Channel? {
-		if let connection = connection {
-			if self.isFileDescriptorOpen(connection.fileDescriptor) == false {
-				self.connection = nil
+	// Check broken connections
+	func haveBeenDisconnected() -> [Channel] {
+		self.connections.compactMap { connection in
+			if connection.haveBeenDisconnected() {
+				Logger(self).info("Socket connection on \(self.description) was closed by remote")
 
-				if let channel = channel {
-					channel.close().whenComplete { _ in
-						Logger(self).info("Socket connection on \(self.description) was closed by remote")
-					}
-
-					self.channel = nil
-
-					return channel
-				} else {
-					Logger(self).info("Socket connection on \(self.description) is broken")
-				}
+				return connection.channel
 			}
-		}
 
-		return nil
+			return nil
+		}
 	}
 }
 
@@ -104,64 +102,54 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			return
 		}
 
-		let eventLoop = mainGroup.next()
+		let futures = self.sockets.reduce(into: [EventLoopFuture<Void>](), { futures, socket in
+			socket.value.connections.forEach { connection in
+				self.channels.removeAll { $0 === connection.channel }
+				let futureResult: EventLoopFuture<Void> = connection.channel.close()
 
-		_ = try? EventLoopFuture.whenAllComplete(
-			self.sockets.map { socket in
-				// The socket is connected with a channel
-				if let channel = socket.value.channel {
-					return self.queue.sync {
-						self.channels.removeAll { $0 === channel }
-
-						let futureResult: EventLoopFuture<Void> = channel.close()
+				futureResult.whenComplete { _ in
+					self.queue.sync {
 						// When the channel is closed, close the connection
-						futureResult.whenComplete { _ in
-							if let connection = socket.value.connection {
-								connection.close()
-							}
-						}
-
-						return futureResult
+						connection.connection.close()
 					}
-				} else {
-					// Maybe the host connection is not established yet but guest connection is already established
-					if let connection = socket.value.connection {
-						connection.close()
-					}
-
-					// Make happy the event loop
-					return eventLoop.makeSucceededFuture(())
 				}
-			}, on: eventLoop
-		).wait()
+
+				futures.append(connection.channel.close())
+			}
+		})
+
+		_ = try? EventLoopFuture.whenAllComplete(futures, on: mainGroup.next()).wait()
 	}
 
-	func closedByRemote(port: Int) {
+	func closedByRemote(port: Int, fd: Int32) {
 		if let socket = sockets[port] {
-
-			if let channel = socket.closedByRemote() {
+			if let channel = socket.closedByRemote(fd) {
 				self.queue.sync {
 					self.channels.removeAll { $0 === channel }
 				}
+
+				return
 			}
 		}
+
+		Logger(self).warn("Closed socket connection on port:\(port) via fd:\(fd) is not found, already closed?")
 	}
 
 	// The guest initiates the connection to the host, the host must listen for the connection on the port
-	private func connectionInitiatedByGuest(inboundChannel: Channel, connection: VZVirtioSocketConnection)
+	private func connectionInitiatedByGuest(inboundChannel: Channel, socket: SocketState, connection: VZVirtioSocketConnection)
 		-> EventLoopFuture<Void>
 	{
+		Logger(self).debug("Guest connected on \(socket.description) via fd:\(connection.fileDescriptor)")
+
 		return NIOPipeBootstrap(group: inboundChannel.eventLoop)
 			.takingOwnershipOfDescriptor(inputOutput: dup(connection.fileDescriptor))
 			.flatMap { childChannel in
 				let (ours, theirs) = GlueHandler.matchedPair()
+				let handler = CatchRemoteClose(port: Int(connection.destinationPort), fd: connection.fileDescriptor, delegate: self)
 
-				return childChannel.pipeline.addHandlers([
-					CatchRemoteClose(port: Int(connection.destinationPort), delegate: self), ours,
-				])
-				.flatMap {
+				return childChannel.pipeline.addHandlers([handler, ours]).flatMap {
 					inboundChannel.pipeline.addHandlers([
-						CatchRemoteClose(port: Int(connection.destinationPort), delegate: self), theirs,
+						handler, theirs
 					])
 				}
 			}
@@ -185,18 +173,22 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 
 				// Keep the connection for the socket
-				socket.connection = connection
+				socket.connections.append(EstablishedConnection(connection: connection, channel: inboundChannel))
+
+				Logger(self).debug("Host connected on \(socket.description) via fd:\(connection.fileDescriptor)")
 
 				do {
+
 					// Pipe the connection to the channel
 					try NIOPipeBootstrap(group: inboundChannel.eventLoop)
 						.takingOwnershipOfDescriptor(inputOutput: dup(connection.fileDescriptor))
 						.flatMap { childChannel in
 							let (ours, theirs) = GlueHandler.matchedPair()
+							let handler = CatchRemoteClose(port: port, fd: connection.fileDescriptor, delegate: self)
 
-							return childChannel.pipeline.addHandlers([CatchRemoteClose(port: port, delegate: self), ours])
+							return childChannel.pipeline.addHandlers([handler, ours])
 								.flatMap {
-									inboundChannel.pipeline.addHandlers([CatchRemoteClose(port: port, delegate: self), theirs])
+									inboundChannel.pipeline.addHandlers([handler, theirs])
 								}
 						}.wait()
 
@@ -204,7 +196,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					promise.succeed(())
 				} catch {
 					if error.localizedDescription.contains("Connection reset by peer") == false {
-						Logger(self).error("Failed to connect to socket device on port:\(port), \(error)")
+						Logger(self).error("Failed to connect to socket device on port:\(port) via fd:\(connection.fileDescriptor), \(error)")
 					}
 					promise.fail(error)
 				}
@@ -236,8 +228,8 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 				return self.queue.sync {
 					self.sockets.forEach { port, socket in
-						if let channel = socket.haveBeenDisconnected() {
-							self.channels.removeAll { $0 === channel }
+						socket.haveBeenDisconnected().forEach { disconnected in
+							self.channels.removeAll { $0 === disconnected }
 						}
 					}
 
@@ -259,15 +251,9 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				if socket.mode == .bind || socket.mode == .tcp || socket.mode == .udp {
 					let channelInitializer: @Sendable (Channel) -> EventLoopFuture<Void> = { channel in
 						// Here we connect to the guest socket device
-						if let connection = socket.connection {
-							// The connection is initiated by the guest
-							return self.connectionInitiatedByGuest(inboundChannel: channel, connection: connection)
-						} else {
-							// The connection is initiated by the host
-							// !!! This is a blocking call, we need to run it on the main thread !!!
-							return DispatchQueue.main.sync {
-								return self.connectionInitiatedByHost(inboundChannel: channel, socketDevice: socketDevice, port: port)
-							}
+						// !!! This is a blocking call, we need to run it on the main thread !!!
+						return DispatchQueue.main.sync {
+							return self.connectionInitiatedByHost(inboundChannel: channel, socketDevice: socketDevice, port: port)
 						}
 					}
 
@@ -306,7 +292,6 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 							switch result {
 							case let .success(channel):
 								self.channels.append(channel)
-								self.sockets[port]?.channel = channel
 								Logger(self).debug("Socket device connected on \(socket.description)")
 							case let .failure(error):
 								Logger(self).error("Failed to connect socket device on \(socket.description), \(error)")
@@ -323,27 +308,30 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		shouldAcceptNewConnection connection: VZVirtioSocketConnection,
 		from socketDevice: VZVirtioSocketDevice
 	) -> Bool {
+		Logger(self).debug("Socket device connection on port:\(connection.destinationPort) via fd:\(connection.fileDescriptor) should be accepted")
+
 		// The connection is initiated by the guest
 		guard let socket = sockets[Int(connection.destinationPort)] else {
+			Logger(self).debug("Unbound socket port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
 			// Unbound socket port
 			return false
 		}
 
 		if socket.mode == .connect {
 			do {
+				Logger(self).debug("Connect to the unix socket:\(socket.description) via fd:\(connection.fileDescriptor)")
 				// Connect to the unix socket
 				return try self.queue.sync {
 					let channel = try ClientBootstrap(group: mainGroup)
 						.channelInitializer { channel in
 							// The connection is initiated by the guest
-							return self.connectionInitiatedByGuest(inboundChannel: channel, connection: connection)
+							return self.connectionInitiatedByGuest(inboundChannel: channel, socket: socket, connection: connection)
 						}
 						.connect(unixDomainSocketPath: socket.bind).wait()
 
 					// Ok to accept the connection
 					self.channels.append(channel)
-					socket.channel = channel
-					socket.connection = connection
+					socket.connections.append(EstablishedConnection(connection: connection, channel: channel))
 
 					return true
 				}
@@ -354,6 +342,8 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			}
 		} else if socket.mode == .fd {
 			// The connection is initiated by the guest
+			Logger(self).debug("Connect to the host file descriptor:\(socket.description) via fd:\(connection.fileDescriptor)")
+
 			do {
 				return try self.queue.sync {
 					let (input, output) = socket.fileDescriptors
@@ -361,14 +351,13 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					let channel = try NIOPipeBootstrap(group: mainGroup)
 						.channelInitializer { channel in
 							// The connection is initiated by the guest
-							return self.connectionInitiatedByGuest(inboundChannel: channel, connection: connection)
+							return self.connectionInitiatedByGuest(inboundChannel: channel, socket: socket, connection: connection)
 						}
 						.takingOwnershipOfDescriptors(input: dup(input), output: dup(output)).wait()
 
 					// Ok to accept the connection
 					self.channels.append(channel)
-					socket.channel = channel
-					socket.connection = connection
+					socket.connections.append(EstablishedConnection(connection: connection, channel: channel))
 
 					return true
 				}
@@ -378,12 +367,11 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				return false
 			}
 
+		} else {
+			Logger(self).debug("Assume the connection is possible in bind mode on \(socket.description), port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
 		}
 
-		// Assume the connection is possible in bind mode
-		socket.connection = connection
-
-		return true
+		return false
 	}
 
 	private func configure(configuration: VZVirtualMachineConfiguration) -> VirtioSocketDevices {

@@ -187,7 +187,8 @@
 			"args": [
 				"vmrun",
 				"linux",
-				"--display"
+				"--display",
+				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux",
@@ -200,7 +201,8 @@
 			"args": [
 				"vmrun",
 				"sequoia",
-				"--display"
+				"--display",
+				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun sequoia",

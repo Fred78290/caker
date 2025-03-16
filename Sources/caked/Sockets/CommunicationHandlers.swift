@@ -2,7 +2,7 @@ import NIOCore
 
 // Protocol that allows a delegate to be notified when a channel is closed by the remote peer.
 protocol CatchRemoteCloseDelegate {
-	func closedByRemote(port: Int)
+	func closedByRemote(port: Int, fd: Int32)
 }
 
 // This is a simple ChannelInboundHandler that catches the event of the remote peer closing the connection.
@@ -10,16 +10,24 @@ final class CatchRemoteClose: ChannelInboundHandler {
 	typealias InboundIn = Any
 
 	let port: Int
+	let fd: Int32
 	let delegate: CatchRemoteCloseDelegate
+	var notified: Bool = false
 
-	init(port: Int, delegate: CatchRemoteCloseDelegate) {
+	init(port: Int, fd: Int32, delegate: CatchRemoteCloseDelegate) {
 		self.port = port
+		self.fd = fd
 		self.delegate = delegate
 	}
 
 	func channelInactive(context: ChannelHandlerContext) {
 		context.flush()
-		self.delegate.closedByRemote(port: self.port)
+
+		if notified == false {
+			notified = true
+			self.delegate.closedByRemote(port: self.port, fd: self.fd)
+		}
+
 		context.fireChannelInactive()
 	}
 }
