@@ -414,9 +414,9 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		})
 	}
 
-	func createCakeAgentConnection(vmName: String) throws -> CakeAgentConnection {
+	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(asSystem: asSystem).find(vmName).agentURL
 
-		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation)
+		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
 	}
 }
