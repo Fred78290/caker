@@ -314,7 +314,7 @@
 				"mount",
 				"linux",
 				"-v",
-				"/Volumes/Manix/Users/fboltz/Downloads"
+				"${env:HOME}/Downloads"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked mount linux",
@@ -328,7 +328,7 @@
 				"umount",
 				"linux",
 				"-v",
-				"/Volumes/Manix/Users/fboltz/Downloads"
+				"${env:HOME}/Downloads"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked umount linux",
