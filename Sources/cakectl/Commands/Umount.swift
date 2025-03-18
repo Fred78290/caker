@@ -16,16 +16,12 @@ struct Umount: GrpcParsableCommand {
 	var format: Format = .text
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm" ))
-	var shares: [String] = []
-
 	var mounts: [DirectorySharingAttachment] = []
 
 	mutating public func validate() throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
-
-		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
 	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

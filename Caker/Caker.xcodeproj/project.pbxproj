@@ -175,6 +175,10 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
+		9B98B7752D8970F0003C26F3 /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7732D8970F0003C26F3 /* MountService.swift */; };
+		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
+		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
+		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
 		9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */; };
 		9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */; };
 		9BD32F812D75F9520066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F7F2D75F9520066A01E /* Mount.swift */; };
@@ -331,6 +335,10 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B98B7732D8970F0003C26F3 /* MountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountService.swift; sourceTree = "<group>"; };
+		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
+		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
+		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPParser.swift; sourceTree = "<group>"; };
 		9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
 		9BD32F7F2D75F9520066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
@@ -513,10 +521,12 @@
 		9B464A892D5A3E0300164BF5 /* cakectl */ = {
 			isa = PBXGroup;
 			children = (
-				9B464A672D5A3E0300164BF5 /* CI */,
-				9B464A862D5A3E0300164BF5 /* Commands */,
+				9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */,
+				9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */,
 				9B464A872D5A3E0300164BF5 /* CakeProvider.swift */,
 				9B464A882D5A3E0300164BF5 /* Client.swift */,
+				9B464A672D5A3E0300164BF5 /* CI */,
+				9B464A862D5A3E0300164BF5 /* Commands */,
 			);
 			path = cakectl;
 			sourceTree = "<group>";
@@ -614,6 +624,7 @@
 			children = (
 				9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */,
 				9B464ABA2D5A3E0300164BF5 /* CakeAgentAsyncParsableCommand.swift */,
+				9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */,
 				9B464ABB2D5A3E0300164BF5 /* CakeAgentConnection.swift */,
 				9B464ABC2D5A3E0300164BF5 /* CakedProvider.swift */,
 				9B464ABD2D5A3E0300164BF5 /* CertificatesLocation.swift */,
@@ -639,6 +650,7 @@
 				9B464AA52D5A3E0300164BF5 /* Commands */,
 				9B464AB42D5A3E0300164BF5 /* Handlers */,
 				9B464AB92D5A3E0300164BF5 /* Sockets */,
+				9B98B7742D8970F0003C26F3 /* XPC */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -681,6 +693,14 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B98B7742D8970F0003C26F3 /* XPC */ = {
+			isa = PBXGroup;
+			children = (
+				9B98B7732D8970F0003C26F3 /* MountService.swift */,
+			);
+			path = XPC;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -932,6 +952,7 @@
 				9B464AF92D5A3E0300164BF5 /* StopHandler.swift in Sources */,
 				9B464AFA2D5A3E0300164BF5 /* VMRun.swift in Sources */,
 				9B464AFB2D5A3E0300164BF5 /* Certificates.swift in Sources */,
+				9B98B7752D8970F0003C26F3 /* MountService.swift in Sources */,
 				9B464AFC2D5A3E0300164BF5 /* Utilities.swift in Sources */,
 				9B464AFD2D5A3E0300164BF5 /* PurgeHandler.swift in Sources */,
 				9B464AFE2D5A3E0300164BF5 /* TartHandler.swift in Sources */,
@@ -944,6 +965,7 @@
 				9B464B032D5A3E0300164BF5 /* ImagesManagement.swift in Sources */,
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
+				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
@@ -1010,6 +1032,8 @@
 				9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */,
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
+				9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */,
+				9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */,
 				9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */,
 				9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */,
 				9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */,
@@ -1578,7 +1602,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = 152bab53ff253a779e1022a38308100073e066ef;
+				revision = 910dc28afe3d3d0653b1f9f359780a9c2a9bfcae;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

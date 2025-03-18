@@ -9,11 +9,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public typealias StartCompletionHandler = (Result<Void, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
 
-	private let virtualMachine: VZVirtualMachine
-	private let config: CakeConfig
+	public let virtualMachine: VZVirtualMachine
+	public let config: CakeConfig
+	public let vmLocation: VMLocation
+
 	private let communicationDevices: CommunicationDevices?
 	private let configuration: VZVirtualMachineConfiguration
-	private let vmLocation: VMLocation
 	private let sigint: DispatchSourceSignal
 	private let sigusr1: DispatchSourceSignal
 	private let sigusr2: DispatchSourceSignal
@@ -157,6 +158,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
+		let mountService = try MountServiceDelegate(group: Root.group.next(), asSystem: runAsSystem, vm: self)
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -182,6 +184,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#endif
 
 		defer {
+			mountService.stop()
 			if let id = self.identifier {
 				try? PortForwardingServer.closeForwardedPort(identifier: id)
 				self.setIdentifier(nil)
@@ -189,6 +192,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 
 		do {
+			mountService.serve()
 			try await self.semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
 		}

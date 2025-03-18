@@ -7,7 +7,7 @@ import Logging
 import NIO
 import TextTable
 
-struct Mount: CakeAgentAsyncParsableCommand {
+struct Mount: ParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -20,13 +20,6 @@ struct Mount: CakeAgentAsyncParsableCommand {
 	var format: Format = .text
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
-	var shares: [String] = []
-
-	@OptionGroup(title: "override client agent options", visibility: .hidden)
-	var options: CakeAgentClientOptions
-
-	var createVM: Bool = false
-
 	var mounts: [DirectorySharingAttachment] = []
 
 	mutating public func validate() throws {
@@ -34,14 +27,23 @@ struct Mount: CakeAgentAsyncParsableCommand {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		self.mounts = try self.shares.compactMap { try DirectorySharingAttachment(parseFrom: $0) }
+		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
+		let config: CakeConfig = try vmLocation.config()
+		let directorySharingAttachments = config.mounts
+
+		try self.mounts.forEach { attachment in
+			let description = attachment.description
+
+			if directorySharingAttachments.contains(where: { $0.description == description }) {
+				throw ValidationError("Mount \(description) already exists")
+			}
+		}
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
+	func run() throws {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
-		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mounts, client: client)
+		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mounts)
 
 		print(format.renderList(style: Style.grid, uppercased: true, response.mounts.map { MountHandler.MountVirtioFSReply($0) }))
 	}
-
 }

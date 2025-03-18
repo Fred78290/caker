@@ -397,21 +397,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: Caked_MountRequest.with {
-			$0.command = .add
-			$0.name = request.name
-			$0.mounts = request.mounts
-			$0.format = request.format
-		})
+		return try self.execute(command: request)
 	}
 
 	func umount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: Caked_MountRequest.with {
-			$0.command = .delete
-			$0.name = request.name
-			$0.mounts = request.mounts
-			$0.format = request.format
-		})
+		return try self.execute(command: request)
 	}
 
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {

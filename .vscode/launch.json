@@ -311,6 +311,34 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"mount",
+				"linux",
+				"-v",
+				"/Volumes/Manix/Users/fboltz/Downloads"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked mount linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"umount",
+				"linux",
+				"-v",
+				"/Volumes/Manix/Users/fboltz/Downloads"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked umount linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"image",
 				"pull",
 				"ubuntu:noble"
