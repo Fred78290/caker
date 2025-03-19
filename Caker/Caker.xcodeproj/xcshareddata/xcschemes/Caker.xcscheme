@@ -56,12 +56,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "vmrun"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "create"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "test-template"
@@ -69,14 +73,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "service"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "listen"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--secure"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--display"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

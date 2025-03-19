@@ -64,103 +64,13 @@ struct MountHandler: CakedCommandAsync {
 	}
 
 	static func Mount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
-		let config: CakeConfig = try vmLocation.config()
-		let valided = config.newAttachements(mounts)
-
-		var response: Caked_MountReply = Caked_MountReply.with {
-			$0.mounts = []
-			$0.response = .success(true)
-		}
-
-		if valided.isEmpty == false {
-			var directorySharingAttachments = config.mounts
-
-			valided.forEach { mount in
-				directorySharingAttachments.removeAll { $0.name == mount.name }
-				directorySharingAttachments.append(mount)
-			}
-
-			config.mounts = directorySharingAttachments
-			try config.save()
-
-			if vmLocation.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(vmLocation.name)")
-				let replier = ReplyMountService()
-
-				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
-				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
-				xpcConnection.exportedObject = replier
-
-				xpcConnection.activate()
-
-				let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
-
-				guard let mountService = proxyObject as? MountServiceProtocol else {
-					throw ServiceError("Failed to connect to MountService")
-				}
-
-				mountService.mount(request: MountRequest(directorySharingAttachments))
-
-				if let reply = replier.wait() {
-					response = reply.toCaked()
-				} else {
-					response.response = .error("Timeout")
-				}
-
-				xpcConnection.invalidate()
-			}
-		}
-
-		return response
+		return try createMountServiceClient(vmLocation: vmLocation).mount(mounts: mounts)
 	}
 
 	static func Umount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
-		let config: CakeConfig = try vmLocation.config()
-		let valided = config.validAttachements(mounts)
-
-		var response: Caked_MountReply = Caked_MountReply.with {
-			$0.mounts = []
-			$0.response = .success(true)
-		}
-
-		if valided.isEmpty == false {
-			var directorySharingAttachments = config.mounts
-
-			valided.forEach { mount in
-				directorySharingAttachments.removeAll{ $0.name == mount.name }
-			}
-
-			config.mounts = directorySharingAttachments
-			try config.save()
-
-			if vmLocation.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(vmLocation.name)")
-				let replier = ReplyMountService()
-
-				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
-				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
-				xpcConnection.exportedObject = replier
-
-				xpcConnection.activate()
-
-				guard let mountService = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") }) as? MountServiceProtocol else {
-					throw ServiceError("Failed to connect to MountService")
-				}
-
-				mountService.umount(request: MountRequest(directorySharingAttachments))
-
-				if let reply = replier.wait() {
-					response = reply.toCaked()
-				} else {
-					response.response = .error("Timeout")
-				}
-
-				xpcConnection.invalidate()
-			}
-		}
-
-		return response
+		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts)
 	}
+
 
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.request.name)

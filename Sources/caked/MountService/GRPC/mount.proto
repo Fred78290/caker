@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.aldunelabs.caker";
+option java_outer_classname = "vmrun";
+option objc_class_prefix = "vmrun";
+
+package vmrun;
+
+service Service {
+	rpc Mount(MountRequest) returns (MountReply);
+	rpc Umount(MountRequest) returns (MountReply);
+}
+
+message MountVirtioFS {
+	string source = 1;
+	optional string target = 2;
+	optional string name = 3;
+	optional int32 uid = 4;
+	optional int32 gid = 5;
+	bool readonly = 6;
+}
+
+enum MountCommand {
+	none = 0;
+	mount = 1;
+	umount = 2;
+}
+
+message MountRequest {
+	MountCommand command = 1;
+	repeated MountVirtioFS mounts = 4;
+}
+
+message MountVirtioFSReply {
+	string name = 1;
+	oneof response {
+		string error = 2;
+		bool success = 3;
+	}
+}
+
+message MountReply {
+	repeated MountVirtioFSReply mounts = 1;
+	oneof response {
+		string error = 2;
+		bool success = 3;
+	}
+}

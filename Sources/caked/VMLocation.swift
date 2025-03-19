@@ -50,6 +50,12 @@ struct VMLocation {
 		return URL(string: "unix://\(agentURL.path)")!
 	}
 
+	var mountServiceURL: URL {
+		let mountServiceURL = rootURL.appendingPathComponent("mount.sock")
+
+		return URL(string: "unix://\(mountServiceURL.path)")!
+	}
+
 	var name: String {
 		rootURL.lastPathComponent
 	}

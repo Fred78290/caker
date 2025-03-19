@@ -158,7 +158,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
-		let mountService = try MountServiceDelegate(group: Root.group.next(), asSystem: runAsSystem, vm: self)
+		let mountService = createMountServiceServer(group: Root.group.next(), asSystem: runAsSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem))
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {

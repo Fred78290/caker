@@ -8,6 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
+		9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */; };
+		9B24FFD82D8AE3E10050BFAD /* GRPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */; };
+		9B24FFD92D8AE3E10050BFAD /* mount.proto in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFCF2D8AE3E10050BFAD /* mount.proto */; };
+		9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */; };
+		9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */; };
+		9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD52D8AE3E10050BFAD /* MountService.swift */; };
+		9B24FFDD2D8AE3E10050BFAD /* generate.sh in Resources */ = {isa = PBXBuildFile; fileRef = 9B24FFCD2D8AE3E10050BFAD /* generate.sh */; };
 		9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB02D5A3E0300164BF5 /* StartHandler.swift */; };
 		9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ACD2D5A3E0300164BF5 /* VMLocation.swift */; };
 		9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AC62D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift */; };
@@ -175,7 +182,6 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
-		9B98B7752D8970F0003C26F3 /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7732D8970F0003C26F3 /* MountService.swift */; };
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
@@ -227,6 +233,13 @@
 
 /* Begin PBXFileReference section */
 		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
+		9B24FFCD2D8AE3E10050BFAD /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
+		9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCMountService.swift; sourceTree = "<group>"; };
+		9B24FFCF2D8AE3E10050BFAD /* mount.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = mount.proto; sourceTree = "<group>"; };
+		9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mount.grpc.swift; sourceTree = "<group>"; };
+		9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mount.pb.swift; sourceTree = "<group>"; };
+		9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCMountService.swift; sourceTree = "<group>"; };
+		9B24FFD52D8AE3E10050BFAD /* MountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountService.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -335,7 +348,6 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B98B7732D8970F0003C26F3 /* MountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountService.swift; sourceTree = "<group>"; };
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
@@ -455,14 +467,44 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B24FFD22D8AE3E10050BFAD /* GRPC */ = {
+			isa = PBXGroup;
+			children = (
+				9B24FFCD2D8AE3E10050BFAD /* generate.sh */,
+				9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */,
+				9B24FFCF2D8AE3E10050BFAD /* mount.proto */,
+				9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */,
+				9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */,
+			);
+			path = GRPC;
+			sourceTree = "<group>";
+		};
+		9B24FFD42D8AE3E10050BFAD /* XPC */ = {
+			isa = PBXGroup;
+			children = (
+				9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */,
+			);
+			path = XPC;
+			sourceTree = "<group>";
+		};
+		9B24FFD62D8AE3E10050BFAD /* MountService */ = {
+			isa = PBXGroup;
+			children = (
+				9B24FFD22D8AE3E10050BFAD /* GRPC */,
+				9B24FFD42D8AE3E10050BFAD /* XPC */,
+				9B24FFD52D8AE3E10050BFAD /* MountService.swift */,
+			);
+			path = MountService;
+			sourceTree = "<group>";
+		};
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
 				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
-				9B464ADD2D5A3E0300164BF5 /* Sources */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B464A552D5A3DA000164BF5 /* Products */,
+				9B464ADD2D5A3E0300164BF5 /* Sources */,
 			);
 			sourceTree = "<group>";
 		};
@@ -649,8 +691,8 @@
 				9B464A912D5A3E0300164BF5 /* CloudImage */,
 				9B464AA52D5A3E0300164BF5 /* Commands */,
 				9B464AB42D5A3E0300164BF5 /* Handlers */,
+				9B24FFD62D8AE3E10050BFAD /* MountService */,
 				9B464AB92D5A3E0300164BF5 /* Sockets */,
-				9B98B7742D8970F0003C26F3 /* XPC */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -693,14 +735,6 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		9B98B7742D8970F0003C26F3 /* XPC */ = {
-			isa = PBXGroup;
-			children = (
-				9B98B7732D8970F0003C26F3 /* MountService.swift */,
-			);
-			path = XPC;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -921,6 +955,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B464B492D5A3E0300164BF5 /* caker.code-workspace in Resources */,
+				9B24FFDD2D8AE3E10050BFAD /* generate.sh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -952,7 +987,6 @@
 				9B464AF92D5A3E0300164BF5 /* StopHandler.swift in Sources */,
 				9B464AFA2D5A3E0300164BF5 /* VMRun.swift in Sources */,
 				9B464AFB2D5A3E0300164BF5 /* Certificates.swift in Sources */,
-				9B98B7752D8970F0003C26F3 /* MountService.swift in Sources */,
 				9B464AFC2D5A3E0300164BF5 /* Utilities.swift in Sources */,
 				9B464AFD2D5A3E0300164BF5 /* PurgeHandler.swift in Sources */,
 				9B464AFE2D5A3E0300164BF5 /* TartHandler.swift in Sources */,
@@ -982,6 +1016,12 @@
 				9B464B202D5A3E0300164BF5 /* CakeAgentConnection.swift in Sources */,
 				9B464B222D5A3E0300164BF5 /* StorageLocation.swift in Sources */,
 				9B464B232D5A3E0300164BF5 /* LoginHandler.swift in Sources */,
+				9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */,
+				9B24FFD82D8AE3E10050BFAD /* GRPCMountService.swift in Sources */,
+				9B24FFD92D8AE3E10050BFAD /* mount.proto in Sources */,
+				9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */,
+				9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */,
+				9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */,
 				9B464B242D5A3E0300164BF5 /* Curl.swift in Sources */,
 				9B464B262D5A3E0300164BF5 /* Configure.swift in Sources */,
 				9B464B272D5A3E0300164BF5 /* Networks.swift in Sources */,
@@ -1209,12 +1249,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1229,6 +1270,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Caker Develop 2";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -1241,12 +1283,13 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1261,6 +1304,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Caker Develop 2";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -1602,7 +1646,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = 910dc28afe3d3d0653b1f9f359780a9c2a9bfcae;
+				revision = a1e3149361fb789f88eadadd5c001c9e750738e5;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
