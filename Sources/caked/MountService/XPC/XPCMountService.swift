@@ -59,6 +59,11 @@ public class MountVirtioFSReply: NSObject, NSSecureCoding {
 		}
 	}
 
+	public init(name: String, error: Error) {
+		self.name = name
+		self.response = .error(String(describing: error))
+	}
+
 	public enum OneOf_Response: Equatable {
 		case error(String)
 		case success(Bool)
@@ -84,12 +89,7 @@ public class MountReply: NSObject, NSSecureCoding {
 	public init(request: MountRequest, error: Error) {
 		self.response = .error(error.localizedDescription)
 		self.mounts = request.mounts.map { mount in
-			let mountReply = MountVirtioFSReply()
-
-			mountReply.name = mount.name
-			mountReply.response = .error(String(describing: error))
-
-			return mountReply
+			MountVirtioFSReply(name: mount.name, error: error)
 		}
 	}
 
@@ -218,6 +218,7 @@ public class MountVirtioFS: NSObject, NSSecureCoding {
 			$0.uid = self.uid
 			$0.gid = self.gid
 			$0.readonly = self.readonly
+			$0.early = true
 		}
 	}
 }

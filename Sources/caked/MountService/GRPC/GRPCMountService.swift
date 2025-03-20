@@ -42,6 +42,7 @@ extension Vmrun_MountRequest {
 					$0.uid = Int32(mount.uid)
 					$0.gid = Int32(mount.gid)
 					$0.readonly = mount.readonly
+					$0.early = true
 				}
 			}
 		}
