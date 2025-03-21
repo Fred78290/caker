@@ -33,93 +33,114 @@ extension DirectorySharingAttachment {
 	}
 }
 
-public class MountVirtioFSReply: NSObject, NSSecureCoding {
-	public static var supportsSecureCoding = false
+struct MountVirtioFSReply: Codable {
+	var name: String = String()
+	var response: OneOf_Response? = nil
 
-	public var name: String = String()
-	public var response: MountVirtioFSReply.OneOf_Response? = nil
-
-	public func encode(with coder: NSCoder) {
-		coder.encode(self.name, forKey: "name")
-		coder.encode(self.response, forKey: "response")
+	enum CodingKeys: String, CodingKey {
+		case name = "name"
+		case response = "response"
 	}
 
-	public required init?(coder: NSCoder) {
-		self.name = coder.decodeObject(forKey: "name") as? String ?? ""
-		self.response = coder.decodeObject(forKey: "response") as? MountVirtioFSReply.OneOf_Response
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+
+		try container.encode(self.name, forKey: .name)
+		try container.encode(self.response, forKey: .response)
 	}
 
-	public init(_ from: Cakeagent_MountVirtioFSReply) {
+	init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.name = try container.decode(String.self, forKey: .name)
+		self.response = try container.decode(OneOf_Response.self, forKey: .response)
+	}
+
+	init(_ from: Cakeagent_MountVirtioFSReply) {
 		self.name = from.name
 
 		if case let .error(error) = from.response {
-			self.response = MountVirtioFSReply.OneOf_Response.error(error)
+			self.response = .error(error)
 		} else {
-			self.response = MountVirtioFSReply.OneOf_Response.success(true)
+			self.response = .success(true)
 		}
 	}
 
-	public init(name: String, error: Error) {
+	init(name: String, error: Error) {
 		self.name = name
 		self.response = .error(String(describing: error))
 	}
 
-	public enum OneOf_Response: Equatable {
+	enum OneOf_Response: Equatable, Codable {
 		case error(String)
 		case success(Bool)
 	}
 }
 
-public class MountReply: NSObject, NSSecureCoding {
-	public static var supportsSecureCoding = false
+struct MountReply: Codable {
+	var mounts: [MountVirtioFSReply] = []
+	var response: OneOf_Response? = nil
 
-	public var mounts: [MountVirtioFSReply] = []
-	public var response: MountReply.OneOf_Response? = nil
-
-	public func encode(with coder: NSCoder) {
-		coder.encode(self.mounts, forKey: "mounts")
-		coder.encode(self.response, forKey: "response")
+	enum CodingKeys: String, CodingKey {
+		case mounts = "mounts"
+		case response = "response"
 	}
 
-	public required init?(coder: NSCoder) {
-		self.mounts = coder.decodeObject(forKey: "mounts") as? [MountVirtioFSReply] ?? []
-		self.response = coder.decodeObject(forKey: "response") as? MountReply.OneOf_Response
+	enum OneOf_Response: Equatable, Codable {
+		case error(String)
+		case success(Bool)
 	}
 
-	public init(request: MountRequest, error: Error) {
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+
+		try container.encode(self.mounts, forKey: .mounts)
+		try container.encode(self.response, forKey: .response)
+	}
+
+	init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.mounts = try container.decode([MountVirtioFSReply].self, forKey: .mounts)
+		self.response = try container.decode(OneOf_Response.self, forKey: .response)
+	}
+
+	init(fromJSON: String) {
+		let decoder = JSONDecoder()
+
+		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
+	}
+
+	init(request: MountRequest, error: Error) {
 		self.response = .error(error.localizedDescription)
 		self.mounts = request.mounts.map { mount in
 			MountVirtioFSReply(name: mount.name, error: error)
 		}
 	}
 
-	public init(_ from: Cakeagent_MountReply) {
+	init(_ from: Cakeagent_MountReply) {
 		self.mounts = from.mounts.map { mount in
 			MountVirtioFSReply(mount)
 		}
 
 		if case let .error(error) = from.response {
-			self.response = MountReply.OneOf_Response.error(error)
+			self.response = .error(error)
 		} else {
-			self.response = MountReply.OneOf_Response.success(true)
+			self.response = .success(true)
 		}
 	}
 
-	public enum OneOf_Response: Equatable {
-		case error(String)
-		case success(Bool)
-	}
-
-	public func toCaked() -> Caked_MountReply {
-		Caked_MountReply.with { reply in
+	func toCaked() -> MountHandler.MountReply {
+		MountHandler.MountReply.with { reply in
 			reply.mounts = self.mounts.map { mount in
-				Caked_MountVirtioFSReply.with {
+				MountHandler.MountVirtioFSReply.with {
 					$0.name = mount.name
 
 					if case let .error(error) = mount.response {
-						$0.response = .error(error)
+						$0.reason = error
+						$0.success = false
 					} else {
-						$0.response = .success(true)
+						$0.success = true
 					}
 				}
 			}
@@ -131,37 +152,56 @@ public class MountReply: NSObject, NSSecureCoding {
 			}
 		}
 	}
+
+	func toJSON() -> String {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+
+		return try! encoder.encode(self).toString()
+	}
 }
 
-public class MountVirtioFS: NSObject, NSSecureCoding {
-	public static var supportsSecureCoding = false
+struct MountVirtioFS: Codable {
+	var name: String = ""
+	var source: String = ""
+	var target: String = ""
+	var uid: Int32 = 0
+	var gid: Int32 = 0
+	var readonly: Bool = false
 
-	public var name: String = String()
-	public var source: String = String()
-	public var target: String = String()
-	public var uid: Int32 = 0
-	public var gid: Int32 = 0
-	public var readonly: Bool = false
-
-	public func encode(with coder: NSCoder) {
-		coder.encode(name, forKey: "name")
-		coder.encode(source, forKey: "source")
-		coder.encode(target, forKey: "target")
-		coder.encode(uid, forKey: "uid")
-		coder.encode(gid, forKey: "gid")
-		coder.encode(readonly, forKey: "readonly")
+	enum CodingKeys: String, CodingKey {
+		case name = "name"
+		case source = "source"
+		case target = "target"
+		case uid = "uid"
+		case gid = "gid"
+		case readonly = "readonly"
 	}
 
-	public required init?(coder: NSCoder) {
-		self.name = coder.decodeObject(forKey: "name") as? String ?? ""
-		self.source = coder.decodeObject(forKey: "source") as? String ?? ""
-		self.target = coder.decodeObject(forKey: "target") as? String ?? ""
-		self.uid = coder.decodeInt32(forKey: "uid")
-		self.gid = coder.decodeInt32(forKey: "gid")
-		self.readonly = coder.decodeBool(forKey: "readonly")
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+
+		try container.encode(self.name, forKey: .name)
+		try container.encode(self.source, forKey: .source)
+		try container.encode(self.target, forKey: .target)
+		try container.encode(self.uid, forKey: .uid)
+		try container.encode(self.gid, forKey: .gid)
+		try container.encode(self.readonly, forKey: .readonly)
 	}
 
-	public init(attachment: DirectorySharingAttachment) {
+	init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.name = try container.decode(String.self, forKey: .name)
+		self.source = try container.decode(String.self, forKey: .source)
+		self.target = try container.decode(String.self, forKey: .target)
+		self.uid = try container.decode(Int32.self, forKey: .uid)
+		self.gid = try container.decode(Int32.self, forKey: .gid)
+		self.readonly = try container.decode(Bool.self, forKey: .readonly)
+	}
+
+	init(attachment: DirectorySharingAttachment) {
 		self.name = attachment.name
 		self.source = attachment.source
 		self.target = attachment.destination ?? ""
@@ -170,7 +210,7 @@ public class MountVirtioFS: NSObject, NSSecureCoding {
 		self.readonly = attachment.readOnly
 	}
 
-	public init(name: String, source: String, target: String, uid: Int32, gid: Int32, readonly: Bool) {
+	init(name: String, source: String, target: String, uid: Int32, gid: Int32, readonly: Bool) {
 		self.name = name
 		self.source = source
 		self.target = target
@@ -179,7 +219,7 @@ public class MountVirtioFS: NSObject, NSSecureCoding {
 		self.readonly = readonly
 	}
 
-	public func equals(to: DirectorySharingAttachment) -> Bool {
+	func equals(to: DirectorySharingAttachment) -> Bool {
 		if self.readonly != to.readOnly {
 			return false
 		}
@@ -207,11 +247,11 @@ public class MountVirtioFS: NSObject, NSSecureCoding {
 		return true
 	}
 
-	public func toDirectorySharingAttachment() -> DirectorySharingAttachment {
+	func toDirectorySharingAttachment() -> DirectorySharingAttachment {
 		DirectorySharingAttachment(source: self.source, destination: self.target, readOnly: self.readonly, name: self.name, uid: Int(self.uid), gid: Int(self.gid))
 	}
 
-	public func toCakeAgent() -> Cakeagent_MountVirtioFS {
+	func toCakeAgent() -> Cakeagent_MountVirtioFS {
 		Cakeagent_MountVirtioFS.with {
 			$0.name = self.name
 			$0.target = self.target
@@ -229,17 +269,27 @@ extension Cakeagent_MountReply {
 	}
 }
 
-public class MountRequest: NSObject, NSSecureCoding {
-	public static var supportsSecureCoding: Bool = false
+struct MountRequest: Codable {
+	var mounts: [MountVirtioFS] = []
 
-	public var mounts: [MountVirtioFS] = []
-
-	public init(mounts: [MountVirtioFS] = []) {
-		self.mounts = mounts
+	enum CodingKeys: String, CodingKey {
+		case mounts = "mounts"
 	}
 
-	public required init?(coder: NSCoder) {
-		self.mounts = coder.decodeObject(forKey: "mounts") as? [MountVirtioFS] ?? []
+	init(fromJSON: String) {
+		let decoder = JSONDecoder()
+
+		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
+	}
+
+	init(from decoder: Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+
+		self.mounts = try container.decode([MountVirtioFS].self, forKey: .mounts)
+	}
+
+	init(mounts: [MountVirtioFS] = []) {
+		self.mounts = mounts
 	}
 
 	init(_ attachements: [DirectorySharingAttachment]) {
@@ -256,31 +306,32 @@ public class MountRequest: NSObject, NSSecureCoding {
 
 	func toCakeAgent() -> Cakeagent_MountRequest {
 		Cakeagent_MountRequest.with { request in
-			request.mounts = self.mounts.map { mount in
-				Cakeagent_MountVirtioFS.with {
-					$0.name = mount.name
-					$0.target = mount.target
-					$0.uid = mount.uid
-					$0.gid = mount.gid
-					$0.readonly = mount.readonly
-				}
-			}	
+			request.mounts = self.mounts.map { $0.toCakeAgent() }
 		}
 	}
 
-	public func encode(with coder: NSCoder) {
-		coder.encode(self.mounts, forKey: "mounts")
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+
+		try container.encode(self.mounts, forKey: .mounts)
 	}
 
+	public func toJSON() -> String {
+		let encoder = JSONEncoder()
+
+		encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+
+		return try! encoder.encode(self).toString()
+	}
 }
 
 @objc protocol ReplyMountServiceProtocol {
-	func reply(response: MountReply) -> Void
+	func reply(response: String) -> Void
 }
 
 @objc protocol MountServiceProtocol {
-	func mount(request: MountRequest) -> Void
-	func umount(request: MountRequest) -> Void
+	func mount(request: String) -> Void
+	func umount(request: String) -> Void
 }
 
 class XPCMountService: MountService, MountServiceProtocol {
@@ -304,15 +355,15 @@ class XPCMountService: MountService, MountServiceProtocol {
 
 		reply = self.mount(request: request.toCakeAgent(), umount: umount).toXPC()
 
-		mountServiceReply.reply(response: reply)
+		mountServiceReply.reply(response: reply.toJSON())
 	}
 
-	public func mount(request: MountRequest) -> Void {
-		self.mount(request: request, umount: false)
+	public func mount(request: String) -> Void {
+		self.mount(request: MountRequest(fromJSON: request), umount: false)
 	}
 
-	public func umount(request: MountRequest) -> Void {
-		self.mount(request: request, umount: true)
+	public func umount(request: String) -> Void {
+		self.mount(request: MountRequest(fromJSON: request), umount: true)
 	}
 }
 
@@ -377,14 +428,9 @@ class XPCMountServiceClient: MountServiceClient {
 		self.vmLocation = vmLocation
 	}
 
-	func mount(mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
+	func mount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
 		let config: CakeConfig = try vmLocation.config()
 		let valided = config.newAttachements(mounts)
-
-		var response: Caked_MountReply = Caked_MountReply.with {
-			$0.mounts = []
-			$0.response = .success(true)
-		}
 
 		if valided.isEmpty == false {
 			var directorySharingAttachments = config.mounts
@@ -407,35 +453,35 @@ class XPCMountServiceClient: MountServiceClient {
 
 				xpcConnection.activate()
 
+				defer {
+					xpcConnection.invalidate()
+				}
 				let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 
 				guard let mountService = proxyObject as? MountServiceProtocol else {
 					throw ServiceError("Failed to connect to MountService")
 				}
 
-				mountService.mount(request: MountRequest(directorySharingAttachments))
+				mountService.mount(request: MountRequest(valided).toJSON())
 
 				if let reply = replier.wait() {
-					response = reply.toCaked()
-				} else {
-					response.response = .error("Timeout")
+					return reply.toCaked()
 				}
 
-				xpcConnection.invalidate()
+				return MountHandler.MountReply.with {
+					$0.response = .error("Timeout")
+				}
 			}
 		}
 
-		return response
+		return MountHandler.MountReply.with {
+			$0.response = .error("No mounts")
+		}
 	}
 
-	func umount(mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
+	func umount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
 		let config: CakeConfig = try vmLocation.config()
 		let valided = config.validAttachements(mounts)
-
-		var response: Caked_MountReply = Caked_MountReply.with {
-			$0.mounts = []
-			$0.response = .success(true)
-		}
 
 		if valided.isEmpty == false {
 			var directorySharingAttachments = config.mounts
@@ -457,22 +503,28 @@ class XPCMountServiceClient: MountServiceClient {
 
 				xpcConnection.activate()
 
+				defer {
+					xpcConnection.invalidate()
+				}
+
 				guard let mountService = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") }) as? MountServiceProtocol else {
 					throw ServiceError("Failed to connect to MountService")
 				}
 
-				mountService.umount(request: MountRequest(directorySharingAttachments))
+				mountService.umount(request: MountRequest(valided).toJSON())
 
 				if let reply = replier.wait() {
-					response = reply.toCaked()
-				} else {
-					response.response = .error("Timeout")
+					return reply.toCaked()
 				}
 
-				xpcConnection.invalidate()
+				return MountHandler.MountReply.with {
+					$0.response = .error("Timeout")
+				}
 			}
 		}
 
-		return response
+		return MountHandler.MountReply.with {
+			$0.response = .error("No mounts")
+		}
 	}
 }

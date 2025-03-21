@@ -21,17 +21,19 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 		self.response = coder.decodeObject(forKey: "reply") as? MountReply
 	}
 
-	func reply(response: MountReply) -> Void {
-		self.response = response
+	func reply(response: String) -> Void {
+		self.response = MountReply(fromJSON: response)
 		self.semaphore.signal()
 	}
 
 	func wait() -> MountReply? {
 		if self.response == nil {
-			guard self.semaphore.wait(timeout: .now() + 10) == .timedOut else {
+			self.semaphore.wait()
+			/*
+			guard self.semaphore.wait(timeout: .now().advanced(by: .seconds(300))) == .timedOut else {
 				Logger(self).error("Timeout")
 				return nil
-			}
+			}*/
 		}
 
 		return self.response
@@ -46,28 +48,68 @@ struct MountHandler: CakedCommandAsync {
 	var request: Caked_MountRequest
 
 	struct MountVirtioFSReply: Codable {
-		let name: String
-		let success: Bool
-		let reason: String
+		var name: String = ""
+		var path: String = ""
+		var success: Bool = false
+		var reason: String = ""
 
-		init(_ reply: Cakeagent_MountVirtioFSReply) {
-			self.name = reply.name
-			self.success = reply.success
-			self.reason = reply.error
+		public static func with(
+			_ populator: (inout Self) throws -> Void
+		) rethrows -> Self {
+			var message = Self()
+			try populator(&message)
+			return message
 		}
 
-		init(_ reply: Caked_MountVirtioFSReply) {
-			self.name = reply.name
-			self.success = reply.success
-			self.reason = reply.error
+	}
+
+	struct MountReply: Codable {
+		var mounts: [MountVirtioFSReply] = []
+		var response: OneOf_Response? = .success(true)
+
+		public static func with(
+			_ populator: (inout Self) throws -> Void
+		) rethrows -> Self {
+			var message = Self()
+			try populator(&message)
+			return message
+		}
+
+		public enum OneOf_Response: Codable, Equatable, Sendable {
+			case error(String)
+			case success(Bool)
+
+			init(_ from: Caked_MountReply.OneOf_Response) {
+				switch from {
+				case .error(let v):
+					self = .error(v)
+				case .success(let v):
+					self = .success(v)
+				}
+			}
+		}
+
+		func render(format: Format, directorySharingAttachment: [DirectorySharingAttachment]) -> String {
+			return format.renderSingle(style: Style.grid, uppercased: true, self.mounts.map { mount in
+				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name}) {
+					return MountHandler.MountVirtioFSReply.with {
+						$0.name = mount.name
+						$0.success = mount.success
+						$0.reason = mount.reason
+						$0.path = attachement.path.path
+					}
+				}
+
+				return mount
+			})
 		}
 	}
 
-	static func Mount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
+	static func Mount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
 		return try createMountServiceClient(vmLocation: vmLocation).mount(mounts: mounts)
 	}
 
-	static func Umount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply {
+	static func Umount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
 		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts)
 	}
 
@@ -79,7 +121,7 @@ struct MountHandler: CakedCommandAsync {
 		let command = self.request.command
 
 		return on.submit {
-			let response: Caked_MountReply
+			let response: MountHandler.MountReply
 
 			if command == .add {
 				response = try Self.Mount(vmLocation: vmLocation, mounts: directorySharingAttachment)
@@ -91,7 +133,7 @@ struct MountHandler: CakedCommandAsync {
 				throw ServiceError(v)
 			}
 
-			return format.renderSingle(style: Style.grid, uppercased: true, response.mounts.map { MountVirtioFSReply($0) })
+			return response.render(format: format, directorySharingAttachment: directorySharingAttachment)
 		}
 	}
 }

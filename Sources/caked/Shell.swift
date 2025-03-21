@@ -218,7 +218,7 @@ private extension ProcessWithSharedFileHandle {
 	}
 }
 
-private extension Data {
+extension Data {
 	func toString() -> String {
 		guard let output = String(data: self, encoding: .utf8) else {
 			return ""

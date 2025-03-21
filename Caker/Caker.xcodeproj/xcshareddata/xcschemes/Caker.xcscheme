@@ -65,6 +65,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "sequoia"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

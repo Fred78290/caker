@@ -45,7 +45,12 @@ struct Umount: ParsableCommand {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
 		let response = try MountHandler.Umount(vmLocation: vmLocation, mounts: self.mounts)
 
-		print(format.renderList(style: Style.grid, uppercased: true, response.mounts.map { MountHandler.MountVirtioFSReply($0) }))
+		print(response.render(format: format, directorySharingAttachment: self.mounts))
+
+		if case let .error(error) = response.response {
+			FileHandle.standardError.write("\(error)\n".data(using: .utf8)!)
+			Foundation.exit(EXIT_FAILURE)
+		}
 	}
 
 }

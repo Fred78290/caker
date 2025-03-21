@@ -339,6 +339,34 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"mount",
+				"sequoia",
+				"-v",
+				"${env:HOME}/Downloads"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked mount sequoia",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"umount",
+				"sequoia",
+				"-v",
+				"${env:HOME}/Downloads"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked umount sequoia",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"image",
 				"pull",
 				"ubuntu:noble"

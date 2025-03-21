@@ -6,8 +6,8 @@ import NIO
 import Virtualization
 
 protocol MountServiceClient {
-	func mount(mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply
-	func umount(mounts: [DirectorySharingAttachment]) throws -> Caked_MountReply
+	func mount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply
+	func umount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply
 }
 
 protocol MountServiceServerProtocol {
@@ -40,7 +40,7 @@ class MountService: NSObject {
 	}
 
 	func mount(request: Cakeagent_MountRequest, umount: Bool) -> Cakeagent_MountReply {
-		guard request.mounts.isEmpty else {
+		guard request.mounts.isEmpty == false else {
 			return Cakeagent_MountReply.with {
 				$0.response = .error("No mounts")
 			}
@@ -60,11 +60,13 @@ class MountService: NSObject {
 
 				config.mounts.forEach { attachment in
 					if let configuration = attachment.configuration {
-						directories[attachment.name] = configuration
+						directories[attachment.human] = configuration
 					}
 				}
 
-				sharedDevices.share = VZMultipleDirectoryShare(directories: directories)
+				DispatchQueue.main.sync {
+					sharedDevices.share = VZMultipleDirectoryShare(directories: directories)
+				}
 
 				return Cakeagent_MountReply.with {
 					$0.response = .success(true)
