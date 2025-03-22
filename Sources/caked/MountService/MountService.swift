@@ -50,22 +50,14 @@ class MountService: NSObject {
 			let config: CakeConfig = try vm.vmLocation.config()
 
 			if config.os == .darwin {
-				var directories: [String : VZSharedDirectory] = [:]
-
 				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
 					return Cakeagent_MountReply.with { 
 						$0.response = .error("No shared devices")
 					}
 				}
 
-				config.mounts.forEach { attachment in
-					if let configuration = attachment.configuration {
-						directories[attachment.human] = configuration
-					}
-				}
-
 				DispatchQueue.main.sync {
-					sharedDevices.share = VZMultipleDirectoryShare(directories: directories)
+					sharedDevices.share = config.mounts.multipleDirectoryShares
 				}
 
 				return Cakeagent_MountReply.with {
@@ -77,15 +69,16 @@ class MountService: NSObject {
 						}
 					}
 				}
-			} else {
-				let conn = try createCakeAgentConnection()
-
-				if umount {
-					return try conn.umount(request: request)
-				} else {
-					return try conn.mount(request: request)
-				}
 			}
+
+			let conn = try self.createCakeAgentConnection()
+
+			if umount {
+				return try conn.umount(request: request)
+			} else {
+				return try conn.mount(request: request)
+			}
+
 		} catch {
 			return Cakeagent_MountReply.with {
 				$0.response = .error(error.localizedDescription)

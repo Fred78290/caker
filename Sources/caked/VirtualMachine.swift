@@ -9,7 +9,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public typealias StartCompletionHandler = (Result<Void, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
 
-	public let virtualMachine: VZVirtualMachine
+	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let vmLocation: VMLocation
 

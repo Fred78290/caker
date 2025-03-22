@@ -68,6 +68,7 @@ class RemoteDatabase {
 
 struct Home {
 	let cakeHomeDirectory: URL
+	let networkDirectory: URL
 	let cacheDirectory: URL
 	let agentDirectory: URL
 	let temporaryDirectory: URL
@@ -77,6 +78,7 @@ struct Home {
 
 	init(asSystem: Bool) throws {
 		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem)
+		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL

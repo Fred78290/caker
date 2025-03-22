@@ -292,10 +292,10 @@ final class CakeConfig{
 		return self.mounts.compactMap { mount in
 			let target: String
 
-			if mount.destination == nil {
-				target = "\(mount.name):/mnt/shared/\(mount.human)"
+			if let destination = mount.destination {
+				target = "\(mount.name):\(destination)"
 			} else {
-				target = "\(mount.name):\(mount.destination!)"
+				target = "\(mount.name):/mnt/shared/\(mount.human)"
 			}
 
 			let options = mount.options.joined(separator: ",")
@@ -453,32 +453,7 @@ extension CakeConfig {
 	}
 
 	func directorySharingAttachments() throws -> [VZDirectorySharingDeviceConfiguration] {
-		if self.mounts.isEmpty {
-			return []
-		}
-
-		if self.os == .darwin {
-			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: VZVirtioFileSystemDeviceConfiguration.macOSGuestAutomountTag)
-			var directories: [String : VZSharedDirectory] = [:]
-
-			self.mounts.forEach {
-				if let config = $0.configuration {
-					directories[$0.human] = config
-				}
-			}
-
-			sharingDevice.share = VZMultipleDirectoryShare(directories: directories)
-
-			return [sharingDevice]
-		}
-
-		return self.mounts.compactMap{ mount in
-			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mount.name)
-
-			sharingDevice.share = VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
-
-			return sharingDevice
-		}
+		return self.mounts.directorySharingAttachments(os: self.os)
 	}
 
 	func socketDeviceAttachments() throws -> [SocketDevice] {

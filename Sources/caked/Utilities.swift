@@ -1,8 +1,10 @@
 import Foundation
 import System
+import Virtualization
+import GRPCLib
 
 enum Architecture: String, Codable, CustomStringConvertible {
-    var description: String {
+	var description: String {
 		switch self {
 		case .arm64:
 			return "aarch64"
@@ -186,3 +188,48 @@ extension String {
 		return String(self[startIndex..<endIndex])
 	}
 }
+
+public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
+
+extension DirectorySharingAttachments {
+	public var multipleDirectoryShares: VZDirectoryShare {
+		var directories: [String : VZSharedDirectory] = [:]
+
+		self.forEach {
+			if let config = $0.configuration {
+				directories[$0.human] = config
+			}
+		}
+
+		return VZMultipleDirectoryShare(directories: directories)
+	}
+
+	public var singleDirectoryShares: [VZDirectoryShare] {
+		self.compactMap{ mount in
+			VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
+		}
+	}
+
+	func directorySharingAttachments(os: VirtualizedOS) -> [VZDirectorySharingDeviceConfiguration] {
+		if self.isEmpty {
+			return []
+		}
+
+		if os == .darwin {
+			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: VZVirtioFileSystemDeviceConfiguration.macOSGuestAutomountTag)
+
+			sharingDevice.share = self.multipleDirectoryShares
+
+			return [sharingDevice]
+		}
+
+		return self.compactMap{ mount in
+			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mount.name)
+
+			sharingDevice.share = VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
+
+			return sharingDevice
+		}
+	}
+}
+
