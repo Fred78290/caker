@@ -101,20 +101,42 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	static func start(options: NetworksHandler.VMNetOptions) async throws {
+	static func vmnetEndpoint(mode: VMNetMode, networkInterface: String? = nil) throws -> (URL, URL) {
 		let home = try Home.init(asSystem: runAsSystem)
-		let socketPath: String
+		let dirName: String
+
+		if mode == .bridged {
+			dirName = networkInterface!
+		} else if mode == .host {
+			dirName = "host"
+		} else {
+			dirName = "shared"
+		}
+
+		let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
+		try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
+
+		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pd").absoluteURL)
+	}
+
+	static func run() throws {
+		throw ServiceError("Please specify a subcommand")
+	}
+
+	static func start(options: NetworksHandler.VMNetOptions) async throws {
+		let socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface)
+		let socketPath = socketURL.0.path
+		let pidURL = socketURL.1
+		let pid: pid_t = getpid()
 
 		guard let grp = getgrnam(options.socketGroup) else {
 			throw ServiceError("Failed to get group \(options.socketGroup)")
 		}
 
-		if options.mode == .bridged {
-			socketPath = home.networkDirectory.appendingPathComponent("vmnet.\(options.networkInterface!).sock").absoluteURL.path()
-		} else if options.mode == .host {
-			socketPath = home.networkDirectory.appendingPathComponent("vmnet.host.sock").absoluteURL.path()
-		} else {
-			socketPath = home.networkDirectory.appendingPathComponent("vmnet.shared.sock").absoluteURL.path()
+		try "\(pid)".write(to: pidURL, atomically: true, encoding: .ascii)
+
+		defer {
+			try? FileManager.default.removeItem(at: pidURL)
 		}
 
 		if FileManager.default.fileExists(atPath: socketPath) == false {
@@ -124,8 +146,19 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	static func stop(interfaceID: String) throws -> String {
-		"stopped \(interfaceID)"
+	static func stop(options: NetworksHandler.VMNetOptions) throws -> String {
+		let socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface)
+		let pidURL = socketURL.1
+
+		if try pidURL.exists() {
+			let pid = try String(contentsOf: pidURL, encoding: .ascii)
+
+			if let pidInt = Int32(pid) {
+				kill(pidInt, SIGTERM)
+			}
+		}
+
+		return "stopped \(options)"
 	}
 
 	static func networks() -> [BridgedNetwork] {

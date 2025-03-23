@@ -1,5 +1,7 @@
 import Foundation
 import Virtualization
+import GRPCLib
+import NIO
 
 protocol NetworkAttachement {
 	func attachment() -> (VZMACAddress, VZNetworkDeviceAttachment)
@@ -30,5 +32,32 @@ class BridgedNetworkInterface: NetworkAttachement {
 
 	func attachment() -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZBridgedNetworkDeviceAttachment(interface: interface))
+	}
+}
+
+class VMNetworkInterface: NetworkAttachement {
+	let interface: String
+	let macAddress: VZMACAddress
+
+	init(interface: String, macAddress: VZMACAddress) {
+		self.interface = interface
+		self.macAddress = macAddress
+	}
+
+	func attachment() -> (VZMACAddress, VZNetworkDeviceAttachment) {
+		return (macAddress, VZBridgedNetworkDeviceAttachment(interface: interface))
+	}
+
+	func open() throws -> FileHandle{
+		let socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface)
+		let socketPath = socketURL.0.path
+
+		if try socketURL.0.exists() == false {
+			try NetworksHandler.run()
+		}
+
+		let addr = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
+
+		let socket = try VZFileHandle(forReadingFrom: socketPath)
 	}
 }
