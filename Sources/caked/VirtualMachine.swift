@@ -61,10 +61,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			synchronizationMode: .full
 		))]
 
-		let networkDevices = networks.map {
+		let networkDevices = try networks.map {
 			let vio = VZVirtioNetworkDeviceConfiguration()
 
-			(vio.macAddress, vio.attachment) = $0.attachment()
+			(vio.macAddress, vio.attachment) = try $0.attachment()
 
 			return vio
 		}

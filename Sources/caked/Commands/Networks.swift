@@ -36,15 +36,29 @@ struct Networks: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID\n", discussion: "stop vmnet interface with the specified or created ID by start command"))
-		var interfaceID = UUID().uuidString
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
 
-		mutating func validate() throws {
+		@Option(name: [.customLong("mode")], help: "vmnet mode")
+		var mode = VMNetMode.host
+
+		@Option(name: [.customLong("interface")], help: ArgumentHelp("interface\n", discussion: "interface used for --vmnet=bridged, e.g., \"en0\""))
+		var networkInterface: String? = nil
+
+		func validate() throws {
 			Logger.setLevel(self.logLevel)
+
+			runAsSystem = self.asSystem
+			
+			if self.mode == .bridged {
+				if self.networkInterface == nil {
+					throw ValidationError("interface is required for bridged mode")
+				}
+			}
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.stop(interfaceID: self.interfaceID))
+			Logger.appendNewLine(try NetworksHandler.stop(mode: self.mode, networkInterface: self.networkInterface))
 		}
 	}
 

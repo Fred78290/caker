@@ -87,6 +87,46 @@ extension URL: Purgeable {
 		self
 	}
 
+	func writePID() throws {
+		let pid = getpid()
+
+		try "\(pid)".write(to: self, atomically: true, encoding: .ascii)
+	}
+
+	func readPID() -> Int32? {
+		guard let pid = try? String(contentsOf: self, encoding: .ascii) else {
+			return nil
+		}
+
+		guard let pid: Int32 = Int32(pid.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+			return nil
+		}
+
+		return pid
+	}
+
+	func isPIDRunning() -> Bool {
+		if let pid = readPID() {
+			return kill(pid, 0) == 0
+		}
+
+		return false
+	}
+
+	static func binary(_ name: String) -> URL? {
+		let path = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/usr/local/bin:/bin:/sbin:/usr/sbin:/opt/bin"
+
+		return path.split(separator: ":").compactMap { dir in
+			let url: URL = URL(fileURLWithPath: String(dir)).appendingPathComponent(name, isDirectory: false).resolvingSymlinksInPath()
+
+			if FileManager.default.fileExists(atPath: url.path) {
+				return url.absoluteURL
+			}
+
+			return nil
+		}.first
+	}
+
 	func source() -> String {
 		self.deletingLastPathComponent().lastPathComponent
 	}

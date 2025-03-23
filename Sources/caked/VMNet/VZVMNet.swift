@@ -15,6 +15,7 @@ final class VZVMNet: @unchecked Sendable {
 	private var childrenChannels: [Channel] = []
 	private var serverChannel: Channel? = nil
 	let eventLoop: EventLoop
+	let datagram: Bool
 	let socketPath: String
 	let socketGroup: gid_t
 	let mode: VMNetMode
@@ -65,7 +66,30 @@ final class VZVMNet: @unchecked Sendable {
 		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
 			var buffer = self.unwrapInboundIn(data)
 
-			if self.state == .readingHeader {
+			if self.vmnet.datagram {
+				var bufData = Data(buffer: buffer)
+
+				channelsSyncQueue.async {
+					var written_count: Int32 = bufData.count
+					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: bufData.withUnsafeMutableBytes { $0.baseAddress! }, vm_pkt_iovcnt: 1, vm_flags: 0)
+
+					guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
+						Logger(self).error("Failed to write to interface")
+						return
+					}
+
+					if written_count != header {
+						Logger(self).error("Failed to write all bytes to interface")
+					}
+
+					self.vmnet.childrenChannels.forEach { channel in
+						if channel !== currentChannel {
+							channel.writeAndFlush(bufData, promise: nil)
+						}
+					}
+				}
+
+			} else if self.state == .readingHeader {
 				if buffer.readableBytes >= 4 {
 					self.header = buffer.readInteger(endianness: .big, as: Int32.self)!
 					self.totalRead = 0
@@ -119,8 +143,9 @@ final class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	init(on: EventLoop, socketPath: String, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
+	init(on: EventLoop, datagram: Bool, socketPath: String, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
 		self.eventLoop = on
+		self.datagram = datagram
 		self.socketPath = socketPath
 		self.socketGroup = socketGroup
 		self.mode = mode
@@ -189,7 +214,60 @@ final class VZVMNet: @unchecked Sendable {
 		sigterm.activate()
 	}
 
-	func vmnetPacketAvailable(_ estim_count: UInt64) {
+	func vmnetPacketAvailableDatagram(_ estim_count: UInt64) {
+		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
+		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
+		let on_vmnet_packets_available = { (count: UInt64) in
+			let max_bytes = Int(self.max_bytes)
+			var received_count: Int32 = Int32(count)
+			var pdv: [vmpktdesc] = []
+
+			pdv.reserveCapacity(Int(count))
+			io.reserveCapacity(Int(count))
+
+			for i in 0..<Int(count) {
+				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes)), vm_pkt_iovcnt: 1, vm_flags: 0))
+			}
+
+			defer {
+				pdv.forEach {
+					$0.vm_pkt_iov.deallocate()
+				}
+			}
+
+			let status = vmnet_read(self.iface!, &pdv, &received_count)
+
+			if status != .VMNET_SUCCESS {
+				Logger(self).error("Failed to read from interface \(status)")
+				return
+			}
+
+			for i in 0..<Int(received_count) {
+				let pd: vmpktdesc = pdv[i]
+				let macAddress = UnsafeRawPointer(pd.vm_pkt_iov).bindMemory(to: [ether_addr_t].self, capacity: 2).pointee
+
+				Logger(self).debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
+
+				let iovec1: iovec = iovec(iov_base: pd.vm_pkt_iov, iov_len: pd.vm_pkt_iov.pointee.iov_len)
+
+				self.childrenChannels.forEach { channel in
+					channel.writeAndFlush(iovec1, promise: nil)
+				}
+			}
+		}
+
+		Logger(self).debug("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
+
+		for _ in 0..<q {
+			on_vmnet_packets_available(MAX_PACKET_COUNT_AT_ONCE)
+		}
+
+		if r > 0 {
+			on_vmnet_packets_available(r)
+		}
+	}
+
+	func vmnetPacketAvailableStream(_ estim_count: UInt64) {
 		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
 		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
 		let on_vmnet_packets_available = { (count: UInt64) in
@@ -244,6 +322,14 @@ final class VZVMNet: @unchecked Sendable {
 
 		if r > 0 {
 			on_vmnet_packets_available(r)
+		}
+	}
+
+	func vmnetPacketAvailable(_ estim_count: UInt64) {
+		if self.datagram {
+			vmnetPacketAvailableDatagram(estim_count)
+		} else {
+			vmnetPacketAvailableStream(estim_count)
 		}
 	}
 
@@ -318,19 +404,39 @@ final class VZVMNet: @unchecked Sendable {
 			}
 		}
 
-		// Create the server bootstrap
-		let bootstrap: ServerBootstrap = ServerBootstrap(group: Root.group)
-			.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-			.childChannelOption(.maxMessagesPerRead, value: 16)
-			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
-			.childChannelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 64 * 1024)
-			.childChannelOption(ChannelOptions.socketOption(.so_sndbuf), value: 64 * 1024)
-			.childChannelInitializer { inboundChannel in
-				return inboundChannel.pipeline.addHandler(VMNetHandler(vmnet: self))
-			}
+		let binder: EventLoopFuture<Channel>
 
-		// Listen on the console socket
-		let binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
+		// Create the server bootstrap
+		if self.datagram {
+			let bootstrap: DatagramBootstrap = DatagramBootstrap(group: Root.group)
+				.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+				.channelOption(ChannelOptions.socketOption(.so_broadcast), value: 1)
+				.channelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 1024 * 1024)
+				.channelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1024 * 1024)
+				.channelOption(.maxMessagesPerRead, value: 16)
+				.channelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
+				.channelInitializer { channel in
+					return channel.pipeline.addHandler(VMNetHandler(vmnet: self))
+				}
+
+			// Listen on the console socket
+			binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
+		} else {
+			let bootstrap: ServerBootstrap = ServerBootstrap(group: Root.group)
+				.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+				.childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+				.childChannelOption(ChannelOptions.socketOption(.so_broadcast), value: 1)
+				.childChannelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 1024 * 1024)
+				.childChannelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1024 * 1024)
+				.childChannelOption(.maxMessagesPerRead, value: 16)
+				.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
+				.childChannelInitializer { inboundChannel in
+					return inboundChannel.pipeline.addHandler(VMNetHandler(vmnet: self))
+				}
+
+			// Listen on the console socket
+			binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
+		}
 
 		if (chown(socketPath, getegid(), self.socketGroup) < 0) {
 			throw ServiceError("Failed to set group \(self.socketGroup) on socket \(self.socketPath)")

@@ -89,11 +89,11 @@ struct Root: AsyncParsableCommand {
 	}
 
 	private static func checkIfTartPresent() -> Bool {
-		let path = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/usr/local/bin:/bin:/sbin:/usr/sbin:/opt/bin"
+		guard let _ = URL.binary("tart") else {
+			return false
+		}
 
-		return path.split(separator: ":").first { dir in
-			FileManager.default.isExecutableFile(atPath: "\(dir)/tart")
-		} != nil
+		return true
 	}
 
 	public static func main() async throws {

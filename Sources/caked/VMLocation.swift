@@ -196,36 +196,15 @@ struct VMLocation {
 	}
 
 	func writePID() throws {
-		let pid = getpid()
-		let pidFile = rootURL.appendingPathComponent("run.pid")
-
-		try "\(pid)".write(to: pidFile, atomically: true, encoding: .ascii)
+		try rootURL.appendingPathComponent("run.pid").writePID()
 	}
 
 	func readPID() -> Int32? {
-		let pidFile = rootURL.appendingPathComponent("run.pid")
-
-		if FileManager.default.fileExists(atPath: pidFile.path()) == false {
-			return nil
-		}
-
-		guard let pidString = try? String(contentsOf: pidFile, encoding: .ascii) else {
-			return nil
-		}
-
-		guard let pid = Int32(pidString.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-			return nil
-		}
-
-		return pid
+		rootURL.appendingPathComponent("run.pid").readPID()
 	}
 
 	func isPIDRunning() -> Bool {
-		if let pid = readPID() {
-			return kill(pid, 0) == 0
-		}
-
-		return false
+		rootURL.appendingPathComponent("run.pid").isPIDRunning()
 	}
 
 	func removePID() {

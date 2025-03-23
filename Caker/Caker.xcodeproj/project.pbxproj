@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
+		9B1BD2492D90209B00F78154 /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2472D90209B00F78154 /* VZVMNet.swift */; };
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
 		9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */; };
 		9B24FFD82D8AE3E10050BFAD /* GRPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */; };
@@ -232,6 +234,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
+		9B1BD2472D90209B00F78154 /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
 		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
 		9B24FFCD2D8AE3E10050BFAD /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
 		9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCMountService.swift; sourceTree = "<group>"; };
@@ -467,6 +471,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B1BD2482D90209B00F78154 /* VMNet */ = {
+			isa = PBXGroup;
+			children = (
+				9B1BD2472D90209B00F78154 /* VZVMNet.swift */,
+			);
+			path = VMNet;
+			sourceTree = "<group>";
+		};
 		9B24FFD22D8AE3E10050BFAD /* GRPC */ = {
 			isa = PBXGroup;
 			children = (
@@ -673,6 +685,7 @@
 				9B464ABE2D5A3E0300164BF5 /* Config.swift */,
 				9B464ABF2D5A3E0300164BF5 /* Curl.swift */,
 				9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */,
+				9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */,
 				9B464AC02D5A3E0300164BF5 /* GuestPlateform.swift */,
 				9B464AC12D5A3E0300164BF5 /* Home.swift */,
 				9B464AC22D5A3E0300164BF5 /* Logger.swift */,
@@ -693,6 +706,7 @@
 				9B464AB42D5A3E0300164BF5 /* Handlers */,
 				9B24FFD62D8AE3E10050BFAD /* MountService */,
 				9B464AB92D5A3E0300164BF5 /* Sockets */,
+				9B1BD2482D90209B00F78154 /* VMNet */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -1030,6 +1044,7 @@
 				9B464B2D2D5A3E0300164BF5 /* DeleteHandler.swift in Sources */,
 				9B464B2E2D5A3E0300164BF5 /* BuildHandler.swift in Sources */,
 				9B464B302D5A3E0300164BF5 /* NetworksHandler.swift in Sources */,
+				9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */,
 				9BD32F842D75F9630066A01E /* MountHandler.swift in Sources */,
 				9B464B312D5A3E0300164BF5 /* CommunicationHandlers.swift in Sources */,
 				9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */,
@@ -1047,6 +1062,7 @@
 				9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */,
 				9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */,
 				9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */,
+				9B1BD2492D90209B00F78154 /* VZVMNet.swift in Sources */,
 				9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -406,6 +406,14 @@ extension CakeConfig {
 			return [SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())]
 		}
 
+		let vmNetworking: Bool
+
+		if let profile = try? EmbedProvisionProfile.load() {
+			vmNetworking = profile.entitlements.vmNetworking
+		} else {
+			vmNetworking = false
+		}
+
 		return networks.compactMap { inf in
 			if inf.network == "nat" || inf.network == "NAT shared network" {
 				if let macAddress = self.macAddress {
@@ -420,11 +428,19 @@ extension CakeConfig {
 			}
 
 			if let interface = foundInterface {
-				if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
-					return BridgedNetworkInterface(interface: interface, macAddress: mac)
-				}
+				if vmNetworking {
+					if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
+						return BridgedNetworkInterface(interface: interface, macAddress: mac)
+					}
 
-				return BridgedNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())	
+					return BridgedNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())
+				} else {
+					if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
+						return VMNetworkInterface(interface: interface, macAddress: mac)
+					}
+
+					return VMNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())
+				}
 			}
 
 			Logger(self).warn("Network interface \(inf.network) not found")

@@ -102,7 +102,7 @@ packages:
 EOF
 fi
 
-BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --network=nat --user-data=/tmp/user-data.yaml"
+BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --network=nat --network=en0 --user-data=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --user-data=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --name linux --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --user-data=/tmp/user-data.yaml"
 

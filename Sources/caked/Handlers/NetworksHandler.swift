@@ -5,6 +5,7 @@ import Virtualization
 import NIOCore
 import TextTable
 import NIOPosix
+import Logging
 import vmnet
 
 enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
@@ -28,6 +29,17 @@ enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
 			return nil
 		}
 	}
+
+	var stringValue: String {
+		switch self {
+		case .host:
+			return "host"
+		case .shared:
+			return "shared"
+		case .bridged:
+			return "bridged"
+		}
+	}
 }
 
 struct BridgedNetwork: Codable {
@@ -40,6 +52,15 @@ struct NetworksHandler: CakedCommand {
 	var format: Format
 
 	struct VMNetOptions: ParsableArguments {
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
+
+		@Flag(name: [.customLong("stream")], help: "Use stream socket")
+		var stream: Bool = false
+
 		@Option(name: [.customLong("socket-group")], help: "socket group name")
 		var socketGroup: String = "staff"
 
@@ -65,6 +86,10 @@ struct NetworksHandler: CakedCommand {
 		var nat66Prefix: String? = nil
 
 		func validate() throws {
+			Logger.setLevel(self.logLevel)
+
+			runAsSystem = self.asSystem
+
 			if self.mode == .bridged {
 				if self.networkInterface == nil {
 					throw ValidationError("interface is required for bridged mode")
@@ -88,6 +113,7 @@ struct NetworksHandler: CakedCommand {
 		func createVZVMNet(socketPath: String, socketGroup: gid_t) -> VZVMNet {
 			VZVMNet(
 				on: Root.group.next(),
+				datagram: self.stream == false,
 				socketPath: socketPath,
 				socketGroup: socketGroup,
 				mode: self.mode,
@@ -116,11 +142,155 @@ struct NetworksHandler: CakedCommand {
 		let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
 		try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
 
-		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pd").absoluteURL)
+		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
 	}
 
-	static func run() throws {
-		throw ServiceError("Please specify a subcommand")
+	static func checkIfSudoable(binary: URL) throws -> Bool {
+		if geteuid() == 0 {
+			return true
+		}
+
+		guard let sudoURL = URL.binary("sudo") else {
+			throw ServiceError("sudo not found in path")
+		}
+
+		let info = try FileManager.default.attributesOfItem(atPath: binary.path()) as NSDictionary
+
+		if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
+			return true
+		}
+
+		let process = Process()
+
+		process.executableURL = sudoURL
+		process.arguments = ["--non-interactive", binary.path(), "--help"]
+		process.standardInput = nil
+		process.standardOutput = nil
+		process.standardError = nil
+
+		try process.run()
+
+		process.waitUntilExit()
+
+		if process.terminationStatus == 0 {
+			return true
+		}
+
+		return false
+	}
+
+	static func run(useSocketVMNet: Bool = false, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String? = nil, subnetMask: String? = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) throws {
+		let socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: networkInterface)
+		let executableURL: URL
+		var arguments: [String] = []
+
+		guard let sudoURL = URL.binary("sudo") else {
+			throw ServiceError("sudo not found in path")
+		}
+
+		if useSocketVMNet, let socket_vmnet = URL.binary("socket_vmnet") {	
+			executableURL = socket_vmnet
+			arguments.append(contentsOf: ["--vmnet-mode", "\(mode.stringValue)"])
+
+			if let networkInterface = networkInterface {
+				arguments.append(contentsOf: ["--vmnet-interface", networkInterface])
+			}
+
+			if let gateway = gateway {
+				arguments.append(contentsOf: ["--vmnet-gateway", gateway])
+
+				if let dhcpEnd = dhcpEnd {
+					arguments.append(contentsOf: ["--vmnet-dhcp-end", dhcpEnd])
+				}
+
+				if let subnetMask = subnetMask {
+					arguments.append(contentsOf: ["--vmnet-mask", subnetMask])
+				}
+			}
+
+			if let nat66Prefix = nat66Prefix {
+				arguments.append(contentsOf: ["--vmnet-nat66-prefix", nat66Prefix])
+			}
+
+			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
+			arguments.append(socketURL.0.path)
+
+		} else if let caker = URL.binary("caker") {
+			executableURL = caker
+
+			if runAsSystem {
+				arguments.append(contentsOf: ["--system"])
+			}
+
+			arguments.append(contentsOf: ["--mode", "\(mode.stringValue)"])
+
+			if let networkInterface = networkInterface {
+				arguments.append(contentsOf: ["--interface", networkInterface])
+			}
+
+			if let gateway = gateway {
+				arguments.append(contentsOf: ["--gateway", gateway])
+
+				if let dhcpEnd = dhcpEnd {
+					arguments.append(contentsOf: ["--dhcp-end", dhcpEnd])
+				}
+
+				if let subnetMask = subnetMask {
+					arguments.append(contentsOf: ["--netmask", subnetMask])
+				}
+			}
+
+			if let nat66Prefix = nat66Prefix {
+				arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
+			}
+		} else {
+			throw ServiceError("caker not found in path")
+		}
+
+		if socketURL.1.isPIDRunning() {
+			throw ServiceError("\(executableURL.path()) is already running")
+		}
+
+		try? socketURL.0.delete()
+
+		guard try checkIfSudoable(binary: executableURL) else {
+			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+		}
+
+		let process = Process()
+		var runningArguments: [String] = ["--non-interactive", executableURL.path()]
+
+		runningArguments.append(contentsOf: arguments)
+
+		Logger(self).info("Running: \(sudoURL.path) \(runningArguments.joined(separator: " "))")
+
+		process.executableURL = sudoURL
+		process.arguments = runningArguments
+		process.standardInput = FileHandle.nullDevice
+		process.standardOutput = FileHandle.standardOutput
+		process.standardError = FileHandle.standardError
+		process.terminationHandler = { process in
+			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
+			kill(getpid(), SIGUSR2)
+		}
+
+		try process.run()
+
+		let maxRetries = 10
+		var retries = 0
+
+		while retries < maxRetries {
+			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+				Logger(self).info("Socket file exists at \(socketURL.0.path)")
+				return
+			}
+
+			Thread.sleep(forTimeInterval: 1)
+
+			retries += 1
+		}
+
+		throw ServiceError("Socket file did not appear within the expected time")
 	}
 
 	static func start(options: NetworksHandler.VMNetOptions) async throws {
@@ -146,8 +316,8 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	static func stop(options: NetworksHandler.VMNetOptions) throws -> String {
-		let socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface)
+	static func stop(mode: VMNetMode, networkInterface: String? = nil) throws -> String {
+		let socketURL = try Self.vmnetEndpoint(mode: mode, networkInterface: networkInterface)
 		let pidURL = socketURL.1
 
 		if try pidURL.exists() {
@@ -158,7 +328,7 @@ struct NetworksHandler: CakedCommand {
 			}
 		}
 
-		return "stopped \(options)"
+		return "stopped interface"
 	}
 
 	static func networks() -> [BridgedNetwork] {
