@@ -429,6 +429,20 @@
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"networks",
+				"start",
+				"--mode=bridged",
+				"--interface=en0"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked networks start",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
 			"name": "-----------------------------------------------------------------------------"
 		},
 		{

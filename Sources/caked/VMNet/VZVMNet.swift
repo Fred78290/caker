@@ -68,17 +68,19 @@ final class VZVMNet: @unchecked Sendable {
 
 			if self.vmnet.datagram {
 				var bufData = Data(buffer: buffer)
+				let currentChannel = context.channel
 
 				channelsSyncQueue.async {
-					var written_count: Int32 = bufData.count
-					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: bufData.withUnsafeMutableBytes { $0.baseAddress! }, vm_pkt_iovcnt: 1, vm_flags: 0)
+					var written_count: Int32 = Int32(bufData.count)
+					var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(written_count))
+					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
 
 					guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
 						Logger(self).error("Failed to write to interface")
 						return
 					}
 
-					if written_count != header {
+					if written_count != self.header {
 						Logger(self).error("Failed to write all bytes to interface")
 					}
 
@@ -214,64 +216,12 @@ final class VZVMNet: @unchecked Sendable {
 		sigterm.activate()
 	}
 
-	func vmnetPacketAvailableDatagram(_ estim_count: UInt64) {
+	func vmnetPacketAvailable(_ estim_count: UInt64) {
 		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
 		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
 		let on_vmnet_packets_available = { (count: UInt64) in
 			let max_bytes = Int(self.max_bytes)
-			var received_count: Int32 = Int32(count)
-			var pdv: [vmpktdesc] = []
-
-			pdv.reserveCapacity(Int(count))
-			io.reserveCapacity(Int(count))
-
-			for i in 0..<Int(count) {
-				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes)), vm_pkt_iovcnt: 1, vm_flags: 0))
-			}
-
-			defer {
-				pdv.forEach {
-					$0.vm_pkt_iov.deallocate()
-				}
-			}
-
-			let status = vmnet_read(self.iface!, &pdv, &received_count)
-
-			if status != .VMNET_SUCCESS {
-				Logger(self).error("Failed to read from interface \(status)")
-				return
-			}
-
-			for i in 0..<Int(received_count) {
-				let pd: vmpktdesc = pdv[i]
-				let macAddress = UnsafeRawPointer(pd.vm_pkt_iov).bindMemory(to: [ether_addr_t].self, capacity: 2).pointee
-
-				Logger(self).debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
-
-				let iovec1: iovec = iovec(iov_base: pd.vm_pkt_iov, iov_len: pd.vm_pkt_iov.pointee.iov_len)
-
-				self.childrenChannels.forEach { channel in
-					channel.writeAndFlush(iovec1, promise: nil)
-				}
-			}
-		}
-
-		Logger(self).debug("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
-
-		for _ in 0..<q {
-			on_vmnet_packets_available(MAX_PACKET_COUNT_AT_ONCE)
-		}
-
-		if r > 0 {
-			on_vmnet_packets_available(r)
-		}
-	}
-
-	func vmnetPacketAvailableStream(_ estim_count: UInt64) {
-		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
-		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
-		let on_vmnet_packets_available = { (count: UInt64) in
-			let max_bytes = Int(self.max_bytes)
+			let padding = self.datagram ? 0 : MemoryLayout<Int32>.size
 			var received_count: Int32 = Int32(count)
 			var pdv: [vmpktdesc] = []
 			var io: [iovec] = []
@@ -280,8 +230,8 @@ final class VZVMNet: @unchecked Sendable {
 			io.reserveCapacity(Int(count))
 
 			for i in 0..<Int(count) {
-				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes) + MemoryLayout<Int32>.size), iov_len: max_bytes))
-				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 + MemoryLayout<Int32>.size}), vm_pkt_iovcnt: 1, vm_flags: 0))
+				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes) + padding), iov_len: max_bytes))
+				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 + padding}), vm_pkt_iovcnt: 1, vm_flags: 0))
 			}
 
 			defer {
@@ -304,9 +254,11 @@ final class VZVMNet: @unchecked Sendable {
 
 				Logger(self).debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
 
-				iop.iov_base.assumingMemoryBound(to: Int32.self).pointee = Int32(pdv[i].vm_pkt_size.bigEndian)
+				if self.datagram == false {
+					iop.iov_base.assumingMemoryBound(to: Int32.self).pointee = Int32(pdv[i].vm_pkt_size.bigEndian)
+				}
 
-				let iovec1: iovec = iovec(iov_base: iop.iov_base, iov_len: pd.vm_pkt_iov.pointee.iov_len + MemoryLayout<Int32>.size)
+				let iovec1: iovec = iovec(iov_base: iop.iov_base, iov_len: pd.vm_pkt_iov.pointee.iov_len + padding)
 
 				self.childrenChannels.forEach { channel in
 					channel.writeAndFlush(iovec1, promise: nil)
@@ -322,14 +274,6 @@ final class VZVMNet: @unchecked Sendable {
 
 		if r > 0 {
 			on_vmnet_packets_available(r)
-		}
-	}
-
-	func vmnetPacketAvailable(_ estim_count: UInt64) {
-		if self.datagram {
-			vmnetPacketAvailableDatagram(estim_count)
-		} else {
-			vmnetPacketAvailableStream(estim_count)
 		}
 	}
 

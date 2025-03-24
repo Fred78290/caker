@@ -20,6 +20,7 @@ struct Networks: ParsableCommand {
 
 		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
+			try self.options.validate()
 		}
 
 		func run() async throws {

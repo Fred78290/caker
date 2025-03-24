@@ -44,19 +44,20 @@ enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
 
 struct BridgedNetwork: Codable {
 	var name: String
-	var description: String?
-	var interfaceID: String?
-	var endpoint: String?
+	var description: String = ""
+	var interfaceID: String = ""
+	var endpoint: String = ""
 }
+
 struct NetworksHandler: CakedCommand {
 	var format: Format
 
 	struct VMNetOptions: ParsableArguments {
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
+
+		@Argument(help: "socket path")
+		var socketPath: String? = nil
 
 		@Flag(name: [.customLong("stream")], help: "Use stream socket")
 		var stream: Bool = false
@@ -85,10 +86,19 @@ struct NetworksHandler: CakedCommand {
 		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
 		var nat66Prefix: String? = nil
 
-		func validate() throws {
-			Logger.setLevel(self.logLevel)
+		@Option(name: [.customLong("pidfile")], help: "save pid to PIDFILE")
+		var pidFile: String? = nil
 
+		func validate() throws {
 			runAsSystem = self.asSystem
+
+			if self.socketPath == nil {
+				throw ValidationError("socket path not defined")
+			}
+
+			if self.pidFile == nil {
+				throw ValidationError("pid file not defined")
+			}
 
 			if self.mode == .bridged {
 				if self.networkInterface == nil {
@@ -108,6 +118,28 @@ struct NetworksHandler: CakedCommand {
 				}
 			}
 
+		}
+
+		func vmnetEndpoint() throws -> (URL, URL) {
+			let home: Home = try Home.init(asSystem: runAsSystem)
+			let dirName: String
+
+			if mode == .bridged {
+				dirName = networkInterface!
+			} else if mode == .host {
+				dirName = "host"
+			} else {
+				dirName = "shared"
+			}
+
+			guard let socketPath = self.socketPath else {
+				let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
+				try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
+
+				return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
+			} else {
+				return (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: self.pidFile!))
+			}
 		}
 
 		func createVZVMNet(socketPath: String, socketGroup: gid_t) -> VZVMNet {
@@ -206,10 +238,10 @@ struct NetworksHandler: CakedCommand {
 				if let subnetMask = subnetMask {
 					arguments.append(contentsOf: ["--vmnet-mask", subnetMask])
 				}
-			}
 
-			if let nat66Prefix = nat66Prefix {
-				arguments.append(contentsOf: ["--vmnet-nat66-prefix", nat66Prefix])
+				if let nat66Prefix = nat66Prefix {
+					arguments.append(contentsOf: ["--vmnet-nat66-prefix", nat66Prefix])
+				}
 			}
 
 			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
@@ -238,11 +270,14 @@ struct NetworksHandler: CakedCommand {
 				if let subnetMask = subnetMask {
 					arguments.append(contentsOf: ["--netmask", subnetMask])
 				}
+
+				if let nat66Prefix = nat66Prefix {
+					arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
+				}
 			}
 
-			if let nat66Prefix = nat66Prefix {
-				arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
-			}
+			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
+			arguments.append(socketURL.0.path)
 		} else {
 			throw ServiceError("caker not found in path")
 		}
@@ -332,10 +367,10 @@ struct NetworksHandler: CakedCommand {
 	}
 
 	static func networks() -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network")]
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
 
 		networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-			BridgedNetwork(name: inf.identifier, description: inf.localizedDisplayName)
+			BridgedNetwork(name: inf.identifier, description: inf.localizedDisplayName ?? inf.identifier, interfaceID: inf.identifier, endpoint: "")
 		})
 
 		return networks
