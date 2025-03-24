@@ -227,32 +227,32 @@ public struct RSAKeyGenerator {
 			issuerPrivateKey: rootCertKey)
 
 		// Save CA key & cert
-		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path,
 									   contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o600])
 
-		FileManager.default.createFile(atPath: caCertURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: caCertURL.absoluteURL.path,
 									   contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o600])
 
 
 		// Save server key & cert
-		FileManager.default.createFile(atPath: serverKeyURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: serverKeyURL.absoluteURL.path,
 									   contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o644])
 
-		FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path,
 									   contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o644])
 
 
 
 		// Save Client key & cert
-		FileManager.default.createFile(atPath: clientKeyURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: clientKeyURL.absoluteURL.path,
 									   contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o644])
 
-		FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path(),
+		FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path,
 									   contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
 									   attributes: [.posixPermissions : 0o644])
 	}

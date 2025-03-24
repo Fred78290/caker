@@ -434,6 +434,7 @@
 			"args": [
 				"networks",
 				"start",
+				"--log-level=debug",
 				"--mode=bridged",
 				"--interface=en0"
 			],

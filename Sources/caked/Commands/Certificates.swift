@@ -15,12 +15,12 @@ extension CertificatesLocation {
 	func flatMap() -> [CertAsText] {
 		var out: [CertAsText] = []
 
-		out.append(CertAsText(type: "caCertURL", path: self.caCertURL.path(), created: try! self.caCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "caKeyURL", path: self.caKeyURL.path(), created: try! self.caKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "clientKeyURL", path: self.clientKeyURL.path(), created: try! self.clientKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "clientCertURL", path: self.clientCertURL.path(), created: try! self.clientCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "serverKeyURL", path: self.serverKeyURL.path(), created: try! self.serverKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
-		out.append(CertAsText(type: "serverCertURL", path: self.serverCertURL.path(), created: try! self.serverCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "caCertURL", path: self.caCertURL.path, created: try! self.caCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "caKeyURL", path: self.caKeyURL.path, created: try! self.caKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "clientKeyURL", path: self.clientKeyURL.path, created: try! self.clientKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "clientCertURL", path: self.clientCertURL.path, created: try! self.clientCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "serverKeyURL", path: self.serverKeyURL.path, created: try! self.serverKeyURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
+		out.append(CertAsText(type: "serverCertURL", path: self.serverCertURL.path, created: try! self.serverCertURL.resourceValues(forKeys: [.creationDateKey]).creationDate!))
 
 		return out
 	}

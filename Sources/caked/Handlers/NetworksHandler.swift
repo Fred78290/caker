@@ -92,13 +92,13 @@ struct NetworksHandler: CakedCommand {
 		func validate() throws {
 			runAsSystem = self.asSystem
 
-			if self.socketPath == nil {
+			/*if self.socketPath == nil {
 				throw ValidationError("socket path not defined")
 			}
 
 			if self.pidFile == nil {
 				throw ValidationError("pid file not defined")
-			}
+			}*/
 
 			if self.mode == .bridged {
 				if self.networkInterface == nil {
@@ -120,29 +120,7 @@ struct NetworksHandler: CakedCommand {
 
 		}
 
-		func vmnetEndpoint() throws -> (URL, URL) {
-			let home: Home = try Home.init(asSystem: runAsSystem)
-			let dirName: String
-
-			if mode == .bridged {
-				dirName = networkInterface!
-			} else if mode == .host {
-				dirName = "host"
-			} else {
-				dirName = "shared"
-			}
-
-			guard let socketPath = self.socketPath else {
-				let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
-				try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
-
-				return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
-			} else {
-				return (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: self.pidFile!))
-			}
-		}
-
-		func createVZVMNet(socketPath: String, socketGroup: gid_t) -> VZVMNet {
+		func createVZVMNet(socketPath: URL, socketGroup: gid_t) -> VZVMNet {
 			VZVMNet(
 				on: Root.group.next(),
 				datagram: self.stream == false,
@@ -159,8 +137,8 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	static func vmnetEndpoint(mode: VMNetMode, networkInterface: String? = nil) throws -> (URL, URL) {
-		let home = try Home.init(asSystem: runAsSystem)
+	static func vmnetEndpoint(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> (URL, URL) {
+		let home = try Home.init(asSystem: asSystem)
 		let dirName: String
 
 		if mode == .bridged {
@@ -186,7 +164,7 @@ struct NetworksHandler: CakedCommand {
 			throw ServiceError("sudo not found in path")
 		}
 
-		let info = try FileManager.default.attributesOfItem(atPath: binary.path()) as NSDictionary
+		let info = try FileManager.default.attributesOfItem(atPath: binary.path) as NSDictionary
 
 		if info.fileOwnerAccountID() == 0 && (info.filePosixPermissions() & Int(S_ISUID)) != 0 {
 			return true
@@ -195,7 +173,7 @@ struct NetworksHandler: CakedCommand {
 		let process = Process()
 
 		process.executableURL = sudoURL
-		process.arguments = ["--non-interactive", binary.path(), "--help"]
+		process.arguments = ["--non-interactive", binary.path, "--help"]
 		process.standardInput = nil
 		process.standardOutput = nil
 		process.standardError = nil
@@ -211,14 +189,31 @@ struct NetworksHandler: CakedCommand {
 		return false
 	}
 
-	static func run(useSocketVMNet: Bool = false, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String? = nil, subnetMask: String? = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) throws {
-		let socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: networkInterface)
+	static func run(useSocketVMNet: Bool = false,
+	                mode: VMNetMode,
+	                networkInterface: String? = nil,
+	                gateway: String? = nil,
+	                dhcpEnd: String? = nil,
+	                subnetMask: String? = "255.255.255.0",
+	                interfaceID: String = UUID().uuidString,
+	                nat66Prefix: String? = nil,
+					socketPath: URL? = nil,
+					pidFile: URL? = nil) throws {
+		let socketURL: (URL, URL)
 		let executableURL: URL
 		var arguments: [String] = []
+
+		if let socketPath = socketPath, let pidFile = pidFile {
+			socketURL = (socketPath, pidFile)
+		} else {
+			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: networkInterface, asSystem: runAsSystem)
+		}
 
 		guard let sudoURL = URL.binary("sudo") else {
 			throw ServiceError("sudo not found in path")
 		}
+
+		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
 
 		if useSocketVMNet, let socket_vmnet = URL.binary("socket_vmnet") {	
 			executableURL = socket_vmnet
@@ -283,7 +278,7 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		if socketURL.1.isPIDRunning() {
-			throw ServiceError("\(executableURL.path()) is already running")
+			throw ServiceError("\(executableURL.path) is already running")
 		}
 
 		try? socketURL.0.delete()
@@ -293,7 +288,7 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		let process = Process()
-		var runningArguments: [String] = ["--non-interactive", executableURL.path()]
+		var runningArguments: [String] = ["--non-interactive", executableURL.path]
 
 		runningArguments.append(contentsOf: arguments)
 
@@ -329,30 +324,35 @@ struct NetworksHandler: CakedCommand {
 	}
 
 	static func start(options: NetworksHandler.VMNetOptions) async throws {
-		let socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface)
-		let socketPath = socketURL.0.path
-		let pidURL = socketURL.1
-		let pid: pid_t = getpid()
+		let socketURL: (URL, URL)
 
 		guard let grp = getgrnam(options.socketGroup) else {
 			throw ServiceError("Failed to get group \(options.socketGroup)")
 		}
 
-		try "\(pid)".write(to: pidURL, atomically: true, encoding: .ascii)
-
-		defer {
-			try? FileManager.default.removeItem(at: pidURL)
+		if let socketPath = options.socketPath, let pidFile = options.pidFile {
+			socketURL = (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: pidFile))
+		} else {
+			socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface, asSystem: options.asSystem)
 		}
 
-		if FileManager.default.fileExists(atPath: socketPath) == false {
-			let vzvmnet = options.createVZVMNet(socketPath: socketPath, socketGroup: grp.pointee.gr_gid)
+		if try socketURL.0.exists() == false {
+			let vzvmnet = options.createVZVMNet(socketPath: socketURL.0, socketGroup: grp.pointee.gr_gid)
+
+			try socketURL.1.writePID()
+
+			defer {
+				try? socketURL.1.delete()
+			}
 
 			try await vzvmnet.start()
+		} else {
+			throw ServiceError("Socket file already exists at \(socketURL.0.path)")
 		}
 	}
 
-	static func stop(mode: VMNetMode, networkInterface: String? = nil) throws -> String {
-		let socketURL = try Self.vmnetEndpoint(mode: mode, networkInterface: networkInterface)
+	static func stop(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> String {
+		let socketURL = try Self.vmnetEndpoint(mode: mode, networkInterface: networkInterface, asSystem: asSystem)
 		let pidURL = socketURL.1
 
 		if try pidURL.exists() {

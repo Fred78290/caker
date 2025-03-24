@@ -106,7 +106,7 @@ extension Service {
 			if self.tlsCert == nil && self.tlsKey == nil {
 				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
 
-				return Certs(ca: certs.caCertURL.path(), key: certs.serverKeyURL.path(), cert: certs.serverCertURL.path())
+				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
 
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
@@ -172,7 +172,7 @@ extension Service {
 			                        ],
 			                        environmentVariables: [
 			                        	"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-			                        	"CAKE_HOME" : cakeHome.path()
+			                        	"CAKE_HOME" : cakeHome.path
 			                        ],
 			                        standardErrorPath: outputLog,
 			                        standardOutPath: outputLog,
@@ -220,9 +220,9 @@ extension Service {
 			if self.secure {
 				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
 
-				self.caCert = certs.caCertURL.path()
-				self.tlsCert = certs.serverCertURL.path()
-				self.tlsKey = certs.serverKeyURL.path()
+				self.caCert = certs.caCertURL.path
+				self.tlsCert = certs.serverCertURL.path
+				self.tlsKey = certs.serverKeyURL.path
 			} else if let caCert = self.caCert, let tlsCert = self.tlsCert, let tlsKey = self.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
 					throw ServiceError("Root certificate file not found: \(caCert)")
@@ -260,7 +260,7 @@ extension Service {
 
 				if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 					try listeningAddress.deleteIfFileExists()
-					target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
+					target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 				} else if listeningAddress.scheme == "tcp" {
 					target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 				} else {
@@ -380,7 +380,7 @@ extension Service {
 			if self.tlsCert == nil && self.tlsKey == nil {
 				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
 
-				return Certs(ca: certs.caCertURL.path(), key: certs.serverKeyURL.path(), cert: certs.serverCertURL.path())
+				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
 
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)

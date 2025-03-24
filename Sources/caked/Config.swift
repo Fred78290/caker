@@ -473,7 +473,7 @@ extension CakeConfig {
 	}
 
 	func socketDeviceAttachments() throws -> [SocketDevice] {
-		let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: self.location).absoluteURL.path()
+		let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: self.location).absoluteURL.path
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: 5000, bind: vsock)]
 
 		if FileManager.default.fileExists(atPath: vsock) {

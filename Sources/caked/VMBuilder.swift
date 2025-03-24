@@ -63,7 +63,7 @@ struct VMBuilder {
 	}
 
 	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> ImageSource {
-		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) {
+		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
 		var sourceImage: ImageSource = .cloud

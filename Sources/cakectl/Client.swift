@@ -196,9 +196,9 @@ struct Client: AsyncParsableCommand {
 					let certs = try ClientCertificatesLocation.getCertificats(asSystem: self.asSystem)
 
 					if certs.exists() {
-						self.caCert = certs.caCertURL.path()
-						self.tlsCert = certs.clientCertURL.path()
-						self.tlsKey = certs.clientKeyURL.path()
+						self.caCert = certs.caCertURL.path
+						self.tlsCert = certs.clientCertURL.path
+						self.tlsKey = certs.clientKeyURL.path
 					}
 				}
 			}
@@ -248,7 +248,7 @@ struct Client: AsyncParsableCommand {
 
 			tartHomeDir.append(path: ".caked.sock")
 
-			return "unix://\(tartHomeDir.absoluteURL.path())"
+			return "unix://\(tartHomeDir.absoluteURL.path)"
 		}
 	}
 
@@ -262,7 +262,7 @@ struct Client: AsyncParsableCommand {
 			let target: ConnectionTarget
 
 			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
-				target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
+				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 			} else if listeningAddress.scheme == "tcp" {
 				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 			} else {

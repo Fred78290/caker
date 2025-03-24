@@ -81,7 +81,7 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 			try listeningAddress.deleteIfFileExists()
-			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
+			target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
 		} else if listeningAddress.scheme == "tcp" {
 			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
 		} else {
@@ -90,9 +90,9 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
 
-		let tlsCert = try NIOSSLCertificate(file: self.certLocation.serverCertURL.path(), format: .pem)
-		let tlsKey = try NIOSSLPrivateKey(file: self.certLocation.serverKeyURL.path(), format: .pem)
-		let trustRoots = NIOSSLTrustRoots.certificates([try NIOSSLCertificate(file: self.certLocation.caCertURL.path(), format: .pem)])
+		let tlsCert = try NIOSSLCertificate(file: self.certLocation.serverCertURL.path, format: .pem)
+		let tlsKey = try NIOSSLPrivateKey(file: self.certLocation.serverKeyURL.path, format: .pem)
+		let trustRoots = NIOSSLTrustRoots.certificates([try NIOSSLCertificate(file: self.certLocation.caCertURL.path, format: .pem)])
 
 		serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
 			certificateChain: [.certificate(tlsCert)],

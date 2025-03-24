@@ -59,15 +59,15 @@ extension CakeAgentAsyncParsableCommand {
 
 		if self.options.insecure == false{
 			if self.options.caCert == nil {
-				self.options.caCert = certificates.caCertURL.path()
+				self.options.caCert = certificates.caCertURL.path
 			}
 
 			if self.options.tlsCert == nil {
-				self.options.tlsCert = certificates.clientCertURL.path()
+				self.options.tlsCert = certificates.clientCertURL.path
 			}
 
 			if self.options.tlsKey == nil {
-				self.options.tlsKey = certificates.clientKeyURL.path()
+				self.options.tlsKey = certificates.clientKeyURL.path
 			}
 		}
 

@@ -129,9 +129,9 @@ final class CloudInitTests: XCTestCase {
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL)
 
-			print("saved to \(temporaryURL.path())")
+			print("saved to \(temporaryURL.path)")
 
-			XCTAssert(FileManager.default.fileExists(atPath: temporaryURL.path()), temporaryURL.path())
+			XCTAssert(FileManager.default.fileExists(atPath: temporaryURL.path), temporaryURL.path)
 		}
 	}
 
@@ -152,9 +152,9 @@ final class CloudInitTests: XCTestCase {
 		options.image = image
 		options.nested = true
 		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
-		options.userData = self.userDataPath.path()
+		options.userData = self.userDataPath.path
 		options.vendorData = nil
-		options.networkConfig = self.networkConfigPath.path()
+		options.networkConfig = self.networkConfigPath.path
 		options.published = [
 			ForwardedPort(argument: "2222:22/tcp").description
 		]
@@ -182,7 +182,7 @@ final class CloudInitTests: XCTestCase {
 			try? tmpQcow2.delete()
 		}
 
-		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path())")
+		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path)")
 	}
 
 	func testBuildVMWithOCI() async throws {

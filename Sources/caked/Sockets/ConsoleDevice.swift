@@ -49,7 +49,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 			}
 
 		// Listen on the console socket
-		let binder = bootstrap.bind(unixDomainSocketPath: consoleURL.path(), cleanupExistingSocketFile: true)
+		let binder = bootstrap.bind(unixDomainSocketPath: consoleURL.path, cleanupExistingSocketFile: true)
 
 		// When the bind is complete, set the channel
 		binder.whenComplete { result in
@@ -66,11 +66,11 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 	}
 
 	private func createFileConsole(consoleURL: URL) throws -> (FileHandle, FileHandle) {
-		if FileManager.default.fileExists(atPath: consoleURL.absoluteURL.path()) {
+		if FileManager.default.fileExists(atPath: consoleURL.absoluteURL.path) {
 			try FileManager.default.removeItem(at: consoleURL)
 		}
 
-		FileManager.default.createFile(atPath: consoleURL.absoluteURL.path(), contents: nil)
+		FileManager.default.createFile(atPath: consoleURL.absoluteURL.path, contents: nil)
 
 		Logger(self).info("Console binded to file \(consoleURL.absoluteString)")
 

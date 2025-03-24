@@ -69,10 +69,22 @@ class VMNetworkInterface: NetworkAttachement {
 	}
 
 	private func open() throws -> FileHandle {
-		let socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier)
+		let socketURL: (URL, URL)
+
+		if runAsSystem {
+			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: runAsSystem)
+		} else {
+			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: true)
+
+			if try systemSocketURL.0.exists() == false {
+				socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: false)
+			} else {
+				socketURL = systemSocketURL
+			}
+		}
 
 		if try socketURL.0.exists() == false {
-			try NetworksHandler.run(mode: VMNetMode.bridged, networkInterface: interface.identifier)
+			try NetworksHandler.run(mode: VMNetMode.bridged, networkInterface: interface.identifier, socketPath: socketURL.0, pidFile: socketURL.1)
 		}
 
 		let socket_fd = try SocketAddress(unixDomainSocketPath: socketURL.0.path).withSockAddr { addr, len in

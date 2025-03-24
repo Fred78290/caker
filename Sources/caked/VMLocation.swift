@@ -243,7 +243,7 @@ struct VMLocation {
 		} else {
 			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) {
 				let ssh = try SSH(host: ip)
-				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path(), publicKey: home.sshPublicKey.path(), passphrase: "")
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
 				try ssh.execute("sudo shutdown now")
 			} else {
 				killVMRun()

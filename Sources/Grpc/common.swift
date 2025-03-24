@@ -117,7 +117,7 @@ public struct Utils {
 		guard let cakeHomeDir = homeDirectories[asSystem] else {
 			let cakeHomeDir: URL
 
-			if asSystem {
+			if asSystem || geteuid() == 0 {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
@@ -156,7 +156,7 @@ public struct Utils {
 
 			tartHomeDir.append(path: ".caked.sock")
 
-			return "unix://\(tartHomeDir.absoluteURL.path())"
+			return "unix://\(tartHomeDir.absoluteURL.path)"
 		}
 	}
 
@@ -165,7 +165,7 @@ public struct Utils {
 			return "/Library/Logs/caked.log"
 		}
 
-		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(asSystem: false)).absoluteURL.path()
+		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(asSystem: false)).absoluteURL.path
 	}
 
 	public static func saveToTempFile(_ data: Data) throws -> String {
@@ -175,7 +175,7 @@ public struct Utils {
 
 		try data.write(to: url)
 
-		return url.absoluteURL.path()
+		return url.absoluteURL.path
 	}
 
 }
@@ -656,7 +656,7 @@ public struct ClientCertificatesLocation: Codable {
 	}
 
 	public func exists() -> Bool {
-		return FileManager.default.fileExists(atPath: self.clientKeyURL.path()) && FileManager.default.fileExists(atPath: self.clientCertURL.path())
+		return FileManager.default.fileExists(atPath: self.clientKeyURL.path) && FileManager.default.fileExists(atPath: self.clientCertURL.path)
 	}
 }
 

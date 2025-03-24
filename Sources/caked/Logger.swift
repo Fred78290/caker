@@ -2,6 +2,20 @@ import Foundation
 import Logging
 import ArgumentParser
 
+public enum LogLevel: Int, Equatable, Comparable {
+	case trace = 6
+	case debug = 5
+	case info = 4
+	case notice = 3
+	case warning = 2
+	case error = 1
+	case critical = 0
+
+	public static func < (lhs: LogLevel, rhs: LogLevel) -> Bool {
+		return lhs.rawValue < rhs.rawValue
+	}
+}
+
 extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
 	public init?(argument: String) {
 		switch argument {
@@ -23,6 +37,25 @@ extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
 			return nil
 		}
 	}
+
+	public var level: LogLevel {
+		switch self {
+		case .trace:
+			return LogLevel.trace
+		case .debug:
+			return LogLevel.debug
+		case .info:
+			return LogLevel.info
+		case .notice:
+			return LogLevel.notice
+		case .warning:
+			return LogLevel.warning
+		case .error:
+			return LogLevel.error
+		case .critical:
+			return LogLevel.critical
+		}
+	}
 }
 
 
@@ -31,12 +64,13 @@ struct Logger {
 	private static let moveUp = "\u{001B}[1A"
 	private static let moveBeginningOfLine = "\r"
 	private static var logLevel: Logging.Logger.Level = .info
+	private static var intLogLevel = LogLevel.info
 
 	let label = "com.aldunelabs.caker"
 	var logger: Logging.Logger
 
 	public init(_ target: Any) {
-        let thisType = type(of: target)
+		let thisType = type(of: target)
 		self.logger = Logging.Logger(label: "com.aldunelabs.caker.\(String(describing: thisType))")
 		self.logger.logLevel = Self.logLevel
 	}
@@ -46,32 +80,49 @@ struct Logger {
 		self.logger.logLevel = Self.logLevel
 	}
 
+	static public func Level() -> LogLevel {
+		Self.intLogLevel
+	}
+
 	static public func setLevel(_ level: Logging.Logger.Level) {
 		Self.logLevel = level
+		Self.intLogLevel = level.level
 	}
 
 	public func error(_ err: Error) {
-		logger.error(.init(stringLiteral: err.localizedDescription))
+		if Self.intLogLevel >= LogLevel.error {
+			logger.error(.init(stringLiteral: err.localizedDescription))
+		}
 	}
 
 	public func error(_ err: String) {
-		logger.error(.init(stringLiteral: err))
+		if Self.intLogLevel >= LogLevel.error {
+			logger.error(.init(stringLiteral: err))
+		}
 	}
 
 	public func warn(_ line: String) {
-		logger.warning(.init(stringLiteral: line))
+		if Self.intLogLevel >= LogLevel.warning {
+			logger.warning(.init(stringLiteral: line))
+		}
 	}
 
 	public func info(_ line: String) {
-		logger.info(.init(stringLiteral: line))
+		if Self.intLogLevel >= LogLevel.info {
+			logger.info(.init(stringLiteral: line))
+		}
 	}
 
 	public func debug(_ line: String) {
-		logger.debug(.init(stringLiteral: line))
+		if Self.intLogLevel >= LogLevel.debug {
+			logger.debug(.init(stringLiteral: line))
+		}
 	}
 
 	public func trace(_ line: String) {
-		logger.trace(.init(stringLiteral: line))
+		if Self.intLogLevel >= LogLevel.trace {
+			logger.trace(.init(stringLiteral: line))
+		}
 	}
 
 	static public func appendNewLine(_ line: String) {
@@ -79,7 +130,7 @@ struct Logger {
 	}
 
 	static public func updateLastLine(_ line: String) {
-	    print(moveUp, moveBeginningOfLine, eraseCursorDown, line, separator: "", terminator: "\n")
+		print(moveUp, moveBeginningOfLine, eraseCursorDown, line, separator: "", terminator: "\n")
 	}
 }
 

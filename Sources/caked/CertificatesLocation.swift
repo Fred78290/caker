@@ -32,7 +32,7 @@ struct CertificatesLocation: Codable {
 	}
 
 	func createCertificats(subject: String, numberOfYears: Int = 10, _ force: Bool = false) throws -> CertificatesLocation {
-		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path()) == false {
+		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path) == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
 			try RSAKeyGenerator.generateClientServerCertificate(subject: subject, numberOfYears: numberOfYears,
 																	caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,

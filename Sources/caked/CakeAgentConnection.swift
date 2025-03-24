@@ -196,9 +196,9 @@ final class CakeAgentConnection: Sendable {
 	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {
 		self.init(eventLoop: eventLoop,
 		          listeningAddress: listeningAddress,
-		          caCert: certLocation.caCertURL.path(),
-		          tlsCert: certLocation.clientCertURL.path(),
-		          tlsKey: certLocation.clientKeyURL.path(),
+		          caCert: certLocation.caCertURL.path,
+		          tlsCert: certLocation.clientCertURL.path,
+		          tlsKey: certLocation.clientKeyURL.path,
 		          timeout: timeout,
 		          retries: retries)
 	}

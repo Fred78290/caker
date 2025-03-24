@@ -76,7 +76,7 @@ struct Shell {
 
 		var environment = ProcessInfo.processInfo.environment
 
-		environment["TART_HOME"] = cakeHomeDir.path()
+		environment["TART_HOME"] = cakeHomeDir.path
 
 		let _ = try Self.bash(to: "tart", arguments: args,
 		                      input: input,

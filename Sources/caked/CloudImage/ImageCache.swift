@@ -160,7 +160,7 @@ struct SimpleStreamCache: Codable {
 	}
 
 	static func createSimpleStreamCache(from:URL) throws -> SimpleStreamCache {
-		if FileManager.default.fileExists(atPath: from.absoluteURL.path()) {
+		if FileManager.default.fileExists(atPath: from.absoluteURL.path) {
 			let content = try Data(contentsOf: from)
 
 			return try PropertyListDecoder().decode(SimpleStreamCache.self, from: content)
@@ -448,7 +448,7 @@ class OCIImageCache: CommonCacheImageCache {
 			let root = purgeable.url.deletingLastPathComponent()
 			let container = root.deletingLastPathComponent()
 			let name = root.lastPathComponent
-			let source = container.absoluteURL.path().stringAfter(after: self.baseURL.absoluteURL.path()).stringBeforeLast(before: "/")
+			let source = container.absoluteURL.path.stringAfter(after: self.baseURL.absoluteURL.path).stringBeforeLast(before: "/")
 
 			return OCIImageCachePurgeable(name: name, url: purgeable.url, source: source)
 		}

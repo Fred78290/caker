@@ -59,7 +59,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.stop(mode: self.mode, networkInterface: self.networkInterface))
+			Logger.appendNewLine(try NetworksHandler.stop(mode: self.mode, networkInterface: self.networkInterface, asSystem: self.asSystem))
 		}
 	}
 

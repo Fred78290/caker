@@ -4,7 +4,7 @@ import Foundation
 import Logging
 import NIO
 
-var runAsSystem: Bool = false
+var runAsSystem: Bool = geteuid() == 0
 
 let delegatedCommand: [String] = [
 	"clone",

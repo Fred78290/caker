@@ -45,8 +45,8 @@ struct StartHandler: CakedCommand {
 	private class StartHandlerVMRun {
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
-			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path()]
+			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
+			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path]
 			var sharedFileDescriptors: [Int32] = []
 
 			if startMode == .background {
@@ -106,9 +106,9 @@ struct StartHandler: CakedCommand {
 
 		private func runningArguments(vmLocation: VMLocation, startMode: StartMode) throws -> ([String], [Int32]) {
 			let config: CakeConfig = try vmLocation.config()
-			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path()
-			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path()
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path()
+			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path
+			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path
+			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
 
 			var arguments: [String] = ["exec", "tart", "run", vmLocation.name]
 			var sharedFileDescriptors: [Int32] = []
@@ -272,7 +272,7 @@ struct StartHandler: CakedCommand {
 		var environment = ProcessInfo.processInfo.environment
 		let cakeHome = try Utils.getHome(asSystem: runAsSystem)
 
-		environment["TART_HOME"] = cakeHome.path()
+		environment["TART_HOME"] = cakeHome.path
 
 		if startMode == .foreground || startMode == .attach {
 			let outputPipe = Pipe()
@@ -317,7 +317,7 @@ struct StartHandler: CakedCommand {
 	}
 
 	public static func startVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path()) == false {
+		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path) == false {
 			throw ServiceError("VM does not exist")
 		}
 

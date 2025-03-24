@@ -137,7 +137,7 @@ extension URL: Purgeable {
 
 	func exists() throws -> Bool {
 		if self.isFileURL || self.scheme == "unix" || self.scheme == "vsock" {
-			return FileManager.default.fileExists(atPath: self.absoluteURL.path())
+			return FileManager.default.fileExists(atPath: self.absoluteURL.path)
 		}
 
 		throw ServiceError("Not a file URL: \(self.absoluteString)")
@@ -145,8 +145,8 @@ extension URL: Purgeable {
 
 	func deleteIfFileExists() throws {
 		if self.isFileURL || self.scheme == "unix" || self.scheme == "vsock" {
-			if FileManager.default.fileExists(atPath: self.absoluteURL.path()) {
-				try FileManager.default.removeItem(at: URL(fileURLWithPath: self.absoluteURL.path()))
+			if FileManager.default.fileExists(atPath: self.absoluteURL.path) {
+				try FileManager.default.removeItem(at: URL(fileURLWithPath: self.absoluteURL.path))
 			}
 		}
 	}

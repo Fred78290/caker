@@ -16,9 +16,9 @@ class GrpcTestCase {
 	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> ClientConnection {
 		let client = try Client.createClient(on: on,
 		                                     listeningAddress: listeningAddress,
-		                                     caCert: tls ? certs.caCertURL.absoluteURL.path() : nil,
-		                                     tlsCert: tls ? certs.clientCertURL.absoluteURL.path() : nil,
-		                                     tlsKey: tls ? certs.clientKeyURL.absoluteURL.path() : nil)
+		                                     caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
+		                                     tlsCert: tls ? certs.clientCertURL.absoluteURL.path : nil,
+		                                     tlsKey: tls ? certs.clientKeyURL.absoluteURL.path : nil)
 
 		return client
 	}
@@ -27,9 +27,9 @@ class GrpcTestCase {
 		let server = try Service.Listen.createServer(eventLoopGroup: on,
 		                                             asSystem: false,
 		                                             listeningAddress: listeningAddress,
-		                                             caCert: tls ? certs.caCertURL.absoluteURL.path() : nil,
-		                                             tlsCert: tls ? certs.serverCertURL.absoluteURL.path() : nil,
-		                                             tlsKey: tls ? certs.serverKeyURL.absoluteURL.path() : nil).wait()
+		                                             caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
+		                                             tlsCert: tls ? certs.serverCertURL.absoluteURL.path : nil,
+		                                             tlsKey: tls ? certs.serverKeyURL.absoluteURL.path : nil).wait()
 
 
 		return server

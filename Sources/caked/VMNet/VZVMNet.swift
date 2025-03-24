@@ -16,7 +16,7 @@ final class VZVMNet: @unchecked Sendable {
 	private var serverChannel: Channel? = nil
 	let eventLoop: EventLoop
 	let datagram: Bool
-	let socketPath: String
+	let socketPath: URL
 	let socketGroup: gid_t
 	let mode: VMNetMode
 	let networkInterface: String?
@@ -31,10 +31,11 @@ final class VZVMNet: @unchecked Sendable {
 	let sigint: any DispatchSourceSignal
 	let sighup: any DispatchSourceSignal
 	let sigterm: any DispatchSourceSignal
+	let logger = Logger("com.aldunelabs.caked.VZVMNet")
 
 	final class VMNetHandler: ChannelInboundHandler {
-		typealias InboundIn = ByteBuffer
-		typealias OutboundOut = ByteBuffer
+        public typealias InboundIn = AddressedEnvelope<ByteBuffer>
+        public typealias OutboundOut = AddressedEnvelope<ByteBuffer>
 
 		enum State {
 			case idle
@@ -48,6 +49,7 @@ final class VZVMNet: @unchecked Sendable {
 		private var header: Int32 = 0
 		private var totalRead: Int32 = 0
 		private var body: ByteBuffer = ByteBuffer()
+		private let logger = Logger("com.aldunelabs.caked.VMNetHandler")
 
 		init(vmnet: VZVMNet) {
 			self.vmnet = vmnet
@@ -67,7 +69,7 @@ final class VZVMNet: @unchecked Sendable {
 			var buffer = self.unwrapInboundIn(data)
 
 			if self.vmnet.datagram {
-				var bufData = Data(buffer: buffer)
+				var bufData = Data(buffer: buffer.data)
 				let currentChannel = context.channel
 
 				channelsSyncQueue.async {
@@ -76,12 +78,12 @@ final class VZVMNet: @unchecked Sendable {
 					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
 
 					guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-						Logger(self).error("Failed to write to interface")
+						self.logger.error("Failed to write to interface")
 						return
 					}
 
 					if written_count != self.header {
-						Logger(self).error("Failed to write all bytes to interface")
+						self.logger.error("Failed to write all bytes to interface")
 					}
 
 					self.vmnet.childrenChannels.forEach { channel in
@@ -92,16 +94,16 @@ final class VZVMNet: @unchecked Sendable {
 				}
 
 			} else if self.state == .readingHeader {
-				if buffer.readableBytes >= 4 {
-					self.header = buffer.readInteger(endianness: .big, as: Int32.self)!
+				if buffer.data.readableBytes >= 4 {
+					self.header = buffer.data.readInteger(endianness: .big, as: Int32.self)!
 					self.totalRead = 0
 					self.body = context.channel.allocator.buffer(capacity: Int(self.header) + MemoryLayout<Int32>.size)
 					self.state = .readingBody
 					self.body.writeInteger(self.header, endianness: .big, as: Int32.self)
 				}
 			} else if self.state == .readingBody {
-				if buffer.readableBytes > 0 {
-					self.totalRead += Int32(self.body.writeBuffer(&buffer))
+				if buffer.data.readableBytes > 0 {
+					self.totalRead += Int32(self.body.writeBuffer(&buffer.data))
 
 					if self.totalRead == self.header {
 						self.body.moveReaderIndex(to: 0)
@@ -117,12 +119,12 @@ final class VZVMNet: @unchecked Sendable {
 							var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(self.header), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
 
 							guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-								Logger(self).error("Failed to write to interface")
+								self.logger.error("Failed to write to interface")
 								return
 							}
 
 							if written_count != header {
-								Logger(self).error("Failed to write all bytes to interface")
+								self.logger.error("Failed to write all bytes to interface")
 							}
 
 							self.vmnet.childrenChannels.forEach { channel in
@@ -141,11 +143,11 @@ final class VZVMNet: @unchecked Sendable {
 		}
 
 		func errorCaught(context: ChannelHandlerContext, error: Error) {
-			Logger(self).error("Error: \(error)")
+			self.logger.error("Error: \(error)")
 		}
 	}
 
-	init(on: EventLoop, datagram: Bool, socketPath: String, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
+	init(on: EventLoop, datagram: Bool, socketPath: URL, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
 		self.eventLoop = on
 		self.datagram = datagram
 		self.socketPath = socketPath
@@ -170,7 +172,7 @@ final class VZVMNet: @unchecked Sendable {
 
 	private func print_vmnet_start_param(params: xpc_object_t?) {
 		guard let params = params else {
-			Logger(self).info("params not defined")
+			self.logger.info("params not defined")
 			return
 		}
 
@@ -179,24 +181,24 @@ final class VZVMNet: @unchecked Sendable {
 			let key = String(cString: key)
 
 			if t == XPC_TYPE_UINT64 {
-				Logger(self).info("\(key): \(xpc_dictionary_get_uint64(params, key))")
+				self.logger.info("\(key): \(xpc_dictionary_get_uint64(params, key))")
 			} else if t == XPC_TYPE_INT64 {
-				Logger(self).info("\(key): \(xpc_dictionary_get_int64(params, key))")
+				self.logger.info("\(key): \(xpc_dictionary_get_int64(params, key))")
 			} else if t == XPC_TYPE_STRING {
 				if let cstr = xpc_string_get_string_ptr(value) {
 					let value = String(cString: cstr)
 
-					Logger(self).info("\(key): \(value)")
+					self.logger.info("\(key): \(value)")
 				}
 			} else if t == XPC_TYPE_UUID {
 				UnsafeMutablePointer<Int8>.allocate(capacity: 37).withMemoryRebound(to: UInt8.self, capacity: 37) { uuid in
 					uuid_unparse(xpc_uuid_get_bytes(value), uuid)
 
 					let value = String(cString: uuid)
-					Logger(self).info("\(key): \(value)")
+					self.logger.info("\(key): \(value)")
 				}
 			} else {
-				Logger(self).info("\(key): \(t)")
+				self.logger.info("\(key): \(t)")
 			}
 
 			return true
@@ -219,6 +221,7 @@ final class VZVMNet: @unchecked Sendable {
 	func vmnetPacketAvailable(_ estim_count: UInt64) {
 		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
 		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
+
 		let on_vmnet_packets_available = { (count: UInt64) in
 			let max_bytes = Int(self.max_bytes)
 			let padding = self.datagram ? 0 : MemoryLayout<Int32>.size
@@ -231,7 +234,7 @@ final class VZVMNet: @unchecked Sendable {
 
 			for i in 0..<Int(count) {
 				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes) + padding), iov_len: max_bytes))
-				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 + padding}), vm_pkt_iovcnt: 1, vm_flags: 0))
+				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 + padding }), vm_pkt_iovcnt: 1, vm_flags: 0))
 			}
 
 			defer {
@@ -243,30 +246,42 @@ final class VZVMNet: @unchecked Sendable {
 			let status = vmnet_read(self.iface!, &pdv, &received_count)
 
 			if status != .VMNET_SUCCESS {
-				Logger(self).error("Failed to read from interface \(status)")
+				self.logger.error("Failed to read from interface \(status)")
 				return
 			}
 
 			for i in 0..<Int(received_count) {
 				let iop = io[i]
 				let pd: vmpktdesc = pdv[i]
-				let macAddress = UnsafeRawPointer(iop.iov_base).bindMemory(to: [ether_addr_t].self, capacity: 2).pointee
+				let numberOfItems = 2
+				let macAddress = iop.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
+					// Convert pointer to buffer pointer to access buffer via indices
+					let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
 
-				Logger(self).debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
+					// Construct array
+					return [ether_addr_t](unsafeUninitializedCapacity: numberOfItems) { arrayBuffer, count in
+						count = numberOfItems
+						for i in 0..<numberOfItems {
+							arrayBuffer[i] = bufferPointer[i]
+						}
+					}
+				}
+
+				self.logger.debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
 
 				if self.datagram == false {
 					iop.iov_base.assumingMemoryBound(to: Int32.self).pointee = Int32(pdv[i].vm_pkt_size.bigEndian)
 				}
 
-				let iovec1: iovec = iovec(iov_base: iop.iov_base, iov_len: pd.vm_pkt_iov.pointee.iov_len + padding)
+				let byteBuffer = ByteBuffer(data: Data(bytesNoCopy: iop.iov_base, count: pd.vm_pkt_iov.pointee.iov_len + padding, deallocator: .none))
 
 				self.childrenChannels.forEach { channel in
-					channel.writeAndFlush(iovec1, promise: nil)
+					channel.writeAndFlush(byteBuffer, promise: nil)
 				}
 			}
 		}
 
-		Logger(self).debug("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
+		self.logger.debug("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
 
 		for _ in 0..<q {
 			on_vmnet_packets_available(MAX_PACKET_COUNT_AT_ONCE)
@@ -323,9 +338,6 @@ final class VZVMNet: @unchecked Sendable {
 
 		vmnet_interface_set_event_callback(iface!, .VMNET_INTERFACE_PACKETS_AVAILABLE, hostQueue) { eventId, event in
 			let estim_count = xpc_dictionary_get_uint64(event, vmnet_estimated_packets_available_key)
-
-			Logger(self).info("Event: \(event), estim_count=\(estim_count)")
-
 			self.vmnetPacketAvailable(estim_count)
 		}
 	}
@@ -343,12 +355,13 @@ final class VZVMNet: @unchecked Sendable {
 				}
 
 				if status != .VMNET_SUCCESS {
-					Logger(self).error("Failed to stop interface \(status)")
+					self.logger.error("Failed to stop interface \(status)")
 				}
 			}
 		}
 
 		let binder: EventLoopFuture<Channel>
+		let socketPath = socketPath.path
 
 		// Create the server bootstrap
 		if self.datagram {
@@ -382,21 +395,21 @@ final class VZVMNet: @unchecked Sendable {
 			binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
 		}
 
-		if (chown(socketPath, getegid(), self.socketGroup) < 0) {
-			throw ServiceError("Failed to set group \(self.socketGroup) on socket \(self.socketPath)")
-		}
-
-		if (chmod(socketPath, 0o0770) < 0) {
-			throw ServiceError("Failed to set mod 770 on socket \(self.socketPath)")
-		}
-
 		// When the bind is complete, set the channel
 		binder.whenComplete { result in
 			switch result {
 			case .success:
-				Logger(self).info("Console listening on \(self.socketPath)")
+				self.logger.info("Console listening on \(self.socketPath)")
+				if (chown(socketPath, getegid(), self.socketGroup) < 0) {
+					self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath)")
+				}
+
+				if (chmod(socketPath, 0o0770) < 0) {
+					self.logger.error("Failed to set mod 770 on socket \(socketPath)")
+				}
+
 			case let .failure(error):
-				Logger(self).info("Failed to bind console on \(self.socketPath), \(error)")
+				self.logger.info("Failed to bind console on \(socketPath), \(error)")
 			}
 		}
 

@@ -7,8 +7,8 @@ class CloudImageConverter {
 		do {
 			let convertOuput = try Shell.execute(to: "qemu-img", arguments: [
 				"convert", "-p", "-f", "qcow2", "-O", "raw",
-				from.path(),
-				to.path()
+				from.path,
+				to.path
 			])
 			Logger(self).info(convertOuput)
 		} catch {
@@ -26,8 +26,8 @@ class CloudImageConverter {
 			outputData.append(handler.availableData)
 		}
 
-		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path(),
-													  destination: to.absoluteURL.path(),
+		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path,
+													  destination: to.absoluteURL.path,
 													  outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor) {
 			if converter.convert() < 0 {
 				throw ServiceError(String(data: outputData, encoding: .utf8)!)
@@ -36,8 +36,8 @@ class CloudImageConverter {
 	}
 
 	static func downloadLinuxImage(fromURL: URL, toURL: URL) async throws -> URL{
-		if FileManager.default.fileExists(atPath: toURL.path()) {
-			throw ServiceError("file already exists: \(toURL.path())")
+		if FileManager.default.fileExists(atPath: toURL.path) {
+			throw ServiceError("file already exists: \(toURL.path)")
 		}
 
 		// Download the cloud-image
@@ -101,7 +101,7 @@ class CloudImageConverter {
 		let temporaryLocation = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
-			if FileManager.default.fileExists(atPath: temporaryLocation.path()) {
+			if FileManager.default.fileExists(atPath: temporaryLocation.path) {
 				do {
 					try FileManager.default.removeItem(at: temporaryLocation)
 				} catch {

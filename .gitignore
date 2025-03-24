@@ -2,6 +2,7 @@
 .build/
 .swiftpm/
 .env
+.DS_Store
 
 qcow2convert/Qcow2convert.xcframework/
 DerivedData/
@@ -15,4 +16,4 @@ Sources/cakectl/Ignored/
 
 Caker/Caker.xcodeproj/project.xcworkspace/
 
-Caker/Caker.xcodeproj/xcuserdata/fboltz.xcuserdatad/
+Caker/Caker.xcodeproj/xcuserdata
