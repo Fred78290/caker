@@ -13,6 +13,10 @@ Sources/cakectl/Ignored/
 *.pkg
 *.jpg
 *.xcf
+*.o
+*.d
+*.swiftdeps
+*.swiftdeps~
 
 Caker/Caker.xcodeproj/project.xcworkspace/
 
