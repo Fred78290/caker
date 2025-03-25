@@ -35,10 +35,11 @@ class BridgedNetworkInterface: NetworkAttachement {
 	}
 }
 
-class VMNetworkInterface: NetworkAttachement {
+class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 	let interface: VZBridgedNetworkInterface
 	let macAddress: VZMACAddress
 	let process = Process()
+	var pipeChannel: Channel? = nil
 
 	init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
 		self.interface = interface
@@ -49,12 +50,24 @@ class VMNetworkInterface: NetworkAttachement {
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open()))
 	}
 
+	func closedByRemote(port: Int, fd: Int32) {
+		if self.pipeChannel != nil {
+			self.pipeChannel = nil
+
+			if port == 0 {
+				Logger(self).info("VMNet closed by the host")
+			} else {
+				Logger(self).info("VMNet closed by the guest")
+			}
+		}
+	}
+
 	private func setSocketBuffers(fd: Int32, sizeBytes: Int) throws {
 		let option_len = socklen_t(MemoryLayout<Int>.size)
 		var sendBufferSize = sizeBytes
 		var receiveBufferSize = 4 * sizeBytes
 		var ret = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &receiveBufferSize, option_len)
-		
+
 		if ret != 0 {
 			perror("setsockopt(SO_RCVBUF) returned \(ret)")
 			throw ServiceError("setsockopt(SO_RCVBUF) returned \(ret)")
@@ -87,22 +100,49 @@ class VMNetworkInterface: NetworkAttachement {
 			try NetworksHandler.run(mode: VMNetMode.bridged, networkInterface: interface.identifier, socketPath: socketURL.0, pidFile: socketURL.1)
 		}
 
-		let socket_fd = try SocketAddress(unixDomainSocketPath: socketURL.0.path).withSockAddr { addr, len in
-			let socket_fd = socket(AF_UNIX, SOCK_DGRAM, 0)
+		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
+		let (vmfd, hostfd) = try socketAddress.withSockAddr { _, len in
+			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
+			let ret = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)
 
-			if socket_fd < 0 {
-				throw ServiceError("unable to create socket")
+			if ret != 0 {
+				throw ServiceError("unable to create socket with exit code \(ret)")
 			}
 
-			if connect(socket_fd, addr, UInt32(len)) < 0 {
-				throw ServiceError("unable to connect to socket")
-			}
+			try setSocketBuffers(fd: fds[0], sizeBytes: 1024 * 1024)
+			try setSocketBuffers(fd: fds[1], sizeBytes: 1024 * 1024)
 
-			try setSocketBuffers(fd: socket_fd, sizeBytes: 1024 * 1024)
-
-			return socket_fd
+			return (fds[0], fds[1])
 		}
 
-		return FileHandle(fileDescriptor: socket_fd, closeOnDealloc: true)
+		let client = ClientBootstrap(group: Root.group)
+			.channelInitializer { inboundChannel in
+				// When the child channel is created, create a new pipe and add the handlers
+				return NIOPipeBootstrap(group: inboundChannel.eventLoop)
+					.takingOwnershipOfDescriptor(inputOutput: hostfd)
+					.flatMap { childChannel in
+						let (ours, theirs) = GlueHandler.matchedPair()
+
+						return childChannel.pipeline.addHandlers([CatchRemoteClose(port: 1, fd: hostfd, delegate: self), ours])
+							.flatMap {
+								inboundChannel.pipeline.addHandlers([CatchRemoteClose(port: 0, fd: hostfd, delegate: self), theirs])
+							}
+					}
+			}
+
+		let futureChannel = client.connect(to: socketAddress)
+		
+		futureChannel.whenComplete { result in
+			switch result {
+			case .success:
+				Logger(self).info("Connected to \(socketURL.0.path)")
+			case .failure(let error):
+				Logger(self).error("Failed to connect to \(socketURL.0.path), \(error)")
+			}
+		}
+
+		self.pipeChannel = try futureChannel.wait()
+
+		return FileHandle(fileDescriptor: vmfd, closeOnDealloc: true)
 	}
 }

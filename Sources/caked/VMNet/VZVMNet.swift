@@ -15,7 +15,6 @@ final class VZVMNet: @unchecked Sendable {
 	private var childrenChannels: [Channel] = []
 	private var serverChannel: Channel? = nil
 	let eventLoop: EventLoop
-	let datagram: Bool
 	let socketPath: URL
 	let socketGroup: gid_t
 	let mode: VMNetMode
@@ -34,21 +33,11 @@ final class VZVMNet: @unchecked Sendable {
 	let logger = Logger("com.aldunelabs.caked.VZVMNet")
 
 	final class VMNetHandler: ChannelInboundHandler {
-        public typealias InboundIn = AddressedEnvelope<ByteBuffer>
-        public typealias OutboundOut = AddressedEnvelope<ByteBuffer>
-
-		enum State {
-			case idle
-			case readingHeader
-			case readingBody
-		}
+		public typealias InboundIn = ByteBuffer
+		public typealias OutboundOut = ByteBuffer
 
 		private let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
 		private let vmnet: VZVMNet
-		private var state: State = .idle
-		private var header: Int32 = 0
-		private var totalRead: Int32 = 0
-		private var body: ByteBuffer = ByteBuffer()
 		private let logger = Logger("com.aldunelabs.caked.VMNetHandler")
 
 		init(vmnet: VZVMNet) {
@@ -57,82 +46,35 @@ final class VZVMNet: @unchecked Sendable {
 
 		public func channelActive(context: ChannelHandlerContext) {
 			self.vmnet.childrenChannels.append(context.channel)
-			self.state = .readingHeader
 		}
 
 		public func channelInactive(context: ChannelHandlerContext) {
 			self.vmnet.childrenChannels.removeAll { $0 === context.channel }
-			self.state = .idle
 		}
 
 		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
 			var buffer = self.unwrapInboundIn(data)
 
-			if self.vmnet.datagram {
-				var bufData = Data(buffer: buffer.data)
-				let currentChannel = context.channel
+			var bufData = Data(buffer: buffer)
+			let currentChannel = context.channel
 
-				channelsSyncQueue.async {
-					var written_count: Int32 = Int32(bufData.count)
-					var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(written_count))
-					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+			channelsSyncQueue.async {
+				var written_count: Int32 = Int32(bufData.count)
+				var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(written_count))
+				var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
 
-					guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-						self.logger.error("Failed to write to interface")
-						return
-					}
-
-					if written_count != self.header {
-						self.logger.error("Failed to write all bytes to interface")
-					}
-
-					self.vmnet.childrenChannels.forEach { channel in
-						if channel !== currentChannel {
-							channel.writeAndFlush(bufData, promise: nil)
-						}
-					}
+				guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
+					self.logger.error("Failed to write to interface")
+					return
 				}
 
-			} else if self.state == .readingHeader {
-				if buffer.data.readableBytes >= 4 {
-					self.header = buffer.data.readInteger(endianness: .big, as: Int32.self)!
-					self.totalRead = 0
-					self.body = context.channel.allocator.buffer(capacity: Int(self.header) + MemoryLayout<Int32>.size)
-					self.state = .readingBody
-					self.body.writeInteger(self.header, endianness: .big, as: Int32.self)
+				if written_count != self.header {
+					self.logger.error("Failed to write all bytes to interface")
 				}
-			} else if self.state == .readingBody {
-				if buffer.data.readableBytes > 0 {
-					self.totalRead += Int32(self.body.writeBuffer(&buffer.data))
 
-					if self.totalRead == self.header {
-						self.body.moveReaderIndex(to: 0)
-
-						var bufData = Data(buffer: self.body)
-						let header = self.header
-						let currentChannel = context.channel
-						self.state = .readingHeader
-
-						channelsSyncQueue.async {
-							var written_count: Int32 = header
-							var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! + MemoryLayout<Int32>.size}, iov_len: Int(written_count))
-							var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(self.header), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
-
-							guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-								self.logger.error("Failed to write to interface")
-								return
-							}
-
-							if written_count != header {
-								self.logger.error("Failed to write all bytes to interface")
-							}
-
-							self.vmnet.childrenChannels.forEach { channel in
-								if channel !== currentChannel {
-									channel.writeAndFlush(bufData, promise: nil)
-								}
-							}
-						}
+				self.vmnet.childrenChannels.forEach { channel in
+					if channel !== currentChannel {
+						channel.writeAndFlush(bufData, promise: nil)
 					}
 				}
 			}
@@ -147,9 +89,8 @@ final class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	init(on: EventLoop, datagram: Bool, socketPath: URL, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
+	init(on: EventLoop, socketPath: URL, socketGroup: gid_t, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
 		self.eventLoop = on
-		self.datagram = datagram
 		self.socketPath = socketPath
 		self.socketGroup = socketGroup
 		self.mode = mode
@@ -224,7 +165,6 @@ final class VZVMNet: @unchecked Sendable {
 
 		let on_vmnet_packets_available = { (count: UInt64) in
 			let max_bytes = Int(self.max_bytes)
-			let padding = self.datagram ? 0 : MemoryLayout<Int32>.size
 			var received_count: Int32 = Int32(count)
 			var pdv: [vmpktdesc] = []
 			var io: [iovec] = []
@@ -233,8 +173,8 @@ final class VZVMNet: @unchecked Sendable {
 			io.reserveCapacity(Int(count))
 
 			for i in 0..<Int(count) {
-				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes) + padding), iov_len: max_bytes))
-				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 + padding }), vm_pkt_iovcnt: 1, vm_flags: 0))
+				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes)), iov_len: max_bytes))
+				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0))
 			}
 
 			defer {
@@ -253,27 +193,26 @@ final class VZVMNet: @unchecked Sendable {
 			for i in 0..<Int(received_count) {
 				let iop = io[i]
 				let pd: vmpktdesc = pdv[i]
-				let numberOfItems = 2
-				let macAddress = iop.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
-					// Convert pointer to buffer pointer to access buffer via indices
-					let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
 
-					// Construct array
-					return [ether_addr_t](unsafeUninitializedCapacity: numberOfItems) { arrayBuffer, count in
-						count = numberOfItems
-						for i in 0..<numberOfItems {
-							arrayBuffer[i] = bufferPointer[i]
+				if Logger.Level() >= LogLevel.debug {
+					let numberOfItems = 2
+					let macAddress = iop.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
+						// Convert pointer to buffer pointer to access buffer via indices
+						let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
+
+						// Construct array
+						return [ether_addr_t](unsafeUninitializedCapacity: numberOfItems) { arrayBuffer, count in
+							count = numberOfItems
+							for i in 0..<numberOfItems {
+								arrayBuffer[i] = bufferPointer[i]
+							}
 						}
 					}
+
+					self.logger.debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
 				}
 
-				self.logger.debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
-
-				if self.datagram == false {
-					iop.iov_base.assumingMemoryBound(to: Int32.self).pointee = Int32(pdv[i].vm_pkt_size.bigEndian)
-				}
-
-				let byteBuffer = ByteBuffer(data: Data(bytesNoCopy: iop.iov_base, count: pd.vm_pkt_iov.pointee.iov_len + padding, deallocator: .none))
+				let byteBuffer = ByteBuffer(data: Data(bytesNoCopy: pd.vm_pkt_iov.pointee.iov_base, count: pd.vm_pkt_iov.pointee.iov_len, deallocator: .none))
 
 				self.childrenChannels.forEach { channel in
 					channel.writeAndFlush(byteBuffer, promise: nil)
@@ -364,36 +303,20 @@ final class VZVMNet: @unchecked Sendable {
 		let socketPath = socketPath.path
 
 		// Create the server bootstrap
-		if self.datagram {
-			let bootstrap: DatagramBootstrap = DatagramBootstrap(group: Root.group)
-				.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-				.channelOption(ChannelOptions.socketOption(.so_broadcast), value: 1)
-				.channelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 1024 * 1024)
-				.channelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1024 * 1024)
-				.channelOption(.maxMessagesPerRead, value: 16)
-				.channelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
-				.channelInitializer { channel in
-					return channel.pipeline.addHandler(VMNetHandler(vmnet: self))
-				}
+		let bootstrap: ServerBootstrap = ServerBootstrap(group: Root.group)
+			.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+			.childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+			.childChannelOption(ChannelOptions.socketOption(.so_broadcast), value: 1)
+			.childChannelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 1024 * 1024)
+			.childChannelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1024 * 1024)
+			.childChannelOption(.maxMessagesPerRead, value: 16)
+			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
+			.childChannelInitializer { inboundChannel in
+				return inboundChannel.pipeline.addHandler(VMNetHandler(vmnet: self))
+			}
 
-			// Listen on the console socket
-			binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
-		} else {
-			let bootstrap: ServerBootstrap = ServerBootstrap(group: Root.group)
-				.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-				.childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-				.childChannelOption(ChannelOptions.socketOption(.so_broadcast), value: 1)
-				.childChannelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 1024 * 1024)
-				.childChannelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1024 * 1024)
-				.childChannelOption(.maxMessagesPerRead, value: 16)
-				.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
-				.childChannelInitializer { inboundChannel in
-					return inboundChannel.pipeline.addHandler(VMNetHandler(vmnet: self))
-				}
-
-			// Listen on the console socket
-			binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
-		}
+		// Listen on the console socket
+		binder = bootstrap.bind(unixDomainSocketPath: socketPath, cleanupExistingSocketFile: true)
 
 		// When the bind is complete, set the channel
 		binder.whenComplete { result in
