@@ -59,14 +59,14 @@ struct NetworksHandler: CakedCommand {
 		@Argument(help: "socket path")
 		var socketPath: String? = nil
 
-		@Flag(name: [.customLong("stream")], help: "Use stream socket")
-		var stream: Bool = false
+		@Option(name: [.customLong("fd")], help: "Use file descriptor for VMNet")
+		var vmfd: Int? = nil
 
 		@Option(name: [.customLong("socket-group")], help: "socket group name")
 		var socketGroup: String = "staff"
 
 		@Option(name: [.customLong("mode")], help: "vmnet mode")
-		var mode = VMNetMode.host
+		var mode = VMNetMode.bridged
 
 		@Option(name: [.customLong("interface")], help: ArgumentHelp("interface\n", discussion: "interface used for --vmnet=bridged, e.g., \"en0\""))
 		var networkInterface: String? = nil
@@ -92,13 +92,13 @@ struct NetworksHandler: CakedCommand {
 		func validate() throws {
 			runAsSystem = self.asSystem
 
-			/*if self.socketPath == nil {
-				throw ValidationError("socket path not defined")
+			if self.vmfd != nil && self.socketPath != nil {
+				throw ValidationError("fd and socket-path are mutually exclusive")
 			}
 
-			if self.pidFile == nil {
-				throw ValidationError("pid file not defined")
-			}*/
+			if self.vmfd != nil && self.pidFile == nil {
+				throw ValidationError("pidfile is required when using fd")
+			}
 
 			if self.mode == .bridged {
 				if self.networkInterface == nil {
@@ -120,20 +120,55 @@ struct NetworksHandler: CakedCommand {
 
 		}
 
-		func createVZVMNet(socketPath: URL, socketGroup: gid_t) -> VZVMNet {
-			VZVMNet(
-				on: Root.group.next(),
-				datagram: self.stream == false,
-				socketPath: socketPath,
-				socketGroup: socketGroup,
-				mode: self.mode,
-				networkInterface: self.networkInterface,
-				gateway: self.gateway,
-				dhcpEnd: self.dhcpEnd,
-				subnetMask: self.subnetMask,
-				interfaceID: self.interfaceID,
-				nat66Prefix: self.nat66Prefix
-			)
+		func createVZVMNet() throws -> (URL, VZVMNet) {
+			guard let vmfd = self.vmfd else {
+				let socketURL: (URL, URL)
+
+				guard let grp = getgrnam(self.socketGroup) else {
+					throw ServiceError("Failed to get group \(self.socketGroup)")
+				}
+
+				if let socketPath = self.socketPath, let pidFile = self.pidFile {
+					socketURL = (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: pidFile))
+				} else {
+					socketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: self.networkInterface, asSystem: self.asSystem)
+				}
+
+				if try socketURL.0.exists() == false {
+					let vzvmnet = VZVMNetSocket(
+						on: Root.group.next(),
+						socketPath: socketURL.0,
+						socketGroup: grp.pointee.gr_gid,
+						mode: self.mode,
+						networkInterface: self.networkInterface,
+						gateway: self.gateway,
+						dhcpEnd: self.dhcpEnd,
+						subnetMask: self.subnetMask,
+						interfaceID: self.interfaceID,
+						nat66Prefix: self.nat66Prefix
+					)
+
+					return (socketURL.1, vzvmnet)
+				} else {
+					throw ServiceError("Socket file already exists at \(socketURL.0.path)")
+				}
+			}
+
+			guard let pidFile = self.pidFile else {
+				throw ServiceError("pidfile is required when using vmfd")
+			}
+
+			let vzvmnet = VZVMNetFileHandle(on: Root.group.next(),
+			                                inputOutput: CInt(vmfd),
+			                                mode: self.mode,
+			                                networkInterface: self.networkInterface,
+			                                gateway: self.gateway,
+			                                dhcpEnd: self.dhcpEnd,
+			                                subnetMask: self.subnetMask,
+			                                interfaceID: self.interfaceID,
+			                                nat66Prefix: self.nat66Prefix)
+
+			return (URL(fileURLWithPath: pidFile), vzvmnet)
 		}
 	}
 
@@ -189,7 +224,7 @@ struct NetworksHandler: CakedCommand {
 		return false
 	}
 
-	static func run(useSocketVMNet: Bool = false,
+	static func run(vmFD: Int32,
 	                mode: VMNetMode,
 	                networkInterface: String? = nil,
 	                gateway: String? = nil,
@@ -197,8 +232,82 @@ struct NetworksHandler: CakedCommand {
 	                subnetMask: String? = "255.255.255.0",
 	                interfaceID: String = UUID().uuidString,
 	                nat66Prefix: String? = nil,
-					socketPath: URL? = nil,
-					pidFile: URL? = nil) throws {
+					pidFile: URL) throws -> Process {
+
+		guard let executableURL = URL.binary("caked") else {
+			throw ServiceError("caked not found in path")
+		}
+
+		guard let sudoURL = URL.binary("sudo") else {
+			throw ServiceError("sudo not found in path")
+		}
+
+		var arguments: [String] = [ "networks", "start", "--log-level", "\(Logger.LoggingLevel().rawValue)"]
+
+		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(vmFD)")
+
+		arguments.append(contentsOf: ["--mode", "\(mode.stringValue)"])
+
+		if let networkInterface = networkInterface {
+			arguments.append(contentsOf: ["--interface", networkInterface])
+		}
+
+		if let gateway = gateway {
+			arguments.append(contentsOf: ["--gateway", gateway])
+
+			if let dhcpEnd = dhcpEnd {
+				arguments.append(contentsOf: ["--dhcp-end", dhcpEnd])
+			}
+
+			if let subnetMask = subnetMask {
+				arguments.append(contentsOf: ["--netmask", subnetMask])
+			}
+
+			if let nat66Prefix = nat66Prefix {
+				arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
+			}
+		}
+
+		arguments.append(contentsOf: ["--pidfile", pidFile.path])
+		arguments.append(contentsOf: ["--fd", "\(STDIN_FILENO)"])
+
+		guard try checkIfSudoable(binary: executableURL) else {
+			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+		}
+
+		let process = Process()
+
+		var runningArguments: [String] = ["--non-interactive", executableURL.path]
+
+		runningArguments.append(contentsOf: arguments)
+
+		Logger(self).info("Running: \(sudoURL.path) \(runningArguments.joined(separator: " "))")
+
+		process.executableURL = sudoURL
+		process.arguments = runningArguments
+		process.standardInput = FileHandle(fileDescriptor: vmFD, closeOnDealloc: true)
+		process.standardOutput = FileHandle.standardOutput
+		process.standardError = FileHandle.standardError
+		process.terminationHandler = { process in
+			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
+			kill(getpid(), SIGUSR2)
+		}
+
+		try process.run()
+		
+		return process
+	}
+
+	static func run(standalone: Bool = false,
+	                mode: VMNetMode,
+	                networkInterface: String? = nil,
+	                gateway: String? = nil,
+	                dhcpEnd: String? = nil,
+	                subnetMask: String? = "255.255.255.0",
+	                interfaceID: String = UUID().uuidString,
+	                nat66Prefix: String? = nil,
+	                socketPath: URL? = nil,
+	                pidFile: URL? = nil) throws {
 		let socketURL: (URL, URL)
 		let executableURL: URL
 		var arguments: [String] = []
@@ -215,7 +324,7 @@ struct NetworksHandler: CakedCommand {
 
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
 
-		if useSocketVMNet, let socket_vmnet = URL.binary("socket_vmnet") {	
+		if standalone, let socket_vmnet = URL.binary("socket_vmnet") {	
 			executableURL = socket_vmnet
 			arguments.append(contentsOf: ["--vmnet-mode", "\(mode.stringValue)"])
 
@@ -242,12 +351,16 @@ struct NetworksHandler: CakedCommand {
 			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
 			arguments.append(socketURL.0.path)
 
-		} else if let caker = URL.binary("caker") {
+		} else if let caker = URL.binary("caked") {
 			executableURL = caker
+
+			arguments.append(contentsOf: ["networks", "start"])
 
 			if runAsSystem {
 				arguments.append(contentsOf: ["--system"])
 			}
+
+			arguments.append(contentsOf: ["--log-level", "\(Logger.LoggingLevel().rawValue)"])
 
 			arguments.append(contentsOf: ["--mode", "\(mode.stringValue)"])
 
@@ -274,7 +387,7 @@ struct NetworksHandler: CakedCommand {
 			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
 			arguments.append(socketURL.0.path)
 		} else {
-			throw ServiceError("caker not found in path")
+			throw ServiceError("caked not found in path")
 		}
 
 		if socketURL.1.isPIDRunning() {
@@ -323,32 +436,16 @@ struct NetworksHandler: CakedCommand {
 		throw ServiceError("Socket file did not appear within the expected time")
 	}
 
-	static func start(options: NetworksHandler.VMNetOptions) async throws {
-		let socketURL: (URL, URL)
+	static func start(options: NetworksHandler.VMNetOptions) throws {
+		let vzvmnet = try options.createVZVMNet()
 
-		guard let grp = getgrnam(options.socketGroup) else {
-			throw ServiceError("Failed to get group \(options.socketGroup)")
+		try vzvmnet.0.writePID()
+
+		defer {
+			try? vzvmnet.0.delete()
 		}
 
-		if let socketPath = options.socketPath, let pidFile = options.pidFile {
-			socketURL = (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: pidFile))
-		} else {
-			socketURL = try Self.vmnetEndpoint(mode: options.mode, networkInterface: options.networkInterface, asSystem: options.asSystem)
-		}
-
-		if try socketURL.0.exists() == false {
-			let vzvmnet = options.createVZVMNet(socketPath: socketURL.0, socketGroup: grp.pointee.gr_gid)
-
-			try socketURL.1.writePID()
-
-			defer {
-				try? socketURL.1.delete()
-			}
-
-			try await vzvmnet.start()
-		} else {
-			throw ServiceError("Socket file already exists at \(socketURL.0.path)")
-		}
+		try vzvmnet.1.start()
 	}
 
 	static func stop(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> String {

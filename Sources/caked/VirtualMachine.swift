@@ -15,6 +15,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	private let communicationDevices: CommunicationDevices?
 	private let configuration: VZVirtualMachineConfiguration
+	private let networks: [NetworkAttachement]
 	private let sigint: DispatchSourceSignal
 	private let sigusr1: DispatchSourceSignal
 	private let sigusr2: DispatchSourceSignal
@@ -64,7 +65,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		let networkDevices = try networks.map {
 			let vio = VZVirtioNetworkDeviceConfiguration()
 
-			(vio.macAddress, vio.attachment) = try $0.attachment()
+			(vio.macAddress, vio.attachment) = try $0.attachment(vmLocation: vmLocation)
 
 			return vio
 		}
@@ -115,6 +116,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.configuration = configuration
 		self.communicationDevices = communicationDevices
 		self.virtualMachine = virtualMachine
+		self.networks = networks
 
 		signal(SIGINT, SIG_IGN)
 		signal(SIGUSR1, SIG_IGN)
@@ -189,6 +191,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				try? PortForwardingServer.closeForwardedPort(identifier: id)
 				self.setIdentifier(nil)
 			}
+			
+			self.networks.forEach { $0.stop() }
 		}
 
 		do {
@@ -294,7 +298,21 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	public func requestStopVM() throws {
 		try DispatchQueue.main.sync {
-			try self.virtualMachine.requestStop()
+			if self.virtualMachine.canRequestStop {
+				try self.virtualMachine.requestStop()
+			} else if self.virtualMachine.canStop {
+				self.virtualMachine.stop { result in
+					Logger(self).info("VM \(self.vmLocation.name) stopped")
+
+					self.closeCommunicationDevices()
+				}
+			} else {
+				Logger(self).error("VM \(self.vmLocation.name) can't be stopped")
+
+				if self.virtualMachine.state == VZVirtualMachine.State.starting {
+					Foundation.exit(1)
+				}
+			}
 		}
 	}
 
@@ -331,10 +349,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 
 		sigusr2.setEventHandler {
-			Task {
-				Logger(self).info("Request guest OS to stop...")
-				try self.virtualMachine.requestStop()
-			}
+			try? self.requestStopVM()
+			/*DispatchQueue.main.async {
+				if self.virtualMachine.canRequestStop {
+					try? self.virtualMachine.requestStop()
+				}
+			}*/
 		}
 
 		sigint.activate()

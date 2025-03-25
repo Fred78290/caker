@@ -24,7 +24,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			try await NetworksHandler.start(options: self.options)
+			try NetworksHandler.start(options: self.options)
 		}
 	}
 

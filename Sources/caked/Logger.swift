@@ -84,6 +84,9 @@ struct Logger {
 		Self.intLogLevel
 	}
 
+	static public func LoggingLevel() -> Logging.Logger.Level {
+		Self.logLevel
+	}
 	static public func setLevel(_ level: Logging.Logger.Level) {
 		Self.logLevel = level
 		Self.intLogLevel = level.level

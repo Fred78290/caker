@@ -91,6 +91,12 @@ extension EmbedProvisionProfile {
 		let mainBundle = Bundle.main
 
 		guard let path = mainBundle.url(forResource: "embedded", withExtension: "provisionprofile") else {
+			let local = mainBundle.bundleURL.appendingPathComponent("Contents").appendingPathComponent("embedded.provisionprofile")
+
+			if FileManager.default.fileExists(atPath: local.path) {
+				return try load(from: local)
+			}
+
 			return nil
 		}
 

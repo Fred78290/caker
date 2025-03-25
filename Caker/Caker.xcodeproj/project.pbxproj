@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B05117F2D92BF4D00E9232D /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */; };
+		9B0511802D92BF4D00E9232D /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
 		9B1BD2492D90209B00F78154 /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2472D90209B00F78154 /* VZVMNet.swift */; };
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
@@ -234,6 +236,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
+		9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
 		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
 		9B1BD2472D90209B00F78154 /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
 		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
@@ -475,6 +479,8 @@
 			isa = PBXGroup;
 			children = (
 				9B1BD2472D90209B00F78154 /* VZVMNet.swift */,
+				9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */,
+				9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */,
 			);
 			path = VMNet;
 			sourceTree = "<group>";
@@ -1014,6 +1020,8 @@
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
 				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
+				9B05117F2D92BF4D00E9232D /* VZVMNetSocket.swift in Sources */,
+				9B0511802D92BF4D00E9232D /* VZVMNetFileHandle.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
