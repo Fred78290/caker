@@ -271,6 +271,17 @@ struct NetworksHandler: CakedCommand {
 			arguments.append(contentsOf: [ "networks", "start" ])
 		}
 
+		let fd: Int32
+		let standardInput: FileHandle
+
+		if getuid() == 0 {
+			fd = vmFD
+			standardInput = FileHandle.standardInput
+		} else {
+			fd = STDIN_FILENO
+			standardInput = FileHandle(fileDescriptor: vmFD, closeOnDealloc: false)
+		}
+
 		arguments.append(contentsOf: [ "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
 
 		if Logger.Level() >= .debug {
@@ -306,7 +317,7 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		arguments.append("--pidfile=\(pidFile.absoluteURL.path)")
-		arguments.append("--fd=\(vmFD)")
+		arguments.append("--fd=\(fd)")
 
 		if geteuid() == 0 {
 			runningArguments = []
@@ -330,7 +341,7 @@ struct NetworksHandler: CakedCommand {
 		try? pidFile.delete()
 
 		process.arguments = runningArguments
-		process.standardInput = FileHandle.standardInput
+		process.standardInput = standardInput
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		process.sharedFileHandles = [FileHandle(fileDescriptor: vmFD, closeOnDealloc: false)]
