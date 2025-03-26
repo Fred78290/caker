@@ -9,7 +9,7 @@ protocol NetworkAttachement {
 }
 
 // MARK: - Network shared
-class SharedNetworkInterface: NetworkAttachement {
+class NATNetworkInterface: NetworkAttachement {
 	let macAddress: VZMACAddress
 
 	init(macAddress: VZMACAddress) {
@@ -42,17 +42,25 @@ class BridgedNetworkInterface: NetworkAttachement {
 	}
 }
 
-class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
-	let interface: VZBridgedNetworkInterface
+class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 	let macAddress: VZMACAddress
-	var process: Process? = nil
+	let mode: VMNetMode
+	let networkInterface: String?
+	var process: ProcessWithSharedFileHandle? = nil
 	var pipeChannel: Channel? = nil
-	
-	init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
-		self.interface = interface
+
+	init(mode: VMNetMode, networkInterface: String, macAddress: VZMACAddress) {
+		self.mode = mode
+		self.networkInterface = networkInterface
 		self.macAddress = macAddress
 	}
-	
+
+	init(macAddress: VZMACAddress) {
+		self.mode = .shared
+		self.networkInterface = nil
+		self.macAddress = macAddress
+	}
+
 	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation)))
 	}
@@ -69,7 +77,7 @@ class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		}
 	}
 	
-	private func setSocketBuffers(fd: Int32, sizeBytes: Int) throws {
+	internal func setSocketBuffers(fd: Int32, sizeBytes: Int) throws {
 		let option_len = socklen_t(MemoryLayout<Int>.size)
 		var sendBufferSize = sizeBytes
 		var receiveBufferSize = 4 * sizeBytes
@@ -88,36 +96,38 @@ class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		}
 	}
 	
-	private func open(vmLocation: VMLocation) throws -> FileHandle {
-		let socketURL: (URL, URL)
-		
+	internal func vmnetEndpoint() throws -> (URL, URL){
 		if runAsSystem {
-			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: runAsSystem)
+			return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: runAsSystem)
 		} else {
-			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: true)
+			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: true)
 			
 			if try systemSocketURL.0.exists() == false {
-				socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: interface.identifier, asSystem: false)
+				return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: false)
 			} else {
-				socketURL = systemSocketURL
+				return systemSocketURL
 			}
 		}
+	}
+
+	internal func open(vmLocation: VMLocation) throws -> FileHandle {
+		let socketURL = try self.vmnetEndpoint()
 		
-		//if try socketURL.0.exists() == false {
-		//	try NetworksHandler.run(mode: VMNetMode.bridged, networkInterface: interface.identifier, socketPath: socketURL.0, pidFile: socketURL.1)
-		//}
+		if try socketURL.0.exists() == false && VMRun.launchedFromService {
+			try NetworksHandler.run(mode: self.mode, networkInterface: networkInterface, socketPath: socketURL.0, pidFile: socketURL.1)
+			try socketURL.1.waitPID()
+		}
 		
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
 		let (vmfd, hostfd) = try socketAddress.withSockAddr { _, len in
 			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
-			let ret = socketpair(AF_UNIX, SOCK_DGRAM, 0, fds)
 			
 			defer {
 				fds.deallocate()
 			}
 			
-			if ret != 0 {
-				throw ServiceError("unable to create socket with exit code \(ret)")
+			if socketpair(AF_UNIX, SOCK_DGRAM, 0, fds) != 0 {
+				throw ServiceError("unable to create socket with exit code \(String(errno: errno))")
 			}
 			
 			try setSocketBuffers(fd: fds[0], sizeBytes: 1024 * 1024)
@@ -159,7 +169,7 @@ class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			self.process = try NetworksHandler.run(vmFD: hostfd, mode: VMNetMode.bridged, networkInterface: interface.identifier, pidFile: vmLocation.vmnetPID)
+			self.process = try NetworksHandler.run(vmFD: hostfd, mode: self.mode, networkInterface: networkInterface, macAddress: self.macAddress.string, pidFile: vmLocation.vmnetPID)
 		}
 		
 		return FileHandle(fileDescriptor: vmfd, closeOnDealloc: true)
@@ -171,5 +181,13 @@ class VMNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 				process.terminate()
 			}
 		}
+	}
+}
+class VMNetworkInterface: SharedNetworkInterface {
+	let interface: VZBridgedNetworkInterface
+	
+	init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
+		self.interface = interface
+		super.init(mode: .bridged, networkInterface: interface.identifier, macAddress: macAddress)
 	}
 }

@@ -400,10 +400,10 @@ extension CakeConfig {
 	func collectNetworks() throws -> [NetworkAttachement] {
 		if networks.isEmpty {
 			if let macAddress = self.macAddress {
-				return [SharedNetworkInterface(macAddress: macAddress)]
+				return [NATNetworkInterface(macAddress: macAddress)]
 			}
 
-			return [SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())]
+			return [NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())]
 		}
 
 		let vmNetworking: Bool
@@ -417,7 +417,15 @@ extension CakeConfig {
 		return networks.compactMap { inf in
 			if inf.network == "nat" || inf.network == "NAT shared network" {
 				if let macAddress = self.macAddress {
-					return SharedNetworkInterface(macAddress: macAddress)
+					return NATNetworkInterface(macAddress: macAddress)
+				}
+
+				return NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
+			}
+
+			if inf.network == "shared" {
+				if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
+					return SharedNetworkInterface(macAddress: mac)
 				}
 
 				return SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())

@@ -23,7 +23,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	public let macAddress: String?
 
 	public var defaultValueDescription: String {
-	"name=<network|nat>,[mode=<auto|manual>,[mac=<mac>]]"
+	"name=<network|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"
 	}
 
 	public var description: String {

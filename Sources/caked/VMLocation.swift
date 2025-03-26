@@ -17,47 +17,47 @@ struct VMLocation {
 	let template: Bool
 
 	var configURL: URL {
-		rootURL.appendingPathComponent("config.json")
+		rootURL.appendingPathComponent("config.json").absoluteURL
 	}
 
 	var cakeURL: URL {
-		rootURL.appendingPathComponent("cake.json")
+		rootURL.appendingPathComponent("cake.json").absoluteURL
 	}
 
 	var diskURL: URL {
-		rootURL.appendingPathComponent("disk.img")
+		rootURL.appendingPathComponent("disk.img").absoluteURL
 	}
 
 	var nvramURL: URL {
-		rootURL.appendingPathComponent("nvram.bin")
+		rootURL.appendingPathComponent("nvram.bin").absoluteURL
 	}
 
 	var stateURL: URL {
-		rootURL.appendingPathComponent("state.vzvmsave")
+		rootURL.appendingPathComponent("state.vzvmsave").absoluteURL
 	}
 
 	var manifestURL: URL {
-		rootURL.appendingPathComponent("manifest.json")
+		rootURL.appendingPathComponent("manifest.json").absoluteURL
 	}
 
 	var cdromISO: URL {
-		rootURL.appendingPathComponent("cloud-init.iso")
+		rootURL.appendingPathComponent("cloud-init.iso").absoluteURL
 	}
 
 	var agentURL: URL {
-		let agentURL = rootURL.appendingPathComponent("agent.sock")
+		let agentURL = rootURL.appendingPathComponent("agent.sock").absoluteURL
 
 		return URL(string: "unix://\(agentURL.path)")!
 	}
 
 	var mountServiceURL: URL {
-		let mountServiceURL = rootURL.appendingPathComponent("mount.sock")
+		let mountServiceURL = rootURL.appendingPathComponent("mount.sock").absoluteURL
 
 		return URL(string: "unix://\(mountServiceURL.path)")!
 	}
 
 	var vmnetPID: URL {
-		rootURL.appendingPathComponent("vmnet.pid")
+		rootURL.appendingPathComponent("vmnet.pid").absoluteURL
 	}
 
 	var name: String {

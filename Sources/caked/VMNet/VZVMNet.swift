@@ -6,6 +6,34 @@ import Virtualization
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
+extension vmnet_return_t {
+	var stringValue: String {
+		switch (self)
+		{
+		case .VMNET_SUCCESS:
+			return "VMNET_SUCCESS";
+		case .VMNET_FAILURE:
+			return "VMNET_FAILURE";
+		case .VMNET_MEM_FAILURE:
+			return "VMNET_MEM_FAILURE";
+		case .VMNET_INVALID_ARGUMENT:
+			return "VMNET_INVALID_ARGUMENT";
+		case .VMNET_SETUP_INCOMPLETE:
+			return "VMNET_SETUP_INCOMPLETE";
+		case .VMNET_INVALID_ACCESS:
+			return "VMNET_INVALID_ACCESS";
+		case .VMNET_PACKET_TOO_BIG:
+			return "VMNET_PACKET_TOO_BIG";
+		case .VMNET_BUFFER_EXHAUSTED:
+			return "VMNET_BUFFER_EXHAUSTED";
+		case .VMNET_TOO_MANY_PACKETS:
+			return "VMNET_TOO_MANY_PACKETS";
+		default:
+			return "(unknown status)";
+		}
+	}
+}
+
 class VZVMNet: @unchecked Sendable {
 	var serverChannel: Channel? = nil
 	let eventLoop: EventLoop
@@ -19,12 +47,13 @@ class VZVMNet: @unchecked Sendable {
 	var iface: interface_ref?
 	var max_bytes: UInt64 = 2048
 	let hostQueue: DispatchQueue
+	let pidFile: URL
 	let sigint: any DispatchSourceSignal
 	let sighup: any DispatchSourceSignal
 	let sigterm: any DispatchSourceSignal
 	let logger = Logger("com.aldunelabs.caked.VZVMNet")
 
-	init(on: EventLoop, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil) {
+	init(on: EventLoop, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil, pidFile: URL) {
 		self.eventLoop = on
 		self.mode = mode
 		self.networkInterface = networkInterface
@@ -34,6 +63,7 @@ class VZVMNet: @unchecked Sendable {
 		self.interfaceID = interfaceID
 		self.nat66Prefix = nat66Prefix
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
+		self.pidFile = pidFile
 
 		signal(SIGINT, SIG_IGN)
 		signal(SIGHUP, SIG_IGN)
@@ -119,7 +149,7 @@ class VZVMNet: @unchecked Sendable {
 			let status = vmnet_read(self.iface!, &pdv, &received_count)
 
 			if status != .VMNET_SUCCESS {
-				self.logger.error("Failed to read from interface \(status)")
+				self.logger.error("Failed to read from interface \(status.stringValue)")
 				return
 			}
 
@@ -166,21 +196,26 @@ class VZVMNet: @unchecked Sendable {
 		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
 
 		xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, self.mode.rawValue)
+		xpc_dictionary_set_bool(dict, vmnet_enable_tso_key, false)
+		xpc_dictionary_set_bool(dict, vmnet_enable_checksum_offload_key, false)
+		xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, false)
 
 		if let interface = self.networkInterface {
 			xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, interface)
 		}
 
-		if let gateway = self.gateway, let dhcpEnd = self.dhcpEnd {
-			xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
-			xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
-			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
-		}
-
 		xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.interfaceID);
 
-		if let nat66Prefix = self.nat66Prefix {
-			xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix);
+		if self.mode == .shared {
+			if let gateway = self.gateway, let dhcpEnd = self.dhcpEnd {
+				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
+				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
+				xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
+			}
+
+			if let nat66Prefix = self.nat66Prefix {
+				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix);
+			}
 		}
 
 		self.iface = vmnet_start_interface(dict, self.hostQueue) { (result: vmnet_return_t, params) in
@@ -197,11 +232,11 @@ class VZVMNet: @unchecked Sendable {
 		semaphore.wait()
 
 		if self.iface == nil {
-			throw ServiceError("Failed to start interface \(status)")
+			throw ServiceError("Failed to start interface \(status.stringValue)")
 		}
 
 		if status != vmnet_return_t.VMNET_SUCCESS {
-			throw ServiceError("Failed to start interface \(status)")
+			throw ServiceError("Failed to start interface \(status.stringValue)")
 		}
 
 		vmnet_interface_set_event_callback(iface!, .VMNET_INTERFACE_PACKETS_AVAILABLE, hostQueue) { eventId, event in

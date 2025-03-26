@@ -8,6 +8,8 @@ import NIOPortForwarding
 import System
 
 struct VMRun: AsyncParsableCommand {
+	static var launchedFromService = false
+
 	static var configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
 	@Argument(help: "Path to the VM disk.img or his name")
@@ -18,6 +20,9 @@ struct VMRun: AsyncParsableCommand {
 
 	@Flag(name: [.customLong("system"), .customShort("s")])
 	var asSystem: Bool = false
+
+	@Flag(help: .hidden)
+	var launchedFromService: Bool = false
 
 	@Flag(help: .hidden)
 	var display: Bool = false
@@ -44,7 +49,8 @@ struct VMRun: AsyncParsableCommand {
 
 		let (_, vmLocation) = self.locations
 
-		runAsSystem = asSystem
+		runAsSystem = self.asSystem
+		Self.launchedFromService = self.launchedFromService
 
 		if vmLocation.inited == false {
 			throw ValidationError("VM at \(path) does not exist")

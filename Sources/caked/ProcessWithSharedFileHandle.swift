@@ -565,7 +565,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			adddup2[STDIN_FILENO] = try devNullFd()
 
 		// No need to dup stdin to stdin
-		case let handle as FileHandle where handle === FileHandle.standardInput: break
+		//case let handle as FileHandle where handle === FileHandle.standardInput: break
 
 		case let handle as FileHandle:
 			adddup2[STDIN_FILENO] = handle.fileDescriptor
@@ -584,7 +584,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			adddup2[STDOUT_FILENO] = try devNullFd()
 
 		// No need to dup stdout to stdout
-		case let handle as FileHandle where handle === FileHandle.standardOutput: break
+		//case let handle as FileHandle where handle === FileHandle.standardOutput: break
 
 		case let handle as FileHandle:
 			adddup2[STDOUT_FILENO] = handle.fileDescriptor
@@ -603,7 +603,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			adddup2[STDERR_FILENO] = try devNullFd()
 
 		// No need to dup stderr to stderr
-		case let handle as FileHandle where handle === FileHandle.standardError: break
+		//case let handle as FileHandle where handle === FileHandle.standardError: break
 
 		case let handle as FileHandle:
 			adddup2[STDERR_FILENO] = handle.fileDescriptor
@@ -620,6 +620,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		for (new, old) in adddup2 {
 			try _throwIfPosixError(CFPosixSpawnFileActionsAddDup2(fileActions, old, new))
 		}
+
 		for fd in addclose.filter({ $0 >= 0 }) {
 			try _throwIfPosixError(CFPosixSpawnFileActionsAddClose(fileActions, fd))
 		}

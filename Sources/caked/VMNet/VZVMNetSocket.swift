@@ -39,17 +39,22 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 			let buffer = self.unwrapInboundIn(data)
 			var bufData = Data(buffer: buffer)
 			let currentChannel = context.channel
-			var written_count: Int32 = Int32(bufData.count)
-			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(written_count))
-			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+			var count: Int32 = 1
+			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(bufData.count))
+			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufData.count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+			let status = vmnet_write(self.vmnet.iface!, &pd, &count)
 
-			guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-				self.logger.error("Failed to write to interface")
+			guard  status == .VMNET_SUCCESS else {
+				self.logger.error("Failed to write to interface \(status.stringValue)")
 				return
 			}
 
-			if written_count != bufData.count {
-				self.logger.error("Failed to write all bytes to interface = written_count: \(written_count), bufData.count: \(bufData.count)")
+			if Logger.Level() >= LogLevel.debug {
+				if count != 1 {
+					self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufData.count)")
+				} else {
+					self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+				}
 			}
 
 			self.vmnet.channelsSyncQueue.async {
@@ -79,14 +84,15 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	     dhcpEnd: String?,
 	     subnetMask: String = "255.255.255.0",
 	     interfaceID: String = UUID().uuidString,
-	     nat66Prefix: String? = nil) {
+	     nat66Prefix: String? = nil,
+		 pidFile: URL) {
 
 		self.socketPath = socketPath
 		self.socketGroup = socketGroup
 
 		super.init(on: on, mode: mode, networkInterface: networkInterface,
 		           gateway: gateway, dhcpEnd: dhcpEnd, subnetMask: subnetMask,
-		           interfaceID: interfaceID, nat66Prefix: nat66Prefix)
+		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
 	}
 
 	override func write(buffer: Data) {
@@ -153,6 +159,7 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		}
 
 		self.serverChannel = try binder.wait()
+		try self.pidFile.writePID()
 
 		try self.serverChannel!.closeFuture.wait()
 	}

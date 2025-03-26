@@ -2,6 +2,7 @@ import Foundation
 import ArgumentParser
 import Virtualization
 import NIOPortForwarding
+import System
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -673,3 +674,60 @@ public struct ShortInfoReply: Sendable, Codable {
 		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
 	}
 }
+
+public extension String {
+	var expandingTildeInPath: String {
+		if self.hasPrefix("~") {
+			return NSString(string: self).expandingTildeInPath
+		}
+
+		return self
+	}
+
+	 init(errno: Errno) {
+		self = String(cString: strerror(errno.rawValue))
+	}
+
+	init(errno: Int32) {
+		self = String(cString: strerror(errno))
+	}
+
+	func stringBeforeLast(before: Character) -> String {
+		if let r = self.lastIndex(of: before) {
+			return String(self[self.startIndex..<r])
+		} else {
+			return self
+		}
+	}
+
+	func stringBefore(before: String) -> String {
+		if let r = self.range(of: before) {
+			return String(self[self.startIndex..<r.lowerBound])
+		} else {
+			return self
+		}
+	}
+
+	func stringAfter(after: String) -> String {
+		if let r = self.range(of: after) {
+			return String(self[r.upperBound..<self.endIndex])
+		} else {
+			return self
+		}
+	}
+
+	func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
+		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+
+		return String(self[self.startIndex..<endIndex])
+	}
+
+	func substring(_ bounds: Range<Int>) -> String {
+		let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound)
+		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+
+		return String(self[startIndex..<endIndex])
+	}
+
+}
+

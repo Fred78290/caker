@@ -105,12 +105,47 @@ extension URL: Purgeable {
 		return pid
 	}
 
+	func killPID(_ signal: Int32) -> Int32? {
+		guard let pid = try? String(contentsOf: self, encoding: .ascii) else {
+			return nil
+		}
+
+		guard let pid: Int32 = Int32(pid.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+			return nil
+		}
+
+		kill(pid, SIGTERM)
+
+		return pid
+	}
+
 	func isPIDRunning() -> Bool {
 		if let pid = readPID() {
 			return kill(pid, 0) == 0
 		}
 
 		return false
+	}
+
+	func waitPID(maxRetries: Int = 10) throws {
+		var retries = 0
+
+		while retries < maxRetries {
+			if FileManager.default.fileExists(atPath: self.path) {
+				if self.isPIDRunning() {
+					Logger(self).info("PID file exists at \(self.path)")
+					return
+				}
+
+				throw ServiceError("PID file exists at \(self.path) but process died")
+			}
+
+			Thread.sleep(forTimeInterval: 1)
+
+			retries += 1
+		}
+
+		throw ServiceError("PID file \(self.path) did not appear within the expected time")
 	}
 
 	static func binary(_ name: String) -> URL? {
@@ -182,54 +217,6 @@ extension URL: Purgeable {
 	}
 }
 
-extension String {
-	var expandingTildeInPath: String {
-		if self.hasPrefix("~") {
-			return NSString(string: self).expandingTildeInPath
-		}
-
-		return self
-	}
-
-	func stringBeforeLast(before: Character) -> String {
-		if let r = self.lastIndex(of: before) {
-			return String(self[self.startIndex..<r])
-		} else {
-			return self
-		}
-	}
-
-	func stringBefore(before: String) -> String {
-		if let r = self.range(of: before) {
-			return String(self[self.startIndex..<r.lowerBound])
-		} else {
-			return self
-		}
-	}
-
-	func stringAfter(after: String) -> String {
-		if let r = self.range(of: after) {
-			return String(self[r.upperBound..<self.endIndex])
-		} else {
-			return self
-		}
-	}
-
-	func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
-		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
-
-		return String(self[self.startIndex..<endIndex])
-	}
-
-	func substring(_ bounds: Range<Int>) -> String {
-		let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound)
-		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
-
-		return String(self[startIndex..<endIndex])
-	}
-}
-
-public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
 extension DirectorySharingAttachments {
 	public var multipleDirectoryShares: VZDirectoryShare {

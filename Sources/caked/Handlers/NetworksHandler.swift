@@ -56,6 +56,9 @@ struct NetworksHandler: CakedCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
+		@Flag(help: .hidden)
+		var debug: Bool = false
+
 		@Argument(help: "socket path")
 		var socketPath: String? = nil
 
@@ -71,13 +74,16 @@ struct NetworksHandler: CakedCommand {
 		@Option(name: [.customLong("interface")], help: ArgumentHelp("interface\n", discussion: "interface used for --vmnet=bridged, e.g., \"en0\""))
 		var networkInterface: String? = nil
 
+		@Option(name: [.customLong("mac-address")], help: ArgumentHelp("Mac Address of VM\n", discussion: "Mac address configured for VM network interface"))
+		var macAddress: String? = nil
+
 		@Option(name: [.customLong("gateway")], help: ArgumentHelp("IP gateway\n", discussion: "gateway used for --vmnet=(host|shared), e.g., \"192.168.105.1\" (default: decided by macOS)"))
 		var gateway: String? = nil
 
 		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
 		var dhcpEnd: String? = nil
 
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask\n", discussion: "requires --vmnet-gateway to be specified"))
+		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask\n", discussion: "requires --gateway to be specified"))
 		var subnetMask = "255.255.255.0"
 
 		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID\n", discussion: "randomly generated if not specified"))
@@ -93,11 +99,17 @@ struct NetworksHandler: CakedCommand {
 			runAsSystem = self.asSystem
 
 			if self.vmfd != nil && self.socketPath != nil {
-				throw ValidationError("fd and socket-path are mutually exclusive")
+				throw ValidationError("fd and socket-path are mutually exclusive \(self.vmfd!) \(self.socketPath!)")
 			}
 
-			if self.vmfd != nil && self.pidFile == nil {
-				throw ValidationError("pidfile is required when using fd")
+			if self.vmfd != nil {
+				if self.pidFile == nil {
+					throw ValidationError("pidfile is required when using fd")
+				}
+
+				if self.macAddress == nil {
+					throw ValidationError("mac-address is required when using fd")
+				}
 			}
 
 			if self.mode == .bridged {
@@ -145,7 +157,8 @@ struct NetworksHandler: CakedCommand {
 						dhcpEnd: self.dhcpEnd,
 						subnetMask: self.subnetMask,
 						interfaceID: self.interfaceID,
-						nat66Prefix: self.nat66Prefix
+						nat66Prefix: self.nat66Prefix,
+						pidFile: socketURL.1
 					)
 
 					return (socketURL.1, vzvmnet)
@@ -158,17 +171,23 @@ struct NetworksHandler: CakedCommand {
 				throw ServiceError("pidfile is required when using vmfd")
 			}
 
+			let pidUrl = URL(fileURLWithPath: pidFile)
+
+			try? pidUrl.delete()
+
 			let vzvmnet = VZVMNetFileHandle(on: Root.group.next(),
 			                                inputOutput: CInt(vmfd),
 			                                mode: self.mode,
 			                                networkInterface: self.networkInterface,
+			                                macAddress: self.macAddress!,
 			                                gateway: self.gateway,
 			                                dhcpEnd: self.dhcpEnd,
 			                                subnetMask: self.subnetMask,
 			                                interfaceID: self.interfaceID,
-			                                nat66Prefix: self.nat66Prefix)
+			                                nat66Prefix: self.nat66Prefix,
+			                                pidFile: pidUrl)
 
-			return (URL(fileURLWithPath: pidFile), vzvmnet)
+			return (pidUrl, vzvmnet)
 		}
 	}
 
@@ -186,7 +205,7 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
-		
+
 		if try networkDirectory.exists() == false && createIfNotExists {
 			try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
 		}
@@ -231,74 +250,98 @@ struct NetworksHandler: CakedCommand {
 	static func run(vmFD: Int32,
 	                mode: VMNetMode,
 	                networkInterface: String? = nil,
+	                macAddress: String? = nil,
 	                gateway: String? = nil,
 	                dhcpEnd: String? = nil,
 	                subnetMask: String? = "255.255.255.0",
-	                interfaceID: String = UUID().uuidString,
+	                interfaceID: String? = UUID().uuidString,
 	                nat66Prefix: String? = nil,
-					pidFile: URL) throws -> Process {
+	                pidFile: URL) throws -> ProcessWithSharedFileHandle {
+		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(vmFD)")
 
-		guard let executableURL = URL.binary("caked") else {
+		guard let executableURL = URL.binary("sock-vmnet") else {
 			throw ServiceError("caked not found in path")
 		}
 
-		guard let sudoURL = URL.binary("sudo") else {
-			throw ServiceError("sudo not found in path")
+		var arguments: [String] = []
+		var runningArguments: [String]
+		let process = ProcessWithSharedFileHandle()
+
+		if executableURL.lastPathComponent == "caked" {
+			arguments.append(contentsOf: [ "networks", "start" ])
 		}
 
-		var arguments: [String] = [ "networks", "start", "--log-level", "\(Logger.LoggingLevel().rawValue)"]
+		arguments.append(contentsOf: [ "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
 
-		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(vmFD)")
-
-		arguments.append(contentsOf: ["--mode", "\(mode.stringValue)"])
+		if Logger.Level() >= .debug {
+			arguments.append("--debug")
+		}
 
 		if let networkInterface = networkInterface {
-			arguments.append(contentsOf: ["--interface", networkInterface])
+			arguments.append("--interface=\(networkInterface)")
+		}
+
+		if let interfaceID = interfaceID {
+			arguments.append("--interface-id=\(interfaceID)")
+		}
+
+		if let macAddress = macAddress {
+			arguments.append("--mac-address=\(macAddress)")
 		}
 
 		if let gateway = gateway {
-			arguments.append(contentsOf: ["--gateway", gateway])
+			arguments.append("--gateway=\(gateway)")
 
 			if let dhcpEnd = dhcpEnd {
-				arguments.append(contentsOf: ["--dhcp-end", dhcpEnd])
+				arguments.append("--dhcp-end=\(dhcpEnd)")
 			}
 
 			if let subnetMask = subnetMask {
-				arguments.append(contentsOf: ["--netmask", subnetMask])
+				arguments.append("--netmask=\(subnetMask)")
 			}
 
 			if let nat66Prefix = nat66Prefix {
-				arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
+				arguments.append("--nat66-prefix=\(nat66Prefix)")
 			}
 		}
 
-		arguments.append(contentsOf: ["--pidfile", pidFile.path])
-		arguments.append(contentsOf: ["--fd", "\(STDIN_FILENO)"])
+		arguments.append("--pidfile=\(pidFile.absoluteURL.path)")
+		arguments.append("--fd=\(vmFD)")
 
-		guard try checkIfSudoable(binary: executableURL) else {
-			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+		if geteuid() == 0 {
+			runningArguments = []
+			process.executableURL = executableURL
+		} else {
+			guard let sudoURL = URL.binary("sudo") else {
+				throw ServiceError("sudo not found in path")
+			}
+
+			guard try checkIfSudoable(binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
+			runningArguments = ["--non-interactive", executableURL.absoluteURL.path]
+			process.executableURL = sudoURL
 		}
 
-		let process = Process()
-
-		var runningArguments: [String] = ["--non-interactive", executableURL.path]
-
 		runningArguments.append(contentsOf: arguments)
+		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
-		Logger(self).info("Running: \(sudoURL.path) \(runningArguments.joined(separator: " "))")
+		try? pidFile.delete()
 
-		process.executableURL = sudoURL
 		process.arguments = runningArguments
-		process.standardInput = FileHandle(fileDescriptor: vmFD, closeOnDealloc: true)
+		process.standardInput = FileHandle.standardInput
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
+		process.sharedFileHandles = [FileHandle(fileDescriptor: vmFD, closeOnDealloc: false)]
 		process.terminationHandler = { process in
 			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
 		}
 
 		try process.run()
-		
+		try pidFile.waitPID(maxRetries: 1200)
+
 		return process
 	}
 
@@ -308,7 +351,7 @@ struct NetworksHandler: CakedCommand {
 	                gateway: String? = nil,
 	                dhcpEnd: String? = nil,
 	                subnetMask: String? = "255.255.255.0",
-	                interfaceID: String = UUID().uuidString,
+	                interfaceID: String? = UUID().uuidString,
 	                nat66Prefix: String? = nil,
 	                socketPath: URL? = nil,
 	                pidFile: URL? = nil) throws {
@@ -322,74 +365,69 @@ struct NetworksHandler: CakedCommand {
 			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: networkInterface, asSystem: runAsSystem)
 		}
 
-		guard let sudoURL = URL.binary("sudo") else {
-			throw ServiceError("sudo not found in path")
-		}
-
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
 
 		if standalone, let socket_vmnet = URL.binary("socket_vmnet") {	
 			executableURL = socket_vmnet
-			arguments.append(contentsOf: ["--vmnet-mode", "\(mode.stringValue)"])
+			arguments.append("--vmnet-mode=\(mode.stringValue)")
 
 			if let networkInterface = networkInterface {
-				arguments.append(contentsOf: ["--vmnet-interface", networkInterface])
+				arguments.append("--vmnet-interface=\(networkInterface)")
 			}
 
 			if let gateway = gateway {
-				arguments.append(contentsOf: ["--vmnet-gateway", gateway])
+				arguments.append("--vmnet-gateway=\(gateway)")
 
 				if let dhcpEnd = dhcpEnd {
-					arguments.append(contentsOf: ["--vmnet-dhcp-end", dhcpEnd])
+					arguments.append("--vmnet-dhcp-end=\(dhcpEnd)")
 				}
 
 				if let subnetMask = subnetMask {
-					arguments.append(contentsOf: ["--vmnet-mask", subnetMask])
+					arguments.append("--vmnet-mask=\(subnetMask)")
 				}
 
 				if let nat66Prefix = nat66Prefix {
-					arguments.append(contentsOf: ["--vmnet-nat66-prefix", nat66Prefix])
+					arguments.append("--vmnet-nat66-prefix=\(nat66Prefix)")
 				}
 			}
 
-			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
-			arguments.append(socketURL.0.path)
-
+			arguments.append("--pidfile=\(socketURL.1.absoluteURL.path)")
+			arguments.append(socketURL.0.absoluteURL.path)
 		} else if let caker = URL.binary("caked") {
 			executableURL = caker
 
-			arguments.append(contentsOf: ["networks", "start"])
+			arguments.append(contentsOf: ["networks", "start", "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
 
 			if runAsSystem {
-				arguments.append(contentsOf: ["--system"])
+				arguments.append("--system")
 			}
 
-			arguments.append(contentsOf: ["--log-level", "\(Logger.LoggingLevel().rawValue)"])
-
-			arguments.append(contentsOf: ["--mode", "\(mode.stringValue)"])
-
 			if let networkInterface = networkInterface {
-				arguments.append(contentsOf: ["--interface", networkInterface])
+				arguments.append("--interface=\(networkInterface)")
+			}
+
+			if let interfaceID = interfaceID {
+				arguments.append("--interface-id=\(interfaceID)")
 			}
 
 			if let gateway = gateway {
-				arguments.append(contentsOf: ["--gateway", gateway])
+				arguments.append("--gateway=\(gateway)")
 
 				if let dhcpEnd = dhcpEnd {
-					arguments.append(contentsOf: ["--dhcp-end", dhcpEnd])
+					arguments.append("--dhcp-end=\(dhcpEnd)")
 				}
 
 				if let subnetMask = subnetMask {
-					arguments.append(contentsOf: ["--netmask", subnetMask])
+					arguments.append("--netmask=\(subnetMask)")
 				}
 
 				if let nat66Prefix = nat66Prefix {
-					arguments.append(contentsOf: ["--nat66-prefix", nat66Prefix])
+					arguments.append("--nat66-prefix=\(nat66Prefix)")
 				}
 			}
 
-			arguments.append(contentsOf: ["--pidfile", socketURL.1.path])
-			arguments.append(socketURL.0.path)
+			arguments.append("--pidfile=\(socketURL.1.absoluteURL.path)")
+			arguments.append(socketURL.0.absoluteURL.path)
 		} else {
 			throw ServiceError("caked not found in path")
 		}
@@ -400,18 +438,30 @@ struct NetworksHandler: CakedCommand {
 
 		try? socketURL.0.delete()
 
-		guard try checkIfSudoable(binary: executableURL) else {
-			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
-		}
-
 		let process = Process()
-		var runningArguments: [String] = ["--non-interactive", executableURL.path]
+		var runningArguments: [String]
+
+		if geteuid() == 0 {
+			process.executableURL = executableURL
+			runningArguments = []
+		} else {
+			guard let sudoURL = URL.binary("sudo") else {
+				throw ServiceError("sudo not found in path")
+			}
+
+			guard try checkIfSudoable(binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
+			process.executableURL = sudoURL
+
+			runningArguments = ["--non-interactive", executableURL.absoluteURL.path]
+		}
 
 		runningArguments.append(contentsOf: arguments)
 
-		Logger(self).info("Running: \(sudoURL.path) \(runningArguments.joined(separator: " "))")
+		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
-		process.executableURL = sudoURL
 		process.arguments = runningArguments
 		process.standardInput = FileHandle.nullDevice
 		process.standardOutput = FileHandle.standardOutput
@@ -422,32 +472,11 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		try process.run()
-
-		let maxRetries = 10
-		var retries = 0
-
-		while retries < maxRetries {
-			if FileManager.default.fileExists(atPath: socketURL.0.path) {
-				Logger(self).info("Socket file exists at \(socketURL.0.path)")
-				return
-			}
-
-			Thread.sleep(forTimeInterval: 1)
-
-			retries += 1
-		}
-
-		throw ServiceError("Socket file did not appear within the expected time")
+		try socketURL.1.waitPID()
 	}
 
 	static func start(options: NetworksHandler.VMNetOptions) throws {
 		let vzvmnet = try options.createVZVMNet()
-
-		try vzvmnet.0.writePID()
-
-		defer {
-			try? vzvmnet.0.delete()
-		}
 
 		try vzvmnet.1.start()
 	}
@@ -456,13 +485,7 @@ struct NetworksHandler: CakedCommand {
 		let socketURL = try Self.vmnetEndpoint(mode: mode, networkInterface: networkInterface, asSystem: asSystem)
 		let pidURL = socketURL.1
 
-		if try pidURL.exists() {
-			let pid = try String(contentsOf: pidURL, encoding: .ascii)
-
-			if let pidInt = Int32(pid) {
-				kill(pidInt, SIGTERM)
-			}
-		}
+		_ = pidURL.killPID(SIGTERM)
 
 		return "stopped interface"
 	}

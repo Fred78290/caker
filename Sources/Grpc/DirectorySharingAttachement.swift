@@ -2,15 +2,7 @@ import Foundation
 import Virtualization
 import ArgumentParser
 
-extension String {
-	var expandingTildeInPath: String {
-		if self.hasPrefix("~") {
-			return NSString(string: self).expandingTildeInPath
-		}
-
-		return self
-	}
-}
+public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
 public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
 	public let readOnly: Bool

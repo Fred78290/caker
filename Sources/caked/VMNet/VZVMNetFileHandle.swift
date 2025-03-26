@@ -7,6 +7,7 @@ import Virtualization
 final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	private var channel: Channel? = nil
 	private let fileDescriptor: CInt
+	private let macAddress: String
 
 	final class VMNetHandler: ChannelInboundHandler {
 		public typealias InboundIn = ByteBuffer
@@ -20,31 +21,55 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		}
 
 		public func channelActive(context: ChannelHandlerContext) {
-		self.logger.info("channelActive")
 			self.vmnet.serverChannel = context.channel
 		}
 
 		public func channelInactive(context: ChannelHandlerContext) {
-		self.logger.info("channelInactive")
 			self.vmnet.serverChannel = nil
 		}
 
 		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-		self.logger.info("channelRead")
-			let buffer = self.unwrapInboundIn(data)
-			var bufData = Data(buffer: buffer)
-			var written_count: Int32 = Int32(bufData.count)
-			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(written_count))
-			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(written_count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+			var buf = self.unwrapInboundIn(data)
+			let bufLen = buf.readableBytes
 
-			guard vmnet_write(self.vmnet.iface!, &pd, &written_count) != .VMNET_SUCCESS else {
-				self.logger.error("Failed to write to interface")
+			buf.withUnsafeMutableReadableBytes {
+				var count: Int32 = 1
+				var io: iovec = iovec(iov_base: $0.baseAddress!, iov_len: Int(bufLen))
+				var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufLen), vm_pkt_iov: withUnsafeMutablePointer(to: &io, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+				let status = vmnet_write(self.vmnet.iface!, &pd, &count)
+
+				guard status == .VMNET_SUCCESS else {
+					self.logger.error("Failed to write to interface \(status.stringValue)")
+					return
+				}
+
+				if Logger.Level() >= LogLevel.debug {
+					if count != 1 {
+						self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufLen)")
+					} else {
+						self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+					}
+				}
+			}
+
+/*			var bufData = Data(buffer: buffer)
+			var count: Int32 = 1
+			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(bufData.count))
+			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufData.count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
+			let status = vmnet_write(self.vmnet.iface!, &pd, &count)
+
+			guard status == .VMNET_SUCCESS else {
+				self.logger.error("Failed to write to interface \(status.stringValue)")
 				return
 			}
 
-			if written_count != bufData.count {
-				self.logger.error("Failed to write all bytes to interface = written_count: \(written_count), bufData.count: \(bufData.count)")
-			}
+			if Logger.Level() >= LogLevel.debug {
+				if count != 1 {
+					self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufData.count)")
+				} else {
+					self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+				}
+			}*/
 		}
 
 		func channelReadComplete(context: ChannelHandlerContext) {
@@ -60,16 +85,19 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	     inputOutput: CInt,
 	     mode: VMNetMode,
 	     networkInterface: String? = nil,
+		 macAddress: String,
 	     gateway: String? = nil,
 	     dhcpEnd: String?,
 	     subnetMask: String = "255.255.255.0",
 	     interfaceID: String = UUID().uuidString,
-	     nat66Prefix: String? = nil) {
+	     nat66Prefix: String? = nil,
+	     pidFile: URL) {
 
 		self.fileDescriptor = inputOutput
+		self.macAddress = macAddress
 		super.init(on: on, mode: mode, networkInterface: networkInterface,
 		           gateway: gateway, dhcpEnd: dhcpEnd, subnetMask: subnetMask,
-		           interfaceID: interfaceID, nat66Prefix: nat66Prefix)
+		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
 	}
 
 	override func write(buffer: Data) {
@@ -93,23 +121,18 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 				}
 
 				if status != .VMNET_SUCCESS {
-					self.logger.error("Failed to stop interface \(status)")
+					self.logger.error("Failed to stop interface \(status.stringValue)")
 				}
 			}
 		}
 
 		self.logger.info("Will start pipe channel with fd=\(self.fileDescriptor)")
-
+		_ = readLine()
 		let promise = self.eventLoop.makePromise(of: Void.self)
 		let pipe = NIOPipeBootstrap(group: self.eventLoop)
-			.channelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 4 * 1024 * 1024)
-			.channelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1 * 1024 * 1024)
 			.channelOption(.maxMessagesPerRead, value: 16)
-			.takingOwnershipOfDescriptor(inputOutput: dup(self.fileDescriptor))
+			.takingOwnershipOfDescriptor(inputOutput: self.fileDescriptor)
 			.flatMap { channel in
-
-		self.logger.info("created pipe channel")
-
 				channel.closeFuture.whenComplete { _ in
 					self.logger.info("Pipe channel closed")
 					promise.succeed(())
@@ -119,14 +142,13 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 			}
 
 		try pipe.wait()
+		try self.pidFile.writePID()
 
 		promise.futureResult.whenComplete { _ in
 			self.logger.info("Pipe channel released")
 		}
 
-		self.logger.info("Will wait for pipe channel")
 		try promise.futureResult.wait()
-		self.logger.info("Pipe channel exited")
 	}
 
 	override func stop() {
