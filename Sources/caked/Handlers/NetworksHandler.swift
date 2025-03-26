@@ -173,7 +173,8 @@ struct NetworksHandler: CakedCommand {
 	}
 
 	static func vmnetEndpoint(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> (URL, URL) {
-		let home = try Home.init(asSystem: asSystem)
+		let createIfNotExists: Bool = asSystem ? geteuid() == 0 : true
+		let home = try Home.init(asSystem: asSystem, createItIfNotExists: createIfNotExists)
 		let dirName: String
 
 		if mode == .bridged {
@@ -185,7 +186,10 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
-		try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
+		
+		if try networkDirectory.exists() == false && createIfNotExists {
+			try FileManager.default.createDirectory(at: networkDirectory, withIntermediateDirectories: true)
+		}
 
 		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
 	}

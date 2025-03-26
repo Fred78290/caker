@@ -76,8 +76,8 @@ struct Home {
 	let sshPrivateKey: URL
 	let sshPublicKey: URL
 
-	init(asSystem: Bool) throws {
-		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem)
+	init(asSystem: Bool, createItIfNotExists: Bool = true) throws {
+		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem, createItIfNotExists: createItIfNotExists)
 		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL
@@ -87,11 +87,13 @@ struct Home {
 		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL
 		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL
 
-		try FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
-		try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+		if try self.cakeHomeDirectory.exists() && createItIfNotExists {
+			try FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+			try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
 
-		if try self.remoteDb.exists() == false {
-			try defaultRemotes.write(to: self.remoteDb)
+			if try self.remoteDb.exists() == false {
+				try defaultRemotes.write(to: self.remoteDb)
+			}
 		}
 	}
 

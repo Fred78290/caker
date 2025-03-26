@@ -20,14 +20,17 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		}
 
 		public func channelActive(context: ChannelHandlerContext) {
+		self.logger.info("channelActive")
 			self.vmnet.serverChannel = context.channel
 		}
 
 		public func channelInactive(context: ChannelHandlerContext) {
+		self.logger.info("channelInactive")
 			self.vmnet.serverChannel = nil
 		}
 
 		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+		self.logger.info("channelRead")
 			let buffer = self.unwrapInboundIn(data)
 			var bufData = Data(buffer: buffer)
 			var written_count: Int32 = Int32(bufData.count)
@@ -95,13 +98,17 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 			}
 		}
 
+		self.logger.info("Will start pipe channel with fd=\(self.fileDescriptor)")
+
 		let promise = self.eventLoop.makePromise(of: Void.self)
 		let pipe = NIOPipeBootstrap(group: self.eventLoop)
 			.channelOption(ChannelOptions.socketOption(.so_rcvbuf), value: 4 * 1024 * 1024)
 			.channelOption(ChannelOptions.socketOption(.so_sndbuf), value: 1 * 1024 * 1024)
 			.channelOption(.maxMessagesPerRead, value: 16)
-			.takingOwnershipOfDescriptor(inputOutput: self.fileDescriptor)
+			.takingOwnershipOfDescriptor(inputOutput: dup(self.fileDescriptor))
 			.flatMap { channel in
+
+		self.logger.info("created pipe channel")
 
 				channel.closeFuture.whenComplete { _ in
 					self.logger.info("Pipe channel closed")

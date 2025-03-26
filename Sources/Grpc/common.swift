@@ -113,7 +113,7 @@ public struct Utils {
 		return false
 	}
 
-	public static func getHome(asSystem: Bool = false) throws -> URL {
+	public static func getHome(asSystem: Bool = false, createItIfNotExists: Bool = true) throws -> URL {
 		guard let cakeHomeDir = homeDirectories[asSystem] else {
 			let cakeHomeDir: URL
 
@@ -124,8 +124,6 @@ public struct Utils {
 				applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
 				                                  isDirectory: true,
 				                                  relativeTo: applicationSupportDirectory)
-				try FileManager.default.createDirectory(at: applicationSupportDirectory, withIntermediateDirectories: true)
-
 				cakeHomeDir = applicationSupportDirectory
 			} else if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
@@ -137,7 +135,9 @@ public struct Utils {
 					.appendingPathComponent(".cake", isDirectory: true)
 			}
 
-			try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
+			if createItIfNotExists && FileManager.default.fileExists(atPath: cakeHomeDir.path) == false {
+				try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
+			}
 
 			homeDirectories[asSystem] = cakeHomeDir
 
