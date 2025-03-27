@@ -36,31 +36,39 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		}
 
 		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-			let buffer = self.unwrapInboundIn(data)
-			var bufData = Data(buffer: buffer)
+			var buffer = self.unwrapInboundIn(data)
+			let bufSize = buffer.readableBytes
+			let iface = self.vmnet.iface!
 			let currentChannel = context.channel
 			var count: Int32 = 1
-			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(bufData.count))
-			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufData.count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
-			let status = vmnet_write(self.vmnet.iface!, &pd, &count)
 
-			guard  status == .VMNET_SUCCESS else {
-				self.logger.error("Failed to write to interface \(status.stringValue)")
-				return
-			}
+			buffer.withUnsafeMutableReadableBytes { 
+				var buf: iovec = iovec(iov_base:  $0.baseAddress!, iov_len: Int(bufSize))
 
-			if Logger.Level() >= LogLevel.debug {
-				if count != 1 {
-					self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufData.count)")
-				} else {
-					self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
-				}
+				withUnsafeMutablePointer(to: &buf, {
+					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: $0.pointee.iov_len, vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
+					let status = vmnet_write(iface, &pd, &count)
+
+					guard  status == .VMNET_SUCCESS else {
+						self.logger.error("Failed to write to interface \(status.stringValue)")
+						return
+					}
+
+					if Logger.Level() >= LogLevel.debug {
+						if count != 1 {
+							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
+						} else {
+							self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+						}
+					}
+				})
+
 			}
 
 			self.vmnet.channelsSyncQueue.async {
 				self.vmnet.childrenChannels.forEach { channel in
 					if channel !== currentChannel {
-						channel.writeAndFlush(bufData, promise: nil)
+						channel.writeAndFlush(buffer, promise: nil)
 					}
 				}
 			}
@@ -85,7 +93,7 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	     subnetMask: String = "255.255.255.0",
 	     interfaceID: String = UUID().uuidString,
 	     nat66Prefix: String? = nil,
-		 pidFile: URL) {
+	     pidFile: URL) {
 
 		self.socketPath = socketPath
 		self.socketGroup = socketGroup
@@ -95,8 +103,8 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
 	}
 
-	override func write(buffer: Data) {
-		let byteBuffer = ByteBuffer(data: buffer)
+	override func write(data: Data) {
+		let byteBuffer = ByteBuffer(data: data)
 
 		self.childrenChannels.forEach { channel in
 			channel.writeAndFlush(byteBuffer, promise: nil)
@@ -159,7 +167,7 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		}
 
 		self.serverChannel = try binder.wait()
-		try self.pidFile.writePID()
+		try super.start()
 
 		try self.serverChannel!.closeFuture.wait()
 	}
@@ -180,5 +188,7 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 
 			try? promise.futureResult.wait()
 		}
+
+		super.stop()
 	}
 }

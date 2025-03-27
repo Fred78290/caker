@@ -21,7 +21,7 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("system"), .customShort("s")])
 	var asSystem: Bool = false
 
-	@Flag(help: .hidden)
+	@Flag(name: [.customLong("service"), .customShort("l")], help: .hidden)
 	var launchedFromService: Bool = false
 
 	@Flag(help: .hidden)

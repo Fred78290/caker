@@ -21,6 +21,11 @@ class ServiceError : Error, CustomStringConvertible {
 	let description: String
 	let exitCode: Int32
 
+	init(_ errno: Int32) {
+		self.description = String(cString: strerror(errno))
+		self.exitCode = errno
+	}
+
 	init(_ what: String, _ code: Int32 = 1) {
 		self.description = what
 		self.exitCode = code

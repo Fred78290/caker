@@ -82,6 +82,49 @@ extension Date {
 	}
 }
 
+func processExist(_ runningPID: pid_t) throws -> Bool {
+	// Requesting the pid of 0 from systcl will return all pids
+	var mib = [CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0]
+	var bufferSize = 0
+
+	// To find the needed buffer size you call sysctl with a nil results pointer.
+	// This sets the size of the buffer needed in the bufferSize pointer.
+	if sysctl(&mib, UInt32(mib.count), nil, &bufferSize, nil, 0) < 0 {
+		throw ServiceError(errno)
+	}
+
+	// Determine how many kinfo_proc struts will be returned.
+	// Using stride rather than size will take alligment into account.
+	let entryCount = bufferSize / MemoryLayout<kinfo_proc>.stride
+
+	// Create our buffer to be filled with the list of processes and allocate it.
+	// Use defer to make sure it's deallocated when the scope ends.
+	var procList: UnsafeMutablePointer<kinfo_proc>?
+	procList = UnsafeMutablePointer.allocate(capacity: bufferSize)
+	defer {
+		procList?.deallocate() 
+	}
+
+	// Now we actually perform our query to get all the processes.
+	if sysctl(&mib, UInt32(mib.count), procList, &bufferSize, nil, 0) < 0 {
+		throw ServiceError(errno)
+	}
+
+	// Simply step through the returned bytes and lookup the data you want.
+	// If the pid is 0 that means it's invalid and should be ignored.
+	for index in 0...entryCount {
+		guard let pid = procList?[index].kp_proc.p_pid, pid != 0 else {
+			continue
+		}
+
+		if runningPID == pid {
+			return true
+		}
+	}
+
+	return false
+}
+
 extension URL: Purgeable {
 	var url: URL {
 		self
@@ -121,7 +164,11 @@ extension URL: Purgeable {
 
 	func isPIDRunning() -> Bool {
 		if let pid = readPID() {
-			return kill(pid, 0) == 0
+			do {
+				return try processExist(pid_t(pid))
+			} catch {
+				Logger(self).error("Error checking if PID \(pid) is running: \(error)")
+			}
 		}
 
 		return false

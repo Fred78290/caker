@@ -9,6 +9,8 @@ CURDIR=${PWD}
 PKGDIR=${PWD}/../dist/Caker.app
 popd > /dev/null
 
+[ -f *.swiftdeps ] && sudo rm -rf .build *.o *.d *.swiftdeps *.swiftdeps~
+
 swift build
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
 

@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9B05117F2D92BF4D00E9232D /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */; };
-		9B0511802D92BF4D00E9232D /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
-		9B1BD2492D90209B00F78154 /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2472D90209B00F78154 /* VZVMNet.swift */; };
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
 		9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */; };
 		9B24FFD82D8AE3E10050BFAD /* GRPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */; };
@@ -236,10 +233,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
-		9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
 		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
-		9B1BD2472D90209B00F78154 /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
 		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
 		9B24FFCD2D8AE3E10050BFAD /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
 		9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCMountService.swift; sourceTree = "<group>"; };
@@ -382,6 +376,11 @@
 			path = Caker;
 			sourceTree = "<group>";
 		};
+		9B5C17B72D95593700BC4407 /* VMNet */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VMNet;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -475,16 +474,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		9B1BD2482D90209B00F78154 /* VMNet */ = {
-			isa = PBXGroup;
-			children = (
-				9B1BD2472D90209B00F78154 /* VZVMNet.swift */,
-				9B05117D2D92BF4D00E9232D /* VZVMNetFileHandle.swift */,
-				9B05117E2D92BF4D00E9232D /* VZVMNetSocket.swift */,
-			);
-			path = VMNet;
-			sourceTree = "<group>";
-		};
 		9B24FFD22D8AE3E10050BFAD /* GRPC */ = {
 			isa = PBXGroup;
 			children = (
@@ -712,7 +701,7 @@
 				9B464AB42D5A3E0300164BF5 /* Handlers */,
 				9B24FFD62D8AE3E10050BFAD /* MountService */,
 				9B464AB92D5A3E0300164BF5 /* Sockets */,
-				9B1BD2482D90209B00F78154 /* VMNet */,
+				9B5C17B72D95593700BC4407 /* VMNet */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -785,6 +774,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
+				9B5C17B72D95593700BC4407 /* VMNet */,
 			);
 			name = Caker;
 			packageProductDependencies = (
@@ -1020,8 +1010,6 @@
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
 				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
-				9B05117F2D92BF4D00E9232D /* VZVMNetSocket.swift in Sources */,
-				9B0511802D92BF4D00E9232D /* VZVMNetFileHandle.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
@@ -1070,7 +1058,6 @@
 				9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */,
 				9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */,
 				9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */,
-				9B1BD2492D90209B00F78154 /* VZVMNet.swift in Sources */,
 				9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

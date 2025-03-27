@@ -35,19 +35,22 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 			buf.withUnsafeMutableReadableBytes {
 				var count: Int32 = 1
 				var io: iovec = iovec(iov_base: $0.baseAddress!, iov_len: Int(bufLen))
-				var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufLen), vm_pkt_iov: withUnsafeMutablePointer(to: &io, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
-				let status = vmnet_write(self.vmnet.iface!, &pd, &count)
 
-				guard status == .VMNET_SUCCESS else {
-					self.logger.error("Failed to write to interface \(status.stringValue)")
-					return
-				}
+				withUnsafeMutablePointer(to: &io) {
+					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufLen), vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
+					let status = vmnet_write(self.vmnet.iface!, &pd, &count)
 
-				if Logger.Level() >= LogLevel.debug {
-					if count != 1 {
-						self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufLen)")
-					} else {
-						self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+					guard status == .VMNET_SUCCESS else {
+						self.logger.error("Failed to write to interface \(status.stringValue)")
+						return
+					}
+
+					if Logger.Level() >= LogLevel.debug {
+						if count != 1 {
+							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufLen)")
+						} else {
+							self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+						}
 					}
 				}
 			}
@@ -100,9 +103,9 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
 	}
 
-	override func write(buffer: Data) {
+	override func write(data: Data) {
 		if let channel = self.channel {
-			let byteBuffer = ByteBuffer(data: buffer)
+			let byteBuffer = ByteBuffer(data: data)
 
 			channel.writeAndFlush(byteBuffer, promise: nil)
 		}
@@ -127,7 +130,7 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		}
 
 		self.logger.info("Will start pipe channel with fd=\(self.fileDescriptor)")
-		_ = readLine()
+
 		let promise = self.eventLoop.makePromise(of: Void.self)
 		let pipe = NIOPipeBootstrap(group: self.eventLoop)
 			.channelOption(.maxMessagesPerRead, value: 16)
@@ -159,5 +162,7 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 
 			try? promise.futureResult.wait()
 		}
+
+		super.stop()
 	}
 }

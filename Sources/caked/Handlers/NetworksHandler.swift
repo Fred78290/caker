@@ -247,7 +247,7 @@ struct NetworksHandler: CakedCommand {
 		return false
 	}
 
-	static func run(vmFD: Int32,
+	static func run(fileDescriptor: Int32,
 	                mode: VMNetMode,
 	                networkInterface: String? = nil,
 	                macAddress: String? = nil,
@@ -257,9 +257,9 @@ struct NetworksHandler: CakedCommand {
 	                interfaceID: String? = UUID().uuidString,
 	                nat66Prefix: String? = nil,
 	                pidFile: URL) throws -> ProcessWithSharedFileHandle {
-		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(vmFD)")
+		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(fileDescriptor)")
 
-		guard let executableURL = URL.binary("sock-vmnet") else {
+		guard let executableURL = URL.binary("caked") else {
 			throw ServiceError("caked not found in path")
 		}
 
@@ -272,17 +272,18 @@ struct NetworksHandler: CakedCommand {
 		}
 
 		let fd: Int32
-		let standardInput: FileHandle
 
 		if getuid() == 0 {
-			fd = vmFD
-			standardInput = FileHandle.standardInput
+			fd = fileDescriptor
+			process.standardInput = FileHandle.standardInput
+			process.sharedFileHandles = [FileHandle(fileDescriptor: fd, closeOnDealloc: false)]
 		} else {
 			fd = STDIN_FILENO
-			standardInput = FileHandle(fileDescriptor: vmFD, closeOnDealloc: false)
+			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 		}
 
-		arguments.append(contentsOf: [ "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
+		arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
+		arguments.append("--mode=\(mode.stringValue)")
 
 		if Logger.Level() >= .debug {
 			arguments.append("--debug")
@@ -341,10 +342,9 @@ struct NetworksHandler: CakedCommand {
 		try? pidFile.delete()
 
 		process.arguments = runningArguments
-		process.standardInput = standardInput
+		process.environment = ProcessInfo.processInfo.environment
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
-		process.sharedFileHandles = [FileHandle(fileDescriptor: vmFD, closeOnDealloc: false)]
 		process.terminationHandler = { process in
 			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
@@ -356,7 +356,7 @@ struct NetworksHandler: CakedCommand {
 		return process
 	}
 
-	static func run(standalone: Bool = false,
+	static func run(useLimaVMNet: Bool = false,
 	                mode: VMNetMode,
 	                networkInterface: String? = nil,
 	                gateway: String? = nil,
@@ -378,8 +378,19 @@ struct NetworksHandler: CakedCommand {
 
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
 
-		if standalone, let socket_vmnet = URL.binary("socket_vmnet") {	
+		if useLimaVMNet {
+
+			guard let socket_vmnet = URL.binary("socket_vmnet") else {
+				throw ServiceError("socket_vmnet not found in path")
+			}
+
 			executableURL = socket_vmnet
+
+			//if Logger.Level() >= .debug {
+			//	arguments.append("--debug")
+			//}
+
+			//arguments.append("--vmnet-vz")
 			arguments.append("--vmnet-mode=\(mode.stringValue)")
 
 			if let networkInterface = networkInterface {
@@ -474,6 +485,7 @@ struct NetworksHandler: CakedCommand {
 		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
+		process.environment = ProcessInfo.processInfo.environment
 		process.standardInput = FileHandle.nullDevice
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError

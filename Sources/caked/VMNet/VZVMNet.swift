@@ -130,19 +130,23 @@ class VZVMNet: @unchecked Sendable {
 			let max_bytes = Int(self.max_bytes)
 			var received_count: Int32 = Int32(count)
 			var pdv: [vmpktdesc] = []
-			var io: [iovec] = []
 
 			pdv.reserveCapacity(Int(count))
-			io.reserveCapacity(Int(count))
 
-			for i in 0..<Int(count) {
-				io.append(iovec(iov_base: UnsafeMutablePointer<UInt8>.allocate(capacity: Int(self.max_bytes)), iov_len: max_bytes))
-				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: withUnsafeMutablePointer(to: &io[i], { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0))
+			for _ in 0..<Int(count) {
+				let p = UnsafeMutablePointer<UInt8>.allocate(capacity: max_bytes)
+				let iov = UnsafeMutablePointer<iovec>.allocate(capacity: 1)
+
+				iov.pointee.iov_base = UnsafeMutableRawPointer(p)
+				iov.pointee.iov_len = max_bytes
+				
+				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: iov, vm_pkt_iovcnt: 1, vm_flags: 0))
 			}
 
 			defer {
-				io.forEach {
-					$0.iov_base.deallocate()
+				pdv.forEach {
+					$0.vm_pkt_iov.pointee.iov_base.deallocate()
+					$0.vm_pkt_iov.deallocate()
 				}
 			}
 
@@ -154,12 +158,12 @@ class VZVMNet: @unchecked Sendable {
 			}
 
 			for i in 0..<Int(received_count) {
-				let iop = io[i]
 				let pd: vmpktdesc = pdv[i]
+				let iov = pd.vm_pkt_iov.pointee
 
 				if Logger.Level() >= LogLevel.debug {
 					let numberOfItems = 2
-					let macAddress = iop.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
+					let macAddress = iov.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
 						// Convert pointer to buffer pointer to access buffer via indices
 						let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
 
@@ -175,7 +179,7 @@ class VZVMNet: @unchecked Sendable {
 					self.logger.debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
 				}
 
-				self.write(buffer: Data(bytesNoCopy: iop.iov_base, count: pd.vm_pkt_size, deallocator: .none))
+				self.write(data: Data(bytesNoCopy: iov.iov_base, count: pd.vm_pkt_size, deallocator: .none))
 			}
 		}
 
@@ -200,13 +204,13 @@ class VZVMNet: @unchecked Sendable {
 		xpc_dictionary_set_bool(dict, vmnet_enable_checksum_offload_key, false)
 		xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, false)
 
-		if let interface = self.networkInterface {
-			xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, interface)
-		}
-
 		xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.interfaceID);
 
-		if self.mode == .shared {
+		if self.mode == .bridged {
+			if let interface = self.networkInterface {
+				xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, interface)
+			}
+		} else if self.mode == .shared {
 			if let gateway = self.gateway, let dhcpEnd = self.dhcpEnd {
 				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
 				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
@@ -245,13 +249,14 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	func write(buffer: Data) {
+	func write(data: Data) {
 	}
 
 	func stop() {
+		try? pidFile.delete()
 	}
 
 	func start() throws {
-
+		try self.pidFile.writePID()
 	}
 }

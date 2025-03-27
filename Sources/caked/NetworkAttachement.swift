@@ -3,6 +3,7 @@ import Virtualization
 import GRPCLib
 import NIO
 
+let phUseLimaVMNet = false
 protocol NetworkAttachement {
 	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
 	func stop()
@@ -42,7 +43,7 @@ class BridgedNetworkInterface: NetworkAttachement {
 	}
 }
 
-class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
+class SharedNetworkInterface: NetworkAttachement, VZVMNetHandler.CloseDelegate {
 	let macAddress: VZMACAddress
 	let mode: VMNetMode
 	let networkInterface: String?
@@ -65,11 +66,11 @@ class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation)))
 	}
 	
-	func closedByRemote(port: Int, fd: Int32) {
+	func closed(side: VZVMNetHandler.HandlerSide) {
 		if self.pipeChannel != nil {
 			self.pipeChannel = nil
 			
-			if port == 0 {
+			if side == .host {
 				Logger(self).info("VMNet closed by the host")
 			} else {
 				Logger(self).info("VMNet closed by the guest")
@@ -114,7 +115,7 @@ class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		let socketURL = try self.vmnetEndpoint()
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
-			try NetworksHandler.run(mode: self.mode, networkInterface: networkInterface, socketPath: socketURL.0, pidFile: socketURL.1)
+			try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkInterface: networkInterface, socketPath: socketURL.0, pidFile: socketURL.1)
 			try socketURL.1.waitPID()
 		}
 		
@@ -145,11 +146,11 @@ class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
 						.takingOwnershipOfDescriptor(inputOutput: hostfd)
 						.flatMap { childChannel in
-							let (ours, theirs) = GlueHandler.matchedPair()
+							let (guestHandler, hostHandler) = VZVMNetHandler.matchedPair(useLimaVMNet: phUseLimaVMNet, delegate: self)
 							
-							return childChannel.pipeline.addHandlers([CatchRemoteClose(port: 1, fd: hostfd, delegate: self), ours])
+							return childChannel.pipeline.addHandler(guestHandler)
 								.flatMap {
-									inboundChannel.pipeline.addHandlers([CatchRemoteClose(port: 0, fd: hostfd, delegate: self), theirs])
+									inboundChannel.pipeline.addHandler(hostHandler)
 								}
 						}
 				}
@@ -169,7 +170,7 @@ class SharedNetworkInterface: NetworkAttachement, CatchRemoteCloseDelegate {
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			self.process = try NetworksHandler.run(vmFD: hostfd, mode: self.mode, networkInterface: networkInterface, macAddress: self.macAddress.string, pidFile: vmLocation.vmnetPID)
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, networkInterface: networkInterface, macAddress: self.macAddress.string, pidFile: vmLocation.vmnetPID)
 		}
 		
 		return FileHandle(fileDescriptor: vmfd, closeOnDealloc: true)

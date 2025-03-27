@@ -17,10 +17,11 @@ struct StartHandler: CakedCommand {
 		case background = 0
 		case foreground = 1
 		case attach = 2
+		case service = 3
 	}
 
-	init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, foreground: Bool) {
-		self.startMode = foreground ? .foreground : .background
+	init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode) {
+		self.startMode = startMode
 		self.location = location
 		self.config = config
 		self.waitIPTimeout = waitIPTimeout
@@ -53,6 +54,8 @@ struct StartHandler: CakedCommand {
 				arguments.append(contentsOf: ["2>&1", ">", log])
 			} else if startMode == .foreground{
 				arguments.append("--display")
+			} else if startMode == .service {
+				arguments.append("--service")
 			}
 
 			config.sockets.forEach {
@@ -234,7 +237,7 @@ struct StartHandler: CakedCommand {
 						Logger(self).info("VM \(name) starting")
 
 						do {
-							let handler: StartHandler = StartHandler(location: vmLocation, config: config, waitIPTimeout: 120, foreground: false)
+							let handler: StartHandler = StartHandler(location: vmLocation, config: config, waitIPTimeout: 120, startMode: .service)
 
 							let runningIP: String = try handler.run(on: on, asSystem: asSystem)
 
