@@ -27,11 +27,13 @@ final class VZVMNetHandler: ChannelDuplexHandler {
 	private let side: HandlerSide
 	private let delegate: CloseDelegate?
 	private var notified: Bool = false
+	private let trace: Bool
 
 	private init(useLimaVMNet: Bool, side: HandlerSide, delegate: CloseDelegate?) {
 		self.useLimaVMNet = useLimaVMNet
 		self.side = side
 		self.delegate = delegate
+		self.trace = Logger.Level() >= LogLevel.trace
 	}
 
 	static func matchedPair(useLimaVMNet: Bool, delegate: CloseDelegate?) -> (VZVMNetHandler, VZVMNetHandler) {

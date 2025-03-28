@@ -54,11 +54,11 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 						return
 					}
 
-					if Logger.Level() >= LogLevel.debug {
+					if self.vmnet.trace {
 						if count != 1 {
 							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
 						} else {
-							self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
 						}
 					}
 				})

@@ -52,6 +52,7 @@ class VZVMNet: @unchecked Sendable {
 	let sighup: any DispatchSourceSignal
 	let sigterm: any DispatchSourceSignal
 	let logger = Logger("com.aldunelabs.caked.VZVMNet")
+	let trace: Bool
 
 	init(on: EventLoop, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil, pidFile: URL) {
 		self.eventLoop = on
@@ -64,6 +65,7 @@ class VZVMNet: @unchecked Sendable {
 		self.nat66Prefix = nat66Prefix
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
 		self.pidFile = pidFile
+		self.trace = Logger.Level() >= LogLevel.trace
 
 		signal(SIGINT, SIG_IGN)
 		signal(SIGHUP, SIG_IGN)
@@ -122,6 +124,26 @@ class VZVMNet: @unchecked Sendable {
 		sigterm.activate()
 	}
 
+	internal func traceMacAddress(_ i: Int, ptr: UnsafeMutableRawPointer, size: Int, direction: String = "received from host") {
+		if self.trace {
+			let numberOfItems = 2
+			let macAddress = ptr.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
+				// Convert pointer to buffer pointer to access buffer via indices
+				let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
+
+				// Construct array
+				return [ether_addr_t](unsafeUninitializedCapacity: numberOfItems) { arrayBuffer, count in
+					count = numberOfItems
+					for i in 0..<numberOfItems {
+						arrayBuffer[i] = bufferPointer[i]
+					}
+				}
+			}
+
+			self.logger.debug("\(direction) packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(size)")
+		}
+	}
+
 	internal func vmnetPacketAvailable(_ estim_count: UInt64) {
 		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
 		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
@@ -139,7 +161,7 @@ class VZVMNet: @unchecked Sendable {
 
 				iov.pointee.iov_base = UnsafeMutableRawPointer(p)
 				iov.pointee.iov_len = max_bytes
-				
+
 				pdv.append(vmpktdesc(vm_pkt_size: max_bytes, vm_pkt_iov: iov, vm_pkt_iovcnt: 1, vm_flags: 0))
 			}
 
@@ -161,29 +183,14 @@ class VZVMNet: @unchecked Sendable {
 				let pd: vmpktdesc = pdv[i]
 				let iov = pd.vm_pkt_iov.pointee
 
-				if Logger.Level() >= LogLevel.debug {
-					let numberOfItems = 2
-					let macAddress = iov.iov_base.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
-						// Convert pointer to buffer pointer to access buffer via indices
-						let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
-
-						// Construct array
-						return [ether_addr_t](unsafeUninitializedCapacity: numberOfItems) { arrayBuffer, count in
-							count = numberOfItems
-							for i in 0..<numberOfItems {
-								arrayBuffer[i] = bufferPointer[i]
-							}
-						}
-					}
-
-					self.logger.debug("Received packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(pd.vm_pkt_size)")
-				}
-
+				self.traceMacAddress(i, ptr: iov.iov_base, size: pd.vm_pkt_size)
 				self.write(data: Data(bytesNoCopy: iov.iov_base, count: pd.vm_pkt_size, deallocator: .none))
 			}
 		}
 
-		self.logger.debug("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
+		if self.trace {
+			self.logger.trace("estim_count=\(estim_count), dividing by MAX_PACKET_COUNT_AT_ONCE=\(MAX_PACKET_COUNT_AT_ONCE); q=\(q), r=\(r)")
+		}
 
 		for _ in 0..<q {
 			on_vmnet_packets_available(MAX_PACKET_COUNT_AT_ONCE)

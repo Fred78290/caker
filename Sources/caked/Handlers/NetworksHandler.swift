@@ -266,6 +266,20 @@ struct NetworksHandler: CakedCommand {
 		var arguments: [String] = []
 		var runningArguments: [String]
 		let process = ProcessWithSharedFileHandle()
+		let outPipe = Pipe()
+		let errPipe = Pipe()
+
+		outPipe.fileHandleForReading.readabilityHandler = { handle in
+			if handle.availableData.count > 0 {
+				FileHandle.standardOutput.write(handle.availableData)
+			}
+		}
+
+		errPipe.fileHandleForReading.readabilityHandler = { handle in
+			if handle.availableData.count > 0 {
+				FileHandle.standardError.write(handle.availableData)
+			}
+		}
 
 		if executableURL.lastPathComponent == "caked" {
 			arguments.append(contentsOf: [ "networks", "start" ])
@@ -343,8 +357,8 @@ struct NetworksHandler: CakedCommand {
 
 		process.arguments = runningArguments
 		process.environment = ProcessInfo.processInfo.environment
-		process.standardOutput = FileHandle.standardOutput
-		process.standardError = FileHandle.standardError
+		process.standardOutput = outPipe
+		process.standardError = errPipe
 		process.terminationHandler = { process in
 			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
@@ -368,6 +382,7 @@ struct NetworksHandler: CakedCommand {
 	                pidFile: URL? = nil) throws {
 		let socketURL: (URL, URL)
 		let executableURL: URL
+		let debug = Logger.Level() >= .debug
 		var arguments: [String] = []
 
 		if let socketPath = socketPath, let pidFile = pidFile {
@@ -487,8 +502,8 @@ struct NetworksHandler: CakedCommand {
 		process.arguments = runningArguments
 		process.environment = ProcessInfo.processInfo.environment
 		process.standardInput = FileHandle.nullDevice
-		process.standardOutput = FileHandle.standardOutput
-		process.standardError = FileHandle.standardError
+		process.standardOutput = debug ? FileHandle.standardOutput : FileHandle.nullDevice
+		process.standardError = debug ? FileHandle.standardError : FileHandle.nullDevice
 		process.terminationHandler = { process in
 			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)

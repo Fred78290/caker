@@ -40,16 +40,18 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufLen), vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
 					let status = vmnet_write(self.vmnet.iface!, &pd, &count)
 
+					self.vmnet.traceMacAddress(0, ptr: $0, size: pd.vm_pkt_size, direction: "received from guest")
+
 					guard status == .VMNET_SUCCESS else {
 						self.logger.error("Failed to write to interface \(status.stringValue)")
 						return
 					}
 
-					if Logger.Level() >= LogLevel.debug {
+					if self.vmnet.trace {
 						if count != 1 {
 							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufLen)")
 						} else {
-							self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
+							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
 						}
 					}
 				}
