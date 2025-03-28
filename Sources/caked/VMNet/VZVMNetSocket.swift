@@ -11,20 +11,19 @@ extension Channel {
 }
 
 final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
-	let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
-	var childrenChannels: [Channel] = []
-	let socketPath: URL
-	let socketGroup: gid_t
+	internal let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
+	internal var childrenChannels: [Channel] = []
+	internal let socketPath: URL
+	internal let socketGroup: gid_t
 
-	final class VMNetHandler: ChannelInboundHandler {
+	final class VZVMNetSocketHandler: VZVMNet.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
 		public typealias OutboundOut = ByteBuffer
-
 		private let vmnet: VZVMNetSocket
-		private let logger = Logger("com.aldunelabs.caked.VMNetHandler")
 
 		init(vmnet: VZVMNetSocket) {
 			self.vmnet = vmnet
+			super.init(vzvmnet: vmnet)
 		}
 
 		public func channelActive(context: ChannelHandlerContext) {
@@ -35,51 +34,26 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 			self.vmnet.childrenChannels.removeAll { $0 === context.channel }
 		}
 
-		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-			var buffer = self.unwrapInboundIn(data)
+		override func forwardBuffer(buffer: ByteBuffer, context: ChannelHandlerContext) {
+			var buffer = buffer
 			let bufSize = buffer.readableBytes
-			let iface = self.vmnet.iface!
-			let currentChannel = context.channel
-			var count: Int32 = 1
 
-			buffer.withUnsafeMutableReadableBytes { 
-				var buf: iovec = iovec(iov_base:  $0.baseAddress!, iov_len: Int(bufSize))
+			if self.vmnet.childrenChannels.count > 1 {
+				if let copyData = buffer.readData(length: buffer.readableBytes) {
+					let currentChannel = context.channel
+					let buffer = ByteBuffer(data: copyData)
 
-				withUnsafeMutablePointer(to: &buf, {
-					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: $0.pointee.iov_len, vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
-					let status = vmnet_write(iface, &pd, &count)
-
-					guard  status == .VMNET_SUCCESS else {
-						self.logger.error("Failed to write to interface \(status.stringValue)")
-						return
-					}
-
-					if self.vmnet.trace {
-						if count != 1 {
-							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
-						} else {
-							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
+					self.vmnet.channelsSyncQueue.async {
+						self.vmnet.childrenChannels.forEach { channel in
+							if channel !== currentChannel {
+								channel.writeAndFlush(buffer, promise: nil)
+							}
 						}
 					}
-				})
-
-			}
-
-			self.vmnet.channelsSyncQueue.async {
-				self.vmnet.childrenChannels.forEach { channel in
-					if channel !== currentChannel {
-						channel.writeAndFlush(buffer, promise: nil)
-					}
+				} else {
+					self.logger.error("Failed to read \(bufSize) bytes")
 				}
 			}
-		}
-
-		func channelReadComplete(context: ChannelHandlerContext) {
-			context.flush()
-		}
-
-		func errorCaught(context: ChannelHandlerContext, error: Error) {
-			self.logger.error("Error: \(error)")
 		}
 	}
 
@@ -114,8 +88,6 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	override func start() throws {
 		try startInterface()
 
-		self.setupSignals()
-
 		defer {
 			if let iface = self.iface {
 				let semaphore = DispatchSemaphore(value: 0)
@@ -142,7 +114,7 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 			.childChannelOption(.maxMessagesPerRead, value: 16)
 			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
 			.childChannelInitializer { inboundChannel in
-				return inboundChannel.pipeline.addHandler(VMNetHandler(vmnet: self))
+				return inboundChannel.pipeline.addHandler(VZVMNetSocketHandler(vmnet: self))
 			}
 
 		// Listen on the console socket
@@ -175,6 +147,8 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	override func stop() {
 		if let serverChannel = self.serverChannel {
 			let promise = self.eventLoop.makePromise(of: Void.self)
+
+			self.logger.info("Will stop VZVMNet on \(self.socketPath)")
 
 			EventLoopFuture.andAllComplete(self.childrenChannels.map { child in
 				let promise: EventLoopPromise<Void> = child.eventLoop.makePromise()

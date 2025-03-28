@@ -24,6 +24,9 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("service"), .customShort("l")], help: .hidden)
 	var launchedFromService: Bool = false
 
+	@Flag(name: [.customLong("lima"), .customShort("m")], help: .hidden)
+	var useLimaVMNet: Bool = false
+
 	@Flag(help: .hidden)
 	var display: Bool = false
 
@@ -59,6 +62,8 @@ struct VMRun: AsyncParsableCommand {
 		if vmLocation.status == .running {
 			throw ValidationError("VM at \(path) is already running")
 		}
+
+		phUseLimaVMNet = self.useLimaVMNet
 	}
 
 	@MainActor

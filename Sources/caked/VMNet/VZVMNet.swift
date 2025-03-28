@@ -35,24 +35,81 @@ extension vmnet_return_t {
 }
 
 class VZVMNet: @unchecked Sendable {
-	var serverChannel: Channel? = nil
-	let eventLoop: EventLoop
-	let mode: VMNetMode
-	let networkInterface: String?
-	let gateway: String?
-	let dhcpEnd: String?
-	let subnetMask: String
-	let interfaceID: String
-	let nat66Prefix: String?
-	var iface: interface_ref?
-	var max_bytes: UInt64 = 2048
-	let hostQueue: DispatchQueue
-	let pidFile: URL
-	let sigint: any DispatchSourceSignal
-	let sighup: any DispatchSourceSignal
-	let sigterm: any DispatchSourceSignal
-	let logger = Logger("com.aldunelabs.caked.VZVMNet")
-	let trace: Bool
+	internal var serverChannel: Channel? = nil
+	internal let eventLoop: EventLoop
+	internal let mode: VMNetMode
+	internal let networkInterface: String?
+	internal let gateway: String?
+	internal let dhcpEnd: String?
+	internal let subnetMask: String
+	internal let interfaceID: String
+	internal let nat66Prefix: String?
+	internal var iface: interface_ref?
+	internal var max_bytes: UInt64 = 2048
+	internal let hostQueue: DispatchQueue
+	internal let pidFile: URL
+	internal let sigcaught: [DispatchSourceSignal]
+	internal let logger = Logger("VZVMNet")
+	internal let trace: Bool
+
+	class VZVMNetHandler: ChannelInboundHandler {
+		public typealias InboundIn = ByteBuffer
+		public typealias OutboundOut = ByteBuffer
+
+		internal let logger: Logger
+		internal let trace: Bool = Logger.Level() >= LogLevel.trace
+		internal let vzvmnet: VZVMNet
+
+		init(vzvmnet: VZVMNet) {
+			self.vzvmnet = vzvmnet
+			self.logger = Logger(Self.self)
+		}
+
+		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+			var buffer = self.unwrapInboundIn(data)
+			let bufSize = buffer.readableBytes
+			let iface = self.vzvmnet.iface!
+
+			buffer.withUnsafeMutableReadableBytes { 
+				var count: Int32 = 1
+				var buf: iovec = iovec(iov_base:  $0.baseAddress!, iov_len: Int(bufSize))
+
+				withUnsafeMutablePointer(to: &buf, {
+					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: $0.pointee.iov_len, vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
+					let status = vmnet_write(iface, &pd, &count)
+
+					guard  status == .VMNET_SUCCESS else {
+						self.logger.error("Failed to write to interface \(status.stringValue)")
+						return
+					}
+
+					if self.trace {
+						self.vzvmnet.traceMacAddress(0, ptr: $0, size: pd.vm_pkt_size, direction: "received from guest")
+
+						if count != 1 {
+							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
+						} else {
+							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
+						}
+					}
+				})
+			}
+
+			self.forwardBuffer(buffer: buffer, context: context)
+		}
+
+		func channelReadComplete(context: ChannelHandlerContext) {
+			context.flush()
+		}
+
+		func errorCaught(context: ChannelHandlerContext, error: Error) {
+			self.logger.error("Error: \(error)")
+		}
+
+		func forwardBuffer(buffer: ByteBuffer, context: ChannelHandlerContext) {
+
+		}
+	}
 
 	init(on: EventLoop, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil, pidFile: URL) {
 		self.eventLoop = on
@@ -66,15 +123,13 @@ class VZVMNet: @unchecked Sendable {
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
 		self.pidFile = pidFile
 		self.trace = Logger.Level() >= LogLevel.trace
+		self.sigcaught = [ SIGINT, SIGHUP, SIGQUIT, SIGTERM ].map {
+			signal($0, SIG_IGN)
 
-		signal(SIGINT, SIG_IGN)
-		signal(SIGHUP, SIG_IGN)
-		signal(SIGTERM, SIG_IGN)
-
-		self.sigint = DispatchSource.makeSignalSource(signal: SIGINT)
-		self.sighup = DispatchSource.makeSignalSource(signal: SIGHUP)
-		self.sigterm = DispatchSource.makeSignalSource(signal: SIGTERM)
+			return DispatchSource.makeSignalSource(signal: $0)
+		}
 	}
+
 
 	internal func print_vmnet_start_param(params: xpc_object_t?) {
 		guard let params = params else {
@@ -111,17 +166,15 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	func setupSignals() {
-		let signalHandler = {
-			self.stop()
-		}
+	private func setupSignals() {
+		sigcaught.forEach { sig in
+			sig.setEventHandler {
+				self.logger.info("Signal caught, stopping VMNet")
+				self.stop()
+			}
 
-		sigint.setEventHandler(handler: signalHandler)
-		sighup.setEventHandler(handler: signalHandler)
-		sigterm.setEventHandler(handler: signalHandler)
-		sigint.activate()
-		sighup.activate()
-		sigterm.activate()
+			sig.activate()
+		}
 	}
 
 	internal func traceMacAddress(_ i: Int, ptr: UnsafeMutableRawPointer, size: Int, direction: String = "received from host") {
@@ -254,6 +307,8 @@ class VZVMNet: @unchecked Sendable {
 			let estim_count = xpc_dictionary_get_uint64(event, vmnet_estimated_packets_available_key)
 			self.vmnetPacketAvailable(estim_count)
 		}
+
+		setupSignals()
 	}
 
 	func write(data: Data) {

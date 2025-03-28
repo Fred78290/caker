@@ -3,7 +3,7 @@ import Virtualization
 import GRPCLib
 import NIO
 
-let phUseLimaVMNet = false
+var phUseLimaVMNet = false
 protocol NetworkAttachement {
 	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
 	func stop()
@@ -43,7 +43,7 @@ class BridgedNetworkInterface: NetworkAttachement {
 	}
 }
 
-class SharedNetworkInterface: NetworkAttachement, VZVMNetHandler.CloseDelegate {
+class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDelegate {
 	let macAddress: VZMACAddress
 	let mode: VMNetMode
 	let networkInterface: String?
@@ -66,7 +66,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandler.CloseDelegate {
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation)))
 	}
 	
-	func closed(side: VZVMNetHandler.HandlerSide) {
+	func closed(side: VZVMNetHandlerClient.HandlerSide) {
 		if self.pipeChannel != nil {
 			self.pipeChannel = nil
 			
@@ -146,7 +146,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandler.CloseDelegate {
 					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
 						.takingOwnershipOfDescriptor(inputOutput: hostfd)
 						.flatMap { childChannel in
-							let (guestHandler, hostHandler) = VZVMNetHandler.matchedPair(useLimaVMNet: phUseLimaVMNet, delegate: self)
+							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: phUseLimaVMNet, delegate: self)
 							
 							return childChannel.pipeline.addHandler(guestHandler)
 								.flatMap {
@@ -179,7 +179,17 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandler.CloseDelegate {
 	func stop() {
 		if let process {
 			if process.isRunning {
-				process.terminate()
+				if geteuid() != 0 {
+					// If we are not running as root, we need to kill the process with sudo
+					let _ = try? Shell.sudo(to: "kill \(process.processIdentifier)")
+				} else {
+					// Otherwise, we can just kill the process directly
+					kill(process.processIdentifier, SIGTERM)
+				}
+
+				Logger(self).info("Terminated VZVMNet process")
+
+				self.process = nil
 			}
 		}
 	}

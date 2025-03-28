@@ -6,13 +6,13 @@ import NIO
 
 // This is a simple ChannelDuplexHandler that glues two channels together.
 // It is used to create a forwarder that forwards all data from one channel to another.
-final class VZVMNetHandler: ChannelDuplexHandler {
+final class VZVMNetHandlerClient: ChannelDuplexHandler {
 	typealias InboundIn = ByteBuffer
 	typealias OutboundIn = NIOAny
 	typealias OutboundOut = NIOAny
 
 	public protocol CloseDelegate {
-		func closed(side: VZVMNetHandler.HandlerSide)
+		func closed(side: VZVMNetHandlerClient.HandlerSide)
 	}
 
 	public enum HandlerSide: Int {
@@ -20,7 +20,7 @@ final class VZVMNetHandler: ChannelDuplexHandler {
 		case guest = 1
 	}
 
-	private var partner: VZVMNetHandler?
+	private var partner: VZVMNetHandlerClient?
 	private var currentContext: ChannelHandlerContext?
 	private var pendingRead: Bool = false
 	private let useLimaVMNet: Bool
@@ -36,9 +36,9 @@ final class VZVMNetHandler: ChannelDuplexHandler {
 		self.trace = Logger.Level() >= LogLevel.trace
 	}
 
-	static func matchedPair(useLimaVMNet: Bool, delegate: CloseDelegate?) -> (VZVMNetHandler, VZVMNetHandler) {
-		let guestHandler = VZVMNetHandler(useLimaVMNet: useLimaVMNet, side: .guest, delegate: delegate)
-		let hostHandler = VZVMNetHandler(useLimaVMNet: useLimaVMNet, side: .host, delegate: delegate)
+	static func matchedPair(useLimaVMNet: Bool, delegate: CloseDelegate?) -> (VZVMNetHandlerClient, VZVMNetHandlerClient) {
+		let guestHandler = VZVMNetHandlerClient(useLimaVMNet: useLimaVMNet, side: .guest, delegate: delegate)
+		let hostHandler = VZVMNetHandlerClient(useLimaVMNet: useLimaVMNet, side: .host, delegate: delegate)
 
 		guestHandler.partner = hostHandler
 		hostHandler.partner = guestHandler

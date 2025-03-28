@@ -3,86 +3,20 @@ import NIO
 import vmnet
 import Darwin
 import Virtualization
-
+ 
 final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
-	private var channel: Channel? = nil
 	private let fileDescriptor: CInt
 	private let macAddress: String
 
-	final class VMNetHandler: ChannelInboundHandler {
+	final class VZVMNetFileHandleHandler: VZVMNet.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
 		public typealias OutboundOut = ByteBuffer
+		private let vmnet: VZVMNetFileHandle
 
-		private let vmnet: VZVMNet
-		private let logger = Logger("com.aldunelabs.caked.VMNetHandler")
-
-		init(vmnet: VZVMNet) {
+		init(vmnet: VZVMNetFileHandle) {
 			self.vmnet = vmnet
-		}
 
-		public func channelActive(context: ChannelHandlerContext) {
-			self.vmnet.serverChannel = context.channel
-		}
-
-		public func channelInactive(context: ChannelHandlerContext) {
-			self.vmnet.serverChannel = nil
-		}
-
-		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-			var buf = self.unwrapInboundIn(data)
-			let bufLen = buf.readableBytes
-
-			buf.withUnsafeMutableReadableBytes {
-				var count: Int32 = 1
-				var io: iovec = iovec(iov_base: $0.baseAddress!, iov_len: Int(bufLen))
-
-				withUnsafeMutablePointer(to: &io) {
-					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufLen), vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
-					let status = vmnet_write(self.vmnet.iface!, &pd, &count)
-
-					self.vmnet.traceMacAddress(0, ptr: $0, size: pd.vm_pkt_size, direction: "received from guest")
-
-					guard status == .VMNET_SUCCESS else {
-						self.logger.error("Failed to write to interface \(status.stringValue)")
-						return
-					}
-
-					if self.vmnet.trace {
-						if count != 1 {
-							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufLen)")
-						} else {
-							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
-						}
-					}
-				}
-			}
-
-/*			var bufData = Data(buffer: buffer)
-			var count: Int32 = 1
-			var buf: iovec = iovec(iov_base: bufData.withUnsafeMutableBytes { $0.baseAddress! }, iov_len: Int(bufData.count))
-			var pd: vmpktdesc = vmpktdesc(vm_pkt_size: Int(bufData.count), vm_pkt_iov: withUnsafeMutablePointer(to: &buf, { $0 }), vm_pkt_iovcnt: 1, vm_flags: 0)
-			let status = vmnet_write(self.vmnet.iface!, &pd, &count)
-
-			guard status == .VMNET_SUCCESS else {
-				self.logger.error("Failed to write to interface \(status.stringValue)")
-				return
-			}
-
-			if Logger.Level() >= LogLevel.debug {
-				if count != 1 {
-					self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufData.count)")
-				} else {
-					self.logger.info("Wrote \(pd.vm_pkt_size) bytes to interface")
-				}
-			}*/
-		}
-
-		func channelReadComplete(context: ChannelHandlerContext) {
-			context.flush()
-		}
-
-		func errorCaught(context: ChannelHandlerContext, error: Error) {
-			self.logger.error("Error: \(error)")
+			super.init(vzvmnet: vmnet)
 		}
 	}
 
@@ -106,7 +40,7 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	}
 
 	override func write(data: Data) {
-		if let channel = self.channel {
+		if let channel = self.serverChannel {
 			let byteBuffer = ByteBuffer(data: data)
 
 			channel.writeAndFlush(byteBuffer, promise: nil)
@@ -115,8 +49,6 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 
 	override func start() throws {
 		try startInterface()
-
-		self.setupSignals()
 
 		defer {
 			if let iface = self.iface {
@@ -138,19 +70,22 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 			.channelOption(.maxMessagesPerRead, value: 16)
 			.takingOwnershipOfDescriptor(inputOutput: self.fileDescriptor)
 			.flatMap { channel in
+				self.logger.info("Started pipe channel with fd=\(self.fileDescriptor)")
+
+				self.serverChannel = channel
+
 				channel.closeFuture.whenComplete { _ in
-					self.logger.info("Pipe channel closed")
 					promise.succeed(())
 				}
 
-				return channel.pipeline.addHandler(VMNetHandler(vmnet: self))
+				return channel.pipeline.addHandler(VZVMNetFileHandleHandler(vmnet: self))
 			}
 
 		try pipe.wait()
 		try self.pidFile.writePID()
 
 		promise.futureResult.whenComplete { _ in
-			self.logger.info("Pipe channel released")
+			self.logger.info("Pipe channel closed on fd=\(self.fileDescriptor)")
 		}
 
 		try promise.futureResult.wait()
@@ -159,6 +94,12 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	override func stop() {
 		if let serverChannel = self.serverChannel {
 			let promise = self.eventLoop.makePromise(of: Void.self)
+
+			self.logger.info("Will stop pipe channel with fd=\(self.fileDescriptor)")
+
+			promise.futureResult.whenComplete { _ in
+				self.logger.info("Pipe channel with fd=\(self.fileDescriptor) released on stop")
+			}
 
 			serverChannel.close(mode: .all, promise: promise)
 

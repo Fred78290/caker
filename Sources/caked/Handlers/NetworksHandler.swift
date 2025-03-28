@@ -102,13 +102,17 @@ struct NetworksHandler: CakedCommand {
 				throw ValidationError("fd and socket-path are mutually exclusive \(self.vmfd!) \(self.socketPath!)")
 			}
 
-			if self.vmfd != nil {
+			if let vmfd = self.vmfd {
 				if self.pidFile == nil {
 					throw ValidationError("pidfile is required when using fd")
 				}
 
 				if self.macAddress == nil {
 					throw ValidationError("mac-address is required when using fd")
+				}
+
+				guard fcntl(Int32(vmfd), F_GETFD) != -1 || errno != EBADF else {
+					throw ValidationError("File descriptor is not open")
 				}
 			}
 
@@ -259,41 +263,16 @@ struct NetworksHandler: CakedCommand {
 	                pidFile: URL) throws -> ProcessWithSharedFileHandle {
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(fileDescriptor)")
 
-		guard let executableURL = URL.binary("caked") else {
+		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : "caked") else {
 			throw ServiceError("caked not found in path")
 		}
 
 		var arguments: [String] = []
 		var runningArguments: [String]
 		let process = ProcessWithSharedFileHandle()
-		let outPipe = Pipe()
-		let errPipe = Pipe()
 
-		outPipe.fileHandleForReading.readabilityHandler = { handle in
-			if handle.availableData.count > 0 {
-				FileHandle.standardOutput.write(handle.availableData)
-			}
-		}
-
-		errPipe.fileHandleForReading.readabilityHandler = { handle in
-			if handle.availableData.count > 0 {
-				FileHandle.standardError.write(handle.availableData)
-			}
-		}
-
-		if executableURL.lastPathComponent == "caked" {
+		if phUseLimaVMNet == false {
 			arguments.append(contentsOf: [ "networks", "start" ])
-		}
-
-		let fd: Int32
-
-		if getuid() == 0 {
-			fd = fileDescriptor
-			process.standardInput = FileHandle.standardInput
-			process.sharedFileHandles = [FileHandle(fileDescriptor: fd, closeOnDealloc: false)]
-		} else {
-			fd = STDIN_FILENO
-			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 		}
 
 		arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -331,12 +310,13 @@ struct NetworksHandler: CakedCommand {
 			}
 		}
 
-		arguments.append("--pidfile=\(pidFile.absoluteURL.path)")
-		arguments.append("--fd=\(fd)")
+		var fd = fileDescriptor
 
 		if geteuid() == 0 {
 			runningArguments = []
 			process.executableURL = executableURL
+			process.standardInput = FileHandle.standardInput
+			process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 		} else {
 			guard let sudoURL = URL.binary("sudo") else {
 				throw ServiceError("sudo not found in path")
@@ -346,9 +326,16 @@ struct NetworksHandler: CakedCommand {
 				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
 			}
 
-			runningArguments = ["--non-interactive", executableURL.absoluteURL.path]
+			fd = STDIN_FILENO
+			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it
+			// and will block forever
+			runningArguments = ["--non-interactive", "--", executableURL.absoluteURL.path]
 			process.executableURL = sudoURL
+			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 		}
+
+		arguments.append("--pidfile=\(pidFile.absoluteURL.path)")
+		arguments.append("--fd=\(fd)")
 
 		runningArguments.append(contentsOf: arguments)
 		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
@@ -357,10 +344,10 @@ struct NetworksHandler: CakedCommand {
 
 		process.arguments = runningArguments
 		process.environment = ProcessInfo.processInfo.environment
-		process.standardOutput = outPipe
-		process.standardError = errPipe
+		process.standardOutput = FileHandle.standardOutput
+		process.standardError = FileHandle.standardError
 		process.terminationHandler = { process in
-			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
+			Logger(self).info("Process died: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
 		}
 

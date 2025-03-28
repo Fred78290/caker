@@ -327,6 +327,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			Logger(self).info("Close communication devices for VM \(self.vmLocation.name)")
 			communicationDevices.close()
 		}
+
+		self.networks.forEach { $0.stop() }
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
