@@ -181,11 +181,11 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
-		9B69DC032D982FBD007B58F8 /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69DBFF2D982FBD007B58F8 /* VZVMNetFileHandle.swift */; };
-		9B69DC042D982FBD007B58F8 /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69DC012D982FBD007B58F8 /* VZVMNetSocket.swift */; };
-		9B69DC052D982FBD007B58F8 /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69DBFD2D982FBD007B58F8 /* VZVMNet.swift */; };
-		9B69DC062D982FBD007B58F8 /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69DBFE2D982FBD007B58F8 /* VZVMNetConfig.swift */; };
-		9B69DC072D982FBD007B58F8 /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69DC002D982FBD007B58F8 /* VZVMNetHandler.swift */; };
+		9B8027592D985CC9002C680E /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027542D985CC9002C680E /* VZVMNetConfig.swift */; };
+		9B80275A2D985CC9002C680E /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027562D985CC9002C680E /* VZVMNetHandler.swift */; };
+		9B80275B2D985CC9002C680E /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027572D985CC9002C680E /* VZVMNetSocket.swift */; };
+		9B80275C2D985CC9002C680E /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */; };
+		9B80275D2D985CC9002C680E /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027532D985CC9002C680E /* VZVMNet.swift */; };
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
@@ -351,11 +351,11 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B69DBFD2D982FBD007B58F8 /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
-		9B69DBFE2D982FBD007B58F8 /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
-		9B69DBFF2D982FBD007B58F8 /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
-		9B69DC002D982FBD007B58F8 /* VZVMNetHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetHandler.swift; sourceTree = "<group>"; };
-		9B69DC012D982FBD007B58F8 /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
+		9B8027532D985CC9002C680E /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
+		9B8027542D985CC9002C680E /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
+		9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
+		9B8027562D985CC9002C680E /* VZVMNetHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetHandler.swift; sourceTree = "<group>"; };
+		9B8027572D985CC9002C680E /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
@@ -727,11 +727,11 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9B464ACE2D5A3E0300164BF5 /* caked */,
+				9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
-				9B69DC022D982FBD007B58F8 /* VMNet */,
+				9B8027582D985CC9002C680E /* VMNet */,
 			);
 			name = Sources;
 			path = ../Sources;
@@ -745,16 +745,17 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		9B69DC022D982FBD007B58F8 /* VMNet */ = {
+		9B8027582D985CC9002C680E /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
-				9B69DBFD2D982FBD007B58F8 /* VZVMNet.swift */,
-				9B69DBFE2D982FBD007B58F8 /* VZVMNetConfig.swift */,
-				9B69DBFF2D982FBD007B58F8 /* VZVMNetFileHandle.swift */,
-				9B69DC002D982FBD007B58F8 /* VZVMNetHandler.swift */,
-				9B69DC012D982FBD007B58F8 /* VZVMNetSocket.swift */,
+				9B8027532D985CC9002C680E /* VZVMNet.swift */,
+				9B8027542D985CC9002C680E /* VZVMNetConfig.swift */,
+				9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */,
+				9B8027562D985CC9002C680E /* VZVMNetHandler.swift */,
+				9B8027572D985CC9002C680E /* VZVMNetSocket.swift */,
 			);
-			path = VMNet;
+			name = VMNet;
+			path = caked/VMNet;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -985,11 +986,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B69DC032D982FBD007B58F8 /* VZVMNetFileHandle.swift in Sources */,
-				9B69DC042D982FBD007B58F8 /* VZVMNetSocket.swift in Sources */,
-				9B69DC052D982FBD007B58F8 /* VZVMNet.swift in Sources */,
-				9B69DC062D982FBD007B58F8 /* VZVMNetConfig.swift in Sources */,
-				9B69DC072D982FBD007B58F8 /* VZVMNetHandler.swift in Sources */,
 				9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */,
 				9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */,
 				9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */,
@@ -1027,6 +1023,11 @@
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
+				9B8027592D985CC9002C680E /* VZVMNetConfig.swift in Sources */,
+				9B80275A2D985CC9002C680E /* VZVMNetHandler.swift in Sources */,
+				9B80275B2D985CC9002C680E /* VZVMNetSocket.swift in Sources */,
+				9B80275C2D985CC9002C680E /* VZVMNetFileHandle.swift in Sources */,
+				9B80275D2D985CC9002C680E /* VZVMNet.swift in Sources */,
 				9B464B0F2D5A3E0300164BF5 /* ImageHandler.swift in Sources */,
 				9BE2E7BD2D5F85D8000CA07F /* Template.swift in Sources */,
 				9BE2E7BE2D5F85D8000CA07F /* Logout.swift in Sources */,
