@@ -72,6 +72,13 @@ struct Infos: CakeAgentAsyncParsableCommand {
 												cpuCount: infos.cpuCount,
 												memory: infos.memory?.total ?? 0)
 			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, reply))
+/*			Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, infos.ipaddresses.reduce(into: [ShortInfoReply]()) { partialResult, addr in
+				if partialResult.isEmpty {
+					partialResult.append(ShortInfoReply(name: name, ipaddresses: [addr], cpuCount: infos.cpuCount, memory: infos.memory?.total ?? 0))
+				} else {
+					partialResult.append(ShortInfoReply(ipaddress: addr))
+				}
+			}))*/
 		}
 	}
 }

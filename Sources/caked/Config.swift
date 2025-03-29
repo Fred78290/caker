@@ -407,6 +407,8 @@ extension CakeConfig {
 		}
 
 		let vmNetworking: Bool
+		let home: Home = try Home(asSystem: runAsSystem)
+		let networkConfig = try home.sharedNetworks()
 
 		if let profile = try? EmbedProvisionProfile.load() {
 			vmNetworking = profile.entitlements.vmNetworking
@@ -415,6 +417,7 @@ extension CakeConfig {
 		}
 
 		return networks.compactMap { inf in
+
 			if inf.network == "nat" || inf.network == "NAT shared network" {
 				if let macAddress = self.macAddress {
 					return NATNetworkInterface(macAddress: macAddress)
@@ -423,12 +426,16 @@ extension CakeConfig {
 				return NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
 			}
 
-			if inf.network == "shared" {
-				if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
-					return SharedNetworkInterface(macAddress: mac)
-				}
+			let macAddress: VZMACAddress
 
-				return SharedNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
+			if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+				macAddress = mac
+			} else {
+				macAddress = VZMACAddress.randomLocallyAdministered()
+			}
+
+			if inf.network == "shared" {
+				return SharedNetworkInterface(macAddress: macAddress)
 			}
 
 			let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
@@ -437,18 +444,12 @@ extension CakeConfig {
 
 			if let interface = foundInterface {
 				if vmNetworking {
-					if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
-						return BridgedNetworkInterface(interface: interface, macAddress: mac)
-					}
-
-					return BridgedNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())
+					return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
 				} else {
-					if let macAddress = inf.macAddress, let mac = VZMACAddress(string: macAddress) {
-						return VMNetworkInterface(interface: interface, macAddress: mac)
-					}
-
-					return VMNetworkInterface(interface: interface, macAddress: VZMACAddress.randomLocallyAdministered())
+					return VMNetworkInterface(interface: interface, macAddress: macAddress)
 				}
+			} else if let networkConfig = networkConfig.sharedNetworks[inf.network] {
+				return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
 			}
 
 			Logger(self).warn("Network interface \(inf.network) not found")

@@ -56,10 +56,6 @@ struct VMLocation {
 		return URL(string: "unix://\(mountServiceURL.path)")!
 	}
 
-	var vmnetPID: URL {
-		rootURL.appendingPathComponent("vmnet.pid").absoluteURL
-	}
-
 	var name: String {
 		rootURL.lastPathComponent
 	}

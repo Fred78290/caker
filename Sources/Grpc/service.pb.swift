@@ -145,6 +145,56 @@ public enum Caked_VMState: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case infos // = 0
+  case create // = 1
+  case configure // = 2
+  case start // = 3
+  case shutdown // = 4
+  case remove // = 5
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .infos
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .infos
+    case 1: self = .create
+    case 2: self = .configure
+    case 3: self = .start
+    case 4: self = .shutdown
+    case 5: self = .remove
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .infos: return 0
+    case .create: return 1
+    case .configure: return 2
+    case .start: return 3
+    case .shutdown: return 4
+    case .remove: return 5
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Caked_NetworkCommand] = [
+    .infos,
+    .create,
+    .configure,
+    .start,
+    .shutdown,
+    .remove,
+  ]
+
+}
+
 public struct Caked_VMInfo: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -237,6 +287,108 @@ public struct Caked_WaitIPRequest: Sendable {
   public init() {}
 }
 
+public struct Caked_CreateNetworkRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var gateway: String = String()
+
+  public var dhcpEnd: String = String()
+
+  public var netmask: String = String()
+
+  public var uuid: String {
+    get {return _uuid ?? String()}
+    set {_uuid = newValue}
+  }
+  /// Returns true if `uuid` has been explicitly set.
+  public var hasUuid: Bool {return self._uuid != nil}
+  /// Clears the value of `uuid`. Subsequent reads from it will return its default value.
+  public mutating func clearUuid() {self._uuid = nil}
+
+  public var nat66Prefix: String {
+    get {return _nat66Prefix ?? String()}
+    set {_nat66Prefix = newValue}
+  }
+  /// Returns true if `nat66Prefix` has been explicitly set.
+  public var hasNat66Prefix: Bool {return self._nat66Prefix != nil}
+  /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
+  public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _uuid: String? = nil
+  fileprivate var _nat66Prefix: String? = nil
+}
+
+public struct Caked_ConfigureNetworkRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var name: String = String()
+
+  public var gateway: String {
+    get {return _gateway ?? String()}
+    set {_gateway = newValue}
+  }
+  /// Returns true if `gateway` has been explicitly set.
+  public var hasGateway: Bool {return self._gateway != nil}
+  /// Clears the value of `gateway`. Subsequent reads from it will return its default value.
+  public mutating func clearGateway() {self._gateway = nil}
+
+  public var dhcpEnd: String {
+    get {return _dhcpEnd ?? String()}
+    set {_dhcpEnd = newValue}
+  }
+  /// Returns true if `dhcpEnd` has been explicitly set.
+  public var hasDhcpEnd: Bool {return self._dhcpEnd != nil}
+  /// Clears the value of `dhcpEnd`. Subsequent reads from it will return its default value.
+  public mutating func clearDhcpEnd() {self._dhcpEnd = nil}
+
+  public var netmask: String {
+    get {return _netmask ?? String()}
+    set {_netmask = newValue}
+  }
+  /// Returns true if `netmask` has been explicitly set.
+  public var hasNetmask: Bool {return self._netmask != nil}
+  /// Clears the value of `netmask`. Subsequent reads from it will return its default value.
+  public mutating func clearNetmask() {self._netmask = nil}
+
+  public var uuid: String {
+    get {return _uuid ?? String()}
+    set {_uuid = newValue}
+  }
+  /// Returns true if `uuid` has been explicitly set.
+  public var hasUuid: Bool {return self._uuid != nil}
+  /// Clears the value of `uuid`. Subsequent reads from it will return its default value.
+  public mutating func clearUuid() {self._uuid = nil}
+
+  public var nat66Prefix: String {
+    get {return _nat66Prefix ?? String()}
+    set {_nat66Prefix = newValue}
+  }
+  /// Returns true if `nat66Prefix` has been explicitly set.
+  public var hasNat66Prefix: Bool {return self._nat66Prefix != nil}
+  /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
+  public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _gateway: String? = nil
+  fileprivate var _dhcpEnd: String? = nil
+  fileprivate var _netmask: String? = nil
+  fileprivate var _uuid: String? = nil
+  fileprivate var _nat66Prefix: String? = nil
+}
+
 public struct Caked_NetworkRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -244,7 +396,42 @@ public struct Caked_NetworkRequest: Sendable {
 
   public var format: Caked_Format = .text
 
+  public var command: Caked_NetworkCommand = .infos
+
+  public var request: Caked_NetworkRequest.OneOf_Request? = nil
+
+  public var name: String {
+    get {
+      if case .name(let v)? = request {return v}
+      return String()
+    }
+    set {request = .name(newValue)}
+  }
+
+  public var create: Caked_CreateNetworkRequest {
+    get {
+      if case .create(let v)? = request {return v}
+      return Caked_CreateNetworkRequest()
+    }
+    set {request = .create(newValue)}
+  }
+
+  public var configure: Caked_ConfigureNetworkRequest {
+    get {
+      if case .configure(let v)? = request {return v}
+      return Caked_ConfigureNetworkRequest()
+    }
+    set {request = .configure(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Request: Equatable, Sendable {
+    case name(String)
+    case create(Caked_CreateNetworkRequest)
+    case configure(Caked_ConfigureNetworkRequest)
+
+  }
 
   public init() {}
 }
@@ -1459,6 +1646,17 @@ extension Caked_VMState: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Caked_NetworkCommand: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "infos"),
+    1: .same(proto: "create"),
+    2: .same(proto: "configure"),
+    3: .same(proto: "start"),
+    4: .same(proto: "shutdown"),
+    5: .same(proto: "remove"),
+  ]
+}
+
 extension Caked_VMInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".VMInfo"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -1711,10 +1909,146 @@ extension Caked_WaitIPRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
+extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CreateNetworkRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "gateway"),
+    3: .same(proto: "dhcpEnd"),
+    4: .same(proto: "netmask"),
+    5: .same(proto: "uuid"),
+    6: .same(proto: "nat66prefix"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.gateway) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.dhcpEnd) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.netmask) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.gateway.isEmpty {
+      try visitor.visitSingularStringField(value: self.gateway, fieldNumber: 2)
+    }
+    if !self.dhcpEnd.isEmpty {
+      try visitor.visitSingularStringField(value: self.dhcpEnd, fieldNumber: 3)
+    }
+    if !self.netmask.isEmpty {
+      try visitor.visitSingularStringField(value: self.netmask, fieldNumber: 4)
+    }
+    try { if let v = self._uuid {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    } }()
+    try { if let v = self._nat66Prefix {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_CreateNetworkRequest, rhs: Caked_CreateNetworkRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.gateway != rhs.gateway {return false}
+    if lhs.dhcpEnd != rhs.dhcpEnd {return false}
+    if lhs.netmask != rhs.netmask {return false}
+    if lhs._uuid != rhs._uuid {return false}
+    if lhs._nat66Prefix != rhs._nat66Prefix {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ConfigureNetworkRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "name"),
+    2: .same(proto: "gateway"),
+    3: .same(proto: "dhcpEnd"),
+    4: .same(proto: "netmask"),
+    5: .same(proto: "uuid"),
+    6: .same(proto: "nat66prefix"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._gateway) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._dhcpEnd) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._netmask) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    try { if let v = self._gateway {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._dhcpEnd {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._netmask {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._uuid {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+    } }()
+    try { if let v = self._nat66Prefix {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_ConfigureNetworkRequest, rhs: Caked_ConfigureNetworkRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs._gateway != rhs._gateway {return false}
+    if lhs._dhcpEnd != rhs._dhcpEnd {return false}
+    if lhs._netmask != rhs._netmask {return false}
+    if lhs._uuid != rhs._uuid {return false}
+    if lhs._nat66Prefix != rhs._nat66Prefix {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".NetworkRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "format"),
+    2: .same(proto: "command"),
+    3: .same(proto: "name"),
+    4: .same(proto: "create"),
+    5: .same(proto: "configure"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1724,20 +2058,79 @@ extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.format) }()
+      case 2: try { try decoder.decodeSingularEnumField(value: &self.command) }()
+      case 3: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.request != nil {try decoder.handleConflictingOneOf()}
+          self.request = .name(v)
+        }
+      }()
+      case 4: try {
+        var v: Caked_CreateNetworkRequest?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .create(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .create(v)
+        }
+      }()
+      case 5: try {
+        var v: Caked_ConfigureNetworkRequest?
+        var hadOneofValue = false
+        if let current = self.request {
+          hadOneofValue = true
+          if case .configure(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.request = .configure(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.format != .text {
       try visitor.visitSingularEnumField(value: self.format, fieldNumber: 1)
+    }
+    if self.command != .infos {
+      try visitor.visitSingularEnumField(value: self.command, fieldNumber: 2)
+    }
+    switch self.request {
+    case .name?: try {
+      guard case .name(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    }()
+    case .create?: try {
+      guard case .create(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case .configure?: try {
+      guard case .configure(let v)? = self.request else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_NetworkRequest, rhs: Caked_NetworkRequest) -> Bool {
     if lhs.format != rhs.format {return false}
+    if lhs.command != rhs.command {return false}
+    if lhs.request != rhs.request {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

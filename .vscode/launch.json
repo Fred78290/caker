@@ -433,13 +433,13 @@
 			"request": "launch",
 			"args": [
 				"networks",
-				"start",
+				"run",
 				"--log-level=debug",
 				"--mode=bridged",
 				"--interface=en0"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked networks start",
+			"name": "caked networks run en0",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -449,14 +449,23 @@
 			"args": [
 				"networks",
 				"start",
-				"--log-level=debug",
-				"--mode=bridged",
-				"--interface=en0",
-				"--pidfile='/Library/Application Support/com.aldunelabs.caker/vms/linux/vmnet.pid'",
-				"--fd=0"
+				"en0"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked networks start",
+			"name": "caked networks start en0",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"networks",
+				"stop",
+				"en0"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked networks stop en0",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

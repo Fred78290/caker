@@ -16,11 +16,11 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	private let communicationDevices: CommunicationDevices?
 	private let configuration: VZVirtualMachineConfiguration
 	private let networks: [NetworkAttachement]
-	private let sigint: DispatchSourceSignal
-	private let sigusr1: DispatchSourceSignal
-	private let sigusr2: DispatchSourceSignal
+	private let sigcaught: [Int32:DispatchSourceSignal]
 	private var semaphore = AsyncSemaphore(value: 0)
-	private var identifier: String?
+	private var identifier: String? = nil
+	private var mountService: MountServiceServerProtocol? = nil
+	private var requestStopFromUIPending = false
 	private func setIdentifier(_ id: String?) {
 		self.identifier = id
 	}
@@ -117,14 +117,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.communicationDevices = communicationDevices
 		self.virtualMachine = virtualMachine
 		self.networks = networks
-
-		signal(SIGINT, SIG_IGN)
-		signal(SIGUSR1, SIG_IGN)
-		signal(SIGUSR2, SIG_IGN)
-
-		self.sigint = DispatchSource.makeSignalSource(signal: SIGINT)
-		self.sigusr1 = DispatchSource.makeSignalSource(signal: SIGUSR1)
-		self.sigusr2 = DispatchSource.makeSignalSource(signal: SIGUSR2)
+		self.sigcaught = [ SIGINT, SIGUSR1, SIGUSR2 ].reduce(into: [Int32:DispatchSourceSignal]()) { partialResult, sig in
+			partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
+		}
 
 		super.init()
 
@@ -160,7 +155,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
-		let mountService = createMountServiceServer(group: Root.group.next(), asSystem: runAsSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem))
+
+		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: runAsSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem))
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -186,17 +182,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#endif
 
 		defer {
-			mountService.stop()
-			if let id = self.identifier {
-				try? PortForwardingServer.closeForwardedPort(identifier: id)
-				self.setIdentifier(nil)
-			}
-			
-			self.networks.forEach { $0.stop() }
+			stopMountService()
+			stopNetworkDevices()
 		}
 
 		do {
-			mountService.serve()
+			mountService!.serve()
 			try await self.semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
 		}
@@ -211,18 +202,30 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		Logger(self).info("VM \(self.vmLocation.name) exited")
 	}
 
+	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
+		switch result {
+		case .success:
+			Logger(self).info("VM \(self.vmLocation.name) started")
+			self.startCommunicationDevices()
+			break
+		case .failure(let error):
+			Logger(self).error("VM \(self.vmLocation.name) failed to start: \(error)")
+		}
+
+		if let completionHandler: VirtualMachine.StartCompletionHandler = completionHandler {
+			completionHandler(result)
+		}
+	}
+
 	public func startFromUI() {
 		self.virtualMachine.start{ result in
-			switch result {
-			case .success:
-				Logger(self).info("VM \(self.vmLocation.name) started")
-				if let communicationDevices = self.communicationDevices {
-					communicationDevices.connect(virtualMachine: self.virtualMachine)
-					Logger(self).info("Communication devices \(self.vmLocation.name) connected")
+			self.startCompletionHandler(result: result) { result in
+				if case .success = result {
+					guard let _ = try? self.startedVM(on: Root.group.next(), asSystem: runAsSystem) else {
+						Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP")
+						return
+					}
 				}
-				break
-			case .failure(let error):
-				Logger(self).error("VM \(self.vmLocation.name) failed to start: \(error)")
 			}
 		}
 	}
@@ -230,21 +233,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			self.virtualMachine.start{ result in
-				switch result {
-				case .success:
-					Logger(self).info("VM \(self.vmLocation.name) started")
-					if let communicationDevices = self.communicationDevices {
-						communicationDevices.connect(virtualMachine: self.virtualMachine)
-						Logger(self).info("Communication devices \(self.vmLocation.name) connected")
-					}
-					break
-				case .failure(let error):
-					Logger(self).error("VM \(self.vmLocation.name) failed to start: \(error)")
-				}
-
-				if let completionHandler = completionHandler {
-					completionHandler(result)
-				}
+				self.startCompletionHandler(result: result, completionHandler: completionHandler)
 			}
 		}
 	}
@@ -252,20 +241,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			self.virtualMachine.resume { result in
-				switch result {
-				case .success:
-					Logger(self).info("VM \(self.vmLocation.name) resumed")
-					if let communicationDevices = self.communicationDevices {
-						communicationDevices.connect(virtualMachine: self.virtualMachine)
-					}
-					break
-				case .failure(let error):
-					Logger(self).error("VM \(self.vmLocation.name) failed to resume: \(error)")
-				}
-
-				if let completionHandler = completionHandler {
-					completionHandler(result)
-				}
+				self.startCompletionHandler(result: result, completionHandler: completionHandler)
 			}
 		}
 	}
@@ -274,7 +250,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.virtualMachine.stop { result in
 			Logger(self).info("VM \(self.vmLocation.name) stopped")
 
-			self.closeCommunicationDevices()
+			self.stopServices()
 		}
 	}
 
@@ -283,7 +259,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			self.virtualMachine.stop { result in
 				Logger(self).info("VM \(self.vmLocation.name) stopped")
 
-				self.closeCommunicationDevices()
+				self.stopServices()
 
 				if let completionHandler = completionHandler {
 					completionHandler(result)
@@ -293,18 +269,20 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	public func requestStopFromUI() throws {
+		self.requestStopFromUIPending = true
 		try self.virtualMachine.requestStop()
 	}
 
 	public func requestStopVM() throws {
 		try DispatchQueue.main.sync {
 			if self.virtualMachine.canRequestStop {
+				Logger(self).info("Requesting stop VM \(self.vmLocation.name)...")
 				try self.virtualMachine.requestStop()
 			} else if self.virtualMachine.canStop {
 				self.virtualMachine.stop { result in
 					Logger(self).info("VM \(self.vmLocation.name) stopped")
 
-					self.closeCommunicationDevices()
+					self.stopServices()
 				}
 			} else {
 				Logger(self).error("VM \(self.vmLocation.name) can't be stopped")
@@ -316,27 +294,60 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 	}
 
-	private func signalStop() {
-		closeCommunicationDevices()
-
-		self.semaphore.signal()
+	private func startCommunicationDevices() {
+		if let communicationDevices = self.communicationDevices {
+			communicationDevices.connect(virtualMachine: self.virtualMachine)
+			Logger(self).info("Communication devices \(self.vmLocation.name) connected")
+		}
 	}
 
-	private func closeCommunicationDevices() {
+	private func signalStop() {
+		Logger(self).info("Signal VM \(self.vmLocation.name) stopped...")
+		stopServices()
+
+		if self.requestStopFromUIPending == false {
+			self.semaphore.signal()
+		}
+
+		self.requestStopFromUIPending = true
+	}
+
+	private func stopForwaringPorts() {
+		if let id = self.identifier {
+			try? PortForwardingServer.closeForwardedPort(identifier: id)
+			self.setIdentifier(nil)
+		}
+	}
+
+	private func stopMountService() {
+		if let mountService = self.mountService {
+			Logger(self).info("Stopping mount service for VM \(self.vmLocation.name)...")
+			mountService.stop()
+		}
+	}
+
+	private func stopCommunicationDevices() {
 		if let communicationDevices = self.communicationDevices {
 			Logger(self).info("Close communication devices for VM \(self.vmLocation.name)")
 			communicationDevices.close()
 		}
+	}
 
+	private func stopNetworkDevices() {
 		self.networks.forEach { $0.stop() }
 	}
 
+	private func stopServices() {
+		stopCommunicationDevices()
+		stopForwaringPorts()
+	}
+
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		sigint.setEventHandler {
+		sigcaught[SIGINT]!.setEventHandler {
 			task.cancel()
 		}
 
-		sigusr1.setEventHandler {
+		sigcaught[SIGUSR1]!.setEventHandler {
 			Task {
 				do {
 					if try await self.pause() {
@@ -350,43 +361,17 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			}
 		}
 
-		sigusr2.setEventHandler {
+		sigcaught[SIGUSR2]!.setEventHandler {
 			try? self.requestStopVM()
-			/*DispatchQueue.main.async {
-				if self.virtualMachine.canRequestStop {
-					try? self.virtualMachine.requestStop()
-				}
-			}*/
 		}
 
-		sigint.activate()
-		sigusr1.activate()
-		sigusr2.activate()
+		sigcaught.forEach { (key: Int32, value: any DispatchSourceSignal) in
+			signal(key, SIG_IGN)
+			value.activate()
+		}
 	}
 
-	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
-		let task = Task {
-			var status: Int32 = 0
-
-			do {
-				try await self.start(completionHandler: completionHandler)
-			} catch {
-				status = 1
-			}
-
-			self.vmLocation.removePID()
-
-			guard internalCall else {
-				Foundation.exit(status)
-			}
-
-			return status
-		}
-
-		if self.vmLocation.template == false {
-			self.catchUserSignals(task)
-		}
-
+	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, asSystem: Bool) throws -> EventLoopFuture<String?> {
 		let config = self.config
 		let response = try self.vmLocation.waitIP(on: on, config: config, wait: 120, asSystem: asSystem)
 
@@ -435,7 +420,34 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP: \(error)")
 		}
+
 		return response
+	}
+
+	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+		let task = Task {
+			var status: Int32 = 0
+
+			do {
+				try await self.start(completionHandler: completionHandler)
+			} catch {
+				status = 1
+			}
+
+			self.vmLocation.removePID()
+
+			guard internalCall else {
+				Foundation.exit(status)
+			}
+
+			return status
+		}
+
+		if self.vmLocation.template == false {
+			self.catchUserSignals(task)
+		}
+
+		return try self.startedVM(on: on, promise: promise, asSystem: asSystem)
 	}
 
 	func guestDidStop(_ virtualMachine: VZVirtualMachine) {

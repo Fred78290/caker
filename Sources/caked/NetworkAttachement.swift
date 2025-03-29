@@ -46,20 +46,25 @@ class BridgedNetworkInterface: NetworkAttachement {
 class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDelegate {
 	let macAddress: VZMACAddress
 	let mode: VMNetMode
-	let networkInterface: String?
+	let networkName: String
+	let networkConfig: VZSharedNetwork?
 	var process: ProcessWithSharedFileHandle? = nil
 	var pipeChannel: Channel? = nil
+	var vmfd: Int32 = -1
+	var hostfd: Int32 = -1
 
-	init(mode: VMNetMode, networkInterface: String, macAddress: VZMACAddress) {
+	init(mode: VMNetMode, networkName: String, macAddress: VZMACAddress) {
 		self.mode = mode
-		self.networkInterface = networkInterface
+		self.networkName = networkName
 		self.macAddress = macAddress
+		self.networkConfig = nil
 	}
 
-	init(macAddress: VZMACAddress) {
+	init(macAddress: VZMACAddress, networkName: String = "shared", networkConfig: VZSharedNetwork? = nil) {
 		self.mode = .shared
-		self.networkInterface = nil
+		self.networkName = networkName
 		self.macAddress = macAddress
+		self.networkConfig = networkConfig
 	}
 
 	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
@@ -99,12 +104,12 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 	
 	internal func vmnetEndpoint() throws -> (URL, URL){
 		if runAsSystem {
-			return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: runAsSystem)
+			return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: runAsSystem)
 		} else {
-			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: true)
+			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: true)
 			
 			if try systemSocketURL.0.exists() == false {
-				return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: networkInterface, asSystem: false)
+				return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: false)
 			} else {
 				return systemSocketURL
 			}
@@ -115,12 +120,13 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		let socketURL = try self.vmnetEndpoint()
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
-			try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkInterface: networkInterface, socketPath: socketURL.0, pidFile: socketURL.1)
+			try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), socketPath: socketURL.0, pidFile: socketURL.1)
 			try socketURL.1.waitPID()
 		}
 		
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
-		let (vmfd, hostfd) = try socketAddress.withSockAddr { _, len in
+		
+		(self.vmfd, self.hostfd) = try socketAddress.withSockAddr { _, len in
 			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
 			
 			defer {
@@ -144,7 +150,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 				.channelInitializer { inboundChannel in
 					// When the child channel is created, create a new pipe and add the handlers
 					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
-						.takingOwnershipOfDescriptor(inputOutput: hostfd)
+						.takingOwnershipOfDescriptor(inputOutput: self.hostfd)
 						.flatMap { childChannel in
 							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: phUseLimaVMNet, delegate: self)
 							
@@ -170,10 +176,10 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, networkInterface: networkInterface, macAddress: self.macAddress.string, pidFile: vmLocation.vmnetPID)
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, macAddress: self.macAddress.string, networkConfig: .init(name: networkName, config: networkConfig), pidFile: vmLocation.rootURL.appending(path: "\(self.networkName).pid"))
 		}
 		
-		return FileHandle(fileDescriptor: vmfd, closeOnDealloc: true)
+		return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)
 	}
 	
 	func stop() {
@@ -191,14 +197,38 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 
 				self.process = nil
 			}
+		} else if let pipeChannel {
+			// If we are running as a service, we need to close the channel
+			let promise = pipeChannel.eventLoop.makePromise(of: Void.self)
+			
+			pipeChannel.close(promise: promise)
+			
+			do {
+				try promise.futureResult.wait()
+			} catch {
+				Logger(self).error("Failed to close VZVMNet channel, \(error)")
+			}
+			
+			self.pipeChannel = nil
+		}
+
+		if self.vmfd != -1 {
+			close(self.vmfd)
+			self.vmfd = -1
+		}
+
+		if self.hostfd != -1 {
+			close(self.hostfd)
+			self.hostfd = -1
 		}
 	}
 }
+
 class VMNetworkInterface: SharedNetworkInterface {
 	let interface: VZBridgedNetworkInterface
 	
 	init(interface: VZBridgedNetworkInterface, macAddress: VZMACAddress) {
 		self.interface = interface
-		super.init(mode: .bridged, networkInterface: interface.identifier, macAddress: macAddress)
+		super.init(mode: .bridged, networkName: interface.identifier, macAddress: macAddress)
 	}
 }

@@ -325,10 +325,77 @@ extension Caked_RemoteRequest {
 }
 
 extension Caked_NetworkRequest {
-	init(command: Networks) {
+	init(command: Networks.List) {
 		self.init()
 
 		self.format = command.format == .text ? .text : .json
+		self.command = .infos
+	}
+
+	init(command: Networks.Create) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+		self.command = .create
+		self.create = Caked_CreateNetworkRequest.with {
+			$0.name = command.name
+			$0.gateway = command.gateway
+			$0.dhcpEnd = command.dhcpEnd
+			$0.netmask = command.subnetMask
+			$0.uuid = command.interfaceID
+			if let nat66Prefix = command.nat66Prefix {
+				$0.nat66Prefix = nat66Prefix
+			}
+		}
+	}
+
+	init(command: Networks.Configure) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+		self.command = .configure
+		self.configure = Caked_ConfigureNetworkRequest.with {
+			$0.name = command.name
+			if let gateway = command.gateway {
+				$0.gateway = gateway
+			}
+			if let dhcpEnd = command.dhcpEnd {
+				$0.dhcpEnd = dhcpEnd
+			}
+			if let subnetMask = command.subnetMask {
+				$0.netmask = subnetMask
+			}
+			if let interfaceID = command.interfaceID {
+				$0.uuid = interfaceID
+			}
+			if let nat66Prefix = command.nat66Prefix {
+				$0.nat66Prefix = nat66Prefix
+			}
+		}
+	}
+
+	init(command: Networks.Delete) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+		self.command = .remove
+		self.name = command.name
+	}
+
+	init(command: Networks.Start) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+		self.command = .start
+		self.name = command.name
+	}
+
+	init(command: Networks.Stop) {
+		self.init()
+
+		self.format = command.format == .text ? .text : .json
+		self.command = .shutdown
+		self.name = command.name
 	}
 }
 

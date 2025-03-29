@@ -201,7 +201,7 @@ extension Caked_RemoteRequest: CreateCakedCommand {
 
 extension Caked_NetworkRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
-		return NetworksHandler(format: self.format == .text ? .text : .json)
+		return NetworksHandler(request: self)
 	}
 }
 

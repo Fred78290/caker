@@ -88,8 +88,41 @@ message WaitIPRequest {
 	int32 timeout = 2;
 }
 
+enum NetworkCommand {
+	infos = 0;
+	create = 1;
+	configure = 2;
+	start = 3;
+	shutdown = 4;
+	remove = 5;
+}
+
+message CreateNetworkRequest {
+	string name = 1;
+	string gateway = 2;
+	string dhcpEnd = 3;
+	string netmask = 4;
+	optional string uuid = 5;
+	optional string nat66prefix = 6;
+}
+
+message ConfigureNetworkRequest {
+	string name = 1;
+	optional string gateway = 2;
+	optional string dhcpEnd = 3;
+	optional string netmask = 4;
+	optional string uuid = 5;
+	optional string nat66prefix = 6;
+}
+
 message NetworkRequest {
 	Format format = 1;
+	NetworkCommand command = 2;
+	oneof request {
+		string name = 3;
+		CreateNetworkRequest create = 4;
+		ConfigureNetworkRequest configure = 5;
+	}
 }
 
 message ImageRequest {

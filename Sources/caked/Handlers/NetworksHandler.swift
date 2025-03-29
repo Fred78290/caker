@@ -8,6 +8,31 @@ import NIOPosix
 import Logging
 import vmnet
 
+extension Caked_CreateNetworkRequest {
+	func toVZSharedNetwork() -> VZSharedNetwork {
+		return VZSharedNetwork(
+			netmask: self.netmask,
+			dhcpStart: self.gateway,
+			dhcpEnd: self.dhcpEnd,
+			uuid: self.uuid,
+			nat66Prefix: self.nat66Prefix
+		)
+	}
+}
+
+extension Caked_ConfigureNetworkRequest {
+	func toUsedNetworkConfig() -> UsedNetworkConfig {
+		return UsedNetworkConfig(
+			networkName: self.name,
+			netmask: self.netmask,
+			dhcpStart: self.gateway,
+			dhcpEnd: self.dhcpEnd,
+			uuid: self.uuid,
+			nat66Prefix: self.nat66Prefix
+		)
+	}
+}
+
 enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
 	var defaultValueDescription: String { "host" }
 
@@ -42,6 +67,33 @@ enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
 	}
 }
 
+struct UsedNetworkConfig {
+	var networkName: String? = nil
+	var netmask: String? = nil
+	var dhcpStart: String? = nil
+	var dhcpEnd: String? = nil
+	var uuid: String? = UUID().uuidString
+	var nat66Prefix: String? = nil
+
+	init(networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, uuid: String? = nil, nat66Prefix: String? = nil) {
+		self.networkName = networkName
+		self.netmask = netmask
+		self.dhcpStart = dhcpStart
+		self.dhcpEnd = dhcpEnd
+		self.uuid = uuid ?? UUID().uuidString
+		self.nat66Prefix = nat66Prefix
+	}
+
+	init(name: String, config: VZSharedNetwork? = nil) {
+		self.networkName = name
+		self.netmask = config?.netmask
+		self.dhcpStart = config?.dhcpStart
+		self.dhcpEnd = config?.dhcpEnd
+		self.uuid = config?.uuid ?? UUID().uuidString
+		self.nat66Prefix = config?.nat66Prefix
+	}
+}
+
 struct BridgedNetwork: Codable {
 	var name: String
 	var description: String = ""
@@ -49,8 +101,8 @@ struct BridgedNetwork: Codable {
 	var endpoint: String = ""
 }
 
-struct NetworksHandler: CakedCommand {
-	var format: Format
+struct NetworksHandler: CakedCommandAsync {
+	var request: Caked_NetworkRequest
 
 	struct VMNetOptions: ParsableArguments {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
@@ -72,7 +124,7 @@ struct NetworksHandler: CakedCommand {
 		var mode = VMNetMode.bridged
 
 		@Option(name: [.customLong("interface")], help: ArgumentHelp("interface\n", discussion: "interface used for --vmnet=bridged, e.g., \"en0\""))
-		var networkInterface: String? = nil
+		var networkName: String? = nil
 
 		@Option(name: [.customLong("mac-address")], help: ArgumentHelp("Mac Address of VM\n", discussion: "Mac address configured for VM network interface"))
 		var macAddress: String? = nil
@@ -94,6 +146,46 @@ struct NetworksHandler: CakedCommand {
 
 		@Option(name: [.customLong("pidfile")], help: "save pid to PIDFILE")
 		var pidFile: String? = nil
+
+		init() {
+
+		}
+
+		init(networkName: String, asSystem: Bool) throws {
+			self.networkName = networkName
+
+			self.asSystem = asSystem
+			self.debug = false
+			self.networkName = networkName
+			self.socketGroup = "staff"
+			self.socketPath = nil
+			self.vmfd = nil
+			self.pidFile = nil
+
+			if NetworksHandler.isPhysicalInterface(name: networkName) {
+				self.mode = .bridged
+				self.gateway = nil
+				self.dhcpEnd = nil
+				self.subnetMask = "255.255.255.0"
+				self.interfaceID = UUID().uuidString
+				self.nat66Prefix = nil
+			} else {
+				self.mode = .shared
+
+				let home: Home = try Home(asSystem: runAsSystem)
+				let networkConfig = try home.sharedNetworks()
+
+				guard let network = networkConfig.sharedNetworks[networkName] else {
+					throw ServiceError("Network \(networkName) doesn't exists")
+				}
+
+				self.gateway = network.dhcpStart
+				self.dhcpEnd = network.dhcpEnd
+				self.subnetMask = network.netmask
+				self.interfaceID = network.uuid ?? UUID().uuidString
+				self.nat66Prefix = network.nat66Prefix
+			}
+		}
 
 		func validate() throws {
 			runAsSystem = self.asSystem
@@ -117,7 +209,7 @@ struct NetworksHandler: CakedCommand {
 			}
 
 			if self.mode == .bridged {
-				if self.networkInterface == nil {
+				if self.networkName == nil {
 					throw ValidationError("interface is required for bridged mode")
 				}
 
@@ -147,7 +239,7 @@ struct NetworksHandler: CakedCommand {
 				if let socketPath = self.socketPath, let pidFile = self.pidFile {
 					socketURL = (URL(fileURLWithPath: socketPath), URL(fileURLWithPath: pidFile))
 				} else {
-					socketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkInterface: self.networkInterface, asSystem: self.asSystem)
+					socketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: self.networkName, asSystem: self.asSystem)
 				}
 
 				if try socketURL.0.exists() == false {
@@ -156,7 +248,7 @@ struct NetworksHandler: CakedCommand {
 						socketPath: socketURL.0,
 						socketGroup: grp.pointee.gr_gid,
 						mode: self.mode,
-						networkInterface: self.networkInterface,
+						networkInterface: self.networkName,
 						gateway: self.gateway,
 						dhcpEnd: self.dhcpEnd,
 						subnetMask: self.subnetMask,
@@ -182,7 +274,7 @@ struct NetworksHandler: CakedCommand {
 			let vzvmnet = VZVMNetFileHandle(on: Root.group.next(),
 			                                inputOutput: CInt(vmfd),
 			                                mode: self.mode,
-			                                networkInterface: self.networkInterface,
+			                                networkInterface: self.networkName,
 			                                macAddress: self.macAddress!,
 			                                gateway: self.gateway,
 			                                dhcpEnd: self.dhcpEnd,
@@ -195,17 +287,29 @@ struct NetworksHandler: CakedCommand {
 		}
 	}
 
-	static func vmnetEndpoint(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> (URL, URL) {
+	static func isPhysicalInterface(name: String) -> Bool {
+		let interfaces = VZBridgedNetworkInterface.networkInterfaces
+
+		for interface in interfaces {
+			if interface.identifier == name {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	static func vmnetEndpoint(mode: VMNetMode, networkName: String? = nil, asSystem: Bool) throws -> (URL, URL) {
 		let createIfNotExists: Bool = asSystem ? geteuid() == 0 : true
 		let home = try Home.init(asSystem: asSystem, createItIfNotExists: createIfNotExists)
 		let dirName: String
 
 		if mode == .bridged {
-			dirName = networkInterface!
+			dirName = networkName!
 		} else if mode == .host {
 			dirName = "host"
 		} else {
-			dirName = "shared"
+			dirName = networkName ?? "shared"
 		}
 
 		let networkDirectory = home.networkDirectory.appendingPathComponent(dirName, isDirectory: true)
@@ -251,16 +355,7 @@ struct NetworksHandler: CakedCommand {
 		return false
 	}
 
-	static func run(fileDescriptor: Int32,
-	                mode: VMNetMode,
-	                networkInterface: String? = nil,
-	                macAddress: String? = nil,
-	                gateway: String? = nil,
-	                dhcpEnd: String? = nil,
-	                subnetMask: String? = "255.255.255.0",
-	                interfaceID: String? = UUID().uuidString,
-	                nat66Prefix: String? = nil,
-	                pidFile: URL) throws -> ProcessWithSharedFileHandle {
+	static func run(fileDescriptor: Int32, mode: VMNetMode, macAddress: String? = nil, networkConfig: UsedNetworkConfig, pidFile: URL) throws -> ProcessWithSharedFileHandle {
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : "caked") else {
@@ -272,7 +367,7 @@ struct NetworksHandler: CakedCommand {
 		let process = ProcessWithSharedFileHandle()
 
 		if phUseLimaVMNet == false {
-			arguments.append(contentsOf: [ "networks", "start" ])
+			arguments.append(contentsOf: [ "networks", "run" ])
 		}
 
 		arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -282,11 +377,7 @@ struct NetworksHandler: CakedCommand {
 			arguments.append("--debug")
 		}
 
-		if let networkInterface = networkInterface {
-			arguments.append("--interface=\(networkInterface)")
-		}
-
-		if let interfaceID = interfaceID {
+		if let interfaceID = networkConfig.uuid {
 			arguments.append("--interface-id=\(interfaceID)")
 		}
 
@@ -294,18 +385,26 @@ struct NetworksHandler: CakedCommand {
 			arguments.append("--mac-address=\(macAddress)")
 		}
 
-		if let gateway = gateway {
-			arguments.append("--gateway=\(gateway)")
+		if mode == .bridged {
+			if let networkName = networkConfig.networkName {
+				arguments.append("--interface=\(networkName)")
+			} else {
+				throw ServiceError("interface is required for bridged mode")
+			}
+		} else {
+			if let dhcpStart = networkConfig.dhcpStart {
+				arguments.append("--gateway=\(dhcpStart)")
+			}
 
-			if let dhcpEnd = dhcpEnd {
+			if let dhcpEnd = networkConfig.dhcpEnd {
 				arguments.append("--dhcp-end=\(dhcpEnd)")
 			}
 
-			if let subnetMask = subnetMask {
-				arguments.append("--netmask=\(subnetMask)")
+			if let netmask = networkConfig.netmask {
+				arguments.append("--netmask=\(netmask)")
 			}
 
-			if let nat66Prefix = nat66Prefix {
+			if let nat66Prefix = networkConfig.nat66Prefix {
 				arguments.append("--nat66-prefix=\(nat66Prefix)")
 			}
 		}
@@ -357,16 +456,7 @@ struct NetworksHandler: CakedCommand {
 		return process
 	}
 
-	static func run(useLimaVMNet: Bool = false,
-	                mode: VMNetMode,
-	                networkInterface: String? = nil,
-	                gateway: String? = nil,
-	                dhcpEnd: String? = nil,
-	                subnetMask: String? = "255.255.255.0",
-	                interfaceID: String? = UUID().uuidString,
-	                nat66Prefix: String? = nil,
-	                socketPath: URL? = nil,
-	                pidFile: URL? = nil) throws {
+	static func run(useLimaVMNet: Bool = false, mode: VMNetMode, networkConfig: UsedNetworkConfig, socketPath: URL? = nil, pidFile: URL? = nil) throws {
 		let socketURL: (URL, URL)
 		let executableURL: URL
 		let debug = Logger.Level() >= .debug
@@ -375,7 +465,7 @@ struct NetworksHandler: CakedCommand {
 		if let socketPath = socketPath, let pidFile = pidFile {
 			socketURL = (socketPath, pidFile)
 		} else {
-			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkInterface: networkInterface, asSystem: runAsSystem)
+			socketURL = try NetworksHandler.vmnetEndpoint(mode: .bridged, networkName: networkConfig.networkName, asSystem: runAsSystem)
 		}
 
 		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
@@ -395,22 +485,26 @@ struct NetworksHandler: CakedCommand {
 			//arguments.append("--vmnet-vz")
 			arguments.append("--vmnet-mode=\(mode.stringValue)")
 
-			if let networkInterface = networkInterface {
-				arguments.append("--vmnet-interface=\(networkInterface)")
-			}
-
-			if let gateway = gateway {
-				arguments.append("--vmnet-gateway=\(gateway)")
-
-				if let dhcpEnd = dhcpEnd {
+			if mode == .bridged {
+				if let networkName = networkConfig.networkName {
+					arguments.append("--vmnet-interface=\(networkName)")
+				} else {
+					throw ServiceError("interface is required for bridged mode")
+				}
+			} else {
+				if let dhcpStart = networkConfig.dhcpStart {
+					arguments.append("--vmnet-gateway=\(dhcpStart)")
+				}
+				if let dhcpEnd = networkConfig.dhcpEnd {
 					arguments.append("--vmnet-dhcp-end=\(dhcpEnd)")
 				}
-
-				if let subnetMask = subnetMask {
-					arguments.append("--vmnet-mask=\(subnetMask)")
+				if let netmask = networkConfig.netmask {
+					arguments.append("--vmnet-mask=\(netmask)")
 				}
-
-				if let nat66Prefix = nat66Prefix {
+				if let interfaceID = networkConfig.uuid {
+					arguments.append("--vmnet-interface-id=\(interfaceID)")
+				}
+				if let nat66Prefix = networkConfig.nat66Prefix {
 					arguments.append("--vmnet-nat66-prefix=\(nat66Prefix)")
 				}
 			}
@@ -420,32 +514,36 @@ struct NetworksHandler: CakedCommand {
 		} else if let caker = URL.binary("caked") {
 			executableURL = caker
 
-			arguments.append(contentsOf: ["networks", "start", "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
+			arguments.append(contentsOf: ["networks", "run", "--log-level=\(Logger.LoggingLevel().rawValue)", "--mode=\(mode.stringValue)"])
 
 			if runAsSystem {
 				arguments.append("--system")
 			}
 
-			if let networkInterface = networkInterface {
-				arguments.append("--interface=\(networkInterface)")
-			}
-
-			if let interfaceID = interfaceID {
+			if let interfaceID = networkConfig.uuid {
 				arguments.append("--interface-id=\(interfaceID)")
 			}
 
-			if let gateway = gateway {
-				arguments.append("--gateway=\(gateway)")
+			if mode == .bridged {
+				if let networkName = networkConfig.networkName {
+					arguments.append("--interface=\(networkName)")
+				} else {
+					throw ServiceError("interface is required for bridged mode")
+				}
+			} else {
+				if let dhcpStart = networkConfig.dhcpStart {
+					arguments.append("--gateway=\(dhcpStart)")
+				}
 
-				if let dhcpEnd = dhcpEnd {
+				if let dhcpEnd = networkConfig.dhcpEnd {
 					arguments.append("--dhcp-end=\(dhcpEnd)")
 				}
 
-				if let subnetMask = subnetMask {
-					arguments.append("--netmask=\(subnetMask)")
+				if let netmask = networkConfig.netmask {
+					arguments.append("--netmask=\(netmask)")
 				}
 
-				if let nat66Prefix = nat66Prefix {
+				if let nat66Prefix = networkConfig.nat66Prefix {
 					arguments.append("--nat66-prefix=\(nat66Prefix)")
 				}
 			}
@@ -500,14 +598,83 @@ struct NetworksHandler: CakedCommand {
 		try socketURL.1.waitPID()
 	}
 
+	static func configure(network: UsedNetworkConfig, asSystem: Bool, fromService: Bool = false) throws {
+		let home: Home = try Home(asSystem: runAsSystem)
+		var networkConfig = try home.sharedNetworks()
+
+		guard let networkName = network.networkName else {
+			throw ServiceError("Network name is required")
+		}
+
+		guard let exisiting = networkConfig.sharedNetworks[networkName] else {
+			throw ServiceError("Network \(networkName) doesn't exists")
+		}
+
+		networkConfig.sharedNetworks[networkName] = VZSharedNetwork(
+			netmask: network.netmask ?? exisiting.netmask,
+			dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
+			dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
+			uuid: network.uuid ?? exisiting.uuid,
+			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
+		)
+
+		try home.setSharedNetworks(networkConfig)
+	}
+
+	static func run(networkName: String, asSystem: Bool) throws {
+		let home: Home = try Home(asSystem: runAsSystem)
+
+		if Self.isPhysicalInterface(name: networkName) {
+			let socketURL = try Self.vmnetEndpoint(mode: .bridged, networkName: networkName, asSystem: asSystem)
+
+			try Self.run(mode: .shared, networkConfig: UsedNetworkConfig(name: networkName), socketPath: socketURL.0, pidFile: socketURL.1)
+		} else {
+			let networkConfig = try home.sharedNetworks()
+
+			guard let network = networkConfig.sharedNetworks[networkName] else {
+				throw ServiceError("Network \(networkName) doesn't exists")
+			}
+
+			let socketURL = try Self.vmnetEndpoint(mode: .shared, networkName: networkName, asSystem: asSystem)
+
+			try Self.run(mode: .shared, networkConfig: UsedNetworkConfig(name: networkName, config: network), socketPath: socketURL.0, pidFile: socketURL.1)
+		}
+	}
+
+	static func create(networkName: String, network: VZSharedNetwork, asSystem: Bool, fromService: Bool = false) throws {
+		let home: Home = try Home(asSystem: runAsSystem)
+		var networkConfig = try home.sharedNetworks()
+
+		if networkConfig.sharedNetworks[networkName] != nil {
+			throw ServiceError("Network \(networkName) already exists")
+		}
+
+		networkConfig.sharedNetworks[networkName] = network
+
+		try home.setSharedNetworks(networkConfig)
+	}
+
+	static func delete(networkName: String, asSystem: Bool, fromService: Bool = false) throws {
+		let home: Home = try Home(asSystem: runAsSystem)
+		var networkConfig = try home.sharedNetworks()
+
+		if networkConfig.sharedNetworks[networkName] == nil {
+			throw ServiceError("Network \(networkName) doesn't exists")
+		}
+
+		networkConfig.sharedNetworks.removeValue(forKey: networkName)
+
+		try home.setSharedNetworks(networkConfig)
+	}
+
 	static func start(options: NetworksHandler.VMNetOptions) throws {
 		let vzvmnet = try options.createVZVMNet()
 
 		try vzvmnet.1.start()
 	}
 
-	static func stop(mode: VMNetMode, networkInterface: String? = nil, asSystem: Bool) throws -> String {
-		let socketURL = try Self.vmnetEndpoint(mode: mode, networkInterface: networkInterface, asSystem: asSystem)
+	static func stop(networkName: String, asSystem: Bool, fromService: Bool = false) throws -> String {
+		let socketURL = try Self.vmnetEndpoint(mode: .shared, networkName: networkName, asSystem: asSystem)
 		let pidURL = socketURL.1
 
 		_ = pidURL.killPID(SIGTERM)
@@ -515,17 +682,74 @@ struct NetworksHandler: CakedCommand {
 		return "stopped interface"
 	}
 
-	static func networks() -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
+	static func stop(mode: VMNetMode, networkName: String? = nil, asSystem: Bool, fromService: Bool = false) throws -> String {
+		let socketURL = try Self.vmnetEndpoint(mode: mode, networkName: networkName, asSystem: asSystem)
+		let pidURL = socketURL.1
 
-		networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-			BridgedNetwork(name: inf.identifier, description: inf.localizedDisplayName ?? inf.identifier, interfaceID: inf.identifier, endpoint: "")
-		})
+		_ = pidURL.killPID(SIGTERM)
 
-		return networks
+		return "stopped interface"
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		self.format.renderList(style: Style.grid, uppercased: true, Self.networks())
+	static func networks(asSystem: Bool) throws -> [BridgedNetwork] {
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
+		let home: Home = try Home(asSystem: runAsSystem)
+		let networkConfig = try home.sharedNetworks()
+		
+		let createBridgedNetwork: (VMNetMode, String, String, String) throws -> BridgedNetwork = { (mode, name, description, uuid) in
+			let socketURL = try NetworksHandler.vmnetEndpoint(mode: mode, networkName: name, asSystem: asSystem)
+			let endpoint: String
+
+			if try socketURL.0.exists() {
+				endpoint = socketURL.0.absoluteURL.path
+			} else {
+				endpoint = "not running"
+			}
+
+			return BridgedNetwork(name: name, description: description, interfaceID: uuid, endpoint: endpoint)
+		}
+
+		try networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
+			return try createBridgedNetwork(.bridged, inf.identifier, inf.localizedDisplayName ?? inf.identifier, "")
+		})
+
+		return try networkConfig.sharedNetworks.reduce(into: networks) {
+			$0.append(try createBridgedNetwork(.shared, $1.key, "Shared network", $1.value.uuid ?? ""))
+		}
+	}
+
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+		on.submit {
+			let format: Format = self.request.format == .text ? .text : .json
+			let message: String
+
+			switch self.request.command {
+			case .infos:
+				return format.renderList(style: Style.grid, uppercased: true, try Self.networks(asSystem: asSystem))
+			case .create:
+				try Self.create(networkName: self.request.name, network: self.request.create.toVZSharedNetwork(), asSystem: asSystem, fromService: true)
+				message = "Network \(self.request.name) created"
+			case .remove:
+				try Self.delete(networkName: self.request.name, asSystem: asSystem, fromService: true)
+				message = "Network \(self.request.name) deleted"
+			case .start:
+				try Self.run(networkName: self.request.name, asSystem: asSystem)
+				message = "Network \(self.request.name) started"
+			case .shutdown:
+				_ = try Self.stop(networkName: self.request.name, asSystem: asSystem, fromService: true)
+				return "Network \(self.request.name) stopped"
+			case .configure:
+				try Self.configure(network: self.request.configure.toUsedNetworkConfig(), asSystem: asSystem)
+				message = "Network \(self.request.name) configured"
+			default:
+				throw ServiceError("Unknown command")
+			}
+
+			if self.request.format == .json {
+				return format.renderSingle(style: Style.grid, uppercased: true, message)
+			} else {
+				return message
+			}
+		}
 	}
 }

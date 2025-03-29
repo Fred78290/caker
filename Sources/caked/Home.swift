@@ -97,6 +97,29 @@ struct Home {
 		}
 	}
 
+	func sharedNetworks() throws -> VZVMNetConfig {
+		let location = self.networkDirectory.appendingPathComponent("networks.json", isDirectory: false).absoluteURL
+		let config: VZVMNetConfig
+
+		if try self.networkDirectory.exists() == false {
+			try FileManager.default.createDirectory(at: self.networkDirectory, withIntermediateDirectories: true)
+		}
+
+		if try location.exists() == false {
+			config = VZVMNetConfig()
+
+			try config.save(toURL: location)
+		} else {
+			config = try VZVMNetConfig(fromURL: location)
+		}
+
+		return config
+	}
+
+	func setSharedNetworks(_ config: VZVMNetConfig) throws {
+		try config.save(toURL: self.networkDirectory.appendingPathComponent("networks.json", isDirectory: false).absoluteURL)
+	}
+
 	func remoteDatabase() throws -> RemoteDatabase {
 		return try RemoteDatabase(self.remoteDb)
 	}
@@ -107,19 +130,19 @@ struct Home {
 
 			return String(data: content, encoding: .ascii)!
 		} else {
-#if false
-			let cypher = try CypherKeyGenerator(identifier: "com.aldunelabs.caker.ssh")
-			let key = try cypher.generateKey()
+			#if false
+				let cypher = try CypherKeyGenerator(identifier: "com.aldunelabs.caker.ssh")
+				let key = try cypher.generateKey()
 
-			try key.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
+				try key.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
 
-			return try key.publicKeyString()
-#else
-			let cypher = try RSAKeyGenerator()
-			
-			try cypher.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
-			return cypher.publicKeyString
-#endif
+				return try key.publicKeyString()
+			#else
+				let cypher = try RSAKeyGenerator()
+
+				try cypher.save(privateURL: self.sshPrivateKey, publicURL: self.sshPublicKey)
+				return cypher.publicKeyString
+			#endif
 		}
 	}
 }
