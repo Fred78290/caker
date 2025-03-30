@@ -97,6 +97,8 @@ struct UsedNetworkConfig {
 struct BridgedNetwork: Codable {
 	var name: String
 	var description: String = ""
+	var gateway: String = ""
+	var dhcpEnd = ""
 	var interfaceID: String = ""
 	var endpoint: String = ""
 }
@@ -337,8 +339,14 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		let process = Process()
+		var environment = ProcessInfo.processInfo.environment
+
+		if environment["CAKE_HOME"] == nil {
+			environment["CAKE_HOME"] = try Home(asSystem: runAsSystem).cakeHomeDirectory.path
+		}
 
 		process.executableURL = sudoURL
+		process.environment = environment
 		process.arguments = ["--non-interactive", binary.path, "--help"]
 		process.standardInput = nil
 		process.standardOutput = nil
@@ -410,6 +418,11 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		var fd = fileDescriptor
+		var environment = ProcessInfo.processInfo.environment
+
+		if environment["CAKE_HOME"] == nil {
+			environment["CAKE_HOME"] = try Home(asSystem: runAsSystem).cakeHomeDirectory.path
+		}
 
 		if geteuid() == 0 {
 			runningArguments = []
@@ -442,7 +455,7 @@ struct NetworksHandler: CakedCommandAsync {
 		try? pidFile.delete()
 
 		process.arguments = runningArguments
-		process.environment = ProcessInfo.processInfo.environment
+		process.environment = environment
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		process.terminationHandler = { process in
@@ -584,8 +597,14 @@ struct NetworksHandler: CakedCommandAsync {
 
 		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
+		var environment = ProcessInfo.processInfo.environment
+
+		if environment["CAKE_HOME"] == nil {
+			environment["CAKE_HOME"] = try Home(asSystem: runAsSystem).cakeHomeDirectory.path
+		}
+
 		process.arguments = runningArguments
-		process.environment = ProcessInfo.processInfo.environment
+		process.environment = environment
 		process.standardInput = FileHandle.nullDevice
 		process.standardOutput = debug ? FileHandle.standardOutput : FileHandle.nullDevice
 		process.standardError = debug ? FileHandle.standardError : FileHandle.nullDevice
@@ -621,24 +640,30 @@ struct NetworksHandler: CakedCommandAsync {
 		try home.setSharedNetworks(networkConfig)
 	}
 
-	static func run(networkName: String, asSystem: Bool) throws {
+	static func run(networkName: String, asSystem: Bool) throws -> (URL, URL) {
 		let home: Home = try Home(asSystem: runAsSystem)
+		let sharedNetworks = try home.sharedNetworks().sharedNetworks
+		let socketURL: (URL, URL)
+		let mode: VMNetMode
+		let networkConfig: UsedNetworkConfig
 
 		if Self.isPhysicalInterface(name: networkName) {
-			let socketURL = try Self.vmnetEndpoint(mode: .bridged, networkName: networkName, asSystem: asSystem)
-
-			try Self.run(mode: .shared, networkConfig: UsedNetworkConfig(name: networkName), socketPath: socketURL.0, pidFile: socketURL.1)
+			socketURL = try Self.vmnetEndpoint(mode: .bridged, networkName: networkName, asSystem: asSystem)
+			mode = .bridged
+			networkConfig = .init(name: networkName)
 		} else {
-			let networkConfig = try home.sharedNetworks()
-
-			guard let network = networkConfig.sharedNetworks[networkName] else {
+			guard let network = sharedNetworks[networkName] else {
 				throw ServiceError("Network \(networkName) doesn't exists")
 			}
 
-			let socketURL = try Self.vmnetEndpoint(mode: .shared, networkName: networkName, asSystem: asSystem)
-
-			try Self.run(mode: .shared, networkConfig: UsedNetworkConfig(name: networkName, config: network), socketPath: socketURL.0, pidFile: socketURL.1)
+			mode = networkName == "host" ? .host : .shared
+			socketURL = try Self.vmnetEndpoint(mode: mode, networkName: networkName, asSystem: asSystem)
+			networkConfig = UsedNetworkConfig(name: networkName, config: network)
 		}
+
+		try Self.run(mode: mode, networkConfig: networkConfig, socketPath: socketURL.0, pidFile: socketURL.1)
+
+		return socketURL
 	}
 
 	static func create(networkName: String, network: VZSharedNetwork, asSystem: Bool, fromService: Bool = false) throws {
@@ -696,7 +721,7 @@ struct NetworksHandler: CakedCommandAsync {
 		let home: Home = try Home(asSystem: runAsSystem)
 		let networkConfig = try home.sharedNetworks()
 		
-		let createBridgedNetwork: (VMNetMode, String, String, String) throws -> BridgedNetwork = { (mode, name, description, uuid) in
+		let createBridgedNetwork: (_ mode: VMNetMode, _ name: String, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String) throws -> BridgedNetwork = { (mode, name, description, uuid, gateway, dhcpEnd) in
 			let socketURL = try NetworksHandler.vmnetEndpoint(mode: mode, networkName: name, asSystem: asSystem)
 			let endpoint: String
 
@@ -706,15 +731,21 @@ struct NetworksHandler: CakedCommandAsync {
 				endpoint = "not running"
 			}
 
-			return BridgedNetwork(name: name, description: description, interfaceID: uuid, endpoint: endpoint)
+			return BridgedNetwork(name: name, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
 		}
 
 		try networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-			return try createBridgedNetwork(.bridged, inf.identifier, inf.localizedDisplayName ?? inf.identifier, "")
+			return try createBridgedNetwork(.bridged, inf.identifier, inf.localizedDisplayName ?? inf.identifier, "", "", "")
 		})
 
 		return try networkConfig.sharedNetworks.reduce(into: networks) {
-			$0.append(try createBridgedNetwork(.shared, $1.key, "Shared network", $1.value.uuid ?? ""))
+			let cidr = $1.value.netmask.netmaskToCidr()
+			let gateway = "\($1.value.dhcpStart)/\(cidr)"
+			let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
+			let uuid = $1.value.uuid ?? ""
+
+
+			$0.append(try createBridgedNetwork(.shared, $1.key, "Shared network", uuid, gateway, dhcpEnd))
 		}
 	}
 
@@ -733,7 +764,7 @@ struct NetworksHandler: CakedCommandAsync {
 				try Self.delete(networkName: self.request.name, asSystem: asSystem, fromService: true)
 				message = "Network \(self.request.name) deleted"
 			case .start:
-				try Self.run(networkName: self.request.name, asSystem: asSystem)
+				_ = try Self.run(networkName: self.request.name, asSystem: asSystem)
 				message = "Network \(self.request.name) started"
 			case .shutdown:
 				_ = try Self.stop(networkName: self.request.name, asSystem: asSystem, fromService: true)

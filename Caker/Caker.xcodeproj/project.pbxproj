@@ -181,11 +181,15 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
-		9B8027592D985CC9002C680E /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027542D985CC9002C680E /* VZVMNetConfig.swift */; };
-		9B80275A2D985CC9002C680E /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027562D985CC9002C680E /* VZVMNetHandler.swift */; };
-		9B80275B2D985CC9002C680E /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027572D985CC9002C680E /* VZVMNetSocket.swift */; };
-		9B80275C2D985CC9002C680E /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */; };
-		9B80275D2D985CC9002C680E /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027532D985CC9002C680E /* VZVMNet.swift */; };
+		9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027652D997EAC002C680E /* VZVMNet.swift */; };
+		9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027682D997EAC002C680E /* VZVMNetHandler.swift */; };
+		9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */; };
+		9B80276E2D997EAC002C680E /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027662D997EAC002C680E /* VZVMNetConfig.swift */; };
+		9B80276F2D997EAC002C680E /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027692D997EAC002C680E /* VZVMNetSocket.swift */; };
+		9B8027772D997EBA002C680E /* IP.Address.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027712D997EBA002C680E /* IP.Address.swift */; };
+		9B8027782D997EBA002C680E /* IP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027702D997EBA002C680E /* IP.swift */; };
+		9B8027792D997EBA002C680E /* IP.Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027722D997EBA002C680E /* IP.Block.swift */; };
+		9B80277A2D997EBA002C680E /* IP.V4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027732D997EBA002C680E /* IP.V4.swift */; };
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
@@ -351,11 +355,15 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B8027532D985CC9002C680E /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
-		9B8027542D985CC9002C680E /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
-		9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
-		9B8027562D985CC9002C680E /* VZVMNetHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetHandler.swift; sourceTree = "<group>"; };
-		9B8027572D985CC9002C680E /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
+		9B8027652D997EAC002C680E /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
+		9B8027662D997EAC002C680E /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
+		9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
+		9B8027682D997EAC002C680E /* VZVMNetHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetHandler.swift; sourceTree = "<group>"; };
+		9B8027692D997EAC002C680E /* VZVMNetSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetSocket.swift; sourceTree = "<group>"; };
+		9B8027702D997EBA002C680E /* IP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.swift; sourceTree = "<group>"; };
+		9B8027712D997EBA002C680E /* IP.Address.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.Address.swift; sourceTree = "<group>"; };
+		9B8027722D997EBA002C680E /* IP.Block.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.Block.swift; sourceTree = "<group>"; };
+		9B8027732D997EBA002C680E /* IP.V4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.V4.swift; sourceTree = "<group>"; };
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
@@ -698,8 +706,10 @@
 				9B464A912D5A3E0300164BF5 /* CloudImage */,
 				9B464AA52D5A3E0300164BF5 /* Commands */,
 				9B464AB42D5A3E0300164BF5 /* Handlers */,
+				9B8027752D997EBA002C680E /* IP */,
 				9B24FFD62D8AE3E10050BFAD /* MountService */,
 				9B464AB92D5A3E0300164BF5 /* Sockets */,
+				9B80276A2D997EAC002C680E /* VMNet */,
 			);
 			path = caked;
 			sourceTree = "<group>";
@@ -731,7 +741,6 @@
 				9B464ACE2D5A3E0300164BF5 /* caked */,
 				9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
-				9B8027582D985CC9002C680E /* VMNet */,
 			);
 			name = Sources;
 			path = ../Sources;
@@ -745,17 +754,27 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		9B8027582D985CC9002C680E /* VMNet */ = {
+		9B80276A2D997EAC002C680E /* VMNet */ = {
 			isa = PBXGroup;
 			children = (
-				9B8027532D985CC9002C680E /* VZVMNet.swift */,
-				9B8027542D985CC9002C680E /* VZVMNetConfig.swift */,
-				9B8027552D985CC9002C680E /* VZVMNetFileHandle.swift */,
-				9B8027562D985CC9002C680E /* VZVMNetHandler.swift */,
-				9B8027572D985CC9002C680E /* VZVMNetSocket.swift */,
+				9B8027652D997EAC002C680E /* VZVMNet.swift */,
+				9B8027662D997EAC002C680E /* VZVMNetConfig.swift */,
+				9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */,
+				9B8027682D997EAC002C680E /* VZVMNetHandler.swift */,
+				9B8027692D997EAC002C680E /* VZVMNetSocket.swift */,
 			);
-			name = VMNet;
-			path = caked/VMNet;
+			path = VMNet;
+			sourceTree = "<group>";
+		};
+		9B8027752D997EBA002C680E /* IP */ = {
+			isa = PBXGroup;
+			children = (
+				9B8027702D997EBA002C680E /* IP.swift */,
+				9B8027712D997EBA002C680E /* IP.Address.swift */,
+				9B8027722D997EBA002C680E /* IP.Block.swift */,
+				9B8027732D997EBA002C680E /* IP.V4.swift */,
+			);
+			path = IP;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1013,6 +1032,11 @@
 				9B464AFF2D5A3E0300164BF5 /* Logger.swift in Sources */,
 				9B464B002D5A3E0300164BF5 /* ListHandler.swift in Sources */,
 				9B464B012D5A3E0300164BF5 /* CakeAgentAsyncParsableCommand.swift in Sources */,
+				9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */,
+				9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */,
+				9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */,
+				9B80276E2D997EAC002C680E /* VZVMNetConfig.swift in Sources */,
+				9B80276F2D997EAC002C680E /* VZVMNetSocket.swift in Sources */,
 				9B464B022D5A3E0300164BF5 /* Stop.swift in Sources */,
 				9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */,
 				9BE2E7B92D5F85CE000CA07F /* TemplateHandler.swift in Sources */,
@@ -1023,11 +1047,6 @@
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
-				9B8027592D985CC9002C680E /* VZVMNetConfig.swift in Sources */,
-				9B80275A2D985CC9002C680E /* VZVMNetHandler.swift in Sources */,
-				9B80275B2D985CC9002C680E /* VZVMNetSocket.swift in Sources */,
-				9B80275C2D985CC9002C680E /* VZVMNetFileHandle.swift in Sources */,
-				9B80275D2D985CC9002C680E /* VZVMNet.swift in Sources */,
 				9B464B0F2D5A3E0300164BF5 /* ImageHandler.swift in Sources */,
 				9BE2E7BD2D5F85D8000CA07F /* Template.swift in Sources */,
 				9BE2E7BE2D5F85D8000CA07F /* Logout.swift in Sources */,
@@ -1057,6 +1076,10 @@
 				9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */,
 				9BD32F842D75F9630066A01E /* MountHandler.swift in Sources */,
 				9B464B312D5A3E0300164BF5 /* CommunicationHandlers.swift in Sources */,
+				9B8027772D997EBA002C680E /* IP.Address.swift in Sources */,
+				9B8027782D997EBA002C680E /* IP.swift in Sources */,
+				9B8027792D997EBA002C680E /* IP.Block.swift in Sources */,
+				9B80277A2D997EBA002C680E /* IP.V4.swift in Sources */,
 				9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */,
 				9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */,
 				9B464B352D5A3E0300164BF5 /* PortForwardingServer.swift in Sources */,

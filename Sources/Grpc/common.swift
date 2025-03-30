@@ -118,7 +118,7 @@ public struct Utils {
 		guard let cakeHomeDir = homeDirectories[asSystem] else {
 			let cakeHomeDir: URL
 
-			if asSystem || geteuid() == 0 {
+			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil && (asSystem || geteuid() == 0) {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 

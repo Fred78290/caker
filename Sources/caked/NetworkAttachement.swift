@@ -117,10 +117,11 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 	}
 
 	internal func open(vmLocation: VMLocation) throws -> FileHandle {
-		let socketURL = try self.vmnetEndpoint()
+		var socketURL = try self.vmnetEndpoint()
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
-			try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), socketPath: socketURL.0, pidFile: socketURL.1)
+			socketURL = try NetworksHandler.run(networkName: networkName, asSystem: runAsSystem)
+			//try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), socketPath: socketURL.0, pidFile: socketURL.1)
 			try socketURL.1.waitPID()
 		}
 		
@@ -221,6 +222,12 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 			close(self.hostfd)
 			self.hostfd = -1
 		}
+	}
+}
+
+class HostNetworkInterface: SharedNetworkInterface {
+	init(macAddress: VZMACAddress) {
+		super.init(mode: .host, networkName: "host", macAddress: macAddress)
 	}
 }
 

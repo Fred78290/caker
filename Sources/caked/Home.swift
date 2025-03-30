@@ -106,7 +106,7 @@ struct Home {
 		}
 
 		if try location.exists() == false {
-			config = VZVMNetConfig()
+			config = try VZVMNetConfig()
 
 			try config.save(toURL: location)
 		} else {

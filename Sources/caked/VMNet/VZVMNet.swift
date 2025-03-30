@@ -300,6 +300,7 @@ class VZVMNet: @unchecked Sendable {
 		}
 
 		if status != vmnet_return_t.VMNET_SUCCESS {
+			self.iface = nil
 			throw ServiceError("Failed to start interface \(status.stringValue)")
 		}
 

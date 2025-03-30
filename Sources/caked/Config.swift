@@ -436,6 +436,8 @@ extension CakeConfig {
 
 			if inf.network == "shared" {
 				return SharedNetworkInterface(macAddress: macAddress)
+			} else if inf.network == "host" {
+				return HostNetworkInterface(macAddress: macAddress)
 			}
 
 			let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
