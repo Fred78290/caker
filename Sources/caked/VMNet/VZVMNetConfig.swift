@@ -14,62 +14,33 @@ struct VZSharedNetwork: Codable {
 		case uuid = "uuid"
 		case nat66Prefix = "nat66-prefix"
 	}
-}
 
-extension String {
-	func isValidIP() -> Bool {
-		let ipPattern = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
-		let regex = try? NSRegularExpression(pattern: ipPattern, options: [])
-		let range = NSRange(location: 0, length: self.utf16.count)
-		return regex?.firstMatch(in: self, options: [], range: range) != nil
-	}
-
-	func isValidCIDR() -> Bool {
-		let cidrPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})/(3[0-2]|[1-2]?[0-9])$"
-		let regex = try? NSRegularExpression(pattern: cidrPattern, options: [])
-		let range = NSRange(location: 0, length: self.utf16.count)
-		return regex?.firstMatch(in: self, options: [], range: range) != nil
-	}
-
-	func netmaskToCidr() -> Int {
-		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
-		var cidr: Int = 0
-
-		for i in 0..<4 {
-			cidr += (octets[i] == 255) ? 8 : (octets[i] == 254) ? 7 : (octets[i] == 252) ? 6 : (octets[i] == 248) ? 5 : (octets[i] == 240) ? 4 : (octets[i] == 224) ? 3 : (octets[i] == 192) ? 2 : (octets[i] == 128) ? 1 : (octets[i] == 0) ? 0 : -1
+	func validate() throws -> Bool {
+		guard netmask.isValidNetmask() else {
+			throw ServiceError("Invalid netmask \(netmask)")
 		}
 
-		return cidr
-	}
-	
-	func cidrToNetmask() -> String {
-		var value = Int(self) ?? 0
-		value = 0xFFFFFFFF ^ ((1 << (32 - value)) - 1)
-
-		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
-	}
-	
-	func IPToInt() -> Int {
-		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
-		var numValue: Int = 0
-
-		for i in stride(from:3, through:0, by:-1) {
-			numValue += octets[3-i] << (i * 8)
+		guard let gateway = IP.V4(dhcpStart) else {
+			throw ServiceError("Invalid gateway \(dhcpStart)")
 		}
 
-		return numValue
-	}
-}
+		guard let end = IP.V4(dhcpEnd) else {
+			throw ServiceError("Invalid dhcp end \(dhcpEnd)")
+		}
 
-struct VZVMNetConfig: Codable {
-	var sharedNetworks: [String:VZSharedNetwork]
+		let network = IP.Block<IP.V4>(base: gateway, bits: UInt8(netmask.netmaskToCidr()))
 
-	var sharedNetworkNames: [String] {
-		return Array(sharedNetworks.keys)
-	}
+		guard network.contains(end) else {
+			throw ServiceError("dhcp end \(dhcpEnd) is not in the range of the network \(network)")
+		}
 
-	private enum CodingKeys : String, CodingKey {
-		case sharedNetworks = "networks"
+		let networks = Self.networkInterfaces().map {
+			$0.network
+		}
+
+		guard networks.first(where: { $0.contains(gateway)}) == nil else {
+			throw ServiceError("Gateway \(dhcpStart) is already in use")
+		}
 	}
 
 	static func networkInterfaces() -> [IP.Block<IP.V4>] {
@@ -120,7 +91,7 @@ struct VZVMNetConfig: Codable {
 
 	static func freeIP(segment: String) throws -> (String, String) {
 		let networks = Self.networkInterfaces().map {
-			IP.Block<IP.V4>(base: $0.base.zeroMasked(to: $0.bits), bits: $0.bits)
+			$0.network
 		}
 
 		for value: UInt8 in 1..<255 {
@@ -146,11 +117,68 @@ struct VZVMNetConfig: Codable {
 
 		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, uuid: UUID().uuidString, nat66Prefix: nil)
 	}
+}
+
+extension String {
+	func isValidIP() -> Bool {
+		let ipPattern = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
+		let regex = try? NSRegularExpression(pattern: ipPattern, options: [])
+		let range = NSRange(location: 0, length: self.utf16.count)
+		return regex?.firstMatch(in: self, options: [], range: range) != nil
+	}
+
+	func isValidNetwmask() -> Bool {
+		let cidrPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})/(3[0-2]|[1-2]?[0-9])$"
+		let regex = try? NSRegularExpression(pattern: cidrPattern, options: [])
+		let range = NSRange(location: 0, length: self.utf16.count)
+		return regex?.firstMatch(in: self, options: [], range: range) != nil
+	}
+
+	func netmaskToCidr() -> Int {
+		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
+		var cidr: Int = 0
+
+		for i in 0..<4 {
+			cidr += (octets[i] == 255) ? 8 : (octets[i] == 254) ? 7 : (octets[i] == 252) ? 6 : (octets[i] == 248) ? 5 : (octets[i] == 240) ? 4 : (octets[i] == 224) ? 3 : (octets[i] == 192) ? 2 : (octets[i] == 128) ? 1 : (octets[i] == 0) ? 0 : -1
+		}
+
+		return cidr
+	}
+	
+	func cidrToNetmask() -> String {
+		var value = Int(self) ?? 0
+		value = 0xFFFFFFFF ^ ((1 << (32 - value)) - 1)
+
+		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
+	}
+	
+	func IPToInt() -> Int {
+		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
+		var numValue: Int = 0
+
+		for i in stride(from:3, through:0, by:-1) {
+			numValue += octets[3-i] << (i * 8)
+		}
+
+		return numValue
+	}
+}
+
+struct VZVMNetConfig: Codable {
+	var sharedNetworks: [String:VZSharedNetwork]
+
+	var sharedNetworkNames: [String] {
+		return Array(sharedNetworks.keys)
+	}
+
+	private enum CodingKeys : String, CodingKey {
+		case sharedNetworks = "networks"
+	}
 
 	init() throws {
 		self.sharedNetworks = [
-			"shared": try Self.createNetwork(baseAddress: "192.168", cidr: 24),
-			"host": try Self.createNetwork(baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24)
+			"shared": try VZSharedNetwork.createNetwork(baseAddress: "192.168", cidr: 24),
+			"host": try VZSharedNetwork.createNetwork(baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24)
 		]
 	}
 

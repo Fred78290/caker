@@ -35,6 +35,10 @@ extension IP.Block {
 	@inlinable public var range:ClosedRange<Base> {
 		self.base ... self.base.onesMasked(to: self.bits)
 	}
+
+	@inlineable public var network:IP.Block<Base> {
+		IP.Block<Base>(base: $0.base.zeroMasked(to: $0.bits), bits: $0.bits)
+	}
 }
 
 extension IP.Block:CustomStringConvertible {

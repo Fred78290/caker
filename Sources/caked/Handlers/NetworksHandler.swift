@@ -222,12 +222,30 @@ struct NetworksHandler: CakedCommandAsync {
 				if self.dhcpEnd != nil {
 					throw ValidationError("dhcp-end is not allowed for bridged mode")
 				}
-			} else if self.gateway != nil {
-				if self.dhcpEnd == nil {
+			} else if let gateway = self.gateway {
+				guard let gatewayAddr = IP.V4(gateway) else {
+					throw ValidationError("gateway is not a valid IP address")
+				}
+
+				guard let dhcpEnd = self.dhcpEnd else {
 					throw ValidationError("dhcp-end is required for host/shared mode when gateway is specified")
 				}
-			}
 
+				guard self.subnetMask.isValidNetmask() else {
+					throw ValidationError("valid netmask is required for host/shared mode when gateway is specified")
+				}
+
+				let cidr = self.subnetMask.netmaskToCidr()
+				let network = Block<IP.V4>("\(gateway)/\(cidr)").network
+
+				guard let dhcpEndAddr = IP.V4(dhcpEnd) else {
+					throw ValidationError("dhcp-end is not a valid IP address")
+				}
+
+				if network.contains(dhcpEndAddr) == false {
+					throw ValidationError("dhcp-end is not in the same network as gateway")
+				}
+			}
 		}
 
 		func createVZVMNet() throws -> (URL, VZVMNet) {
@@ -617,6 +635,23 @@ struct NetworksHandler: CakedCommandAsync {
 		try socketURL.1.waitPID()
 	}
 
+	static func configure(network: VZSharedNetwork, asSystem: Bool, fromService: Bool = false) throws {
+		let home: Home = try Home(asSystem: runAsSystem)
+		var networkConfig = try home.sharedNetworks()
+
+		guard let networkName = network.networkName else {
+			throw ServiceError("Network name is required")
+		}
+
+		guard let exisiting = networkConfig.sharedNetworks[networkName] else {
+			throw ServiceError("Network \(networkName) doesn't exists")
+		}
+
+		networkConfig.sharedNetworks[networkName] = network
+
+		try home.setSharedNetworks(networkConfig)
+	}
+
 	static func configure(network: UsedNetworkConfig, asSystem: Bool, fromService: Bool = false) throws {
 		let home: Home = try Home(asSystem: runAsSystem)
 		var networkConfig = try home.sharedNetworks()
@@ -629,7 +664,7 @@ struct NetworksHandler: CakedCommandAsync {
 			throw ServiceError("Network \(networkName) doesn't exists")
 		}
 
-		networkConfig.sharedNetworks[networkName] = VZSharedNetwork(
+		let changed = VZSharedNetwork(
 			netmask: network.netmask ?? exisiting.netmask,
 			dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
 			dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
@@ -637,6 +672,8 @@ struct NetworksHandler: CakedCommandAsync {
 			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
 		)
 
+		try changed.validate()
+		networkConfig.sharedNetworks[networkName] = changed
 		try home.setSharedNetworks(networkConfig)
 	}
 

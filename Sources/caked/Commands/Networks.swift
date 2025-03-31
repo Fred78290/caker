@@ -80,6 +80,8 @@ struct Networks: ParsableCommand {
 		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
 		var nat66Prefix: String? = nil
 
+		var createdNetwork: VZSharedNetwork? = nil
+
 		mutating func validate() throws {
 			let home: Home = try Home(asSystem: runAsSystem)
 			let networkConfig = try home.sharedNetworks()
@@ -92,17 +94,21 @@ struct Networks: ParsableCommand {
 				throw ValidationError("Network \(self.name) is a physical interface")
 			}
 
-			Logger.setLevel(self.logLevel)
-		}
-
-		func run() async throws {
-			try NetworksHandler.create(networkName: self.name, network: VZSharedNetwork(
+			let network = VZSharedNetwork(
 				netmask: self.subnetMask,
 				dhcpStart: self.gateway,
 				dhcpEnd: self.dhcpEnd,
 				uuid: self.interfaceID,
 				nat66Prefix: self.nat66Prefix
-			), asSystem: self.asSystem)
+			)
+
+			try network.validate()
+			self.createdNetwork = network
+			Logger.setLevel(self.logLevel)
+		}
+
+		func run() async throws {
+			try NetworksHandler.create(networkName: self.name, network: self.createdNetwork!, asSystem: self.asSystem)
 			print("Network \(self.name) created")
 		}
 	}
@@ -134,6 +140,8 @@ struct Networks: ParsableCommand {
 		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
 		var nat66Prefix: String? = nil
 
+		var changedNetwork: VZSharedNetwork? = nil
+
 		mutating func validate() throws {
 			let home: Home = try Home(asSystem: runAsSystem)
 			let networkConfig = try home.sharedNetworks()
@@ -142,22 +150,26 @@ struct Networks: ParsableCommand {
 				throw ValidationError("Unable to configure physical network \(self.name)")
 			}
 
-			if networkConfig.sharedNetworks[self.name] == nil {
+			guard let existing = networkConfig.sharedNetworks[self.name] else {
 				throw ValidationError("Network \(self.name) does not exist")
 			}
 
+			let changed = VZSharedNetwork(
+				netmask: self.netmask ?? exisiting.netmask,
+				dhcpStart: self.dhcpStart ?? exisiting.dhcpStart,
+				dhcpEnd: self.dhcpEnd ?? exisiting.dhcpEnd,
+				uuid: self.uuid ?? exisiting.uuid,
+				nat66Prefix: self.nat66Prefix ?? exisiting.nat66Prefix
+			)
+
+			try changed.validate()
+
+			self.changedNetwork = changed
 			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			try NetworksHandler.configure(network: UsedNetworkConfig(
-				networkName: self.name,
-				netmask: self.subnetMask,
-				dhcpStart: self.gateway,
-				dhcpEnd: self.dhcpEnd,
-				uuid: self.interfaceID,
-				nat66Prefix: self.nat66Prefix
-			), asSystem: self.asSystem)
+			try NetworksHandler.configure(network: self.changedNetwork!, asSystem: self.asSystem)
 			print("Network \(self.name) reconfigured")
 		}
 	}
