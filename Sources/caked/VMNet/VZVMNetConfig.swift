@@ -15,7 +15,7 @@ struct VZSharedNetwork: Codable {
 		case nat66Prefix = "nat66-prefix"
 	}
 
-	func validate() throws -> Bool {
+	func validate() throws {
 		guard netmask.isValidNetmask() else {
 			throw ServiceError("Invalid netmask \(netmask)")
 		}
@@ -28,10 +28,10 @@ struct VZSharedNetwork: Codable {
 			throw ServiceError("Invalid dhcp end \(dhcpEnd)")
 		}
 
-		let network = IP.Block<IP.V4>(base: gateway, bits: UInt8(netmask.netmaskToCidr()))
+		let network = IP.Block<IP.V4>(base: gateway, bits: UInt8(netmask.netmaskToCidr())).network
 
 		guard network.contains(end) else {
-			throw ServiceError("dhcp end \(dhcpEnd) is not in the range of the network \(network)")
+			throw ServiceError("dhcp end \(dhcpEnd) is not in the range of the network \(network.description)")
 		}
 
 		let networks = Self.networkInterfaces().map {
@@ -127,8 +127,8 @@ extension String {
 		return regex?.firstMatch(in: self, options: [], range: range) != nil
 	}
 
-	func isValidNetwmask() -> Bool {
-		let cidrPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})/(3[0-2]|[1-2]?[0-9])$"
+	func isValidNetmask() -> Bool {
+		let cidrPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"
 		let regex = try? NSRegularExpression(pattern: cidrPattern, options: [])
 		let range = NSRange(location: 0, length: self.utf16.count)
 		return regex?.firstMatch(in: self, options: [], range: range) != nil
