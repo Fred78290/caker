@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Delete: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Delete a VM")
+	static let configuration = CommandConfiguration(abstract: "Delete a VM")
 
 	@OptionGroup var options: Client.Options
 

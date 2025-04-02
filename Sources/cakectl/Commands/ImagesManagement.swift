@@ -4,11 +4,11 @@ import GRPCLib
 import GRPC
 
 struct ImagesManagement: ParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "image", abstract: "Manage simplestream images",
+	static let configuration = CommandConfiguration(commandName: "image", abstract: "Manage simplestream images",
 	                                                subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
 	struct ListImage : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
 		@OptionGroup var options: Client.Options
 
@@ -24,7 +24,7 @@ struct ImagesManagement: ParsableCommand {
 	}
 
 	struct InfoImage : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
 		@OptionGroup var options: Client.Options
 
@@ -40,7 +40,7 @@ struct ImagesManagement: ParsableCommand {
 	}
 
 	struct PullImage : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
 		@OptionGroup var options: Client.Options
 

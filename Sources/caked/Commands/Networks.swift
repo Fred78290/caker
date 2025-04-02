@@ -7,7 +7,7 @@ import Logging
 import TextTable
 
 struct Networks: ParsableCommand {
-	static var configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
+	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
 	                                                                      subcommands: [
 	                                                                      	Networks.List.self,
 	                                                                      	Networks.Create.self,
@@ -18,20 +18,22 @@ struct Networks: ParsableCommand {
 	                                                                      	Networks.Stop.self])
 
 	struct Start: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Run VMNet network device")
+		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device. CAKE_HOME must be set to the correct location.")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
-
-		@Argument(help: ArgumentHelp("Network name\n", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
 		mutating func validate() throws {
 			if geteuid() != 0 {
 				throw ValidationError("This command must be run as root")
+			}
+
+			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
+				print(ProcessInfo.processInfo.environment)
+				throw ValidationError("CAKE_HOME must be set to the correct location")
 			}
 
 			if NetworksHandler.isPhysicalInterface(name: name) == false {
@@ -47,14 +49,14 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			let options: NetworksHandler.VMNetOptions = try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: self.asSystem)
+			let options: NetworksHandler.VMNetOptions = try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: false)
 
 			try NetworksHandler.self.start(options: options)
 		}
 	}
 
 	struct Create: AsyncParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Create named shared network")
+		static let configuration = CommandConfiguration(abstract: "Create named shared network")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -62,19 +64,19 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name\n", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
-		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway\n", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
+		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
 		var gateway: String = "192.168.105.1"
 
 		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
 		var dhcpEnd: String = "192.168.105.254"
 
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask\n", discussion: "requires --gateway to be specified"))
+		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
 		var subnetMask = "255.255.255.0"
 
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID\n", discussion: "randomly generated if not specified"))
+		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
 		var interfaceID = UUID().uuidString
 
 		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
@@ -114,7 +116,7 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Configure: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Reconfigure named shared network")
+		static let configuration = CommandConfiguration(abstract: "Reconfigure named shared network")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -122,19 +124,19 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name\n", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
-		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway\n", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
+		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\""))
 		var gateway: String? = nil
 
 		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
 		var dhcpEnd: String? = nil
 
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask\n", discussion: "requires --gateway to be specified"))
+		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
 		var subnetMask: String? = nil
 
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID\n", discussion: "randomly generated if not specified"))
+		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
 		var interfaceID: String? = nil
 
 		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
@@ -155,11 +157,11 @@ struct Networks: ParsableCommand {
 			}
 
 			let changed = VZSharedNetwork(
-				netmask: self.netmask ?? exisiting.netmask,
-				dhcpStart: self.dhcpStart ?? exisiting.dhcpStart,
-				dhcpEnd: self.dhcpEnd ?? exisiting.dhcpEnd,
-				uuid: self.uuid ?? exisiting.uuid,
-				nat66Prefix: self.nat66Prefix ?? exisiting.nat66Prefix
+				netmask: self.subnetMask ?? existing.netmask,
+				dhcpStart: self.gateway ?? existing.dhcpStart,
+				dhcpEnd: self.dhcpEnd ?? existing.dhcpEnd,
+				uuid: self.interfaceID ?? existing.uuid,
+				nat66Prefix: self.nat66Prefix ?? existing.nat66Prefix
 			)
 
 			try changed.validate()
@@ -169,13 +171,13 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			try NetworksHandler.configure(network: self.changedNetwork!, asSystem: self.asSystem)
+			try NetworksHandler.configure(networkName: self.name, network: self.changedNetwork!, asSystem: self.asSystem)
 			print("Network \(self.name) reconfigured")
 		}
 	}
 
 	struct Delete: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Delete existing shared network")
+		static let configuration = CommandConfiguration(abstract: "Delete existing shared network")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -183,7 +185,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name\n", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
 		mutating func validate() throws {
@@ -208,7 +210,7 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Run: AsyncParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Start VMNet network device", shouldDisplay: false)
+		static let configuration = CommandConfiguration(abstract: "Start VMNet network device", shouldDisplay: false)
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -230,7 +232,7 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Stop: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Stop VMNet network device")
+		static let configuration = CommandConfiguration(abstract: "Stop VMNet network device")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -241,7 +243,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Option(name: [.customLong("name")], help: ArgumentHelp("network name\n", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
+		@Option(name: [.customLong("name")], help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
 		var networkName: String
 
 		func validate() throws {
@@ -251,14 +253,12 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			let mode: VMNetMode = NetworksHandler.isPhysicalInterface(name: networkName) ? .bridged : .shared
-
-			Logger.appendNewLine(try NetworksHandler.stop(mode: mode, networkName: self.networkName, asSystem: self.asSystem))
+			Logger.appendNewLine(try NetworksHandler.stop(networkName: self.networkName, asSystem: self.asSystem))
 		}
 	}
 
 	struct List: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract:
+		static let configuration = CommandConfiguration(abstract:
 			"""
 			List host network devices (physical interfaces, virtual switches, bridges) available
 			to integrate with using the `--network` switch to the `launch` command

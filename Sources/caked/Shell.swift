@@ -1,7 +1,7 @@
 import Foundation
 import GRPCLib
 
-private var tartLocation : String = ""
+nonisolated(unsafe) private var tartLocation : String = ""
 
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run

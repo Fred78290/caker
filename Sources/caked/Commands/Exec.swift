@@ -6,7 +6,7 @@ import NIO
 import Logging
 
 struct Exec: CakeAgentAsyncParsableCommand {
-	static var configuration: CommandConfiguration = CommandConfiguration(commandName: "exec", abstract: "Execute a command on a VM")
+	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "exec", abstract: "Execute a command on a VM")
 
 	@Argument(help: "VM name")
 	var name: String

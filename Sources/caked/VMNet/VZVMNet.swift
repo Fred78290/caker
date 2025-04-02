@@ -65,7 +65,7 @@ class VZVMNet: @unchecked Sendable {
 			self.logger = Logger(Self.self)
 		}
 
-		func channelRead(context: ChannelHandlerContext, data: NIOAny) {
+		public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
 			var buffer = self.unwrapInboundIn(data)
 			let bufSize = buffer.readableBytes
 			let iface = self.vzvmnet.iface!

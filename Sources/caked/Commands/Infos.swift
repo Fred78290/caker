@@ -8,7 +8,7 @@ import Logging
 import TextTable
 
 struct Infos: CakeAgentAsyncParsableCommand {
-	static var configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
+	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
 	@Argument(help: "VM name")
 	var name: String

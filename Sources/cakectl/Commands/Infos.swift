@@ -34,7 +34,7 @@ extension InfoReply {
 }
 
 struct Infos: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
+	static let configuration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
 	@OptionGroup var options: Client.Options
 

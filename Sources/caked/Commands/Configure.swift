@@ -4,7 +4,7 @@ import GRPCLib
 import Logging
 
 struct Configure: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Reconfigure VM")
+	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

@@ -8,7 +8,7 @@ extension Data {
 	}
 }
 
-public enum Format: String, ExpressibleByArgument, CaseIterable {
+public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	case text, json
 
 	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}

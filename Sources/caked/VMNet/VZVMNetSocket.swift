@@ -4,12 +4,6 @@ import vmnet
 import Darwin
 import Virtualization
 
-extension Channel {
-	public static func == (lhs: Channel, rhs: Channel) -> Bool {
-		return lhs === rhs
-	}
-}
-
 final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	internal let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
 	internal var childrenChannels: [Channel] = []
@@ -24,14 +18,6 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		init(vmnet: VZVMNetSocket) {
 			self.vmnet = vmnet
 			super.init(vzvmnet: vmnet)
-		}
-
-		public func channelActive(context: ChannelHandlerContext) {
-			self.vmnet.childrenChannels.append(context.channel)
-		}
-
-		public func channelInactive(context: ChannelHandlerContext) {
-			self.vmnet.childrenChannels.removeAll { $0 === context.channel }
 		}
 
 		override func forwardBuffer(buffer: ByteBuffer, context: ChannelHandlerContext) {
@@ -114,6 +100,12 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 			.childChannelOption(.maxMessagesPerRead, value: 16)
 			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
 			.childChannelInitializer { inboundChannel in
+				self.childrenChannels.append(inboundChannel)
+
+				inboundChannel.closeFuture.whenComplete { _ in
+					self.childrenChannels.removeAll { $0 === inboundChannel }
+				}
+
 				return inboundChannel.pipeline.addHandler(VZVMNetSocketHandler(vmnet: self))
 			}
 

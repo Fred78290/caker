@@ -63,8 +63,8 @@ struct Logger {
 	private static let eraseCursorDown: String = "\u{001B}[J"
 	private static let moveUp = "\u{001B}[1A"
 	private static let moveBeginningOfLine = "\r"
-	private static var logLevel: Logging.Logger.Level = .info
-	private static var intLogLevel = LogLevel.info
+	nonisolated(unsafe) private static var logLevel: Logging.Logger.Level = .info
+	nonisolated(unsafe) private static var intLogLevel = LogLevel.info
 
 	let label = "com.aldunelabs.caker"
 	var logger: Logging.Logger
@@ -137,7 +137,7 @@ struct Logger {
 	}
 }
 
-public class ProgressObserver: NSObject {
+public final class ProgressObserver: NSObject, @unchecked Sendable {
 	@objc var progress: Progress
 	var observation: NSKeyValueObservation?
 	var lastUpdate = Date.now

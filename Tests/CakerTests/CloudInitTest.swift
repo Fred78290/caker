@@ -155,11 +155,12 @@ final class CloudInitTests: XCTestCase {
 		options.userData = self.userDataPath.path
 		options.vendorData = nil
 		options.networkConfig = self.networkConfigPath.path
-		options.published = [
-			ForwardedPort(argument: "2222:22/tcp").description
+		options.forwardedPorts = [
+			ForwardedPort(argument: "2222:22/tcp")
 		]
-		options.shares = []
-		options.network = []
+		options.mounts = []
+		options.networks = []
+		options.sockets = []
 		//options.netSoftnet = false
 		//options.netSoftnetAllow = nil
 		//options.netHost = false

@@ -8,7 +8,7 @@ import GRPCLib
 import GRPC
 
 struct Cake: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(
+	static let configuration = CommandConfiguration(
 		abstract: "Catch all tart commands", shouldDisplay: false)
 
 	@OptionGroup var options: Client.Options

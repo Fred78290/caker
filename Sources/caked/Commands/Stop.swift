@@ -2,7 +2,7 @@ import ArgumentParser
 import Logging
 
 struct Stop: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Stop VM")
+	static let configuration = CommandConfiguration(abstract: "Stop VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

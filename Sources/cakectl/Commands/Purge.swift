@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Purge: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Purge OCI and IPSW caches or local VMs")
+	static let configuration = CommandConfiguration(abstract: "Purge OCI and IPSW caches or local VMs")
 
 	@OptionGroup var options: Client.Options
 

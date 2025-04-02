@@ -3,7 +3,7 @@ import NIOPortForwarding
 import Logging
 
 struct Start: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Run linux VM in background")
+	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

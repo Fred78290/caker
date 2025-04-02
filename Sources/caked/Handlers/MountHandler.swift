@@ -8,7 +8,7 @@ import NIO
 import Semaphore
 
 class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
-	static var supportsSecureCoding: Bool = false
+	static let supportsSecureCoding: Bool = false
 
 	private let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
 	private var response: MountReply? = nil

@@ -5,11 +5,11 @@ import Logging
 import TextTable
 
 struct Remote: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Manage simplestream remote",
+	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
 	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
 	struct AddRemote : ParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -30,7 +30,7 @@ struct Remote: ParsableCommand {
 	}
 
 	struct DeleteRemote : ParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -48,7 +48,7 @@ struct Remote: ParsableCommand {
 	}
 
 	struct ListRemote : ParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info

@@ -3,7 +3,7 @@ import GRPCLib
 import Logging
 
 struct Build: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
+	static let configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

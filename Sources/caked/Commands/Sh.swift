@@ -6,7 +6,7 @@ import NIO
 import Logging
 
 struct Sh: CakeAgentAsyncParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
+	static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

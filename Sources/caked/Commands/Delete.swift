@@ -11,7 +11,7 @@ import GRPCLib
 import TextTable
 
 struct Delete: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Delete a VM")
+	static let configuration = CommandConfiguration(abstract: "Delete a VM")
 	
 	@Argument(help: "VM name")
 	var name: [String]

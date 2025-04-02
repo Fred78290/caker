@@ -3,8 +3,9 @@ import Darwin
 import Foundation
 import Logging
 import NIO
+import GRPCLib
 
-var runAsSystem: Bool = geteuid() == 0
+nonisolated(unsafe) var runAsSystem: Bool = geteuid() == 0
 
 let delegatedCommand: [String] = [
 	"clone",
@@ -38,7 +39,8 @@ struct Root: AsyncParsableCommand {
 		return sigintSrc
 	}()
 
-	static var group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+	static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+	nonisolated(unsafe)
 	static var configuration = CommandConfiguration(
 		commandName: "\(COMMAND_NAME)",
 		usage: "\(COMMAND_NAME) <subcommand>",
@@ -68,6 +70,19 @@ struct Root: AsyncParsableCommand {
 			VMRun.self,
 			WaitIP.self,
 		])
+
+	static func environment() throws -> [String: String] {
+		var environment = ProcessInfo.processInfo.environment
+		let home = try Utils.getHome(asSystem: runAsSystem)
+
+		environment["TART_HOME"] = home.path
+
+		if environment["CAKE_HOME"] == nil {
+			environment["CAKE_HOME"] = home.path
+		}
+
+		return environment
+	}
 
 	static func vmrunAvailable() -> Bool {
 		Self.configuration.subcommands.first { cmd in

@@ -27,11 +27,11 @@ extension CertificatesLocation {
 }
 
 struct Certificates: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
+	static let configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
 													subcommands: [Generate.self, Get.self, Agent.self])
 
 	struct Get: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Return certificates path")
+		static let configuration = CommandConfiguration(abstract: "Return certificates path")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -51,7 +51,7 @@ struct Certificates: ParsableCommand {
 	}
 
 	struct Generate: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Generate certificates")
+		static let configuration = CommandConfiguration(abstract: "Generate certificates")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -79,7 +79,7 @@ struct Certificates: ParsableCommand {
 	}
 
 	struct Agent: ParsableCommand {
-		static var configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
+		static let configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info

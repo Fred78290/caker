@@ -10,7 +10,7 @@ protocol PurgeArguments {
 }
 
 struct Purge: ParsableCommand, PurgeArguments {
-	static var configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
+	static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

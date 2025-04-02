@@ -5,7 +5,7 @@ import GRPC
 import GRPCLib
 import NIOPortForwarding
 
-var portForwardingServer: PortForwardingServer? = nil
+nonisolated(unsafe) var portForwardingServer: PortForwardingServer? = nil
 
 enum PortForwardingServerError: Error {
 	case notFound

@@ -104,12 +104,12 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 	
 	internal func vmnetEndpoint() throws -> (URL, URL){
 		if runAsSystem {
-			return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: runAsSystem)
+			return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
 		} else {
-			let systemSocketURL = try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: true)
+			let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: true)
 			
 			if try systemSocketURL.0.exists() == false {
-				return try NetworksHandler.vmnetEndpoint(mode: self.mode, networkName: networkName, asSystem: false)
+				return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: false)
 			} else {
 				return systemSocketURL
 			}
@@ -120,7 +120,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		var socketURL = try self.vmnetEndpoint()
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
-			socketURL = try NetworksHandler.run(networkName: networkName, asSystem: runAsSystem)
+			socketURL = try NetworksHandler.start(networkName: networkName, asSystem: runAsSystem)
 			//try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), socketPath: socketURL.0, pidFile: socketURL.1)
 			try socketURL.1.waitPID()
 		}
@@ -153,7 +153,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 					return NIOPipeBootstrap(group: inboundChannel.eventLoop)
 						.takingOwnershipOfDescriptor(inputOutput: self.hostfd)
 						.flatMap { childChannel in
-							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: phUseLimaVMNet, delegate: self)
+							let (guestHandler, hostHandler) = VZVMNetHandlerClient.matchedPair(useLimaVMNet: false, delegate: self)
 							
 							return childChannel.pipeline.addHandler(guestHandler)
 								.flatMap {

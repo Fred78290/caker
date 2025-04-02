@@ -10,6 +10,7 @@ struct VirtualMachineInfos: Codable {
 	let source: String
 	let name: String
 	let fqn: [String]
+	let instanceID: String?
 	let diskSize: Int
 	let totalSize: Int
 	let state: String
@@ -20,6 +21,7 @@ struct VirtualMachineInfos: Codable {
 struct ShortVirtualMachineInfos: Codable {
 	let type: String
 	let fqn: String
+	let instanceID: String
 	let ip: String
 	let diskSize: String
 	let totalSize: String
@@ -30,6 +32,7 @@ struct ShortVirtualMachineInfos: Codable {
 		self.type = from.type
 		self.fqn = from.fqn.joined(separator: " ")
 		self.ip = from.ip ?? ""
+		self.instanceID = from.instanceID ?? ""
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
 		self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
 		self.state = from.state
@@ -44,15 +47,18 @@ struct ListHandler: CakedCommand {
 	static func listVM(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfos] {
 		var vmInfos = try StorageLocation(asSystem: asSystem).list().map { (name: String, location: VMLocation) in
 			let status = location.status
+			let config = try location.config()
+
 			return VirtualMachineInfos(
 				type: "vm",
 				source: "vms",
 				name: name,
 				fqn: ["vm://\(name)"],
+				instanceID: config.instanceID,
 				diskSize: try location.diskSize(),
 				totalSize: try location.allocatedSize(),
 				state: status.rawValue,
-				ip: status == .running ? try location.config().runningIP : nil,
+				ip: status == .running ? config.runningIP : nil,
 				fingerprint: nil
 			)
 		}
@@ -78,6 +84,7 @@ struct ListHandler: CakedCommand {
 							source: purgeable.source(),
 							name: purgeable.name(),
 							fqn: imageCache.fqn(purgeable),
+							instanceID: "",
 							diskSize: try purgeable.allocatedSizeBytes(),
 							totalSize: try purgeable.allocatedSizeBytes(),
 							state: "cached",
@@ -106,6 +113,7 @@ struct ListHandler: CakedCommand {
 							source: vm.source,
 							name: vm.name,
 							fqn: [fqn],
+							instanceID: vm.instanceID,
 							diskSize: vm.diskSize,
 							totalSize: vm.totalSize,
 							state: vm.state,

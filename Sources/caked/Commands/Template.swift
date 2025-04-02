@@ -4,7 +4,7 @@ import GRPCLib
 import TextTable
 
 struct Template: ParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "template",
+	static let configuration = CommandConfiguration(commandName: "template",
 	                                                abstract: "Manage VM templates",
 	                                                subcommands: [
 	                                                	ListTemplate.self,
@@ -14,7 +14,7 @@ struct Template: ParsableCommand {
 	)
 
 	struct ListTemplate: ParsableCommand {
-		static var configuration = CommandConfiguration(commandName: "list", abstract: "List templates")
+		static let configuration = CommandConfiguration(commandName: "list", abstract: "List templates")
 
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
@@ -29,7 +29,7 @@ struct Template: ParsableCommand {
 	}
 
 	struct CreateTemplate: ParsableCommand {
-		static var configuration = CommandConfiguration(commandName: "create", abstract: "Create template from existing VM")
+		static let configuration = CommandConfiguration(commandName: "create", abstract: "Create template from existing VM")
 
 		@Argument(help: "Source VM name")
 		var name: String
@@ -46,7 +46,7 @@ struct Template: ParsableCommand {
 	}
 
 	struct DeleteTemplate: ParsableCommand {
-		static var configuration = CommandConfiguration(commandName: "delete", abstract: "Delete template")
+		static let configuration = CommandConfiguration(commandName: "delete", abstract: "Delete template")
 
 		@Argument(help: "Template name")
 		var name: String

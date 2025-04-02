@@ -5,7 +5,7 @@ import GRPCLib
 import GRPC
 
 struct Umount: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "mount", abstract: "Mount endpoint into VM")
+	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount endpoint into VM")
 
 	@OptionGroup var options: Client.Options
 

@@ -164,6 +164,11 @@ final class CakeConfig{
 		get { self.config["displayRefit"] as? Bool ?? false}
 	}
 
+	var instanceID: String {
+		set { self.cake["instance-id"] = newValue }
+		get { self.cake["instance-id"] as? String ?? UUID().uuidString }
+	}
+
 	var configuredUser: String {
 		set { self.cake["configuredUser"] = newValue }
 		get { self.cake["configuredUser"] as? String ?? "admin" }
@@ -409,6 +414,7 @@ extension CakeConfig {
 		let vmNetworking: Bool
 		let home: Home = try Home(asSystem: runAsSystem)
 		let networkConfig = try home.sharedNetworks()
+		let sharedNetworks = networkConfig.sharedNetworks
 
 		if let profile = try? EmbedProvisionProfile.load() {
 			vmNetworking = profile.entitlements.vmNetworking
@@ -434,26 +440,23 @@ extension CakeConfig {
 				macAddress = VZMACAddress.randomLocallyAdministered()
 			}
 
-			if inf.network == "shared" {
-				return SharedNetworkInterface(macAddress: macAddress)
-			} else if inf.network == "host" {
-				return HostNetworkInterface(macAddress: macAddress)
-			}
-
-			let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
-				$0.identifier == inf.network || $0.localizedDisplayName == inf.network
-			}
-
-			if let interface = foundInterface {
-				if vmNetworking {
-					return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
-				} else {
-					return VMNetworkInterface(interface: interface, macAddress: macAddress)
-				}
-			} else if let networkConfig = networkConfig.sharedNetworks[inf.network] {
+			if let networkConfig = sharedNetworks[inf.network] {
 				return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
+			} else {
+				let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
+					$0.identifier == inf.network || $0.localizedDisplayName == inf.network
+				}
+
+				if let interface = foundInterface {
+					if vmNetworking {
+						return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
+					} else {
+						return VMNetworkInterface(interface: interface, macAddress: macAddress)
+					}
+				}
 			}
 
+			// If we reach this point, the network interface was not found
 			Logger(self).warn("Network interface \(inf.network) not found")
 
 			return nil

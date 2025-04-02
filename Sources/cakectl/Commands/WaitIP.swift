@@ -4,7 +4,7 @@ import GRPC
 import GRPCLib
 
 struct WaitIP: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait IP for running VM")
+	static let configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait IP for running VM")
 
 	@OptionGroup var options: Client.Options
 

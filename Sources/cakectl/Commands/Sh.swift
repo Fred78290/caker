@@ -7,7 +7,7 @@ import NIOPosix
 import NIOSSL
 
 struct Sh: AsyncGrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
+	static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
 
 	@OptionGroup var options: Client.Options
 

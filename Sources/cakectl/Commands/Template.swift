@@ -4,11 +4,11 @@ import GRPCLib
 import GRPC
 
 struct Template: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Manage simplestream remote",
+	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
 	                                                subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
 
 	struct CreateTemplate : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "create", abstract: "Add new remote servers")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "create", abstract: "Add new remote servers")
 
 		@OptionGroup var options: Client.Options
 
@@ -27,7 +27,7 @@ struct Template: ParsableCommand {
 	}
 
 	struct DeleteTemplate : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
 
 		@OptionGroup var options: Client.Options
 
@@ -43,7 +43,7 @@ struct Template: ParsableCommand {
 	}
 
 	struct ListTemplate : GrpcParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
 
 		@OptionGroup var options: Client.Options
 

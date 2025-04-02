@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Rename: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Rename a local VM")
+	static let configuration = CommandConfiguration(abstract: "Rename a local VM")
 
 	@OptionGroup var options: Client.Options
 

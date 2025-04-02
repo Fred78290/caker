@@ -8,7 +8,7 @@ import NIO
 import TextTable
 
 struct Mount: ParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
+	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
@@ -19,7 +19,7 @@ struct Mount: ParsableCommand {
 	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))
+	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
 	var mounts: [DirectorySharingAttachment] = []
 
 	mutating public func validate() throws {

@@ -10,7 +10,7 @@ import System
 struct VMRun: AsyncParsableCommand {
 	static var launchedFromService = false
 
-	static var configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
+	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
 	@Argument(help: "Path to the VM disk.img or his name")
 	var path: String

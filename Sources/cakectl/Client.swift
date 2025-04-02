@@ -207,7 +207,7 @@ struct Client: AsyncParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	static var configuration = CommandConfiguration(
+	static let configuration = CommandConfiguration(
 		commandName: "cakectl",
 		version: CI.version,
 		subcommands: [

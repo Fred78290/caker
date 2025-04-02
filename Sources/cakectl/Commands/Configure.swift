@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Configure: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Reconfigure VM")
+	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
 
 	@OptionGroup var options: Client.Options
 	@OptionGroup var configure: ConfigureOptions

@@ -22,7 +22,7 @@ protocol PurgeableStorage {
 	func purgeables() throws -> [Purgeable]
 }
 
-class CacheError : Error {
+final class CacheError : Error, Sendable {
 	let description: String
 
 	init(_ what: String) {

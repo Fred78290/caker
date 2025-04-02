@@ -5,7 +5,7 @@ import GRPCLib
 import GRPC
 
 struct Login: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Login to a registry")
+	static let configuration = CommandConfiguration(abstract: "Login to a registry")
 
 	@OptionGroup var options: Client.Options
 

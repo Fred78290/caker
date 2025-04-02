@@ -5,7 +5,7 @@ import GRPCLib
 import TextTable
 
 struct List: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "List all VMs")
+	static let configuration = CommandConfiguration(abstract: "List all VMs")
 
 	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text

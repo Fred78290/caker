@@ -6,7 +6,7 @@ import GRPC
 import Logging
 
 struct Login: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Login to a registry")
+	static let configuration = CommandConfiguration(abstract: "Login to a registry")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

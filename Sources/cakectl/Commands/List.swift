@@ -5,7 +5,7 @@ import GRPCLib
 import GRPC
 
 struct List: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "List created VMs")
+	static let configuration = CommandConfiguration(abstract: "List created VMs")
 
 	@OptionGroup var options: Client.Options
 

@@ -2,7 +2,7 @@ import Foundation
 import Algorithms
 import AsyncAlgorithms
 
-class DownloadDelegate: NSObject, URLSessionTaskDelegate {
+final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
   let progress: Progress
   init(_ progress: Progress) throws {
 	self.progress = progress

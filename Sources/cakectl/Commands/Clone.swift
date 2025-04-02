@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Clone: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(
+	static let configuration = CommandConfiguration(
 		abstract: "Clone a VM",
 		discussion: """
 		Creates a local virtual machine by cloning either a remote or another local virtual machine.

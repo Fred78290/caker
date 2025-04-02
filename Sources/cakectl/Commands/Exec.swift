@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Exec: AsyncGrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "exec", abstract: "Run a shell command in a VM")
+	static let configuration = CommandConfiguration(commandName: "exec", abstract: "Run a shell command in a VM")
 
 	@OptionGroup var options: Client.Options
 

@@ -6,7 +6,7 @@ import GRPC
 import Logging
 
 struct Logout: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Logout from a registry")
+	static let configuration = CommandConfiguration(abstract: "Logout from a registry")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

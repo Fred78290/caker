@@ -8,7 +8,7 @@ import NIO
 import TextTable
 
 struct Umount: ParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "umount", abstract: "Unmount a directory share from a VM")
+	static let configuration = CommandConfiguration(commandName: "umount", abstract: "Unmount a directory share from a VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info

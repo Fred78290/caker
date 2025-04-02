@@ -45,7 +45,8 @@ struct VMBuilder {
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 		config.forwardedPorts = options.forwardedPorts
-
+		config.instanceID = UUID().uuidString
+		
 		try config.save()
 
 		if config.os == .linux && config.useCloudInit {

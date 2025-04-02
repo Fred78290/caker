@@ -43,7 +43,7 @@ struct StartHandler: CakedCommand {
 		self.startMode = startMode
 	}
 
-	private class StartHandlerVMRun {
+	private final class StartHandlerVMRun: Sendable {
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
@@ -104,7 +104,7 @@ struct StartHandler: CakedCommand {
 		}
 	}
 
-	private class StartHandlerTart {
+	private final class StartHandlerTart: @unchecked Sendable {
 		var identifier: String? = nil
 
 		private func runningArguments(vmLocation: VMLocation, startMode: StartMode) throws -> ([String], [Int32]) {
@@ -272,10 +272,6 @@ struct StartHandler: CakedCommand {
 
 	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {
 		let process = ProcessWithSharedFileHandle()
-		var environment = ProcessInfo.processInfo.environment
-		let cakeHome = try Utils.getHome(asSystem: runAsSystem)
-
-		environment["TART_HOME"] = cakeHome.path
 
 		if startMode == .foreground || startMode == .attach {
 			let outputPipe = Pipe()
@@ -298,7 +294,7 @@ struct StartHandler: CakedCommand {
 			process.standardInput = FileHandle.nullDevice
 		}
 
-		process.environment = environment
+		process.environment = try Root.environment()
 		process.sharedFileHandles = sharedFileDescriptors?.map { FileHandle(fileDescriptor: $0, closeOnDealloc: true) }
 		process.arguments = [ "-c", arguments.joined(separator: " ")]
 		process.executableURL = URL(fileURLWithPath: "/bin/sh")

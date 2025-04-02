@@ -17,7 +17,7 @@ protocol HasExitCode {
 }
 
 
-class ServiceError : Error, CustomStringConvertible {
+class ServiceError : Error, CustomStringConvertible, Equatable {
 	let description: String
 	let exitCode: Int32
 
@@ -30,8 +30,15 @@ class ServiceError : Error, CustomStringConvertible {
 		self.description = what
 		self.exitCode = code
 	}
-}
 
+    public static func != (lhs: ServiceError, rhs: ServiceError) -> Bool {
+		return lhs.description != rhs.description && lhs.exitCode != rhs.exitCode
+	}
+
+	public static func == (lhs: ServiceError, rhs: ServiceError) -> Bool {
+		return lhs.description == rhs.description && lhs.exitCode == rhs.exitCode
+	}
+}
 struct Certs {
 	let ca: String?
 	let key: String?
@@ -39,7 +46,7 @@ struct Certs {
 }
 
 struct Service: ParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "caked as launchctl agent",
+	static let configuration = CommandConfiguration(abstract: "caked as launchctl agent",
 	                                                subcommands: [Install.self, Listen.self, Show.self])
 	static let SyncSemaphore = DispatchSemaphore(value: 0)
 
@@ -80,7 +87,7 @@ extension Service {
 		}
 	}
 	struct Install : ParsableCommand {    
-		static var configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
+		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -196,7 +203,7 @@ extension Service {
 	}
 
 	struct Listen : AsyncParsableCommand {
-		static var configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
+		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -354,7 +361,7 @@ extension Service {
 	}
 
 	struct Show : ParsableCommand {    
-		static var configuration = CommandConfiguration(abstract: "Help to run caked daemon")
+		static let configuration = CommandConfiguration(abstract: "Help to run caked daemon")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info

@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Stop: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "stop", abstract: "Stop a VM")
+	static let configuration = CommandConfiguration(commandName: "stop", abstract: "Stop a VM")
 
 	@OptionGroup var options: Client.Options
 

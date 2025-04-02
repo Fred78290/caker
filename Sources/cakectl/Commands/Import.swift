@@ -4,7 +4,7 @@ import GRPCLib
 import GRPC
 
 struct Import: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(abstract: "Import VM from a compressed .tvm file")
+	static let configuration = CommandConfiguration(abstract: "Import VM from a compressed .tvm file")
 
 	@OptionGroup var options: Client.Options
 

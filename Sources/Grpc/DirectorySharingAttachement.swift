@@ -4,7 +4,7 @@ import ArgumentParser
 
 public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
-public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
+public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable {
 	public let readOnly: Bool
 	
 	let _name: String?

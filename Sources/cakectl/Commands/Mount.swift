@@ -5,7 +5,7 @@ import GRPCLib
 import GRPC
 
 struct Mount: GrpcParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
+	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
 
 	@OptionGroup var options: Client.Options
 
