@@ -25,6 +25,10 @@ extension IP.Block<IP.V4> {
 	@inlinable public static var loopback:IP.Block<IP.V4> {
 		.init(base: .localhost, bits: 8)
 	}
+
+	@inlinable public var network:IP.Block<IP.V4> {
+		IP.Block<IP.V4>(base: self.base.zeroMasked(to: self.bits), bits: self.bits)
+	}
 }
 
 extension IP.Block {
@@ -34,10 +38,6 @@ extension IP.Block {
 
 	@inlinable public var range:ClosedRange<Base> {
 		self.base ... self.base.onesMasked(to: self.bits)
-	}
-
-	@inlineable public var network:IP.Block<Base> {
-		IP.Block<Base>(base: $0.base.zeroMasked(to: $0.bits), bits: $0.bits)
 	}
 }
 
