@@ -7,77 +7,77 @@ import System
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
 private let cloudimage_help =
-"""
+	"""
 
-The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
-The url image form are:
-  - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
-  - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
-  - lxc images: images:ubuntu/noble/cloud, see remote command for detail
-If tart is installed, you can use tart images:
-  - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
-  - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
+	The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
+	The url image form are:
+	  - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
+	  - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+	  - lxc images: images:ubuntu/noble/cloud, see remote command for detail
+	If tart is installed, you can use tart images:
+	  - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
+	  - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
 
-"""
+	"""
 
 public let mount_help =
-"""
+	"""
 
-Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build:/opt/build\" or --mount=\"~/src/sources:/opt/sources,ro,name=Sources\")"
-The options are:
-  - ro: read-only
-  - name=name of the share
-  - uid=user id
-  - gid=group id
+	Additional directory shares with an optional read-only and mount tag options (e.g. --mount=\"~/src/build:/opt/build\" or --mount=\"~/src/sources:/opt/sources,ro,name=Sources\")"
+	The options are:
+	  - ro: read-only
+	  - name=name of the share
+	  - uid=user id
+	  - gid=group id
 
-"""
+	"""
 
 private let network_help =
-"""
+	"""
 
-Add a network interface to the instance, where
-<spec> is in the \"key=value,key=value\" format,
-with the following keys available:
-name: the network to connect to (required), use
-the networks command for a list of possible values.
- - mode: auto|manual (default: auto)
- - mac: hardware address (default: random).
-You can also use a shortcut of \"<name>\" to mean \"name=<name>\".
+	Add a network interface to the instance, where
+	<spec> is in the \"key=value,key=value\" format,
+	with the following keys available:
+	name: the network to connect to (required), use
+	the networks command for a list of possible values.
+	 - mode: auto|manual (default: auto)
+	 - mac: hardware address (default: random).
+	You can also use a shortcut of \"<name>\" to mean \"name=<name>\".
 
-"""
+	"""
 
 private let socket_help =
-"""
+	"""
 
-The socket option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
-The mode is as follows:
-  - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
+	The socket option allows to create a virtio socket between the guest and the host. the port number to use for the connection must be greater than 1023.
+	The mode is as follows:
+	  - bind: creates a socket file on the host and listens for connections eg. bind://vsock:1234/tmp/unix_socket. The VM must listen the vsock port number.
 
-  - connect: uses an existing socket file on the host,
-    eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
+	  - connect: uses an existing socket file on the host,
+	    eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
 
-  - tcp:     listen TCP on address. The VM must listen on the same port number,
-    eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
+	  - tcp:     listen TCP on address. The VM must listen on the same port number,
+	    eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
 
-  - udp:     listen UDP on address. The VM must listen on the same port number,
-    eg. udp://127.0.0.1:1234, udp://[::1]:1234
+	  - udp:     listen UDP on address. The VM must listen on the same port number,
+	    eg. udp://127.0.0.1:1234, udp://[::1]:1234
 
-  - fd:      use file descriptor. The VM must connect on the same port number,
-    eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
-    not supported with cakectl and with command build
+	  - fd:      use file descriptor. The VM must connect on the same port number,
+	    eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
+	    not supported with cakectl and with command build
 
-"""
+	"""
 
 private let console_help =
-"""
+	"""
 
-  - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
-  - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
-  - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
-  - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
-    ** INFO: The console doesn't work on MacOS sonoma and earlier  **
+	  - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+	  - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
+	  - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+	  - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
+	    ** INFO: The console doesn't work on MacOS sonoma and earlier  **
 
-"""
+	"""
 
 import Security
 
@@ -177,6 +177,54 @@ public struct Utils {
 		try data.write(to: url)
 
 		return url.absoluteURL.path
+	}
+
+}
+
+public struct NetworkCreateOptions: ParsableArguments, Sendable {
+	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
+	public var name: String
+	
+	@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
+	public var gateway: String = "192.168.105.1"
+	
+	@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
+	public var dhcpEnd: String = "192.168.105.254"
+	
+	@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
+	public var subnetMask = "255.255.255.0"
+	
+	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
+	public var interfaceID = UUID().uuidString
+	
+	@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
+	public var nat66Prefix: String? = nil
+	
+	public init() {
+	}
+
+}
+
+public struct NetworkConfigureOptions: ParsableArguments, Sendable {
+	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
+	public var name: String
+	
+	@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\""))
+	public var gateway: String? = nil
+	
+	@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
+	public var dhcpEnd: String? = nil
+	
+	@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
+	public var subnetMask: String? = nil
+	
+	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
+	public var interfaceID: String? = nil
+	
+	@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
+	public var nat66Prefix: String? = nil
+	
+	public init() {
 	}
 
 }
@@ -454,7 +502,7 @@ public struct BuildOptions: ParsableArguments {
 	}
 
 	public init(name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
-				attachedDisks: [DiskAttachement] = [],
+	            attachedDisks: [DiskAttachement] = [],
 	            user: String = "admin",
 	            password: String? = "nil",
 	            mainGroup: String = "admin",
@@ -691,7 +739,7 @@ public extension String {
 		return self
 	}
 
-	 init(errno: Errno) {
+	init(errno: Errno) {
 		self = String(cString: strerror(errno.rawValue))
 	}
 

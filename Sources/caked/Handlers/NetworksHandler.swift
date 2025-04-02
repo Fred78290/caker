@@ -336,6 +336,7 @@ struct NetworksHandler: CakedCommandAsync {
 
 		if socketURL.1.isPIDRunning() {
 			Logger(self).info("\(socketURL.1.path) is already running")
+			return
 		}
 
 		_ = try Self.start(networkName: networkName, asSystem: runAsSystem)

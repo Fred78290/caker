@@ -269,7 +269,7 @@ struct StartHandler: CakedCommand {
 			}
 		}
 
-		return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .background, promise: promise)
+		return try StartHandler.startVM(vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, promise: promise)
 	}
 
 	private static func runProccess(arguments: [String], sharedFileDescriptors: [Int32]?, startMode: StartMode, terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?) throws -> ProcessWithSharedFileHandle {

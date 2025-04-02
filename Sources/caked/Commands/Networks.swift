@@ -64,23 +64,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
-		var name: String
-
-		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
-		var gateway: String = "192.168.105.1"
-
-		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
-		var dhcpEnd: String = "192.168.105.254"
-
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
-		var subnetMask = "255.255.255.0"
-
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
-		var interfaceID = UUID().uuidString
-
-		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
-		var nat66Prefix: String? = nil
+		@OptionGroup var options: GRPCLib.NetworkCreateOptions
 
 		var createdNetwork: VZSharedNetwork? = nil
 
@@ -88,20 +72,20 @@ struct Networks: ParsableCommand {
 			let home: Home = try Home(asSystem: runAsSystem)
 			let networkConfig = try home.sharedNetworks()
 
-			if networkConfig.sharedNetworks[self.name] != nil {
-				throw ValidationError("Network \(self.name) already exist")
+			if networkConfig.sharedNetworks[self.options.name] != nil {
+				throw ValidationError("Network \(self.options.name) already exist")
 			}
 
-			if NetworksHandler.isPhysicalInterface(name: self.name) {
-				throw ValidationError("Network \(self.name) is a physical interface")
+			if NetworksHandler.isPhysicalInterface(name: self.options.name) {
+				throw ValidationError("Network \(self.options.name) is a physical interface")
 			}
 
 			let network = VZSharedNetwork(
-				netmask: self.subnetMask,
-				dhcpStart: self.gateway,
-				dhcpEnd: self.dhcpEnd,
-				uuid: self.interfaceID,
-				nat66Prefix: self.nat66Prefix
+				netmask: self.options.subnetMask,
+				dhcpStart: self.options.gateway,
+				dhcpEnd: self.options.dhcpEnd,
+				uuid: self.options.interfaceID,
+				nat66Prefix: self.options.nat66Prefix
 			)
 
 			try network.validate()
@@ -110,8 +94,8 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			try NetworksHandler.create(networkName: self.name, network: self.createdNetwork!, asSystem: self.asSystem)
-			print("Network \(self.name) created")
+			try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem)
+			print("Network \(self.options.name) created")
 		}
 	}
 
@@ -124,23 +108,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
-		var name: String
-
-		@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\""))
-		var gateway: String? = nil
-
-		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
-		var dhcpEnd: String? = nil
-
-		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
-		var subnetMask: String? = nil
-
-		@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
-		var interfaceID: String? = nil
-
-		@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
-		var nat66Prefix: String? = nil
+		@OptionGroup var options: GRPCLib.NetworkConfigureOptions
 
 		var changedNetwork: VZSharedNetwork? = nil
 
@@ -148,20 +116,20 @@ struct Networks: ParsableCommand {
 			let home: Home = try Home(asSystem: runAsSystem)
 			let networkConfig = try home.sharedNetworks()
 
-			if NetworksHandler.isPhysicalInterface(name: self.name) {
-				throw ValidationError("Unable to configure physical network \(self.name)")
+			if NetworksHandler.isPhysicalInterface(name: self.options.name) {
+				throw ValidationError("Unable to configure physical network \(self.options.name)")
 			}
 
-			guard let existing = networkConfig.sharedNetworks[self.name] else {
-				throw ValidationError("Network \(self.name) does not exist")
+			guard let existing = networkConfig.sharedNetworks[self.options.name] else {
+				throw ValidationError("Network \(self.options.name) does not exist")
 			}
 
 			let changed = VZSharedNetwork(
-				netmask: self.subnetMask ?? existing.netmask,
-				dhcpStart: self.gateway ?? existing.dhcpStart,
-				dhcpEnd: self.dhcpEnd ?? existing.dhcpEnd,
-				uuid: self.interfaceID ?? existing.uuid,
-				nat66Prefix: self.nat66Prefix ?? existing.nat66Prefix
+				netmask: self.options.subnetMask ?? existing.netmask,
+				dhcpStart: self.options.gateway ?? existing.dhcpStart,
+				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
+				uuid: self.options.interfaceID ?? existing.uuid,
+				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
 			)
 
 			try changed.validate()
@@ -171,8 +139,8 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			try NetworksHandler.configure(networkName: self.name, network: self.changedNetwork!, asSystem: self.asSystem)
-			print("Network \(self.name) reconfigured")
+			try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem)
+			print("Network \(self.options.name) reconfigured")
 		}
 	}
 

@@ -595,8 +595,8 @@ class CloudInit {
 		              networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil)
 	}
 
-	private func createMetaData(hostname: String) throws -> Data {
-		guard let metadata = "local-hostname: \(hostname)\n".data(using: .ascii) else {
+	private func createMetaData(hostname: String, instanceID: String) throws -> Data {
+		guard let metadata = "instance-id: \(instanceID)\nlocal-hostname: \(hostname)\n".data(using: .ascii) else {
 			throw CloudInitGenerateError("unable to encode metada")
 		}
 
@@ -770,7 +770,7 @@ class CloudInit {
 
 		seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
 		seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
-		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name))
+		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name, instanceID: config.instanceID))
 		seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
 		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config))
 

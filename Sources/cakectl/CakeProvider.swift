@@ -338,12 +338,12 @@ extension Caked_NetworkRequest {
 		self.format = command.format == .text ? .text : .json
 		self.command = .create
 		self.create = Caked_CreateNetworkRequest.with {
-			$0.name = command.name
-			$0.gateway = command.gateway
-			$0.dhcpEnd = command.dhcpEnd
-			$0.netmask = command.subnetMask
-			$0.uuid = command.interfaceID
-			if let nat66Prefix = command.nat66Prefix {
+			$0.name = command.networkOptions.name
+			$0.gateway = command.networkOptions.gateway
+			$0.dhcpEnd = command.networkOptions.dhcpEnd
+			$0.netmask = command.networkOptions.subnetMask
+			$0.uuid = command.networkOptions.interfaceID
+			if let nat66Prefix = command.networkOptions.nat66Prefix {
 				$0.nat66Prefix = nat66Prefix
 			}
 		}
@@ -355,20 +355,20 @@ extension Caked_NetworkRequest {
 		self.format = command.format == .text ? .text : .json
 		self.command = .configure
 		self.configure = Caked_ConfigureNetworkRequest.with {
-			$0.name = command.name
-			if let gateway = command.gateway {
+			$0.name = command.networkOptions.name
+			if let gateway = command.networkOptions.gateway {
 				$0.gateway = gateway
 			}
-			if let dhcpEnd = command.dhcpEnd {
+			if let dhcpEnd = command.networkOptions.dhcpEnd {
 				$0.dhcpEnd = dhcpEnd
 			}
-			if let subnetMask = command.subnetMask {
+			if let subnetMask = command.networkOptions.subnetMask {
 				$0.netmask = subnetMask
 			}
-			if let interfaceID = command.interfaceID {
+			if let interfaceID = command.networkOptions.interfaceID {
 				$0.uuid = interfaceID
 			}
-			if let nat66Prefix = command.nat66Prefix {
+			if let nat66Prefix = command.networkOptions.nat66Prefix {
 				$0.nat66Prefix = nat66Prefix
 			}
 		}
