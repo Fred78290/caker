@@ -50,6 +50,8 @@ struct StartHandler: CakedCommand {
 			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path]
 			var sharedFileDescriptors: [Int32] = []
 
+			try config.startNetworkServices()
+
 			if startMode == .background {
 				arguments.append(contentsOf: ["2>&1", ">", log])
 			} else if startMode == .foreground{

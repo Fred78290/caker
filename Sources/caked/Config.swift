@@ -402,6 +402,31 @@ final class CakeConfig{
 }
 
 extension CakeConfig {
+	func startNetworkServices() throws {
+		let vmNetworking: Bool
+		let home: Home = try Home(asSystem: runAsSystem)
+		let networkConfig = try home.sharedNetworks()
+		let sharedNetworks = networkConfig.sharedNetworks
+
+		if let profile = try? EmbedProvisionProfile.load() {
+			vmNetworking = profile.entitlements.vmNetworking
+		} else {
+			vmNetworking = false
+		}
+
+		try self.networks.forEach { inf in
+			if inf.network != "nat" && inf.network != "NAT shared network" {
+				let physicalInterface = NetworksHandler.isPhysicalInterface(name: inf.network)
+
+				if sharedNetworks[inf.network] == nil && physicalInterface == false {
+					Logger(self).error("Network interface \(inf.network) not found")
+				} else if (physicalInterface && vmNetworking) == false {
+					try NetworksHandler.startNetworkService(networkName: inf.network)
+				}
+			}
+		}
+	}
+
 	func collectNetworks() throws -> [NetworkAttachement] {
 		if networks.isEmpty {
 			if let macAddress = self.macAddress {

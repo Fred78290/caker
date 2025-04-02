@@ -331,6 +331,16 @@ struct NetworksHandler: CakedCommandAsync {
 		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
 	}
 
+	static func startNetworkService(networkName: String) throws {
+		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
+
+		if socketURL.1.isPIDRunning() {
+			Logger(self).info("\(socketURL.1.path) is already running")
+		}
+
+		_ = try Self.start(networkName: networkName, asSystem: runAsSystem)
+	}
+
 	static func checkIfSudoable(binary: URL) throws -> Bool {
 		if geteuid() == 0 {
 			return true
