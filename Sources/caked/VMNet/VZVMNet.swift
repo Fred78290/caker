@@ -39,11 +39,11 @@ class VZVMNet: @unchecked Sendable {
 	internal let eventLoop: EventLoop
 	internal let mode: VMNetMode
 	internal let networkInterface: String?
-	internal let gateway: String?
-	internal let dhcpEnd: String?
-	internal let subnetMask: String
-	internal let interfaceID: String
-	internal let nat66Prefix: String?
+	internal var gateway: String?
+	internal var dhcpEnd: String?
+	internal var subnetMask: String
+	internal var interfaceID: String
+	internal var nat66Prefix: String?
 	internal var iface: interface_ref?
 	internal var max_bytes: UInt64 = 2048
 	internal let hostQueue: DispatchQueue
@@ -130,6 +130,19 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
+	func reconfigure(gateway: String, dhcpEnd: String, subnetMask: String, interfaceID: String, nat66Prefix: String?) throws {
+		self.gateway = gateway
+		self.dhcpEnd = dhcpEnd
+		self.subnetMask = subnetMask
+		self.interfaceID = interfaceID
+		self.nat66Prefix = nat66Prefix
+
+		if self.iface != nil {
+			self.stopInterface()
+		}
+
+		try self.setupInterface()
+	}
 
 	internal func print_vmnet_start_param(params: xpc_object_t?) {
 		guard let params = params else {
@@ -254,7 +267,7 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	func startInterface() throws {
+	func setupInterface() throws {
 		let dict: xpc_object_t = xpc_dictionary_create(nil, nil, 0)
 		let semaphore = DispatchSemaphore(value: 0)
 		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
@@ -308,7 +321,27 @@ class VZVMNet: @unchecked Sendable {
 			let estim_count = xpc_dictionary_get_uint64(event, vmnet_estimated_packets_available_key)
 			self.vmnetPacketAvailable(estim_count)
 		}
+	}
 
+	func stopInterface() {
+		if let iface = self.iface {
+			let semaphore = DispatchSemaphore(value: 0)
+			let status = vmnet_stop_interface(iface, hostQueue) { status in
+				semaphore.signal()
+			}
+
+			semaphore.wait()
+
+			if status != .VMNET_SUCCESS {
+				self.logger.error("Failed to stop interface \(status.stringValue)")
+			}
+		
+			self.iface = nil
+		}
+	}
+
+	func startInterface() throws {
+		try setupInterface()
 		setupSignals()
 	}
 

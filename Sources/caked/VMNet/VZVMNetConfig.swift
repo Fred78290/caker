@@ -4,6 +4,7 @@ struct VZSharedNetwork: Codable {
 	let netmask: String
 	let dhcpStart: String
 	let dhcpEnd: String
+	let dhcpLease: Int32?
 	let uuid: String?
 	let nat66Prefix: String?
 
@@ -11,6 +12,7 @@ struct VZSharedNetwork: Codable {
 		case netmask = "netmask"
 		case dhcpStart = "dhcp-start"
 		case dhcpEnd = "dhcp-end"
+		case dhcpLease = "dhcp-lease"
 		case uuid = "uuid"
 		case nat66Prefix = "nat66-prefix"
 	}
@@ -40,6 +42,12 @@ struct VZSharedNetwork: Codable {
 
 		guard networks.first(where: { $0.contains(gateway)}) == nil else {
 			throw ServiceError("Gateway \(dhcpStart) is already in use")
+		}
+
+		if let dhcpLease = dhcpLease {
+			guard dhcpLease > 24*3600 || dhcpLease < 60 else {
+				throw ServiceError("Invalid dhcp lease \(dhcpLease)")
+			}
 		}
 	}
 
@@ -115,7 +123,7 @@ struct VZSharedNetwork: Codable {
 	static func createNetwork(baseAddress: String, cidr: Int) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(segment: baseAddress)
 
-		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, uuid: UUID().uuidString, nat66Prefix: nil)
+		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, uuid: UUID().uuidString, nat66Prefix: nil)
 	}
 }
 

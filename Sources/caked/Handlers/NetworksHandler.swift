@@ -7,6 +7,7 @@ import TextTable
 import NIOPosix
 import Logging
 import vmnet
+import SystemConfiguration
 
 extension Caked_CreateNetworkRequest {
 	func toVZSharedNetwork() -> VZSharedNetwork {
@@ -14,8 +15,9 @@ extension Caked_CreateNetworkRequest {
 			netmask: self.netmask,
 			dhcpStart: self.gateway,
 			dhcpEnd: self.dhcpEnd,
-			uuid: self.uuid,
-			nat66Prefix: self.nat66Prefix
+			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
+			uuid: self.hasUuid ? self.uuid : UUID().uuidString,
+			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
 		)
 	}
 }
@@ -27,8 +29,9 @@ extension Caked_ConfigureNetworkRequest {
 			netmask: self.netmask,
 			dhcpStart: self.gateway,
 			dhcpEnd: self.dhcpEnd,
-			uuid: self.uuid,
-			nat66Prefix: self.nat66Prefix
+			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
+			uuid: self.hasUuid ? self.uuid : UUID().uuidString,
+			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
 		)
 	}
 }
@@ -72,14 +75,16 @@ struct UsedNetworkConfig {
 	var netmask: String? = nil
 	var dhcpStart: String? = nil
 	var dhcpEnd: String? = nil
+	var dhcpLease: Int32? = nil
 	var uuid: String? = UUID().uuidString
 	var nat66Prefix: String? = nil
 
-	init(networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, uuid: String? = nil, nat66Prefix: String? = nil) {
+	init(networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, dhcpLease: Int32?, uuid: String? = nil, nat66Prefix: String? = nil) {
 		self.networkName = networkName
 		self.netmask = netmask
 		self.dhcpStart = dhcpStart
 		self.dhcpEnd = dhcpEnd
+		self.dhcpLease = dhcpLease
 		self.uuid = uuid ?? UUID().uuidString
 		self.nat66Prefix = nat66Prefix
 	}
@@ -89,6 +94,7 @@ struct UsedNetworkConfig {
 		self.netmask = config?.netmask
 		self.dhcpStart = config?.dhcpStart
 		self.dhcpEnd = config?.dhcpEnd
+		self.dhcpLease = config?.dhcpLease
 		self.uuid = config?.uuid ?? UUID().uuidString
 		self.nat66Prefix = config?.nat66Prefix
 	}
@@ -137,6 +143,9 @@ struct NetworksHandler: CakedCommandAsync {
 		@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
 		var dhcpEnd: String? = nil
 
+		@Option(help: "DHCP lease time in seconds")
+		var dhcpLease: Int32? = nil
+
 		@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask\n", discussion: "requires --gateway to be specified"))
 		var subnetMask = "255.255.255.0"
 
@@ -168,6 +177,7 @@ struct NetworksHandler: CakedCommandAsync {
 				self.mode = .bridged
 				self.gateway = nil
 				self.dhcpEnd = nil
+				self.dhcpLease = nil
 				self.subnetMask = "255.255.255.0"
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
@@ -183,6 +193,7 @@ struct NetworksHandler: CakedCommandAsync {
 
 				self.gateway = network.dhcpStart
 				self.dhcpEnd = network.dhcpEnd
+				self.dhcpLease = network.dhcpLease
 				self.subnetMask = network.netmask
 				self.interfaceID = network.uuid ?? UUID().uuidString
 				self.nat66Prefix = network.nat66Prefix
@@ -262,6 +273,10 @@ struct NetworksHandler: CakedCommandAsync {
 					socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.networkName, asSystem: self.asSystem)
 				}
 
+				if let dhcpLease = self.dhcpLease {
+					try NetworksHandler.setDHCPLease(leaseTime: dhcpLease)
+				}
+
 				if try socketURL.0.exists() == false {
 					let vzvmnet = VZVMNetSocket(
 						on: Root.group.next(),
@@ -307,6 +322,20 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 	}
 
+	static func setDHCPLease(leaseTime: Int32) throws {
+		guard let ref = SCPreferencesCreate(nil, "caked" as CFString, "com.apple.InternetSharing.default.plist" as CFString) else {
+			throw ServiceError("Unable to create SCPreferences")
+		}
+
+		let lease = [
+			"DHCPLeaseTimeSecs" as CFString: leaseTime as CFNumber,
+		] as CFDictionary
+
+		SCPreferencesSetValue(ref, "bootpd" as CFString, lease)
+		SCPreferencesCommitChanges(ref)
+		SCPreferencesApplyChanges(ref)
+	}
+
 	static func isPhysicalInterface(name: String) -> Bool {
 		let interfaces = VZBridgedNetworkInterface.networkInterfaces
 
@@ -331,11 +360,25 @@ struct NetworksHandler: CakedCommandAsync {
 		return (networkDirectory.appendingPathComponent("vmnet.sock").absoluteURL, networkDirectory.appendingPathComponent("vmnet.pid").absoluteURL)
 	}
 
+	// Must be run as root
+	static func restartNetworkService(networkName: String) throws {
+		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
+
+		guard socketURL.1.isPIDRunning() else {
+			Logger(self).info("Network \(networkName) is not running")
+			return
+		}
+
+		if let pid = socketURL.1.readPID() {
+			kill(pid, SIGUSR2)
+		}
+	}
+
 	static func startNetworkService(networkName: String) throws {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
 
 		if socketURL.1.isPIDRunning() {
-			Logger(self).info("\(socketURL.1.path) is already running")
+			Logger(self).info("Network \(networkName) is already running")
 			return
 		}
 
@@ -635,6 +678,7 @@ struct NetworksHandler: CakedCommandAsync {
 		networkConfig.sharedNetworks[networkName] = network
 
 		try home.setSharedNetworks(networkConfig)
+		try self.restartNetworkService(networkName: networkName)
 	}
 
 	static func configure(network: UsedNetworkConfig, asSystem: Bool, fromService: Bool = false) throws {
@@ -653,6 +697,7 @@ struct NetworksHandler: CakedCommandAsync {
 			netmask: network.netmask ?? exisiting.netmask,
 			dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
 			dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
+			dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
 			uuid: network.uuid ?? exisiting.uuid,
 			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
 		)
@@ -729,8 +774,11 @@ struct NetworksHandler: CakedCommandAsync {
 		process.standardOutput = debug ? FileHandle.standardOutput : FileHandle.nullDevice
 		process.standardError = debug ? FileHandle.standardError : FileHandle.nullDevice
 		process.terminationHandler = { process in
-			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
-			kill(getpid(), SIGUSR2)
+			if process.terminationReason == .uncaughtSignal {
+				Logger(self).info("Network \(networkName) terminated: \(process.terminationStatus), \(process.terminationReason)")
+			} else {
+				Logger(self).info("Network \(networkName) exited: \(process.terminationStatus)")
+			}
 		}
 
 		try process.run()
@@ -738,7 +786,6 @@ struct NetworksHandler: CakedCommandAsync {
 
 		return socketURL
 	}
-
 
 	static func run(networkName: String, asSystem: Bool) throws -> (URL, URL) {
 		let home: Home = try Home(asSystem: runAsSystem)
@@ -794,6 +841,41 @@ struct NetworksHandler: CakedCommandAsync {
 
 	static func start(options: NetworksHandler.VMNetOptions) throws {
 		let vzvmnet = try options.createVZVMNet()
+		var signalReconfigure: DispatchSourceSignal? = nil
+
+		if NetworksHandler.isPhysicalInterface(name: options.networkName) == false {
+			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
+
+			sig.setEventHandler {
+				do {
+					Logger(self).info("Will reconfigure network: \(options.networkName)")
+
+					let reconfigureOption = try NetworksHandler.VMNetOptions(networkName: options.networkName, asSystem: false)
+
+					if let dhcpLease = options.dhcpLease {
+						try NetworksHandler.setDHCPLease(leaseTime: dhcpLease)
+					}
+
+					try? vzvmnet.1.reconfigure(gateway: reconfigureOption.gateway!,
+					                          dhcpEnd: reconfigureOption.dhcpEnd!,
+					                          subnetMask: reconfigureOption.subnetMask,
+					                          interfaceID: reconfigureOption.interfaceID,
+					                          nat66Prefix: reconfigureOption.nat66Prefix)
+				} catch {
+					Logger(self).error("Failed to reconfigure network: \(error)")
+					Foundation.exit(1)
+				}
+			}
+
+			sig.activate()
+			signalReconfigure = sig
+		}
+
+		defer {
+			if let sig = signalReconfigure {
+				sig.cancel()
+			}
+		}
 
 		try vzvmnet.1.start()
 	}
@@ -802,7 +884,41 @@ struct NetworksHandler: CakedCommandAsync {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 		let pidURL = socketURL.1
 
-		_ = pidURL.killPID(SIGTERM)
+		guard pidURL.isPIDRunning() else {
+			Logger(self).info("Network \(networkName) is not running")
+			return "Network \(networkName) is not running"
+		}
+
+		if geteuid() == 0 {
+			// We are running as root, so we can just kill the process
+			_ = pidURL.killPID(SIGTERM)
+		} else {
+			guard let executableURL = URL.binary("caked") else {
+				throw ServiceError("caked not found in path")
+			}
+
+			guard try checkIfSudoable(binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
+			// We are not running as root, so we need to use sudo to kill the process
+			guard let sudoURL = URL.binary("sudo") else {
+				throw ServiceError("sudo not found in path")
+			}
+
+			let process = Process()
+
+			process.executableURL = sudoURL
+			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", "pkill", "-TERM", "-F", "\(pidURL.path)"]
+			process.environment = try Root.environment()
+			process.standardInput = fromService ? FileHandle.nullDevice : FileHandle.standardInput
+			process.standardOutput = fromService ? FileHandle.nullDevice : FileHandle.standardOutput
+			process.standardError = fromService ? FileHandle.nullDevice : FileHandle.standardError
+
+			try process.run()
+
+			process.waitUntilExit()
+		}
 
 		return "stopped interface"
 	}

@@ -200,6 +200,9 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
 	public var nat66Prefix: String? = nil
 	
+	@Option(help: "DHCP lease time in seconds")
+	public var dhcpLease: Int32 = 300
+
 	public init() {
 	}
 
@@ -215,6 +218,9 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
 	public var dhcpEnd: String? = nil
 	
+	@Option(help: "DHCP lease time in seconds")
+	public var dhcpLease: Int32? = nil
+
 	@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
 	public var subnetMask: String? = nil
 	

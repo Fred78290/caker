@@ -426,7 +426,7 @@
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked exec linux ls",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "swift: Build Debug cakectl"
+			"preLaunchTask": "Build signed caked"
 		},
 		{
 			"type": "lldb",
@@ -507,8 +507,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl exec linux ls -- -al",
-			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
-			"preLaunchTask": "swift: Build Debug cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
+			"preLaunchTask": "Build signed cakectl"
 		},
 		{
 			"type": "lldb",
@@ -519,8 +519,21 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl shell linux",
-			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
-			"preLaunchTask": "swift: Build Debug cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
+			"preLaunchTask": "Build signed cakectl"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"networks",
+				"start",
+				"en0"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "cakectl networks start en0",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
+			"preLaunchTask": "Build signed cakectl"
 		},
 		{
 			"name": "-----------------------------------------------------------------------------"
@@ -532,7 +545,7 @@
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caked",
 			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"preLaunchTask": "Build signed cakectl"
 		},
 		{
 			"type": "lldb",

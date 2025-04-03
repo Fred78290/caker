@@ -12,10 +12,37 @@ struct Networks: ParsableCommand {
 	                                                                      	Networks.List.self,
 	                                                                      	Networks.Create.self,
 	                                                                      	Networks.Configure.self,
+	                                                                      	Networks.DHCPLease.self,
 	                                                                      	Networks.Delete.self,
 	                                                                      	Networks.Run.self,
 	                                                                      	Networks.Start.self,
 	                                                                      	Networks.Stop.self])
+	struct DHCPLease: ParsableCommand {
+		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to set the dhcp lease")
+
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Option(help: "DHCP lease time in seconds")
+		var dhcpLease: Int32 = 300
+
+		func validate() throws {
+			if geteuid() != 0 {
+				throw ValidationError("This command must be run as root")
+			}
+
+			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
+				print(ProcessInfo.processInfo.environment)
+				throw ValidationError("CAKE_HOME must be set to the correct location")
+			}
+
+			Logger.setLevel(self.logLevel)
+		}
+		
+		func run() throws {
+			try NetworksHandler.self.setDHCPLease(leaseTime: self.dhcpLease)
+		}
+	}
 
 	struct Start: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device. CAKE_HOME must be set to the correct location.")
@@ -84,6 +111,7 @@ struct Networks: ParsableCommand {
 				netmask: self.options.subnetMask,
 				dhcpStart: self.options.gateway,
 				dhcpEnd: self.options.dhcpEnd,
+				dhcpLease: self.options.dhcpLease,
 				uuid: self.options.interfaceID,
 				nat66Prefix: self.options.nat66Prefix
 			)
@@ -128,6 +156,7 @@ struct Networks: ParsableCommand {
 				netmask: self.options.subnetMask ?? existing.netmask,
 				dhcpStart: self.options.gateway ?? existing.dhcpStart,
 				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
+				dhcpLease: self.options.dhcpLease ?? existing.dhcpLease,
 				uuid: self.options.interfaceID ?? existing.uuid,
 				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
 			)
@@ -153,7 +182,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String
 
 		mutating func validate() throws {
@@ -211,7 +240,7 @@ struct Networks: ParsableCommand {
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
 
-		@Option(name: [.customLong("name")], help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
+		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
 		var networkName: String
 
 		func validate() throws {

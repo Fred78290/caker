@@ -104,6 +104,7 @@ message CreateNetworkRequest {
 	string netmask = 4;
 	optional string uuid = 5;
 	optional string nat66prefix = 6;
+	optional int32 dhcpLease = 7;
 }
 
 message ConfigureNetworkRequest {
@@ -113,6 +114,7 @@ message ConfigureNetworkRequest {
 	optional string netmask = 4;
 	optional string uuid = 5;
 	optional string nat66prefix = 6;
+	optional int32 dhcpLease = 7;
 }
 
 message NetworkRequest {

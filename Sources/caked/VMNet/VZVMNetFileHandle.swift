@@ -51,16 +51,7 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		try startInterface()
 
 		defer {
-			if let iface = self.iface {
-				let semaphore = DispatchSemaphore(value: 0)
-				let status = vmnet_stop_interface(iface, hostQueue) { status in
-					semaphore.signal()
-				}
-
-				if status != .VMNET_SUCCESS {
-					self.logger.error("Failed to stop interface \(status.stringValue)")
-				}
-			}
+			self.stopInterface()
 		}
 
 		self.logger.info("Will start pipe channel with fd=\(self.fileDescriptor)")

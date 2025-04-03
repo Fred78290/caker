@@ -5,7 +5,12 @@ import GRPCLib
 
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
-	                                                                      subcommands: [Networks.List.self, Networks.Create.self, Networks.Configure.self, Networks.Delete.self, Networks.Start.self, Networks.Stop.self])
+	                                                                      subcommands: [Networks.List.self,
+	                                                                                    Networks.Create.self,
+	                                                                                    Networks.Configure.self,
+	                                                                                    Networks.Delete.self,
+	                                                                                    Networks.Start.self,
+	                                                                                    Networks.Stop.self])
 
 	struct Create: GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Create named shared network")
@@ -43,7 +48,7 @@ struct Networks: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		@Option(name: [.customLong("name")], help: ArgumentHelp("Network name", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
@@ -59,7 +64,7 @@ struct Networks: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		@Option(name: [.customLong("name")], help: ArgumentHelp("Network name", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("network name", discussion: "network to start, e.g., \"en0\" or \"shared\""))
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
@@ -75,7 +80,7 @@ struct Networks: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		@Option(name: [.customLong("name")], help: ArgumentHelp("Network name", discussion: "The name for network"))
+		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

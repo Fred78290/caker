@@ -318,12 +318,22 @@ public struct Caked_CreateNetworkRequest: Sendable {
   /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
   public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
 
+  public var dhcpLease: Int32 {
+    get {return _dhcpLease ?? 0}
+    set {_dhcpLease = newValue}
+  }
+  /// Returns true if `dhcpLease` has been explicitly set.
+  public var hasDhcpLease: Bool {return self._dhcpLease != nil}
+  /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
+  public mutating func clearDhcpLease() {self._dhcpLease = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 
   fileprivate var _uuid: String? = nil
   fileprivate var _nat66Prefix: String? = nil
+  fileprivate var _dhcpLease: Int32? = nil
 }
 
 public struct Caked_ConfigureNetworkRequest: Sendable {
@@ -378,6 +388,15 @@ public struct Caked_ConfigureNetworkRequest: Sendable {
   /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
   public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
 
+  public var dhcpLease: Int32 {
+    get {return _dhcpLease ?? 0}
+    set {_dhcpLease = newValue}
+  }
+  /// Returns true if `dhcpLease` has been explicitly set.
+  public var hasDhcpLease: Bool {return self._dhcpLease != nil}
+  /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
+  public mutating func clearDhcpLease() {self._dhcpLease = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -387,6 +406,7 @@ public struct Caked_ConfigureNetworkRequest: Sendable {
   fileprivate var _netmask: String? = nil
   fileprivate var _uuid: String? = nil
   fileprivate var _nat66Prefix: String? = nil
+  fileprivate var _dhcpLease: Int32? = nil
 }
 
 public struct Caked_NetworkRequest: Sendable {
@@ -1918,6 +1938,7 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
     4: .same(proto: "netmask"),
     5: .same(proto: "uuid"),
     6: .same(proto: "nat66prefix"),
+    7: .same(proto: "dhcpLease"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1932,6 +1953,7 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
       case 4: try { try decoder.decodeSingularStringField(value: &self.netmask) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
+      case 7: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
       default: break
       }
     }
@@ -1960,6 +1982,9 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
     try { if let v = self._nat66Prefix {
       try visitor.visitSingularStringField(value: v, fieldNumber: 6)
     } }()
+    try { if let v = self._dhcpLease {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 7)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1970,6 +1995,7 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if lhs.netmask != rhs.netmask {return false}
     if lhs._uuid != rhs._uuid {return false}
     if lhs._nat66Prefix != rhs._nat66Prefix {return false}
+    if lhs._dhcpLease != rhs._dhcpLease {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1984,6 +2010,7 @@ extension Caked_ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._M
     4: .same(proto: "netmask"),
     5: .same(proto: "uuid"),
     6: .same(proto: "nat66prefix"),
+    7: .same(proto: "dhcpLease"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1998,6 +2025,7 @@ extension Caked_ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._M
       case 4: try { try decoder.decodeSingularStringField(value: &self._netmask) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
+      case 7: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
       default: break
       }
     }
@@ -2026,6 +2054,9 @@ extension Caked_ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._M
     try { if let v = self._nat66Prefix {
       try visitor.visitSingularStringField(value: v, fieldNumber: 6)
     } }()
+    try { if let v = self._dhcpLease {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 7)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2036,6 +2067,7 @@ extension Caked_ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._M
     if lhs._netmask != rhs._netmask {return false}
     if lhs._uuid != rhs._uuid {return false}
     if lhs._nat66Prefix != rhs._nat66Prefix {return false}
+    if lhs._dhcpLease != rhs._dhcpLease {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
