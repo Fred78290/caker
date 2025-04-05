@@ -768,9 +768,6 @@ struct NetworksHandler: CakedCommandAsync {
 			uuid: network.uuid ?? exisiting.uuid,
 			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
 		)
-print(network)
-print(changed)
-print(exisiting)
 
 		if changed != exisiting {
 			try changed.validate()
