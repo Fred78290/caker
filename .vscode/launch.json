@@ -188,7 +188,8 @@
 				"vmrun",
 				"linux",
 				"--display",
-				"--log-level=info", "-l"
+				"--log-level=info",
+				"-l"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux",
@@ -470,6 +471,19 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
+				"networks",
+				"configure",
+				"shared"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked networks configure shared",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
 			"name": "-----------------------------------------------------------------------------"
 		},
 		{
@@ -545,7 +559,7 @@
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caked",
 			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "Build signed cakectl"
+			"preLaunchTask": "swift: Build Debug caked"
 		},
 		{
 			"type": "lldb",

@@ -25,10 +25,10 @@ struct Clone: GrpcParsableCommand {
 	@Argument(help: "new VM name")
 	var newName: String
 
-	@Flag(help: "connect to the OCI registry via insecure HTTP protocol")
+	@Flag(help: "Connect to the OCI registry via insecure HTTP protocol")
 	var insecure: Bool = false
 
-	@Option(help: "network concurrency to use when pulling a remote VM from the OCI-compatible registry")
+	@Option(help: "Network concurrency to use when pulling a remote VM from the OCI-compatible registry")
 	var concurrency: UInt = 4
 
 	@Flag(help: .hidden)

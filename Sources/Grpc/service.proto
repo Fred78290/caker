@@ -320,6 +320,7 @@ message ExecuteResponse {
 		bytes stdout = 2;
 		bytes stderr = 3;
 		string failure = 4;
+		bool established = 5;
 	}
 }
 

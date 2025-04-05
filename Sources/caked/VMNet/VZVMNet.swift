@@ -131,6 +131,8 @@ class VZVMNet: @unchecked Sendable {
 	}
 
 	func reconfigure(gateway: String, dhcpEnd: String, subnetMask: String, interfaceID: String, nat66Prefix: String?) throws {
+		self.logger.info("Reconfiguring VMNet with new parameters")
+
 		self.gateway = gateway
 		self.dhcpEnd = dhcpEnd
 		self.subnetMask = subnetMask

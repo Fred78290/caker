@@ -14,7 +14,7 @@ struct Start: ParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	@Option(help:"Maximum of seconds to getting IP")
+	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var waitIPTimeout = 180
 
 	mutating func validate() throws {

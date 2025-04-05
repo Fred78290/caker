@@ -10,7 +10,7 @@ struct WaitIP: ParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	@Option(help: "Number of seconds to wait for a potential VM booting")
+	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var wait: Int = 0
 
 	func validate() throws {

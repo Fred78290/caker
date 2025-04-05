@@ -80,6 +80,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	var exitCode: Int32 = 0
 	var receivedLength: UInt64 = 0
 	let semaphore = AsyncSemaphore(value: 0)
+	var term: termios? = nil
 
 	enum ExecuteCommand: Equatable, Sendable {
 		case execute(String, [String])
@@ -132,11 +133,17 @@ final class CakedChannelStreamer: @unchecked Sendable {
 				self.receivedLength += UInt64(datas.count)
 				#if TRACE
 					redbold("message length: \(datas.count), receivedLength=\(self.receivedLength)")
-				#else
-					try self.outputHandle.write(contentsOf: datas)
 				#endif
+				try self.outputHandle.write(contentsOf: datas)
 			} else if case let .stderr(datas) = response.response {
 				try self.errorHandle.write(contentsOf: datas)
+			} else if case .established = response.response {
+				#if TRACE
+					redbold("channel established")
+				#endif
+				if self.inputHandle.isTTY() {
+					term = self.inputHandle.makeRaw()
+				}
 			}
 		} catch {
 			if error is CancellationError == false {
@@ -158,10 +165,9 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	func stream(command: ExecuteCommand, handler: @escaping () -> CakedExecuteStream) async throws -> Int32 {
 		let shellStream: CakedExecuteStream = handler()
 		let sigwinch: DispatchSourceSignal?
-		var term: termios? = nil
 		
 		defer {
-			if var term = term {
+			if var term = self.term {
 				inputHandle.restoreState(&term)
 			}
 		}
@@ -219,10 +225,6 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		}
 
 		self.pipeChannel = try await shellStream.subchannel.flatMapThrowing { streamChannel in
-			if self.inputHandle.isTTY() {
-				term = self.inputHandle.makeRaw()
-			}
-
 			return Task {
 				return try await NIOPipeBootstrap(group: streamChannel.eventLoop)
 					.takingOwnershipOfDescriptor(input: fd) { pipeChannel in

@@ -311,6 +311,8 @@ final class CakeAgentConnection: Sendable {
 						reply.stdout = stdout
 					case .stderr(let stderr):
 						reply.stderr = stderr
+					case .established:
+						reply.established = true
 					case .none:
 						break
 					}

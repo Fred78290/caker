@@ -9,7 +9,7 @@ struct Logout: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Argument(help: "host")
+	@Argument(help: "Host")
 	var host: String
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

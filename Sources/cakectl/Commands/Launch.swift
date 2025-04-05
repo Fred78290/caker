@@ -9,7 +9,7 @@ struct Launch : GrpcParsableCommand {
 	@OptionGroup var options: Client.Options
 	@OptionGroup var buildOptions: GRPCLib.BuildOptions
 
-	@Option(help:"Maximum of seconds to getting IP")
+	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var waitIPTimeout = 180
 
 	mutating func validate() throws {

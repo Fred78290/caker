@@ -122,8 +122,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem)
-			print("Network \(self.options.name) created")
+			print(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem))
 		}
 	}
 
@@ -161,15 +160,16 @@ struct Networks: ParsableCommand {
 				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
 			)
 
-			try changed.validate()
+			if existing != changed {
+				try changed.validate()
+			}
 
 			self.changedNetwork = changed
 			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem)
-			print("Network \(self.options.name) reconfigured")
+			print(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem))
 		}
 	}
 
@@ -201,8 +201,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			try NetworksHandler.delete(networkName: self.name, asSystem: self.asSystem)
-			print("Network \(self.name) deleted")
+			print(try NetworksHandler.delete(networkName: self.name, asSystem: self.asSystem))
 		}
 	}
 

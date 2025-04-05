@@ -56,13 +56,13 @@ private let socket_help =
 	  - connect: uses an existing socket file on the host,
 	    eg. connect://vsock:1234/tmp/unix_socket. The VM must connect on vsock port number.
 
-	  - tcp:     listen TCP on address. The VM must listen on the same port number,
+	  - tcp: listen TCP on address. The VM must listen on the same port number,
 	    eg. tcp://127.0.0.1:1234, tcp://[::1]:1234.
 
-	  - udp:     listen UDP on address. The VM must listen on the same port number,
+	  - udp: listen UDP on address. The VM must listen on the same port number,
 	    eg. udp://127.0.0.1:1234, udp://[::1]:1234
 
-	  - fd:      use file descriptor. The VM must connect on the same port number,
+	  - fd: use file descriptor. The VM must connect on the same port number,
 	    eg. fd://24:1234, fd://24,25:1234. 24 = file descriptor for read or read/write if alone, 25 = file descriptor for write.
 	    not supported with cakectl and with command build
 
@@ -185,24 +185,24 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 	public var name: String
 	
-	@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "firt ip used for the configured shared network, e.g., \"192.168.105.1\""))
+	@Option(name: [.customLong("gateway")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\"", valueName: "ip"))
 	public var gateway: String = "192.168.105.1"
 	
-	@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
+	@Option(name: [.customLong("dhcp-end")], help: ArgumentHelp("Last ip of the DHCP range, e.g., \"192.168.105.254\"", discussion: "requires --gateway to be specified", valueName: "ip"))
 	public var dhcpEnd: String = "192.168.105.254"
 	
-	@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
-	public var subnetMask = "255.255.255.0"
-	
-	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
-	public var interfaceID = UUID().uuidString
-	
-	@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
-	public var nat66Prefix: String? = nil
-	
-	@Option(help: "DHCP lease time in seconds")
+	@Option(help: ArgumentHelp("DHCP lease timeout", valueName: "seconds"))
 	public var dhcpLease: Int32 = 300
 
+	@Option(name: [.customLong("netmask")], help: ArgumentHelp("Subnet mask", discussion: "requires --gateway to be specified"))
+	public var subnetMask = "255.255.255.0"
+	
+	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("VMNET interface ID", discussion: "randomly generated if not specified", valueName: "uuid"))
+	public var interfaceID = UUID().uuidString
+	
+	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp("The IPv6 prefix to use with shared mode", valueName: "prefix"))
+	public var nat66Prefix: String? = nil
+	
 	public init() {
 	}
 
@@ -212,22 +212,22 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 	public var name: String
 	
-	@Option(name: [.customLong("dhcp-start")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\""))
+	@Option(name: [.customLong("gateway")], help: ArgumentHelp("IP gateway", discussion: "First ip used for the configured shared network, e.g., \"192.168.105.1\"", valueName: "ip"))
 	public var gateway: String? = nil
 	
-	@Option(name: [.customLong("dhcp-end")], help: "end of the DHCP range")
+	@Option(name: [.customLong("dhcp-end")], help: ArgumentHelp("Last ip of the DHCP range, e.g., \"192.168.105.254\"", discussion: "requires --gateway to be specified", valueName: "ip"))
 	public var dhcpEnd: String? = nil
 	
-	@Option(help: "DHCP lease time in seconds")
+	@Option(help: ArgumentHelp("DHCP lease timeout", valueName: "seconds"))
 	public var dhcpLease: Int32? = nil
 
-	@Option(name: [.customLong("netmask")], help: ArgumentHelp("subnet mask", discussion: "requires --gateway to be specified"))
+	@Option(name: [.customLong("netmask")], help: ArgumentHelp("Subnet mask", discussion: "requires --gateway to be specified"))
 	public var subnetMask: String? = nil
 	
-	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("vmnet interface ID", discussion: "randomly generated if not specified"))
+	@Option(name: [.customLong("interface-id")], help: ArgumentHelp("VMNET interface ID", discussion: "randomly generated if not specified", valueName: "uuid"))
 	public var interfaceID: String? = nil
 	
-	@Option(name: [.customLong("nat66-prefix")], help: "The IPv6 prefix to use with shared mode")
+	@Option(name: [.customLong("nat66-prefix")], help: ArgumentHelp("The IPv6 prefix to use with shared mode", valueName: "prefix"))
 	public var nat66Prefix: String? = nil
 	
 	public init() {
@@ -239,16 +239,16 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Argument(help: "VM name")
 	public var name: String
 
-	@Option(name: [.customLong("cpus"), .customShort("c")], help: "Number of VM CPUs")
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp("Number of VM CPUs", valueName: "num"))
 	public var cpu: UInt16? = nil
 
-	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+	@Option(name: [.long, .customShort("m")], help: ArgumentHelp("VM memory size in megabytes", valueName: "MB"))
 	public var memory: UInt64? = nil
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
 	public var diskSize: UInt16? = nil
 
-	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk"))
+	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
 	public var disks: [String] = ["unset"]
 
 	@Option(name: [.long, .customShort("a")], help: ArgumentHelp("Tell if the VM must be start at boot"))
@@ -440,16 +440,16 @@ public struct BuildOptions: ParsableArguments {
 	@Argument(help: "VM name")
 	public var name: String
 
-	@Option(name: [.customLong("cpus"), .customShort("c")], help: "Number of VM CPUs")
+	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp("Number of VM CPUs", valueName: "num"))
 	public var cpu: UInt16 = 1
 
-	@Option(name: [.long, .customShort("m")], help: "VM memory size in megabytes")
+	@Option(name: [.long, .customShort("m")], help: ArgumentHelp("VM memory size in megabytes", valueName: "MB"))
 	public var memory: UInt64 = 512
 
-	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB"))
+	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
 	public var diskSize: UInt16 = 10
 
-	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk"))
+	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
 	public var attachedDisks: [DiskAttachement] = []
 
 	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")

@@ -11,7 +11,7 @@ struct Launch : AsyncParsableCommand {
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
-	@Option(help:"Maximum of seconds to getting IP")
+	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var waitIPTimeout = 180
 
 	@Flag(help: .hidden)

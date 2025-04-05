@@ -1,12 +1,25 @@
 import Foundation
 
-struct VZSharedNetwork: Codable {
+struct VZSharedNetwork: Codable, Equatable {
 	let netmask: String
 	let dhcpStart: String
 	let dhcpEnd: String
 	let dhcpLease: Int32?
 	let uuid: String?
 	let nat66Prefix: String?
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+		return lhs.netmask == rhs.netmask &&
+			lhs.dhcpStart == rhs.dhcpStart &&
+			lhs.dhcpEnd == rhs.dhcpEnd &&
+			lhs.dhcpLease == rhs.dhcpLease &&
+			lhs.uuid == rhs.uuid &&
+			lhs.nat66Prefix == rhs.nat66Prefix
+	}
+
+	static func != (lhs: Self, rhs: Self) -> Bool {
+		return !(lhs == rhs)
+	}
 
 	private enum CodingKeys : String, CodingKey {
 		case netmask = "netmask"
@@ -45,7 +58,7 @@ struct VZSharedNetwork: Codable {
 		}
 
 		if let dhcpLease = dhcpLease {
-			guard dhcpLease > 24*3600 || dhcpLease < 60 else {
+			if dhcpLease > 24*3600 || dhcpLease < 60 {
 				throw ServiceError("Invalid dhcp lease \(dhcpLease)")
 			}
 		}
@@ -123,7 +136,7 @@ struct VZSharedNetwork: Codable {
 	static func createNetwork(baseAddress: String, cidr: Int) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(segment: baseAddress)
 
-		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, uuid: UUID().uuidString, nat66Prefix: nil)
+		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, uuid: UUID().uuidString, nat66Prefix: nil)
 	}
 }
 

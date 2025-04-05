@@ -121,8 +121,6 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
 			socketURL = try NetworksHandler.start(networkName: networkName, asSystem: runAsSystem)
-			//try NetworksHandler.run(useLimaVMNet: phUseLimaVMNet, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), socketPath: socketURL.0, pidFile: socketURL.1)
-			try socketURL.1.waitPID()
 		}
 		
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)

@@ -255,6 +255,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		} catch {
 			if let shellError = error as? ShellError {
 				reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
+			} else if let serviceError = error as? ServiceError {
+				reply.error = Caked_Error(code: serviceError.exitCode, reason: serviceError.description)
 			} else {
 				reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
 			}

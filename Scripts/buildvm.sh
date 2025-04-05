@@ -54,8 +54,8 @@ EOF
 
 cat > /tmp/user-data.yaml <<EOF
 #cloud-config
-package_update: true
-package_upgrade: true
+package_update: false
+package_upgrade: false
 #timezone: Europe/Paris
 #growpart:
 #  mode: auto

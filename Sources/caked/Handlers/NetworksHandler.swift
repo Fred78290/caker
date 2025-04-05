@@ -16,7 +16,7 @@ extension Caked_CreateNetworkRequest {
 			dhcpStart: self.gateway,
 			dhcpEnd: self.dhcpEnd,
 			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
-			uuid: self.hasUuid ? self.uuid : UUID().uuidString,
+			uuid: self.hasUuid ? self.uuid : nil,
 			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
 		)
 	}
@@ -26,11 +26,11 @@ extension Caked_ConfigureNetworkRequest {
 	func toUsedNetworkConfig() -> UsedNetworkConfig {
 		return UsedNetworkConfig(
 			networkName: self.name,
-			netmask: self.netmask,
-			dhcpStart: self.gateway,
-			dhcpEnd: self.dhcpEnd,
+			netmask: self.hasNetmask ? self.netmask : nil,
+			dhcpStart: self.hasGateway ? self.gateway : nil,
+			dhcpEnd: self.hasDhcpEnd ? self.dhcpEnd : nil,
 			dhcpLease: self.hasDhcpLease ? self.dhcpLease : nil,
-			uuid: self.hasUuid ? self.uuid : UUID().uuidString,
+			uuid: self.hasUuid ? self.uuid : nil,
 			nat66Prefix: self.hasNat66Prefix ? self.nat66Prefix : nil
 		)
 	}
@@ -85,7 +85,7 @@ struct UsedNetworkConfig {
 		self.dhcpStart = dhcpStart
 		self.dhcpEnd = dhcpEnd
 		self.dhcpLease = dhcpLease
-		self.uuid = uuid ?? UUID().uuidString
+		self.uuid = uuid
 		self.nat66Prefix = nat66Prefix
 	}
 
@@ -95,7 +95,7 @@ struct UsedNetworkConfig {
 		self.dhcpStart = config?.dhcpStart
 		self.dhcpEnd = config?.dhcpEnd
 		self.dhcpLease = config?.dhcpLease
-		self.uuid = config?.uuid ?? UUID().uuidString
+		self.uuid = config?.uuid
 		self.nat66Prefix = config?.nat66Prefix
 	}
 }
@@ -327,6 +327,8 @@ struct NetworksHandler: CakedCommandAsync {
 			throw ServiceError("Unable to create SCPreferences")
 		}
 
+		Logger(self).info("Set DHCP lease time to \(leaseTime) seconds")
+
 		let lease = [
 			"DHCPLeaseTimeSecs" as CFString: leaseTime as CFNumber,
 		] as CFDictionary
@@ -361,16 +363,55 @@ struct NetworksHandler: CakedCommandAsync {
 	}
 
 	// Must be run as root
-	static func restartNetworkService(networkName: String) throws {
-		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
+	static func restartNetworkService(networkName: String, asSystem: Bool) throws {
+		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
+		let pidURL = socketURL.1
 
-		guard socketURL.1.isPIDRunning() else {
+		guard pidURL.isPIDRunning() else {
 			Logger(self).info("Network \(networkName) is not running")
 			return
 		}
 
-		if let pid = socketURL.1.readPID() {
-			kill(pid, SIGUSR2)
+		Logger(self).info("Restart network \(networkName)")
+
+		if geteuid() == 0 {
+			if pidURL.killPID(SIGUSR2) < 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+			} else {
+				Logger(self).info("Network \(networkName) restarted")
+			}
+		} else {
+			guard let executableURL = URL.binary("caked") else {
+				throw ServiceError("caked not found in path")
+			}
+
+			guard try checkIfSudoable(binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
+			// We are not running as root, so we need to use sudo to kill the process
+			guard let sudoURL = URL.binary("sudo") else {
+				throw ServiceError("sudo not found in path")
+			}
+
+			let process = Process()
+
+			process.executableURL = sudoURL
+			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", "pkill", "-SIGUSR2", "-F", "\(pidURL.path)"]
+			process.environment = try Root.environment()
+			process.standardInput = FileHandle.standardInput
+			process.standardOutput = FileHandle.standardOutput
+			process.standardError = FileHandle.standardError
+
+			try process.run()
+
+			process.waitUntilExit()
+
+			if process.terminationStatus != 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(process.terminationStatus)))")
+			} else {
+				Logger(self).info("Network \(networkName) restarted")
+			}
 		}
 	}
 
@@ -518,7 +559,15 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		try process.run()
-		try pidFile.waitPID(maxRetries: 1200)
+		try pidFile.waitPID {
+			if process.isRunning == false {
+				if process.terminationReason == .uncaughtSignal {
+					throw ServiceError("Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+				} else {
+					throw ServiceError("Network \(networkConfig.networkName) stopped: \(process.terminationStatus)")
+				}
+			}
+		}
 
 		return process
 	}
@@ -664,29 +713,47 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		try process.run()
-		try socketURL.1.waitPID()
+		try socketURL.1.waitPID {
+			if process.isRunning == false {
+				if process.terminationReason == .uncaughtSignal {
+					throw ServiceError("Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+				} else {
+					throw ServiceError("Network \(networkConfig.networkName) stopped: \(process.terminationStatus)")
+				}
+			}
+		}
 	}
 
-	static func configure(networkName: String, network: VZSharedNetwork, asSystem: Bool, fromService: Bool = false) throws {
+	static func configure(networkName: String, network: VZSharedNetwork, asSystem: Bool) throws -> String {
 		let home: Home = try Home(asSystem: runAsSystem)
 		var networkConfig = try home.sharedNetworks()
 
-		guard networkConfig.sharedNetworks[networkName] != nil else {
+		guard let existing = networkConfig.sharedNetworks[networkName] else {
 			throw ServiceError("Network \(networkName) doesn't exists")
+		}
+
+		if existing == network {
+			return "Network \(networkName) unchanged"
 		}
 
 		networkConfig.sharedNetworks[networkName] = network
 
 		try home.setSharedNetworks(networkConfig)
-		try self.restartNetworkService(networkName: networkName)
+		try self.restartNetworkService(networkName: networkName, asSystem: asSystem)
+
+		return "Network \(networkName) reconfigured"
 	}
 
-	static func configure(network: UsedNetworkConfig, asSystem: Bool, fromService: Bool = false) throws {
+	static func configure(network: UsedNetworkConfig, asSystem: Bool) throws -> String {
 		let home: Home = try Home(asSystem: runAsSystem)
 		var networkConfig = try home.sharedNetworks()
 
 		guard network.networkName != "" else {
 			throw ServiceError("Network name is required")
+		}
+
+		guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
+			throw ServiceError("Network \(network.networkName) is a physical interface")
 		}
 
 		guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
@@ -701,10 +768,20 @@ struct NetworksHandler: CakedCommandAsync {
 			uuid: network.uuid ?? exisiting.uuid,
 			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
 		)
+print(network)
+print(changed)
+print(exisiting)
 
-		try changed.validate()
-		networkConfig.sharedNetworks[network.networkName] = changed
-		try home.setSharedNetworks(networkConfig)
+		if changed != exisiting {
+			try changed.validate()
+			networkConfig.sharedNetworks[network.networkName] = changed
+			try home.setSharedNetworks(networkConfig)
+			try self.restartNetworkService(networkName: network.networkName, asSystem: asSystem)
+		
+			return "Network \(network.networkName) configured"
+		} else {
+			return "Network \(network.networkName) unchanged"
+		}
 	}
 
 	static func start(networkName: String, asSystem: Bool) throws -> (URL, URL) {
@@ -715,9 +792,11 @@ struct NetworksHandler: CakedCommandAsync {
 		if Self.isPhysicalInterface(name: networkName) {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 		} else {
-			if sharedNetworks[networkName] == nil {
+			guard let sharedNetwork = sharedNetworks[networkName] else {
 				throw ServiceError("Network \(networkName) doesn't exists")
 			}
+
+			try sharedNetwork.validate()
 
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 		}
@@ -782,7 +861,15 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		try process.run()
-		try socketURL.1.waitPID()
+		try socketURL.1.waitPID {
+			if process.isRunning == false {
+				if process.terminationReason == .uncaughtSignal {
+					throw ServiceError("Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
+				} else {
+					throw ServiceError("Network \(networkName) stopped: \(process.terminationStatus)")
+				}
+			}
+		}
 
 		return socketURL
 	}
@@ -813,7 +900,7 @@ struct NetworksHandler: CakedCommandAsync {
 		return socketURL
 	}
 
-	static func create(networkName: String, network: VZSharedNetwork, asSystem: Bool, fromService: Bool = false) throws {
+	static func create(networkName: String, network: VZSharedNetwork, asSystem: Bool) throws -> String {
 		let home: Home = try Home(asSystem: runAsSystem)
 		var networkConfig = try home.sharedNetworks()
 
@@ -824,9 +911,11 @@ struct NetworksHandler: CakedCommandAsync {
 		networkConfig.sharedNetworks[networkName] = network
 
 		try home.setSharedNetworks(networkConfig)
+
+		return "Network \(networkName) created"
 	}
 
-	static func delete(networkName: String, asSystem: Bool, fromService: Bool = false) throws {
+	static func delete(networkName: String, asSystem: Bool) throws -> String {
 		let home: Home = try Home(asSystem: runAsSystem)
 		var networkConfig = try home.sharedNetworks()
 
@@ -837,6 +926,8 @@ struct NetworksHandler: CakedCommandAsync {
 		networkConfig.sharedNetworks.removeValue(forKey: networkName)
 
 		try home.setSharedNetworks(networkConfig)
+
+		return "Network \(networkName) deleted"
 	}
 
 	static func start(options: NetworksHandler.VMNetOptions) throws {
@@ -846,10 +937,18 @@ struct NetworksHandler: CakedCommandAsync {
 		if NetworksHandler.isPhysicalInterface(name: options.networkName) == false {
 			let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
 
-			sig.setEventHandler {
-				do {
-					Logger(self).info("Will reconfigure network: \(options.networkName)")
+			if let dhcpLease = options.dhcpLease {
+				try NetworksHandler.setDHCPLease(leaseTime: dhcpLease)
+			}
 
+			Logger(self).info("Allow reconfigure network: \(options.networkName)")
+
+			signal(SIGUSR2, SIG_IGN)
+
+			sig.setEventHandler {
+				Logger(self).info("Will reconfigure network: \(options.networkName)")
+
+				do {
 					let reconfigureOption = try NetworksHandler.VMNetOptions(networkName: options.networkName, asSystem: false)
 
 					if let dhcpLease = options.dhcpLease {
@@ -857,10 +956,10 @@ struct NetworksHandler: CakedCommandAsync {
 					}
 
 					try? vzvmnet.1.reconfigure(gateway: reconfigureOption.gateway!,
-					                          dhcpEnd: reconfigureOption.dhcpEnd!,
-					                          subnetMask: reconfigureOption.subnetMask,
-					                          interfaceID: reconfigureOption.interfaceID,
-					                          nat66Prefix: reconfigureOption.nat66Prefix)
+					                           dhcpEnd: reconfigureOption.dhcpEnd!,
+					                           subnetMask: reconfigureOption.subnetMask,
+					                           interfaceID: reconfigureOption.interfaceID,
+					                           nat66Prefix: reconfigureOption.nat66Prefix)
 				} catch {
 					Logger(self).error("Failed to reconfigure network: \(error)")
 					Foundation.exit(1)
@@ -880,7 +979,7 @@ struct NetworksHandler: CakedCommandAsync {
 		try vzvmnet.1.start()
 	}
 
-	static func stop(networkName: String, asSystem: Bool, fromService: Bool = false) throws -> String {
+	static func stop(networkName: String, asSystem: Bool) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 		let pidURL = socketURL.1
 
@@ -891,7 +990,11 @@ struct NetworksHandler: CakedCommandAsync {
 
 		if geteuid() == 0 {
 			// We are running as root, so we can just kill the process
-			_ = pidURL.killPID(SIGTERM)
+			if pidURL.killPID(SIGTERM) < 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+			} else {
+				Logger(self).info("Network \(networkName) stopped")
+			}
 		} else {
 			guard let executableURL = URL.binary("caked") else {
 				throw ServiceError("caked not found in path")
@@ -911,16 +1014,22 @@ struct NetworksHandler: CakedCommandAsync {
 			process.executableURL = sudoURL
 			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", "pkill", "-TERM", "-F", "\(pidURL.path)"]
 			process.environment = try Root.environment()
-			process.standardInput = fromService ? FileHandle.nullDevice : FileHandle.standardInput
-			process.standardOutput = fromService ? FileHandle.nullDevice : FileHandle.standardOutput
-			process.standardError = fromService ? FileHandle.nullDevice : FileHandle.standardError
+			process.standardInput = FileHandle.nullDevice
+			process.standardOutput = FileHandle.nullDevice
+			process.standardError = FileHandle.nullDevice
 
 			try process.run()
 
 			process.waitUntilExit()
+
+			if process.terminationStatus != 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(process.terminationStatus)))")
+			} else {
+				Logger(self).info("Network \(networkName) stopped")
+			}
 		}
 
-		return "stopped interface"
+		return "Network \(networkName) stopped"
 	}
 
 	static func networks(asSystem: Bool) throws -> [BridgedNetwork] {
@@ -965,20 +1074,16 @@ struct NetworksHandler: CakedCommandAsync {
 			case .infos:
 				return format.renderList(style: Style.grid, uppercased: true, try Self.networks(asSystem: asSystem))
 			case .create:
-				try Self.create(networkName: self.request.name, network: self.request.create.toVZSharedNetwork(), asSystem: asSystem, fromService: true)
-				message = "Network \(self.request.name) created"
+				message = try Self.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), asSystem: asSystem)
 			case .remove:
-				try Self.delete(networkName: self.request.name, asSystem: asSystem, fromService: true)
-				message = "Network \(self.request.name) deleted"
+				message = try Self.delete(networkName: self.request.name, asSystem: asSystem)
 			case .start:
 				_ = try Self.start(networkName: self.request.name, asSystem: asSystem)
 				message = "Network \(self.request.name) started"
 			case .shutdown:
-				_ = try Self.stop(networkName: self.request.name, asSystem: asSystem, fromService: true)
-				return "Network \(self.request.name) stopped"
+				message = try Self.stop(networkName: self.request.name, asSystem: asSystem)
 			case .configure:
-				try Self.configure(network: self.request.configure.toUsedNetworkConfig(), asSystem: asSystem)
-				message = "Network \(self.request.name) configured"
+				message = try Self.configure(network: self.request.configure.toUsedNetworkConfig(), asSystem: asSystem)
 			default:
 				throw ServiceError("Unknown command")
 			}

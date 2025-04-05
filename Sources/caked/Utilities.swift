@@ -148,18 +148,16 @@ extension URL: Purgeable {
 		return pid
 	}
 
-	func killPID(_ signal: Int32) -> Int32? {
+	func killPID(_ signal: Int32) -> Int32 {
 		guard let pid = try? String(contentsOf: self, encoding: .ascii) else {
-			return nil
+			return ENODATA
 		}
 
 		guard let pid: Int32 = Int32(pid.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-			return nil
+			return EINVAL
 		}
 
-		kill(pid, SIGTERM)
-
-		return pid
+		return kill(pid, SIGTERM)
 	}
 
 	func isPIDRunning() -> Bool {
@@ -174,10 +172,16 @@ extension URL: Purgeable {
 		return false
 	}
 
-	func waitPID(maxRetries: Int = 10) throws {
+	typealias WaitPIDHandler = () throws -> Void
+
+	func waitPID(maxRetries: Int = 10, handler: WaitPIDHandler? = nil) throws {
 		var retries = 0
 
 		while retries < maxRetries {
+			if let handler = handler {
+				try handler()
+			}
+
 			if FileManager.default.fileExists(atPath: self.path) {
 				if self.isPIDRunning() {
 					Logger(self).info("PID file exists at \(self.path)")

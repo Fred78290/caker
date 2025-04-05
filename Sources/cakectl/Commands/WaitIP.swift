@@ -11,7 +11,7 @@ struct WaitIP: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	@Option(help: "Number of seconds to wait for a potential VM booting")
+	@Option(help: ArgumentHelp("Time to wait for a potential VM booting", valueName: "seconds"))
 	var wait: UInt16 = 0
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

@@ -110,22 +110,22 @@ struct Client: AsyncParsableCommand {
 		@Option(help: "Connection timeout in seconds")
 		public var timeout: Int64 = 10
 
-		@Flag(name: [.customLong("insecure")], help: "don't use TLS")
+		@Flag(name: [.customLong("insecure")], help: "Don't use TLS")
 		public var insecure: Bool = false
 
 		@Flag(name: [.customLong("system")], help: "Caked run as system agent")
 		public var asSystem: Bool = false
 
-		@Option(name: [.customLong("connect")], help: "connect to address")
+		@Option(name: [.customLong("connect")], help: ArgumentHelp("Connect to address", valueName: "address"))
 		public var address: String = try! Client.getDefaultServerAddress(asSystem: false)
 
-		@Option(name: [.customLong("ca-cert")], help: "CA TLS certificate")
+		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp("CA TLS certificate", valueName: "path"))
 		public var caCert: String? = nil
 
-		@Option(name: [.customLong("tls-cert")], help: "Client TLS certificate")
+		@Option(name: [.customLong("tls-cert")], help: ArgumentHelp("Client TLS certificate", valueName: "path"))
 		public var tlsCert: String? = nil
 
-		@Option(name: [.customLong("tls-key")], help: "Client private key")
+		@Option(name: [.customLong("tls-key")], help: ArgumentHelp("Client private key", valueName: "path"))
 		public var tlsKey: String? = nil
 
 		func prepareClient(interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeAgentClient) {

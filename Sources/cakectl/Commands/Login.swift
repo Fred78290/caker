@@ -9,22 +9,22 @@ struct Login: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Argument(help: "host")
+	@Argument(help: "Host")
 	var host: String
 
-	@Option(help: "username")
+	@Option(help: "Username")
 	var username: String?
 
-	@Option(help: "password")
+	@Option(help: "Password")
 	var password: String?
 
-	@Flag(help: "password from stdin")
+	@Flag(help: "Password from stdin")
 	var passwordStdin: Bool = false
 
-	@Flag(help: "connect to the OCI registry via insecure HTTP protocol")
+	@Flag(help: "Connect to the OCI registry via insecure HTTP protocol")
 	var insecure: Bool = false
 
-	@Flag(help: "skip validation of the registry's credentials before logging-in")
+	@Flag(help: "Skip validation of the registry's credentials before logging-in")
 	var noValidate: Bool = false
 
 	mutating func run() async throws {

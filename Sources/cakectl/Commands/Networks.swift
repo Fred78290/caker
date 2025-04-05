@@ -48,7 +48,7 @@ struct Networks: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format: text or json")
 		var format: Format = .text
 
-		@Argument(help: ArgumentHelp("network name", discussion: "network to delete, e.g. \"shared\""))
+		@Argument(help: ArgumentHelp("Network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {

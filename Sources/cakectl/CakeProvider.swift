@@ -356,18 +356,23 @@ extension Caked_NetworkRequest {
 		self.command = .configure
 		self.configure = Caked_ConfigureNetworkRequest.with {
 			$0.name = command.networkOptions.name
+
 			if let gateway = command.networkOptions.gateway {
 				$0.gateway = gateway
 			}
+
 			if let dhcpEnd = command.networkOptions.dhcpEnd {
 				$0.dhcpEnd = dhcpEnd
 			}
+
 			if let subnetMask = command.networkOptions.subnetMask {
 				$0.netmask = subnetMask
 			}
+
 			if let interfaceID = command.networkOptions.interfaceID {
 				$0.uuid = interfaceID
 			}
+
 			if let nat66Prefix = command.networkOptions.nat66Prefix {
 				$0.nat66Prefix = nat66Prefix
 			}
