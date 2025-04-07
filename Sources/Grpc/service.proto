@@ -97,14 +97,20 @@ enum NetworkCommand {
 	remove = 5;
 }
 
+enum NetworkMode {
+	shared = 0;
+	host = 1;
+}
+
 message CreateNetworkRequest {
-	string name = 1;
-	string gateway = 2;
-	string dhcpEnd = 3;
-	string netmask = 4;
-	optional string uuid = 5;
-	optional string nat66prefix = 6;
-	optional int32 dhcpLease = 7;
+	NetworkMode mode = 1;
+	string name = 2;
+	string gateway = 3;
+	string dhcpEnd = 4;
+	string netmask = 5;
+	optional string uuid = 6;
+	optional string nat66prefix = 7;
+	optional int32 dhcpLease = 8;
 }
 
 message ConfigureNetworkRequest {

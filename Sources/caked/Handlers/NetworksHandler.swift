@@ -8,10 +8,14 @@ import NIOPosix
 import Logging
 import vmnet
 import SystemConfiguration
+import UniformTypeIdentifiers
+
+let SUDO = "sudo"
 
 extension Caked_CreateNetworkRequest {
 	func toVZSharedNetwork() -> VZSharedNetwork {
 		return VZSharedNetwork(
+			mode: self.mode == .shared ? .shared : .host,
 			netmask: self.netmask,
 			dhcpStart: self.gateway,
 			dhcpEnd: self.dhcpEnd,
@@ -36,14 +40,14 @@ extension Caked_ConfigureNetworkRequest {
 	}
 }
 
-enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
+enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 	var defaultValueDescription: String { "host" }
 
 	static let allValueStrings: [String] = VMNetMode.allCases.map { "\($0)" }
 
-	case host = 1000
-	case shared = 1001
-	case bridged = 1002
+	case host
+	case shared
+	case bridged
 
 	init?(argument: String) {
 		switch argument {
@@ -58,14 +62,14 @@ enum VMNetMode: uint64, CaseIterable, ExpressibleByArgument, Codable {
 		}
 	}
 
-	var stringValue: String {
+	var integerValue: uint64 {
 		switch self {
 		case .host:
-			return "host"
+			return 1000
 		case .shared:
-			return "shared"
+			return 1001
 		case .bridged:
-			return "bridged"
+			return 1002
 		}
 	}
 }
@@ -102,6 +106,7 @@ struct UsedNetworkConfig {
 
 struct BridgedNetwork: Codable {
 	var name: String
+	var mode: String
 	var description: String = ""
 	var gateway: String = ""
 	var dhcpEnd = ""
@@ -182,8 +187,6 @@ struct NetworksHandler: CakedCommandAsync {
 				self.interfaceID = UUID().uuidString
 				self.nat66Prefix = nil
 			} else {
-				self.mode = .shared
-
 				let home: Home = try Home(asSystem: runAsSystem)
 				let networkConfig = try home.sharedNetworks()
 
@@ -191,6 +194,7 @@ struct NetworksHandler: CakedCommandAsync {
 					throw ServiceError("Network \(networkName) doesn't exists")
 				}
 
+				self.mode = network.mode
 				self.gateway = network.dhcpStart
 				self.dhcpEnd = network.dhcpEnd
 				self.dhcpLease = network.dhcpLease
@@ -390,7 +394,7 @@ struct NetworksHandler: CakedCommandAsync {
 			}
 
 			// We are not running as root, so we need to use sudo to kill the process
-			guard let sudoURL = URL.binary("sudo") else {
+			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
@@ -431,7 +435,7 @@ struct NetworksHandler: CakedCommandAsync {
 			return true
 		}
 
-		guard let sudoURL = URL.binary("sudo") else {
+		guard let sudoURL = URL.binary(SUDO) else {
 			throw ServiceError("sudo not found in path")
 		}
 
@@ -462,7 +466,7 @@ struct NetworksHandler: CakedCommandAsync {
 	}
 
 	static func run(fileDescriptor: Int32, mode: VMNetMode, macAddress: String? = nil, networkConfig: UsedNetworkConfig, pidFile: URL) throws -> ProcessWithSharedFileHandle {
-		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using vmfd: \(fileDescriptor)")
+		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : "caked") else {
 			throw ServiceError("caked not found in path")
@@ -480,7 +484,7 @@ struct NetworksHandler: CakedCommandAsync {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 		}
 
-		arguments.append("--mode=\(mode.stringValue)")
+		arguments.append("--mode=\(mode.rawValue)")
 
 		if Logger.Level() >= .debug {
 			arguments.append("--debug")
@@ -525,7 +529,7 @@ struct NetworksHandler: CakedCommandAsync {
 			process.standardInput = FileHandle.standardInput
 			process.sharedFileHandles = [FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)]
 		} else {
-			guard let sudoURL = URL.binary("sudo") else {
+			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
@@ -536,7 +540,7 @@ struct NetworksHandler: CakedCommandAsync {
 			fd = STDIN_FILENO
 			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it
 			// and will block forever
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
 			process.executableURL = sudoURL
 			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 		}
@@ -584,7 +588,7 @@ struct NetworksHandler: CakedCommandAsync {
 			socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkConfig.networkName, asSystem: runAsSystem)
 		}
 
-		Logger(self).info("Start VMNet mode: \(mode.stringValue) Using socket: \(socketURL.0.path)")
+		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.0.path)")
 
 		if useLimaVMNet {
 
@@ -599,7 +603,7 @@ struct NetworksHandler: CakedCommandAsync {
 			//}
 
 			//arguments.append("--vmnet-vz")
-			arguments.append("--vmnet-mode=\(mode.stringValue)")
+			arguments.append("--vmnet-mode=\(mode.rawValue)")
 
 			if mode == .bridged {
 				guard networkConfig.networkName != "" else {
@@ -629,7 +633,7 @@ struct NetworksHandler: CakedCommandAsync {
 		} else if let caker = URL.binary("caked") {
 			executableURL = caker
 
-			arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.stringValue)"])
+			arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
 
 			if Logger.LoggingLevel() > .info {
 				arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
@@ -685,7 +689,7 @@ struct NetworksHandler: CakedCommandAsync {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary("sudo") else {
+			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
@@ -695,7 +699,7 @@ struct NetworksHandler: CakedCommandAsync {
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -705,11 +709,25 @@ struct NetworksHandler: CakedCommandAsync {
 		process.arguments = runningArguments
 		process.environment = try Root.environment()
 		process.standardInput = FileHandle.nullDevice
-		process.standardOutput = debug ? FileHandle.standardOutput : FileHandle.nullDevice
-		process.standardError = debug ? FileHandle.standardError : FileHandle.nullDevice
 		process.terminationHandler = { process in
 			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
+		}
+
+		if debug {
+			process.standardOutput = FileHandle.standardOutput
+			process.standardError = FileHandle.standardError
+		} else {
+			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
+			
+			if try logURL.exists() == false {
+				FileManager.default.createFile(atPath: logURL.path, contents: nil)
+			}
+
+			let output = try FileHandle(forWritingTo: logURL)
+
+			process.standardOutput = output
+			process.standardError = output
 		}
 
 		try process.run()
@@ -761,6 +779,7 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 
 		let changed = VZSharedNetwork(
+			mode: exisiting.mode,
 			netmask: network.netmask ?? exisiting.netmask,
 			dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
 			dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
@@ -827,7 +846,7 @@ struct NetworksHandler: CakedCommandAsync {
 			process.executableURL = executableURL
 			runningArguments = []
 		} else {
-			guard let sudoURL = URL.binary("sudo") else {
+			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
@@ -837,7 +856,7 @@ struct NetworksHandler: CakedCommandAsync {
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -847,8 +866,6 @@ struct NetworksHandler: CakedCommandAsync {
 		process.arguments = runningArguments
 		process.environment = try Root.environment()
 		process.standardInput = FileHandle.nullDevice
-		process.standardOutput = debug ? FileHandle.standardOutput : FileHandle.nullDevice
-		process.standardError = debug ? FileHandle.standardError : FileHandle.nullDevice
 		process.terminationHandler = { process in
 			if process.terminationReason == .uncaughtSignal {
 				Logger(self).info("Network \(networkName) terminated: \(process.terminationStatus), \(process.terminationReason)")
@@ -857,7 +874,24 @@ struct NetworksHandler: CakedCommandAsync {
 			}
 		}
 
+		if debug {
+			process.standardOutput = FileHandle.standardOutput
+			process.standardError = FileHandle.standardError
+		} else {
+			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
+			
+			if try logURL.exists() == false {
+				FileManager.default.createFile(atPath: logURL.path, contents: nil)
+			}
+
+			let output = try FileHandle(forWritingTo: logURL)
+
+			process.standardOutput = output
+			process.standardError = output
+		}
+
 		try process.run()
+
 		try socketURL.1.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
@@ -1002,7 +1036,7 @@ struct NetworksHandler: CakedCommandAsync {
 			}
 
 			// We are not running as root, so we need to use sudo to kill the process
-			guard let sudoURL = URL.binary("sudo") else {
+			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
@@ -1030,11 +1064,11 @@ struct NetworksHandler: CakedCommandAsync {
 	}
 
 	static func networks(asSystem: Bool) throws -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
 		let home: Home = try Home(asSystem: runAsSystem)
 		let networkConfig = try home.sharedNetworks()
 
-		let createBridgedNetwork: (_ name: String, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String) throws -> BridgedNetwork = { (name, description, uuid, gateway, dhcpEnd) in
+		let createBridgedNetwork: (_ name: String, _ description: String, _ mode: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String) throws -> BridgedNetwork = { (name, mode, description, uuid, gateway, dhcpEnd) in
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: asSystem)
 			let endpoint: String
 
@@ -1044,11 +1078,11 @@ struct NetworksHandler: CakedCommandAsync {
 				endpoint = "not running"
 			}
 
-			return BridgedNetwork(name: name, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
+			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
 		}
 
 		try networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-			return try createBridgedNetwork(inf.identifier, inf.localizedDisplayName ?? inf.identifier, "", "", "")
+			return try createBridgedNetwork(inf.identifier, "bridged", inf.localizedDisplayName ?? inf.identifier, "", "", "")
 		})
 
 		return try networkConfig.sharedNetworks.reduce(into: networks) {
@@ -1058,7 +1092,7 @@ struct NetworksHandler: CakedCommandAsync {
 			let uuid = $1.value.uuid ?? ""
 
 
-			$0.append(try createBridgedNetwork($1.key, "Shared network", uuid, gateway, dhcpEnd))
+			$0.append(try createBridgedNetwork($1.key, $1.value.mode.rawValue, "Shared network", uuid, gateway, dhcpEnd))
 		}
 	}
 

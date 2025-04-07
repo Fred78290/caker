@@ -195,6 +195,40 @@ public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+public enum Caked_NetworkMode: SwiftProtobuf.Enum, Swift.CaseIterable {
+  public typealias RawValue = Int
+  case shared // = 0
+  case host // = 1
+  case UNRECOGNIZED(Int)
+
+  public init() {
+    self = .shared
+  }
+
+  public init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .shared
+    case 1: self = .host
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  public var rawValue: Int {
+    switch self {
+    case .shared: return 0
+    case .host: return 1
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  public static let allCases: [Caked_NetworkMode] = [
+    .shared,
+    .host,
+  ]
+
+}
+
 public struct Caked_VMInfo: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -291,6 +325,8 @@ public struct Caked_CreateNetworkRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
+
+  public var mode: Caked_NetworkMode = .shared
 
   public var name: String = String()
 
@@ -1686,6 +1722,13 @@ extension Caked_NetworkCommand: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Caked_NetworkMode: SwiftProtobuf._ProtoNameProviding {
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "shared"),
+    1: .same(proto: "host"),
+  ]
+}
+
 extension Caked_VMInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".VMInfo"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -1941,13 +1984,14 @@ extension Caked_WaitIPRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CreateNetworkRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "gateway"),
-    3: .same(proto: "dhcpEnd"),
-    4: .same(proto: "netmask"),
-    5: .same(proto: "uuid"),
-    6: .same(proto: "nat66prefix"),
-    7: .same(proto: "dhcpLease"),
+    1: .same(proto: "mode"),
+    2: .same(proto: "name"),
+    3: .same(proto: "gateway"),
+    4: .same(proto: "dhcpEnd"),
+    5: .same(proto: "netmask"),
+    6: .same(proto: "uuid"),
+    7: .same(proto: "nat66prefix"),
+    8: .same(proto: "dhcpLease"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1956,13 +2000,14 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.gateway) }()
-      case 3: try { try decoder.decodeSingularStringField(value: &self.dhcpEnd) }()
-      case 4: try { try decoder.decodeSingularStringField(value: &self.netmask) }()
-      case 5: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
-      case 7: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.mode) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.gateway) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.dhcpEnd) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.netmask) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self._uuid) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self._nat66Prefix) }()
+      case 8: try { try decoder.decodeSingularInt32Field(value: &self._dhcpLease) }()
       default: break
       }
     }
@@ -1973,31 +2018,35 @@ extension Caked_CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
+    if self.mode != .shared {
+      try visitor.visitSingularEnumField(value: self.mode, fieldNumber: 1)
+    }
     if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
     }
     if !self.gateway.isEmpty {
-      try visitor.visitSingularStringField(value: self.gateway, fieldNumber: 2)
+      try visitor.visitSingularStringField(value: self.gateway, fieldNumber: 3)
     }
     if !self.dhcpEnd.isEmpty {
-      try visitor.visitSingularStringField(value: self.dhcpEnd, fieldNumber: 3)
+      try visitor.visitSingularStringField(value: self.dhcpEnd, fieldNumber: 4)
     }
     if !self.netmask.isEmpty {
-      try visitor.visitSingularStringField(value: self.netmask, fieldNumber: 4)
+      try visitor.visitSingularStringField(value: self.netmask, fieldNumber: 5)
     }
     try { if let v = self._uuid {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
-    } }()
-    try { if let v = self._nat66Prefix {
       try visitor.visitSingularStringField(value: v, fieldNumber: 6)
     } }()
+    try { if let v = self._nat66Prefix {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
+    } }()
     try { if let v = self._dhcpLease {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 7)
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 8)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_CreateNetworkRequest, rhs: Caked_CreateNetworkRequest) -> Bool {
+    if lhs.mode != rhs.mode {return false}
     if lhs.name != rhs.name {return false}
     if lhs.gateway != rhs.gateway {return false}
     if lhs.dhcpEnd != rhs.dhcpEnd {return false}

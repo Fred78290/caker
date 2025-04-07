@@ -28,7 +28,7 @@ struct Networks: ParsableCommand {
 
 		func validate() throws {
 			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root")
+				throw ValidationError("This command must be run as root not as user \(geteuid())")
 			}
 
 			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
@@ -55,7 +55,7 @@ struct Networks: ParsableCommand {
 
 		mutating func validate() throws {
 			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root")
+				throw ValidationError("This command must be run as root not as user \(geteuid())")
 			}
 
 			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
@@ -108,6 +108,7 @@ struct Networks: ParsableCommand {
 			}
 
 			let network = VZSharedNetwork(
+				mode: self.options.mode == .shared ? .shared : .host,
 				netmask: self.options.subnetMask,
 				dhcpStart: self.options.gateway,
 				dhcpEnd: self.options.dhcpEnd,
@@ -152,6 +153,7 @@ struct Networks: ParsableCommand {
 			}
 
 			let changed = VZSharedNetwork(
+				mode: existing.mode,
 				netmask: self.options.subnetMask ?? existing.netmask,
 				dhcpStart: self.options.gateway ?? existing.dhcpStart,
 				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
@@ -215,7 +217,7 @@ struct Networks: ParsableCommand {
 
 		mutating func validate() throws {
 			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root")
+				throw ValidationError("This command must be run as root not as user \(geteuid())")
 			}
 
 			Logger.setLevel(self.logLevel)

@@ -146,7 +146,7 @@ class VZVMNet: @unchecked Sendable {
 		try self.setupInterface()
 	}
 
-	internal func print_vmnet_start_param(params: xpc_object_t?) {
+	internal func print_vmnet_start_param(params: xpc_object_t?, info: String = "settings") {
 		guard let params = params else {
 			self.logger.info("params not defined")
 			return
@@ -157,24 +157,30 @@ class VZVMNet: @unchecked Sendable {
 			let key = String(cString: key)
 
 			if t == XPC_TYPE_UINT64 {
-				self.logger.info("\(key): \(xpc_dictionary_get_uint64(params, key))")
+				self.logger.info("\(info) \(key): \(xpc_dictionary_get_uint64(params, key))")
 			} else if t == XPC_TYPE_INT64 {
-				self.logger.info("\(key): \(xpc_dictionary_get_int64(params, key))")
+				self.logger.info("\(info) \(key): \(xpc_dictionary_get_int64(params, key))")
+			} else if t == XPC_TYPE_DOUBLE {
+				self.logger.info("\(info) \(key): \(xpc_dictionary_get_double(params, key))")
+			} else if t == XPC_TYPE_DATE {
+				self.logger.info("\(info) \(key): \(xpc_dictionary_get_date(params, key))")
+			} else if t == XPC_TYPE_BOOL {
+				self.logger.info("\(info) \(key): \(xpc_dictionary_get_bool(params, key))")
 			} else if t == XPC_TYPE_STRING {
 				if let cstr = xpc_string_get_string_ptr(value) {
 					let value = String(cString: cstr)
 
-					self.logger.info("\(key): \(value)")
+					self.logger.info("\(info) \(key): \(value)")
 				}
 			} else if t == XPC_TYPE_UUID {
 				UnsafeMutablePointer<Int8>.allocate(capacity: 37).withMemoryRebound(to: UInt8.self, capacity: 37) { uuid in
 					uuid_unparse(xpc_uuid_get_bytes(value), uuid)
 
 					let value = String(cString: uuid)
-					self.logger.info("\(key): \(value)")
+					self.logger.info("\(info) \(key): \(value)")
 				}
 			} else {
-				self.logger.info("\(key): \(t)")
+				self.logger.info("\(info) \(key): \(t)")
 			}
 
 			return true
@@ -274,19 +280,19 @@ class VZVMNet: @unchecked Sendable {
 		let semaphore = DispatchSemaphore(value: 0)
 		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
 
-		xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, self.mode.rawValue)
+		xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, self.mode.integerValue)
 		xpc_dictionary_set_bool(dict, vmnet_enable_tso_key, false)
 		xpc_dictionary_set_bool(dict, vmnet_enable_checksum_offload_key, false)
 		xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, false)
-
-		xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.interfaceID);
 
 		if self.mode == .bridged {
 			if let interface = self.networkInterface {
 				xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, interface)
 			}
 		} else if self.mode == .shared {
-			if let gateway = self.gateway, let dhcpEnd = self.dhcpEnd {
+			xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.interfaceID);
+
+			if let gateway: String = self.gateway, let dhcpEnd = self.dhcpEnd {
 				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
 				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
 				xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
@@ -295,7 +301,20 @@ class VZVMNet: @unchecked Sendable {
 			if let nat66Prefix = self.nat66Prefix {
 				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix);
 			}
+		} else {
+			if let gateway: String = self.gateway, let dhcpEnd = self.dhcpEnd {
+				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
+				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
+				xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
+			}
+
+			xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, true)
+			xpc_dictionary_set_string(dict, vmnet_network_identifier_key, self.interfaceID);
+			xpc_dictionary_set_string(dict, vmnet_host_ip_address_key, self.gateway!);
+			xpc_dictionary_set_string(dict, vmnet_host_subnet_mask_key, self.subnetMask);
 		}
+
+		self.print_vmnet_start_param(params: dict, info: "setup");
 
 		self.iface = vmnet_start_interface(dict, self.hostQueue) { (result: vmnet_return_t, params) in
 			status = result

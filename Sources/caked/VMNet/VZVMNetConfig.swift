@@ -1,6 +1,7 @@
 import Foundation
 
 struct VZSharedNetwork: Codable, Equatable {
+	let mode: VMNetMode
 	let netmask: String
 	let dhcpStart: String
 	let dhcpEnd: String
@@ -9,7 +10,8 @@ struct VZSharedNetwork: Codable, Equatable {
 	let nat66Prefix: String?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-		return lhs.netmask == rhs.netmask &&
+		return lhs.mode == rhs.mode &&
+			lhs.netmask == rhs.netmask &&
 			lhs.dhcpStart == rhs.dhcpStart &&
 			lhs.dhcpEnd == rhs.dhcpEnd &&
 			lhs.dhcpLease == rhs.dhcpLease &&
@@ -22,6 +24,7 @@ struct VZSharedNetwork: Codable, Equatable {
 	}
 
 	private enum CodingKeys : String, CodingKey {
+		case mode = "mode"
 		case netmask = "netmask"
 		case dhcpStart = "dhcp-start"
 		case dhcpEnd = "dhcp-end"
@@ -116,6 +119,7 @@ struct VZSharedNetwork: Codable, Equatable {
 		}
 
 		for value: UInt8 in 1..<255 {
+			let value = UInt8.random(in: value...254)
 			var base: [UInt8] = [192, 168, value, 0]
 			let segment = segment.split(separator: ".").map { UInt8($0) ?? 0 }
 
@@ -133,10 +137,10 @@ struct VZSharedNetwork: Codable, Equatable {
 		throw ServiceError("No free network address available")
 	}
 
-	static func createNetwork(baseAddress: String, cidr: Int) throws -> VZSharedNetwork {
+	static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(segment: baseAddress)
 
-		return .init(netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, uuid: UUID().uuidString, nat66Prefix: nil)
+		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, uuid: UUID().uuidString, nat66Prefix: nil)
 	}
 }
 
@@ -198,8 +202,8 @@ struct VZVMNetConfig: Codable {
 
 	init() throws {
 		self.sharedNetworks = [
-			"shared": try VZSharedNetwork.createNetwork(baseAddress: "192.168", cidr: 24),
-			"host": try VZSharedNetwork.createNetwork(baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24)
+			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24),
+			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24)
 		]
 	}
 

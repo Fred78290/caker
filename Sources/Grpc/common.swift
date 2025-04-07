@@ -181,10 +181,42 @@ public struct Utils {
 
 }
 
+public enum CreatedNetworkMode: uint64, CaseIterable, ExpressibleByArgument, Codable, Sendable {
+	public var defaultValueDescription: String { "shared" }
+
+	public static let allValueStrings: [String] = CreatedNetworkMode.allCases.map { "\($0)" }
+
+	case shared = 0
+	case host = 1
+
+	public init?(argument: String) {
+		switch argument {
+		case "host":
+			self = .host
+		case "shared":
+			self = .shared
+		default:
+			return nil
+		}
+	}
+
+	public var stringValue: String {
+		switch self {
+		case .host:
+			return "host"
+		case .shared:
+			return "shared"
+		}
+	}
+}
+
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
 	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 	public var name: String
 	
+	@Option(name: [.customLong("mode")], help: "vmnet mode")
+	public var mode = CreatedNetworkMode.shared
+
 	@Option(name: [.customLong("gateway")], help: ArgumentHelp("IP gateway", discussion: "first ip used for the configured shared network, e.g., \"192.168.105.1\"", valueName: "ip"))
 	public var gateway: String = "192.168.105.1"
 	

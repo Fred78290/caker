@@ -86,7 +86,7 @@ class PortForwardingServer {
 					return port.description
 				}
 
-				Logger(self).info("Add forwarded ports\(details.joined(separator: ", "))")
+				Logger(self).info("Add forwarded ports \(details.joined(separator: ", "))")
 	
 				return try portForwardingServer.add(remoteHost: remoteHost, forwardedPorts: forwardedPorts)
 			}

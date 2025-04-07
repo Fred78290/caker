@@ -338,6 +338,7 @@ extension Caked_NetworkRequest {
 		self.format = command.format == .text ? .text : .json
 		self.command = .create
 		self.create = Caked_CreateNetworkRequest.with {
+			$0.mode = command.networkOptions.mode == .shared ? .shared : .host
 			$0.name = command.networkOptions.name
 			$0.gateway = command.networkOptions.gateway
 			$0.dhcpEnd = command.networkOptions.dhcpEnd
