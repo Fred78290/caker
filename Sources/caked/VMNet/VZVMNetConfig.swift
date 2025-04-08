@@ -1,4 +1,5 @@
 import Foundation
+import Virtualization
 
 struct VZSharedNetwork: Codable, Equatable {
 	let mode: VMNetMode
@@ -6,7 +7,7 @@ struct VZSharedNetwork: Codable, Equatable {
 	let dhcpStart: String
 	let dhcpEnd: String
 	let dhcpLease: Int32?
-	let uuid: String?
+	let interfaceID: String
 	let nat66Prefix: String?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
@@ -15,7 +16,7 @@ struct VZSharedNetwork: Codable, Equatable {
 			lhs.dhcpStart == rhs.dhcpStart &&
 			lhs.dhcpEnd == rhs.dhcpEnd &&
 			lhs.dhcpLease == rhs.dhcpLease &&
-			lhs.uuid == rhs.uuid &&
+			lhs.interfaceID == rhs.interfaceID &&
 			lhs.nat66Prefix == rhs.nat66Prefix
 	}
 
@@ -29,7 +30,7 @@ struct VZSharedNetwork: Codable, Equatable {
 		case dhcpStart = "dhcp-start"
 		case dhcpEnd = "dhcp-end"
 		case dhcpLease = "dhcp-lease"
-		case uuid = "uuid"
+		case interfaceID = "interfaceID"
 		case nat66Prefix = "nat66-prefix"
 	}
 
@@ -140,23 +141,21 @@ struct VZSharedNetwork: Codable, Equatable {
 	static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int) throws -> VZSharedNetwork {
 		let (gateway, dhcpEnd) = try freeIP(segment: baseAddress)
 
-		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, uuid: UUID().uuidString, nat66Prefix: nil)
+		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: nil)
 	}
 }
 
 extension String {
+	func isValidMAcAddress() -> Bool {
+		self.range(of: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$", options: .regularExpression) != nil
+	}
+
 	func isValidIP() -> Bool {
-		let ipPattern = "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"
-		let regex = try? NSRegularExpression(pattern: ipPattern, options: [])
-		let range = NSRange(location: 0, length: self.utf16.count)
-		return regex?.firstMatch(in: self, options: [], range: range) != nil
+		self.range(of: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", options: .regularExpression) != nil
 	}
 
 	func isValidNetmask() -> Bool {
-		let cidrPattern = "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"
-		let regex = try? NSRegularExpression(pattern: cidrPattern, options: [])
-		let range = NSRange(location: 0, length: self.utf16.count)
-		return regex?.firstMatch(in: self, options: [], range: range) != nil
+		self.range(of: "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$", options: .regularExpression) != nil
 	}
 
 	func netmaskToCidr() -> Int {

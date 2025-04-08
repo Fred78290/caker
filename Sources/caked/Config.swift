@@ -224,12 +224,27 @@ final class CakeConfig{
 	var networks: [BridgeAttachement] {
 		set { self.cake["networks"] = newValue.map{$0.description} }
 		get {
-			guard let mounts:[String] = self.cake["networks"] as? [String] else {
+			guard let networks:[String] = self.cake["networks"] as? [String] else {
 				return []
 			}
 
-			return mounts.compactMap { BridgeAttachement(argument: $0) }
+			return networks.compactMap { BridgeAttachement(argument: $0) }
 		}
+	}
+
+	var qualifiedNetworks: [BridgeAttachement] {
+		let networks = self.networks
+		var attachedNetworks: [BridgeAttachement] = []
+		
+		if let nat = networks.first(where: { $0.isNAT() }) {
+			attachedNetworks.append(nat)
+		} else {
+			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress?.string))
+		}
+
+		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
+								
+		return attachedNetworks
 	}
 
 	var useCloudInit: Bool {
@@ -415,7 +430,7 @@ extension CakeConfig {
 		}
 
 		try self.networks.forEach { inf in
-			if inf.network != "nat" && inf.network != "NAT shared network" {
+			if inf.isNAT() == false {
 				let physicalInterface = NetworksHandler.isPhysicalInterface(name: inf.network)
 
 				if sharedNetworks[inf.network] == nil && physicalInterface == false {
@@ -428,14 +443,7 @@ extension CakeConfig {
 	}
 
 	func collectNetworks() throws -> [NetworkAttachement] {
-		if networks.isEmpty {
-			if let macAddress = self.macAddress {
-				return [NATNetworkInterface(macAddress: macAddress)]
-			}
-
-			return [NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())]
-		}
-
+		let networks = self.qualifiedNetworks
 		let vmNetworking: Bool
 		let home: Home = try Home(asSystem: runAsSystem)
 		let networkConfig = try home.sharedNetworks()
@@ -448,35 +456,34 @@ extension CakeConfig {
 		}
 
 		return networks.compactMap { inf in
-
-			if inf.network == "nat" || inf.network == "NAT shared network" {
+			if inf.isNAT() {
 				if let macAddress = self.macAddress {
 					return NATNetworkInterface(macAddress: macAddress)
 				}
 
 				return NATNetworkInterface(macAddress: VZMACAddress.randomLocallyAdministered())
-			}
-
-			let macAddress: VZMACAddress
-
-			if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
-				macAddress = mac
 			} else {
-				macAddress = VZMACAddress.randomLocallyAdministered()
-			}
+				let macAddress: VZMACAddress
 
-			if let networkConfig = sharedNetworks[inf.network] {
-				return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
-			} else {
-				let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
-					$0.identifier == inf.network || $0.localizedDisplayName == inf.network
+				if let strMacAddress = inf.macAddress, let mac = VZMACAddress(string: strMacAddress) {
+					macAddress = mac
+				} else {
+					macAddress = VZMACAddress.randomLocallyAdministered()
 				}
 
-				if let interface = foundInterface {
-					if vmNetworking {
-						return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
-					} else {
-						return VMNetworkInterface(interface: interface, macAddress: macAddress)
+				if let networkConfig = sharedNetworks[inf.network] {
+					return SharedNetworkInterface(macAddress: macAddress, networkName: inf.network, networkConfig: networkConfig)
+				} else {
+					let foundInterface = VZBridgedNetworkInterface.networkInterfaces.first {
+						$0.identifier == inf.network || $0.localizedDisplayName == inf.network
+					}
+
+					if let interface = foundInterface {
+						if vmNetworking {
+							return BridgedNetworkInterface(interface: interface, macAddress: macAddress)
+						} else {
+							return VMNetworkInterface(interface: interface, macAddress: macAddress)
+						}
 					}
 				}
 			}

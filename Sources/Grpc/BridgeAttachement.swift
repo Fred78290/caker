@@ -40,7 +40,13 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		return value.joined(separator: ",")
 	}
 
-    public init?(argument: String) {
+	public init(network: String, mode: NetworkMode?, macAddress: String?) {
+		self.network = network
+		self.mode = mode
+		self.macAddress = macAddress
+	}
+
+	public init?(argument: String) {
         do {
 			try self.init(parseFrom: argument)
 		} catch {
@@ -79,5 +85,9 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		self.network = network
 		self.macAddress = macAddress?.string
 		self.mode = mode
+	}
+	
+	public func isNAT() -> Bool {
+		return self.network == "nat" || self.network == "NAT shared network"
 	}
 }

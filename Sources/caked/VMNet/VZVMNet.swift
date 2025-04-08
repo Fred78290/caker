@@ -37,13 +37,8 @@ extension vmnet_return_t {
 class VZVMNet: @unchecked Sendable {
 	internal var serverChannel: Channel? = nil
 	internal let eventLoop: EventLoop
-	internal let mode: VMNetMode
-	internal let networkInterface: String?
-	internal var gateway: String?
-	internal var dhcpEnd: String?
-	internal var subnetMask: String
-	internal var interfaceID: String
-	internal var nat66Prefix: String?
+	internal let networkName: String
+	internal var networkConfig: VZSharedNetwork
 	internal var iface: interface_ref?
 	internal var max_bytes: UInt64 = 2048
 	internal let hostQueue: DispatchQueue
@@ -111,15 +106,10 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	init(on: EventLoop, mode: VMNetMode, networkInterface: String? = nil, gateway: String? = nil, dhcpEnd: String?, subnetMask: String = "255.255.255.0", interfaceID: String = UUID().uuidString, nat66Prefix: String? = nil, pidFile: URL) {
+	init(on: EventLoop, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
 		self.eventLoop = on
-		self.mode = mode
-		self.networkInterface = networkInterface
-		self.gateway = gateway
-		self.dhcpEnd = dhcpEnd
-		self.subnetMask = subnetMask
-		self.interfaceID = interfaceID
-		self.nat66Prefix = nat66Prefix
+		self.networkName = networkName
+		self.networkConfig = networkConfig
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
 		self.pidFile = pidFile
 		self.trace = Logger.Level() >= LogLevel.trace
@@ -130,14 +120,10 @@ class VZVMNet: @unchecked Sendable {
 		}
 	}
 
-	func reconfigure(gateway: String, dhcpEnd: String, subnetMask: String, interfaceID: String, nat66Prefix: String?) throws {
+	func reconfigure(networkConfig: VZSharedNetwork) throws {
 		self.logger.info("Reconfiguring VMNet with new parameters")
 
-		self.gateway = gateway
-		self.dhcpEnd = dhcpEnd
-		self.subnetMask = subnetMask
-		self.interfaceID = interfaceID
-		self.nat66Prefix = nat66Prefix
+		self.networkConfig = networkConfig
 
 		if self.iface != nil {
 			self.stopInterface()
@@ -280,38 +266,36 @@ class VZVMNet: @unchecked Sendable {
 		let semaphore = DispatchSemaphore(value: 0)
 		var status: vmnet_return_t = vmnet_return_t.VMNET_SUCCESS
 
-		xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, self.mode.integerValue)
+		xpc_dictionary_set_uint64(dict, vmnet_operation_mode_key, self.networkConfig.mode.integerValue)
 		xpc_dictionary_set_bool(dict, vmnet_enable_tso_key, false)
 		xpc_dictionary_set_bool(dict, vmnet_enable_checksum_offload_key, false)
 		xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, false)
 
-		if self.mode == .bridged {
-			if let interface = self.networkInterface {
-				xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, interface)
-			}
-		} else if self.mode == .shared {
-			xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.interfaceID);
+		xpc_dictionary_set_bool(dict, vmnet_allocate_mac_address_key, false)
+		//xpc_dictionary_set_string(dict, vmnet_mac_address_key, self.networkConfig.macAddress)
 
-			if let gateway: String = self.gateway, let dhcpEnd = self.dhcpEnd {
-				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
-				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
-				xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
-			}
+		if self.networkConfig.mode == .bridged {
+			xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, self.networkName)
+		} else if self.networkConfig.mode == .shared {
+			xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.networkConfig.interfaceID);
 
-			if let nat66Prefix = self.nat66Prefix {
+			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart);
+			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd);
+			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask);
+
+			if let nat66Prefix = self.networkConfig.nat66Prefix {
 				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix);
 			}
 		} else {
-			if let gateway: String = self.gateway, let dhcpEnd = self.dhcpEnd {
-				xpc_dictionary_set_string(dict, vmnet_start_address_key, gateway);
-				xpc_dictionary_set_string(dict, vmnet_end_address_key, dhcpEnd);
-				xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.subnetMask);
-			}
+			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart);
+			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd);
+			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask);
 
 			xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, true)
-			xpc_dictionary_set_string(dict, vmnet_network_identifier_key, self.interfaceID);
-			xpc_dictionary_set_string(dict, vmnet_host_ip_address_key, self.gateway!);
-			xpc_dictionary_set_string(dict, vmnet_host_subnet_mask_key, self.subnetMask);
+
+			xpc_dictionary_set_string(dict, vmnet_host_ip_address_key, self.networkConfig.dhcpStart);
+			xpc_dictionary_set_string(dict, vmnet_host_subnet_mask_key, self.networkConfig.netmask);
+			xpc_dictionary_set_string(dict, vmnet_network_identifier_key, self.networkConfig.interfaceID);
 		}
 
 		self.print_vmnet_start_param(params: dict, info: "setup");

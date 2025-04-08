@@ -43,24 +43,11 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 		}
 	}
 
-	init(on: EventLoop,
-	     socketPath: URL,
-	     socketGroup: gid_t,
-	     mode: VMNetMode,
-	     networkInterface: String? = nil,
-	     gateway: String? = nil,
-	     dhcpEnd: String?,
-	     subnetMask: String = "255.255.255.0",
-	     interfaceID: String = UUID().uuidString,
-	     nat66Prefix: String? = nil,
-	     pidFile: URL) {
-
+	init(on: EventLoop, socketPath: URL, socketGroup: gid_t, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
 		self.socketPath = socketPath
 		self.socketGroup = socketGroup
 
-		super.init(on: on, mode: mode, networkInterface: networkInterface,
-		           gateway: gateway, dhcpEnd: dhcpEnd, subnetMask: subnetMask,
-		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
+		super.init(on: on, networkName: networkName, networkConfig: networkConfig, pidFile: pidFile)
 	}
 
 	override func write(data: Data) {

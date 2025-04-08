@@ -67,30 +67,23 @@ struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
 	init(config: CakeConfig) {
+		let networks = config.qualifiedNetworks
 
-		if config.networks.isEmpty {
-			if let macAddress = config.macAddress {
-				self.network.ethernets["enp0s1"] = Interface(match: Match(macAddress: macAddress.string), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-			} else {
-				self.network.ethernets["all"] = Interface(match: Match(name: "en*"), dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-			}
-		} else {
-			var index: Int = 1
+		var index: Int = 1
 
-			config.networks.forEach { network in
-				let name = "enp0s\(index)"
+		networks.forEach { network in
+			let name = "enp0s\(index)"
 
-				index += 1
+			index += 1
 
-				if network.network == "nat" {
-					if let macAddress = config.macAddress {
-						self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress.string), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-					} else {
-						self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
-					}
-				} else if network.mode == nil || network.mode == .auto {
-					self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
+			if network.network == "nat" {
+				if let macAddress = config.macAddress {
+					self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress.string), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+				} else {
+					self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 				}
+			} else if network.mode == nil || network.mode == .auto {
+				self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac", dhcp4Overrides: .init(routeMetric: 200), dhcp6Overrides: .init(routeMetric: 200))
 			}
 		}
 	}

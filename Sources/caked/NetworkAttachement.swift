@@ -175,7 +175,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, macAddress: self.macAddress.string, networkConfig: .init(name: networkName, config: networkConfig), pidFile: vmLocation.rootURL.appending(path: "\(self.networkName).pid"))
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), pidFile: vmLocation.rootURL.appending(path: "\(self.networkName).pid"))
 		}
 		
 		return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)

@@ -5,6 +5,7 @@ import GRPCLib
 import GRPC
 import Logging
 import TextTable
+import Virtualization
 
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
@@ -113,7 +114,7 @@ struct Networks: ParsableCommand {
 				dhcpStart: self.options.gateway,
 				dhcpEnd: self.options.dhcpEnd,
 				dhcpLease: self.options.dhcpLease,
-				uuid: self.options.interfaceID,
+				interfaceID: self.options.interfaceID,
 				nat66Prefix: self.options.nat66Prefix
 			)
 
@@ -158,7 +159,7 @@ struct Networks: ParsableCommand {
 				dhcpStart: self.options.gateway ?? existing.dhcpStart,
 				dhcpEnd: self.options.dhcpEnd ?? existing.dhcpEnd,
 				dhcpLease: self.options.dhcpLease ?? existing.dhcpLease,
-				uuid: self.options.interfaceID ?? existing.uuid,
+				interfaceID: self.options.interfaceID ?? existing.interfaceID,
 				nat66Prefix: self.options.nat66Prefix ?? existing.nat66Prefix
 			)
 

@@ -6,7 +6,6 @@ import Virtualization
  
 final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	private let fileDescriptor: CInt
-	private let macAddress: String
 
 	final class VZVMNetFileHandleHandler: VZVMNet.VZVMNetHandler {
 		public typealias InboundIn = ByteBuffer
@@ -20,23 +19,9 @@ final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		}
 	}
 
-	init(on: EventLoop,
-	     inputOutput: CInt,
-	     mode: VMNetMode,
-	     networkInterface: String? = nil,
-		 macAddress: String,
-	     gateway: String? = nil,
-	     dhcpEnd: String?,
-	     subnetMask: String = "255.255.255.0",
-	     interfaceID: String = UUID().uuidString,
-	     nat66Prefix: String? = nil,
-	     pidFile: URL) {
-
+	init(on: EventLoop, inputOutput: CInt, networkName: String, networkConfig: VZSharedNetwork, pidFile: URL) {
 		self.fileDescriptor = inputOutput
-		self.macAddress = macAddress
-		super.init(on: on, mode: mode, networkInterface: networkInterface,
-		           gateway: gateway, dhcpEnd: dhcpEnd, subnetMask: subnetMask,
-		           interfaceID: interfaceID, nat66Prefix: nat66Prefix, pidFile: pidFile)
+		super.init(on: on, networkName: networkName, networkConfig: networkConfig, pidFile: pidFile)
 	}
 
 	override func write(data: Data) {
