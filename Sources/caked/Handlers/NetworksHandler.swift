@@ -1111,4 +1111,38 @@ struct NetworksHandler: CakedCommandAsync {
 			}
 		}
 	}
+
+	static func updateSudoers(networkName: String, pidFile: URL) throws {
+		let sudoerURL = URL(fileURLWithPath: "/etc/sudoers.d/caker")
+
+		if try sudoerURL.exists() {
+			let cakedUrl = URL.binary("caked")
+			var content = try String(contentsOf: sudoerURL, encoding: .ascii)
+
+			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: \(cakedUrl.path) networks start \(networkName) #\(networkName)\n")
+			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: /usr/bin/pkill -SIGTERM -F \(pidFile.path) #\(networkName)\n")
+			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: /usr/bin/pkill -SIGUSR2 -F \(pidFile.path) #\(networkName)\n")
+			
+			try content.write(to: sudoerURL, atomically: true, encoding: .ascii)
+		} else {
+			Logger(self).info("Sudoers file at \(sudoerURL.path) doesn't exists")
+		}
+	}
+
+	static func removeSudoers(networkName: String) throws {
+		let sudoerURL = URL(fileURLWithPath: "/etc/sudoers.d/caker")
+
+		if try sudoerURL.exists() {
+			var content = try String(contentsOf: sudoerURL, encoding: .ascii)
+			let lines = content.split(separator: "\n").filter { line in
+				return !line.contains("#\(networkName)")
+			}
+
+			content = lines.joined(separator: "\n")
+
+			try content.write(to: sudoerURL, atomically: true, encoding: .ascii)
+		} else {
+			Logger(self).info("Sudoers file at \(sudoerURL.path) doesn't exists")
+		}
+	}
 }
