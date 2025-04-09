@@ -112,7 +112,7 @@ struct Root: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		MainUI.main()
+		await MainUI.main()
 	}
 
 	public static func main() async throws {

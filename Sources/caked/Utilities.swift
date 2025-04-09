@@ -14,12 +14,18 @@ enum Architecture: String, Codable, CustomStringConvertible {
 			return "aarch64"
 		case .armv7l:
 			return "armv7l"
+		case .armhf:
+			return "armhf"
+		case .i386:
+			return "i386"
 		case .i686:
 			return "i686"
+		case .powerpc:
+			return "powerpc"
 		case .ppc:
 			return "ppc"
-		case .ppc64le:
-			return "ppc64le"
+		case .ppc64el:
+			return "ppc64el"
 		case .riscv64:
 			return "riscv64"
 		case .s390x:
@@ -39,12 +45,18 @@ enum Architecture: String, Codable, CustomStringConvertible {
 			self = .aarch64
 		case "armv7l":
 			self = .armv7l
+		case "armhf":
+			self = .armhf
+		case "i386":
+			self = .i386
 		case "i686":
 			self = .i686
 		case "ppc":
 			self = .ppc
-		case "ppc64le":
-			self = .ppc64le
+		case "powerpc":
+			self = .powerpc
+		case "ppc64el":
+			self = .ppc64el
 		case "riscv64":
 			self = .riscv64
 		case "s390x":
@@ -52,6 +64,10 @@ enum Architecture: String, Codable, CustomStringConvertible {
 		case "x86_64":
 			self = .x86_64
 		default:
+			Logger("Architecture").warn("Unknown architecture: \(rawValue)")
+			// Default to amd64 if unknown
+			// This is a fallback and should be handled better
+			// in the future.
 			self = .amd64
 		}
 	}
@@ -60,9 +76,12 @@ enum Architecture: String, Codable, CustomStringConvertible {
 	case amd64
 	case aarch64
 	case armv7l
+	case armhf
+	case i386
 	case i686
+	case powerpc
 	case ppc
-	case ppc64le
+	case ppc64el
 	case riscv64
 	case s390x
 	case x86_64
