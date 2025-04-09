@@ -243,16 +243,36 @@ struct Networks: ParsableCommand {
 		var asSystem: Bool = false
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
-		var networkName: String
+		var networkName: String? = nil
+
+		@Option(name: [.customLong("pidfile")], help: .hidden)
+		var pidFile: String? = nil
+
+		@Option(name: [.customLong("signal")], help: .hidden)
+		var sig: Int32 = SIGTERM
 
 		func validate() throws {
 			Logger.setLevel(self.logLevel)
+
+			if networkName != nil && pidFile != nil {
+				throw ValidationError("You can only specify one of --network or --pidfile")
+			}
+
+			if networkName == nil && pidFile == nil {
+				throw ValidationError("You must specify one of --network or --pidfile")
+			}
 
 			runAsSystem = self.asSystem
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.stop(networkName: self.networkName, asSystem: self.asSystem))
+			if let pidFile {
+				Logger.appendNewLine(try NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), asSystem: self.asSystem))
+			} else if let networkName {
+				Logger.appendNewLine(try NetworksHandler.stop(networkName: networkName, asSystem: self.asSystem))
+			} else {
+				throw ValidationError("No network name provided")
+			}
 		}
 	}
 

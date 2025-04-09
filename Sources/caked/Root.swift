@@ -111,6 +111,10 @@ struct Root: AsyncParsableCommand {
 		return true
 	}
 
+	func run() async throws {
+		MainUI.main()
+	}
+
 	public static func main() async throws {
 		// Set up logging to stderr
 		LoggingSystem.bootstrap{ label in

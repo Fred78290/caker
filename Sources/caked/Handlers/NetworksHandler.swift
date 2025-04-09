@@ -29,6 +29,7 @@ extension Caked_CreateNetworkRequest {
 extension Caked_ConfigureNetworkRequest {
 	func toUsedNetworkConfig() -> UsedNetworkConfig {
 		return UsedNetworkConfig(
+			mode: .shared,
 			networkName: self.name,
 			netmask: self.hasNetmask ? self.netmask : nil,
 			dhcpStart: self.hasGateway ? self.gateway : nil,
@@ -75,6 +76,7 @@ enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 }
 
 struct UsedNetworkConfig {
+	var mode: VMNetMode
 	var networkName: String
 	var netmask: String? = nil
 	var dhcpStart: String? = nil
@@ -83,7 +85,8 @@ struct UsedNetworkConfig {
 	var interfaceID: String? = UUID().uuidString
 	var nat66Prefix: String? = nil
 
-	init(networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, dhcpLease: Int32?, interfaceID: String? = nil, nat66Prefix: String? = nil) {
+	init(mode: VMNetMode, networkName: String, netmask: String?, dhcpStart: String?, dhcpEnd: String?, dhcpLease: Int32?, interfaceID: String? = nil, nat66Prefix: String? = nil) {
+		self.mode = mode
 		self.networkName = networkName
 		self.netmask = netmask
 		self.dhcpStart = dhcpStart
@@ -94,6 +97,7 @@ struct UsedNetworkConfig {
 	}
 
 	init(name: String, config: VZSharedNetwork? = nil) {
+		self.mode = config?.mode ?? .bridged
 		self.networkName = name
 		self.netmask = config?.netmask
 		self.dhcpStart = config?.dhcpStart
@@ -312,8 +316,8 @@ struct NetworksHandler: CakedCommandAsync {
 
 			let vzvmnet = VZVMNetFileHandle(on: Root.group.next(),
 			                                inputOutput: CInt(vmfd),
-											networkName: self.networkName,
-											networkConfig: network,
+			                                networkName: self.networkName,
+			                                networkConfig: network,
 			                                pidFile: pidUrl)
 
 			return (pidUrl, vzvmnet)
@@ -383,19 +387,19 @@ struct NetworksHandler: CakedCommandAsync {
 				throw ServiceError("caked not found in path")
 			}
 
-			guard try checkIfSudoable(binary: executableURL) else {
-				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
-			}
-
 			// We are not running as root, so we need to use sudo to kill the process
 			guard let sudoURL = URL.binary(SUDO) else {
 				throw ServiceError("sudo not found in path")
 			}
 
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
 			let process = Process()
 
 			process.executableURL = sudoURL
-			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", "pkill", "-SIGUSR2", "-F", "\(pidURL.path)"]
+			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", executableURL.path, "--signal=\(SIGUSR2)", "--pidfile=\(pidURL.path)"]
 			process.environment = try Root.environment()
 			process.standardInput = FileHandle.standardInput
 			process.standardOutput = FileHandle.standardOutput
@@ -424,13 +428,9 @@ struct NetworksHandler: CakedCommandAsync {
 		_ = try Self.start(networkName: networkName, asSystem: runAsSystem)
 	}
 
-	static func checkIfSudoable(binary: URL) throws -> Bool {
+	static func checkIfSudoable(sudoURL: URL, binary: URL) throws -> Bool {
 		if geteuid() == 0 {
 			return true
-		}
-
-		guard let sudoURL = URL.binary(SUDO) else {
-			throw ServiceError("sudo not found in path")
 		}
 
 		let info = try FileManager.default.attributesOfItem(atPath: binary.path) as NSDictionary
@@ -459,8 +459,8 @@ struct NetworksHandler: CakedCommandAsync {
 		return false
 	}
 
-	static func run(fileDescriptor: Int32, mode: VMNetMode, networkConfig: UsedNetworkConfig, pidFile: URL) throws -> ProcessWithSharedFileHandle {
-		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using vmfd: \(fileDescriptor)")
+	static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL) throws -> ProcessWithSharedFileHandle {
+		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
 		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : "caked") else {
 			throw ServiceError("caked not found in path")
@@ -478,7 +478,7 @@ struct NetworksHandler: CakedCommandAsync {
 			arguments.append("--log-level=\(Logger.LoggingLevel().rawValue)")
 		}
 
-		arguments.append("--mode=\(mode.rawValue)")
+		arguments.append("--mode=\(networkConfig.mode.rawValue)")
 
 		if Logger.Level() >= .debug {
 			arguments.append("--debug")
@@ -488,7 +488,7 @@ struct NetworksHandler: CakedCommandAsync {
 			arguments.append("--interface-id=\(interfaceID)")
 		}
 
-		if mode == .bridged {
+		if networkConfig.mode == .bridged {
 			guard networkConfig.networkName != "" else {
 				throw ServiceError("interface is required for bridged mode")
 			}
@@ -523,20 +523,20 @@ struct NetworksHandler: CakedCommandAsync {
 				throw ServiceError("sudo not found in path")
 			}
 
-			guard try checkIfSudoable(binary: executableURL) else {
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
 				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
 			}
 
 			fd = STDIN_FILENO
 			// We need to use the file descriptor of stdin, otherwise the process will not be able to read from it
 			// and will block forever
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 			process.executableURL = sudoURL
 			process.standardInput = FileHandle(fileDescriptor: fileDescriptor, closeOnDealloc: false)
 		}
 
-		arguments.append("--pidfile=\(pidFile.absoluteURL.path)")
 		arguments.append("--fd=\(fd)")
+		arguments.append("--pidfile=\(pidFile.path)")
 
 		runningArguments.append(contentsOf: arguments)
 		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
@@ -573,7 +573,7 @@ struct NetworksHandler: CakedCommandAsync {
 		var arguments: [String] = []
 
 		if let socketPath = socketPath, let pidFile = pidFile {
-			socketURL = (socketPath, pidFile)
+			socketURL = (socketPath.absoluteURL, pidFile.absoluteURL)
 		} else {
 			socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkConfig.networkName, asSystem: runAsSystem)
 		}
@@ -618,8 +618,8 @@ struct NetworksHandler: CakedCommandAsync {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.1.absoluteURL.path)")
-			arguments.append(socketURL.0.absoluteURL.path)
+			arguments.append("--pidfile=\(socketURL.1.path)")
+			arguments.append(socketURL.0.path)
 		} else if let caker = URL.binary("caked") {
 			executableURL = caker
 
@@ -660,8 +660,8 @@ struct NetworksHandler: CakedCommandAsync {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.1.absoluteURL.path)")
-			arguments.append(socketURL.0.absoluteURL.path)
+			arguments.append("--pidfile=\(socketURL.1.path)")
+			arguments.append(socketURL.0.path)
 		} else {
 			throw ServiceError("caked not found in path")
 		}
@@ -683,13 +683,13 @@ struct NetworksHandler: CakedCommandAsync {
 				throw ServiceError("sudo not found in path")
 			}
 
-			guard try checkIfSudoable(binary: executableURL) else {
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
 				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
 			}
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -709,7 +709,7 @@ struct NetworksHandler: CakedCommandAsync {
 			process.standardError = FileHandle.standardError
 		} else {
 			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
-			
+
 			if try logURL.exists() == false {
 				FileManager.default.createFile(atPath: logURL.path, contents: nil)
 			}
@@ -783,7 +783,7 @@ struct NetworksHandler: CakedCommandAsync {
 			networkConfig.sharedNetworks[network.networkName] = changed
 			try home.setSharedNetworks(networkConfig)
 			try self.restartNetworkService(networkName: network.networkName, asSystem: asSystem)
-		
+
 			return "Network \(network.networkName) configured"
 		} else {
 			return "Network \(network.networkName) unchanged"
@@ -840,13 +840,13 @@ struct NetworksHandler: CakedCommandAsync {
 				throw ServiceError("sudo not found in path")
 			}
 
-			guard try checkIfSudoable(binary: executableURL) else {
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
 				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
 			}
 
 			process.executableURL = sudoURL
 
-			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.absoluteURL.path]
+			runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 		}
 
 		runningArguments.append(contentsOf: arguments)
@@ -869,7 +869,7 @@ struct NetworksHandler: CakedCommandAsync {
 			process.standardError = FileHandle.standardError
 		} else {
 			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
-			
+
 			if try logURL.exists() == false {
 				FileManager.default.createFile(atPath: logURL.path, contents: nil)
 			}
@@ -995,13 +995,14 @@ struct NetworksHandler: CakedCommandAsync {
 		try vzvmnet.1.start()
 	}
 
-	static func stop(networkName: String, asSystem: Bool) throws -> String {
-		let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
-		let pidURL = socketURL.1
+	static func stop(pidURL: URL, asSystem: Bool) throws -> String {
+		guard try pidURL.exists() else {
+			throw ServiceError("PID file \(pidURL.path) doesn't exists")
+		}
 
 		guard pidURL.isPIDRunning() else {
-			Logger(self).info("Network \(networkName) is not running")
-			return "Network \(networkName) is not running"
+			Logger(self).info("PID \(pidURL.path) is not running")
+			return "PID \(pidURL.path) is not running"
 		}
 
 		if geteuid() == 0 {
@@ -1009,15 +1010,11 @@ struct NetworksHandler: CakedCommandAsync {
 			if pidURL.killPID(SIGTERM) < 0 {
 				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
 			} else {
-				Logger(self).info("Network \(networkName) stopped")
+				Logger(self).info("PID \(pidURL.path) stopped")
 			}
 		} else {
 			guard let executableURL = URL.binary("caked") else {
 				throw ServiceError("caked not found in path")
-			}
-
-			guard try checkIfSudoable(binary: executableURL) else {
-				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
 			}
 
 			// We are not running as root, so we need to use sudo to kill the process
@@ -1025,10 +1022,14 @@ struct NetworksHandler: CakedCommandAsync {
 				throw ServiceError("sudo not found in path")
 			}
 
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
 			let process = Process()
 
 			process.executableURL = sudoURL
-			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", "pkill", "-TERM", "-F", "\(pidURL.path)"]
+			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", executableURL.path, "networks", "stop", "--pidfile=\(pidURL.path)"]
 			process.environment = try Root.environment()
 			process.standardInput = FileHandle.nullDevice
 			process.standardOutput = FileHandle.nullDevice
@@ -1040,6 +1041,59 @@ struct NetworksHandler: CakedCommandAsync {
 
 			if process.terminationStatus != 0 {
 				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(process.terminationStatus)))")
+			} else {
+				Logger(self).info("PID \(pidURL.path) stopped")
+			}
+		}
+
+		return "PID \(pidURL.path) stopped"
+	}
+
+	static func stop(networkName: String, asSystem: Bool) throws -> String {
+		if geteuid() == 0 {
+			let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
+			let pidURL = socketURL.1
+
+			guard pidURL.isPIDRunning() else {
+				Logger(self).info("Network \(networkName) is not running")
+				return "Network \(networkName) is not running"
+			}
+
+			// We are running as root, so we can just kill the process
+			if pidURL.killPID(SIGTERM) < 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+			} else {
+				Logger(self).info("Network \(networkName) stopped")
+			}
+		} else {
+			guard let executableURL = URL.binary("caked") else {
+				throw ServiceError("caked not found in path")
+			}
+
+			// We are not running as root, so we need to use sudo to kill the process
+			guard let sudoURL = URL.binary(SUDO) else {
+				throw ServiceError("sudo not found in path")
+			}
+
+			guard try checkIfSudoable(sudoURL: sudoURL, binary: executableURL) else {
+				throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
+			}
+
+			let process = Process()
+
+			process.executableURL = sudoURL
+			process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--", executableURL.path, "networks", "stop", networkName]
+			process.environment = try Root.environment()
+			process.standardInput = FileHandle.nullDevice
+			process.standardOutput = FileHandle.nullDevice
+			process.standardError = FileHandle.nullDevice
+
+			try process.run()
+
+			process.waitUntilExit()
+
+			if process.terminationStatus != 0 {
+				throw ServiceError("Failed to kill network process \(networkName): \(String(cString: strerror(process.terminationStatus)))")
 			} else {
 				Logger(self).info("Network \(networkName) stopped")
 			}
@@ -1058,7 +1112,7 @@ struct NetworksHandler: CakedCommandAsync {
 			let endpoint: String
 
 			if try socketURL.0.exists() {
-				endpoint = socketURL.0.absoluteURL.path
+				endpoint = socketURL.0.path
 			} else {
 				endpoint = "not running"
 			}
@@ -1109,40 +1163,6 @@ struct NetworksHandler: CakedCommandAsync {
 			} else {
 				return message
 			}
-		}
-	}
-
-	static func updateSudoers(networkName: String, pidFile: URL) throws {
-		let sudoerURL = URL(fileURLWithPath: "/etc/sudoers.d/caker")
-
-		if try sudoerURL.exists() {
-			let cakedUrl = URL.binary("caked")
-			var content = try String(contentsOf: sudoerURL, encoding: .ascii)
-
-			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: \(cakedUrl.path) networks start \(networkName) #\(networkName)\n")
-			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: /usr/bin/pkill -SIGTERM -F \(pidFile.path) #\(networkName)\n")
-			content.append(contentsOf: "\n%everyone ALL=(daemon:everyone) NOPASSWD: /usr/bin/pkill -SIGUSR2 -F \(pidFile.path) #\(networkName)\n")
-			
-			try content.write(to: sudoerURL, atomically: true, encoding: .ascii)
-		} else {
-			Logger(self).info("Sudoers file at \(sudoerURL.path) doesn't exists")
-		}
-	}
-
-	static func removeSudoers(networkName: String) throws {
-		let sudoerURL = URL(fileURLWithPath: "/etc/sudoers.d/caker")
-
-		if try sudoerURL.exists() {
-			var content = try String(contentsOf: sudoerURL, encoding: .ascii)
-			let lines = content.split(separator: "\n").filter { line in
-				return !line.contains("#\(networkName)")
-			}
-
-			content = lines.joined(separator: "\n")
-
-			try content.write(to: sudoerURL, atomically: true, encoding: .ascii)
-		} else {
-			Logger(self).info("Sudoers file at \(sudoerURL.path) doesn't exists")
 		}
 	}
 }

@@ -52,6 +52,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 	var pipeChannel: Channel? = nil
 	var vmfd: Int32 = -1
 	var hostfd: Int32 = -1
+	var pidURL: URL? = nil
 
 	init(mode: VMNetMode, networkName: String, macAddress: VZMACAddress) {
 		self.mode = mode
@@ -175,7 +176,9 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, mode: self.mode, networkConfig: .init(name: networkName, config: networkConfig), pidFile: vmLocation.rootURL.appending(path: "\(self.networkName).pid"))
+			let pidURL = vmLocation.rootURL.appending(path: "\(self.networkName).pid")
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL)
+			self.pidURL = pidURL
 		}
 		
 		return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)
@@ -185,8 +188,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		if let process {
 			if process.isRunning {
 				if geteuid() != 0 {
-					// If we are not running as root, we need to kill the process with sudo
-					let _ = try? Shell.sudo(to: "kill \(process.processIdentifier)")
+					_ = try? NetworksHandler.stop(pidURL: self.pidURL!, asSystem: false)
 				} else {
 					// Otherwise, we can just kill the process directly
 					kill(process.processIdentifier, SIGTERM)
