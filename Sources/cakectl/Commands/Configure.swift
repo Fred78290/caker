@@ -9,8 +9,8 @@ struct Configure: AsyncParsableCommand {
 	@OptionGroup var options: Client.Options
 	@OptionGroup var configure: ConfigureOptions
 	
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.configure(Caked_ConfigureRequest(options: self.configure), callOptions: callOptions).response.wait()
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		return try client.configure(Caked_ConfigureRequest(options: self.configure), callOptions: callOptions).response.wait().successfull().vms.message
 	}
 
 }

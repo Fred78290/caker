@@ -24,15 +24,15 @@ protocol GrpcParsableCommand: ParsableCommand {
 	var retries: ConnectionBackoff.Retries { get }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String
 }
 
 protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcParsableCommand {
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> Caked_Reply
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> String
 }
 
 extension AsyncGrpcParsableCommand {
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		throw CleanExit.helpRequest(self)
 	}
 
@@ -148,16 +148,7 @@ struct Client: AsyncParsableCommand {
 				try? group.syncShutdownGracefully()
 			}
 
-			let reply = try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
-
-			switch reply.response {
-			case let .error(err):
-				throw GrpcError(code: Int(err.code), reason: err.reason)
-			case let .output(msg):
-				return msg
-			case .none:
-				throw GrpcError(code: -1, reason: "No reply")
-			}
+			return try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
 		}
 
 		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
@@ -172,14 +163,7 @@ struct Client: AsyncParsableCommand {
 
 				await finish()
 
-				switch reply.response {
-				case let .error(err):
-					throw GrpcError(code: Int(err.code), reason: err.reason)
-				case let .output(msg):
-					return msg
-				case .none:
-					throw GrpcError(code: -1, reason: "No reply")
-				}
+				return reply
 			} catch {
 				await finish()
 				throw error

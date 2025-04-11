@@ -9,7 +9,7 @@ import GRPCLib
 import GRPC
 import NIO
 
-final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {
+final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {	
 	internal let inputHandle: FileHandle
 	internal let state: termios
 
@@ -150,12 +150,12 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		[CakeAgentClientInterceptor<Caked_RenameRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
-	func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_InfoReply>] {
-		[CakeAgentClientInterceptor<Caked_InfoRequest, Caked_InfoReply>(state: self.state, inputHandle: self.inputHandle)]
+	func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>] {
+		[CakeAgentClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
-	func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_RunReply>] {
-		[CakeAgentClientInterceptor<Caked_RunCommand, Caked_RunReply>(state: self.state, inputHandle: self.inputHandle)]
+	func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_Reply>] {
+		[CakeAgentClientInterceptor<Caked_RunCommand, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>] {

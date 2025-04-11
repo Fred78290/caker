@@ -38,11 +38,15 @@ struct BuildHandler: CakedCommandAsync {
 			})
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
 			try await Self.build(name: self.options.name, options: self.options, asSystem: asSystem)
 
-			return ""
+			return Caked_Reply.with { reply in
+				reply.vms = Caked_VirtualMachineReply.with {
+					$0.message = "VM \(self.options.name) created"
+				}
+			}
 		}
 	}
 }

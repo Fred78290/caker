@@ -61,11 +61,28 @@ struct MountHandler: CakedCommandAsync {
 			return message
 		}
 
+		func toCaked_MountVirtioFSReply() -> Caked_MountVirtioFSReply {
+			Caked_MountVirtioFSReply.with {
+				$0.name = self.name
+				$0.path = self.path
+
+				if self.success {
+					$0.success = true
+				} else {
+					$0.error = self.reason
+				}
+			}
+		}
 	}
 
 	struct MountReply: Codable {
 		var mounts: [MountVirtioFSReply] = []
 		var response: OneOf_Response? = .success(true)
+
+		public enum OneOf_Response: Codable, Equatable, Sendable {
+			case error(String)
+			case success(Bool)
+		}
 
 		public static func with(
 			_ populator: (inout Self) throws -> Void
@@ -73,20 +90,6 @@ struct MountHandler: CakedCommandAsync {
 			var message = Self()
 			try populator(&message)
 			return message
-		}
-
-		public enum OneOf_Response: Codable, Equatable, Sendable {
-			case error(String)
-			case success(Bool)
-
-			init(_ from: Caked_MountReply.OneOf_Response) {
-				switch from {
-				case .error(let v):
-					self = .error(v)
-				case .success(let v):
-					self = .success(v)
-				}
-			}
 		}
 
 		func render(format: Format, directorySharingAttachment: [DirectorySharingAttachment]) -> String {
@@ -113,11 +116,9 @@ struct MountHandler: CakedCommandAsync {
 		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts)
 	}
 
-
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.request.name)
 		let directorySharingAttachment = self.request.directorySharingAttachment()
-		let format: Format = request.format == .text ? Format.text : Format.json
 		let command = self.request.command
 
 		return on.submit {
@@ -133,7 +134,11 @@ struct MountHandler: CakedCommandAsync {
 				throw ServiceError(v)
 			}
 
-			return response.render(format: format, directorySharingAttachment: directorySharingAttachment)
+			return Caked_Reply.with {
+				$0.mounts = Caked_MountReply.with {
+					$0.mounts = response.mounts.map { $0.toCaked_MountVirtioFSReply() }
+				}
+			}
 		}
 	}
 }

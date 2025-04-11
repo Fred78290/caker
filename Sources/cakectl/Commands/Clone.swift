@@ -34,7 +34,7 @@ struct Clone: GrpcParsableCommand {
 	@Flag(help: .hidden)
 	var deduplicate: Bool = false
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "clone", arguments: arguments), callOptions: callOptions).response.wait()
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "clone", arguments: arguments), callOptions: callOptions).response.wait().successfull().tart.message
 	}
 }

@@ -10,7 +10,7 @@ struct LaunchHandler: CakedCommandAsync {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
 		let config = try vmLocation.config()
 
-		return try StartHandler(location: vmLocation, config: config, waitIPTimeout: 180, startMode: startMode).run(on: Root.group.next(), asSystem: runAsSystem)
+		return try StartHandler.startVM(on: Root.group.next(), vmLocation: vmLocation, config: config, waitIPTimeout: 180, startMode: startMode)
 	}
 
 	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
@@ -18,10 +18,15 @@ struct LaunchHandler: CakedCommandAsync {
 		return try Self.launch(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode)
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
 			let runningIP: String = try await Self.buildAndLaunchVM(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, startMode: .service)
-			return "launched \(options.name) with IP: \(runningIP)"
+			
+			return Caked_Reply.with { reply in
+				reply.vms = Caked_VirtualMachineReply.with {
+					$0.message = "Launched \(options.name) with IP: \(runningIP)"
+				}
+			}
 		}
 	}
 

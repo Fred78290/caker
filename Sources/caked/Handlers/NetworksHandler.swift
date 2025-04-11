@@ -116,6 +116,18 @@ struct BridgedNetwork: Codable {
 	var dhcpEnd = ""
 	var interfaceID: String = ""
 	var endpoint: String = ""
+	
+	func toCaked_NetworkInfo() -> Caked_NetworkInfo {
+		Caked_NetworkInfo.with {
+			$0.name = self.name
+			$0.mode = self.mode
+			$0.description_p = self.description
+			$0.gateway = self.gateway
+			$0.dhcpEnd = self.dhcpEnd
+			$0.interfaceID = self.interfaceID
+			$0.endpoint = self.endpoint
+		}
+	}
 }
 
 struct NetworksHandler: CakedCommandAsync {
@@ -1135,14 +1147,23 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		on.submit {
-			let format: Format = self.request.format == .text ? .text : .json
 			let message: String
 
 			switch self.request.command {
 			case .infos:
-				return format.renderList(style: Style.grid, uppercased: true, try Self.networks(asSystem: asSystem))
+				let result = try Self.networks(asSystem: asSystem)
+				
+				return Caked_Reply.with {
+					$0.networks = Caked_NetworksReply.with {
+						$0.list = Caked_ListNetworksReply.with {
+							$0.networks = result.map {
+								$0.toCaked_NetworkInfo()
+							}
+						}
+					}
+				}
 			case .create:
 				message = try Self.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), asSystem: asSystem)
 			case .remove:
@@ -1157,11 +1178,11 @@ struct NetworksHandler: CakedCommandAsync {
 			default:
 				throw ServiceError("Unknown command")
 			}
-
-			if self.request.format == .json {
-				return format.renderSingle(style: Style.grid, uppercased: true, message)
-			} else {
-				return message
+			
+			return Caked_Reply.with {
+				$0.networks = Caked_NetworksReply.with {
+					$0.message = message
+				}
 			}
 		}
 	}

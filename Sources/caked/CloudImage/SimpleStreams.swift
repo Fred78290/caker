@@ -320,7 +320,7 @@ struct ImageVersionItems: Codable {
 struct ImageVersionItem: Codable {
 	let ftype: String
 	let path: String
-	let size: Int
+	let size: UInt32
 	let sha256: String
 	let md5: String?
 
@@ -337,29 +337,13 @@ struct ImageVersionItem: Codable {
 
 		ftype = try container.decode(String.self, forKey: .ftype)
 		path = try container.decode(String.self, forKey: .path)
-		size = try container.decode(Int.self, forKey: .size)
+		size = try container.decode(UInt32.self, forKey: .size)
 		sha256 = try container.decode(String.self, forKey: .sha256)
 		md5 = try container.decodeIfPresent(String.self, forKey: .md5)
 	}
 }
 
-class LinuxContainerImage: Codable {
-	let alias: [String]?
-	let path: URL
-	let size: Int
-	let fingerprint: String
-	let remoteName: String
-	let description: String
-
-	init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: Int) {
-		self.alias = alias
-		self.path = path
-		self.size = size
-		self.fingerprint = fingerprint
-		self.remoteName = remoteName
-		self.description = description
-	}
-
+extension LinuxContainerImage {
 	func pullSimpleStreamImageAndConvert() async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)

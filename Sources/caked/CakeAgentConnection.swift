@@ -115,11 +115,10 @@ extension CakeAgentClient {
 			}
 		}, callOptions: .init(timeLimit: .none)).response.wait()
 
-		return Caked_MountReply.with { reply in
+		return try Caked_MountReply.with { reply in
 			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
-				reply.error = v
-			} else if case Cakeagent_MountReply.OneOf_Response.success(let v)? = response.response {
-				reply.success = v
+				throw ServiceError(v)
+			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {
 						$0.name = mount.name
@@ -147,11 +146,10 @@ extension CakeAgentClient {
 			}
 		}, callOptions: .init(timeLimit: .none)).response.wait()
 
-		return Caked_MountReply.with { reply in
+		return try Caked_MountReply.with { reply in
 			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
-				reply.error = v
-			} else if case Cakeagent_MountReply.OneOf_Response.success(let v)? = response.response {
-				reply.success = v
+				throw ServiceError(v)
+			} else {
 				reply.mounts = response.mounts.map { mount in
 					Caked_MountVirtioFSReply.with {
 						$0.name = mount.name

@@ -8,11 +8,11 @@ import NIOPortForwarding
 import CakeAgentLib
 
 protocol CakedCommand {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> String
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply
 }
 
 protocol CakedCommandAsync: CakedCommand {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String>
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply>
 }
 
 extension CakedCommand {
@@ -30,7 +30,7 @@ extension CakedCommand {
 }
 
 extension CakedCommandAsync {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> String {
+	mutating func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		return try self.run(on: on, asSystem: asSystem).wait()
 	}
 }
@@ -165,7 +165,7 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 
 extension Caked_ListRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
-		return ListHandler(format: self.format == .text ? .text : .json, vmonly: self.vmonly)
+		return ListHandler(vmonly: self.vmonly)
 	}
 }
 
@@ -239,7 +239,6 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
 		var command = try command.createCommand()
-		var reply: Caked_Reply = Caked_Reply()
 		let eventLoop = self.group.next()
 
 		Logger(self).debug("execute: \(command)")
@@ -248,24 +247,24 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 			if var cmd = command as? CakedCommandAsync {
 				let future = try cmd.run(on: eventLoop, asSystem: self.asSystem)
 
-				reply.output = try future.wait()
+				return try future.wait()
 			} else {
-				reply.output = try command.run(on: eventLoop, asSystem: self.asSystem)
+				return try command.run(on: eventLoop, asSystem: self.asSystem)
 			}
 		} catch {
-			if let shellError = error as? ShellError {
-				reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
-			} else if let serviceError = error as? ServiceError {
-				reply.error = Caked_Error(code: serviceError.exitCode, reason: serviceError.description)
-			} else {
-				reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
+			return Caked_Reply.with { reply in
+				if let shellError = error as? ShellError {
+					reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
+				} else if let serviceError = error as? ServiceError {
+					reply.error = Caked_Error(code: serviceError.exitCode, reason: serviceError.description)
+				} else {
+					reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
+				}
 			}
 		}
-
-		return reply
 	}
 
-	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply{
+	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 
@@ -281,7 +280,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 
@@ -329,18 +328,23 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-	func rename(request: GRPCLib.Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> GRPCLib.Caked_Reply {
+	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 
-	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_InfoReply {
+	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
 
 		Logger(self).debug("execute: \(request)")
-		return try conn.info()
+
+		return try Caked_Reply.with { reply in
+			reply.vms = try Caked_VirtualMachineReply.with {
+				$0.infos = try conn.info()
+			}
+		}
 	}
 
-	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_RunReply {
+	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
 			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
 
@@ -366,7 +370,9 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		let conn = try createCakeAgentConnection(vmName: vmname)
 
-		return try conn.run(request: request)
+		return try Caked_Reply.with {
+			$0.run = try conn.run(request: request)
+		}
 	}
 
     func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {

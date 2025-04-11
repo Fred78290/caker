@@ -66,11 +66,15 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		return on.submit {
 			try Self.configure(name: self.options.name, options: options, asSystem: asSystem)
 
-			return ""
+			return Caked_Reply.with { reply in
+				reply.vms = Caked_VirtualMachineReply.with {
+					$0.message = "VM \(self.options.name) configured"
+				}
+			}
 		}
 	}
 }

@@ -9,6 +9,16 @@ import Semaphore
 
 typealias CakeAgentClient = Caked_ServiceNIOClient
 
+extension Caked_Reply {
+	func successfull() throws -> Caked_Reply {
+		if case .error(let errorMessage) = self.response {
+			throw GrpcError(code: Int(errorMessage.code), reason: errorMessage.reason)
+		}
+
+		return self
+	}
+}
+
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()
@@ -21,14 +31,12 @@ extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()
 		self.name = command.name
-		self.format = command.format == .text ? .text : .json
 	}
 }
 
 extension Caked_ListRequest {
 	init(command: List) {
 		self.init()
-		self.format = command.format == .text ? .text : .json
 		self.vmonly = command.vmonly
 	}
 }
@@ -235,6 +243,7 @@ extension Caked_ConfigureRequest {
 		self.randomMac = options.randomMAC
 	}
 }
+
 extension Caked_InfoRequest {
 	init(command: Infos) {
 		self.init()
@@ -248,7 +257,6 @@ extension Caked_ImageRequest {
 
 		self.name = command.name
 		self.command = .list
-		self.format = command.format == .text ? .text : .json
 	}
 
 	init(command: ImagesManagement.InfoImage) {
@@ -256,7 +264,6 @@ extension Caked_ImageRequest {
 
 		self.name = command.name
 		self.command = .info
-		self.format = command.format == .text ? .text : .json
 	}
 
 	init(command: ImagesManagement.PullImage) {
@@ -264,7 +271,6 @@ extension Caked_ImageRequest {
 
 		self.name = command.name
 		self.command = .pull
-		self.format = command.format == .text ? .text : .json
 	}
 }
 
@@ -276,7 +282,6 @@ extension Caked_TemplateRequest {
 		add.sourceName = command.name
 		add.templateName = command.template
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .add
 		self.create = add
 	}
@@ -284,7 +289,6 @@ extension Caked_TemplateRequest {
 	init(command: Template.DeleteTemplate) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .delete
 		self.delete = command.name
 	}
@@ -292,7 +296,6 @@ extension Caked_TemplateRequest {
 	init(command: Template.ListTemplate) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .list
 	}
 }
@@ -320,7 +323,6 @@ extension Caked_RemoteRequest {
 		self.init()
 
 		self.command = .list
-		self.format = command.format == .text ? .text : .json
 	}
 }
 
@@ -328,14 +330,12 @@ extension Caked_NetworkRequest {
 	init(command: Networks.List) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .infos
 	}
 
 	init(command: Networks.Create) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .create
 		self.create = Caked_CreateNetworkRequest.with {
 			$0.mode = command.networkOptions.mode == .shared ? .shared : .host
@@ -353,7 +353,6 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Configure) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .configure
 		self.configure = Caked_ConfigureNetworkRequest.with {
 			$0.name = command.networkOptions.name
@@ -383,7 +382,6 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Delete) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .remove
 		self.name = command.name
 	}
@@ -391,7 +389,6 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Start) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .start
 		self.name = command.name
 	}
@@ -399,7 +396,6 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Stop) {
 		self.init()
 
-		self.format = command.format == .text ? .text : .json
 		self.command = .shutdown
 		self.name = command.name
 	}
@@ -420,8 +416,7 @@ extension Caked_MountRequest {
 
 		self.name = command.name
 		self.command = .add
-		self.format = command.format == .text ? .text : .json
-		self.mounts = command.mounts.map{ mount in
+		self.mounts = command.mounts.map { mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name
 				$0.source = mount.source
@@ -439,7 +434,6 @@ extension Caked_MountRequest {
 
 		self.name = command.name
 		self.command = .delete
-		self.format = command.format == .text ? .text : .json
 		self.mounts = command.mounts.map{ mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name

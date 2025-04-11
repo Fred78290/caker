@@ -21,7 +21,11 @@ struct LoginHandler: CakedCommand {
 		return try Shell.runTart(command: "login", arguments: arguments, direct: direct, input: password)
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		return try Self.login(host: self.request.host, username: self.request.username, password: self.request.password, insecure: self.request.insecure, noValidate: self.request.insecure, direct: false)
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		try Caked_Reply.with {
+			$0.tart = try Caked_TartReply.with {
+				$0.message = try Self.login(host: self.request.host, username: self.request.username, password: self.request.password, insecure: self.request.insecure, noValidate: self.request.insecure, direct: false)
+			}
+		}
 	}
 }

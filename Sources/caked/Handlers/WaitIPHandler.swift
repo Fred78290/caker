@@ -16,8 +16,12 @@ struct WaitIPHandler: CakedCommand {
 		return try vmLocation.waitIP(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		try Self.waitIP(name: name, wait: wait, asSystem: asSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		return try Caked_Reply.with { reply in
+			reply.vms = try Caked_VirtualMachineReply.with {
+				$0.message = try Self.waitIP(name: name, wait: wait, asSystem: asSystem)
+			}
+		}
 	}
 
 }

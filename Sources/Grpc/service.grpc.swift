@@ -104,12 +104,12 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
   func info(
     _ request: Caked_InfoRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_InfoRequest, Caked_InfoReply>
+  ) -> UnaryCall<Caked_InfoRequest, Caked_Reply>
 
   func run(
     _ request: Caked_RunCommand,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_RunCommand, Caked_RunReply>
+  ) -> UnaryCall<Caked_RunCommand, Caked_Reply>
 
   func execute(
     callOptions: CallOptions?,
@@ -132,7 +132,7 @@ extension Caked_ServiceClientProtocol {
     return "caked.Service"
   }
 
-  /// Sends a greeting
+  /// Unary call to Build
   ///
   /// - Parameters:
   ///   - request: Request to send to Build.
@@ -447,7 +447,7 @@ extension Caked_ServiceClientProtocol {
   public func info(
     _ request: Caked_InfoRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_InfoRequest, Caked_InfoReply> {
+  ) -> UnaryCall<Caked_InfoRequest, Caked_Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
@@ -465,7 +465,7 @@ extension Caked_ServiceClientProtocol {
   public func run(
     _ request: Caked_RunCommand,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_RunCommand, Caked_RunReply> {
+  ) -> UnaryCall<Caked_RunCommand, Caked_Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.run.path,
       request: request,
@@ -682,12 +682,12 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   func makeInfoCall(
     _ request: Caked_InfoRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_InfoReply>
+  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_Reply>
 
   func makeRunCall(
     _ request: Caked_RunCommand,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_RunReply>
+  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_Reply>
 
   func makeExecuteCall(
     callOptions: CallOptions?
@@ -921,7 +921,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func makeInfoCall(
     _ request: Caked_InfoRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_InfoReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
@@ -933,7 +933,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func makeRunCall(
     _ request: Caked_RunCommand,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_RunReply> {
+  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.run.path,
       request: request,
@@ -1186,7 +1186,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func info(
     _ request: Caked_InfoRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_InfoReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
@@ -1198,7 +1198,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func run(
     _ request: Caked_RunCommand,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_RunReply {
+  ) async throws -> Caked_Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.run.path,
       request: request,
@@ -1327,10 +1327,10 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeRenameInterceptors() -> [ClientInterceptor<Caked_RenameRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'info'.
-  func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_InfoReply>]
+  func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'run'.
-  func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_RunReply>]
+  func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_Reply>]
 
   /// - Returns: Interceptors to use when invoking 'execute'.
   func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>]
@@ -1511,7 +1511,6 @@ public enum Caked_ServiceClientMetadata {
 public protocol Caked_ServiceProvider: CallHandlerProvider {
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
-  /// Sends a greeting
   func build(request: Caked_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func start(request: Caked_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
@@ -1546,9 +1545,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func rename(request: Caked_RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func info(request: Caked_InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_InfoReply>
+  func info(request: Caked_InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
-  func run(request: Caked_RunCommand, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_RunReply>
+  func run(request: Caked_RunCommand, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func execute(context: StreamingResponseCallContext<Caked_ExecuteResponse>) -> EventLoopFuture<(StreamEvent<Caked_ExecuteRequest>) -> Void>
 
@@ -1726,7 +1725,7 @@ extension Caked_ServiceProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_InfoRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_InfoReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
         userFunction: self.info(request:context:)
       )
@@ -1735,7 +1734,7 @@ extension Caked_ServiceProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_RunCommand>(),
-        responseSerializer: ProtobufSerializer<Caked_RunReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeRunInterceptors() ?? [],
         userFunction: self.run(request:context:)
       )
@@ -1779,7 +1778,6 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
-  /// Sends a greeting
   func build(
     request: Caked_BuildRequest,
     context: GRPCAsyncServerCallContext
@@ -1868,12 +1866,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   func info(
     request: Caked_InfoRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_InfoReply
+  ) async throws -> Caked_Reply
 
   func run(
     request: Caked_RunCommand,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_RunReply
+  ) async throws -> Caked_Reply
 
   func execute(
     requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>,
@@ -2068,7 +2066,7 @@ extension Caked_ServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_InfoRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_InfoReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
         wrapping: { try await self.info(request: $0, context: $1) }
       )
@@ -2077,7 +2075,7 @@ extension Caked_ServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_RunCommand>(),
-        responseSerializer: ProtobufSerializer<Caked_RunReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeRunInterceptors() ?? [],
         wrapping: { try await self.run(request: $0, context: $1) }
       )
@@ -2187,11 +2185,11 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'info'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeInfoInterceptors() -> [ServerInterceptor<Caked_InfoRequest, Caked_InfoReply>]
+  func makeInfoInterceptors() -> [ServerInterceptor<Caked_InfoRequest, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'run'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRunInterceptors() -> [ServerInterceptor<Caked_RunCommand, Caked_RunReply>]
+  func makeRunInterceptors() -> [ServerInterceptor<Caked_RunCommand, Caked_Reply>]
 
   /// - Returns: Interceptors to use when handling 'execute'.
   ///   Defaults to calling `self.makeInterceptors()`.

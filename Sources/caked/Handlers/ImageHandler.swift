@@ -3,64 +3,7 @@ import GRPCLib
 import NIOCore
 import TextTable
 
-typealias Aliases = [String]
-
-extension Aliases {
-	var description: String {
-		if self.isEmpty {
-			return ""
-		} else if self.count == 1 {
-			return self[0]
-		} else {
-			return self[0] + " (" + String(self.count - 1) + " more)"
-		}
-	}
-}
-
-struct ImageEntry: Codable {
-	let name: String
-}
-
-struct ImageInfo: Codable {
-	let aliases: Aliases
-	let architecture: String
-	let pub: Bool
-	let fileName: String
-	let fingerprint: String
-	let size: UInt
-	let type: String
-	let created: String?
-	let expires: String?
-	let uploaded: String?
-	let properties: [String: String]
-
-	func toText() -> String {
-		var text = "Fingerprint: \(fingerprint)\n"
-
-		text += "Size: \(Double(size) / 1024 / 1024)MiB\n"
-		text += "Architecture: \(architecture)\n"
-		text += "Type: \(type)\n"
-		text += "Public: \(pub ? "yes" : "no")\n"
-		text += "Timestamps:\n"
-		text += "    Created: \(created ?? "")\n"
-		text += "    Uploaded: \(uploaded ?? "")\n"
-		text += "    Expires: \(expires ?? "")\n"
-		text += "    Last used: never\n"
-		text += "Properties:\n"
-		for (key, value) in properties {
-			text += "    \(key): \(value)\n"
-		}
-		text += "Aliases:\n"
-		for alias in aliases {
-			text += "    - \(alias)\n"
-		}
-		text += "Cached: no\n"
-		text += "Auto update: disabled\n"
-		text += "Profiles: []\n"
-
-		return text
-	}
-
+extension ImageInfo {
 	init(product: SimpleStreamProduct) throws {
 		guard let imageVersion = product.latest() else {
 			throw ServiceError("image doesn't offer qcow2 image")
@@ -124,85 +67,7 @@ struct ImageInfo: Codable {
 			properties["version"] = version
 		}
 
-		self.aliases = aliases
-		self.architecture = product.arch.rawValue
-		self.pub = true
-		self.fileName = imageDisk.path.components(separatedBy: "/").last!
-		self.fingerprint = imageDisk.sha256
-		self.size = UInt(imageDisk.size)
-		self.type = "virtual-machine"
-		self.created = created
-		self.expires = expires
-		self.uploaded = created
-		self.properties = properties
-	}
-
-	enum CodingKeys: String, CodingKey {
-		case aliases = "aliases"
-		case architecture = "architecture"
-		case pub = "public"
-		case fileName = "filename"
-		case fingerprint = "fingerprint"
-		case size = "size"
-		case type = "type"
-		case created = "created_at"
-		case expires = "expires_at"
-		case uploaded = "uploaded_at"
-		case properties = "properties"
-	}
-}
-
-struct ShortImageInfo: Codable {
-	let alias: String
-	let fingerprint: String
-	let pub: String
-	let description: String
-	let architecture: String
-	let type: String
-	let size: String
-	let uploaded: String
-
-	enum CodingKeys: String, CodingKey {
-		case alias = "ALIAS"
-		case fingerprint = "FINGERPRINT"
-		case pub = "PUBLIC"
-		case description = "DESCRIPTION"
-		case architecture = "ARCHITECTURE"
-		case type = "TYPE"
-		case size = "SIZE"
-		case uploaded = "UPLOADED"
-	}
-
-	init(imageInfo: ImageInfo) {
-		self.alias = imageInfo.aliases.description
-		self.fingerprint = imageInfo.fingerprint.substring(..<12)
-		self.pub = imageInfo.pub ? "yes" : "no"
-		self.description = imageInfo.properties["description"] ?? ""
-		self.architecture = imageInfo.architecture
-		self.type = imageInfo.type
-		self.size = ByteCountFormatter.string(fromByteCount: Int64(imageInfo.size), countStyle: .file)
-		self.uploaded = imageInfo.uploaded ?? ""
-	}
-}
-
-struct ShortLinuxContainerImage: Codable {
-	let alias: String
-	let fingerprint: String
-	let description: String
-	let size: String
-
-	enum CodingKeys: String, CodingKey {
-		case alias = "ALIAS"
-		case fingerprint = "FINGERPRINT"
-		case description = "DESCRIPTION"
-		case size = "SIZE"
-	}
-
-	init(image: LinuxContainerImage) {
-		self.alias = image.alias?.description ?? ""
-		self.fingerprint = image.fingerprint.substring(..<12)
-		self.description = image.description
-		self.size = ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file)
+		self.init(aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: UInt(imageDisk.size), type: "virtual-machine", created: created, expires: expires, uploaded: created, properties: properties)
 	}
 }
 
@@ -260,38 +125,45 @@ struct ImageHandler : CakedCommandAsync {
 	}
 
 
-	static func execute(command: Caked_RemoteCommand, name: String, format: Format, asSystem: Bool) async throws -> String {
+	static func execute(command: Caked_RemoteCommand, name: String, asSystem: Bool) async throws -> Caked_Reply {
 		switch command {
 		case .info:
-			let result = try await ImageHandler.info(name: name, asSystem: false)
+			let result = try await ImageHandler.info(name: name, asSystem: asSystem)
 
-			if format == .json {
-				return format.renderSingle(result)
-			} else {
-				return result.toText()
+			return Caked_Reply.with {
+				$0.images = Caked_ImageReply.with {
+					$0.infos = result.toCaked_ImageInfo()
+				}
 			}
+
 		case .pull:
 			let result = try await ImageHandler.pull(name: name, asSystem: asSystem)
-			if format == .json {
-				return format.renderSingle(style: Style.grid, uppercased: true, result)
-			} else {
-				return format.renderSingle(style: Style.grid, uppercased: true, ShortLinuxContainerImage(image: result))
+
+			return Caked_Reply.with {
+				$0.images = Caked_ImageReply.with {
+					$0.pull = result.toCaked_PulledImageInfo()
+				}
 			}
 		case .list:
-			let result: [ImageInfo] = try await ImageHandler.listImage(remote: name, asSystem: asSystem)
-			if format == .json {
-				return format.renderList(style: Style.grid, uppercased: true, result)
-			} else {
-				return format.renderList(style: Style.grid, uppercased: true, result.map{ ShortImageInfo(imageInfo: $0)})
+			let result = try await ImageHandler.listImage(remote: name, asSystem: asSystem)
+
+			return Caked_Reply.with {
+				$0.images = Caked_ImageReply.with {
+					$0.list = Caked_ListImagesInfoReply.with {
+						$0.infos = result.map {
+							$0.toCaked_ImageInfo()
+						}
+					}
+				}
 			}
 		default:
 			throw ServiceError("Unknown command \(command)")
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<String> {
+	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
-			try await Self.execute(command: request.command, name: request.name, format: request.format == .text ? Format.text : Format.json, asSystem: asSystem)
+			try await Self.execute(command: request.command, name: request.name, asSystem: asSystem)
 		}
 	}
 }

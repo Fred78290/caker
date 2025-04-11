@@ -34,6 +34,15 @@ struct TemplateHandler: CakedCommand {
 		let fqn: String
 		let diskSize: Int
 		let totalSize: Int
+		
+		func toCaked_TemplateEntry() -> Caked_TemplateEntry {
+			Caked_TemplateEntry.with {
+				$0.name = self.name
+				$0.fqn = self.fqn
+				$0.diskSize = UInt32(self.diskSize)
+				$0.totalSize = UInt32(self.totalSize)
+			}
+		}
 	}
 
 	struct ShortTemplateEntry: Codable {
@@ -54,6 +63,17 @@ struct TemplateHandler: CakedCommand {
 		let name: String
 		let created: Bool
 		var reason: String? = nil
+		
+		func toCaked_CreateTemplateReply() -> Caked_CreateTemplateReply {
+			Caked_CreateTemplateReply.with {
+				$0.name = self.name
+				$0.created = self.created
+				
+				if let reason = self.reason {
+					$0.reason = reason
+				}
+			}
+		}
 	}
 
 	struct DeleteTemplateReply: Codable {
@@ -151,20 +171,42 @@ struct TemplateHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		let format: Format = request.format == .text ? Format.text : Format.json
-
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		switch request.command {
 		case .add:
-			return format.renderSingle(style: Style.grid, uppercased: true, try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem))
-		case .delete:
-			return format.renderSingle(style: Style.grid, uppercased: true, try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem))
-		case .list:
-			if format == .json {
-				return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem))
-			} else {
-				return format.renderList(style: Style.grid, uppercased: true, try Self.listTemplate(asSystem: runAsSystem).map { ShortTemplateEntry($0) })
+			let result = try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: runAsSystem)
+
+			return Caked_Reply.with {
+				$0.templates = Caked_TemplateReply.with {
+					$0.create = result.toCaked_CreateTemplateReply()
+				}
 			}
+
+		case .delete:
+			let result = try Self.deleteTemplate(templateName: request.delete, asSystem: runAsSystem)
+
+			return Caked_Reply.with {
+				$0.templates = Caked_TemplateReply.with {
+					$0.delete = Caked_DeleteTemplateReply.with {
+						$0.name = result.name
+						$0.deleted = result.deleted
+					}
+				}
+			}
+
+		case .list:
+			let result = try Self.listTemplate(asSystem: runAsSystem)
+
+			return Caked_Reply.with {
+				$0.templates = Caked_TemplateReply.with {
+					$0.list = Caked_ListTemplatesReply.with {
+						$0.templates = result.map {
+							$0.toCaked_TemplateEntry()
+						}
+					}
+				}
+			}
+
 		default:
 			throw ServiceError("Unknown command \(request.command)")
 		}

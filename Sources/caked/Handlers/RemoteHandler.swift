@@ -6,6 +6,13 @@ import TextTable
 struct RemoteEntry: Codable {
 	let name: String
 	let url: String
+	
+	func toCaked_RemoteEntry() -> Caked_RemoteEntry {
+		Caked_RemoteEntry.with {
+			$0.name = name
+			$0.url = url
+		}
+	}
 }
 
 struct RemoteHandler: CakedCommand {
@@ -51,17 +58,33 @@ struct RemoteHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		let message: String
+
 		switch request.command {
-		case .add:
-			return try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: runAsSystem)
-		case .delete:
-			return try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
 		case .list:
-			let format: Format = request.format == .text ? Format.text : Format.json
-			return format.renderList(style: Style.grid, uppercased: true, try Self.listRemote(asSystem: runAsSystem))
+			let result = try Self.listRemote(asSystem: runAsSystem)
+			return Caked_Reply.with {
+				$0.remotes = Caked_RemoteReply.with {
+					$0.list = Caked_ListRemoteReply.with {
+						$0.remotes = result.map {
+							$0.toCaked_RemoteEntry()
+						}
+					}
+				}
+			}
+		case .add:
+			message = try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: runAsSystem)
+		case .delete:
+			message = try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
 		default:
 			throw ServiceError("Unknown command \(request.command)")
+		}
+
+		return Caked_Reply.with {
+			$0.remotes = Caked_RemoteReply.with {
+				$0.message = message
+			}
 		}
 	}
 }

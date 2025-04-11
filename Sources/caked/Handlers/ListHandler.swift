@@ -11,11 +11,35 @@ struct VirtualMachineInfos: Codable {
 	let name: String
 	let fqn: [String]
 	let instanceID: String?
-	let diskSize: Int
-	let totalSize: Int
+	let diskSize: UInt32
+	let totalSize: UInt32
 	let state: String
 	let ip: String?
 	let fingerprint: String?
+
+	func toCaked_VirtualMachineInfo() -> Caked_VirtualMachineInfo {
+		Caked_VirtualMachineInfo.with { info in
+			info.type = self.type
+			info.source = self.source
+			info.name = self.name
+			info.fqn = self.fqn
+			info.diskSize = self.diskSize
+			info.totalSize = self.totalSize
+			info.state = self.state
+
+			if let instanceID: String = self.instanceID {
+				info.instanceID = instanceID
+			}
+
+			if let ip = self.ip {
+				info.ip = ip
+			}
+
+			if let fingerprint = self.fingerprint {
+				info.fingerprint = fingerprint
+			}
+		}
+	}
 }
 
 struct ShortVirtualMachineInfos: Codable {
@@ -41,7 +65,6 @@ struct ShortVirtualMachineInfos: Codable {
 }
 
 struct ListHandler: CakedCommand {
-	let format: Format
 	let vmonly: Bool
 
 	static func listVM(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfos] {
@@ -55,8 +78,8 @@ struct ListHandler: CakedCommand {
 				name: name,
 				fqn: ["vm://\(name)"],
 				instanceID: config.instanceID,
-				diskSize: try location.diskSize(),
-				totalSize: try location.allocatedSize(),
+				diskSize: try UInt32(location.diskSize()),
+				totalSize: try UInt32(location.allocatedSize()),
 				state: status.rawValue,
 				ip: status == .running ? config.runningIP : nil,
 				fingerprint: nil
@@ -85,8 +108,8 @@ struct ListHandler: CakedCommand {
 							name: purgeable.name(),
 							fqn: imageCache.fqn(purgeable),
 							instanceID: "",
-							diskSize: try purgeable.allocatedSizeBytes(),
-							totalSize: try purgeable.allocatedSizeBytes(),
+							diskSize: try UInt32(purgeable.allocatedSizeBytes()),
+							totalSize: try UInt32(purgeable.allocatedSizeBytes()),
 							state: "cached",
 							ip: nil,
 							fingerprint: purgeable.fingerprint()
@@ -128,7 +151,17 @@ struct ListHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		try Self.listVM(vmonly: self.vmonly, format: self.format, asSystem: asSystem)
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		let result = try Self.listVM(vmonly: self.vmonly, asSystem: asSystem)
+
+		return Caked_Reply.with { reply in
+			reply.vms = Caked_VirtualMachineReply.with {
+				$0.list = Caked_VirtualMachineInfoReply.with {
+					$0.infos = result.map {
+						$0.toCaked_VirtualMachineInfo()
+					}
+				}
+			}
+		}
 	}
 }

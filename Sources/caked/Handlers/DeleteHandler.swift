@@ -15,6 +15,14 @@ struct DeleteHandler: CakedCommand {
 		let source: String
 		let name: String
 		let deleted: Bool
+
+		func toCaked_DeletedObject() -> Caked_DeletedObject{
+			Caked_DeletedObject.with { object in
+				object.source = source
+				object.name = name
+				object.deleted = deleted
+			}
+		}
 	}
 
 	static func tryDeleteLocal(name: String) -> DeleteReply? {
@@ -76,9 +84,15 @@ struct DeleteHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		let format: Format = request.format == .text ? Format.text : Format.json
-
-		return format.renderList(style: Style.grid, uppercased: true, try Self.delete(names: request.name, asSystem: runAsSystem))
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		try Caked_Reply.with { reply in
+			reply.vms = try Caked_VirtualMachineReply.with {
+				$0.delete = try Caked_DeleteReply.with {
+					$0.objects = try Self.delete(names: request.name, asSystem: runAsSystem).map {
+						$0.toCaked_DeletedObject()
+					}
+				}
+			}
+		}
 	}
 }

@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import SystemConfiguration
 import NIOCore
+import GRPCLib
 
 struct PurgeHandler: CakedCommand, PurgeArguments {
 	var entries: String = "caches"
@@ -71,7 +72,11 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		try purgeablesToDelete.forEach { try $0.delete() }
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> String {
-		try Self.purge(direct: false, self)
+	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+		try Caked_Reply.with {
+			$0.tart = try Caked_TartReply.with {
+				$0.message = try Self.purge(direct: asSystem, self)
+			}
+		}
 	}
 }
