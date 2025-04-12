@@ -46,7 +46,7 @@ struct Certificates: ParsableCommand {
 		func run() throws {
 			let format: Format = .text
 
-			print(format.renderSingle(style: Style.grid, uppercased: true, try CertificatesLocation.getCertificats(asSystem: asSystem)))
+			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, try CertificatesLocation.getCertificats(asSystem: asSystem)))
 		}
 	}
 
@@ -71,9 +71,9 @@ struct Certificates: ParsableCommand {
 			let certs = try CertificatesLocation.createCertificats(asSystem: asSystem, force: self.force)
 
 			if format == .json {
-				print(format.renderSingle(style: Style.grid, uppercased: true, certs))
+				Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, certs))
 			} else {
-				print(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
+				Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
 			}
 		}
 	}
@@ -99,9 +99,9 @@ struct Certificates: ParsableCommand {
 			let certs = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem, force: self.force)
 
 			if format == .json {
-				print(format.renderSingle(style: Style.grid, uppercased: true, certs))
+				Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, certs))
 			} else {
-				print(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
+				Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
 			}
 		}
 	}

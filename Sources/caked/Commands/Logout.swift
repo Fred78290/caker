@@ -17,6 +17,6 @@ struct Logout: ParsableCommand {
 	func run() throws {
 		Logger.setLevel(self.logLevel)
 
-		print(try LogoutHandler.logout(host: self.host, direct: true))
+		Logger.appendNewLine(try LogoutHandler.logout(host: self.host, direct: true))
 	}
 }

@@ -182,6 +182,12 @@
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
 		9B7C80782DA91131003E95FA /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80772DA91128003E95FA /* Images.swift */; };
+		9B7C807A2DAA67FF003E95FA /* VirtualMachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */; };
+		9B7C807C2DAA6C88003E95FA /* Mounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807B2DAA6C84003E95FA /* Mounts.swift */; };
+		9B7C807E2DAA70A4003E95FA /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807D2DAA70A2003E95FA /* BridgedNetwork.swift */; };
+		9B7C80802DAA7292003E95FA /* RemoteEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807F2DAA728F003E95FA /* RemoteEntry.swift */; };
+		9B7C80822DAA742C003E95FA /* Templates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80812DAA7428003E95FA /* Templates.swift */; };
+		9B7C808B2DAAA77F003E95FA /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C808A2DAAA77F003E95FA /* CakeAgentLib */; };
 		9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027652D997EAC002C680E /* VZVMNet.swift */; };
 		9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027682D997EAC002C680E /* VZVMNetHandler.swift */; };
 		9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */; };
@@ -359,6 +365,11 @@
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B7C80772DA91128003E95FA /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
+		9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInfo.swift; sourceTree = "<group>"; };
+		9B7C807B2DAA6C84003E95FA /* Mounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounts.swift; sourceTree = "<group>"; };
+		9B7C807D2DAA70A2003E95FA /* BridgedNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgedNetwork.swift; sourceTree = "<group>"; };
+		9B7C807F2DAA728F003E95FA /* RemoteEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteEntry.swift; sourceTree = "<group>"; };
+		9B7C80812DAA7428003E95FA /* Templates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Templates.swift; sourceTree = "<group>"; };
 		9B8027652D997EAC002C680E /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
 		9B8027662D997EAC002C680E /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
 		9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetFileHandle.swift; sourceTree = "<group>"; };
@@ -468,6 +479,7 @@
 				9B464C2E2D5A426200164BF5 /* NIOPosix in Frameworks */,
 				9B464C852D5A489E00164BF5 /* DMRetry in Frameworks */,
 				9B464C062D5A426200164BF5 /* ArgumentParser in Frameworks */,
+				9B7C808B2DAAA77F003E95FA /* CakeAgentLib in Frameworks */,
 				9B464C872D5A48A900164BF5 /* Dynamic in Frameworks */,
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
 				9B464C482D5A426200164BF5 /* Logging in Frameworks */,
@@ -724,8 +736,8 @@
 		9B464ADB2D5A3E0300164BF5 /* grpc */ = {
 			isa = PBXGroup;
 			children = (
-				9B7C80772DA91128003E95FA /* Images.swift */,
 				9B464ACF2D5A3E0300164BF5 /* BridgeAttachement.swift */,
+				9B7C807D2DAA70A2003E95FA /* BridgedNetwork.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
 				9B464AD12D5A3E0300164BF5 /* ConsoleAttachment.swift */,
 				9B464AD22D5A3E0300164BF5 /* DirectorySharingAttachement.swift */,
@@ -733,11 +745,16 @@
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
+				9B7C80772DA91128003E95FA /* Images.swift */,
+				9B7C807B2DAA6C84003E95FA /* Mounts.swift */,
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
+				9B7C807F2DAA728F003E95FA /* RemoteEntry.swift */,
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
 				9B464ADA2D5A3E0300164BF5 /* SocketDevice.swift */,
+				9B7C80812DAA7428003E95FA /* Templates.swift */,
+				9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */,
 			);
 			path = grpc;
 			sourceTree = "<group>";
@@ -904,6 +921,7 @@
 				9B464C8A2D5A48F500164BF5 /* Semaphore */,
 				9B464C8F2D5A492F00164BF5 /* X509 */,
 				9B464C912D5A493900164BF5 /* XAttr */,
+				9B7C808A2DAAA77F003E95FA /* CakeAgentLib */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -1161,7 +1179,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B7C807E2DAA70A4003E95FA /* BridgedNetwork.swift in Sources */,
 				9B464C652D5A45DF00164BF5 /* FileLock.swift in Sources */,
+				9B7C80822DAA742C003E95FA /* Templates.swift in Sources */,
 				9B7C80782DA91131003E95FA /* Images.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
 				9B464C6C2D5A45EF00164BF5 /* SocketDevice.swift in Sources */,
@@ -1170,6 +1190,9 @@
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C682D5A45DF00164BF5 /* BridgeAttachement.swift in Sources */,
 				9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */,
+				9B7C80802DAA7292003E95FA /* RemoteEntry.swift in Sources */,
+				9B7C807C2DAA6C88003E95FA /* Mounts.swift in Sources */,
+				9B7C807A2DAA67FF003E95FA /* VirtualMachineInfo.swift in Sources */,
 				9B464C692D5A45DF00164BF5 /* DirectorySharingAttachement.swift in Sources */,
 				9B464C6A2D5A45DF00164BF5 /* ConsoleAttachment.swift in Sources */,
 				9B464C6B2D5A45DF00164BF5 /* DiskAttachement.swift in Sources */,
@@ -2026,6 +2049,11 @@
 			productName = XAttr;
 		};
 		9B58EE912D637313001B8347 /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
+		};
+		9B7C808A2DAAA77F003E95FA /* CakeAgentLib */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;

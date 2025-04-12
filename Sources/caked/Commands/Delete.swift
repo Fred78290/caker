@@ -20,6 +20,6 @@ struct Delete: ParsableCommand {
 	var format: Format = .text
 
 	func run() throws {
-		print(format.renderList(style: Style.grid, uppercased: true, try DeleteHandler.delete(names: name, asSystem: false)))
+		Logger.appendNewLine(self.format.render(try DeleteHandler.delete(names: name, asSystem: false)))
 	}
 }

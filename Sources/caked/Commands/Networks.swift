@@ -33,7 +33,6 @@ struct Networks: ParsableCommand {
 			}
 
 			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
-				print(ProcessInfo.processInfo.environment)
 				throw ValidationError("CAKE_HOME must be set to the correct location")
 			}
 
@@ -59,8 +58,8 @@ struct Networks: ParsableCommand {
 				throw ValidationError("This command must be run as root not as user \(geteuid())")
 			}
 
+
 			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
-				print(ProcessInfo.processInfo.environment)
 				throw ValidationError("CAKE_HOME must be set to the correct location")
 			}
 
@@ -124,7 +123,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			print(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem))
+			Logger.appendNewLine(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem))
 		}
 	}
 
@@ -172,7 +171,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			print(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem))
+			Logger.appendNewLine(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem))
 		}
 	}
 
@@ -204,7 +203,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			print(try NetworksHandler.delete(networkName: self.name, asSystem: self.asSystem))
+			Logger.appendNewLine(try NetworksHandler.delete(networkName: self.name, asSystem: self.asSystem))
 		}
 	}
 
@@ -297,7 +296,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.format.renderList(style: Style.grid, uppercased: true, try NetworksHandler.networks(asSystem: asSystem)))
+			Logger.appendNewLine(self.format.render(try NetworksHandler.networks(asSystem: asSystem)))
 		}
 	}
 }

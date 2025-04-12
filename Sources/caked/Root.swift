@@ -95,9 +95,9 @@ struct Root: AsyncParsableCommand {
 			return try parseAsRoot()
 		} catch {
 			if let e: ValidationError = error as? ValidationError {
-				print("ValidationError: \(e.localizedDescription)")
+				Logger.appendNewLine("ValidationError: \(e.localizedDescription)")
 			} else {
-				print(error.localizedDescription)
+				Logger.appendNewLine(error.localizedDescription)
 			}
 			return nil
 		}

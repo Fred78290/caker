@@ -74,7 +74,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with {
-			$0.tart = try Caked_TartReply.with {
+			$0.vms = try Caked_VirtualMachineReply.with {
 				$0.message = try Self.purge(direct: asSystem, self)
 			}
 		}

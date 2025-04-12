@@ -14,7 +14,7 @@ struct Import: GrpcParsableCommand {
 	@Argument(help: "Destination VM name.")
 	var name: String
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "import", arguments: arguments), callOptions: callOptions).response.wait()
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "import", arguments: arguments), callOptions: callOptions).response.wait().successfull().tart.message
 	}
 }

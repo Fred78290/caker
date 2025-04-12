@@ -21,8 +21,8 @@ struct Template: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
 
-		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-			return try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait()
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.create)
 		}
 	}
 
@@ -37,8 +37,8 @@ struct Template: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
 
-		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-			return try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait()
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.delete)
 		}
 	}
 
@@ -50,8 +50,8 @@ struct Template: ParsableCommand {
 		@Option(name: .shortAndLong, help: "Output format")
 		var format: Format = .text
 
-		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-			return try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait()
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.list)
 		}
 	}
 }

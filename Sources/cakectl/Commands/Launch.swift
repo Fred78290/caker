@@ -20,7 +20,7 @@ struct Launch : GrpcParsableCommand {
 		}
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.launch(Caked_LaunchRequest(command: self), callOptions: callOptions).response.wait()
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		return try client.launch(Caked_LaunchRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.message
 	}
 }

@@ -8,7 +8,7 @@ import CakeAgentLib
 import NIO
 
 extension DirectorySharingAttachment {
-	func equals(to: MountVirtioFS) -> Bool {
+	func equals(to: XPCMountVirtioFS) -> Bool {
 		if self.readOnly != to.readonly {
 			return false
 		}
@@ -33,30 +33,10 @@ extension DirectorySharingAttachment {
 	}
 }
 
-struct MountVirtioFSReply: Codable {
-	var name: String = String()
-	var response: OneOf_Response? = nil
+extension MountVirtioFS {
+	init(from: Cakeagent_MountVirtioFSReply) {
+		self.init()
 
-	enum CodingKeys: String, CodingKey {
-		case name = "name"
-		case response = "response"
-	}
-
-	func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: CodingKeys.self)
-
-		try container.encode(self.name, forKey: .name)
-		try container.encode(self.response, forKey: .response)
-	}
-
-	init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-
-		self.name = try container.decode(String.self, forKey: .name)
-		self.response = try container.decode(OneOf_Response.self, forKey: .response)
-	}
-
-	init(_ from: Cakeagent_MountVirtioFSReply) {
 		self.name = from.name
 
 		if case let .error(error) = from.response {
@@ -66,62 +46,24 @@ struct MountVirtioFSReply: Codable {
 		}
 	}
 
-	init(name: String, error: Error) {
-		self.name = name
-		self.response = .error(String(describing: error))
-	}
-
 	enum OneOf_Response: Equatable, Codable {
 		case error(String)
 		case success(Bool)
 	}
 }
 
-struct MountReply: Codable {
-	var mounts: [MountVirtioFSReply] = []
-	var response: OneOf_Response? = nil
-
-	enum CodingKeys: String, CodingKey {
-		case mounts = "mounts"
-		case response = "response"
-	}
-
-	enum OneOf_Response: Equatable, Codable {
-		case error(String)
-		case success(Bool)
-	}
-
-	func encode(to encoder: Encoder) throws {
-		var container = encoder.container(keyedBy: CodingKeys.self)
-
-		try container.encode(self.mounts, forKey: .mounts)
-		try container.encode(self.response, forKey: .response)
-	}
-
-	init(from decoder: Decoder) throws {
-		let container = try decoder.container(keyedBy: CodingKeys.self)
-
-		self.mounts = try container.decode([MountVirtioFSReply].self, forKey: .mounts)
-		self.response = try container.decode(OneOf_Response.self, forKey: .response)
-	}
-
-	init(fromJSON: String) {
-		let decoder = JSONDecoder()
-
-		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
-	}
-
+extension MountInfos {
 	init(request: MountRequest, error: Error) {
+		self.init()
+
 		self.response = .error(error.localizedDescription)
-		self.mounts = request.mounts.map { mount in
-			MountVirtioFSReply(name: mount.name, error: error)
-		}
+		self.mounts = request.mounts.map { MountVirtioFS(name: $0.name, error: error) }
 	}
 
 	init(_ from: Cakeagent_MountReply) {
-		self.mounts = from.mounts.map { mount in
-			MountVirtioFSReply(mount)
-		}
+		self.init()
+
+		self.mounts = from.mounts.map { GRPCLib.MountVirtioFS(from: $0) }
 
 		if case let .error(error) = from.response {
 			self.response = .error(error)
@@ -129,40 +71,9 @@ struct MountReply: Codable {
 			self.response = .success(true)
 		}
 	}
-
-	func toCaked() -> MountHandler.MountReply {
-		MountHandler.MountReply.with { reply in
-			reply.mounts = self.mounts.map { mount in
-				MountHandler.MountVirtioFSReply.with {
-					$0.name = mount.name
-
-					if case let .error(error) = mount.response {
-						$0.reason = error
-						$0.success = false
-					} else {
-						$0.success = true
-					}
-				}
-			}
-
-			if case let .error(error) = self.response {
-				reply.response = .error(error)
-			} else {
-				reply.response = .success(true)
-			}
-		}
-	}
-
-	func toJSON() -> String {
-		let encoder = JSONEncoder()
-
-		encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-
-		return try! encoder.encode(self).toString()
-	}
 }
 
-struct MountVirtioFS: Codable {
+struct XPCMountVirtioFS: Codable {
 	var name: String = ""
 	var source: String = ""
 	var target: String = ""
@@ -264,13 +175,13 @@ struct MountVirtioFS: Codable {
 }
 
 extension Cakeagent_MountReply {
-	func toXPC() -> MountReply {
-		MountReply(self)
+	func toXPC() -> MountInfos {
+		MountInfos(self)
 	}
 }
 
 struct MountRequest: Codable {
-	var mounts: [MountVirtioFS] = []
+	var mounts: [XPCMountVirtioFS] = []
 
 	enum CodingKeys: String, CodingKey {
 		case mounts = "mounts"
@@ -285,22 +196,22 @@ struct MountRequest: Codable {
 	init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 
-		self.mounts = try container.decode([MountVirtioFS].self, forKey: .mounts)
+		self.mounts = try container.decode([XPCMountVirtioFS].self, forKey: .mounts)
 	}
 
-	init(mounts: [MountVirtioFS] = []) {
+	init(mounts: [XPCMountVirtioFS] = []) {
 		self.mounts = mounts
 	}
 
 	init(_ attachements: [DirectorySharingAttachment]) {
 		self.mounts = attachements.map {
-			MountVirtioFS(attachment: $0)
+			XPCMountVirtioFS(attachment: $0)
 		}
 	}
 
 	init(_ from: Caked_MountRequest) {
 		self.mounts = from.mounts.map { mount in
-			MountVirtioFS(name: mount.name, source: mount.source, target: mount.target, uid: mount.uid, gid: mount.gid, readonly: mount.readonly)
+			XPCMountVirtioFS(name: mount.name, source: mount.source, target: mount.target, uid: mount.uid, gid: mount.gid, readonly: mount.readonly)
 		}
 	}
 
@@ -344,7 +255,7 @@ class XPCMountService: MountService, MountServiceProtocol {
 
 	func mount(request: MountRequest, umount: Bool) -> Void {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
-		let reply: MountReply
+		let reply: MountInfos
 
 		Logger(self).info("XPC mount: \(String(describing: request))")
 
@@ -428,7 +339,7 @@ class XPCMountServiceClient: MountServiceClient {
 		self.vmLocation = vmLocation
 	}
 
-	func mount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
+	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		let config: CakeConfig = try vmLocation.config()
 		let valided = config.newAttachements(mounts)
 
@@ -465,21 +376,21 @@ class XPCMountServiceClient: MountServiceClient {
 				mountService.mount(request: MountRequest(valided).toJSON())
 
 				if let reply = replier.wait() {
-					return reply.toCaked()
+					return reply
 				}
 
-				return MountHandler.MountReply.with {
+				return MountInfos.with {
 					$0.response = .error("Timeout")
 				}
 			}
 		}
 
-		return MountHandler.MountReply.with {
+		return MountInfos.with {
 			$0.response = .error("No mounts")
 		}
 	}
 
-	func umount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
+	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		let config: CakeConfig = try vmLocation.config()
 		let valided = config.validAttachements(mounts)
 
@@ -514,16 +425,16 @@ class XPCMountServiceClient: MountServiceClient {
 				mountService.umount(request: MountRequest(valided).toJSON())
 
 				if let reply = replier.wait() {
-					return reply.toCaked()
+					return reply
 				}
 
-				return MountHandler.MountReply.with {
+				return MountInfos.with {
 					$0.response = .error("Timeout")
 				}
 			}
 		}
 
-		return MountHandler.MountReply.with {
+		return MountInfos.with {
 			$0.response = .error("No mounts")
 		}
 	}

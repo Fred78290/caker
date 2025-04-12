@@ -24,7 +24,7 @@ struct Mount: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> Caked_Reply {
-		return try client.mount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait()
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		return self.format.render(try client.mount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().successfull().mounts)
 	}
 }

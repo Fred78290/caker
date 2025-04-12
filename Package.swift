@@ -51,6 +51,7 @@ let package = Package(
 		.target(name: "GRPCLib", dependencies: [
 				.product(name: "ArgumentParser", package: "swift-argument-parser"),
 				.product(name: "GRPC", package: "grpc-swift"),
+				.product(name: "CakeAgentLib", package: "CakeAgent"),
 				.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 			],
 			path: "Sources/grpc",

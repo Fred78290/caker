@@ -45,7 +45,7 @@ struct Umount: ParsableCommand {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
 		let response = try MountHandler.Umount(vmLocation: vmLocation, mounts: self.mounts)
 
-		print(response.render(format: format, directorySharingAttachment: self.mounts))
+		Logger.appendNewLine(self.format.render(response))
 
 		if case let .error(error) = response.response {
 			FileHandle.standardError.write("\(error)\n".data(using: .utf8)!)

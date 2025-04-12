@@ -443,7 +443,7 @@ extension Service {
 				}
 			}
 
-			print(arguments.joined(separator: " "))
+			Logger.appendNewLine(arguments.joined(separator: " "))
 		}
 	}
 }

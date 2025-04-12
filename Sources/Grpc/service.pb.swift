@@ -2152,7 +2152,31 @@ public struct Caked_MountReply: Sendable {
 
   public var mounts: [Caked_MountVirtioFSReply] = []
 
+  public var response: Caked_MountReply.OneOf_Response? = nil
+
+  public var error: String {
+    get {
+      if case .error(let v)? = response {return v}
+      return String()
+    }
+    set {response = .error(newValue)}
+  }
+
+  public var success: Bool {
+    get {
+      if case .success(let v)? = response {return v}
+      return false
+    }
+    set {response = .success(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Response: Equatable, Sendable {
+    case error(String)
+    case success(Bool)
+
+  }
 
   public init() {}
 }
@@ -5722,6 +5746,8 @@ extension Caked_MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
   public static let protoMessageName: String = _protobuf_package + ".MountReply"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "mounts"),
+    2: .same(proto: "error"),
+    3: .same(proto: "success"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5731,20 +5757,52 @@ extension Caked_MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.mounts) }()
+      case 2: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.response != nil {try decoder.handleConflictingOneOf()}
+          self.response = .error(v)
+        }
+      }()
+      case 3: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.response != nil {try decoder.handleConflictingOneOf()}
+          self.response = .success(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.mounts.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.mounts, fieldNumber: 1)
+    }
+    switch self.response {
+    case .error?: try {
+      guard case .error(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    }()
+    case .success?: try {
+      guard case .success(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_MountReply, rhs: Caked_MountReply) -> Bool {
     if lhs.mounts != rhs.mounts {return false}
+    if lhs.response != rhs.response {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

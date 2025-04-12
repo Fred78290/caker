@@ -109,7 +109,7 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 			do {
 				self.server = try await self.createServer().get()
 			} catch {
-				print("Failed to start MountService server: \(error)")
+				Logger.appendNewLine("Failed to start MountService server: \(error)")
 			}
 		}
 	}

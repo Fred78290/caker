@@ -64,21 +64,6 @@ struct Infos: CakeAgentAsyncParsableCommand {
 		infos.name = name
 		infos.mounts = config.mounts.map { $0.description }
 
-		if format == .json {
-			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, infos))
-		} else {
-			let reply = ShortInfoReply(name: name,
-												ipaddresses: infos.ipaddresses,
-												cpuCount: infos.cpuCount,
-												memory: infos.memory?.total ?? 0)
-			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, reply))
-/*			Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, infos.ipaddresses.reduce(into: [ShortInfoReply]()) { partialResult, addr in
-				if partialResult.isEmpty {
-					partialResult.append(ShortInfoReply(name: name, ipaddresses: [addr], cpuCount: infos.cpuCount, memory: infos.memory?.total ?? 0))
-				} else {
-					partialResult.append(ShortInfoReply(ipaddress: addr))
-				}
-			}))*/
-		}
+		Logger.appendNewLine(self.format.render(infos))
 	}
 }

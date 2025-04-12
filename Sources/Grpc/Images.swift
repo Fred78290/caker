@@ -23,16 +23,6 @@ extension Aliases {
 	}
 }
 
-extension ImageInfos {
-	public func formatedOutput(format: Format) -> String {
-		if format == .json {
-			return format.renderList(style: Style.grid, uppercased: true, self)
-		} else {
-			return format.renderList(style: Style.grid, uppercased: true, self.map{ ShortImageInfo(imageInfo: $0)})
-		}
-	}
-}
-
 public struct ImageEntry: Codable {
 	public let name: String
 }
@@ -44,6 +34,15 @@ public class LinuxContainerImage: Codable {
 	public let fingerprint: String
 	public let remoteName: String
 	public let description: String
+
+	public init(from: Caked_PulledImageInfo) {
+		self.alias = from.hasAlias ? from.alias.split(separator: ",").map{ String($0) } : nil
+		self.path = URL(fileURLWithPath: from.path)
+		self.size = from.size
+		self.fingerprint = from.fingerprint
+		self.remoteName = from.remoteName
+		self.description = from.description_p
+	}
 
 	public init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: UInt32) {
 		self.alias = alias
@@ -64,14 +63,6 @@ public class LinuxContainerImage: Codable {
 			image.description_p = self.description
 		}
 	}
-	
-	public func formatedOutput(format: Format) -> String {
-		if format == .json {
-			return format.renderSingle(style: Style.grid, uppercased: true, self)
-		} else {
-			return format.renderSingle(style: Style.grid, uppercased: true, ShortLinuxContainerImage(image: self))
-		}
-	}
 }
 
 public struct ImageInfo: Codable {
@@ -86,6 +77,20 @@ public struct ImageInfo: Codable {
 	public let expires: String?
 	public let uploaded: String?
 	public let properties: [String: String]
+
+	public init(from: Caked_ImageInfo) {
+		self.aliases = from.aliases
+		self.architecture = from.architecture
+		self.pub = from.pub
+		self.fileName = from.fileName
+		self.fingerprint = from.fingerprint
+		self.size = UInt(from.size)
+		self.type = from.type
+		self.created = from.created
+		self.expires = from.expires
+		self.uploaded = from.uploaded
+		self.properties = from.properties
+	}
 
 	public init(aliases: Aliases,
 				architecture: String,
@@ -176,14 +181,6 @@ public struct ImageInfo: Codable {
 		case uploaded = "uploaded_at"
 		case properties = "properties"
 	}
-	
-	public func formatedOutput(format: Format) -> String {
-		if format == .json {
-			return format.renderSingle(style: Style.grid, uppercased: true, self)
-		} else {
-			return self.toText()
-		}
-	}
 }
 
 public struct ShortImageInfo: Codable {
@@ -205,6 +202,17 @@ public struct ShortImageInfo: Codable {
 		case type = "TYPE"
 		case size = "SIZE"
 		case uploaded = "UPLOADED"
+	}
+
+	public init(from: Caked_ImageInfo) {
+		self.alias = from.aliases.description
+		self.fingerprint = from.fingerprint.substring(..<12)
+		self.pub = from.pub ? "yes" : "no"
+		self.description = from.properties["description"] ?? ""
+		self.architecture = from.architecture
+		self.type = from.type
+		self.size = ByteCountFormatter.string(fromByteCount: Int64(from.size), countStyle: .file)
+		self.uploaded = from.uploaded
 	}
 
 	public init(imageInfo: ImageInfo) {

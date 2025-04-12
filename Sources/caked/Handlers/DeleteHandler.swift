@@ -8,22 +8,9 @@ import Foundation
 import NIO
 import GRPCLib
 import TextTable
+
 struct DeleteHandler: CakedCommand {
 	var request: Caked_DeleteRequest
-
-	struct DeleteReply: Codable {
-		let source: String
-		let name: String
-		let deleted: Bool
-
-		func toCaked_DeletedObject() -> Caked_DeletedObject{
-			Caked_DeletedObject.with { object in
-				object.source = source
-				object.name = name
-				object.deleted = deleted
-			}
-		}
-	}
 
 	static func tryDeleteLocal(name: String) -> DeleteReply? {
 		var vmLocation: VMLocation? = nil

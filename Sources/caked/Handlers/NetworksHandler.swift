@@ -108,28 +108,6 @@ struct UsedNetworkConfig {
 	}
 }
 
-struct BridgedNetwork: Codable {
-	var name: String
-	var mode: String
-	var description: String = ""
-	var gateway: String = ""
-	var dhcpEnd = ""
-	var interfaceID: String = ""
-	var endpoint: String = ""
-	
-	func toCaked_NetworkInfo() -> Caked_NetworkInfo {
-		Caked_NetworkInfo.with {
-			$0.name = self.name
-			$0.mode = self.mode
-			$0.description_p = self.description
-			$0.gateway = self.gateway
-			$0.dhcpEnd = self.dhcpEnd
-			$0.interfaceID = self.interfaceID
-			$0.endpoint = self.endpoint
-		}
-	}
-}
-
 struct NetworksHandler: CakedCommandAsync {
 	var request: Caked_NetworkRequest
 
@@ -1115,7 +1093,7 @@ struct NetworksHandler: CakedCommandAsync {
 	}
 
 	static func networks(asSystem: Bool) throws -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: "nat", description: "NAT shared network", interfaceID: "nat", endpoint: "")]
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: "nat", description: "NAT shared network", gateway: "", dhcpEnd: "", interfaceID: "nat", endpoint: "")]
 		let home: Home = try Home(asSystem: runAsSystem)
 		let networkConfig = try home.sharedNetworks()
 

@@ -6,8 +6,8 @@ import NIO
 import Virtualization
 
 protocol MountServiceClient {
-	func mount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply
-	func umount(mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply
+	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
+	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 }
 
 protocol MountServiceServerProtocol {

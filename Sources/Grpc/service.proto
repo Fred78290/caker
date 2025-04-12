@@ -480,4 +480,8 @@ message MountVirtioFSReply {
 
 message MountReply {
 	repeated MountVirtioFSReply mounts = 1;
+	oneof response {
+		string error = 2;
+		bool success = 3;
+	}
 }

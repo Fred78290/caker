@@ -10,6 +10,6 @@ struct Rename: ParsableCommand {
 	var newname: String
 
 	func run() throws {
-		print(try RenameHandler.rename(oldname: name, newname: newname))
+		Logger.appendNewLine(try RenameHandler.rename(oldname: name, newname: newname))
 	}
 }

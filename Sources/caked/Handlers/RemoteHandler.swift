@@ -3,18 +3,6 @@ import GRPCLib
 import NIOCore
 import TextTable
 
-struct RemoteEntry: Codable {
-	let name: String
-	let url: String
-	
-	func toCaked_RemoteEntry() -> Caked_RemoteEntry {
-		Caked_RemoteEntry.with {
-			$0.name = name
-			$0.url = url
-		}
-	}
-}
-
 struct RemoteHandler: CakedCommand {
 	var request: Caked_RemoteRequest
 

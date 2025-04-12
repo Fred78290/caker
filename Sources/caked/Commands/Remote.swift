@@ -61,9 +61,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			let result: [RemoteEntry] = try RemoteHandler.listRemote(asSystem: false)
-
-			Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, result))
+			Logger.appendNewLine(format.render(try RemoteHandler.listRemote(asSystem: false)))
 		}
 	}
 }

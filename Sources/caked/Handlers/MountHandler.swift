@@ -11,22 +11,22 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 	static let supportsSecureCoding: Bool = false
 
 	private let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
-	private var response: MountReply? = nil
+	private var response: MountInfos? = nil
 
-	init(response: MountReply? = nil) {
+	init(response: MountInfos? = nil) {
 		self.response = response
 	}
 
 	required init?(coder: NSCoder) {
-		self.response = coder.decodeObject(forKey: "reply") as? MountReply
+		self.response = coder.decodeObject(forKey: "reply") as? MountInfos
 	}
 
 	func reply(response: String) -> Void {
-		self.response = MountReply(fromJSON: response)
+		self.response = MountInfos(fromJSON: response)
 		self.semaphore.signal()
 	}
 
-	func wait() -> MountReply? {
+	func wait() -> MountInfos? {
 		if self.response == nil {
 			self.semaphore.wait()
 			/*
@@ -47,73 +47,12 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 struct MountHandler: CakedCommandAsync {
 	var request: Caked_MountRequest
 
-	struct MountVirtioFSReply: Codable {
-		var name: String = ""
-		var path: String = ""
-		var success: Bool = false
-		var reason: String = ""
-
-		public static func with(
-			_ populator: (inout Self) throws -> Void
-		) rethrows -> Self {
-			var message = Self()
-			try populator(&message)
-			return message
-		}
-
-		func toCaked_MountVirtioFSReply() -> Caked_MountVirtioFSReply {
-			Caked_MountVirtioFSReply.with {
-				$0.name = self.name
-				$0.path = self.path
-
-				if self.success {
-					$0.success = true
-				} else {
-					$0.error = self.reason
-				}
-			}
-		}
+	static func Mount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+		return try createMountServiceClient(vmLocation: vmLocation).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 
-	struct MountReply: Codable {
-		var mounts: [MountVirtioFSReply] = []
-		var response: OneOf_Response? = .success(true)
-
-		public enum OneOf_Response: Codable, Equatable, Sendable {
-			case error(String)
-			case success(Bool)
-		}
-
-		public static func with(
-			_ populator: (inout Self) throws -> Void
-		) rethrows -> Self {
-			var message = Self()
-			try populator(&message)
-			return message
-		}
-
-		func render(format: Format, directorySharingAttachment: [DirectorySharingAttachment]) -> String {
-			return format.renderSingle(style: Style.grid, uppercased: true, self.mounts.map { mount in
-				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name}) {
-					return MountHandler.MountVirtioFSReply.with {
-						$0.name = mount.name
-						$0.success = mount.success
-						$0.reason = mount.reason
-						$0.path = attachement.path.path
-					}
-				}
-
-				return mount
-			})
-		}
-	}
-
-	static func Mount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
-		return try createMountServiceClient(vmLocation: vmLocation).mount(mounts: mounts)
-	}
-
-	static func Umount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountHandler.MountReply {
-		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts)
+	static func Umount(vmLocation: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
@@ -122,7 +61,7 @@ struct MountHandler: CakedCommandAsync {
 		let command = self.request.command
 
 		return on.submit {
-			let response: MountHandler.MountReply
+			let response: MountInfos
 
 			if command == .add {
 				response = try Self.Mount(vmLocation: vmLocation, mounts: directorySharingAttachment)
@@ -136,7 +75,15 @@ struct MountHandler: CakedCommandAsync {
 
 			return Caked_Reply.with {
 				$0.mounts = Caked_MountReply.with {
-					$0.mounts = response.mounts.map { $0.toCaked_MountVirtioFSReply() }
+					$0.mounts = response.mounts.map {
+						$0.toCaked_MountVirtioFSReply()
+					}
+
+					if case let .error(v) = response.response {
+						$0.response = .error(v)
+					} else {
+						$0.response = .success(true)
+					}
 				}
 			}
 		}

@@ -18,7 +18,7 @@ struct Sh: AsyncGrpcParsableCommand {
 		CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput)
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> Caked_Reply {
+	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
 		Foundation.exit(try await client.shell(name: name, callOptions: callOptions))
 	}
 }

@@ -261,20 +261,20 @@ extension URL: Purgeable {
 	}
 
 	func sizeBytes() throws -> Int {
-		try resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
+		try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
 	}
 
 	func allocatedSizeBytes() throws -> Int {
-		try resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
+		try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
 	}
 
 	func accessDate() throws -> Date {
-		let attrs = try resourceValues(forKeys: [.contentAccessDateKey])
+		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
 		return attrs.contentAccessDate!
 	}
 
 	func updateAccessDate(_ accessDate: Date = Date()) throws {
-		let attrs = try resourceValues(forKeys: [.contentAccessDateKey])
+		let attrs = try self.resourceValues(forKeys: [.contentAccessDateKey])
 		let modificationDate = attrs.contentAccessDate!
 
 		let times = [accessDate.asTimeval(), modificationDate.asTimeval()]

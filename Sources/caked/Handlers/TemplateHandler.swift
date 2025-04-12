@@ -29,58 +29,6 @@ private let cloudInitCleanup = [
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest
 
-	struct TemplateEntry: Codable {
-		let name: String
-		let fqn: String
-		let diskSize: Int
-		let totalSize: Int
-		
-		func toCaked_TemplateEntry() -> Caked_TemplateEntry {
-			Caked_TemplateEntry.with {
-				$0.name = self.name
-				$0.fqn = self.fqn
-				$0.diskSize = UInt32(self.diskSize)
-				$0.totalSize = UInt32(self.totalSize)
-			}
-		}
-	}
-
-	struct ShortTemplateEntry: Codable {
-		let name: String
-		let fqn: String
-		let diskSize: String
-		let totalSize: String
-
-		init(_ from: TemplateEntry) {
-			self.name = from.name
-			self.fqn = from.fqn
-			self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
-			self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
-		}
-	}
-
-	struct CreateTemplateReply: Codable {
-		let name: String
-		let created: Bool
-		var reason: String? = nil
-		
-		func toCaked_CreateTemplateReply() -> Caked_CreateTemplateReply {
-			Caked_CreateTemplateReply.with {
-				$0.name = self.name
-				$0.created = self.created
-				
-				if let reason = self.reason {
-					$0.reason = reason
-				}
-			}
-		}
-	}
-
-	struct DeleteTemplateReply: Codable {
-		let name: String
-		let deleted: Bool
-	}
-
 	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
 		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach)
 		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL)
