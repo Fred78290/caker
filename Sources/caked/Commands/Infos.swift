@@ -28,14 +28,19 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@Option(help:"Maximum of seconds to getting infos")
 	var waitIPTimeout = 180
 
-    var createVM: Bool = false
+	var createVM: Bool = false
 
-    var retries: GRPC.ConnectionBackoff.Retries {
+	var retries: GRPC.ConnectionBackoff.Retries {
 		.unlimited
 	}
 
-    var callOptions: GRPC.CallOptions? {
+	var callOptions: GRPC.CallOptions? {
 		CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout)))
+	}
+
+	mutating func validate() throws {
+		Logger.setLevel(self.logLevel)
+		try self.options.validate()
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
@@ -46,7 +51,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 		if vmLocation.status == .running {
 			infos = try CakeAgentHelper(on: on, client: client).info(callOptions: callOptions)
 		} else {
-			
+
 			infos = InfoReply.with {
 				$0.osname = config.os.rawValue
 				$0.status = .stopped

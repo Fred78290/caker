@@ -1,0 +1,26 @@
+from shutil import which
+
+import pytest
+from caked import Caked
+
+
+@pytest.fixture(scope="class")
+def caked():
+	with Caked() as caked:
+		yield caked
+
+@pytest.fixture(autouse=True)
+def only_sequoia(request):
+	if request.node.get_closest_marker('only_sequoia'):
+		arg = request.node.get_closest_marker('only_sequoia').args[0]
+		if not "sequoia" in arg:
+			pytest.skip('skipped on image: {0}'.format(arg))   
+
+@pytest.fixture(autouse=True)
+def only_tart_present(request):
+	if request.node.get_closest_marker('only_tart_present'):
+		if which("tart") is None:
+			pytest.skip("tart executable not found")
+
+def pytest_configure(config):
+  config.addinivalue_line("markers", "only_sequoia(image): skip test for the given macos image not sequoia")

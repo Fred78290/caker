@@ -175,6 +175,12 @@ extension Caked_StartRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_DuplicateRequest: CreateCakedCommand {
+	func createCommand() throws -> CakedCommand {
+		return DuplicateHandler(request: self)
+	}
+}
+
 extension Caked_LoginRequest: CreateCakedCommand {
 	func createCommand() throws -> CakedCommand {
 		return LoginHandler(request: self)
@@ -277,6 +283,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+
+	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 

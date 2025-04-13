@@ -19,8 +19,8 @@ struct ListHandler: CakedCommand {
 				name: name,
 				fqn: ["vm://\(name)"],
 				instanceID: config.instanceID,
-				diskSize: try UInt32(location.diskSize()),
-				totalSize: try UInt32(location.allocatedSize()),
+				diskSize: try location.diskSize(),
+				totalSize: try location.allocatedSize(),
 				state: status.rawValue,
 				ip: status == .running ? config.runningIP : nil,
 				fingerprint: nil
@@ -49,8 +49,8 @@ struct ListHandler: CakedCommand {
 							name: purgeable.name(),
 							fqn: imageCache.fqn(purgeable),
 							instanceID: "",
-							diskSize: try UInt32(purgeable.allocatedSizeBytes()),
-							totalSize: try UInt32(purgeable.allocatedSizeBytes()),
+							diskSize: try purgeable.allocatedSizeBytes(),
+							totalSize: try purgeable.allocatedSizeBytes(),
 							state: "cached",
 							ip: nil,
 							fingerprint: purgeable.fingerprint()

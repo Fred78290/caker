@@ -112,7 +112,8 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
-				"list"
+				"list",
+				"--vmonly"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
@@ -490,7 +491,8 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
-				"list"
+				"list",
+				"--vmonly"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl list",

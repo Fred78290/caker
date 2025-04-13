@@ -320,7 +320,7 @@ struct ImageVersionItems: Codable {
 struct ImageVersionItem: Codable {
 	let ftype: String
 	let path: String
-	let size: UInt32
+	let size: Int
 	let sha256: String
 	let md5: String?
 
@@ -337,7 +337,7 @@ struct ImageVersionItem: Codable {
 
 		ftype = try container.decode(String.self, forKey: .ftype)
 		path = try container.decode(String.self, forKey: .path)
-		size = try container.decode(UInt32.self, forKey: .size)
+		size = try container.decode(Int.self, forKey: .size)
 		sha256 = try container.decode(String.self, forKey: .sha256)
 		md5 = try container.decodeIfPresent(String.self, forKey: .md5)
 	}

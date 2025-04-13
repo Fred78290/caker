@@ -197,6 +197,9 @@
 		9B8027782D997EBA002C680E /* IP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027702D997EBA002C680E /* IP.swift */; };
 		9B8027792D997EBA002C680E /* IP.Block.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027722D997EBA002C680E /* IP.Block.swift */; };
 		9B80277A2D997EBA002C680E /* IP.V4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027732D997EBA002C680E /* IP.V4.swift */; };
+		9B8AC0782DABC4D7009A8EEB /* DuplicateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */; };
+		9B8AC07A2DABC4E6009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */; };
+		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
@@ -379,6 +382,9 @@
 		9B8027712D997EBA002C680E /* IP.Address.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.Address.swift; sourceTree = "<group>"; };
 		9B8027722D997EBA002C680E /* IP.Block.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.Block.swift; sourceTree = "<group>"; };
 		9B8027732D997EBA002C680E /* IP.V4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.V4.swift; sourceTree = "<group>"; };
+		9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
+		9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
+		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
@@ -566,6 +572,7 @@
 				9B464A6A2D5A3E0300164BF5 /* Clone.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
+				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
 				9B464A6E2D5A3E0300164BF5 /* Exec.swift */,
 				9B464A6F2D5A3E0300164BF5 /* Export.swift */,
 				9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */,
@@ -632,6 +639,7 @@
 				9B464A932D5A3E0300164BF5 /* Certificates.swift */,
 				9B464A942D5A3E0300164BF5 /* Configure.swift */,
 				9B464A952D5A3E0300164BF5 /* Delete.swift */,
+				9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */,
 				9B464A962D5A3E0300164BF5 /* Exec.swift */,
 				9B464A972D5A3E0300164BF5 /* ImagesManagement.swift */,
 				9B464A982D5A3E0300164BF5 /* Infos.swift */,
@@ -662,6 +670,7 @@
 				9B464AA62D5A3E0300164BF5 /* BuildHandler.swift */,
 				9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */,
 				9B464AA82D5A3E0300164BF5 /* DeleteHandler.swift */,
+				9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */,
 				9B464AA92D5A3E0300164BF5 /* ImageHandler.swift */,
 				9B464AAA2D5A3E0300164BF5 /* LaunchHandler.swift */,
 				9B464AAB2D5A3E0300164BF5 /* ListHandler.swift */,
@@ -1054,6 +1063,7 @@
 				9B464AEE2D5A3E0300164BF5 /* Root.swift in Sources */,
 				9B464AEF2D5A3E0300164BF5 /* GuestPlateform.swift in Sources */,
 				9B464AF22D5A3E0300164BF5 /* ConfigureHandler.swift in Sources */,
+				9B8AC0782DABC4D7009A8EEB /* DuplicateHandler.swift in Sources */,
 				9B464AF42D5A3E0300164BF5 /* Home.swift in Sources */,
 				9BD32F812D75F9520066A01E /* Mount.swift in Sources */,
 				9BD32F822D75F9520066A01E /* Unmount.swift in Sources */,
@@ -1120,6 +1130,7 @@
 				9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */,
 				9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */,
 				9B464B352D5A3E0300164BF5 /* PortForwardingServer.swift in Sources */,
+				9B8AC07A2DABC4E6009A8EEB /* Duplicate.swift in Sources */,
 				9B464B362D5A3E0300164BF5 /* RemoteHandler.swift in Sources */,
 				9B464B372D5A3E0300164BF5 /* Config.swift in Sources */,
 				9B464B382D5A3E0300164BF5 /* LaunchHandler.swift in Sources */,
@@ -1171,6 +1182,7 @@
 				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
 				9BD32F882D75FF060066A01E /* Mount.swift in Sources */,
 				9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */,
+				9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */,
 				9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

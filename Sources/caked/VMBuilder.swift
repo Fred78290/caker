@@ -45,7 +45,6 @@ struct VMBuilder {
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 		config.forwardedPorts = options.forwardedPorts
-		config.instanceID = "i-\(Date().timeIntervalSince1970)"
 		config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 
 		try config.save()

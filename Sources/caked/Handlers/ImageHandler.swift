@@ -67,7 +67,7 @@ extension ImageInfo {
 			properties["version"] = version
 		}
 
-		self.init(aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: UInt(imageDisk.size), type: "virtual-machine", created: created, expires: expires, uploaded: created, properties: properties)
+		self.init(aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: imageDisk.size, type: "virtual-machine", created: created, expires: expires, uploaded: created, properties: properties)
 	}
 }
 

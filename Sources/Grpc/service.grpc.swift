@@ -26,6 +26,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_StartRequest, Caked_Reply>
 
+  func duplicate(
+    _ request: Caked_DuplicateRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_DuplicateRequest, Caked_Reply>
+
   func cakeCommand(
     _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions?
@@ -165,6 +170,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Duplicate
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Duplicate.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func duplicate(
+    _ request: Caked_DuplicateRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_DuplicateRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.duplicate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDuplicateInterceptors() ?? []
     )
   }
 
@@ -604,6 +627,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply>
 
+  func makeDuplicateCall(
+    _ request: Caked_DuplicateRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_DuplicateRequest, Caked_Reply>
+
   func makeCakeCommandCall(
     _ request: Caked_CakedCommandRequest,
     callOptions: CallOptions?
@@ -735,6 +763,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func makeDuplicateCall(
+    _ request: Caked_DuplicateRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_DuplicateRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.duplicate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDuplicateInterceptors() ?? []
     )
   }
 
@@ -1000,6 +1040,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func duplicate(
+    _ request: Caked_DuplicateRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.duplicate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDuplicateInterceptors() ?? []
     )
   }
 
@@ -1281,6 +1333,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'start'.
   func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'duplicate'.
+  func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'cakeCommand'.
   func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
 
@@ -1349,6 +1404,7 @@ public enum Caked_ServiceClientMetadata {
     methods: [
       Caked_ServiceClientMetadata.Methods.build,
       Caked_ServiceClientMetadata.Methods.start,
+      Caked_ServiceClientMetadata.Methods.duplicate,
       Caked_ServiceClientMetadata.Methods.cakeCommand,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.login,
@@ -1382,6 +1438,12 @@ public enum Caked_ServiceClientMetadata {
     public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let duplicate = GRPCMethodDescriptor(
+      name: "Duplicate",
+      path: "/caked.Service/Duplicate",
       type: GRPCCallType.unary
     )
 
@@ -1515,6 +1577,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func start(request: Caked_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
+  func duplicate(request: Caked_DuplicateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
   func cakeCommand(request: Caked_CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func launch(request: Caked_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
@@ -1584,6 +1648,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         userFunction: self.start(request:context:)
+      )
+
+    case "Duplicate":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_DuplicateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeDuplicateInterceptors() ?? [],
+        userFunction: self.duplicate(request:context:)
       )
 
     case "CakeCommand":
@@ -1788,6 +1861,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
+  func duplicate(
+    request: Caked_DuplicateRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
   func cakeCommand(
     request: Caked_CakedCommandRequest,
     context: GRPCAsyncServerCallContext
@@ -1925,6 +2003,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         wrapping: { try await self.start(request: $0, context: $1) }
+      )
+
+    case "Duplicate":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_DuplicateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeDuplicateInterceptors() ?? [],
+        wrapping: { try await self.duplicate(request: $0, context: $1) }
       )
 
     case "CakeCommand":
@@ -2123,6 +2210,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStartInterceptors() -> [ServerInterceptor<Caked_StartRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'duplicate'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeDuplicateInterceptors() -> [ServerInterceptor<Caked_DuplicateRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'cakeCommand'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeCakeCommandInterceptors() -> [ServerInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
@@ -2211,6 +2302,7 @@ public enum Caked_ServiceServerMetadata {
     methods: [
       Caked_ServiceServerMetadata.Methods.build,
       Caked_ServiceServerMetadata.Methods.start,
+      Caked_ServiceServerMetadata.Methods.duplicate,
       Caked_ServiceServerMetadata.Methods.cakeCommand,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.login,
@@ -2244,6 +2336,12 @@ public enum Caked_ServiceServerMetadata {
     public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let duplicate = GRPCMethodDescriptor(
+      name: "Duplicate",
+      path: "/caked.Service/Duplicate",
       type: GRPCCallType.unary
     )
 

@@ -295,6 +295,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 								Logger(self).debug("Socket device connected on \(socket.description)")
 							case let .failure(error):
 								Logger(self).error("Failed to connect socket device on \(socket.description), \(error)")
+								Foundation.exit(1)
 							}
 						}
 					}

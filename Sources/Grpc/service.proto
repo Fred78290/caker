@@ -11,6 +11,7 @@ package caked;
 service Service {
 	rpc Build (BuildRequest) returns (Reply) {}
 	rpc Start (StartRequest) returns (Reply) {}
+	rpc Duplicate (DuplicateRequest) returns (Reply) {}
 	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
 	rpc Launch (LaunchRequest) returns (Reply) {}
 	rpc Login (LoginRequest) returns (Reply) {}
@@ -33,6 +34,12 @@ service Service {
 	rpc Umount(MountRequest) returns (Reply);
 }
 
+message DuplicateRequest {
+	string from = 1;
+	string to = 2;
+	bool resetMacAddress = 3;
+}
+
 message ListNetworksReply {
 	repeated NetworkInfo networks = 1;
 }
@@ -51,7 +58,7 @@ message NetworkInfo {
 message PulledImageInfo {
 	optional string alias = 1;
 	string path = 2;
-	uint32 size = 3;
+	uint64 size = 3;
 	string fingerprint = 4;
 	string remoteName = 5;
 	string description = 6;
@@ -67,7 +74,7 @@ message ImageInfo {
 	bool pub = 3;
 	string fileName = 4;
 	string fingerprint = 5;
-	uint32 size = 6;
+	uint64 size = 6;
 	string type = 7;
 	optional string created = 8;
 	optional string expires = 9;
@@ -85,8 +92,8 @@ message VirtualMachineInfo {
 	string name = 3;
 	repeated string fqn = 4;
 	optional string instanceID = 5;
-	uint32 diskSize = 6;
-	uint32 totalSize = 7;
+	uint64 diskSize = 6;
+	uint64 totalSize = 7;
 	string state = 8;
 	optional string ip = 9;
 	optional string fingerprint = 10;
@@ -212,8 +219,8 @@ message ListTemplatesReply {
 message TemplateEntry {
 	string name = 1;
 	string fqn = 2;
-	uint32 diskSize = 3;
-	uint32 totalSize = 4;
+	uint64 diskSize = 3;
+	uint64 totalSize = 4;
 }
 
 message CreateTemplateReply {

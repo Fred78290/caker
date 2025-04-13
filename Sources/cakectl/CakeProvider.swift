@@ -27,6 +27,15 @@ extension Caked_RenameRequest {
 	}
 }
 
+extension Caked_DuplicateRequest {
+	init(command: Duplicate) {
+		self.init()
+		self.from = command.from
+		self.to = command.to
+		self.resetMacAddress = command.resetMacAddress
+	}
+}
+
 extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()

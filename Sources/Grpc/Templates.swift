@@ -32,8 +32,8 @@ public struct TemplateEntry: Codable {
 		Caked_TemplateEntry.with {
 			$0.name = self.name
 			$0.fqn = self.fqn
-			$0.diskSize = UInt32(self.diskSize)
-			$0.totalSize = UInt32(self.totalSize)
+			$0.diskSize = UInt64(self.diskSize)
+			$0.totalSize = UInt64(self.totalSize)
 		}
 	}
 }

@@ -90,6 +90,10 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		[CakeAgentClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
+	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
+		[CakeAgentClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
+
 	func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

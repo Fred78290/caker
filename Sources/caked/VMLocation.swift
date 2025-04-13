@@ -134,7 +134,7 @@ struct VMLocation {
 		return fd != -1
 	}
 
-	func copyTo(_ target: VMLocation) throws -> VMLocation{
+	func copyTo(_ target: VMLocation) throws -> VMLocation {
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
 		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)

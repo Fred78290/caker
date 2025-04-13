@@ -11,8 +11,9 @@ struct Configure: ParsableCommand {
 
 	@OptionGroup var options: ConfigureOptions
 	
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.logLevel)
+		try self.options.validate()
 	}
 
 	func run() throws {

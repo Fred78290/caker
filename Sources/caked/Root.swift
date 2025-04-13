@@ -51,6 +51,7 @@ struct Root: AsyncParsableCommand {
 			Certificates.self,
 			Configure.self,
 			Delete.self,
+			Duplicate.self,
 			Exec.self,
 			ImagesManagement.self,
 			Infos.self,

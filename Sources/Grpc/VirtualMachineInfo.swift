@@ -49,8 +49,8 @@ public struct VirtualMachineInfo: Codable {
 	public let name: String
 	public let fqn: [String]
 	public let instanceID: String?
-	public let diskSize: UInt32
-	public let totalSize: UInt32
+	public let diskSize: Int
+	public let totalSize: Int
 	public let state: String
 	public let ip: String?
 	public let fingerprint: String?
@@ -61,14 +61,14 @@ public struct VirtualMachineInfo: Codable {
 		self.name = from.name
 		self.fqn = from.fqn
 		self.instanceID = from.instanceID
-		self.diskSize = from.diskSize
-		self.totalSize = from.totalSize
+		self.diskSize = Int(from.diskSize)
+		self.totalSize = Int(from.totalSize)
 		self.state = from.state
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
 	}
 
-	public init(type: String, source: String, name: String, fqn: [String], instanceID: String?, diskSize: UInt32, totalSize: UInt32, state: String, ip: String?, fingerprint: String?) {
+	public init(type: String, source: String, name: String, fqn: [String], instanceID: String?, diskSize: Int, totalSize: Int, state: String, ip: String?, fingerprint: String?) {
 		self.type = type
 		self.source = source
 		self.name = name
@@ -87,8 +87,8 @@ public struct VirtualMachineInfo: Codable {
 			info.source = self.source
 			info.name = self.name
 			info.fqn = self.fqn
-			info.diskSize = self.diskSize
-			info.totalSize = self.totalSize
+			info.diskSize = UInt64(self.diskSize)
+			info.totalSize = UInt64(self.totalSize)
 			info.state = self.state
 
 			if let instanceID: String = self.instanceID {

@@ -30,7 +30,7 @@ public struct ImageEntry: Codable {
 public class LinuxContainerImage: Codable {
 	public let alias: [String]?
 	public let path: URL
-	public let size: UInt32
+	public let size: Int
 	public let fingerprint: String
 	public let remoteName: String
 	public let description: String
@@ -38,13 +38,13 @@ public class LinuxContainerImage: Codable {
 	public init(from: Caked_PulledImageInfo) {
 		self.alias = from.hasAlias ? from.alias.split(separator: ",").map{ String($0) } : nil
 		self.path = URL(fileURLWithPath: from.path)
-		self.size = from.size
+		self.size = Int(from.size)
 		self.fingerprint = from.fingerprint
 		self.remoteName = from.remoteName
 		self.description = from.description_p
 	}
 
-	public init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: UInt32) {
+	public init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: Int) {
 		self.alias = alias
 		self.path = path
 		self.size = size
@@ -57,7 +57,7 @@ public class LinuxContainerImage: Codable {
 		Caked_PulledImageInfo.with { image in
 			image.alias = self.alias?.joined(separator: ",") ?? ""
 			image.path = self.path.absoluteURL.path
-			image.size = self.size
+			image.size = UInt64(self.size)
 			image.fingerprint = self.fingerprint
 			image.remoteName = self.remoteName
 			image.description_p = self.description
@@ -71,7 +71,7 @@ public struct ImageInfo: Codable {
 	public let pub: Bool
 	public let fileName: String
 	public let fingerprint: String
-	public let size: UInt
+	public let size: Int
 	public let type: String
 	public let created: String?
 	public let expires: String?
@@ -84,7 +84,7 @@ public struct ImageInfo: Codable {
 		self.pub = from.pub
 		self.fileName = from.fileName
 		self.fingerprint = from.fingerprint
-		self.size = UInt(from.size)
+		self.size = Int(from.size)
 		self.type = from.type
 		self.created = from.created
 		self.expires = from.expires
@@ -97,7 +97,7 @@ public struct ImageInfo: Codable {
 				pub: Bool,
 				fileName: String,
 				fingerprint: String,
-				size: UInt,
+				size: Int,
 				type: String,
 				created: String?,
 				expires: String?,
@@ -123,7 +123,7 @@ public struct ImageInfo: Codable {
 			image.pub = self.pub
 			image.fileName = self.fileName
 			image.fingerprint = self.fingerprint
-			image.size = UInt32(self.size)
+			image.size = UInt64(self.size)
 			image.type = self.type
 			image.properties = self.properties
 

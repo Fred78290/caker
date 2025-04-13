@@ -157,6 +157,22 @@ public enum Caked_NetworkMode: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+public struct Caked_DuplicateRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var from: String = String()
+
+  public var to: String = String()
+
+  public var resetMacAddress: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Caked_ListNetworksReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -211,7 +227,7 @@ public struct Caked_PulledImageInfo: Sendable {
 
   public var path: String = String()
 
-  public var size: UInt32 = 0
+  public var size: UInt64 = 0
 
   public var fingerprint: String = String()
 
@@ -253,7 +269,7 @@ public struct Caked_ImageInfo: Sendable {
 
   public var fingerprint: String = String()
 
-  public var size: UInt32 = 0
+  public var size: UInt64 = 0
 
   public var type: String = String()
 
@@ -329,9 +345,9 @@ public struct Caked_VirtualMachineInfo: Sendable {
   /// Clears the value of `instanceID`. Subsequent reads from it will return its default value.
   public mutating func clearInstanceID() {self._instanceID = nil}
 
-  public var diskSize: UInt32 = 0
+  public var diskSize: UInt64 = 0
 
-  public var totalSize: UInt32 = 0
+  public var totalSize: UInt64 = 0
 
   public var state: String = String()
 
@@ -736,9 +752,9 @@ public struct Caked_TemplateEntry: Sendable {
 
   public var fqn: String = String()
 
-  public var diskSize: UInt32 = 0
+  public var diskSize: UInt64 = 0
 
-  public var totalSize: UInt32 = 0
+  public var totalSize: UInt64 = 0
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2214,6 +2230,50 @@ extension Caked_NetworkMode: SwiftProtobuf._ProtoNameProviding {
   ]
 }
 
+extension Caked_DuplicateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DuplicateRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "from"),
+    2: .same(proto: "to"),
+    3: .same(proto: "resetMacAddress"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.from) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.to) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.resetMacAddress) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.from.isEmpty {
+      try visitor.visitSingularStringField(value: self.from, fieldNumber: 1)
+    }
+    if !self.to.isEmpty {
+      try visitor.visitSingularStringField(value: self.to, fieldNumber: 2)
+    }
+    if self.resetMacAddress != false {
+      try visitor.visitSingularBoolField(value: self.resetMacAddress, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_DuplicateRequest, rhs: Caked_DuplicateRequest) -> Bool {
+    if lhs.from != rhs.from {return false}
+    if lhs.to != rhs.to {return false}
+    if lhs.resetMacAddress != rhs.resetMacAddress {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_ListNetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ListNetworksReply"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -2339,7 +2399,7 @@ extension Caked_PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._alias) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.path) }()
-      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.size) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.size) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.fingerprint) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.remoteName) }()
       case 6: try { try decoder.decodeSingularStringField(value: &self.description_p) }()
@@ -2360,7 +2420,7 @@ extension Caked_PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       try visitor.visitSingularStringField(value: self.path, fieldNumber: 2)
     }
     if self.size != 0 {
-      try visitor.visitSingularUInt32Field(value: self.size, fieldNumber: 3)
+      try visitor.visitSingularUInt64Field(value: self.size, fieldNumber: 3)
     }
     if !self.fingerprint.isEmpty {
       try visitor.visitSingularStringField(value: self.fingerprint, fieldNumber: 4)
@@ -2445,7 +2505,7 @@ extension Caked_ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 3: try { try decoder.decodeSingularBoolField(value: &self.pub) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.fileName) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.fingerprint) }()
-      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.size) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.size) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.type) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self._created) }()
       case 9: try { try decoder.decodeSingularStringField(value: &self._expires) }()
@@ -2477,7 +2537,7 @@ extension Caked_ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       try visitor.visitSingularStringField(value: self.fingerprint, fieldNumber: 5)
     }
     if self.size != 0 {
-      try visitor.visitSingularUInt32Field(value: self.size, fieldNumber: 6)
+      try visitor.visitSingularUInt64Field(value: self.size, fieldNumber: 6)
     }
     if !self.type.isEmpty {
       try visitor.visitSingularStringField(value: self.type, fieldNumber: 7)
@@ -2572,8 +2632,8 @@ extension Caked_VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._Messag
       case 3: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 4: try { try decoder.decodeRepeatedStringField(value: &self.fqn) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._instanceID) }()
-      case 6: try { try decoder.decodeSingularUInt32Field(value: &self.diskSize) }()
-      case 7: try { try decoder.decodeSingularUInt32Field(value: &self.totalSize) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.diskSize) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.totalSize) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.state) }()
       case 9: try { try decoder.decodeSingularStringField(value: &self._ip) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
@@ -2603,10 +2663,10 @@ extension Caked_VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._Messag
       try visitor.visitSingularStringField(value: v, fieldNumber: 5)
     } }()
     if self.diskSize != 0 {
-      try visitor.visitSingularUInt32Field(value: self.diskSize, fieldNumber: 6)
+      try visitor.visitSingularUInt64Field(value: self.diskSize, fieldNumber: 6)
     }
     if self.totalSize != 0 {
-      try visitor.visitSingularUInt32Field(value: self.totalSize, fieldNumber: 7)
+      try visitor.visitSingularUInt64Field(value: self.totalSize, fieldNumber: 7)
     }
     if !self.state.isEmpty {
       try visitor.visitSingularStringField(value: self.state, fieldNumber: 8)
@@ -3395,8 +3455,8 @@ extension Caked_TemplateEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.fqn) }()
-      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.diskSize) }()
-      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.totalSize) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self.diskSize) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.totalSize) }()
       default: break
       }
     }
@@ -3410,10 +3470,10 @@ extension Caked_TemplateEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       try visitor.visitSingularStringField(value: self.fqn, fieldNumber: 2)
     }
     if self.diskSize != 0 {
-      try visitor.visitSingularUInt32Field(value: self.diskSize, fieldNumber: 3)
+      try visitor.visitSingularUInt64Field(value: self.diskSize, fieldNumber: 3)
     }
     if self.totalSize != 0 {
-      try visitor.visitSingularUInt32Field(value: self.totalSize, fieldNumber: 4)
+      try visitor.visitSingularUInt64Field(value: self.totalSize, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
