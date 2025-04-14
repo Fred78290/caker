@@ -14,9 +14,11 @@ struct Logout: ParsableCommand {
 	@Argument(help: "host")
 	var host: String
 
-	func run() throws {
+	func validate() throws {
 		Logger.setLevel(self.logLevel)
+	}
 
+	func run() throws {
 		Logger.appendNewLine(try LogoutHandler.logout(host: self.host, direct: true))
 	}
 }

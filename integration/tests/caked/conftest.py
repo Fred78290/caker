@@ -24,3 +24,4 @@ def only_tart_present(request):
 
 def pytest_configure(config):
   config.addinivalue_line("markers", "only_sequoia(image): skip test for the given macos image not sequoia")
+  config.addinivalue_line("markers", "only_tart_present(): skip test if tart is not present")

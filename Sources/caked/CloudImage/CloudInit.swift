@@ -179,6 +179,8 @@ struct Merging: Codable {
 
 struct CloudConfigData: Codable {
 	var merge: [Merging]? = nil
+	var packageUpdate: Bool = false
+	var packageUpgrade = false
 	var growpart: Growpart? = Growpart()
 	var manageEtcHosts: Bool?
 	var packages: [String]?
@@ -192,6 +194,8 @@ struct CloudConfigData: Codable {
 
 	enum CodingKeys: String, CodingKey {
 		case merge = "merge_how"
+		case packageUpdate = "package_update"
+		case packageUpgrade = "package_upgrade"
 		case growpart = "growpart"
 		case manageEtcHosts = "manage_etc_hosts"
 		case packages = "packages"
@@ -656,11 +660,10 @@ class CloudInit {
 		                                 clearPassword: self.clearPassword,
 		                                 sshAuthorizedKeys: sshAuthorizedKeys,
 		                                 tz: TimeZone.current.identifier,
-		                                 packages: ["pollinate"],
+		                                 packages: nil,
 		                                 writeFiles: [
 		                                 	WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755"),
 		                                 	WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
-		                                 	WriteFile(path: "/etc/pollinate/add-user-agent", content: "caked/vz/1.0 # Written by caked"),
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
 		                                 	WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),

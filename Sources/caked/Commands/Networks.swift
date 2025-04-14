@@ -17,35 +17,28 @@ struct Networks: ParsableCommand {
 	                                                                      	Networks.Delete.self,
 	                                                                      	Networks.Run.self,
 	                                                                      	Networks.Start.self,
+	                                                                      	Networks.Restart.self,
 	                                                                      	Networks.Stop.self])
 	struct DHCPLease: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to set the dhcp lease")
+		static let configuration = CommandConfiguration(commandName: "set-dhcp-lease", abstract: "Start named network device.", discussion: "This command is used to set the dhcp lease")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
-		@Option(help: "DHCP lease time in seconds")
+		@Argument(help: "DHCP lease time in seconds")
 		var dhcpLease: Int32 = 300
 
 		func validate() throws {
-			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root not as user \(geteuid())")
-			}
-
-			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
-				throw ValidationError("CAKE_HOME must be set to the correct location")
-			}
-
 			Logger.setLevel(self.logLevel)
 		}
-		
+
 		func run() throws {
-			try NetworksHandler.self.setDHCPLease(leaseTime: self.dhcpLease)
+			Logger.appendNewLine(try NetworksHandler.self.setDHCPLease(leaseTime: self.dhcpLease))
 		}
 	}
 
 	struct Start: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device. CAKE_HOME must be set to the correct location.")
+		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device location.")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -54,15 +47,6 @@ struct Networks: ParsableCommand {
 		var name: String
 
 		mutating func validate() throws {
-			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root not as user \(geteuid())")
-			}
-
-
-			if ProcessInfo.processInfo.environment["CAKE_HOME"] == nil {
-				throw ValidationError("CAKE_HOME must be set to the correct location")
-			}
-
 			if NetworksHandler.isPhysicalInterface(name: name) == false {
 				let home: Home = try Home(asSystem: runAsSystem)
 				let networkConfig = try home.sharedNetworks()
@@ -76,9 +60,34 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			let options: NetworksHandler.VMNetOptions = try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: false)
+			Logger.appendNewLine(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: false)))
+		}
+	}
 
-			try NetworksHandler.self.start(options: options)
+	struct Restart: ParsableCommand {
+		static let configuration = CommandConfiguration(abstract: "Restart named network device.", discussion: "This command is used to restart the VMNet network device.")
+
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
+		var name: String
+
+		mutating func validate() throws {
+			if NetworksHandler.isPhysicalInterface(name: name) == false {
+				let home: Home = try Home(asSystem: runAsSystem)
+				let networkConfig = try home.sharedNetworks()
+
+				if networkConfig.sharedNetworks[self.name] == nil {
+					throw ValidationError("Network \(self.name) does not exist")
+				}
+			}
+
+			Logger.setLevel(self.logLevel)
+		}
+
+		func run() throws {
+			Logger.appendNewLine(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: false))
 		}
 	}
 
@@ -208,7 +217,7 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Run: AsyncParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Start VMNet network device", shouldDisplay: false)
+		static let configuration = CommandConfiguration(abstract: "Run internal VMNet network device", shouldDisplay: false)
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
@@ -225,7 +234,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			try NetworksHandler.start(options: self.options)
+			Logger.appendNewLine(try NetworksHandler.start(options: self.options))
 		}
 	}
 
@@ -246,9 +255,6 @@ struct Networks: ParsableCommand {
 
 		@Option(name: [.customLong("pidfile")], help: .hidden)
 		var pidFile: String? = nil
-
-		@Option(name: [.customLong("signal")], help: .hidden)
-		var sig: Int32 = SIGTERM
 
 		func validate() throws {
 			Logger.setLevel(self.logLevel)

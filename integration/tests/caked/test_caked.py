@@ -1,4 +1,6 @@
+import sys
 import uuid
+from time import sleep
 
 import pytest
 from paramiko.client import AutoAddPolicy, SSHClient
@@ -80,6 +82,8 @@ def test_vmrun(caked):
 	# Run the VM asynchronously
 	caked_run_process = caked.run_async(["vmrun", vm_name])
 
+	sleep(2)
+
 	# Obtain the VM's IP
 	stdout, _ = caked.run(["waitip", vm_name, "--wait", "120"])
 	ip = stdout.strip()
@@ -101,13 +105,10 @@ def test_launch(caked):
 	vm_name = f"integration-test-run-{uuid.uuid4()}"
 
 	# Instantiate a VM with admin:admin SSH access
-	caked.run(["launch", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+	stdout, _ = caked.run(["launch", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+	assert f"VM launched {vm_name} with IP: " in stdout
 
-	# Obtain the VM's IP
-	stdout, _ = caked.run(["waitip", vm_name, "--wait", "120"])
-	ip = stdout.strip()
-
-	stdout, _ = caked.run(["stop", vm_name, "--wait", "120"])
+	stdout, _ = caked.run(["stop", vm_name])
 	assert f"VM {vm_name} stopped" in stdout
 
 	# Delete the VM

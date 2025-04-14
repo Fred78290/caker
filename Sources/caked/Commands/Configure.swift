@@ -17,6 +17,6 @@ struct Configure: ParsableCommand {
 	}
 
 	func run() throws {
-		try ConfigureHandler.configure(name: self.options.name, options: options, asSystem: false)
+		Logger.appendNewLine(try ConfigureHandler.configure(name: self.options.name, options: options, asSystem: false))
 	}
 }

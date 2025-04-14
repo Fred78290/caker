@@ -77,10 +77,7 @@ def test_launch(cakectl):
 
 	# Instantiate a VM with admin:admin SSH access
 	cakectl.run(["launch", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
-
-	# Obtain the VM's IP
-	stdout, _ = cakectl.run(["waitip", vm_name, "--wait", "120"])
-	ip = stdout.strip()
+	assert f"VM launched {vm_name} with IP: " in stdout
 
 	stdout, _ = cakectl.run(["stop", vm_name, "--wait", "120"])
 	assert f"VM {vm_name} stopped" in stdout

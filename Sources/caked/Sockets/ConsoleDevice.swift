@@ -11,7 +11,6 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 	var pipeChannel: Channel?
 
 	private init(on: EventLoopGroup, consoleURL: URL?) {
-		//self.consoleSocket = URL(fileURLWithPath: "tart-agent.sock", isDirectory: false, relativeTo: diskURL).absoluteURL
 		self.consoleURL = consoleURL
 		self.mainGroup = on
 	}

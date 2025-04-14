@@ -47,7 +47,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		let networks: [any NetworkAttachement] = try config.collectNetworks()
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
-		let socketDeviceAttachments = try config.socketDeviceAttachments()
+		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: vmLocation.agentURL)
 		let consoleURL = try config.consoleAttachment()
 
 		let configuration = VZVirtualMachineConfiguration()

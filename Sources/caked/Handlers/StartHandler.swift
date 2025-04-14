@@ -111,7 +111,7 @@ struct StartHandler: CakedCommand {
 		
 		private func runningArguments(vmLocation: VMLocation, startMode: StartMode) throws -> ([String], [Int32]) {
 			let config: CakeConfig = try vmLocation.config()
-			let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: vmLocation.rootURL).absoluteURL.path
+			let vsock = vmLocation.agentURL.absoluteURL.path
 			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
 			

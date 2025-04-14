@@ -518,8 +518,8 @@ extension CakeConfig {
 		return self.mounts.directorySharingAttachments(os: self.os)
 	}
 
-	func socketDeviceAttachments() throws -> [SocketDevice] {
-		let vsock = URL(fileURLWithPath: "agent.sock", relativeTo: self.location).absoluteURL.path
+	func socketDeviceAttachments(agentURL: URL) throws -> [SocketDevice] {
+		let vsock = agentURL.absoluteURL.path
 		var sockets: [SocketDevice] = [SocketDevice(mode: SocketMode.bind, port: 5000, bind: vsock)]
 
 		if FileManager.default.fileExists(atPath: vsock) {

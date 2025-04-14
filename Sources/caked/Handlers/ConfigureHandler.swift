@@ -7,7 +7,7 @@ import NIOCore
 struct ConfigureHandler: CakedCommandAsync, Sendable {
 	var options: ConfigureOptions
 
-	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws {
+	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
 		let config = try vmLocation.config()
 
@@ -64,15 +64,15 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		if let diskSize = options.diskSize {
 			try vmLocation.expandDiskTo(diskSize)
 		}
+
+		return "VM \(name) reconfigured"
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
 		return on.submit {
-			try Self.configure(name: self.options.name, options: options, asSystem: asSystem)
-
-			return Caked_Reply.with { reply in
-				reply.vms = Caked_VirtualMachineReply.with {
-					$0.message = "VM \(self.options.name) configured"
+			return try Caked_Reply.with { reply in
+				reply.vms = try Caked_VirtualMachineReply.with {
+					$0.message = try Self.configure(name: self.options.name, options: options, asSystem: asSystem)
 				}
 			}
 		}

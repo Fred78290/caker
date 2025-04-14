@@ -10,6 +10,7 @@ from threading import Thread
 from time import sleep
 
 import pytest
+from caked import Caked
 from paramiko import AutoAddPolicy, SSHClient
 from scp import SCPClient
 
@@ -286,17 +287,17 @@ class TestVirtioDevices:
 			if diskSize:
 				caked.run(["configure", vmname, "--disk-size={0}".format(diskSize)])
 
-		args = ["start", vmname]
-
 		if vsock_argument:
-			args.append(vsock_argument)
+			caked.run(["configure", vmname, vsock_argument])
 
 		if console_argument:
-			args.append(console_argument)
+			caked.run(["configure", vmname, console_argument])
 
 		# Run the VM asynchronously
 		log.info("Start VM {0}".format(vmname))
-		caked_run_process = caked.run_async(args, pass_fds=pass_fds)
+		caked_run_process = caked.run_async(["vmrun", vmname], pass_fds=pass_fds)
+
+		sleep(2)
 
 		# Obtain the VM's IP
 		log.info("Waiting for VM to start")
@@ -336,7 +337,7 @@ class TestVirtioDevices:
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--vsock=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -374,7 +375,7 @@ class TestVirtioDevices:
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--vsock=tcp://127.0.0.1:9999", vmname=vmname)
+		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -410,7 +411,7 @@ class TestVirtioDevices:
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--vsock=tcp://127.0.0.1:9999", vmname=vmname)
+		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -454,7 +455,7 @@ class TestVirtioDevices:
 			server.listen(1)
 
 			# Create a Linux VM
-			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--vsock=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -491,7 +492,7 @@ class TestVirtioDevices:
 			host_in_fd, vm_write_fd = os.pipe()
 			
 			# Create a Linux VM
-			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--vsock=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
+			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -610,12 +611,14 @@ class TestVirtioDevices:
 	
 class TestVirtioDevicesOnLinux(TestVirtioDevices):
 	@classmethod
-	def setup_class(cls, caked):
-		caked.run(["build", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+	def setup_class(cls):
+		with Caked() as caked:
+			caked.run(["build", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
 
 	@classmethod
-	def teardown_class(cls, caked):
-		caked.run(["delete", vm_name])
+	def teardown_class(cls):
+		with Caked() as caked:
+			caked.run(["delete", vm_name])
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("linux")
@@ -647,12 +650,14 @@ class TestVirtioDevicesOnLinux(TestVirtioDevices):
 @pytest.mark.only_tart_present()
 class TestVirtioDevicesOnMacOS(TestVirtioDevices):
 	@classmethod
-	def setup_class(cls, caked):
-		tart_clone_macos_vm(caked, macos_image, vm_name)
+	def setup_class(cls):
+		with Caked() as caked:
+			tart_clone_macos_vm(caked, macos_image, vm_name)
 
 	@classmethod
 	def teardown_class(cls, caked):
-		caked.run(["delete", vm_name])
+		with Caked() as caked:
+			caked.run(["delete", vm_name])
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("macos")

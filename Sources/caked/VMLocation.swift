@@ -45,15 +45,11 @@ struct VMLocation {
 	}
 
 	var agentURL: URL {
-		let agentURL = rootURL.appendingPathComponent("agent.sock").absoluteURL
-
-		return URL(string: "unix://\(agentURL.path)")!
+		return rootURL.socketPath(name: "agent")
 	}
 
 	var mountServiceURL: URL {
-		let mountServiceURL = rootURL.appendingPathComponent("mount.sock").absoluteURL
-
-		return URL(string: "unix://\(mountServiceURL.path)")!
+		return rootURL.socketPath(name: "mount")
 	}
 
 	var name: String {

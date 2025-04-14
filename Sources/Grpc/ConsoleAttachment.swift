@@ -58,7 +58,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 		if consoleURL ==  "file" {
 			return vmDir.appendingPathComponent("console.log")
 		} else if consoleURL == "unix" {
-			return vmDir.appendingPathComponent("console.sock")
+			return vmDir.socketPath(name: "console.sock")
 		} else {
 			return URL(string: consoleURL)
 		}
