@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
+import os
 import platform
 import select
-import os
+
 
 # This script is a simple example of how to communicate with the console device in the guest.
 def readmessage(fd):
@@ -38,7 +39,7 @@ def writemessage(fd, message):
 	fd.write(message)
 
 def echo_linux():
-	console_path = "/dev/virtio-ports/tart-agent"
+	console_path = "/dev/virtio-ports/cake-console"
 	with open("/tmp/vsock_echo.pid", "w") as pid_file:
 		try:
 			pid_file.write(str(os.getpid()))
@@ -64,7 +65,7 @@ def echo_linux():
 			os.remove("/tmp/vsock_echo.pid")
 
 def echo_darwin():
-	console_path = "/dev/tty.tart-agent"
+	console_path = "/dev/tty.cake-console"
 	with open("/tmp/vsock_echo.pid", "w") as pid_file:
 		try:
 			pid_file.write(str(os.getpid()))

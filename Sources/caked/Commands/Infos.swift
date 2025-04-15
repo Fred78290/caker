@@ -39,8 +39,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	}
 
 	mutating func validate() throws {
-		Logger.setLevel(self.logLevel)
-		try self.options.validate()
+		try self.validateOptions()
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {

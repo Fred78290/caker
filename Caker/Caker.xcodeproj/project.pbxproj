@@ -200,6 +200,9 @@
 		9B8AC0782DABC4D7009A8EEB /* DuplicateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */; };
 		9B8AC07A2DABC4E6009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
+		9B8AC0AA2DAE9759009A8EEB /* ConfigureOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0A82DAE9759009A8EEB /* ConfigureOptions.swift */; };
+		9B8AC0AB2DAE9759009A8EEB /* NetworkOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0A92DAE9759009A8EEB /* NetworkOptions.swift */; };
+		9B8AC0AC2DAE9759009A8EEB /* BuildOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC0A72DAE9759009A8EEB /* BuildOptions.swift */; };
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
@@ -385,6 +388,9 @@
 		9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
 		9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
+		9B8AC0A72DAE9759009A8EEB /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
+		9B8AC0A82DAE9759009A8EEB /* ConfigureOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureOptions.swift; sourceTree = "<group>"; };
+		9B8AC0A92DAE9759009A8EEB /* NetworkOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkOptions.swift; sourceTree = "<group>"; };
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
@@ -747,7 +753,9 @@
 			children = (
 				9B464ACF2D5A3E0300164BF5 /* BridgeAttachement.swift */,
 				9B7C807D2DAA70A2003E95FA /* BridgedNetwork.swift */,
+				9B8AC0A72DAE9759009A8EEB /* BuildOptions.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
+				9B8AC0A82DAE9759009A8EEB /* ConfigureOptions.swift */,
 				9B464AD12D5A3E0300164BF5 /* ConsoleAttachment.swift */,
 				9B464AD22D5A3E0300164BF5 /* DirectorySharingAttachement.swift */,
 				9B464AD32D5A3E0300164BF5 /* DiskAttachement.swift */,
@@ -756,6 +764,7 @@
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B7C80772DA91128003E95FA /* Images.swift */,
 				9B7C807B2DAA6C84003E95FA /* Mounts.swift */,
+				9B8AC0A92DAE9759009A8EEB /* NetworkOptions.swift */,
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
 				9B7C807F2DAA728F003E95FA /* RemoteEntry.swift */,
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
@@ -1196,6 +1205,9 @@
 				9B7C80822DAA742C003E95FA /* Templates.swift in Sources */,
 				9B7C80782DA91131003E95FA /* Images.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
+				9B8AC0AA2DAE9759009A8EEB /* ConfigureOptions.swift in Sources */,
+				9B8AC0AB2DAE9759009A8EEB /* NetworkOptions.swift in Sources */,
+				9B8AC0AC2DAE9759009A8EEB /* BuildOptions.swift in Sources */,
 				9B464C6C2D5A45EF00164BF5 /* SocketDevice.swift in Sources */,
 				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,

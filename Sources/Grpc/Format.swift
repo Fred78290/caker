@@ -9,6 +9,27 @@ extension Data {
 	}
 }
 
+public struct ShortInfoReply: Sendable, Codable {
+	public let name: String
+	public let ipaddresses: String
+	public let cpuCount: String
+	public let memory: String
+
+	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64) {
+		self.name = name
+		self.ipaddresses = ipaddresses.joined(separator: ", ")
+		self.cpuCount = "\(cpuCount)"
+		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
+	}
+
+	public init(ipaddress: String) {
+		self.name = ""
+		self.ipaddresses = ipaddress
+		self.cpuCount = ""
+		self.memory = ""
+	}
+}
+
 extension InfoReply {
 	static func with(infos: Caked_InfoReply) -> InfoReply  {
 		var memory: InfoReply.MemoryInfo? = nil

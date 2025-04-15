@@ -33,8 +33,6 @@ struct Exec: CakeAgentAsyncParsableCommand {
 	}
 
 	mutating func validate() throws {
-		Logger.setLevel(self.logLevel)
-
 		if arguments.count < 1 {
 			throw ValidationError("At least one argument is required")
 		}

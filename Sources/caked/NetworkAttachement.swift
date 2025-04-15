@@ -99,7 +99,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		
 		if ret != 0 {
 			perror("setsockopt(SO_SNDBUF) returned \(ret)")
-			throw ServiceError("setsockopt(SO_SNDBUF) returned \(ret), \(errno)")
+			throw ServiceError("setsockopt(SO_SNDBUF) returned \(ret), \(String(cString:strerror(errno)))")
 		}
 	}
 	

@@ -83,26 +83,26 @@ def scp_put(ip, src, dst):
 
 
 def tart_clone_macos_vm(caked, image, vmname):
-	stdout, _, = caked.run(["list", "--vmonly"])
+	stdout, _, = caked.listvm()
 	exists = False
 
 	if vmname in stdout:
 		exists = True
 
 		try:
-			caked.run(["stop", vmname])
+			caked.stop(vmname)
 		except Exception:
 			pass
 
 		# Keep the VM if the test is running in Cirrus CI and recreate_vm is set
 		if recreate_vm:
 			log.info(f"VM {vmname} already exists, deleting it.")
-			caked.run(["delete", vmname])
+			caked.delete(vmname)
 
 	# Create the VM if not exists
 	if not exists:
 		log.info("Clone image {0} to VM {1}".format(image, vmname))
-		caked.run(["clone", macos_image, vm_name])
+		caked.clone(macos_image, vm_name)
 
 class TestVirtioDevices:
 	interpreter = "python3"
@@ -254,50 +254,52 @@ class TestVirtioDevices:
 		# Shutdown the VM
 		if ip:
 			log.info("Shutting down the VM")
-			caked.run(["stop", vmname])
+			caked.stop(vmname)
 
 		# Keep the VM if the test is running in Cirrus CI
 		if recreate_vm:
 			log.info("Deleting the VM")
-			caked.run(["delete", vmname])
+			caked.delete(vmname)
 
 	def create_vm(self, caked, image, vsock_argument=None, console_argument=None, vmname=vm_name, diskSize=None, pass_fds=()):
 		# Instantiate a VM with admin:admin SSH access
 		exists = False
-		stdout, _, = caked.run(["list", "--vmonly"])
+		stdout, _, = caked.listvm()
 		if vmname in stdout:
 			exists = True
 
 			try:
-				caked.run(["stop", vmname])
+				caked.stop(vmname)
 			except Exception:
 				pass
 			# Keep the VM if the test is running in Cirrus CI and recreate_vm is set
 			if recreate_vm:
 				log.info(f"VM {vmname} already exists, deleting it.")
-				caked.run(["delete", vmname])
+				caked.delete(vmname)
 
 		# Create the VM if not exists
 		if not exists:
 			log.info("Duplicate image {0} to VM {1}".format(image, vmname))
-			caked.run(["duplicate", image, vmname])
+			caked.duplicate(image, vmname)
 
 			if diskSize:
-				caked.run(["configure", vmname, "--disk-size={0}".format(diskSize)])
+				caked.configure(vmname, "--disk-size={0}".format(diskSize))
 
 		if vsock_argument:
-			caked.run(["configure", vmname, vsock_argument])
+			caked.configure(vmname, vsock_argument)
 
 		if console_argument:
-			caked.run(["configure", vmname, console_argument])
+			caked.configure(vmname, console_argument)
 
 		# Run the VM asynchronously
 		log.info("Start VM {0}".format(vmname))
-		caked.run(["start", vmname], pass_fds=pass_fds)
+		caked.vmrun(vmname, pass_fds=pass_fds)
+
+		sleep(2)
 
 		# Obtain the VM's IP
 		log.info("Waiting for VM to start")
-		stdout, _ = caked.run(["waitip", vmname, "--wait", "120"])
+		stdout, _ = caked.waitip(vmname)
 		ip = stdout.strip()
 
 		# Repeat until the VM is reachable via SSH
@@ -602,12 +604,13 @@ class TestVirtioDevicesOnLinux(TestVirtioDevices):
 	@classmethod
 	def setup_class(cls):
 		with Caked() as caked:
-			caked.run(["build", vm_name, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+			caked.delete(vm_name)
+			caked.build(vm_name)
 
 	@classmethod
 	def teardown_class(cls):
 		with Caked() as caked:
-			caked.run(["delete", vm_name])
+			caked.delete(vm_name)
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("linux")
@@ -646,7 +649,7 @@ class TestVirtioDevicesOnMacOS(TestVirtioDevices):
 	@classmethod
 	def teardown_class(cls, caked):
 		with Caked() as caked:
-			caked.run(["delete", vm_name])
+			caked.delete(vm_name)
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("macos")

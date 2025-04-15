@@ -185,6 +185,18 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"configure",
+				"vm://integration-test-devices-linux"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked delete integration-test-devices-linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"delete",
 				"sequoia"
 			],

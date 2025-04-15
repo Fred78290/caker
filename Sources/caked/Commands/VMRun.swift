@@ -64,6 +64,16 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
+
+		let config = try vmLocation.config()
+
+		try config.sockets.forEach {
+			try $0.validate()
+		}
+
+		if let console = config.console {
+			try console.validate()
+		}
 	}
 
 	@MainActor

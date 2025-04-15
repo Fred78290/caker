@@ -106,9 +106,9 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		}
 
 		// Create console device attachement
-		//To send data to the guest operating system, write data to the file handle in the fileHandleForReading property.
-		//To receive data from the guest operating system, read data from the file handle in the fileHandleForWriting property.
-		consolePort.name = "tart-agent"
+		// To send data to the guest operating system, write data to the file handle in the fileHandleForReading property.
+		// To receive data from the guest operating system, read data from the file handle in the fileHandleForWriting property.
+		consolePort.name = "cake-console"
 		consolePort.attachment = VZFileHandleSerialPortAttachment(
 			fileHandleForReading: fileHandleForReading,
 			fileHandleForWriting: fileHandleForWriting)
@@ -116,7 +116,6 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		consoleDevice.ports[0] = consolePort
 
 		configuration.consoleDevices.append(consoleDevice)
-
 
 		return self
 	}

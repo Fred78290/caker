@@ -78,13 +78,14 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			}
 
 			for fd in fds {
-				guard let fd = Int32(fd) else {
+				guard let _ = Int32(fd) else {
 					throw ValidationError("Invalid file descriptor fd=\(fd)")
 				}
 
-				if fcntl(fd, F_GETFD) == -1 {
-					throw ValidationError("File descriptor is not valid errno=\(errno)")
-				}
+				// Must be checked at vmrun
+				//if fcntl(fd, F_GETFD) == -1 {
+				//	throw ValidationError("File descriptor is not valid. error: \(String(cString:strerror(errno)))")
+				//}
 			}
 
 			self.bind = host
@@ -100,6 +101,26 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			}
 
 			self.bind = url.path
+		}
+	}
+
+	public func validate() throws {
+		if self.mode == .fd {
+			let fds = self.bind.split(separator: ",")
+			
+			if fds.count == 0 {
+				throw ValidationError("Invalid file descriptor")
+			}
+			
+			for fd in fds {
+				guard let fd = Int32(fd) else {
+					throw ValidationError("Invalid file descriptor fd=\(fd)")
+				}
+
+				if fcntl(fd, F_GETFD) == -1 {
+					throw ValidationError("File descriptor is not valid. error: \(String(cString:strerror(errno)))")
+				}
+			}
 		}
 	}
 

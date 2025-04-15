@@ -39,7 +39,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 					}
 
 					if fcntl(fd, F_GETFD) == -1 {
-						throw ValidationError("Invalid console URL: file descriptor \(fd) is not valid errno=\(errno)")
+						throw ValidationError("Invalid console URL: file descriptor \(fd) is not valid. error: \(String(cString:strerror(errno)))")
 					}
 				}
 			} else {

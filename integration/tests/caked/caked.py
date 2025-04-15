@@ -32,6 +32,51 @@ class Caked:
 		else:
 			return self.cake_home
 
+	def build(self, vmname):
+		return self.run(["build", vmname, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+
+	def launch(self, vmname, args):
+		return self.run(["launch", vmname] + args)
+
+	def configure(self, vmname, option):
+		return self.run(["configure", vmname, option])
+
+	def listvm(self):
+		return self.run(["list", "--vmonly"])
+
+	def delete(self, vmname):
+		return self.run(["delete", vmname])
+
+	def vmrun(self, vmname, pass_fds=()):
+		return self.run_async(["vmrun", vmname], pass_fds=pass_fds)
+
+	def start(self, vmname):
+		return self.run(["start", vmname])
+
+	def stop(self, vmname):
+		return self.run(["start", vmname])
+
+	def rename(self, oldname, newname):
+		return self.run(["rename", oldname, newname])
+
+	def clone(self, oci, name):
+		return self.run(["clone", oci, name])
+
+	def duplicate(self, oldname, newname):
+		return self.run(["duplicate", oldname, newname])
+
+	def waitip(self, vmname):
+		return self.run(["waitip", vmname, "--wait", "120"])
+
+	def create_template(self, source, dest):
+		return self.run(["template", "create", source, dest])
+
+	def delete_template(self, name):
+		return self.run(["template", "delete", name])
+
+	def list_template(self):
+		return self.run(["template", "list"])
+
 	def run(self, args, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
