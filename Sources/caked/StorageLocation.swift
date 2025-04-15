@@ -34,7 +34,11 @@ struct StorageLocation {
 	}
 
 	private func vmURL(_ name: String) -> URL {
-		rootURL.appendingPathComponent(name, isDirectory: true)
+		if name.starts(with: "vm://") {
+			return rootURL.appendingPathComponent(String(name.dropFirst("vm://".count)), isDirectory: true)
+		}
+
+		return rootURL.appendingPathComponent(name, isDirectory: true)
 	}
 
 	func exists(_ name: String) -> Bool {

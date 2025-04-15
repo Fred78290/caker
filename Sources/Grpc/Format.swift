@@ -145,7 +145,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 						result.append(ShortVirtualMachineInfo(from: VirtualMachineInfo(
 							type: vm.type,
 							source: vm.source,
-							name: vm.name,
+							name: fqn.stringAfter(after: "//"),
 							fqn: [fqn],
 							instanceID: vm.instanceID,
 							diskSize: vm.diskSize,

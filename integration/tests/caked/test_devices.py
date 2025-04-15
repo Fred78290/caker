@@ -247,16 +247,14 @@ class TestVirtioDevices:
 
 		return self.same_content(message, response)	
 
-	def cleanup(self, caked, conn, ip, caked_run_process, vmname=vm_name):
+	def cleanup(self, caked, conn, ip, vmname=vm_name):
 		if conn:
 			conn.close()
 
 		# Shutdown the VM
 		if ip:
 			log.info("Shutting down the VM")
-			ssh_command(ip, "sudo shutdown -h now")
-			if caked_run_process:
-				caked_run_process.wait()
+			caked.run(["stop", vmname])
 
 		# Keep the VM if the test is running in Cirrus CI
 		if recreate_vm:
@@ -295,9 +293,7 @@ class TestVirtioDevices:
 
 		# Run the VM asynchronously
 		log.info("Start VM {0}".format(vmname))
-		caked_run_process = caked.run_async(["vmrun", vmname], pass_fds=pass_fds)
-
-		sleep(2)
+		caked.run(["start", vmname], pass_fds=pass_fds)
 
 		# Obtain the VM's IP
 		log.info("Waiting for VM to start")
@@ -321,7 +317,7 @@ class TestVirtioDevices:
 
 		log.info("vm created")
 
-		return caked_run_process, ip
+		return ip
 
 	def create_test_vm(self, caked, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
 		return self.create_vm(caked, image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, pass_fds=pass_fds)
@@ -333,11 +329,10 @@ class TestVirtioDevices:
 	def do_test_virtio_bind(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
-		caked_run_process = None
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+		ip = self.create_test_vm(caked, vsock_argument="--socket=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -366,16 +361,15 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, caked_run_process, vmname)
+				self.cleanup(caked, client_socket, ip, vmname)
 
 	def do_test_virtio_tcp(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
-		caked_run_process = None
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
+		ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -402,16 +396,15 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, caked_run_process, vmname)
+				self.cleanup(caked, client_socket, ip, vmname)
 
 	def do_test_virtio_http(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
-		caked_run_process = None
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
+		ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -437,12 +430,11 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, caked_run_process, vmname)
+				self.cleanup(caked, client_socket, ip, vmname)
 
 	def do_test_virtio_connect(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		server = None
-		caked_run_process = None
 		ip = None
 
 		try:
@@ -455,7 +447,7 @@ class TestVirtioDevices:
 			server.listen(1)
 
 			# Create a Linux VM
-			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+			ip = self.create_test_vm(caked, vsock_argument="--socket=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -475,7 +467,7 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, server, ip, caked_run_process, vmname)
+				self.cleanup(caked, server, ip, vmname)
 
 	def do_test_virtio_pipe(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
@@ -483,7 +475,6 @@ class TestVirtioDevices:
 		host_out_fd = None
 		host_in_fd = None
 		vm_write_fd = None
-		caked_run_process = None
 		ip = None
 		
 		try:
@@ -492,7 +483,7 @@ class TestVirtioDevices:
 			host_in_fd, vm_write_fd = os.pipe()
 			
 			# Create a Linux VM
-			caked_run_process, ip = self.create_test_vm(caked, vsock_argument="--socket=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
+			ip = self.create_test_vm(caked, vsock_argument="--socket=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -521,16 +512,15 @@ class TestVirtioDevices:
 			if vm_write_fd:
 				os.close(vm_write_fd)
 			if cleanup:
-				self.cleanup(caked, None, ip, caked_run_process, vmname)
+				self.cleanup(caked, None, ip, vmname)
 
 	def do_test_console_socket(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
-		caked_run_process = None
 		ip = None
 
 		# Create a Linux VM
-		caked_run_process, ip = self.create_test_vm(caked, console_argument="--console=unix:{0}".format(console_socket_path), vmname=vmname)
+		ip = self.create_test_vm(caked, console_argument="--console=unix:{0}".format(console_socket_path), vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -556,7 +546,7 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, caked_run_process, vmname)
+				self.cleanup(caked, client_socket, ip, vmname)
 
 	def do_test_console_pipe(self, caked, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
@@ -564,7 +554,6 @@ class TestVirtioDevices:
 		host_out_fd = None
 		host_in_fd = None
 		vm_write_fd = None
-		caked_run_process = None
 		ip = None
 
 		try:
@@ -573,10 +562,10 @@ class TestVirtioDevices:
 			host_in_fd, vm_write_fd = os.pipe()
 
 			# Create a Linux VM
-			caked_run_process, ip = self.create_test_vm(caked,
-											console_argument="--console=fd://{0},{1}".format(vm_read_fd, vm_write_fd),
-											vmname=vmname,
-											pass_fds=(vm_read_fd, vm_write_fd))
+			ip = self.create_test_vm(caked,
+									console_argument="--console=fd://{0},{1}".format(vm_read_fd, vm_write_fd),
+									vmname=vmname,
+									pass_fds=(vm_read_fd, vm_write_fd))
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/console_guest".format(curdir), interpreter, need_sudo=True)
@@ -607,7 +596,7 @@ class TestVirtioDevices:
 			if vm_write_fd:
 				os.close(vm_write_fd)
 			if cleanup:
-				self.cleanup(caked, None, ip, caked_run_process, vmname)
+				self.cleanup(caked, None, ip, vmname)
 	
 class TestVirtioDevicesOnLinux(TestVirtioDevices):
 	@classmethod

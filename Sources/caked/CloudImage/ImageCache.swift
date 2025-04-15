@@ -406,12 +406,14 @@ class OCIImageCache: CommonCacheImageCache {
 	private class OCIImageCachePurgeable: Purgeable {
 		let _url: URL
 		let _name: String
+		let _sha256: String
 		let _source: String
 
-		init(name: String, url: URL, source: String) {
+		init(name: String, sha256: String, url: URL, source: String) {
 			self._url = url
 			self._name = name
 			self._source = source
+			self._sha256 = sha256
 		}
 
 		var url: URL {
@@ -441,20 +443,31 @@ class OCIImageCache: CommonCacheImageCache {
 		func allocatedSizeBytes() throws -> Int {
 			try self._url.allocatedSizeBytes()
 		}
+
+		func fingerprint() -> String? {
+			String(self._sha256.dropFirst("sha256:".count))
+		}
+
+		func fqn() -> [String] {
+			["\(OCIImageCache.scheme)://\(self._source)@\(self._sha256)"]
+		}
 	}
 
 	override func purgeables() throws -> [Purgeable] {
 		return try super.purgeables().map { purgeable in
 			let root = purgeable.url.deletingLastPathComponent()
 			let container = root.deletingLastPathComponent()
-			let name = root.lastPathComponent
 			let source = container.absoluteURL.path.stringAfter(after: self.baseURL.absoluteURL.path).stringBeforeLast(before: "/")
 
-			return OCIImageCachePurgeable(name: name, url: purgeable.url, source: source)
+			return OCIImageCachePurgeable(name: container.lastPathComponent, sha256: root.lastPathComponent, url: purgeable.url, source: source)
 		}
 	}
 
 	override func fqn(_ purgeable: Purgeable) -> [String] {
-		["\(self.scheme)://\(purgeable.source())@\(purgeable.name())"]
+		guard let purgeable = purgeable as? OCIImageCachePurgeable else {
+			return super.fqn(purgeable)
+		}
+
+		return purgeable.fqn()
 	}
 }

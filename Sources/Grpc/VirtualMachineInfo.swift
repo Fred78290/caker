@@ -108,6 +108,7 @@ public struct VirtualMachineInfo: Codable {
 
 public struct ShortVirtualMachineInfo: Codable {
 	public let type: String
+	public let name: String
 	public let fqn: String
 	public let instanceID: String
 	public let ip: String
@@ -118,6 +119,7 @@ public struct ShortVirtualMachineInfo: Codable {
 
 	public init(from: VirtualMachineInfo) {
 		self.type = from.type
+		self.name = from.name
 		self.fqn = from.fqn.joined(separator: " ")
 		self.ip = from.ip ?? ""
 		self.instanceID = from.instanceID ?? ""
