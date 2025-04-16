@@ -129,6 +129,17 @@ extension Caked_BuildRequest {
 	}
 }
 
+extension Caked_CloneRequest {
+	init(command: Clone) {
+		self.init()
+		self.sourceName = command.sourceName
+		self.targetName = command.newName
+		self.insecure = command.insecure
+		self.concurrency = UInt32(command.concurrency)
+		self.deduplicate = command.deduplicate
+	}
+}
+
 extension Caked_LaunchRequest {
 	init(command: Launch) throws {
 		self.init()
@@ -336,6 +347,13 @@ extension Caked_RemoteRequest {
 }
 
 extension Caked_NetworkRequest {
+	init(command: Networks.Infos) {
+		self.init()
+
+		self.command = .status
+		self.name = command.name
+	}
+
 	init(command: Networks.List) {
 		self.init()
 

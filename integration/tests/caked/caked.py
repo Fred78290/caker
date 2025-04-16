@@ -32,10 +32,10 @@ class Caked:
 		else:
 			return self.cake_home
 
-	def build(self, vmname):
-		return self.run(["build", vmname, "--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20", "--nested"])
+	def build(self, vmname, args=["--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20"]):
+		return self.run(["build", vmname] + args)
 
-	def launch(self, vmname, args):
+	def launch(self, vmname, args=["--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20"]):
 		return self.run(["launch", vmname] + args)
 
 	def configure(self, vmname, option):
@@ -54,7 +54,7 @@ class Caked:
 		return self.run(["start", vmname])
 
 	def stop(self, vmname):
-		return self.run(["start", vmname])
+		return self.run(["stop", vmname])
 
 	def rename(self, oldname, newname):
 		return self.run(["rename", oldname, newname])
@@ -76,6 +76,21 @@ class Caked:
 
 	def list_template(self):
 		return self.run(["template", "list"])
+
+	def list_networks(self):
+		return self.run(["networks", "list"])
+
+	def infos_networks(self, name):
+		return self.run(["networks", "infos", name])
+
+	def start_networks(self, name):
+		return self.run(["networks", "start", name])
+
+	def stop_networks(self, name):
+		return self.run(["networks", "stop", name])
+
+	def delete_networks(self, name):
+		return self.run(["networks", "delete", name])
 
 	def run(self, args, pass_fds=()):
 		env = os.environ.copy()

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
+		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
+		9B18FA242DAFF79000603B92 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B18FA232DAFF79000603B92 /* CakeAgentLib */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
 		9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */; };
@@ -255,6 +258,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
+		9B18FA212DAFF4E500603B92 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
 		9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunHandler.swift; sourceTree = "<group>"; };
 		9B24FFCE2D8AE3E10050BFAD /* GRPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCMountService.swift; sourceTree = "<group>"; };
@@ -506,6 +511,7 @@
 			files = (
 				9B464C712D5A464B00164BF5 /* GRPC in Frameworks */,
 				9B464C732D5A468A00164BF5 /* NIOPortForwarding in Frameworks */,
+				9B18FA242DAFF79000603B92 /* CakeAgentLib in Frameworks */,
 				9B464C6F2D5A464000164BF5 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -643,6 +649,7 @@
 			children = (
 				9B464A922D5A3E0300164BF5 /* Build.swift */,
 				9B464A932D5A3E0300164BF5 /* Certificates.swift */,
+				9B18FA212DAFF4E500603B92 /* Clone.swift */,
 				9B464A942D5A3E0300164BF5 /* Configure.swift */,
 				9B464A952D5A3E0300164BF5 /* Delete.swift */,
 				9B8AC0792DABC4E6009A8EEB /* Duplicate.swift */,
@@ -674,6 +681,7 @@
 			isa = PBXGroup;
 			children = (
 				9B464AA62D5A3E0300164BF5 /* BuildHandler.swift */,
+				9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */,
 				9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */,
 				9B464AA82D5A3E0300164BF5 /* DeleteHandler.swift */,
 				9B8AC0772DABC4D7009A8EEB /* DuplicateHandler.swift */,
@@ -962,6 +970,7 @@
 				9B464C6E2D5A464000164BF5 /* ArgumentParser */,
 				9B464C702D5A464B00164BF5 /* GRPC */,
 				9B464C722D5A468A00164BF5 /* NIOPortForwarding */,
+				9B18FA232DAFF79000603B92 /* CakeAgentLib */,
 			);
 			productName = GRPCLib;
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
@@ -1100,6 +1109,7 @@
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
 				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
+				9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
@@ -1150,6 +1160,7 @@
 				9B464B402D5A3E0300164BF5 /* Remote.swift in Sources */,
 				9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */,
 				9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */,
+				9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */,
 				9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */,
 				9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */,
 				9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */,
@@ -1767,6 +1778,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9B18FA232DAFF79000603B92 /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
+		};
 		9B464B812D5A3EEA00164BF5 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;

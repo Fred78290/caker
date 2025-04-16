@@ -6,6 +6,20 @@ import pytest
 from paramiko.client import AutoAddPolicy, SSHClient
 
 
+@pytest.mark.only_tart_present()
+def test_clone_with_tart(caked):
+	linux = f"linux-{uuid.uuid4()}"
+
+	# Create a Linux VM
+	caked.clone("ghcr.io/cirruslabs/ubuntu:24.04", linux)
+
+	# Ensure that the VM was created
+	stdout, _ = caked.listvm()
+	# Clean up the VM
+	caked.delete(linux)
+
+	assert linux in stdout
+
 def test_create_linux(caked):
 	linux = f"linux-{uuid.uuid4()}"
 
@@ -137,3 +151,22 @@ def test_template(caked):
 	caked.delete_template(ubuntu)
 	stdout, _, = caked.list_template()
 	assert ubuntu not in stdout
+
+def test_networks(caked):
+	caked.run(["networks", "create", "test-network", "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
+	stdout, _ = caked.infos_networks("test-network")
+	assert "test-network" in stdout
+
+	caked.start_networks("test-network")
+	stdout, _ = caked.infos_networks("test-network")
+	assert "vmnet.sock" in stdout
+
+	sleep(2)
+
+	caked.stop_networks("test-network")
+	stdout, _ = caked.infos_networks("test-network")
+	assert "not running" in stdout
+
+	caked.delete_networks("test-network")
+	stdout, _ = caked.list_networks()
+	assert "test-network" not in stdout

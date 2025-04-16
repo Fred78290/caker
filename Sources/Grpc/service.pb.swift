@@ -81,6 +81,7 @@ public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
   case start // = 3
   case shutdown // = 4
   case remove // = 5
+  case status // = 6
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -95,6 +96,7 @@ public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case 3: self = .start
     case 4: self = .shutdown
     case 5: self = .remove
+    case 6: self = .status
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -107,6 +109,7 @@ public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     case .start: return 3
     case .shutdown: return 4
     case .remove: return 5
+    case .status: return 6
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -119,6 +122,7 @@ public enum Caked_NetworkCommand: SwiftProtobuf.Enum, Swift.CaseIterable {
     .start,
     .shutdown,
     .remove,
+    .status,
   ]
 
 }
@@ -1110,6 +1114,51 @@ public struct Caked_LaunchRequest: Sendable {
   fileprivate var _waitIptimeout: Int32? = nil
 }
 
+public struct Caked_CloneRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var sourceName: String = String()
+
+  public var targetName: String = String()
+
+  public var insecure: Bool {
+    get {return _insecure ?? false}
+    set {_insecure = newValue}
+  }
+  /// Returns true if `insecure` has been explicitly set.
+  public var hasInsecure: Bool {return self._insecure != nil}
+  /// Clears the value of `insecure`. Subsequent reads from it will return its default value.
+  public mutating func clearInsecure() {self._insecure = nil}
+
+  public var concurrency: UInt32 {
+    get {return _concurrency ?? 0}
+    set {_concurrency = newValue}
+  }
+  /// Returns true if `concurrency` has been explicitly set.
+  public var hasConcurrency: Bool {return self._concurrency != nil}
+  /// Clears the value of `concurrency`. Subsequent reads from it will return its default value.
+  public mutating func clearConcurrency() {self._concurrency = nil}
+
+  public var deduplicate: Bool {
+    get {return _deduplicate ?? false}
+    set {_deduplicate = newValue}
+  }
+  /// Returns true if `deduplicate` has been explicitly set.
+  public var hasDeduplicate: Bool {return self._deduplicate != nil}
+  /// Clears the value of `deduplicate`. Subsequent reads from it will return its default value.
+  public mutating func clearDeduplicate() {self._deduplicate = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _insecure: Bool? = nil
+  fileprivate var _concurrency: UInt32? = nil
+  fileprivate var _deduplicate: Bool? = nil
+}
+
 public struct Caked_StartRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1493,6 +1542,14 @@ public struct Caked_NetworksReply: Sendable {
     set {response = .list(newValue)}
   }
 
+  public var status: Caked_NetworkInfo {
+    get {
+      if case .status(let v)? = response {return v}
+      return Caked_NetworkInfo()
+    }
+    set {response = .status(newValue)}
+  }
+
   public var message: String {
     get {
       if case .message(let v)? = response {return v}
@@ -1505,6 +1562,7 @@ public struct Caked_NetworksReply: Sendable {
 
   public enum OneOf_Response: Equatable, Sendable {
     case list(Caked_ListNetworksReply)
+    case status(Caked_NetworkInfo)
     case message(String)
 
   }
@@ -2220,6 +2278,7 @@ extension Caked_NetworkCommand: SwiftProtobuf._ProtoNameProviding {
     3: .same(proto: "start"),
     4: .same(proto: "shutdown"),
     5: .same(proto: "remove"),
+    6: .same(proto: "status"),
   ]
 }
 
@@ -4007,6 +4066,66 @@ extension Caked_LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
+extension Caked_CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".CloneRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "sourceName"),
+    2: .same(proto: "targetName"),
+    3: .same(proto: "insecure"),
+    4: .same(proto: "concurrency"),
+    5: .same(proto: "deduplicate"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.sourceName) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.targetName) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self._insecure) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self._concurrency) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self._deduplicate) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.sourceName.isEmpty {
+      try visitor.visitSingularStringField(value: self.sourceName, fieldNumber: 1)
+    }
+    if !self.targetName.isEmpty {
+      try visitor.visitSingularStringField(value: self.targetName, fieldNumber: 2)
+    }
+    try { if let v = self._insecure {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._concurrency {
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._deduplicate {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_CloneRequest, rhs: Caked_CloneRequest) -> Bool {
+    if lhs.sourceName != rhs.sourceName {return false}
+    if lhs.targetName != rhs.targetName {return false}
+    if lhs._insecure != rhs._insecure {return false}
+    if lhs._concurrency != rhs._concurrency {return false}
+    if lhs._deduplicate != rhs._deduplicate {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".StartRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -4542,7 +4661,8 @@ extension Caked_NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   public static let protoMessageName: String = _protobuf_package + ".NetworksReply"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "list"),
-    2: .same(proto: "message"),
+    2: .same(proto: "status"),
+    3: .same(proto: "message"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4565,6 +4685,19 @@ extension Caked_NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
         }
       }()
       case 2: try {
+        var v: Caked_NetworkInfo?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .status(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .status(v)
+        }
+      }()
+      case 3: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
@@ -4587,9 +4720,13 @@ extension Caked_NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       guard case .list(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
+    case .status?: try {
+      guard case .status(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
     case .message?: try {
       guard case .message(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     }()
     case nil: break
     }

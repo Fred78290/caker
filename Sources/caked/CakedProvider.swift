@@ -72,6 +72,12 @@ extension Caked_RunReply {
 	}
 }
 
+extension Caked_CloneRequest: CreateCakedCommand {
+	func createCommand() throws -> CakedCommand {
+		return CloneHandler(request: self)
+	}
+}
+
 extension Caked_MountRequest: CreateCakedCommand {
 	func createCommand() -> CakedCommand {
 		return MountHandler(request: self)
@@ -278,6 +284,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
+	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+
 	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -385,7 +395,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 	}
 
-    func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
+	func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
 		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
 			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
 

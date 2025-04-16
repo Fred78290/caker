@@ -265,11 +265,12 @@ final class CakeConfig{
 
 	var console: ConsoleAttachment? {
 		set { self.cake["console"] = newValue?.description }
-		get { guard let consoleURL: String = self.cake["console"] as? String else {
-			return nil
-		}
+		get {
+			guard let consoleURL: String = self.cake["console"] as? String else {
+				return nil
+			}
 
-		return ConsoleAttachment(argument: consoleURL)
+			return ConsoleAttachment(argument: consoleURL)
 		}
 	}
 
@@ -360,6 +361,25 @@ final class CakeConfig{
 		self.display = display
 	}
 
+	init(location: URL, configuredUser: String, configuredPassword: String) throws {
+		self.location = location
+		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.cake = Config()
+		self.configuredUser = "admin"
+		self.configuredPassword = "admin"
+		self.autostart = false
+
+		self.networks = []
+		self.mounts = []
+		self.sockets = []
+		self.forwardedPorts = []
+		self.attachedDisks = []
+		self.firstLaunch = true
+		self.useCloudInit = false
+		self.agent = false
+		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+	}
+
 	init(location: URL) throws {
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
@@ -375,7 +395,6 @@ final class CakeConfig{
 		self.configuredPassword = options.password
 		self.autostart = options.autostart
 		self.displayRefit = options.displayRefit
-		self.configuredPassword = configuredPassword
 		self.autostart = autostart
 		self.useCloudInit = false
 		self.agent = false

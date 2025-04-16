@@ -9,7 +9,7 @@ import GRPCLib
 import GRPC
 import NIO
 
-final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {	
+final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {
 	internal let inputHandle: FileHandle
 	internal let state: termios
 
@@ -90,6 +90,10 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		[CakeAgentClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
+	func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>] {
+		[CakeAgentClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
+	
 	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

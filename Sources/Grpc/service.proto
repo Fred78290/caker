@@ -11,6 +11,7 @@ package caked;
 service Service {
 	rpc Build (BuildRequest) returns (Reply) {}
 	rpc Start (StartRequest) returns (Reply) {}
+	rpc Clone (CloneRequest) returns (Reply) {}
 	rpc Duplicate (DuplicateRequest) returns (Reply) {}
 	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
 	rpc Launch (LaunchRequest) returns (Reply) {}
@@ -143,6 +144,7 @@ enum NetworkCommand {
 	start = 3;
 	shutdown = 4;
 	remove = 5;
+	status = 6;
 }
 
 enum NetworkMode {
@@ -281,6 +283,14 @@ message LaunchRequest {
 	optional int32 waitIPTimeout = 2;
 }
 
+message CloneRequest {
+	string sourceName = 1;
+	string targetName = 2;
+	optional bool insecure = 3;
+	optional uint32 concurrency = 4;
+	optional bool deduplicate = 5;
+}
+
 message StartRequest {
 	string name = 1;
 	optional int32 waitIPTimeout = 2;
@@ -348,7 +358,8 @@ message VirtualMachineReply {
 message NetworksReply {
 	oneof response {
 		ListNetworksReply list = 1;
-		string message = 2;
+		NetworkInfo status = 2;
+		string message = 3;
 	}
 }
 

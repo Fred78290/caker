@@ -177,7 +177,7 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
 			let pidURL = vmLocation.rootURL.appending(path: "\(self.networkName).pid")
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL)
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL, asSystem:  runAsSystem)
 			self.pidURL = pidURL
 		}
 		

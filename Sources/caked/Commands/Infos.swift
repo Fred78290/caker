@@ -22,6 +22,9 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
+	@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+	var asSystem: Bool = false
+
 	@Flag(help: .hidden)
 	var foreground: Bool = false
 
@@ -43,7 +46,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		let vmLocation = try StorageLocation(asSystem: false).find(name)
+		let vmLocation = try StorageLocation(asSystem: self.asSystem).find(name)
 		let config: CakeConfig = try vmLocation.config()
 		var infos: InfoReply
 

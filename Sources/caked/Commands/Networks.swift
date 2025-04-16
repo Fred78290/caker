@@ -10,6 +10,7 @@ import Virtualization
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
 	                                                                      subcommands: [
+	                                                                      	Networks.Infos.self,
 	                                                                      	Networks.List.self,
 	                                                                      	Networks.Create.self,
 	                                                                      	Networks.Configure.self,
@@ -19,11 +20,52 @@ struct Networks: ParsableCommand {
 	                                                                      	Networks.Start.self,
 	                                                                      	Networks.Restart.self,
 	                                                                      	Networks.Stop.self])
-	struct DHCPLease: ParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "set-dhcp-lease", abstract: "Start named network device.", discussion: "This command is used to set the dhcp lease")
+
+	static func validateNetwork(networkName: String) throws {
+		// Validate the network name
+		if NetworksHandler.isPhysicalInterface(name: networkName) == false {
+			let home: Home = try Home(asSystem: runAsSystem)
+			let networkConfig = try home.sharedNetworks()
+
+			if networkConfig.sharedNetworks[networkName] == nil {
+				throw ValidationError("Network \(networkName) does not exist")
+			}
+		}
+	}
+
+	struct Infos: ParsableCommand {
+		static let configuration = CommandConfiguration(commandName: "infos", abstract: "Network infos", discussion: "This command is used retrieve the network device information")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
+
+		@Option(name: .shortAndLong, help: "Output format: text or json")
+		var format: Format = .text
+
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
+
+		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
+		var name: String
+
+		func validate() throws {
+			try validateNetwork(networkName: self.name)
+			Logger.setLevel(self.logLevel)
+		}
+
+		func run() throws {
+			Logger.appendNewLine(self.format.render(try NetworksHandler.status(networkName: self.name, asSystem: asSystem)))
+		}
+	}
+
+	struct DHCPLease: ParsableCommand {
+		static let configuration = CommandConfiguration(commandName: "set-dhcp-lease", abstract: "Set DHCP lease duration.", discussion: "This command is used to set the dhcp lease")
+
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		var logLevel: Logging.Logger.Level = .info
+
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
 
 		@Argument(help: "DHCP lease time in seconds")
 		var dhcpLease: Int32 = 300
@@ -33,13 +75,16 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.self.setDHCPLease(leaseTime: self.dhcpLease))
+			Logger.appendNewLine(try NetworksHandler.setDHCPLease(leaseTime: self.dhcpLease, asSystem: asSystem))
 		}
 	}
 
 	struct Start: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device location.")
 
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
+
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
@@ -47,26 +92,28 @@ struct Networks: ParsableCommand {
 		var name: String
 
 		mutating func validate() throws {
-			if NetworksHandler.isPhysicalInterface(name: name) == false {
-				let home: Home = try Home(asSystem: runAsSystem)
-				let networkConfig = try home.sharedNetworks()
+			try validateNetwork(networkName: self.name)
 
-				if networkConfig.sharedNetworks[self.name] == nil {
-					throw ValidationError("Network \(self.name) does not exist")
-				}
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: asSystem)
+
+			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+				throw ValidationError("Network \(self.name) already running")
 			}
 
 			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: false)))
+			Logger.appendNewLine(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: asSystem)))
 		}
 	}
 
 	struct Restart: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Restart named network device.", discussion: "This command is used to restart the VMNet network device.")
 
+		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
+		var asSystem: Bool = false
+
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
@@ -74,20 +121,19 @@ struct Networks: ParsableCommand {
 		var name: String
 
 		mutating func validate() throws {
-			if NetworksHandler.isPhysicalInterface(name: name) == false {
-				let home: Home = try Home(asSystem: runAsSystem)
-				let networkConfig = try home.sharedNetworks()
+			try validateNetwork(networkName: self.name)
 
-				if networkConfig.sharedNetworks[self.name] == nil {
-					throw ValidationError("Network \(self.name) does not exist")
-				}
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: asSystem)
+
+			if FileManager.default.fileExists(atPath: socketURL.0.path) == false {
+				throw ValidationError("Network \(self.name) is not running")
 			}
 
 			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: false))
+			Logger.appendNewLine(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: asSystem))
 		}
 	}
 
@@ -105,7 +151,7 @@ struct Networks: ParsableCommand {
 		var createdNetwork: VZSharedNetwork? = nil
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: runAsSystem)
+			let home: Home = try Home(asSystem: asSystem)
 			let networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[self.options.name] != nil {
@@ -150,7 +196,7 @@ struct Networks: ParsableCommand {
 		var changedNetwork: VZSharedNetwork? = nil
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: runAsSystem)
+			let home: Home = try Home(asSystem: asSystem)
 			let networkConfig = try home.sharedNetworks()
 
 			if NetworksHandler.isPhysicalInterface(name: self.options.name) {
@@ -197,8 +243,13 @@ struct Networks: ParsableCommand {
 		var name: String
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: runAsSystem)
+			let home: Home = try Home(asSystem: asSystem)
 			let networkConfig = try home.sharedNetworks()
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.name, asSystem: asSystem)
+
+			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+				throw ValidationError("Unable to delete running network \(self.name)")
+			}
 
 			if NetworksHandler.isPhysicalInterface(name: self.name) {
 				throw ValidationError("Unable to delete physical network \(self.name)")
@@ -225,8 +276,18 @@ struct Networks: ParsableCommand {
 		@OptionGroup var options: NetworksHandler.VMNetOptions
 
 		mutating func validate() throws {
+			let socketURL = try self.options.vmnetEndpoint()
+
+			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+				throw ValidationError("Network already running")
+			}
+
 			if geteuid() != 0 {
 				throw ValidationError("This command must be run as root not as user \(geteuid())")
+			}
+
+			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+				throw ValidationError("Network already running")
 			}
 
 			Logger.setLevel(self.logLevel)
@@ -265,6 +326,14 @@ struct Networks: ParsableCommand {
 
 			if networkName == nil && pidFile == nil {
 				throw ValidationError("You must specify one of --network or --pidfile")
+			}
+
+			if let networkName {
+				try Networks.validateNetwork(networkName: networkName)
+			} else if let pidFile {
+				if !FileManager.default.fileExists(atPath: pidFile) {
+					throw ValidationError("PID file \(pidFile) does not exist")
+				}
 			}
 
 			runAsSystem = self.asSystem

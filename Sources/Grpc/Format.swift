@@ -199,6 +199,14 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 		return self.render(data.mounts.map { MountVirtioFS(from: $0) })
 	}
 	
+	public func render(_ data: BridgedNetwork) -> String {
+		return self.renderSingle(style: Style.grid, uppercased: true, data)
+	}
+
+	public func render(_ data: Caked_NetworkInfo) -> String {
+		return self.render(BridgedNetwork(from: data))
+	}
+
 	public func render(_ data: [BridgedNetwork]) -> String {
 		return self.renderList(style: Style.grid, uppercased: true, data)
 	}

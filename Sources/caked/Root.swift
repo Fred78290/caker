@@ -8,7 +8,6 @@ import GRPCLib
 nonisolated(unsafe) var runAsSystem: Bool = geteuid() == 0
 
 let delegatedCommand: [String] = [
-	"clone",
 	"pull",
 	"push",
 	"import",
@@ -128,6 +127,7 @@ struct Root: AsyncParsableCommand {
 		// Parse and run command
 		do {
 			if Self.tartIsPresent {
+				configuration.subcommands.append(Clone.self)
 				configuration.subcommands.append(Login.self)
 				configuration.subcommands.append(Logout.self)
 

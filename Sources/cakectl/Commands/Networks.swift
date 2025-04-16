@@ -5,12 +5,29 @@ import GRPCLib
 
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
-	                                                                      subcommands: [Networks.List.self,
+	                                                                      subcommands: [Networks.Infos.self,
+																		  				Networks.List.self,
 	                                                                                    Networks.Create.self,
 	                                                                                    Networks.Configure.self,
 	                                                                                    Networks.Delete.self,
 	                                                                                    Networks.Start.self,
 	                                                                                    Networks.Stop.self])
+
+	struct Infos: GrpcParsableCommand {
+		static let configuration = CommandConfiguration(commandName: "infos", abstract: "Network infos", discussion: "This command is used retrieve the network device information")
+
+		@OptionGroup var options: Client.Options
+
+		@Option(name: .shortAndLong, help: "Output format: text or json")
+		var format: Format = .text
+
+		@Argument(help: ArgumentHelp("Network name", discussion: "network to retrieve, e.g. \"shared\""))
+		var name: String = "shared"
+
+		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.status)
+		}
+	}
 
 	struct Create: GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Create named shared network")

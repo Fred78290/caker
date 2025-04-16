@@ -135,6 +135,19 @@
 			"type": "lldb",
 			"request": "launch",
 			"args": [
+				"clone",
+				"ghcr.io/cirruslabs/ubuntu:24.04",
+				"test-clone"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked clone ghcr.io/cirruslabs/ubuntu:24.04",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"args": [
 				"waitip",
 				"ubuntu",
 				"--wait",

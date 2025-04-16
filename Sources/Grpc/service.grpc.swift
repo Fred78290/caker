@@ -26,6 +26,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_StartRequest, Caked_Reply>
 
+  func clone(
+    _ request: Caked_CloneRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_CloneRequest, Caked_Reply>
+
   func duplicate(
     _ request: Caked_DuplicateRequest,
     callOptions: CallOptions?
@@ -170,6 +175,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Clone
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Clone.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func clone(
+    _ request: Caked_CloneRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_CloneRequest, Caked_Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -627,6 +650,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply>
 
+  func makeCloneCall(
+    _ request: Caked_CloneRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_CloneRequest, Caked_Reply>
+
   func makeDuplicateCall(
     _ request: Caked_DuplicateRequest,
     callOptions: CallOptions?
@@ -763,6 +791,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func makeCloneCall(
+    _ request: Caked_CloneRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_CloneRequest, Caked_Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -1040,6 +1080,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func clone(
+    _ request: Caked_CloneRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -1333,6 +1385,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'start'.
   func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'clone'.
+  func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when invoking 'duplicate'.
   func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>]
 
@@ -1404,6 +1459,7 @@ public enum Caked_ServiceClientMetadata {
     methods: [
       Caked_ServiceClientMetadata.Methods.build,
       Caked_ServiceClientMetadata.Methods.start,
+      Caked_ServiceClientMetadata.Methods.clone,
       Caked_ServiceClientMetadata.Methods.duplicate,
       Caked_ServiceClientMetadata.Methods.cakeCommand,
       Caked_ServiceClientMetadata.Methods.launch,
@@ -1438,6 +1494,12 @@ public enum Caked_ServiceClientMetadata {
     public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let clone = GRPCMethodDescriptor(
+      name: "Clone",
+      path: "/caked.Service/Clone",
       type: GRPCCallType.unary
     )
 
@@ -1577,6 +1639,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func start(request: Caked_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
+  func clone(request: Caked_CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+
   func duplicate(request: Caked_DuplicateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
 
   func cakeCommand(request: Caked_CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
@@ -1648,6 +1712,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         userFunction: self.start(request:context:)
+      )
+
+    case "Clone":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_CloneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+        userFunction: self.clone(request:context:)
       )
 
     case "Duplicate":
@@ -1861,6 +1934,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Reply
 
+  func clone(
+    request: Caked_CloneRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Reply
+
   func duplicate(
     request: Caked_DuplicateRequest,
     context: GRPCAsyncServerCallContext
@@ -2003,6 +2081,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Reply>(),
         interceptors: self.interceptors?.makeStartInterceptors() ?? [],
         wrapping: { try await self.start(request: $0, context: $1) }
+      )
+
+    case "Clone":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_CloneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+        wrapping: { try await self.clone(request: $0, context: $1) }
       )
 
     case "Duplicate":
@@ -2210,6 +2297,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStartInterceptors() -> [ServerInterceptor<Caked_StartRequest, Caked_Reply>]
 
+  /// - Returns: Interceptors to use when handling 'clone'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCloneInterceptors() -> [ServerInterceptor<Caked_CloneRequest, Caked_Reply>]
+
   /// - Returns: Interceptors to use when handling 'duplicate'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeDuplicateInterceptors() -> [ServerInterceptor<Caked_DuplicateRequest, Caked_Reply>]
@@ -2302,6 +2393,7 @@ public enum Caked_ServiceServerMetadata {
     methods: [
       Caked_ServiceServerMetadata.Methods.build,
       Caked_ServiceServerMetadata.Methods.start,
+      Caked_ServiceServerMetadata.Methods.clone,
       Caked_ServiceServerMetadata.Methods.duplicate,
       Caked_ServiceServerMetadata.Methods.cakeCommand,
       Caked_ServiceServerMetadata.Methods.launch,
@@ -2336,6 +2428,12 @@ public enum Caked_ServiceServerMetadata {
     public static let start = GRPCMethodDescriptor(
       name: "Start",
       path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let clone = GRPCMethodDescriptor(
+      name: "Clone",
+      path: "/caked.Service/Clone",
       type: GRPCCallType.unary
     )
 

@@ -193,6 +193,32 @@ extension URL: Purgeable {
 
 	typealias WaitPIDHandler = () throws -> Void
 
+	func waitStopped(maxRetries: Int = 10, handler: WaitPIDHandler? = nil) throws {
+		var retries = 0
+
+		if let pid = readPID() {
+			while retries < maxRetries {
+				if let handler = handler {
+					try handler()
+				}
+
+				if FileManager.default.fileExists(atPath: self.path) == false {
+					return
+				}
+
+				if let exist = try? processExist(pid_t(pid)), exist == false {
+					return
+				}
+
+				Thread.sleep(forTimeInterval: 1)
+
+				retries += 1
+			}
+
+			throw ServiceError("PID file \(self.path) did not stopped within the expected time")
+		}
+	}
+
 	func waitPID(maxRetries: Int = 10, handler: WaitPIDHandler? = nil) throws {
 		var retries = 0
 
