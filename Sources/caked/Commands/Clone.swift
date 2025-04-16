@@ -51,7 +51,7 @@ struct Clone: ParsableCommand {
 		}
 	}
 
-	mutating func run() async throws {
+	mutating func run() throws {
 		Logger.appendNewLine(try CloneHandler.clone(name: self.newName, from: self.sourceName,
 				concurrency: self.concurrency, deduplicate: self.deduplicate,
 				insecure: self.insecure, direct: true, asSystem: asSystem))

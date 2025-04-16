@@ -33,7 +33,7 @@ struct CloneHandler: CakedCommand {
 		try Shell.runTart(command: "clone", arguments: arguments, direct: direct)
 
 		let location = try StorageLocation(asSystem: asSystem).find(name)
-		let cakeConfig = try CakeConfig(location: location.configURL, configuredUser: "admin", configuredPassword: "admin")
+		let cakeConfig = try CakeConfig(location: location.rootURL, configuredUser: "admin", configuredPassword: "admin")
 
 		try cakeConfig.save()
 
