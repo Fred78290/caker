@@ -4,7 +4,7 @@ import tempfile
 
 
 class CakeCtl:
-	serviceCaked = None
+	service_caked = None
 
 	def __init__(self):
 		if "CIRRUS_WORKING_DIR" in os.environ:
@@ -23,15 +23,15 @@ class CakeCtl:
 
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
-		self.serviceCaked = subprocess.Popen(["caked", "service", "listen", "--secure"], env=env)
+		self.service_caked = subprocess.Popen(["caked", "service", "listen", "--secure"], env=env)
 
 	def __del__(self):
 		if self.cleanup:
 			self.cake_home.cleanup()
 
-		if self.serviceCaked is not None:
-			self.serviceCaked.kill()
-			self.serviceCaked.wait()
+		if self.service_caked is not None:
+			self.service_caked.kill()
+			self.service_caked.wait()
 
 	def __enter__(self):
 		return self
@@ -46,6 +46,66 @@ class CakeCtl:
 		else:
 			return self.cake_home
 
+	def build(self, vmname, args=["--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20"]):
+		return self.run(["build", vmname] + args)
+
+	def launch(self, vmname, args=["--user=admin", "--password=admin", "--clear-password", "--display-refit", "--cpus=2", "--memory=2048", "--disk-size=20"]):
+		return self.run(["launch", vmname] + args)
+
+	def configure(self, vmname, option):
+		return self.run(["configure", vmname, option])
+
+	def listvm(self):
+		return self.run(["list", "--vmonly"])
+
+	def delete(self, vmname):
+		return self.run(["delete", vmname])
+
+	def vmrun(self, vmname, pass_fds=()):
+		return self.run_async(["vmrun", vmname], pass_fds=pass_fds)
+
+	def start(self, vmname):
+		return self.run(["start", vmname])
+
+	def stop(self, vmname):
+		return self.run(["stop", vmname])
+
+	def rename(self, oldname, newname):
+		return self.run(["rename", oldname, newname])
+
+	def clone(self, oci, name):
+		return self.run(["clone", oci, name])
+
+	def duplicate(self, oldname, newname):
+		return self.run(["duplicate", oldname, newname])
+
+	def waitip(self, vmname):
+		return self.run(["waitip", vmname, "--wait", "120"])
+
+	def create_template(self, source, dest):
+		return self.run(["template", "create", source, dest])
+
+	def delete_template(self, name):
+		return self.run(["template", "delete", name])
+
+	def list_template(self):
+		return self.run(["template", "list"])
+
+	def list_networks(self):
+		return self.run(["networks", "list"])
+
+	def infos_networks(self, name):
+		return self.run(["networks", "infos", name])
+
+	def start_networks(self, name):
+		return self.run(["networks", "start", name])
+
+	def stop_networks(self, name):
+		return self.run(["networks", "stop", name])
+
+	def delete_networks(self, name):
+		return self.run(["networks", "delete", name])
+
 	def run(self, args, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
@@ -55,8 +115,3 @@ class CakeCtl:
 		completed_process.check_returncode()
 
 		return completed_process.stdout.decode("utf-8"), completed_process.stderr.decode("utf-8")
-
-	def run_async(self, args, pass_fds=()) -> subprocess.Popen:
-		env = os.environ.copy()
-		env.update({"CAKE_HOME": self.home()})
-		return subprocess.Popen(["cakectl"] + args, env=env, pass_fds=pass_fds)

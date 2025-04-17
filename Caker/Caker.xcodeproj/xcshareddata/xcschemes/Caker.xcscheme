@@ -93,7 +93,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "networks"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "list"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "start"
