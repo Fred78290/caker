@@ -99,6 +99,19 @@ def test_launch(cakectl):
 	# Delete the VM
 	cakectl.delete(vm_name)
 
+def test_remote(cakectl):
+	stdout, _ = cakectl.add_remote("test-remote", "https://images.lxd.canonical.com/")
+	assert "test-remote" in stdout
+
+	stdout, _ = cakectl.list_remote()
+	assert "test-remote" in stdout
+
+	stdout, _ = cakectl.delete_remote("test-remote")
+	assert "test-remote" in stdout
+
+	stdout, _ = cakectl.list_remote()
+	assert "test-remote" not in stdout
+
 def test_template(cakectl):
 	debian = f"debian-{uuid.uuid4()}"
 	ubuntu = f"ubuntu-{uuid.uuid4()}"
@@ -141,3 +154,14 @@ def test_networks(cakectl):
 	cakectl.delete_networks("test-network")
 	stdout, _ = cakectl.list_networks()
 	assert "test-network" not in stdout
+
+def test_exec(cakectl):
+	ubuntu = f"ubuntu-{uuid.uuid4()}"
+
+	# Create a Linux VM (because we can create it really fast)
+	cakectl.launch(ubuntu)
+	stdout, _ = cakectl.exec(ubuntu, ["echo", "Hello World"])
+	assert "Hello World" in stdout
+
+	cakectl.stop(ubuntu)
+	cakectl.delete(ubuntu)

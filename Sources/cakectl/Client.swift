@@ -56,7 +56,7 @@ extension AsyncGrpcParsableCommand {
 }
 
 extension GrpcParsableCommand {
-	var retries: ConnectionBackoff.Retries { .unlimited }
+	var retries: ConnectionBackoff.Retries { .upTo(1) }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { nil }
 
 	public mutating func run() throws {
@@ -86,7 +86,7 @@ struct Client: AsyncParsableCommand {
 
 		init() {
 			let discardedOptions: [String] = [
-				"--insecure",
+				"--disable-tls",
 				"--log-level",
 				"--timeout",
 				"--system",
@@ -110,7 +110,7 @@ struct Client: AsyncParsableCommand {
 		@Option(help: "Connection timeout in seconds")
 		public var timeout: Int64 = 10
 
-		@Flag(name: [.customLong("insecure")], help: "Don't use TLS")
+		@Flag(name: [.customLong("disable-tls")], help: "Don't use TLS")
 		public var insecure: Bool = false
 
 		@Flag(name: [.customLong("system")], help: "Caked run as system agent")
@@ -128,11 +128,12 @@ struct Client: AsyncParsableCommand {
 		@Option(name: [.customLong("tls-key")], help: ArgumentHelp("Client private key", valueName: "path"))
 		public var tlsKey: String? = nil
 
-		func prepareClient(interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeAgentClient) {
+		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeAgentClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 			let connection = try Client.createClient(on: group,
 			                                         listeningAddress: URL(string: self.address),
 			                                         connectionTimeout: self.timeout,
+			                                         retries: retries,
 			                                         caCert: self.caCert,
 			                                         tlsCert: self.tlsCert,
 			                                         tlsKey: self.tlsKey)
@@ -141,7 +142,7 @@ struct Client: AsyncParsableCommand {
 		}
 
 		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
-			let (group, grpcClient) = try prepareClient(interceptors: command.interceptors)
+			let (group, grpcClient) = try prepareClient(retries: command.retries, interceptors: command.interceptors)
 
 			defer {
 				try? grpcClient.channel.close().wait()
@@ -152,7 +153,7 @@ struct Client: AsyncParsableCommand {
 		}
 
 		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
-			let (group, grpcClient) = try prepareClient(interceptors: command.interceptors)
+			let (group, grpcClient) = try prepareClient(retries: command.retries, interceptors: command.interceptors)
 			let finish = {
 				try? await grpcClient.channel.close().get()
 				try? await group.shutdownGracefully()
@@ -198,6 +199,7 @@ struct Client: AsyncParsableCommand {
 			Build.self,
 			Configure.self,
 			Delete.self,
+			Duplicate.self,
 			Exec.self,
 			ImagesManagement.self,
 			Infos.self,
@@ -239,6 +241,7 @@ struct Client: AsyncParsableCommand {
 	static func createClient(on: EventLoopGroup,
 	                         listeningAddress: URL?,
 	                         connectionTimeout: Int64 = 60,
+	                         retries: ConnectionBackoff.Retries,
 	                         caCert: String?,
 	                         tlsCert: String?,
 	                         tlsKey: String?) throws -> ClientConnection {
@@ -276,7 +279,7 @@ struct Client: AsyncParsableCommand {
 					certificateVerification: .noHostnameVerification)
 			}
 
-			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: .upTo(1))
+			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
 
 			return ClientConnection(configuration: clientConfiguration)
 		}

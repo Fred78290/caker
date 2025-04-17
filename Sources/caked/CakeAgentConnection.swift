@@ -21,8 +21,8 @@ extension CakeAgentClient {
 		}
 	}
 
-	func info() -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
-		let response = self.info(.init(), callOptions: .init(timeLimit: .none)).response
+	func info(callOptions: CallOptions? = nil) -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
+		let response = self.info(.init(), callOptions: callOptions).response
 
 		return response.flatMapThrowing { response in
 			return .success(Caked_InfoReply.with {
@@ -51,8 +51,8 @@ extension CakeAgentClient {
 		}
 	}
 
-	func info() throws -> Caked_InfoReply {
-		let response = try self.info().wait()
+	func info(callOptions: CallOptions? = nil) throws -> Caked_InfoReply {
+		let response = try self.info(callOptions: callOptions).wait()
 
 		switch response {
 		case .success(let reply):
@@ -62,14 +62,14 @@ extension CakeAgentClient {
 		}
 	}
 
-	func run(request: Caked_RunCommand) -> EventLoopFuture<Result<Caked_RunReply, Error>> {
+	func run(request: Caked_RunCommand, callOptions: CallOptions? = nil) -> EventLoopFuture<Result<Caked_RunReply, Error>> {
 		let response = self.run(Cakeagent_RunCommand.with { req in
 			req.input = request.input
 			req.command = Cakeagent_Command.with {
-				$0.command = request.command.command
-				$0.args = request.command.args
+				$0.command = request.command
+				$0.args = request.args
 			}
-		}, callOptions: .init(timeLimit: .none)).response
+		}, callOptions: callOptions).response
 
 		return response.flatMapThrowing { response in
 			return .success(Caked_RunReply.with { reply in
@@ -92,8 +92,8 @@ extension CakeAgentClient {
 		}
 	}
 
-	func run(request: Caked_RunCommand) throws -> Caked_RunReply {
-		let response = try self.run(request: request).wait()
+	func run(request: Caked_RunCommand, callOptions: CallOptions? = nil) throws -> Caked_RunReply {
+		let response = try self.run(request: request, callOptions: callOptions).wait()
 
 		switch response {
 		case .success(let reply):
@@ -103,7 +103,7 @@ extension CakeAgentClient {
 		}
 	}
 
-	func mount(request: Caked_MountRequest) throws -> Caked_MountReply {
+	func mount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
 		let response: Cakeagent_MountReply = try self.mount(Cakeagent_MountRequest.with {
 			$0.mounts = request.mounts.map { option in
 				Cakeagent_MountVirtioFS.with { 
@@ -113,7 +113,7 @@ extension CakeAgentClient {
 					$0.target = option.target
 				}
 			}
-		}, callOptions: .init(timeLimit: .none)).response.wait()
+		}, callOptions: callOptions).response.wait()
 
 		return try Caked_MountReply.with { reply in
 			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
@@ -134,7 +134,7 @@ extension CakeAgentClient {
 		}
 	}
 
-	func umount(request: Caked_MountRequest) throws -> Caked_MountReply {
+	func umount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
 		let response: Cakeagent_MountReply = try self.umount(Cakeagent_MountRequest.with {
 			$0.mounts = request.mounts.map { option in
 				Cakeagent_MountVirtioFS.with { 
@@ -144,7 +144,7 @@ extension CakeAgentClient {
 					$0.target = option.target
 				}
 			}
-		}, callOptions: .init(timeLimit: .none)).response.wait()
+		}, callOptions: callOptions).response.wait()
 
 		return try Caked_MountReply.with { reply in
 			if case Cakeagent_MountReply.OneOf_Response.error(let v)? = response.response {
@@ -213,9 +213,9 @@ final class CakeAgentConnection: Sendable {
 
 	}
 
-	public func info() throws -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
+	public func info(callOptions: CallOptions? = nil) throws -> EventLoopFuture<Result<Caked_InfoReply, Error>> {
 		let client = try createClient()
-		let response: EventLoopFuture<Result<Caked_InfoReply, Error>> = client.info()
+		let response: EventLoopFuture<Result<Caked_InfoReply, Error>> = client.info(callOptions: callOptions)
 
 		response.whenComplete { _ in
 			client.close(promise: response.eventLoop.makePromise(of: Void.self))
@@ -224,8 +224,8 @@ final class CakeAgentConnection: Sendable {
 		return response
 	}
 
-	public func info() throws -> Caked_InfoReply {
-		let response = try self.info().wait()
+	public func info(callOptions: CallOptions? = nil) throws -> Caked_InfoReply {
+		let response = try self.info(callOptions: callOptions).wait()
 
 		switch response {
 		case .success(let reply):
@@ -235,7 +235,7 @@ final class CakeAgentConnection: Sendable {
 		}
 	}
 
-	public func run(command: String, arguments: [String] = [], input: Data? = nil) throws -> Caked_RunReply {
+	public func run(command: String, arguments: [String] = [], input: Data? = nil, callOptions: CallOptions? = nil) throws -> Caked_RunReply {
 		let client = try createClient()
 
 		do {
@@ -248,7 +248,7 @@ final class CakeAgentConnection: Sendable {
 					$0.command = command
 					$0.args = arguments
 				}
-			}).response.wait()
+			}, callOptions: callOptions).response.wait()
 
 			try? client.close().wait()
 
@@ -269,8 +269,8 @@ final class CakeAgentConnection: Sendable {
 		}
 	}
 
-	public func run(request: Caked_RunCommand) throws -> Caked_RunReply {
-		try self.run(command: String(request.command.command), arguments: request.command.args, input: request.input)
+	public func run(request: Caked_RunCommand, callOptions: CallOptions? = nil) throws -> Caked_RunReply {
+		try self.run(command: String(request.command), arguments: request.args, input: request.input, callOptions: callOptions)
 	}
 
 	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
@@ -403,24 +403,24 @@ final class CakeAgentConnection: Sendable {
 		}
 	}
 
-	func mount(request: Caked_MountRequest) throws -> Caked_MountReply {
+	func mount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
 		let client = try createClient()
 
 		defer {
 			try? client.close().wait()
 		}
 
-		return try client.mount(request: request)
+		return try client.mount(request: request, callOptions: callOptions)
 	}
 
-	func umount(request: Caked_MountRequest) throws -> Caked_MountReply {
+	func umount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
 		let client = try createClient()
 
 		defer {
 			try? client.close().wait()
 		}
 
-		return try client.umount(request: request)
+		return try client.umount(request: request, callOptions: callOptions)
 	}
 
 	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {

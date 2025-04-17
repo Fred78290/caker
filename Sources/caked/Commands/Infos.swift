@@ -25,12 +25,6 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 	var asSystem: Bool = false
 
-	@Flag(help: .hidden)
-	var foreground: Bool = false
-
-	@Option(help:"Maximum of seconds to getting infos")
-	var waitIPTimeout = 180
-
 	var createVM: Bool = false
 
 	var retries: GRPC.ConnectionBackoff.Retries {
@@ -46,31 +40,6 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		let vmLocation = try StorageLocation(asSystem: self.asSystem).find(name)
-		let config: CakeConfig = try vmLocation.config()
-		var infos: InfoReply
-
-		if vmLocation.status == .running {
-			infos = try CakeAgentHelper(on: on, client: client).info(callOptions: callOptions)
-		} else {
-
-			infos = InfoReply.with {
-				$0.osname = config.os.rawValue
-				$0.status = .stopped
-				$0.cpuCount = Int32(config.cpuCount)
-				$0.memory = .with {
-					$0.total = config.memorySize
-				}
-
-				if let runningIP = config.runningIP {
-					$0.ipaddresses = [runningIP]
-				}
-			}
-		}
-
-		infos.name = name
-		infos.mounts = config.mounts.map { $0.description }
-
-		Logger.appendNewLine(self.format.render(infos))
+		Logger.appendNewLine(self.format.render(try InfosHandler.infos(name: self.name, asSystem: self.asSystem, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
 	}
 }

@@ -56,6 +56,54 @@ extension InfoReply {
 			$0.memory = memory
 		}
 	}
+
+	public func toCaked_InfoReply() -> Caked_InfoReply {
+		Caked_InfoReply.with { reply in
+			reply.name = self.name
+
+			if let version = self.version {
+				reply.version = version
+			}
+
+			if let uptime = self.uptime {
+				reply.uptime = uptime
+			}
+
+			if let memory = self.memory {
+				reply.memory = Caked_InfoReply.MemoryInfo.with {
+					if let total = memory.total {
+						$0.total = total
+					}
+
+					if let free = memory.free {
+						$0.free = free
+					}
+
+					if let used = memory.used {
+						$0.used = used
+					}
+				}
+			}
+
+			reply.cpuCount = self.cpuCount
+			reply.ipaddresses = self.ipaddresses
+			reply.osname = self.osname
+
+			if let release = self.release {
+				reply.release = release
+			}
+
+			if let hostname = self.hostname {
+				reply.hostname = hostname
+			}
+
+			if let mounts = self.mounts {
+				reply.mounts = mounts
+			}
+
+			reply.status = self.status.rawValue
+		}
+	}
 }
 
 public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
@@ -95,7 +143,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 			return try! encoder.encode(data).toString()
 		}
 	}
-	
+
 	public func render(_ data: [Caked_ImageInfo]) -> String {
 		if self == .text {
 			return self.renderList(style: Style.grid, uppercased: true, data.map { ShortImageInfo(from: $0) })
@@ -123,7 +171,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_ImageInfo) -> String {
 		self.render(ImageInfo(from: data))
 	}
-	
+
 	public func render(_ data: LinuxContainerImage) -> String {
 		if self == .json {
 			return self.renderSingle(style: Style.grid, uppercased: true, data)
@@ -135,7 +183,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_PulledImageInfo) -> String {
 		self.render(LinuxContainerImage(from: data))
 	}
-	
+
 	public func render(_ data: InfoReply) -> String {
 		if self == .json {
 			return self.renderSingle(style: Style.grid, uppercased: true, data)
@@ -198,7 +246,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_MountReply) -> String {
 		return self.render(data.mounts.map { MountVirtioFS(from: $0) })
 	}
-	
+
 	public func render(_ data: BridgedNetwork) -> String {
 		return self.renderSingle(style: Style.grid, uppercased: true, data)
 	}
@@ -214,7 +262,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_ListNetworksReply) -> String {
 		return self.render(data.networks.map { BridgedNetwork(from: $0) })
 	}
-	
+
 	public func render(_ data: [RemoteEntry]) -> String {
 		return self.renderList(style: Style.grid, uppercased: true, data)
 	}
@@ -222,7 +270,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_ListRemoteReply) -> String {
 		return self.render(data.remotes.map { RemoteEntry(from: $0) })
 	}
-	
+
 	public func render(_ data: CreateTemplateReply) -> String {
 		return self.renderSingle(style: Style.grid, uppercased: true, data)
 	}
@@ -230,7 +278,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	public func render(_ data: Caked_CreateTemplateReply) -> String {
 		return self.renderSingle(style: Style.grid, uppercased: true, CreateTemplateReply(from: data))
 	}
-	
+
 	public func render(_ data: DeleteTemplateReply) -> String {
 		return self.renderSingle(style: Style.grid, uppercased: true, data)
 	}

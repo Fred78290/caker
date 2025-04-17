@@ -94,6 +94,8 @@ struct Shell {
 
 		environment["TART_HOME"] = cakeHomeDir.path
 
+		Logger(self).debug("Executing tart \(args.joined(separator: " "))")
+
 		let _ = try Self.bash(to: "tart", arguments: args,
 		                      input: input,
 		                      outputHandle: outputPipe.fileHandleForWriting,

@@ -1893,14 +1893,11 @@ public struct Caked_RunCommand: @unchecked Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var command: Caked_Command {
-    get {return _command ?? Caked_Command()}
-    set {_command = newValue}
-  }
-  /// Returns true if `command` has been explicitly set.
-  public var hasCommand: Bool {return self._command != nil}
-  /// Clears the value of `command`. Subsequent reads from it will return its default value.
-  public mutating func clearCommand() {self._command = nil}
+  public var vmname: String = String()
+
+  public var command: String = String()
+
+  public var args: [String] = []
 
   public var input: Data {
     get {return _input ?? Data()}
@@ -1915,7 +1912,6 @@ public struct Caked_RunCommand: @unchecked Sendable {
 
   public init() {}
 
-  fileprivate var _command: Caked_Command? = nil
   fileprivate var _input: Data? = nil
 }
 
@@ -5338,8 +5334,10 @@ extension Caked_Command: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
 extension Caked_RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".RunCommand"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "input"),
+    1: .same(proto: "vmname"),
+    2: .same(proto: "command"),
+    3: .same(proto: "args"),
+    4: .same(proto: "input"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5348,8 +5346,10 @@ extension Caked_RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._command) }()
-      case 2: try { try decoder.decodeSingularBytesField(value: &self._input) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.vmname) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.command) }()
+      case 3: try { try decoder.decodeRepeatedStringField(value: &self.args) }()
+      case 4: try { try decoder.decodeSingularBytesField(value: &self._input) }()
       default: break
       }
     }
@@ -5360,17 +5360,25 @@ extension Caked_RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._command {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-    } }()
+    if !self.vmname.isEmpty {
+      try visitor.visitSingularStringField(value: self.vmname, fieldNumber: 1)
+    }
+    if !self.command.isEmpty {
+      try visitor.visitSingularStringField(value: self.command, fieldNumber: 2)
+    }
+    if !self.args.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.args, fieldNumber: 3)
+    }
     try { if let v = self._input {
-      try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 4)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_RunCommand, rhs: Caked_RunCommand) -> Bool {
-    if lhs._command != rhs._command {return false}
+    if lhs.vmname != rhs.vmname {return false}
+    if lhs.command != rhs.command {return false}
+    if lhs.args != rhs.args {return false}
     if lhs._input != rhs._input {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

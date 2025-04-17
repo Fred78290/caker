@@ -254,6 +254,17 @@ public extension String {
 		}
 	}
 
+	func stringAfterLast(before: Character) -> String {
+		if let r = self.lastIndex(of: before) {
+			guard let start = self.index(r, offsetBy: 1, limitedBy: self.endIndex) else {
+				return ""
+			}
+			return String(self[start..<self.endIndex])
+		} else {
+			return self
+		}
+	}
+
 	func stringBefore(before: String) -> String {
 		if let r = self.range(of: before) {
 			return String(self[self.startIndex..<r.lowerBound])
@@ -271,14 +282,21 @@ public extension String {
 	}
 
 	func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
-		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
+			return self
+		}
 
 		return String(self[self.startIndex..<endIndex])
 	}
 
 	func substring(_ bounds: Range<Int>) -> String {
-		let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound)
-		let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound)
+		guard let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound, limitedBy: self.endIndex) else {
+			return ""
+		}
+
+		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
+			return self
+		}
 
 		return String(self[startIndex..<endIndex])
 	}

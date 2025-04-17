@@ -36,7 +36,7 @@ extension CakedCommandAsync {
 }
 
 protocol CreateCakedCommand {
-	func createCommand() throws -> CakedCommand
+	func createCommand(provider: CakedProvider) throws -> CakedCommand
 }
 
 class Unimplemented: Error {
@@ -72,14 +72,26 @@ extension Caked_RunReply {
 	}
 }
 
+extension Caked_RunCommand: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
+		return RunHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.vmname))
+	}
+}
+
+extension Caked_InfoRequest : CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
+		return InfosHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.name))
+	}
+}
+
 extension Caked_CloneRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return CloneHandler(request: self)
 	}
 }
 
 extension Caked_MountRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand(provider: CakedProvider) -> CakedCommand {
 		return MountHandler(request: self)
 	}
 
@@ -96,13 +108,13 @@ extension Caked_MountRequest: CreateCakedCommand {
 }
 
 extension Caked_TemplateRequest: CreateCakedCommand {
-	func createCommand() -> CakedCommand {
+	func createCommand(provider: CakedProvider) -> CakedCommand {
 		return TemplateHandler(request: self)
 	}
 }
 
 extension Caked_RenameRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return RenameHandler(request: self)
 	}
 }
@@ -114,7 +126,7 @@ extension Caked_CakedCommandRequest: CreateCakedCommand {
 		self.arguments = arguments
 	}
 
-	func createCommand() -> CakedCommand {
+	func createCommand(provider: CakedProvider) -> CakedCommand {
 		return TartHandler(command: self.command, arguments: self.arguments)
 	}
 }
@@ -126,19 +138,19 @@ extension Caked_CommonBuildRequest {
 }
 
 extension Caked_BuildRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return BuildHandler(options: try self.options.buildOptions())
 	}
 }
 
 extension Caked_LaunchRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return LaunchHandler(options: try self.options.buildOptions(), waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
 	}
 }
 
 extension Caked_PurgeRequest : CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		var command = PurgeHandler()
 
 		if self.hasEntries {
@@ -158,73 +170,73 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 }
 
 extension Caked_DeleteRequest : CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return DeleteHandler(request: self)
 	}
 }
 
 extension Caked_ConfigureRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return ConfigureHandler(options: ConfigureOptions(request: self))
 	}
 }
 
 extension Caked_ListRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return ListHandler(vmonly: self.vmonly)
 	}
 }
 
 extension Caked_StartRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background)
 	}
 }
 
 extension Caked_DuplicateRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return DuplicateHandler(request: self)
 	}
 }
 
 extension Caked_LoginRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return LoginHandler(request: self)
 	}
 }
 
 extension Caked_LogoutRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return LogoutHandler(request: self)
 	}
 }
 
 extension Caked_ImageRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return ImageHandler(request: self)
 	}
 }
 
 extension Caked_RemoteRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return RemoteHandler(request: self)
 	}
 }
 
 extension Caked_NetworkRequest: CreateCakedCommand {
-	func createCommand() throws -> CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return NetworksHandler(request: self)
 	}
 }
 
 extension Caked_WaitIPRequest: CreateCakedCommand {
-	func createCommand() throws -> any CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
 		return WaitIPHandler(name: self.name, wait: Int(self.timeout))
 	}
 }
 
 extension Caked_StopRequest: CreateCakedCommand {
-	func createCommand() throws -> any CakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
 		return StopHandler(name: self.name, force: self.force)
 	}
 }
@@ -249,8 +261,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		self.certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 	}
 
-	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
-		var command = try command.createCommand()
+	func execute(command: CakedCommand) throws -> Caked_Reply {
+		var command = command
 		let eventLoop = self.group.next()
 
 		Logger(self).debug("execute: \(command)")
@@ -274,6 +286,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				}
 			}
 		}
+	}
+
+	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
+		try self.execute(command: command.createCommand(provider: self))
 	}
 
 	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
@@ -353,75 +369,15 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		let conn: CakeAgentConnection = try createCakeAgentConnection(vmName: String(request.name))
-
-		Logger(self).debug("execute: \(request)")
-
-		return try Caked_Reply.with { reply in
-			reply.vms = try Caked_VirtualMachineReply.with {
-				$0.infos = try conn.info()
-			}
-		}
+		return try self.execute(command: request)
 	}
 
 	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
-
-			throw ServiceError("no CAKEAGENT_VMNAME header")
-		}
-
-		if vmname == "" {
-			vmname = "primary"
-
-			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
-				Logger(self).info("Creating primary VM")
-				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
-			}
-		}
-
-		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
-
-		if vmLocation.status != .running {
-			Logger(self).info("Starting \(vmname)")
-
-			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
-		}
-
-		let conn = try createCakeAgentConnection(vmName: vmname)
-
-		return try Caked_Reply.with {
-			$0.run = try conn.run(request: request)
-		}
+		return try self.execute(command: request)
 	}
 
 	func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
-		guard var vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger(self).error(ServiceError("no CAKEAGENT_VMNAME header"))
-
-			throw ServiceError("no CAKEAGENT_VMNAME header")
-		}
-
-		if vmname == "" {
-			vmname = "primary"
-
-			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
-				Logger(self).info("Creating primary VM")
-				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
-			}
-		}
-
-		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
-
-		if vmLocation.status != .running {
-			Logger(self).info("Starting \(vmname)")
-
-			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
-		}
-
-		let conn = try createCakeAgentConnection(vmName: vmname)
-
-		return try await conn.execute(requestStream: requestStream, responseStream: responseStream)
+		_ = try self.execute(command: try ExecuteHandler(provider: self, requestStream: requestStream, responseStream: responseStream, context: context))
 	}
 
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

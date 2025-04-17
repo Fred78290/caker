@@ -128,6 +128,19 @@ def test_launch(caked):
 	# Delete the VM
 	caked.delete(vm_name)
 
+def test_remote(caked):
+	stdout, _ = caked.add_remote("test-remote", "https://images.lxd.canonical.com/")
+	assert "test-remote" in stdout
+
+	stdout, _ = caked.list_remote()
+	assert "test-remote" in stdout
+
+	stdout, _ = caked.delete_remote("test-remote")
+	assert "test-remote" in stdout
+
+	stdout, _ = caked.list_remote()
+	assert "test-remote" not in stdout
+
 def test_template(caked):
 	debian = f"debian-{uuid.uuid4()}"
 	ubuntu = f"ubuntu-{uuid.uuid4()}"
@@ -170,3 +183,14 @@ def test_networks(caked):
 	caked.delete_networks("test-network")
 	stdout, _ = caked.list_networks()
 	assert "test-network" not in stdout
+
+def test_exec(caked):
+	ubuntu = f"ubuntu-{uuid.uuid4()}"
+
+	# Create a Linux VM (because we can create it really fast)
+	caked.launch(ubuntu)
+	stdout, _ = caked.exec(ubuntu, ["echo", "Hello World"])
+	assert "Hello World" in stdout
+
+	caked.stop(ubuntu)
+	caked.delete(ubuntu)

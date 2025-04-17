@@ -1,13 +1,13 @@
 {
 	"configurations": [
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "attach",
 			"name": "caked attach",
 			"pid": "${command:pickMyProcess}"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"build",
@@ -28,7 +28,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"build",
@@ -49,7 +49,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"build",
@@ -67,7 +67,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"launch",
@@ -85,7 +85,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"launch",
@@ -109,7 +109,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"list"
@@ -120,7 +120,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"pull",
@@ -132,7 +132,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"clone",
@@ -145,7 +145,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"waitip",
@@ -159,7 +159,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"delete",
@@ -171,7 +171,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"delete",
@@ -183,7 +183,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"delete",
@@ -195,7 +195,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"configure",
@@ -207,7 +207,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"delete",
@@ -219,7 +219,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"vmrun",
@@ -234,7 +234,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"vmrun",
@@ -248,7 +248,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"vmrun",
@@ -261,7 +261,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"shell"
@@ -272,7 +272,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"infos",
@@ -284,7 +284,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"infos",
@@ -296,7 +296,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"start",
@@ -309,7 +309,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"start",
@@ -321,7 +321,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"stop",
@@ -333,7 +333,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"service",
@@ -346,7 +346,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"mount",
@@ -360,7 +360,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"umount",
@@ -374,7 +374,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"mount",
@@ -388,7 +388,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"umount",
@@ -402,7 +402,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"image",
@@ -415,7 +415,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"image",
@@ -428,7 +428,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"template",
@@ -442,7 +442,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"template",
@@ -454,7 +454,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"exec",
@@ -467,7 +467,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"networks",
@@ -482,7 +482,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"networks",
@@ -495,7 +495,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"networks",
@@ -508,7 +508,7 @@
 			"preLaunchTask": "Build signed caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"networks",
@@ -524,7 +524,7 @@
 			"name": "-----------------------------------------------------------------------------"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"list",
@@ -536,7 +536,7 @@
 			"preLaunchTask": "Build signed cakectl"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"infos",
@@ -548,7 +548,7 @@
 			"preLaunchTask": "Build signed cakectl"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"exec",
@@ -563,7 +563,7 @@
 			"preLaunchTask": "Build signed cakectl"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"shell",
@@ -575,7 +575,7 @@
 			"preLaunchTask": "Build signed cakectl"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [
 				"networks",
@@ -591,7 +591,7 @@
 			"name": "-----------------------------------------------------------------------------"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
@@ -600,7 +600,7 @@
 			"preLaunchTask": "swift: Build Debug caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
@@ -609,7 +609,7 @@
 			"preLaunchTask": "swift: Build Release caked"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
@@ -618,7 +618,7 @@
 			"preLaunchTask": "swift: Build Debug cakectl"
 		},
 		{
-			"type": "lldb",
+			"type": "swift",
 			"request": "launch",
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",

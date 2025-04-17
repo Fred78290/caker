@@ -92,6 +92,18 @@ class Caked:
 	def delete_networks(self, name):
 		return self.run(["networks", "delete", name])
 
+	def add_remote(self, name, url):
+		return self.run(["remote", "add", name, url])
+
+	def delete_remote(self, name):
+		return self.run(["remote", "delete", name])
+
+	def list_remote(self):
+		return self.run(["remote", "list"])
+
+	def exec(self, vmname, commands):
+		return self.run(["exec", vmname, "--"] + commands)
+
 	def run(self, args, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
