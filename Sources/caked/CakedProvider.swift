@@ -237,7 +237,7 @@ extension Caked_WaitIPRequest: CreateCakedCommand {
 
 extension Caked_StopRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
-		return StopHandler(name: self.name, force: self.force)
+		return StopHandler(request: self)
 	}
 }
 

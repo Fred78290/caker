@@ -415,9 +415,31 @@ public struct Caked_DeleteRequest: Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var name: [String] = []
+  public var delete: Caked_DeleteRequest.OneOf_Delete? = nil
+
+  public var all: Bool {
+    get {
+      if case .all(let v)? = delete {return v}
+      return false
+    }
+    set {delete = .all(newValue)}
+  }
+
+  public var names: Caked_VMNames {
+    get {
+      if case .names(let v)? = delete {return v}
+      return Caked_VMNames()
+    }
+    set {delete = .names(newValue)}
+  }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Delete: Equatable, Sendable {
+    case all(Bool)
+    case names(Caked_VMNames)
+
+  }
 
   public init() {}
 }
@@ -434,16 +456,50 @@ public struct Caked_ListRequest: Sendable {
   public init() {}
 }
 
+public struct Caked_VMNames: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var list: [String] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Caked_StopRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var name: String = String()
-
   public var force: Bool = false
 
+  public var stop: Caked_StopRequest.OneOf_Stop? = nil
+
+  public var all: Bool {
+    get {
+      if case .all(let v)? = stop {return v}
+      return false
+    }
+    set {stop = .all(newValue)}
+  }
+
+  public var names: Caked_VMNames {
+    get {
+      if case .names(let v)? = stop {return v}
+      return Caked_VMNames()
+    }
+    set {stop = .names(newValue)}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Stop: Equatable, Sendable {
+    case all(Bool)
+    case names(Caked_VMNames)
+
+  }
 
   public init() {}
 }
@@ -593,35 +649,35 @@ public struct Caked_NetworkRequest: Sendable {
 
   public var command: Caked_NetworkCommand = .infos
 
-  public var request: Caked_NetworkRequest.OneOf_Request? = nil
+  public var network: Caked_NetworkRequest.OneOf_Network? = nil
 
   public var name: String {
     get {
-      if case .name(let v)? = request {return v}
+      if case .name(let v)? = network {return v}
       return String()
     }
-    set {request = .name(newValue)}
+    set {network = .name(newValue)}
   }
 
   public var create: Caked_CreateNetworkRequest {
     get {
-      if case .create(let v)? = request {return v}
+      if case .create(let v)? = network {return v}
       return Caked_CreateNetworkRequest()
     }
-    set {request = .create(newValue)}
+    set {network = .create(newValue)}
   }
 
   public var configure: Caked_ConfigureNetworkRequest {
     get {
-      if case .configure(let v)? = request {return v}
+      if case .configure(let v)? = network {return v}
       return Caked_ConfigureNetworkRequest()
     }
-    set {request = .configure(newValue)}
+    set {network = .configure(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Request: Equatable, Sendable {
+  public enum OneOf_Network: Equatable, Sendable {
     case name(String)
     case create(Caked_CreateNetworkRequest)
     case configure(Caked_ConfigureNetworkRequest)
@@ -692,27 +748,27 @@ public struct Caked_RemoteRequest: Sendable {
 
   public var command: Caked_RemoteCommand = .none
 
-  public var request: Caked_RemoteRequest.OneOf_Request? = nil
+  public var remote: Caked_RemoteRequest.OneOf_Remote? = nil
 
   public var add: Caked_RemoteRequestAdd {
     get {
-      if case .add(let v)? = request {return v}
+      if case .add(let v)? = remote {return v}
       return Caked_RemoteRequestAdd()
     }
-    set {request = .add(newValue)}
+    set {remote = .add(newValue)}
   }
 
   public var delete: String {
     get {
-      if case .delete(let v)? = request {return v}
+      if case .delete(let v)? = remote {return v}
       return String()
     }
-    set {request = .delete(newValue)}
+    set {remote = .delete(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Request: Equatable, Sendable {
+  public enum OneOf_Remote: Equatable, Sendable {
     case add(Caked_RemoteRequestAdd)
     case delete(String)
 
@@ -822,27 +878,27 @@ public struct Caked_TemplateRequest: Sendable {
 
   public var command: Caked_RemoteCommand = .none
 
-  public var request: Caked_TemplateRequest.OneOf_Request? = nil
+  public var template: Caked_TemplateRequest.OneOf_Template? = nil
 
   public var create: Caked_TemplateRequestAdd {
     get {
-      if case .create(let v)? = request {return v}
+      if case .create(let v)? = template {return v}
       return Caked_TemplateRequestAdd()
     }
-    set {request = .create(newValue)}
+    set {template = .create(newValue)}
   }
 
   public var delete: String {
     get {
-      if case .delete(let v)? = request {return v}
+      if case .delete(let v)? = template {return v}
       return String()
     }
-    set {request = .delete(newValue)}
+    set {template = .delete(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Request: Equatable, Sendable {
+  public enum OneOf_Template: Equatable, Sendable {
     case create(Caked_TemplateRequestAdd)
     case delete(String)
 
@@ -1984,43 +2040,43 @@ public struct Caked_ExecuteRequest: @unchecked Sendable {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var request: Caked_ExecuteRequest.OneOf_Request? = nil
+  public var execute: Caked_ExecuteRequest.OneOf_Execute? = nil
 
   public var command: Caked_ExecuteCommand {
     get {
-      if case .command(let v)? = request {return v}
+      if case .command(let v)? = execute {return v}
       return Caked_ExecuteCommand()
     }
-    set {request = .command(newValue)}
+    set {execute = .command(newValue)}
   }
 
   public var input: Data {
     get {
-      if case .input(let v)? = request {return v}
+      if case .input(let v)? = execute {return v}
       return Data()
     }
-    set {request = .input(newValue)}
+    set {execute = .input(newValue)}
   }
 
   public var size: Caked_TerminalSize {
     get {
-      if case .size(let v)? = request {return v}
+      if case .size(let v)? = execute {return v}
       return Caked_TerminalSize()
     }
-    set {request = .size(newValue)}
+    set {execute = .size(newValue)}
   }
 
   public var eof: Bool {
     get {
-      if case .eof(let v)? = request {return v}
+      if case .eof(let v)? = execute {return v}
       return false
     }
-    set {request = .eof(newValue)}
+    set {execute = .eof(newValue)}
   }
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  public enum OneOf_Request: Equatable, @unchecked Sendable {
+  public enum OneOf_Execute: Equatable, @unchecked Sendable {
     case command(Caked_ExecuteCommand)
     case input(Data)
     case size(Caked_TerminalSize)
@@ -2830,7 +2886,8 @@ extension Caked_DeleteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 extension Caked_DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".DeleteRequest"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
+    2: .same(proto: "all"),
+    3: .same(proto: "names"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2839,21 +2896,53 @@ extension Caked_DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeRepeatedStringField(value: &self.name) }()
+      case 2: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.delete != nil {try decoder.handleConflictingOneOf()}
+          self.delete = .all(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_VMNames?
+        var hadOneofValue = false
+        if let current = self.delete {
+          hadOneofValue = true
+          if case .names(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.delete = .names(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.name.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.name, fieldNumber: 1)
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.delete {
+    case .all?: try {
+      guard case .all(let v)? = self.delete else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    }()
+    case .names?: try {
+      guard case .names(let v)? = self.delete else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_DeleteRequest, rhs: Caked_DeleteRequest) -> Bool {
-    if lhs.name != rhs.name {return false}
+    if lhs.delete != rhs.delete {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2891,11 +2980,10 @@ extension Caked_ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   }
 }
 
-extension Caked_StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = _protobuf_package + ".StopRequest"
+extension Caked_VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VMNames"
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "force"),
+    1: .same(proto: "list"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2904,26 +2992,92 @@ extension Caked_StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 2: try { try decoder.decodeSingularBoolField(value: &self.force) }()
+      case 1: try { try decoder.decodeRepeatedStringField(value: &self.list) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    if !self.list.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.list, fieldNumber: 1)
     }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_VMNames, rhs: Caked_VMNames) -> Bool {
+    if lhs.list != rhs.list {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".StopRequest"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "force"),
+    2: .same(proto: "all"),
+    3: .same(proto: "names"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.force) }()
+      case 2: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.stop != nil {try decoder.handleConflictingOneOf()}
+          self.stop = .all(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_VMNames?
+        var hadOneofValue = false
+        if let current = self.stop {
+          hadOneofValue = true
+          if case .names(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.stop = .names(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.force != false {
-      try visitor.visitSingularBoolField(value: self.force, fieldNumber: 2)
+      try visitor.visitSingularBoolField(value: self.force, fieldNumber: 1)
+    }
+    switch self.stop {
+    case .all?: try {
+      guard case .all(let v)? = self.stop else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    }()
+    case .names?: try {
+      guard case .names(let v)? = self.stop else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_StopRequest, rhs: Caked_StopRequest) -> Bool {
-    if lhs.name != rhs.name {return false}
     if lhs.force != rhs.force {return false}
+    if lhs.stop != rhs.stop {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3137,34 +3291,34 @@ extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .name(v)
+          if self.network != nil {try decoder.handleConflictingOneOf()}
+          self.network = .name(v)
         }
       }()
       case 3: try {
         var v: Caked_CreateNetworkRequest?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.network {
           hadOneofValue = true
           if case .create(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .create(v)
+          self.network = .create(v)
         }
       }()
       case 4: try {
         var v: Caked_ConfigureNetworkRequest?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.network {
           hadOneofValue = true
           if case .configure(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .configure(v)
+          self.network = .configure(v)
         }
       }()
       default: break
@@ -3180,17 +3334,17 @@ extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     if self.command != .infos {
       try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
     }
-    switch self.request {
+    switch self.network {
     case .name?: try {
-      guard case .name(let v)? = self.request else { preconditionFailure() }
+      guard case .name(let v)? = self.network else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 2)
     }()
     case .create?: try {
-      guard case .create(let v)? = self.request else { preconditionFailure() }
+      guard case .create(let v)? = self.network else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .configure?: try {
-      guard case .configure(let v)? = self.request else { preconditionFailure() }
+      guard case .configure(let v)? = self.network else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case nil: break
@@ -3200,7 +3354,7 @@ extension Caked_NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
 
   public static func ==(lhs: Caked_NetworkRequest, rhs: Caked_NetworkRequest) -> Bool {
     if lhs.command != rhs.command {return false}
-    if lhs.request != rhs.request {return false}
+    if lhs.network != rhs.network {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3370,22 +3524,22 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       case 2: try {
         var v: Caked_RemoteRequestAdd?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.remote {
           hadOneofValue = true
           if case .add(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .add(v)
+          self.remote = .add(v)
         }
       }()
       case 3: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .delete(v)
+          if self.remote != nil {try decoder.handleConflictingOneOf()}
+          self.remote = .delete(v)
         }
       }()
       default: break
@@ -3401,13 +3555,13 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if self.command != .none {
       try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
     }
-    switch self.request {
+    switch self.remote {
     case .add?: try {
-      guard case .add(let v)? = self.request else { preconditionFailure() }
+      guard case .add(let v)? = self.remote else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .delete?: try {
-      guard case .delete(let v)? = self.request else { preconditionFailure() }
+      guard case .delete(let v)? = self.remote else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     }()
     case nil: break
@@ -3417,7 +3571,7 @@ extension Caked_RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
   public static func ==(lhs: Caked_RemoteRequest, rhs: Caked_RemoteRequest) -> Bool {
     if lhs.command != rhs.command {return false}
-    if lhs.request != rhs.request {return false}
+    if lhs.remote != rhs.remote {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3657,22 +3811,22 @@ extension Caked_TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       case 2: try {
         var v: Caked_TemplateRequestAdd?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.template {
           hadOneofValue = true
           if case .create(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .create(v)
+          self.template = .create(v)
         }
       }()
       case 3: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .delete(v)
+          if self.template != nil {try decoder.handleConflictingOneOf()}
+          self.template = .delete(v)
         }
       }()
       default: break
@@ -3688,13 +3842,13 @@ extension Caked_TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     if self.command != .none {
       try visitor.visitSingularEnumField(value: self.command, fieldNumber: 1)
     }
-    switch self.request {
+    switch self.template {
     case .create?: try {
-      guard case .create(let v)? = self.request else { preconditionFailure() }
+      guard case .create(let v)? = self.template else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .delete?: try {
-      guard case .delete(let v)? = self.request else { preconditionFailure() }
+      guard case .delete(let v)? = self.template else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 3)
     }()
     case nil: break
@@ -3704,7 +3858,7 @@ extension Caked_TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
   public static func ==(lhs: Caked_TemplateRequest, rhs: Caked_TemplateRequest) -> Bool {
     if lhs.command != rhs.command {return false}
-    if lhs.request != rhs.request {return false}
+    if lhs.template != rhs.template {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5550,43 +5704,43 @@ extension Caked_ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
       case 1: try {
         var v: Caked_ExecuteCommand?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.execute {
           hadOneofValue = true
           if case .command(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .command(v)
+          self.execute = .command(v)
         }
       }()
       case 2: try {
         var v: Data?
         try decoder.decodeSingularBytesField(value: &v)
         if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .input(v)
+          if self.execute != nil {try decoder.handleConflictingOneOf()}
+          self.execute = .input(v)
         }
       }()
       case 3: try {
         var v: Caked_TerminalSize?
         var hadOneofValue = false
-        if let current = self.request {
+        if let current = self.execute {
           hadOneofValue = true
           if case .size(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.request = .size(v)
+          self.execute = .size(v)
         }
       }()
       case 4: try {
         var v: Bool?
         try decoder.decodeSingularBoolField(value: &v)
         if let v = v {
-          if self.request != nil {try decoder.handleConflictingOneOf()}
-          self.request = .eof(v)
+          if self.execute != nil {try decoder.handleConflictingOneOf()}
+          self.execute = .eof(v)
         }
       }()
       default: break
@@ -5599,21 +5753,21 @@ extension Caked_ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.request {
+    switch self.execute {
     case .command?: try {
-      guard case .command(let v)? = self.request else { preconditionFailure() }
+      guard case .command(let v)? = self.execute else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
     case .input?: try {
-      guard case .input(let v)? = self.request else { preconditionFailure() }
+      guard case .input(let v)? = self.execute else { preconditionFailure() }
       try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
     }()
     case .size?: try {
-      guard case .size(let v)? = self.request else { preconditionFailure() }
+      guard case .size(let v)? = self.execute else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .eof?: try {
-      guard case .eof(let v)? = self.request else { preconditionFailure() }
+      guard case .eof(let v)? = self.execute else { preconditionFailure() }
       try visitor.visitSingularBoolField(value: v, fieldNumber: 4)
     }()
     case nil: break
@@ -5622,7 +5776,7 @@ extension Caked_ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   }
 
   public static func ==(lhs: Caked_ExecuteRequest, rhs: Caked_ExecuteRequest) -> Bool {
-    if lhs.request != rhs.request {return false}
+    if lhs.execute != rhs.execute {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

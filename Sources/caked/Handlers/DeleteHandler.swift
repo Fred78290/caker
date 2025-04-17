@@ -71,11 +71,21 @@ struct DeleteHandler: CakedCommand {
 		}
 	}
 
+	static func delete(all: Bool, names: [String], asSystem: Bool) throws -> [DeleteReply]{
+		var names = names
+
+		if all {
+			names = try StorageLocation(asSystem: false).list().map { $0.key }
+		}
+		
+		return try DeleteHandler.delete(names: names, asSystem: asSystem)
+	}
+
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
 				$0.delete = try Caked_DeleteReply.with {
-					$0.objects = try Self.delete(names: request.name, asSystem: runAsSystem).map {
+					$0.objects = try Self.delete(all: self.request.all, names: self.request.names.list, asSystem: runAsSystem).map {
 						$0.toCaked_DeletedObject()
 					}
 				}

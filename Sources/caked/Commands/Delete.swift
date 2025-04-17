@@ -9,17 +9,36 @@ import Foundation
 import ArgumentParser
 import GRPCLib
 import TextTable
+import Logging
 
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")
 	
-	@Argument(help: "VM name")
-	var name: [String]
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
 
 	@Option(name: .shortAndLong, help: "Output format")
 	var format: Format = .text
 
+	@Argument(help: "VM name")
+	var names: [String] = []
+
+	@Flag(name: [.short, .long], help: "Delete all VM")
+	var all: Bool = false
+
+	func validate() throws {
+		Logger.setLevel(self.logLevel)
+
+		if all {
+			if !names.isEmpty {
+				throw ValidationError("You cannot specify both --all and VM names.")
+			}
+		} else if names.isEmpty {
+			throw ValidationError("You must specify at least one VM name.")
+		}
+	}
+
 	func run() throws {
-		Logger.appendNewLine(self.format.render(try DeleteHandler.delete(names: name, asSystem: false)))
+		Logger.appendNewLine(self.format.render(try DeleteHandler.delete(all: self.all, names: self.names, asSystem: false)))
 	}
 }

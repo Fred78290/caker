@@ -39,7 +39,14 @@ extension Caked_DuplicateRequest {
 extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()
-		self.name = command.name
+
+		if self.all {
+			self.all = true
+		} else {
+			self.names = Caked_VMNames.with {
+				$0.list = command.name
+			}
+		}
 	}
 }
 
@@ -158,8 +165,15 @@ extension Caked_StartRequest {
 extension Caked_StopRequest {
 	init(command: Stop) {
 		self.init()
-		self.name = command.name
 		self.force = command.force
+
+		if command.all {
+			self.all = true
+		} else {
+			self.names = Caked_VMNames.with {
+				$0.list = command.name
+			}
+		}
 	}
 }
 

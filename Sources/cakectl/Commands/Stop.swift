@@ -8,11 +8,24 @@ struct Stop: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Argument(help: "VM name")
-	var name: String
+	@Argument(help: "VM names to stop")
+	var name: [String] = []
 
 	@Option(name: [.short, .long], help: "Force to stop")
 	var force: Bool = false
+
+	@Flag(name: [.short, .long], help: "Stop all VM")
+	var all: Bool = false
+
+	func validate() throws {
+		if all {
+			if !name.isEmpty {
+				throw ValidationError("You cannot specify both --all and VM names.")
+			}
+		} else if name.isEmpty {
+			throw ValidationError("You must specify at least one VM name.")
+		}
+	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.message

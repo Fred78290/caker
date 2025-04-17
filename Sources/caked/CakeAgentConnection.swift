@@ -322,7 +322,7 @@ final class CakeAgentConnection: Sendable {
 					do {
 						for try await message: Caked_ExecuteRequest in requestStream {
 							try await streamShell.sendMessage(Cakeagent_ExecuteRequest.with{msg in
-								switch message.request {
+								switch message.execute {
 								case .command(let command):
 									msg.command = Cakeagent_ExecuteCommand.with{ cmd in
 										switch command.execute {

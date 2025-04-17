@@ -120,16 +120,26 @@ enum RemoteCommand {
 }
 
 message DeleteRequest {
-	repeated string name = 1;
+	oneof delete {
+		bool all = 2;
+		VMNames names = 3;
+	}
 }
 
 message ListRequest {
 	bool vmonly = 1;
 }
 
+message VMNames {
+	repeated string list = 1;
+}
+
 message StopRequest {
-	string name = 1;
-	bool force = 2;
+	bool force = 1;
+	oneof stop {
+		bool all = 2;
+		VMNames names = 3;
+	}
 }
 
 message WaitIPRequest {
@@ -175,7 +185,7 @@ message ConfigureNetworkRequest {
 
 message NetworkRequest {
 	NetworkCommand command = 1;
-	oneof request {
+	oneof network {
 		string name = 2;
 		CreateNetworkRequest create = 3;
 		ConfigureNetworkRequest configure = 4;
@@ -203,7 +213,7 @@ message RemoteEntry {
 
 message RemoteRequest {
 	RemoteCommand command = 1;
-	oneof request {
+	oneof remote {
 		RemoteRequestAdd add = 2;
 		string delete = 3;
 	}
@@ -239,7 +249,7 @@ message DeleteTemplateReply {
 
 message TemplateRequest {
 	RemoteCommand command = 1;
-	oneof request {
+	oneof template {
 		TemplateRequestAdd create = 2;
 		string delete = 3;
 	}
@@ -451,7 +461,7 @@ message TerminalSize {
 }
 
 message ExecuteRequest {
-	oneof request {
+	oneof execute {
 		ExecuteCommand command = 1;
 		bytes input = 2;
 		TerminalSize size = 3;
