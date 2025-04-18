@@ -129,10 +129,18 @@ struct Logger {
 	}
 
 	static public func appendNewLine(_ line: String) {
+		if line.isEmpty {
+			return
+		}
+
 		print(line, terminator: "\n")
 	}
 
 	static public func updateLastLine(_ line: String) {
+		if line.isEmpty {
+			return
+		}
+
 		print(moveUp, moveBeginningOfLine, eraseCursorDown, line, separator: "", terminator: "\n")
 	}
 }

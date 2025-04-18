@@ -111,7 +111,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 
 	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}
 
-	public func renderSingle<T>(style: TextTableStyle.Type = Style.plain, uppercased: Bool = false, _ data: T) -> String where T: Encodable {
+	public func renderSingle<T>(style: TextTableStyle.Type = Style.grid, uppercased: Bool = true, _ data: T) -> String where T: Encodable {
 		switch self {
 		case .text:
 			return renderList(style: style, uppercased: uppercased, [data])
@@ -122,7 +122,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 		}
 	}
 
-	public func renderList<T>(style: TextTableStyle.Type = Style.plain, uppercased: Bool = false, _ data: Array<T>) -> String where T: Encodable {
+	public func renderList<T>(style: TextTableStyle.Type = Style.grid, uppercased: Bool = true, _ data: Array<T>) -> String where T: Encodable {
 		switch self {
 		case .text:
 			if (data.count == 0) {
@@ -146,25 +146,25 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 
 	public func render(_ data: [Caked_ImageInfo]) -> String {
 		if self == .text {
-			return self.renderList(style: Style.grid, uppercased: true, data.map { ShortImageInfo(from: $0) })
+			return self.renderList(data.map { ShortImageInfo(from: $0) })
 		} else {
-			return self.renderList(style: Style.grid, uppercased: true, data.map { ImageInfo(from: $0) })
+			return self.renderList(data.map { ImageInfo(from: $0) })
 		}
 	}
 
 	public func render(_ data: ImageInfos) -> String {
 		if self == .json {
-			return self.renderList(style: Style.grid, uppercased: true, data)
+			return self.renderList(data)
 		} else {
-			return self.renderList(style: Style.grid, uppercased: true, data.map { ShortImageInfo(imageInfo: $0) })
+			return self.renderList(data.map { ShortImageInfo(imageInfo: $0) })
 		}
 	}
 
 	public func render(_ data: ImageInfo) -> String {
 		if self == .json {
-			return self.renderSingle(style: Style.grid, uppercased: true, data)
+			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(style: Style.grid, uppercased: true, ShortImageInfo(imageInfo: data))
+			return self.renderSingle(ShortImageInfo(imageInfo: data))
 		}
 	}
 
@@ -174,9 +174,9 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 
 	public func render(_ data: LinuxContainerImage) -> String {
 		if self == .json {
-			return self.renderSingle(style: Style.grid, uppercased: true, data)
+			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(style: Style.grid, uppercased: true, ShortLinuxContainerImage(image: data))
+			return self.renderSingle(ShortLinuxContainerImage(image: data))
 		}
 	}
 
@@ -186,9 +186,9 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 
 	public func render(_ data: InfoReply) -> String {
 		if self == .json {
-			return self.renderSingle(style: Style.grid, uppercased: true, data)
+			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(style: Style.grid, uppercased: true, ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0))
+			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0))
 		}
 	}
 
@@ -197,18 +197,26 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: [DeleteReply]) -> String {
-		return self.renderList(style: Style.grid, uppercased: true, data)
+		return self.renderList(data)
 	}
 
 	public func render(_ data: Caked_DeleteReply) -> String {
 		return self.render(data.objects.map{ DeleteReply(from: $0) })
 	}
 
+	public func render(_ data: [StopReply]) -> String {
+		return self.renderList(data)
+	}
+
+	public func render(_ data: Caked_StopReply) -> String {
+		return self.render(data.objects.map{ StopReply(from: $0) })
+	}
+
 	public func render(_ data: VirtualMachineInfos) -> String {
 		if self == .json {
-			return self.renderList(style: Style.grid, uppercased: true, data)
+			return self.renderList(data)
 		} else {
-			return self.renderList(style: Style.grid, uppercased: true, data.reduce(into: [ShortVirtualMachineInfo]()) { result, vm in
+			return self.renderList(data.reduce(into: [ShortVirtualMachineInfo]()) { result, vm in
 				if vm.fqn.count > 1 {
 					vm.fqn.forEach { fqn in
 						result.append(ShortVirtualMachineInfo(from: VirtualMachineInfo(
@@ -236,7 +244,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: [MountVirtioFS]) -> String {
-		return self.renderList(style: Style.grid, uppercased: true, data)
+		return self.renderList(data)
 	}
 
 	public func render(_ data: MountInfos) -> String {
@@ -248,7 +256,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: BridgedNetwork) -> String {
-		return self.renderSingle(style: Style.grid, uppercased: true, data)
+		return self.renderSingle(data)
 	}
 
 	public func render(_ data: Caked_NetworkInfo) -> String {
@@ -256,7 +264,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: [BridgedNetwork]) -> String {
-		return self.renderList(style: Style.grid, uppercased: true, data)
+		return self.renderList(data)
 	}
 
 	public func render(_ data: Caked_ListNetworksReply) -> String {
@@ -264,7 +272,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: [RemoteEntry]) -> String {
-		return self.renderList(style: Style.grid, uppercased: true, data)
+		return self.renderList(data)
 	}
 
 	public func render(_ data: Caked_ListRemoteReply) -> String {
@@ -272,15 +280,15 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 	}
 
 	public func render(_ data: CreateTemplateReply) -> String {
-		return self.renderSingle(style: Style.grid, uppercased: true, data)
+		return self.renderSingle(data)
 	}
 
 	public func render(_ data: Caked_CreateTemplateReply) -> String {
-		return self.renderSingle(style: Style.grid, uppercased: true, CreateTemplateReply(from: data))
+		return self.renderSingle(CreateTemplateReply(from: data))
 	}
 
 	public func render(_ data: DeleteTemplateReply) -> String {
-		return self.renderSingle(style: Style.grid, uppercased: true, data)
+		return self.renderSingle(data)
 	}
 
 	public func render(_ data: Caked_DeleteTemplateReply) -> String {
@@ -289,17 +297,17 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 
 	public func render(_ data: [TemplateEntry]) -> String {
 		if self == .json {
-			return self.renderList(style: Style.grid, uppercased: true, data)
+			return self.renderList(data)
 		} else {
-			return self.renderList(style: Style.grid, uppercased: true, data.map { ShortTemplateEntry(from: $0) })
+			return self.renderList(data.map { ShortTemplateEntry(from: $0) })
 		}
 	}
 
 	public func render(_ data: Caked_ListTemplatesReply) -> String {
 		if self == .json {
-			return self.renderList(style: Style.grid, uppercased: true, data.templates.map { TemplateEntry(from: $0) })
+			return self.renderList(data.templates.map { TemplateEntry(from: $0) })
 		} else {
-			return self.renderList(style: Style.grid, uppercased: true, data.templates.map { ShortTemplateEntry(from: $0) })
+			return self.renderList(data.templates.map { ShortTemplateEntry(from: $0) })
 		}
 	}
 }

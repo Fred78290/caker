@@ -106,8 +106,18 @@ message DeletedObject {
 	bool deleted = 3;
 }
 
+message StoppedObject {
+	string name = 1;
+	string status = 2;
+	bool stopped = 3;
+}
+
 message DeleteReply {
 	repeated DeletedObject objects = 1;
+}
+
+message StopReply {
+	repeated StoppedObject objects = 1;
 }
 
 enum RemoteCommand {
@@ -360,8 +370,9 @@ message VirtualMachineReply {
 	oneof response {
 		VirtualMachineInfoReply list = 1;
 		DeleteReply delete = 2;
-		InfoReply infos = 3;
-		string message = 4;
+		StopReply stop = 3;
+		InfoReply infos = 4;
+		string message = 5;
 	}
 }
 

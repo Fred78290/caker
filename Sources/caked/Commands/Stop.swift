@@ -1,11 +1,15 @@
 import ArgumentParser
 import Logging
+import GRPCLib
 
 struct Stop: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Stop VM")
 
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
+
+	@Option(name: .shortAndLong, help: "Output format")
+	var format: Format = .text
 
 	@Argument(help: "VM names to stop")
 	var names: [String] = []
@@ -29,6 +33,6 @@ struct Stop: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(try StopHandler.stopVMs(all: self.all, names: self.names, force: self.force, asSystem: false).joined(separator: "\n"))
+		Logger.appendNewLine(self.format.render(try StopHandler.stopVMs(all: self.all, names: self.names, force: self.force, asSystem: false)))
 	}
 }

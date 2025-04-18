@@ -112,7 +112,8 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
-				"list"
+				"list",
+				"--vmonly"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",

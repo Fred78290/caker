@@ -17,6 +17,9 @@ struct Stop: GrpcParsableCommand {
 	@Flag(name: [.short, .long], help: "Stop all VM")
 	var all: Bool = false
 
+	@Option(name: .shortAndLong, help: "Output format: text or json")
+	var format: Format = .text
+
 	func validate() throws {
 		if all {
 			if !name.isEmpty {
@@ -28,6 +31,6 @@ struct Stop: GrpcParsableCommand {
 	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.message
+		return self.format.render(try client.stop(Caked_StopRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.stop)
 	}
 }

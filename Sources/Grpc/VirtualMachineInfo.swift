@@ -17,6 +17,32 @@ extension VirtualMachineInfos {
 	}
 }
 
+public struct StopReply: Codable {
+	public let name: String
+	public let status: String
+	public let stopped: Bool
+	
+	public init(from: Caked_StoppedObject) {
+		self.name = from.name
+		self.status = from.status
+		self.stopped = from.stopped
+	}
+	
+	public init(name: String, status: String, stopped: Bool) {
+		self.name = name
+		self.status = status
+		self.stopped = stopped
+	}
+	
+	public func toCaked_StoppedObject() -> Caked_StoppedObject{
+		Caked_StoppedObject.with { object in
+			object.name = name
+			object.status = status
+			object.stopped = stopped
+		}
+	}
+}
+
 public struct DeleteReply: Codable {
 	public let source: String
 	public let name: String
