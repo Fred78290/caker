@@ -13,7 +13,7 @@ struct VMBuilder {
 		case stream
 	}
 
-	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource) throws {
+	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource, asSystem: Bool) throws {
 		let config: CakeConfig
 
 		// Create or resize disk
@@ -57,18 +57,19 @@ struct VMBuilder {
 										sshAuthorizedKeyPath: options.sshAuthorizedKey,
 										vendorDataPath: options.vendorData,
 										userDataPath: options.userData,
-										networkConfigPath: options.networkConfig)
+										networkConfigPath: options.networkConfig,
+										asSystem: asSystem)
 
 			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
 		}
 	}
 
-	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> ImageSource {
+	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions, asSystem: Bool) async throws -> ImageSource {
 		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
 		var sourceImage: ImageSource = .cloud
-		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
+		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
@@ -90,7 +91,7 @@ struct VMBuilder {
 		if imageURL.isFileURL || scheme == "img" {
 			imageURL.resolveSymlinksInPath()
 
-			let temporaryDiskURL: URL = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
+			let temporaryDiskURL: URL = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
 			try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
 			_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)
@@ -99,14 +100,14 @@ struct VMBuilder {
 			sourceImage = .raw
 		} else if scheme == "template" {
 			let templateName = imageURL.host()!
-			let templateLocation = try StorageLocation(asSystem: runAsSystem, template: true).find(templateName)
+			let templateLocation = try StorageLocation(asSystem: asSystem, template: true).find(templateName)
 
 			try FileManager.default.copyItem(at: templateLocation.diskURL, to: vmLocation.diskURL)
 			sourceImage = .template
 		} else if scheme == "qcow2" {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
 		} else if scheme == "http" || scheme == "https" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL, asSystem: asSystem)
 		} else if scheme == "oci" || scheme == "ocis" {
 			if Root.tartIsPresent == false {
 				throw ServiceError("tart is not installed")
@@ -121,7 +122,7 @@ struct VMBuilder {
 				arguments = [ociImage, vmName]
 			}
 
-			try Shell.runTart(command: "clone", arguments: arguments)
+			try Shell.runTart(command: "clone", arguments: arguments, asSystem: asSystem)
 
 			sourceImage = .oci
 		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), maxSplits: 1, omittingEmptySubsequences: true).last {
@@ -129,10 +130,10 @@ struct VMBuilder {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
 			}
 
-			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
-			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage))
+			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, asSystem: asSystem)
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), asSystem: asSystem)
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL)
+			try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL, asSystem: asSystem)
 
 			sourceImage = .stream
 		} else {
@@ -142,20 +143,20 @@ struct VMBuilder {
 		return sourceImage
 	}
 
-	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions) async throws -> ImageSource {
-		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options)
+	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions, asSystem: Bool) async throws -> ImageSource {
+		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options, asSystem: asSystem)
 
 		if sourceImage == .oci {
-			let vmLocation = try StorageLocation(asSystem: runAsSystem).find(vmName)
+			let vmLocation = try StorageLocation(asSystem: asSystem).find(vmName)
 
 			do {
-				try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
+				try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage, asSystem: asSystem)
 			} catch {
 				try? vmLocation.delete()
 				throw error
 			}
 		} else {
-			try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage)
+			try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage, asSystem: asSystem)
 		}
 
 		return sourceImage

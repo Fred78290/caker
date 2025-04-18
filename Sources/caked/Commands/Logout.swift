@@ -8,17 +8,16 @@ import Logging
 struct Logout: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "host")
 	var host: String
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() throws {
-		Logger.appendNewLine(try LogoutHandler.logout(host: self.host, direct: true))
+		Logger.appendNewLine(self.common.format.render(try LogoutHandler.logout(host: self.host, direct: true, asSystem: self.common.asSystem)))
 	}
 }

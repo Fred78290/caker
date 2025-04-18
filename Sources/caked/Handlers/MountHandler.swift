@@ -56,7 +56,7 @@ struct MountHandler: CakedCommandAsync {
 	}
 
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
-		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.request.name)
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.request.name)
 		let directorySharingAttachment = self.request.directorySharingAttachment()
 		let command = self.request.command
 

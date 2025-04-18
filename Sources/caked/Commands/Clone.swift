@@ -16,11 +16,7 @@ struct Clone: ParsableCommand {
 	"""
 	)
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
-	@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-	var asSystem: Bool = false
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "source VM name")
 	var sourceName: String
@@ -38,7 +34,9 @@ struct Clone: ParsableCommand {
 	var deduplicate: Bool = false
 
 	func validate() throws {
-		if StorageLocation(asSystem: asSystem).exists(newName) {
+		Logger.setLevel(self.common.logLevel)
+
+		if StorageLocation(asSystem: self.common.asSystem).exists(newName) {
 			throw ValidationError("VM already exists")
 		}
 
@@ -52,8 +50,8 @@ struct Clone: ParsableCommand {
 	}
 
 	mutating func run() throws {
-		Logger.appendNewLine(try CloneHandler.clone(name: self.newName, from: self.sourceName,
+		Logger.appendNewLine(self.common.format.render(try CloneHandler.clone(name: self.newName, from: self.sourceName,
 				concurrency: self.concurrency, deduplicate: self.deduplicate,
-				insecure: self.insecure, direct: true, asSystem: asSystem))
+				insecure: self.insecure, direct: true, asSystem: self.common.asSystem)))
 	}
 }

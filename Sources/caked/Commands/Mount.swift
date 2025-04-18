@@ -10,24 +10,22 @@ import TextTable
 struct Mount: ParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "VM name")
 	var name: String = ""
-
-	@Option(name: .shortAndLong, help: "Output format")
-	var format: Format = .text
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
 	var mounts: [DirectorySharingAttachment] = []
 
 	mutating public func validate() throws {
+		Logger.setLevel(self.common.logLevel)
+
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
 
-		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
 		let config: CakeConfig = try vmLocation.config()
 		let directorySharingAttachments = config.mounts
 
@@ -41,10 +39,10 @@ struct Mount: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(self.name)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
 		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mounts)
 
-		Logger.appendNewLine(self.format.render(response))
+		Logger.appendNewLine(self.common.format.render(response))
 
 		if case let .error(error) = response.response {
 			FileHandle.standardError.write("\(error)\n".data(using: .utf8)!)

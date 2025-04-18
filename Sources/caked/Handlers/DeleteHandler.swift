@@ -12,13 +12,13 @@ import TextTable
 struct DeleteHandler: CakedCommand {
 	var request: Caked_DeleteRequest
 
-	static func tryDeleteLocal(name: String) -> DeleteReply? {
+	static func tryDeleteLocal(name: String, asSystem: Bool) -> DeleteReply? {
 		var vmLocation: VMLocation? = nil
 
-		if let location = try? StorageLocation(asSystem: false).find(name) {
+		if let location = try? StorageLocation(asSystem: asSystem).find(name) {
 			vmLocation = location
 		} else if let u = URL(string: name), u.scheme == "vm" {
-			vmLocation = try? StorageLocation(asSystem: false).find(u.host()!)
+			vmLocation = try? StorageLocation(asSystem: asSystem).find(u.host()!)
 		}
 
 		if let location = vmLocation, location.status != .running {
@@ -38,16 +38,16 @@ struct DeleteHandler: CakedCommand {
 			guard let result = tryDeleteLocal(name: name) else {
 				if let u = URL(string: name) {
 					var purgeableStorages: [String: CommonCacheImageCache] = [
-						CloudImageCache.scheme: try CloudImageCache(),
-						RawImageCache.scheme: try RawImageCache(),
-						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache()
+						CloudImageCache.scheme: try CloudImageCache(asSystem: asSystem),
+						RawImageCache.scheme: try RawImageCache(asSystem: asSystem),
+						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(asSystem: asSystem)
 					]
 
 					if true {
 						let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 	
 						try remoteDb.keys.forEach {
-							purgeableStorages[$0] = try SimpleStreamsImageCache()
+							purgeableStorages[$0] = try SimpleStreamsImageCache(asSystem: asSystem)
 						}
 					}
 
@@ -75,7 +75,7 @@ struct DeleteHandler: CakedCommand {
 		var names = names
 
 		if all {
-			names = try StorageLocation(asSystem: false).list().map { $0.key }
+			names = try StorageLocation(asSystem: asSystem).list().map { $0.key }
 		}
 		
 		return try DeleteHandler.delete(names: names, asSystem: asSystem)
@@ -85,7 +85,7 @@ struct DeleteHandler: CakedCommand {
 		try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
 				$0.delete = try Caked_DeleteReply.with {
-					$0.objects = try Self.delete(all: self.request.all, names: self.request.names.list, asSystem: runAsSystem).map {
+					$0.objects = try Self.delete(all: self.request.all, names: self.request.names.list, asSystem: asSystem).map {
 						$0.toCaked_DeletedObject()
 					}
 				}

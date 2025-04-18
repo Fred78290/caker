@@ -10,36 +10,31 @@ import TextTable
 struct Infos: CakeAgentAsyncParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
+	@OptionGroup var common: CommonOptions
+
 	@Argument(help: "VM name")
 	var name: String
-
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
-	@Option(name: .shortAndLong, help: "Output format: text or json")
-	var format: Format = .text
 
 	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-	var asSystem: Bool = false
-
 	var createVM: Bool = false
 
-	var retries: GRPC.ConnectionBackoff.Retries {
-		.unlimited
+	var logLevel: Logging.Logger.Level {
+		self.common.logLevel
 	}
 
-	var callOptions: GRPC.CallOptions? {
-		CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(options.timeout)))
+	var asSystem: Bool {
+		self.common.asSystem
 	}
 
 	mutating func validate() throws {
-		try self.validateOptions()
+		Logger.setLevel(self.common.logLevel)
+
+		try self.validateOptions(asSystem: self.common.asSystem)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		Logger.appendNewLine(self.format.render(try InfosHandler.infos(name: self.name, asSystem: self.asSystem, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
+		Logger.appendNewLine(self.common.format.render(try InfosHandler.infos(name: self.name, asSystem: self.common.asSystem, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
 	}
 }

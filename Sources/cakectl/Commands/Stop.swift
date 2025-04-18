@@ -11,10 +11,10 @@ struct Stop: GrpcParsableCommand {
 	@Argument(help: "VM names to stop")
 	var name: [String] = []
 
-	@Option(name: [.short, .long], help: "Force to stop")
+	@Option(name: .shortAndLong, help: "Force to stop")
 	var force: Bool = false
 
-	@Flag(name: [.short, .long], help: "Stop all VM")
+	@Flag(name: .shortAndLong, help: "Stop all VM")
 	var all: Bool = false
 
 	@Option(name: .shortAndLong, help: "Output format: text or json")

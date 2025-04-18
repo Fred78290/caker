@@ -3,6 +3,7 @@ import Darwin
 import Foundation
 import Logging
 import NIO
+import GRPC
 import GRPCLib
 
 nonisolated(unsafe) var runAsSystem: Bool = geteuid() == 0
@@ -15,6 +16,17 @@ let delegatedCommand: [String] = [
 ]
 
 let COMMAND_NAME="caked"
+
+struct CommonOptions: ParsableArguments {
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
+
+	@Option(name: .shortAndLong, help: "Output format: text or json")
+	var format: Format = .text
+
+	@Flag(name: [.customLong("system"), .customShort("s")], help: "Act as system agent, need sudo")
+	var asSystem: Bool = false
+}
 
 @main
 struct Root: AsyncParsableCommand {
@@ -71,9 +83,9 @@ struct Root: AsyncParsableCommand {
 			WaitIP.self,
 		])
 
-	static func environment() throws -> [String: String] {
+	static func environment(asSystem: Bool) throws -> [String: String] {
 		var environment = ProcessInfo.processInfo.environment
-		let home = try Utils.getHome(asSystem: runAsSystem)
+		let home = try Utils.getHome(asSystem: asSystem)
 
 		environment["TART_HOME"] = home.path
 
@@ -143,7 +155,7 @@ struct Root: AsyncParsableCommand {
 
 				if let commandName = commandName {
 					if delegatedCommand.contains(commandName) {
-						try Shell.runTart(command: commandName, arguments: arguments, direct: true)
+						try Shell.runTart(command: commandName, arguments: arguments, direct: true, asSystem: runAsSystem)
 						try? await Self.group.shutdownGracefully()
 						return
 					}
@@ -161,6 +173,12 @@ struct Root: AsyncParsableCommand {
 			try? await Self.group.shutdownGracefully()
 		} catch {
 			try? await Self.group.shutdownGracefully()
+
+			if let err = error as? GRPCStatus {
+				let description = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
+				FileHandle.standardError.write("\(description)\n".data(using: .utf8)!)
+				Foundation.exit(Int32(err.code.rawValue))
+			}
 
 			if let shellError = error as? ShellError {
 				//fputs("\(shellError.error)\n", stderr)

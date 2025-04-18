@@ -9,7 +9,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 	var olderThan: UInt?
 	var spaceBudget: UInt?
 
-	@discardableResult static func purge(direct: Bool, _ self: PurgeArguments) throws -> String {
+	@discardableResult static func purge(direct: Bool, asSystem: Bool, _ self: PurgeArguments) throws -> String {
 		var arguments: [String] = [ self.entries ]
 
 		if let olderThan = self.olderThan {
@@ -21,7 +21,12 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		}
 
 		if self.entries == "caches" {
-			let purgeableStorages = [try OCIImageCache(), try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
+			let purgeableStorages = [
+				try OCIImageCache(asSystem: asSystem),
+				try CloudImageCache(asSystem: asSystem),
+				try RawImageCache(asSystem: asSystem),
+				try SimpleStreamsImageCache(name: "", asSystem: asSystem)
+			]
 
 			if let olderThan = self.olderThan {
 				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
@@ -36,7 +41,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 		}
 
 		if Root.tartIsPresent {
-			return try Shell.runTart(command: "prune", arguments: arguments, direct: direct)
+			return try Shell.runTart(command: "prune", arguments: arguments, direct: direct, asSystem: asSystem)
 		}
 
 		return ""
@@ -75,7 +80,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with {
 			$0.vms = try Caked_VirtualMachineReply.with {
-				$0.message = try Self.purge(direct: asSystem, self)
+				$0.message = try Self.purge(direct: asSystem, asSystem: asSystem, self)
 			}
 		}
 	}

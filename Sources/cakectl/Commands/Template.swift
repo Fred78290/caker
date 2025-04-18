@@ -18,7 +18,7 @@ struct Template: ParsableCommand {
 		@Argument(help: "Template name")
 		var template: String
 
-		@Option(name: .shortAndLong, help: "Output format")
+		@Flag(help: "Output format")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -34,7 +34,7 @@ struct Template: ParsableCommand {
 		@Argument(help: "Template name")
 		var name: String
 
-		@Option(name: .shortAndLong, help: "Output format")
+		@Flag(help: "Output format")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -47,7 +47,7 @@ struct Template: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format")
+		@Flag(help: "Output format")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {

@@ -116,14 +116,19 @@ class CakeCtl:
 		return self.run(["remote", "list"])
 
 	def exec(self, vmname, commands):
-		return self.run(["exec", vmname, "--"] + commands)
+		return self.run(["exec", vmname, "--"] + commands, input=b"fake input")
 
-	def run(self, args, pass_fds=()):
+	def run(self, args, input=None, timeout=None, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
 
-		completed_process = subprocess.run(["cakectl"] + args, env=env, capture_output=True, pass_fds=pass_fds)
+		completed_process = subprocess.run(["cakectl"] + args, env=env, capture_output=True, input=input, timeout=timeout, pass_fds=pass_fds)
 
 		completed_process.check_returncode()
 
 		return completed_process.stdout.decode("utf-8"), completed_process.stderr.decode("utf-8")
+
+	def run_async(self, args, pass_fds=()) -> subprocess.Popen:
+		env = os.environ.copy()
+		env.update({"CAKE_HOME": self.home()})
+		return subprocess.Popen(["cakectl"] + args, env=env, pass_fds=pass_fds)

@@ -175,8 +175,8 @@ final class CakeAgentConnection: Sendable {
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
 
-	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) throws {
-		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
+	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited, asSystem: Bool) throws {
+		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
@@ -424,6 +424,6 @@ final class CakeAgentConnection: Sendable {
 	}
 
 	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
-		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries)
+		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries, asSystem: asSystem)
 	}
 }

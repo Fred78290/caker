@@ -21,7 +21,7 @@ struct StopHandler: CakedCommand {
 
 	static func stopVMs(all: Bool, names: [String], force: Bool, asSystem: Bool) throws -> [StopReply] {
 		if all {
-			return try StorageLocation(asSystem: false).list().compactMap { (key: String, value: VMLocation) in
+			return try StorageLocation(asSystem: asSystem).list().compactMap { (key: String, value: VMLocation) in
 				if value.status == .running {
 					try value.stopVirtualMachine(force: force, asSystem: asSystem)
 
@@ -38,7 +38,7 @@ struct StopHandler: CakedCommand {
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
-		let result = try StopHandler.stopVMs(all: self.request.all, names: self.request.names.list, force: self.request.force, asSystem: runAsSystem)
+		let result = try StopHandler.stopVMs(all: self.request.all, names: self.request.names.list, force: self.request.force, asSystem: asSystem)
 
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {

@@ -8,10 +8,12 @@ import Logging
 
 protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var name: String { get }
-	var createVM: Bool { get }	
+	var createVM: Bool { get }
+	var asSystem: Bool { get }
 	var options: CakeAgentClientOptions { set get }
 	var logLevel: Logging.Logger.Level { get }
 	var retries: ConnectionBackoff.Retries { get }
+	var callOptions: CallOptions? { get }
 	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? { get }
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws
@@ -19,32 +21,32 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 
 extension CakeAgentAsyncParsableCommand {
 	var retries: ConnectionBackoff.Retries {
-		.unlimited
+		.upTo(1)
 	}
 
 	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
 		nil
 	}
 
-	var callOptions: GRPC.CallOptions? {
+	var callOptions: CallOptions? {
 		CallOptions(timeLimit: .none)
 	}
 
-	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false) throws {
-		let vmLocation = try StorageLocation(asSystem: false).find(name)
+	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false, asSystem: Bool) throws {
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 
 		if vmLocation.status != .running {
 			Logger(self).info("Starting VM \(name)")
 			let config = try vmLocation.config()
 
-			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background)
+			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, asSystem: asSystem)
 		}
 	}
 
-	mutating func validateOptions() throws {
+	mutating func validateOptions(asSystem: Bool) throws {
 		Logger.setLevel(self.logLevel)
 
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 		let listeningAddress: URL
 
 		if name.contains("/") {
@@ -52,9 +54,9 @@ extension CakeAgentAsyncParsableCommand {
 		}
 
 		if self.createVM {
-			listeningAddress = StorageLocation(asSystem: runAsSystem).location(name).agentURL
+			listeningAddress = StorageLocation(asSystem: asSystem).location(name).agentURL
 		} else {
-			listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
+			listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
 		}
 
 		if self.options.insecure == false{
@@ -75,12 +77,10 @@ extension CakeAgentAsyncParsableCommand {
 	}
 
 	mutating func validate() throws {
-		try self.validateOptions()
+		try self.validateOptions(asSystem: self.asSystem)
 	}
 
 	mutating func run() async throws {
-		Root.sigintSrc.cancel()
-
 		let eventLoop = Root.group.next()
 		let grpcClient = try self.options.createClient(on: eventLoop, retries: self.retries, interceptors: self.interceptors)
 

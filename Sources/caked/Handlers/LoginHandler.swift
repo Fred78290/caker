@@ -7,7 +7,7 @@ import GRPCLib
 struct LoginHandler: CakedCommand {
 	let request: Caked_LoginRequest
 
-	@discardableResult static func login(host: String, username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool) throws -> String {
+	@discardableResult static func login(host: String, username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool, asSystem: Bool) throws -> String {
 		var arguments: [String] = [host, "--user=\(username)", "--password-stdin"]
 
 		if insecure {
@@ -18,13 +18,13 @@ struct LoginHandler: CakedCommand {
 			arguments.append("--no-validate")
 		}
 
-		return try Shell.runTart(command: "login", arguments: arguments, direct: direct, input: password)
+		return try Shell.runTart(command: "login", arguments: arguments, direct: direct, input: password, asSystem: asSystem)
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with {
 			$0.tart = try Caked_TartReply.with {
-				$0.message = try Self.login(host: self.request.host, username: self.request.username, password: self.request.password, insecure: self.request.insecure, noValidate: self.request.insecure, direct: false)
+				$0.message = try Self.login(host: self.request.host, username: self.request.username, password: self.request.password, insecure: self.request.insecure, noValidate: self.request.insecure, direct: false, asSystem: asSystem)
 			}
 		}
 	}

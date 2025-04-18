@@ -137,8 +137,6 @@ extension Service {
 		}
 
 		func run() throws {
-			runAsSystem = self.asSystem
-
 			let listenAddress: String = try getListenAddress()
 			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
 			let cakeHome: URL = try Utils.getHome(asSystem: self.asSystem)
@@ -208,11 +206,11 @@ extension Service {
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
-		@Flag(help: .hidden)
-		var secure: Bool = false
-
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
 		var asSystem: Bool = false
+
+		@Flag(help: .hidden)
+		var secure: Bool = false
 
 		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
 		var address: [String] = []
@@ -227,6 +225,8 @@ extension Service {
 		var tlsKey: String?
 
 		mutating func validate() throws {
+			runAsSystem = self.asSystem
+
 			Logger.setLevel(self.logLevel)
 
 			if self.secure {
@@ -309,8 +309,6 @@ extension Service {
 		}
 
 		func run() async throws {
-			runAsSystem = self.asSystem
-
 			if Root.vmrunAvailable() == false {
 				PortForwardingServer.createPortForwardingServer(group: Root.group)
 			}
@@ -328,6 +326,8 @@ extension Service {
 				                             tlsCert: self.tlsCert,
 				                             tlsKey: self.tlsKey).wait()
 			}
+
+			Root.sigintSrc.cancel()
 
 			signal(SIGINT, SIG_IGN)
 
@@ -411,8 +411,6 @@ extension Service {
 		}
 
 		mutating func run() throws {
-			runAsSystem = self.asSystem
-
 			let listenAddress: String = try getListenAddress()
 
 			var arguments: [String] = [

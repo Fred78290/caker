@@ -14,18 +14,18 @@ struct RunHandler: CakedCommandAsync {
 		if vmname == "" {
 			vmname = "primary"
 
-			if StorageLocation(asSystem: runAsSystem).exists(vmname) == false {
+			if StorageLocation(asSystem: asSystem).exists(vmname) == false {
 				Logger(self).info("Creating primary VM")
-				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: false)
+				try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: asSystem)
 			}
 		}
 
-		let vmLocation: VMLocation = try StorageLocation(asSystem: runAsSystem).find(vmname)
+		let vmLocation: VMLocation = try StorageLocation(asSystem: asSystem).find(vmname)
 
 		if vmLocation.status != .running {
 			Logger(self).info("Starting \(vmname)")
 
-			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: runAsSystem)
+			_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: asSystem)
 		}
 		return try client.run(command: command, arguments: arguments, input: input)
 	}

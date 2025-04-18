@@ -547,6 +547,7 @@ class CloudInit {
 	var mainGroup: String = "admin"
 	var sshAuthorizedKeys: [String]?
 	var clearPassword: Bool = false
+	var asSystem: Bool = false
 
 	private static func loadPublicKey(sshAuthorizedKey: String) throws -> String {
 		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey))
@@ -558,8 +559,8 @@ class CloudInit {
 		throw CypherKeyGeneratorError("unable to decode public key")
 	}
 
-	public static func sshAuthorizedKeys(sshAuthorizedKeyPath: String?) throws -> [String] {
-		let home: Home = try Home(asSystem: runAsSystem)
+	public static func sshAuthorizedKeys(sshAuthorizedKeyPath: String?, asSystem: Bool) throws -> [String] {
+		let home: Home = try Home(asSystem: asSystem)
 		let sharedPublicKey = try home.getSharedPublicKey()
 
 		if var sshAuthorizedKey = sshAuthorizedKeyPath {
@@ -570,7 +571,7 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?) throws {
+	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?, asSystem: Bool) throws {
 		self.userName = userName
 		self.password = password
 		self.mainGroup = mainGroup
@@ -579,17 +580,18 @@ class CloudInit {
 		self.userData = userData
 		self.vendorData = vendorData
 		self.networkConfig = networkConfig
+		self.asSystem = asSystem
 	}
 
-	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?) throws {
+	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, asSystem: Bool) throws {
 		try self.init(userName: userName,
 		              password: password,
 		              mainGroup: mainGroup,
 		              clearPassword: clearPassword,
-		              sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath),
+		              sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath, asSystem: asSystem),
 		              vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
 		              userData:userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
-		              networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil)
+		              networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil, asSystem: asSystem)
 	}
 
 	private func createMetaData(hostname: String, instanceID: String) throws -> Data {
@@ -600,10 +602,10 @@ class CloudInit {
 		return metadata
 	}
 
-	private func cakeagentBinary(config: CakeConfig) throws -> URL {
+	private func cakeagentBinary(config: CakeConfig, asSystem: Bool) throws -> URL {
 		let arch = Architecture.current().rawValue
 		let os = config.os.rawValue
-		let home: Home = try Home(asSystem: runAsSystem)
+		let home: Home = try Home(asSystem: asSystem)
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path) == false {
@@ -643,9 +645,9 @@ class CloudInit {
 		return install_cakeagent.data(using: .ascii)?.base64EncodedString() ?? ""
 	}
 
-	private func buildVendorData(config: CakeConfig) throws -> CloudConfigData {
+	private func buildVendorData(config: CakeConfig, asSystem: Bool) throws -> CloudConfigData {
 		let installCakeagent = installCakeAgentScript(config: config)
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: self.asSystem)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
@@ -687,7 +689,7 @@ class CloudInit {
 
 	private func createUserData(config: CakeConfig) throws -> Data {
 		if let userData = self.userData {
-			return try buildVendorData(config: config).toCloudInit(userData)
+			return try buildVendorData(config: config, asSystem: self.asSystem).toCloudInit(userData)
 		} else {
 			guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 				throw CloudInitGenerateError("unable to encode userdata")
@@ -700,7 +702,7 @@ class CloudInit {
 	private func createVendorData(config: CakeConfig) throws -> Data {
 		guard let vendorData = self.vendorData else {
 			if self.userData == nil {
-				return try buildVendorData(config: config).toCloudInit()
+				return try buildVendorData(config: config, asSystem: self.asSystem).toCloudInit()
 			} else {
 				guard let userData: Data = "#cloud-config\n{}".data(using: .ascii) else {
 					throw CloudInitGenerateError("unable to encode userdata")
@@ -768,7 +770,7 @@ class CloudInit {
 		seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
 		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name, instanceID: config.instanceID))
 		seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
-		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config))
+		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config, asSystem: self.asSystem))
 
 		// write
 		try writer.writeAndClose()

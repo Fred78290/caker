@@ -12,8 +12,7 @@ protocol PurgeArguments {
 struct Purge: ParsableCommand, PurgeArguments {
 	static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs."))
 	var entries: String = "caches"
@@ -29,7 +28,7 @@ struct Purge: ParsableCommand, PurgeArguments {
 	var spaceBudget: UInt?
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
 		if olderThan == nil && spaceBudget == nil {
 			throw ValidationError("at least one pruning criteria must be specified")
@@ -37,6 +36,6 @@ struct Purge: ParsableCommand, PurgeArguments {
 	}
 
 	func run() throws {
-		try PurgeHandler.purge(direct: true, self)
+		Logger.appendNewLine(self.common.format.render(try PurgeHandler.purge(direct: true, asSystem: self.common.asSystem, self)))
 	}
 }

@@ -5,7 +5,7 @@ import NIO
 
 var phUseLimaVMNet = false
 protocol NetworkAttachement {
-	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
+	func attachment(vmLocation: VMLocation, asSystem: Bool) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
 	func stop()
 }
 
@@ -17,7 +17,7 @@ class NATNetworkInterface: NetworkAttachement {
 		self.macAddress = macAddress
 	}
 
-	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+	func attachment(vmLocation: VMLocation, asSystem: Bool) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZNATNetworkDeviceAttachment())
 	}
 	
@@ -35,7 +35,7 @@ class BridgedNetworkInterface: NetworkAttachement {
 		self.macAddress = macAddress
 	}
 	
-	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+	func attachment(vmLocation: VMLocation, asSystem: Bool) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZBridgedNetworkDeviceAttachment(interface: interface))
 	}
 	
@@ -68,8 +68,8 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		self.networkConfig = networkConfig
 	}
 
-	func attachment(vmLocation: VMLocation) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
-		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation)))
+	func attachment(vmLocation: VMLocation, asSystem: Bool) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation, asSystem: asSystem)))
 	}
 	
 	func closed(side: VZVMNetHandlerClient.HandlerSide) {
@@ -103,25 +103,25 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 		}
 	}
 	
-	internal func vmnetEndpoint() throws -> (URL, URL){
-		if runAsSystem {
-			return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: runAsSystem)
+	internal func vmnetEndpoint(asSystem: Bool) throws -> (URL, URL){
+		if asSystem {
+			return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 		} else {
 			let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: true)
 			
 			if try systemSocketURL.0.exists() == false {
-				return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: false)
+				return try NetworksHandler.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
 			} else {
 				return systemSocketURL
 			}
 		}
 	}
 
-	internal func open(vmLocation: VMLocation) throws -> FileHandle {
-		var socketURL = try self.vmnetEndpoint()
+	internal func open(vmLocation: VMLocation, asSystem: Bool) throws -> FileHandle {
+		var socketURL = try self.vmnetEndpoint(asSystem: asSystem)
 		
 		if try socketURL.0.exists() == false && VMRun.launchedFromService {
-			socketURL = try NetworksHandler.start(networkName: networkName, asSystem: runAsSystem)
+			socketURL = try NetworksHandler.start(networkName: networkName, asSystem: asSystem)
 		}
 		
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
@@ -177,18 +177,18 @@ class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.CloseDele
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
 			let pidURL = vmLocation.rootURL.appending(path: "\(self.networkName).pid")
-			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL, asSystem:  runAsSystem)
+			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL, asSystem:  asSystem)
 			self.pidURL = pidURL
 		}
 		
 		return FileHandle(fileDescriptor: self.vmfd, closeOnDealloc: true)
 	}
 	
-	func stop() {
+	func stop(asSystem: Bool) {
 		if let process {
 			if process.isRunning {
 				if geteuid() != 0 {
-					_ = try? NetworksHandler.stop(pidURL: self.pidURL!, asSystem: false)
+					_ = try? NetworksHandler.stop(pidURL: self.pidURL!, asSystem: asSystem)
 				} else {
 					// Otherwise, we can just kill the process directly
 					kill(process.processIdentifier, SIGTERM)

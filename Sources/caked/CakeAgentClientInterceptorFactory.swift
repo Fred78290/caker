@@ -20,6 +20,12 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		func sendError(error: Error, context: ClientInterceptorContext<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>) {
 			self.errorCaught()
 
+			var error = error
+
+			if let status = error as? GRPCStatusTransformable {
+				error = status.makeGRPCStatus()
+			}
+
 			guard let err = error as? GRPCStatus else {
 				_ = context.eventLoop.makeFutureWithTask {
 					try? await self.responseStream.send(Caked_ExecuteResponse.with { 
@@ -31,7 +37,7 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 
 			_ = context.eventLoop.makeFutureWithTask {
 				try? await self.responseStream.send(Caked_ExecuteResponse.with { 
-					$0.failure = err.code == .unavailable || err.code == .cancelled ? "closed connection" : err.description
+					$0.failure = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
 				})
 			}
 		}

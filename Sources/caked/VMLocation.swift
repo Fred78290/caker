@@ -142,12 +142,12 @@ struct VMLocation {
 		return target
 	}
 
-	func duplicateTemporary() throws -> VMLocation {
-		return try self.copyTo(try Self.tempDirectory())
+	func duplicateTemporary(asSystem: Bool) throws -> VMLocation {
+		return try self.copyTo(try Self.tempDirectory(asSystem: asSystem))
 	}
 
-	static func tempDirectory() throws -> VMLocation {
-		let tmpDir = try Home(asSystem: runAsSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString)
+	static func tempDirectory(asSystem: Bool) throws -> VMLocation {
+		let tmpDir = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 		return VMLocation(rootURL: tmpDir, template: false)
@@ -252,7 +252,7 @@ struct VMLocation {
 	}
 
 	func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
-		let vm = try VirtualMachine(vmLocation: self, config: config)
+		let vm = try VirtualMachine(vmLocation: self, config: config, asSystem: asSystem)
 
 		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall, asSystem: asSystem) {
 			if let handler = completionHandler {
@@ -371,17 +371,17 @@ struct VMLocation {
 		} while true
 	}
 
-	func installAgent(config: CakeConfig, runningIP: String) throws -> Bool {
+	func installAgent(config: CakeConfig, runningIP: String, asSystem: Bool) throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
-		let home: Home = try Home(asSystem: runAsSystem)
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem)
+		let home: Home = try Home(asSystem: asSystem)
+		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
 		let serverKey: String = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
 		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
 		let sharedPublicKey = try home.getSharedPublicKey()
 		let ssh = try createSSH(host: runningIP, timeout: 120)
-		let tempFileURL = try Home(asSystem: false).temporaryDirectory.appendingPathComponent("install-agent.sh")
+		let tempFileURL = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
 		#!/bin/sh
 		set -xe

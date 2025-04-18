@@ -30,7 +30,7 @@ struct CloneHandler: CakedCommand {
 			arguments.append("--deduplicate")
 		}
 
-		try Shell.runTart(command: "clone", arguments: arguments, direct: direct)
+		try Shell.runTart(command: "clone", arguments: arguments, direct: direct, asSystem: asSystem)
 
 		let location = try StorageLocation(asSystem: asSystem).find(name)
 		let cakeConfig = try CakeConfig(location: location.rootURL, configuredUser: "admin", configuredPassword: "admin")

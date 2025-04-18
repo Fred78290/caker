@@ -18,7 +18,7 @@ struct Duplicate: GrpcParsableCommand {
 	@Option(name: .shortAndLong, help: "Reset mac address")
 	var resetMacAddress: Bool = false
 
-	@Option(name: .shortAndLong, help: "Output format")
+	@Flag(help: "Output format")
 	var format: Format = .text
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {

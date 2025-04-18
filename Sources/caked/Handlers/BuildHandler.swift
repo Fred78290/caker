@@ -14,7 +14,7 @@ struct BuildHandler: CakedCommandAsync {
 			throw ServiceError("VM already exists")
 		}
 
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(asSystem: asSystem)
 
 		// Lock the temporary VM directory to prevent it's garbage collection
 		let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
@@ -23,7 +23,7 @@ struct BuildHandler: CakedCommandAsync {
 		try await withTaskCancellationHandler(
 			operation: {
 				do {
-					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options) == .oci {
+					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options, asSystem: asSystem) == .oci {
 						try tempVMLocation.delete()
 					} else {
 						try StorageLocation(asSystem: asSystem).relocate(name, from: tempVMLocation)

@@ -14,25 +14,21 @@ import Logging
 struct Duplicate: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Duplicate a VM to a new name")
 	
+	@OptionGroup var common: CommonOptions
+
 	@Argument(help: "Source VM name")
 	var from: String
 
 	@Argument(help: "Duplicated VM name")
 	var to: String
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
 	@Option(name: .shortAndLong, help: "Reset mac address")
 	var resetMacAddress: Bool = false
 
-	@Option(name: .shortAndLong, help: "Output format")
-	var format: Format = .text
-
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
-		let storageLocation = StorageLocation(asSystem: runAsSystem)
+		let storageLocation = StorageLocation(asSystem: self.common.asSystem)
 		let fromLocation = try storageLocation.find(from)
 
 		// Check if the VM exists
@@ -46,6 +42,6 @@ struct Duplicate: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(try DuplicateHandler.duplicate(from: self.from, to: self.to, resetMacAddress:  self.resetMacAddress, asSystem: false))
+		Logger.appendNewLine(self.common.format.render(try DuplicateHandler.duplicate(from: self.from, to: self.to, resetMacAddress:  self.resetMacAddress, asSystem: self.common.asSystem)))
 	}
 }

@@ -137,23 +137,25 @@ def test_template(cakectl):
 	assert ubuntu not in stdout
 
 def test_networks(cakectl):
-	cakectl.run(["networks", "create", "test-network", "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
-	stdout, _ = cakectl.infos_networks("test-network")
-	assert "test-network" in stdout
+	network_name = f"test-network-{uuid.uuid4()}"
 
-	cakectl.start_networks("test-network")
-	stdout, _ = cakectl.infos_networks("test-network")
+	cakectl.run(["networks", "create", network_name, "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
+	stdout, _ = cakectl.infos_networks(network_name)
+	assert network_name in stdout
+
+	cakectl.start_networks(network_name)
+	stdout, _ = cakectl.infos_networks(network_name)
 	assert "vmnet.sock" in stdout
 
 	sleep(2)
 
-	cakectl.stop_networks("test-network")
-	stdout, _ = cakectl.infos_networks("test-network")
+	cakectl.stop_networks(network_name)
+	stdout, _ = cakectl.infos_networks(network_name)
 	assert "not running" in stdout
 
-	cakectl.delete_networks("test-network")
+	cakectl.delete_networks(network_name)
 	stdout, _ = cakectl.list_networks()
-	assert "test-network" not in stdout
+	assert network_name not in stdout
 
 def test_exec(cakectl):
 	ubuntu = f"ubuntu-{uuid.uuid4()}"

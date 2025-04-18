@@ -5,11 +5,7 @@ import GRPCLib
 struct Stop: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Stop VM")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
-	@Option(name: .shortAndLong, help: "Output format")
-	var format: Format = .text
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "VM names to stop")
 	var names: [String] = []
@@ -17,11 +13,11 @@ struct Stop: ParsableCommand {
 	@Flag(help: "Force stop")
 	var force: Bool = false
 
-	@Flag(name: [.short, .long], help: "Stop all VM")
+	@Flag(name: .shortAndLong, help: "Stop all VM")
 	var all: Bool = false
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
 		if all {
 			if !names.isEmpty {
@@ -33,6 +29,6 @@ struct Stop: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.format.render(try StopHandler.stopVMs(all: self.all, names: self.names, force: self.force, asSystem: false)))
+		Logger.appendNewLine(self.common.format.render(try StopHandler.stopVMs(all: self.all, names: self.names, force: self.force, asSystem: self.common.asSystem)))
 	}
 }

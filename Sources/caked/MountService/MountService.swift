@@ -92,6 +92,6 @@ func createMountServiceClient(vmLocation: VMLocation) -> MountServiceClient {
 }
 
 func createMountServiceServer(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {
-	return XPCMountServiceServer(group: Root.group.next(), asSystem: runAsSystem, vm: vm, certLocation: certLocation)
+	return XPCMountServiceServer(group: Root.group.next(), asSystem: asSystem, vm: vm, certLocation: certLocation)
 }
 

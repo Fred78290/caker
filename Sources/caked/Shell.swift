@@ -63,12 +63,13 @@ struct Shell {
 	@discardableResult static func runTart(command: String, arguments: [String],
 	                                       direct: Bool = false,
 	                                       input: String? = nil,
-	                                       sharedFileHandles: [FileHandle]? = nil) throws -> String{
+	                                       sharedFileHandles: [FileHandle]? = nil,
+										   asSystem: Bool) throws -> String{
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
 		let errorPipe : Pipe = direct ? Pipe() : outputPipe
-		let cakeHomeDir = try Utils.getHome(asSystem: runAsSystem)
+		let cakeHomeDir = try Utils.getHome(asSystem: asSystem)
 
 		if command.count > 0 {
 			args.append(command)

@@ -9,7 +9,7 @@ struct Delete: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Option(name: .shortAndLong, help: "Output format")
+	@Flag(help: "Output format")
 	var format: Format = .text
 
 	@Argument(help: "VM name")

@@ -166,23 +166,25 @@ def test_template(caked):
 	assert ubuntu not in stdout
 
 def test_networks(caked):
-	caked.run(["networks", "create", "test-network", "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
-	stdout, _ = caked.infos_networks("test-network")
-	assert "test-network" in stdout
+	network_name = f"test-network-{uuid.uuid4()}"
 
-	caked.start_networks("test-network")
-	stdout, _ = caked.infos_networks("test-network")
+	caked.run(["networks", "create", network_name, "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
+	stdout, _ = caked.infos_networks(network_name)
+	assert network_name in stdout
+
+	caked.start_networks(network_name)
+	stdout, _ = caked.infos_networks(network_name)
 	assert "vmnet.sock" in stdout
 
 	sleep(2)
 
-	caked.stop_networks("test-network")
-	stdout, _ = caked.infos_networks("test-network")
+	caked.stop_networks(network_name)
+	stdout, _ = caked.infos_networks(network_name)
 	assert "not running" in stdout
 
-	caked.delete_networks("test-network")
+	caked.delete_networks(network_name)
 	stdout, _ = caked.list_networks()
-	assert "test-network" not in stdout
+	assert network_name not in stdout
 
 def test_exec(caked):
 	ubuntu = f"ubuntu-{uuid.uuid4()}"

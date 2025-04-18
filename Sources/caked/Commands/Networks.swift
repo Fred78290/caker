@@ -21,10 +21,10 @@ struct Networks: ParsableCommand {
 	                                                                      	Networks.Restart.self,
 	                                                                      	Networks.Stop.self])
 
-	static func validateNetwork(networkName: String) throws {
+	static func validateNetwork(networkName: String, asSystem: Bool) throws {
 		// Validate the network name
 		if NetworksHandler.isPhysicalInterface(name: networkName) == false {
-			let home: Home = try Home(asSystem: runAsSystem)
+			let home: Home = try Home(asSystem: asSystem)
 			let networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[networkName] == nil {
@@ -36,122 +36,102 @@ struct Networks: ParsableCommand {
 	struct Infos: ParsableCommand {
 		static let configuration = CommandConfiguration(commandName: "infos", abstract: "Network infos", discussion: "This command is used retrieve the network device information")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
 		func validate() throws {
-			try validateNetwork(networkName: self.name)
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
+
+			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.format.render(try NetworksHandler.status(networkName: self.name, asSystem: asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.status(networkName: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct DHCPLease: ParsableCommand {
 		static let configuration = CommandConfiguration(commandName: "set-dhcp-lease", abstract: "Set DHCP lease duration.", discussion: "This command is used to set the dhcp lease")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "DHCP lease time in seconds")
 		var dhcpLease: Int32 = 300
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.setDHCPLease(leaseTime: self.dhcpLease, asSystem: asSystem))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.setDHCPLease(leaseTime: self.dhcpLease, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Start: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device location.")
 
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
-
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
 		mutating func validate() throws {
-			try validateNetwork(networkName: self.name)
+			Logger.setLevel(self.common.logLevel)
 
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: asSystem)
+			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
+
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: self.common.asSystem)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Network \(self.name) already running")
 			}
-
-			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: self.common.asSystem), asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Restart: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Restart named network device.", discussion: "This command is used to restart the VMNet network device.")
 
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
-
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
 
 		mutating func validate() throws {
-			try validateNetwork(networkName: self.name)
+			Logger.setLevel(self.common.logLevel)
 
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: asSystem)
+			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
+
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: self.common.asSystem)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) == false {
 				throw ValidationError("Network \(self.name) is not running")
 			}
-
-			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: asSystem))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Create: AsyncParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Create named shared network")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@OptionGroup var options: GRPCLib.NetworkCreateOptions
 
 		var createdNetwork: VZSharedNetwork? = nil
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: asSystem)
+			Logger.setLevel(self.common.logLevel)
+
+			let home: Home = try Home(asSystem: self.common.asSystem)
 			let networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[self.options.name] != nil {
@@ -174,29 +154,26 @@ struct Networks: ParsableCommand {
 
 			try network.validate()
 			self.createdNetwork = network
-			Logger.setLevel(self.logLevel)
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.asSystem))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Configure: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Reconfigure named shared network")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@OptionGroup var options: GRPCLib.NetworkConfigureOptions
 
 		var changedNetwork: VZSharedNetwork? = nil
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: asSystem)
+			Logger.setLevel(self.common.logLevel)
+
+			let home: Home = try Home(asSystem: self.common.asSystem)
 			let networkConfig = try home.sharedNetworks()
 
 			if NetworksHandler.isPhysicalInterface(name: self.options.name) {
@@ -222,30 +199,27 @@ struct Networks: ParsableCommand {
 			}
 
 			self.changedNetwork = changed
-			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.asSystem))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Delete: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Delete existing shared network")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String
 
 		mutating func validate() throws {
-			let home: Home = try Home(asSystem: asSystem)
+			Logger.setLevel(self.common.logLevel)
+
+			let home: Home = try Home(asSystem: self.common.asSystem)
 			let networkConfig = try home.sharedNetworks()
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.name, asSystem: asSystem)
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.name, asSystem: self.common.asSystem)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Unable to delete running network \(self.name)")
@@ -258,25 +232,24 @@ struct Networks: ParsableCommand {
 			if networkConfig.sharedNetworks[self.name] == nil {
 				throw ValidationError("Network \(self.name) does not exist")
 			}
-
-			Logger.setLevel(self.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try NetworksHandler.delete(networkName: self.name, asSystem: self.asSystem))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.delete(networkName: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Run: AsyncParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Run internal VMNet network device", shouldDisplay: false)
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		@OptionGroup var common: CommonOptions
 
 		@OptionGroup var options: NetworksHandler.VMNetOptions
 
 		mutating func validate() throws {
-			let socketURL = try self.options.vmnetEndpoint()
+			Logger.setLevel(self.common.logLevel)
+
+			let socketURL = try self.options.vmnetEndpoint(asSystem: self.common.asSystem)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Network already running")
@@ -290,26 +263,18 @@ struct Networks: ParsableCommand {
 				throw ValidationError("Network already running")
 			}
 
-			Logger.setLevel(self.logLevel)
 			try self.options.validate()
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(try NetworksHandler.start(options: self.options))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: self.options, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Stop: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Stop VMNet network device")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
 		var networkName: String? = nil
@@ -318,7 +283,7 @@ struct Networks: ParsableCommand {
 		var pidFile: String? = nil
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 
 			if networkName != nil && pidFile != nil {
 				throw ValidationError("You can only specify one of --network or --pidfile")
@@ -329,21 +294,19 @@ struct Networks: ParsableCommand {
 			}
 
 			if let networkName {
-				try Networks.validateNetwork(networkName: networkName)
+				try Networks.validateNetwork(networkName: networkName, asSystem: self.common.asSystem)
 			} else if let pidFile {
 				if !FileManager.default.fileExists(atPath: pidFile) {
 					throw ValidationError("PID file \(pidFile) does not exist")
 				}
 			}
-
-			runAsSystem = self.asSystem
 		}
 
 		func run() throws {
 			if let pidFile {
-				Logger.appendNewLine(try NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), asSystem: self.asSystem))
+				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), asSystem: self.common.asSystem)))
 			} else if let networkName {
-				Logger.appendNewLine(try NetworksHandler.stop(networkName: networkName, asSystem: self.asSystem))
+				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(networkName: networkName, asSystem: self.common.asSystem)))
 			} else {
 				throw ValidationError("No network name provided")
 			}
@@ -357,21 +320,14 @@ struct Networks: ParsableCommand {
 			to integrate with using the `--network` switch to the `launch` command
 			""")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		mutating func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.format.render(try NetworksHandler.networks(asSystem: asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.networks(asSystem: self.common.asSystem)))
 		}
 	}
 }

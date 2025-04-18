@@ -6,8 +6,7 @@ import Logging
 struct Launch : AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@OptionGroup var options: GRPCLib.BuildOptions
 
@@ -18,16 +17,16 @@ struct Launch : AsyncParsableCommand {
 	var foreground: Bool = false
 
 	mutating func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
 		try self.options.validate()
 
-		if StorageLocation(asSystem: false).exists(self.options.name) {
+		if StorageLocation(asSystem: self.common.asSystem).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")
 		}
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(try await LaunchHandler.buildAndLaunchVM(asSystem: false, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background))
+		Logger.appendNewLine(self.common.format.render(try await LaunchHandler.buildAndLaunchVM(asSystem: self.common.asSystem, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background)))
 	}
 }

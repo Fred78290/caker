@@ -14,11 +14,7 @@ import Logging
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")
 	
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
-	@Option(name: .shortAndLong, help: "Output format")
-	var format: Format = .text
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "VM name")
 	var names: [String] = []
@@ -27,7 +23,7 @@ struct Delete: ParsableCommand {
 	var all: Bool = false
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
 		if all {
 			if !names.isEmpty {
@@ -39,6 +35,6 @@ struct Delete: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.format.render(try DeleteHandler.delete(all: self.all, names: self.names, asSystem: false)))
+		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.all, names: self.names, asSystem: self.common.asSystem)))
 	}
 }

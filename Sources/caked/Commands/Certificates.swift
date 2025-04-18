@@ -5,6 +5,17 @@ import GRPCLib
 import Logging
 import TextTable
 
+extension Format {
+	func render(_ data: CertificatesLocation) -> String {
+		switch self {
+		case .json:
+			return self.renderSingle(data)
+		case .text:
+			return self.renderSingle(data.flatMap())
+		}
+	}
+}
+
 extension CertificatesLocation {
 	struct CertAsText: Codable {
 		let type: String
@@ -33,76 +44,48 @@ struct Certificates: ParsableCommand {
 	struct Get: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Return certificates path")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			let format: Format = .text
-
-			Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, try CertificatesLocation.getCertificats(asSystem: asSystem)))
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.getCertificats(asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct Generate: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Generate certificates")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
 		var force: Bool = false
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			let format: Format = .text
-			let certs = try CertificatesLocation.createCertificats(asSystem: asSystem, force: self.force)
-
-			if format == .json {
-				Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, certs))
-			} else {
-				Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
-			}
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createCertificats(asSystem: self.common.asSystem, force: self.force)))
 		}
 	}
 
 	struct Agent: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: [.customLong("global"), .customShort("g")], help: "Install agent globally, need sudo")
-		var asSystem: Bool = false
+		@OptionGroup var common: CommonOptions
 
 		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
 		var force: Bool = false
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			let format: Format = .text
-			let certs = try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem, force: self.force)
-
-			if format == .json {
-				Logger.appendNewLine(format.renderSingle(style: Style.grid, uppercased: true, certs))
-			} else {
-				Logger.appendNewLine(format.renderList(style: Style.grid, uppercased: true, certs.flatMap()))
-			}
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createAgentCertificats(asSystem: self.common.asSystem, force: self.force)))
 		}
 	}
 }

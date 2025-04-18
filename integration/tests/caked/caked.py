@@ -102,13 +102,13 @@ class Caked:
 		return self.run(["remote", "list"])
 
 	def exec(self, vmname, commands):
-		return self.run(["exec", vmname, "--"] + commands)
+		return self.run(["exec", vmname, "--"] + commands, input=b"fake input")
 
-	def run(self, args, pass_fds=()):
+	def run(self, args, input=None, timeout=None, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
 
-		completed_process = subprocess.run(["caked"] + args, env=env, capture_output=True, pass_fds=pass_fds)
+		completed_process = subprocess.run(["caked"] + args, env=env, input=input, capture_output=True, timeout=timeout, pass_fds=pass_fds)
 
 		completed_process.check_returncode()
 

@@ -75,7 +75,7 @@ struct ImageHandler : CakedCommandAsync {
 	var request: Caked_ImageRequest
 
 	static func getSimpleStreamProtocol(remote: String, asSystem: Bool) async throws -> SimpleStreamProtocol {
-		let remoteDb = try Home(asSystem: runAsSystem).remoteDatabase()
+		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
 		guard let remoteContainerServer = remoteDb.get(remote) else {
 			throw ServiceError("remote \(remote) not found")
@@ -85,12 +85,12 @@ struct ImageHandler : CakedCommandAsync {
 			throw ServiceError("malformed url: \(remoteContainerServer)")
 		}
 
-		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL)
+		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, asSystem: asSystem)
 	}
 
 	static func listImage(remote: String, asSystem: Bool) async throws -> [ImageInfo] {
 		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let images = try await simpleStream.GetImages()
+		let images = try await simpleStream.GetImages(asSystem: asSystem)
 		var result: [ImageInfo] = []
 
 		images.forEach { product in
@@ -107,7 +107,7 @@ struct ImageHandler : CakedCommandAsync {
 		let remote = split.count > 1 ? split[0] : ""
 		let imageAlias = split.count > 1 ? split[1] : split[0]
 		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let product = try await simpleStream.GetImage(alias: imageAlias)
+		let product = try await simpleStream.GetImage(alias: imageAlias, asSystem: asSystem)
 
 		return try ImageInfo(product: product)
 	}
@@ -117,9 +117,9 @@ struct ImageHandler : CakedCommandAsync {
 		let remote = split.count > 1 ? split[0] : ""
 		let imageAlias = split.count > 1 ? split[1] : split[0]
 		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias)
+		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, asSystem: asSystem)
 
-		try await image.pullSimpleStreamImageAndConvert()
+		try await image.pullSimpleStreamImageAndConvert(asSystem: asSystem)
 
 		return image
 	}

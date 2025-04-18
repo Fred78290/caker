@@ -8,8 +8,7 @@ import Logging
 struct Login: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Login to a registry")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Argument(help: "host")
 	var host: String
@@ -33,7 +32,7 @@ struct Login: AsyncParsableCommand {
 		let usernameProvided = username != nil
 		let passwordProvided = password != nil
 
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 
 		if !usernameProvided {
 			throw ValidationError("--username is required")
@@ -53,6 +52,6 @@ struct Login: AsyncParsableCommand {
 			self.password = readLine(strippingNewline: true)
 		}
 
-		try LoginHandler.login(host: host, username: self.username!, password: self.password!, insecure: self.insecure, noValidate: self.noValidate, direct: true)
+		Logger.appendNewLine(self.common.format.render(try LoginHandler.login(host: host, username: self.username!, password: self.password!, insecure: self.insecure, noValidate: self.noValidate, direct: true, asSystem: self.common.asSystem)))
 	}
 }

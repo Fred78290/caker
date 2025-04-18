@@ -436,9 +436,9 @@ final class CakeConfig{
 }
 
 extension CakeConfig {
-	func startNetworkServices() throws {
+	func startNetworkServices(asSystem: Bool) throws {
 		let vmNetworking: Bool
-		let home: Home = try Home(asSystem: runAsSystem)
+		let home: Home = try Home(asSystem: asSystem)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
 
@@ -455,16 +455,16 @@ extension CakeConfig {
 				if sharedNetworks[inf.network] == nil && physicalInterface == false {
 					Logger(self).error("Network interface \(inf.network) not found")
 				} else if (physicalInterface && vmNetworking) == false {
-					try NetworksHandler.startNetworkService(networkName: inf.network)
+					try NetworksHandler.startNetworkService(networkName: inf.network, asSystem: asSystem)
 				}
 			}
 		}
 	}
 
-	func collectNetworks() throws -> [NetworkAttachement] {
+	func collectNetworks(asSystem: Bool) throws -> [NetworkAttachement] {
 		let networks = self.qualifiedNetworks
 		let vmNetworking: Bool
-		let home: Home = try Home(asSystem: runAsSystem)
+		let home: Home = try Home(asSystem: asSystem)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
 

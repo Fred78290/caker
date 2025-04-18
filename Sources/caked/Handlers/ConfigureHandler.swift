@@ -8,7 +8,7 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 	var options: ConfigureOptions
 
 	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws -> String {
-		let vmLocation = try StorageLocation(asSystem: runAsSystem).find(name)
+		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 		let config = try vmLocation.config()
 
 		if let cpu = options.cpu {

@@ -38,13 +38,13 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		return cdrom
 	}
 
-	public init(vmLocation: VMLocation, config: CakeConfig) throws {
+	public init(vmLocation: VMLocation, config: CakeConfig, asSystem: Bool) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError("Unsupported architecture")
 		}
 
-		let networks: [any NetworkAttachement] = try config.collectNetworks()
+		let networks: [any NetworkAttachement] = try config.collectNetworks(asSystem: asSystem)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: vmLocation.agentURL)
@@ -65,7 +65,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		let networkDevices = try networks.map {
 			let vio = VZVirtioNetworkDeviceConfiguration()
 
-			(vio.macAddress, vio.attachment) = try $0.attachment(vmLocation: vmLocation)
+			(vio.macAddress, vio.attachment) = try $0.attachment(vmLocation: vmLocation, asSystem: asSystem)
 
 			return vio
 		}
@@ -153,10 +153,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#endif
 	}
 
-	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
+	private func start(completionHandler: StartCompletionHandler? = nil, asSystem: Bool) async throws {
 		var resumeVM: Bool = false
 
-		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: runAsSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: runAsSystem))
+		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: asSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: asSystem))
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -221,7 +221,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		self.virtualMachine.start{ result in
 			self.startCompletionHandler(result: result) { result in
 				if case .success = result {
-					guard let _ = try? self.startedVM(on: Root.group.next(), asSystem: runAsSystem) else {
+					guard let _ = try? self.startedVM(on: Root.group.next(), asSystem: false) else {
 						Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP")
 						return
 					}
@@ -389,7 +389,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			if config.firstLaunch && config.agent == false {
 				do {
-					config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP)
+					config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP, asSystem: asSystem)
 				} catch {
 					Logger(self).error("VM \(self.vmLocation.name) failed to install agent: \(error)")
 				}
@@ -429,7 +429,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			var status: Int32 = 0
 
 			do {
-				try await self.start(completionHandler: completionHandler)
+				try await self.start(completionHandler: completionHandler, asSystem: asSystem)
 			} catch {
 				status = 1
 			}

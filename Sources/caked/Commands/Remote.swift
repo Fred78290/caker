@@ -11,8 +11,7 @@ struct Remote: ParsableCommand {
 	struct AddRemote : ParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var remote: String
@@ -21,47 +20,42 @@ struct Remote: ParsableCommand {
 		var url: String
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, asSystem: false))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct DeleteRemote : ParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var remote: String
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(try RemoteHandler.deleteRemote(name: remote, asSystem: false))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.deleteRemote(name: remote, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct ListRemote : ParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup var common: CommonOptions
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(format.render(try RemoteHandler.listRemote(asSystem: false)))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.listRemote(asSystem: self.common.asSystem)))
 		}
 	}
 }

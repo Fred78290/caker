@@ -51,7 +51,7 @@ struct RemoteHandler: CakedCommand {
 
 		switch request.command {
 		case .list:
-			let result = try Self.listRemote(asSystem: runAsSystem)
+			let result = try Self.listRemote(asSystem: asSystem)
 			return Caked_Reply.with {
 				$0.remotes = Caked_RemoteReply.with {
 					$0.list = Caked_ListRemoteReply.with {
@@ -62,9 +62,9 @@ struct RemoteHandler: CakedCommand {
 				}
 			}
 		case .add:
-			message = try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: runAsSystem)
+			message = try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: asSystem)
 		case .delete:
-			message = try Self.deleteRemote(name: request.delete, asSystem: runAsSystem)
+			message = try Self.deleteRemote(name: request.delete, asSystem: asSystem)
 		default:
 			throw ServiceError("Unknown command \(request.command)")
 		}

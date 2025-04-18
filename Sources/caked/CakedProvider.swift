@@ -18,7 +18,7 @@ protocol CakedCommandAsync: CakedCommand {
 extension CakedCommand {
 	func createCakeAgentClient(on: EventLoopGroup, asSystem: Bool, name: String) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
-		let listeningAddress = try StorageLocation(asSystem: runAsSystem).find(name).agentURL
+		let listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
 
 		return try CakeAgentHelper.createClient(on: on,
 		                                        listeningAddress: listeningAddress,
@@ -189,7 +189,7 @@ extension Caked_ListRequest: CreateCakedCommand {
 
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background)
+		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background, asSystem: runAsSystem)
 	}
 }
 

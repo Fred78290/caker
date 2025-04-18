@@ -9,7 +9,7 @@ struct TartHandler: CakedCommand {
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with {
 			$0.tart = try Caked_TartReply.with {
-				$0.message = try Shell.runTart(command: self.command, arguments: self.arguments)
+				$0.message = try Shell.runTart(command: self.command, arguments: self.arguments, asSystem: asSystem)
 			}
 		}
 	}

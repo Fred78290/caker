@@ -22,6 +22,7 @@ class GrpcError: Error {
 protocol GrpcParsableCommand: ParsableCommand {
 	var options: Client.Options { get }
 	var retries: ConnectionBackoff.Retries { get }
+	var callOptions: CallOptions? { get }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String
@@ -44,20 +45,23 @@ extension AsyncGrpcParsableCommand {
 				print(response)
 			}
 		} catch {
-			if let err = error as? GrpcError {
-				fputs("\(err.reason)\n", stderr)
-
-				Foundation.exit(Int32(err.code))
-			}
-			// Handle any other exception, including ArgumentParser's ones
-			Self.exit(withError: error)
+			Client.handleError(error)
 		}
 	}
 }
 
 extension GrpcParsableCommand {
-	var retries: ConnectionBackoff.Retries { .upTo(1) }
-	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { nil }
+	var retries: ConnectionBackoff.Retries {
+		.upTo(1)
+	}
+
+	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
+		nil
+	}
+
+	var callOptions: CallOptions? {
+		CallOptions(timeLimit: .none)
+	}
 
 	public mutating func run() throws {
 		do {
@@ -67,13 +71,7 @@ extension GrpcParsableCommand {
 				print(response)
 			}
 		} catch {
-			if let err = error as? GrpcError {
-				fputs("\(err.reason)\n", stderr)
-
-				Foundation.exit(Int32(err.code))
-			}
-			// Handle any other exception, including ArgumentParser's ones
-			Self.exit(withError: error)
+			Client.handleError(error)
 		}
 	}
 }
@@ -149,7 +147,7 @@ struct Client: AsyncParsableCommand {
 				try? group.syncShutdownGracefully()
 			}
 
-			return try command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+			return try command.run(client: grpcClient, arguments: arguments, callOptions: command.callOptions)
 		}
 
 		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
@@ -160,7 +158,7 @@ struct Client: AsyncParsableCommand {
 			}
 
 			do {
-				let reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: CallOptions(timeLimit: .none))
+				let reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: command.callOptions)
 
 				await finish()
 
@@ -295,6 +293,29 @@ struct Client: AsyncParsableCommand {
 		}
 	}
 
+	static func handleError(_ error: Error) {
+		var error = error
+
+		if let status = error as? GRPCStatusTransformable {
+			error = status.makeGRPCStatus()
+		}
+
+		if let err = error as? GRPCStatus {
+			let description = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
+			
+			FileHandle.standardError.write("\(description)\n".data(using: .utf8)!)
+			Foundation.exit(Int32(err.code.rawValue))
+		}
+
+		if let err = error as? GrpcError {
+			FileHandle.standardError.write("\(err.reason)\n".data(using: .utf8)!)
+			Foundation.exit(Int32(err.code))
+		}
+
+		// Handle any other exception, including ArgumentParser's ones
+		Self.exit(withError: error)
+	}
+
 	mutating func run() async throws {
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
@@ -343,13 +364,7 @@ struct Client: AsyncParsableCommand {
 				print(response)
 			}
 		} catch {
-			if let err = error as? GrpcError {
-				fputs("\(err.reason)\n", stderr)
-
-				Foundation.exit(Int32(err.code))
-			}
-			// Handle any other exception, including ArgumentParser's ones
-			Self.exit(withError: error)
+			Self.handleError(error)
 		}
 	}
 }

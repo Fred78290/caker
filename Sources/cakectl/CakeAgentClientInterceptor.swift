@@ -30,11 +30,16 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		}
 
 		func printError(_ error: Error) {
+			var error = error
 			let description: String
+
+			if let status: any GRPCStatusTransformable = error as? GRPCStatusTransformable {
+				error = status.makeGRPCStatus()
+			}
 
 			if let err: GRPCStatus = error as? GRPCStatus {
 				if err.code == .unavailable || err.code == .cancelled{
-					description = "closed connection"
+					description = "Connection refused"
 				} else {
 					description = err.description
 				}
@@ -93,7 +98,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 	func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
 	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

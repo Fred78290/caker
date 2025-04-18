@@ -32,7 +32,13 @@ struct ListHandler: CakedCommand {
 		}
 
 		if vmonly == false {
-			let purgeableStorages = [try TemplateImageCache(), try OCIImageCache(), try CloudImageCache(), try RawImageCache(), try SimpleStreamsImageCache(name: "")]
+			let purgeableStorages = [
+				try TemplateImageCache(asSystem: asSystem),
+				try OCIImageCache(asSystem: asSystem),
+				try CloudImageCache(asSystem: asSystem),
+				try RawImageCache(asSystem: asSystem),
+				try SimpleStreamsImageCache(name: "", asSystem: asSystem)
+			]
 
 			_ = try purgeableStorages.map { imageCache in
 				var purgeables = try imageCache.purgeables()

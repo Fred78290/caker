@@ -11,63 +11,51 @@ struct ImagesManagement: ParsableCommand {
 	struct ListImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var name: String
 
 		mutating func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.format.render(try await ImageHandler.listImage(remote: self.name, asSystem: false)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.listImage(remote: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct InfoImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "Image name")
 		var name: String
 
 		func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.format.render(try await ImageHandler.info(name: self.name, asSystem: false)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.info(name: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct PullImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: "Pull image")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Option(name: .shortAndLong, help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup var common: CommonOptions
 
 		@Argument(help: "Image name")
 		var name: String
 
 		mutating func validate() throws {
-			Logger.setLevel(self.logLevel)
+			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.format.render(try await ImageHandler.pull(name: self.name, asSystem: false)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.pull(name: self.name, asSystem: self.common.asSystem)))
 		}
 	}
 }

@@ -106,7 +106,7 @@ extension InfoReply {
 	}
 }
 
-public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
+public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codable, EnumerableFlag {
 	case text, json
 
 	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}
@@ -150,6 +150,10 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable {
 		} else {
 			return self.renderList(data.map { ImageInfo(from: $0) })
 		}
+	}
+
+	public func render(_ data: String) -> String {
+		return self.renderSingle(data)
 	}
 
 	public func render(_ data: ImageInfos) -> String {

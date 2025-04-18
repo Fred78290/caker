@@ -19,7 +19,7 @@ struct DuplicateHandler: CakedCommand {
 			throw ServiceError("VM \(to) already exists")
 		}
 
-		let tmpLocation = try fromLocation.duplicateTemporary()
+		let tmpLocation = try fromLocation.duplicateTemporary(asSystem: asSystem)
 		let config = try tmpLocation.config()
 
 		// Change mac address and network mode

@@ -8,20 +8,16 @@ import Logging
 struct List: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "List all VMs")
 
-	@Option(name: .shortAndLong, help: "Output format")
-	var format: Format = .text
-
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Flag(help: "List only VMs")
 	var vmonly: Bool = false
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.format.render(try ListHandler.list(vmonly: vmonly, asSystem: false)))
+		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: vmonly, asSystem: self.common.asSystem)))
 	}
 }

@@ -5,8 +5,7 @@ import Logging
 struct Start: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	@OptionGroup var common: CommonOptions
 
 	@Flag(help: .hidden)
 	var foreground: Bool = false
@@ -18,13 +17,13 @@ struct Start: ParsableCommand {
 	var waitIPTimeout = 180
 
 	mutating func validate() throws {
-		Logger.setLevel(self.logLevel)
+		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(asSystem: false).find(name)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(name)
 		let config = try vmLocation.config()
 
-		Logger.appendNewLine(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background))
+		Logger.appendNewLine(self.common.format.render(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, asSystem: self.common.asSystem)))
 	}
 }
