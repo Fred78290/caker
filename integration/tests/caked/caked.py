@@ -42,7 +42,7 @@ class Caked:
 		return self.run(["configure", vmname, option])
 
 	def listvm(self):
-		return self.run(["list", "--vmonly"])
+		return self.run(["list"])
 
 	def delete(self, vmname):
 		return self.run(["delete", vmname])

@@ -112,8 +112,7 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
-				"list",
-				"--vmonly"
+				"list"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
@@ -528,8 +527,7 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
-				"list",
-				"--vmonly"
+				"list"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl list",
