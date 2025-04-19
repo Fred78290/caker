@@ -189,7 +189,7 @@ extension Caked_ListRequest: CreateCakedCommand {
 
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background, asSystem: runAsSystem)
+		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background, asSystem: provider.asSystem)
 	}
 }
 

@@ -21,17 +21,20 @@ public struct StopReply: Codable {
 	public let name: String
 	public let status: String
 	public let stopped: Bool
-	
+	public let reason: String
+
 	public init(from: Caked_StoppedObject) {
 		self.name = from.name
 		self.status = from.status
 		self.stopped = from.stopped
+		self.reason = from.reason
 	}
 	
-	public init(name: String, status: String, stopped: Bool) {
+	public init(name: String, status: String, stopped: Bool, reason: String) {
 		self.name = name
 		self.status = status
 		self.stopped = stopped
+		self.reason = reason
 	}
 	
 	public func toCaked_StoppedObject() -> Caked_StoppedObject{
@@ -39,6 +42,7 @@ public struct StopReply: Codable {
 			object.name = name
 			object.status = status
 			object.stopped = stopped
+			object.reason = reason
 		}
 	}
 }
@@ -47,17 +51,20 @@ public struct DeleteReply: Codable {
 	public let source: String
 	public let name: String
 	public let deleted: Bool
-	
+	public let reason: String
+
 	public init(from: Caked_DeletedObject) {
 		self.source = from.source
 		self.name = from.name
 		self.deleted = from.deleted
+		self.reason = from.reason
 	}
 	
-	public init(source: String, name: String, deleted: Bool) {
+	public init(source: String, name: String, deleted: Bool, reason: String) {
 		self.name = name
 		self.source = source
 		self.deleted = deleted
+		self.reason = reason
 	}
 	
 	public func toCaked_DeletedObject() -> Caked_DeletedObject{
@@ -65,6 +72,7 @@ public struct DeleteReply: Codable {
 			object.source = source
 			object.name = name
 			object.deleted = deleted
+			object.reason = reason
 		}
 	}
 }

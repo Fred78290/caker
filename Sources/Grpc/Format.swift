@@ -153,7 +153,11 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: String) -> String {
-		return self.renderSingle(data)
+		if self == .json {
+			return self.renderSingle(["output": data])
+		} else {
+			return data
+		}
 	}
 
 	public func render(_ data: ImageInfos) -> String {

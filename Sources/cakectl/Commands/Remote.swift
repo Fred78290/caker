@@ -41,7 +41,7 @@ struct Remote: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {

@@ -17,7 +17,7 @@ struct Stop: GrpcParsableCommand {
 	@Flag(name: .shortAndLong, help: "Stop all VM")
 	var all: Bool = false
 
-	@Option(name: .shortAndLong, help: "Output format: text or json")
+	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
 	func validate() throws {

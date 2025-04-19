@@ -12,7 +12,7 @@ struct ImagesManagement: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: "Remote name")
@@ -28,7 +28,7 @@ struct ImagesManagement: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: "Image name")
@@ -44,7 +44,7 @@ struct ImagesManagement: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: "Image name")

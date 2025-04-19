@@ -21,6 +21,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	private var identifier: String? = nil
 	private var mountService: MountServiceServerProtocol? = nil
 	private var requestStopFromUIPending = false
+	private let asSystem: Bool
 	private func setIdentifier(_ id: String?) {
 		self.identifier = id
 	}
@@ -111,6 +112,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		let virtualMachine = VZVirtualMachine(configuration: configuration)
 
+		self.asSystem = asSystem
 		self.config = config
 		self.vmLocation = vmLocation
 		self.configuration = configuration
@@ -153,10 +155,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		#endif
 	}
 
-	private func start(completionHandler: StartCompletionHandler? = nil, asSystem: Bool) async throws {
+	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 
-		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: asSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem: asSystem))
+		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: self.asSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem:  self.asSystem))
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -334,7 +336,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	private func stopNetworkDevices() {
-		self.networks.forEach { $0.stop() }
+		self.networks.forEach { $0.stop(asSystem: asSystem) }
 	}
 
 	private func stopServices() {
@@ -424,12 +426,12 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		return response
 	}
 
-	public func runInBackground(on: EventLoop, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+	public func runInBackground(on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
 		let task = Task {
 			var status: Int32 = 0
 
 			do {
-				try await self.start(completionHandler: completionHandler, asSystem: asSystem)
+				try await self.start(completionHandler: completionHandler)
 			} catch {
 				status = 1
 			}

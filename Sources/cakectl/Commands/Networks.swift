@@ -18,7 +18,7 @@ struct Networks: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "network to retrieve, e.g. \"shared\""))
@@ -35,7 +35,7 @@ struct Networks: ParsableCommand {
 		@OptionGroup var options: Client.Options
 		@OptionGroup var networkOptions: GRPCLib.NetworkCreateOptions
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -49,7 +49,7 @@ struct Networks: ParsableCommand {
 		@OptionGroup var options: Client.Options
 		@OptionGroup var networkOptions: GRPCLib.NetworkConfigureOptions
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
@@ -62,7 +62,7 @@ struct Networks: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "network to delete, e.g. \"shared\""))
@@ -78,7 +78,7 @@ struct Networks: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to start, e.g., \"en0\" or \"shared\""))
@@ -94,7 +94,7 @@ struct Networks: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
@@ -113,7 +113,7 @@ struct Networks: ParsableCommand {
 
 		@OptionGroup var options: Client.Options
 
-		@Option(name: .shortAndLong, help: "Output format: text or json")
+		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {

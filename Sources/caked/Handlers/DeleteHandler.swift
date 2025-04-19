@@ -21,12 +21,12 @@ struct DeleteHandler: CakedCommand {
 			vmLocation = try? StorageLocation(asSystem: asSystem).find(u.host()!)
 		}
 
-		if let location = vmLocation, location.status != .running {
+		if let location = vmLocation {
 			if location.status != .running {
 				try? FileManager.default.removeItem(at: location.rootURL)
-				return DeleteReply(source: "vm", name: location.name, deleted: true)
+				return DeleteReply(source: "vm", name: location.name, deleted: true, reason: "")
 			} else {
-				return DeleteReply(source: "vm", name: location.name, deleted: false)
+				return DeleteReply(source: "vm", name: location.name, deleted: false, reason: "VM is running")
 			}
 		}
 
@@ -35,7 +35,7 @@ struct DeleteHandler: CakedCommand {
 
 	static func delete(names: [String], asSystem: Bool) throws -> [DeleteReply]{		
 		return try names.compactMap { name in
-			guard let result = tryDeleteLocal(name: name) else {
+			guard let result = tryDeleteLocal(name: name, asSystem: asSystem) else {
 				if let u = URL(string: name) {
 					var purgeableStorages: [String: CommonCacheImageCache] = [
 						CloudImageCache.scheme: try CloudImageCache(asSystem: asSystem),
@@ -45,7 +45,7 @@ struct DeleteHandler: CakedCommand {
 
 					if true {
 						let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
-	
+
 						try remoteDb.keys.forEach {
 							purgeableStorages[$0] = try SimpleStreamsImageCache(asSystem: asSystem)
 						}
@@ -56,28 +56,30 @@ struct DeleteHandler: CakedCommand {
 
 						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
-							return DeleteReply(source: cache.location, name: purgeable.name(), deleted: true)
+							return DeleteReply(source: cache.location, name: purgeable.name(), deleted: true, reason: "")
 						}
-						return DeleteReply(source: cache.location, name: u.lastPathComponent, deleted: false)
+						return DeleteReply(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
+					} else if let scheme = u.scheme {
+						return DeleteReply(source: scheme, name: name, deleted: false, reason: "Unsupported URL scheme")
 					} else {
-						return DeleteReply(source: u.scheme ?? "unknown", name: name, deleted: false)
+						return DeleteReply(source: "vm", name: name, deleted: false, reason: "VM not found")
 					}
 				}
 
-				return DeleteReply(source: "unknown", name: name, deleted: false)
+				return DeleteReply(source: "unknown", name: name, deleted: false, reason: "Unsupported URL")
 			}
 
 			return result
 		}
 	}
 
-	static func delete(all: Bool, names: [String], asSystem: Bool) throws -> [DeleteReply]{
+	static func delete(all: Bool, names: [String], asSystem: Bool) throws -> [DeleteReply] {
 		var names = names
 
 		if all {
 			names = try StorageLocation(asSystem: asSystem).list().map { $0.key }
 		}
-		
+
 		return try DeleteHandler.delete(names: names, asSystem: asSystem)
 	}
 

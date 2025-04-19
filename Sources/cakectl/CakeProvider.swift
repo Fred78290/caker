@@ -40,7 +40,7 @@ extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()
 
-		if self.all {
+		if command.all {
 			self.all = true
 		} else {
 			self.names = Caked_VMNames.with {
@@ -53,7 +53,7 @@ extension Caked_DeleteRequest {
 extension Caked_ListRequest {
 	init(command: List) {
 		self.init()
-		self.vmonly = command.vmonly
+		self.vmonly = !command.all
 	}
 }
 

@@ -6,8 +6,6 @@ import NIO
 import GRPC
 import GRPCLib
 
-nonisolated(unsafe) var runAsSystem: Bool = geteuid() == 0
-
 let delegatedCommand: [String] = [
 	"pull",
 	"push",
@@ -21,7 +19,7 @@ struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
 
-	@Option(name: .shortAndLong, help: "Output format: text or json")
+	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
 	@Flag(name: [.customLong("system"), .customShort("s")], help: "Act as system agent, need sudo")
@@ -155,7 +153,7 @@ struct Root: AsyncParsableCommand {
 
 				if let commandName = commandName {
 					if delegatedCommand.contains(commandName) {
-						try Shell.runTart(command: commandName, arguments: arguments, direct: true, asSystem: runAsSystem)
+						try Shell.runTart(command: commandName, arguments: arguments, direct: true, asSystem: geteuid() == 0)
 						try? await Self.group.shutdownGracefully()
 						return
 					}

@@ -254,7 +254,7 @@ struct VMLocation {
 	func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
 		let vm = try VirtualMachine(vmLocation: self, config: config, asSystem: asSystem)
 
-		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall, asSystem: asSystem) {
+		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall) {
 			if let handler = completionHandler {
 				switch $0 {
 				case .success:

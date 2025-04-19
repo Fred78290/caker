@@ -6,11 +6,11 @@ struct LaunchHandler: CakedCommandAsync {
 	var options: BuildOptions
 	var waitIPTimeout = 180
 
-	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode, runAsSystem: Bool = false) throws -> String {
+	private static func launch(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> String {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(options.name)
 		let config = try vmLocation.config()
 
-		return try StartHandler.startVM(on: Root.group.next(), vmLocation: vmLocation, config: config, waitIPTimeout: 180, startMode: startMode, asSystem: runAsSystem)
+		return try StartHandler.startVM(on: Root.group.next(), vmLocation: vmLocation, config: config, waitIPTimeout: 180, startMode: startMode, asSystem: asSystem)
 	}
 
 	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {

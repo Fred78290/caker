@@ -393,6 +393,8 @@ public struct Caked_DeletedObject: Sendable {
 
   public var deleted: Bool = false
 
+  public var reason: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -408,6 +410,8 @@ public struct Caked_StoppedObject: Sendable {
   public var status: String = String()
 
   public var stopped: Bool = false
+
+  public var reason: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -2850,6 +2854,7 @@ extension Caked_DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     1: .same(proto: "source"),
     2: .same(proto: "name"),
     3: .same(proto: "deleted"),
+    4: .same(proto: "reason"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2861,6 +2866,7 @@ extension Caked_DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       case 1: try { try decoder.decodeSingularStringField(value: &self.source) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.deleted) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.reason) }()
       default: break
       }
     }
@@ -2876,6 +2882,9 @@ extension Caked_DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if self.deleted != false {
       try visitor.visitSingularBoolField(value: self.deleted, fieldNumber: 3)
     }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2883,6 +2892,7 @@ extension Caked_DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if lhs.source != rhs.source {return false}
     if lhs.name != rhs.name {return false}
     if lhs.deleted != rhs.deleted {return false}
+    if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2894,6 +2904,7 @@ extension Caked_StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     1: .same(proto: "name"),
     2: .same(proto: "status"),
     3: .same(proto: "stopped"),
+    4: .same(proto: "reason"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2905,6 +2916,7 @@ extension Caked_StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.status) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.stopped) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.reason) }()
       default: break
       }
     }
@@ -2920,6 +2932,9 @@ extension Caked_StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if self.stopped != false {
       try visitor.visitSingularBoolField(value: self.stopped, fieldNumber: 3)
     }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 4)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -2927,6 +2942,7 @@ extension Caked_StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
     if lhs.name != rhs.name {return false}
     if lhs.status != rhs.status {return false}
     if lhs.stopped != rhs.stopped {return false}
+    if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

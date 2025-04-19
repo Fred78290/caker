@@ -10,14 +10,14 @@ struct List: AsyncParsableCommand {
 
 	@OptionGroup var common: CommonOptions
 
-	@Flag(help: "List only VMs")
-	var vmonly: Bool = false
+	@Flag(help: "List all VMs and cached objects")
+	var all: Bool = false
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: vmonly, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: !all, asSystem: self.common.asSystem)))
 	}
 }

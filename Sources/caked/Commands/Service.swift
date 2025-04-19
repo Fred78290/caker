@@ -225,8 +225,6 @@ extension Service {
 		var tlsKey: String?
 
 		mutating func validate() throws {
-			runAsSystem = self.asSystem
-
 			Logger.setLevel(self.logLevel)
 
 			if self.secure {

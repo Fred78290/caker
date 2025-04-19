@@ -12,7 +12,7 @@ struct Mount: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String = ""
 
-	@Option(name: .shortAndLong, help: "Output format: text or json")
+	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares\n", discussion: mount_help))

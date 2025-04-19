@@ -12,7 +12,7 @@ struct Umount: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String = ""
 
-	@Option(name: .shortAndLong, help: "Output format: text or json")
+	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm" ))

@@ -6,7 +6,7 @@ import NIO
 var phUseLimaVMNet = false
 protocol NetworkAttachement {
 	func attachment(vmLocation: VMLocation, asSystem: Bool) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
-	func stop()
+	func stop(asSystem: Bool)
 }
 
 // MARK: - Network shared
@@ -21,7 +21,7 @@ class NATNetworkInterface: NetworkAttachement {
 		return (macAddress, VZNATNetworkDeviceAttachment())
 	}
 	
-	func stop() {
+	func stop(asSystem: Bool) {
 	}
 }
 
@@ -39,7 +39,7 @@ class BridgedNetworkInterface: NetworkAttachement {
 		return (macAddress, VZBridgedNetworkDeviceAttachment(interface: interface))
 	}
 	
-	func stop() {
+	func stop(asSystem: Bool) {
 	}
 }
 

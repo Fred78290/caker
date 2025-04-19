@@ -9,10 +9,10 @@ struct List: GrpcParsableCommand {
 
 	@OptionGroup var options: Client.Options
 
-	@Flag(help: ArgumentHelp("Only display VMs", valueName: "vmonly"))
-	var vmonly: Bool = false
+	@Flag(help: "List all VMs and cached objects")
+	var all: Bool = false
 
-	@Option(name: .shortAndLong, help: "Output format: text or json")
+	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {

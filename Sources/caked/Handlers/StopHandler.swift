@@ -13,10 +13,10 @@ struct StopHandler: CakedCommand {
 
 		if vmLocation.status == .running {
 			try vmLocation.stopVirtualMachine(force: force, asSystem: asSystem)
-			return StopReply(name: name, status: "VM \(name) stopped", stopped: true)
+			return StopReply(name: name, status: "VM \(name) stopped", stopped: true, reason: "")
 		}
 
-		return StopReply(name: name, status: "VM \(name) is not running", stopped: false)
+		return StopReply(name: name, status: "VM \(name) is not running", stopped: false, reason: "VM is not running")
 	}
 
 	static func stopVMs(all: Bool, names: [String], force: Bool, asSystem: Bool) throws -> [StopReply] {
@@ -25,7 +25,7 @@ struct StopHandler: CakedCommand {
 				if value.status == .running {
 					try value.stopVirtualMachine(force: force, asSystem: asSystem)
 
-					return StopReply(name: key, status: "VM \(key) stopped", stopped: true)
+					return StopReply(name: key, status: "VM \(key) stopped", stopped: true, reason: "")
 				}
 
 				return nil
