@@ -166,7 +166,7 @@ def test_template(caked):
 	assert ubuntu not in stdout
 
 def test_networks(caked):
-	network_name = f"test-network-{uuid.uuid4()}"
+	network_name = f"test-network-{uuid.uuid4()}-{uuid.uuid4()}"
 
 	caked.run(["networks", "create", network_name, "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
 	stdout, _ = caked.infos_networks(network_name)
@@ -174,7 +174,7 @@ def test_networks(caked):
 
 	caked.start_networks(network_name)
 	stdout, _ = caked.infos_networks(network_name)
-	assert "vmnet.sock" in stdout
+	assert f"{network_name}.sock" in stdout
 
 	sleep(2)
 
@@ -191,7 +191,7 @@ def test_exec(caked):
 
 	# Create a Linux VM (because we can create it really fast)
 	caked.launch(ubuntu)
-	stdout, _ = caked.exec(ubuntu, ["echo", "Hello World"])
+	stdout, _ = caked.exec(ubuntu, ["cat"], input=b"Hello World")
 	assert "Hello World" in stdout
 
 	caked.stop(ubuntu)

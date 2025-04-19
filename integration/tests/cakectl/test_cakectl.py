@@ -137,7 +137,7 @@ def test_template(cakectl):
 	assert ubuntu not in stdout
 
 def test_networks(cakectl):
-	network_name = f"test-network-{uuid.uuid4()}"
+	network_name = f"test-network-{uuid.uuid4()}-{uuid.uuid4()}"
 
 	cakectl.run(["networks", "create", network_name, "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
 	stdout, _ = cakectl.infos_networks(network_name)
@@ -145,7 +145,7 @@ def test_networks(cakectl):
 
 	cakectl.start_networks(network_name)
 	stdout, _ = cakectl.infos_networks(network_name)
-	assert "vmnet.sock" in stdout
+	assert f"{network_name}.sock" in stdout
 
 	sleep(2)
 
@@ -162,7 +162,7 @@ def test_exec(cakectl):
 
 	# Create a Linux VM (because we can create it really fast)
 	cakectl.launch(ubuntu)
-	stdout, _ = cakectl.exec(ubuntu, ["echo", "Hello World"])
+	stdout, _ = cakectl.exec(ubuntu, ["cat"], input=b"Hello World")
 	assert "Hello World" in stdout
 
 	cakectl.stop(ubuntu)

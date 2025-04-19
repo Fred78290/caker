@@ -115,8 +115,8 @@ class CakeCtl:
 	def list_remote(self):
 		return self.run(["remote", "list"])
 
-	def exec(self, vmname, commands):
-		return self.run(["exec", vmname, "--"] + commands, input=b"fake input")
+	def exec(self, vmname, commands, input=b"fake input"):
+		return self.run(["exec", vmname, "--"] + commands, input=input)
 
 	def run(self, args, input=None, timeout=None, pass_fds=()):
 		env = os.environ.copy()
