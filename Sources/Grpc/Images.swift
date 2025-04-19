@@ -93,16 +93,16 @@ public struct ImageInfo: Codable {
 	}
 
 	public init(aliases: Aliases,
-				architecture: String,
-				pub: Bool,
-				fileName: String,
-				fingerprint: String,
-				size: Int,
-				type: String,
-				created: String?,
-				expires: String?,
-				uploaded: String?,
-				properties: [String: String]) {
+	            architecture: String,
+	            pub: Bool,
+	            fileName: String,
+	            fingerprint: String,
+	            size: Int,
+	            type: String,
+	            created: String?,
+	            expires: String?,
+	            uploaded: String?,
+	            properties: [String: String]) {
 		self.aliases = aliases
 		self.architecture = architecture
 		self.pub = pub
@@ -232,14 +232,14 @@ public struct ShortLinuxContainerImage: Codable {
 	public let fingerprint: String
 	public let description: String
 	public let size: String
-	
+
 	public enum CodingKeys: String, CodingKey {
 		case alias = "ALIAS"
 		case fingerprint = "FINGERPRINT"
 		case description = "DESCRIPTION"
 		case size = "SIZE"
 	}
-	
+
 	public init(image: LinuxContainerImage) {
 		self.alias = image.alias?.description ?? ""
 		self.fingerprint = image.fingerprint.substring(..<12)

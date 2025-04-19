@@ -7,7 +7,8 @@ import GRPC
 struct List: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "List created VMs")
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	@Flag(help: "List all VMs and cached objects")
 	var all: Bool = false

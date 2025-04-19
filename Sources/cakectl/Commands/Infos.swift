@@ -8,7 +8,8 @@ import CakeAgentLib
 struct Infos: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text

@@ -22,7 +22,7 @@ struct CommonOptions: ParsableArguments {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	@Flag(name: [.customLong("system"), .customShort("s")], help: "Act as system agent, need sudo")
+	@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp("Act as system agent, need sudo", discussion: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service", visibility: .private))
 	var asSystem: Bool = false
 }
 

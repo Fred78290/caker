@@ -14,9 +14,10 @@ struct Template: ParsableCommand {
 	)
 
 	struct ListTemplate: ParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "list", abstract: "List templates")
+		static let configuration = TemplateListOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
@@ -28,39 +29,38 @@ struct Template: ParsableCommand {
 	}
 
 	struct CreateTemplate: ParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "create", abstract: "Create template from existing VM")
+		static let configuration = TemplateCreateOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
-		@Argument(help: "Source VM name")
-		var name: String
-
-		@Argument(help: "Template name")
-		var template: String
+		@OptionGroup(title: "Create template options")
+		var template: TemplateCreateOptions
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {			
-			Logger.appendNewLine(self.common.format.render(try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: name, templateName: template, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: self.template.name, templateName: self.template.template, asSystem: self.common.asSystem)))
 		}
 	}
 
 	struct DeleteTemplate: ParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "delete", abstract: "Delete template")
+		static let configuration = TemplateDeletionOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
-		@Argument(help: "Template name")
-		var name: String
+		@OptionGroup(title: "Delete template options")
+		var template: TemplateDeletionOptions
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try TemplateHandler.deleteTemplate(templateName: name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try TemplateHandler.deleteTemplate(templateName: self.template.name, asSystem: self.common.asSystem)))
 		}
 	}
 }

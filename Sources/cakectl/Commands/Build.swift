@@ -4,10 +4,13 @@ import GRPC
 import GRPCLib
 
 struct Build: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
+	static let configuration = BuildOptions.configuration
 
-	@OptionGroup var options: Client.Options
-	@OptionGroup var buildOptions: GRPCLib.BuildOptions
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
+
+	@OptionGroup(title: "Build VM options")
+	var buildOptions: BuildOptions
 
 	mutating func validate() throws {
 		try buildOptions.validate()

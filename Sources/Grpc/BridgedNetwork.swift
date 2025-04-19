@@ -13,7 +13,7 @@ public struct BridgedNetwork: Codable {
 	public var dhcpEnd = ""
 	public var interfaceID: String = ""
 	public var endpoint: String = ""
-	
+
 	public init(name: String, mode: String, description: String, gateway: String, dhcpEnd: String = "", interfaceID: String, endpoint: String) {
 		self.name = name
 		self.mode = mode

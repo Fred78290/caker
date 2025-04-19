@@ -4,15 +4,13 @@ import GRPCLib
 import GRPC
 
 struct Rename: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Rename a local VM")
+	static let configuration = RenameOptions.configuration
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
-	@Argument(help: "VM name")
-	var name: String
-
-	@Argument(help: "New VM name")
-	var newName: String
+	@OptionGroup(title: "Rename options")
+	var rename: RenameOptions
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return try client.rename(Caked_RenameRequest(command: self), callOptions: callOptions).response.wait().successfull().tart.message

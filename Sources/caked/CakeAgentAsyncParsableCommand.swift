@@ -32,7 +32,7 @@ extension CakeAgentAsyncParsableCommand {
 		CallOptions(timeLimit: .none)
 	}
 
-	func startVM(on: EventLoop, waitIPTimeout: Int, foreground: Bool = false, asSystem: Bool) throws {
+	func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, asSystem: Bool) throws {
 		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
 
 		if vmLocation.status != .running {

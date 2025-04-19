@@ -6,7 +6,8 @@ import GRPC
 struct Import: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Import VM from a compressed .tvm file")
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	@Argument(help: "Path to a file created with \"tart export\".")
 	var path: String

@@ -9,9 +9,10 @@ struct Remote: ParsableCommand {
 	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
 	struct AddRemote : ParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")
+		static let configuration = RemoteAddOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var remote: String
@@ -29,9 +30,10 @@ struct Remote: ParsableCommand {
 	}
 
 	struct DeleteRemote : ParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
+		static let configuration = RemoteDeleteOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var remote: String
@@ -46,9 +48,10 @@ struct Remote: ParsableCommand {
 	}
 
 	struct ListRemote : ParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
+		static let configuration = RemoteListOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)

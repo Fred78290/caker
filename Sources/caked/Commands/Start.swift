@@ -5,9 +5,10 @@ import Logging
 struct Start: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Flag(help: .hidden)
+	@Flag(help: ArgumentHelp("Launch vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
 	var foreground: Bool = false
 
 	@Argument(help: "VM name")

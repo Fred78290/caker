@@ -188,7 +188,8 @@ struct Client: AsyncParsableCommand {
 		}
 	}
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	static let configuration = CommandConfiguration(
 		commandName: "cakectl",
@@ -302,7 +303,7 @@ struct Client: AsyncParsableCommand {
 
 		if let err = error as? GRPCStatus {
 			let description = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
-			
+
 			FileHandle.standardError.write("\(description)\n".data(using: .utf8)!)
 			Foundation.exit(Int32(err.code.rawValue))
 		}

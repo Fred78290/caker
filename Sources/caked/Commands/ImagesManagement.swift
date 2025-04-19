@@ -11,7 +11,8 @@ struct ImagesManagement: ParsableCommand {
 	struct ListImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "Remote name")
 		var name: String
@@ -28,7 +29,8 @@ struct ImagesManagement: ParsableCommand {
 	struct InfoImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "Image name")
 		var name: String
@@ -45,7 +47,8 @@ struct ImagesManagement: ParsableCommand {
 	struct PullImage : AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: "Pull image")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "Image name")
 		var name: String

@@ -4,19 +4,17 @@ import GRPCLib
 import GRPC
 
 struct Template: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
+	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage simplestream remote",
 	                                                subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
 
 	struct CreateTemplate : GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "create", abstract: "Add new remote servers")
+		static let configuration = TemplateCreateOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
-		@Argument(help: "Source VM name")
-		var name: String
-
-		@Argument(help: "Template name")
-		var template: String
+		@OptionGroup(title: "Create template options")
+		var template: TemplateCreateOptions
 
 		@Flag(help: "Output format")
 		var format: Format = .text
@@ -27,12 +25,13 @@ struct Template: ParsableCommand {
 	}
 
 	struct DeleteTemplate : GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
+		static let configuration = TemplateDeletionOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
-		@Argument(help: "Template name")
-		var name: String
+		@OptionGroup(title: "Delete template options")
+		var template: TemplateDeletionOptions
 
 		@Flag(help: "Output format")
 		var format: Format = .text
@@ -43,9 +42,10 @@ struct Template: ParsableCommand {
 	}
 
 	struct ListTemplate : GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
+		static let configuration = TemplateListOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format")
 		var format: Format = .text

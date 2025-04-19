@@ -5,18 +5,13 @@ import GRPC
 import TextTable
 
 struct Duplicate: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Duplicate a VM to a new name")
+	static let configuration = DuplicateOptions.configuration
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
-	@Argument(help: "Source VM name")
-	var from: String
-
-	@Argument(help: "Duplicated VM name")
-	var to: String
-
-	@Option(name: .shortAndLong, help: "Reset mac address")
-	var resetMacAddress: Bool = false
+	@OptionGroup(title: "Duplicate options")
+	var duplicate: DuplicateOptions
 
 	@Flag(help: "Output format")
 	var format: Format = .text

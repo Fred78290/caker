@@ -31,7 +31,7 @@ class ServiceError : Error, CustomStringConvertible, Equatable {
 		self.exitCode = code
 	}
 
-    public static func != (lhs: ServiceError, rhs: ServiceError) -> Bool {
+	public static func != (lhs: ServiceError, rhs: ServiceError) -> Bool {
 		return lhs.description != rhs.description && lhs.exitCode != rhs.exitCode
 	}
 

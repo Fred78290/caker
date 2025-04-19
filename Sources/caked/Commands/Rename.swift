@@ -1,22 +1,21 @@
 import ArgumentParser
 import Logging
+import GRPCLib
 
 struct Rename: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Rename a VM")
-	
-	@OptionGroup var common: CommonOptions
+	static let configuration = RenameOptions.configuration
 
-	@Argument(help: "VM name")
-	var name: String
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Argument(help: "New VM name")
-	var newname: String
+	@OptionGroup(title: "Rename options")
+	var rename: RenameOptions
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try RenameHandler.rename(oldname: name, newname: newname, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try RenameHandler.rename(oldname: self.rename.name, newname: self.rename.newName, asSystem: self.common.asSystem)))
 	}
 }

@@ -30,10 +30,10 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 		if self.response == nil {
 			self.semaphore.wait()
 			/*
-			guard self.semaphore.wait(timeout: .now().advanced(by: .seconds(300))) == .timedOut else {
-				Logger(self).error("Timeout")
-				return nil
-			}*/
+			 guard self.semaphore.wait(timeout: .now().advanced(by: .seconds(300))) == .timedOut else {
+			 	Logger(self).error("Timeout")
+			 	return nil
+			 }*/
 		}
 
 		return self.response

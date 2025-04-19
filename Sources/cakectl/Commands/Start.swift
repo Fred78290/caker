@@ -4,9 +4,10 @@ import GRPCLib
 import GRPC
 
 struct Start: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "start", abstract: "Launch a linux VM create in background")
+	static let configuration = CommandConfiguration(abstract: "Launch a linux VM create in background")
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	@Argument(help: "VM name")
 	var name: String

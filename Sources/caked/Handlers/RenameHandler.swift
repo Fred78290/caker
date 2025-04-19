@@ -15,7 +15,7 @@ struct RenameHandler: CakedCommand {
 		}
 
 		try storage.relocate(newname, from: vmLocation)
-		
+
 		return "VM renamed from (\(oldname)) to (\(newname))"
 	}
 

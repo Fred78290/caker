@@ -1,7 +1,33 @@
 import Foundation
 import ArgumentParser
 
+public struct NetworkInfoOptions {
+	public static let configuration = CommandConfiguration(abstract: "Network infos", discussion: "This command is used retrieve the network device information")
+}
+
+public struct NetworkDeleteOptions {
+	public static let configuration = CommandConfiguration(abstract: "Delete named shared network")
+}
+
+public struct NetworkStartOptions {
+	public static let configuration = CommandConfiguration(abstract: "Start named network")
+}
+
+public struct NetworkStopOptions {
+	public static let configuration = CommandConfiguration(abstract: "Stop named network")
+}
+
+public struct NetworkListOptions {
+	public static let configuration = CommandConfiguration(abstract:
+		"""
+		List host network devices (physical interfaces, virtual switches, bridges) available
+		to integrate with using the `--bridged` switch to the `launch` command
+		""")
+}
+
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
+	public static let configuration = CommandConfiguration(abstract: "Create named shared or host network")
+
 	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 	public var name: String
 	
@@ -32,6 +58,8 @@ public struct NetworkCreateOptions: ParsableArguments, Sendable {
 }
 
 public struct NetworkConfigureOptions: ParsableArguments, Sendable {
+	public static let configuration = CommandConfiguration(abstract: "Configure named shared network")
+
 	@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 	public var name: String
 	

@@ -3,24 +3,23 @@ import Foundation
 import SystemConfiguration
 import NIOCore
 import GRPCLib
+import SwiftDate
 
-struct PurgeHandler: CakedCommand, PurgeArguments {
-	var entries: String = "caches"
-	var olderThan: UInt?
-	var spaceBudget: UInt?
+struct PurgeHandler: CakedCommand {
+	var options: PurgeOptions
 
-	@discardableResult static func purge(direct: Bool, asSystem: Bool, _ self: PurgeArguments) throws -> String {
-		var arguments: [String] = [ self.entries ]
+	@discardableResult static func purge(direct: Bool, asSystem: Bool, options: PurgeOptions) throws -> String {
+		var arguments: [String] = [ options.entries ]
 
-		if let olderThan = self.olderThan {
+		if let olderThan = options.olderThan {
 			arguments.append("--older-than=\(olderThan)")
 		}
 
-		if let spaceBudget = self.spaceBudget {
+		if let spaceBudget = options.spaceBudget {
 			arguments.append("--space-budget=\(spaceBudget)")
 		}
 
-		if self.entries == "caches" {
+		if options.entries == "caches" {
 			let purgeableStorages = [
 				try OCIImageCache(asSystem: asSystem),
 				try CloudImageCache(asSystem: asSystem),
@@ -28,14 +27,14 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 				try SimpleStreamsImageCache(name: "", asSystem: asSystem)
 			]
 
-			if let olderThan = self.olderThan {
+			if let olderThan = options.olderThan {
 				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
 				let olderThanDate = Date() - olderThanInterval
 
 				try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
 			}
 
-			if let spaceBudget = self.spaceBudget {
+			if let spaceBudget = options.spaceBudget {
 				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
 			}
 		}
@@ -80,7 +79,7 @@ struct PurgeHandler: CakedCommand, PurgeArguments {
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		try Caked_Reply.with {
 			$0.vms = try Caked_VirtualMachineReply.with {
-				$0.message = try Self.purge(direct: asSystem, asSystem: asSystem, self)
+				$0.message = try Self.purge(direct: asSystem, asSystem: asSystem, options: self.options)
 			}
 		}
 	}

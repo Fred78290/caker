@@ -8,7 +8,8 @@ import Logging
 struct List: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "List all VMs")
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
 	@Flag(help: "List all VMs and cached objects")
 	var all: Bool = false

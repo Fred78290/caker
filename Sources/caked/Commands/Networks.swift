@@ -34,9 +34,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Infos: ParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "infos", abstract: "Network infos", discussion: "This command is used retrieve the network device information")
+		static let configuration = NetworkInfoOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
@@ -55,7 +56,8 @@ struct Networks: ParsableCommand {
 	struct DHCPLease: ParsableCommand {
 		static let configuration = CommandConfiguration(commandName: "set-dhcp-lease", abstract: "Set DHCP lease duration.", discussion: "This command is used to set the dhcp lease")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: "DHCP lease time in seconds")
 		var dhcpLease: Int32 = 300
@@ -70,9 +72,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Start: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Start named network device.", discussion: "This command is used to start the VMNet network device location.")
+		static let configuration = NetworkStartOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
@@ -95,9 +98,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Restart: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Restart named network device.", discussion: "This command is used to restart the VMNet network device.")
+		static let configuration = CommandConfiguration(abstract: "Restart named network.", discussion: "This command is used to restart the VMNet network device.")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "The name for network"))
 		var name: String
@@ -120,11 +124,13 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Create: AsyncParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Create named shared network")
+		static let configuration = NetworkCreateOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
-		@OptionGroup var options: GRPCLib.NetworkCreateOptions
+		@OptionGroup(title: "Create networks options")
+		var options: NetworkCreateOptions
 
 		var createdNetwork: VZSharedNetwork? = nil
 
@@ -162,11 +168,13 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Configure: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Reconfigure named shared network")
+		static let configuration = NetworkConfigureOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
-		@OptionGroup var options: GRPCLib.NetworkConfigureOptions
+		@OptionGroup(title: "Configure networks options")
+		var options: NetworkConfigureOptions
 
 		var changedNetwork: VZSharedNetwork? = nil
 
@@ -207,9 +215,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Delete: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Delete existing shared network")
+		static let configuration = NetworkDeleteOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String
@@ -242,9 +251,11 @@ struct Networks: ParsableCommand {
 	struct Run: AsyncParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Run internal VMNet network device", shouldDisplay: false)
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
-		@OptionGroup var options: NetworksHandler.VMNetOptions
+		@OptionGroup(title: "Configure VMNet options")
+		var options: NetworksHandler.VMNetOptions
 
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
@@ -272,9 +283,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Stop: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Stop VMNet network device")
+		static let configuration = NetworkStopOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to stop, e.g., \"en0\" or \"shared\""))
 		var networkName: String? = nil
@@ -314,13 +326,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct List: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract:
-			"""
-			List host network devices (physical interfaces, virtual switches, bridges) available
-			to integrate with using the `--network` switch to the `launch` command
-			""")
+		static let configuration = NetworkListOptions.configuration
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)

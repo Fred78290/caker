@@ -162,7 +162,7 @@ final class SudoCaked {
 			var stderr = Data()
 
 			self.stderr = stderr
-			
+
 			errorPipe.fileHandleForReading.readabilityHandler = { handler in
 				stderr.append(handler.availableData)
 			}
@@ -233,7 +233,7 @@ final class SudoCaked {
 		return status
 	}
 
-    var terminationReason: Process.TerminationReason {
+	var terminationReason: Process.TerminationReason {
 		self.process.terminationReason
 	}
 
@@ -285,7 +285,7 @@ struct NetworksHandler: CakedCommandAsync {
 	var request: Caked_NetworkRequest
 
 	struct VMNetOptions: ParsableArguments {
-		@Flag(help: .hidden)
+		@Flag(help: .private)
 		var debug: Bool = false
 
 		@Argument(help: "socket path")
@@ -1248,7 +1248,7 @@ struct NetworksHandler: CakedCommandAsync {
 			let home: Home = try Home(asSystem: asSystem)
 			let networkConfig = try home.sharedNetworks()
 			let socketURL = try Self.vmnetEndpoint(networkName: networkName, asSystem: asSystem)
-			
+
 			guard let network = networkConfig.sharedNetworks[networkName] else {
 				throw ServiceError("Network \(networkName) doesn't exists")
 			}

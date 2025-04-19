@@ -4,17 +4,18 @@ import GRPCLib
 import GRPC
 
 struct Launch : GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
+	static let configuration = BuildOptions.configuration
 
-	@OptionGroup var options: Client.Options
-	@OptionGroup var buildOptions: GRPCLib.BuildOptions
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
+
+	@OptionGroup(title: "Launch VM options")
+	var buildOptions: BuildOptions
 
 	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	mutating func validate() throws {
-		try self.buildOptions.validate()
-
+	func validate() throws {
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
 			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")
 		}

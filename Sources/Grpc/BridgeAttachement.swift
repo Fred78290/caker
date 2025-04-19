@@ -18,12 +18,12 @@ public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument, Codable {
 }
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
-    public let network: String
+	public let network: String
 	public let mode: NetworkMode?
 	public let macAddress: String?
 
 	public var defaultValueDescription: String {
-	"name=<network|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"
+		"name=<network|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"
 	}
 
 	public var description: String {
@@ -47,12 +47,12 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	}
 
 	public init?(argument: String) {
-        do {
+		do {
 			try self.init(parseFrom: argument)
 		} catch {
 			return nil
 		}
-    }
+	}
 
 	public init(parseFrom: String) throws {
 		let parts = parseFrom.split(separator: ",")
@@ -86,7 +86,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		self.macAddress = macAddress?.string
 		self.mode = mode
 	}
-	
+
 	public func isNAT() -> Bool {
 		return self.network == "nat" || self.network == "NAT shared network"
 	}

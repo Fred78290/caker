@@ -10,7 +10,8 @@ struct ImagesManagement: ParsableCommand {
 	struct ListImage : GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -26,7 +27,8 @@ struct ImagesManagement: ParsableCommand {
 	struct InfoImage : GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -42,7 +44,8 @@ struct ImagesManagement: ParsableCommand {
 	struct PullImage : GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text

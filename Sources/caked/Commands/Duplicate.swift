@@ -12,36 +12,34 @@ import TextTable
 import Logging
 
 struct Duplicate: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Duplicate a VM to a new name")
-	
-	@OptionGroup var common: CommonOptions
+	static let configuration = DuplicateOptions.configuration
 
-	@Argument(help: "Source VM name")
-	var from: String
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Argument(help: "Duplicated VM name")
-	var to: String
-
-	@Option(name: .shortAndLong, help: "Reset mac address")
-	var resetMacAddress: Bool = false
+	@OptionGroup(title: "Duplicate options")
+	var duplicate: DuplicateOptions
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
 		let storageLocation = StorageLocation(asSystem: self.common.asSystem)
-		let fromLocation = try storageLocation.find(from)
+		let fromLocation = try storageLocation.find(self.duplicate.from)
 
 		// Check if the VM exists
 		if fromLocation.status == .running {
-			throw ServiceError("VM \(from) is running")
+			throw ServiceError("VM \(self.duplicate.from) is running")
 		}
 
-		if storageLocation.exists(to) {
-			throw ServiceError("VM \(to) already exists")
+		if storageLocation.exists(self.duplicate.to) {
+			throw ServiceError("VM \(self.duplicate.to) already exists")
 		}
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try DuplicateHandler.duplicate(from: self.from, to: self.to, resetMacAddress:  self.resetMacAddress, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try DuplicateHandler.duplicate(from: self.duplicate.from,
+		                                                                              to: self.duplicate.to,
+		                                                                              resetMacAddress: self.duplicate.resetMacAddress,
+		                                                                              asSystem: self.common.asSystem)))
 	}
 }

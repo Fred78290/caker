@@ -5,24 +5,16 @@ import GRPCLib
 import GRPC
 
 struct Umount: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount endpoint into VM")
+	static let configuration = UmountOptions.configuration
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
-	@Argument(help: "VM name")
-	var name: String = ""
+	@OptionGroup(title: "Umount options")
+	var umount: UmountOptions
 
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
-
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm" ))
-	var mounts: [DirectorySharingAttachment] = []
-
-	mutating public func validate() throws {
-		if name.contains("/") {
-			throw ValidationError("\(name) should be a local name")
-		}
-	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.umount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().successfull().mounts)

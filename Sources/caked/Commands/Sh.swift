@@ -4,29 +4,33 @@ import CakeAgentLib
 import Foundation
 import NIO
 import Logging
+import GRPCLib
 
 struct Sh: CakeAgentAsyncParsableCommand {	
-	static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
+	static let configuration = ShellOptions.configuration
 
-	@Flag(name: [.customLong("system"), .customShort("s")], help: "Act as system agent, need sudo")
-	var asSystem: Bool = false
-
-	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
-
-	@Argument(help: "VM name")
-	var name: String = ""
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
 	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@Flag(help: .hidden)
-	var foreground: Bool = false
-
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
-	var waitIPTimeout = 180
+	@OptionGroup(title: "Shell options")
+	var shell: ShellOptions
 
 	var createVM: Bool = false
+
+	var logLevel: Logging.Logger.Level {
+		self.common.logLevel
+	}
+
+	var asSystem: Bool {
+		self.common.asSystem
+	}
+
+	var name: String {
+		self.shell.name
+	}
 
 	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
 		CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput) { method in
@@ -41,21 +45,23 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	}
 
 	mutating func validate() throws {
-		if self.name == "" {
-			self.name = "primary"
+		Logger.setLevel(self.common.logLevel)
 
-			self.createVM = StorageLocation(asSystem: self.asSystem).exists(self.name) == false
+		if self.shell.name == "" {
+			self.shell.name = "primary"
+
+			self.createVM = StorageLocation(asSystem: self.common.asSystem).exists(self.shell.name) == false
 		}
 
-		try self.validateOptions(asSystem: self.asSystem)
+		try self.validateOptions(asSystem: self.common.asSystem)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		if self.createVM {
-			try await BuildHandler.build(name: self.name, options: .init(name: self.name), asSystem: self.asSystem)
+			try await BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), asSystem: self.common.asSystem)
 		}
 
-		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground, asSystem: self.asSystem)
+		try startVM(on: on.next(), name: self.shell.name, waitIPTimeout: self.shell.waitIPTimeout, foreground: self.shell.foreground, asSystem: self.common.asSystem)
 		_ = try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
 	}
 }

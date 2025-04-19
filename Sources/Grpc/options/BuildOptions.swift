@@ -3,6 +3,8 @@ import ArgumentParser
 import NIOPortForwarding
 
 public struct BuildOptions: ParsableArguments {
+	public static let configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
+
 	@Argument(help: "VM name")
 	public var name: String
 
@@ -43,7 +45,7 @@ public struct BuildOptions: ParsableArguments {
 	public var sshAuthorizedKey: String?
 
 	//@Option(help: ArgumentHelp("Optional cloud-init vendor-data file path for linux VM", valueName: "path"))
-	@Option(help: .hidden)
+	@Option(help: .private)
 	public var vendorData: String?
 
 	@Option(name: [.customLong("cloud-init")], help: ArgumentHelp("Optional cloud-init user-data file path for linux VM", discussion: "Path or URL to a user-data cloud-init configuration, or '-' for stdin", valueName: "path"))

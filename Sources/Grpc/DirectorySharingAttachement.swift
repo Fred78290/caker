@@ -6,7 +6,7 @@ public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
 public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable {
 	public let readOnly: Bool
-	
+
 	let _name: String?
 	let _source: String
 	let _destination: String?
@@ -21,7 +21,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		if let name = _name {
 			return name
 		}
-		
+
 		return _source.dropFirst().replacingOccurrences(of: "/", with: "_")
 	}
 
@@ -29,7 +29,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		if let name = _name {
 			return name
 		}
-		
+
 		return self.path.lastPathComponent
 	}
 

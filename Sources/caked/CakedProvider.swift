@@ -151,21 +151,21 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 
 extension Caked_PurgeRequest : CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		var command = PurgeHandler()
+		var options = PurgeOptions()
 
 		if self.hasEntries {
-			command.entries = self.entries
+			options.entries = self.entries
 		}
 
 		if self.hasOlderThan {
-			command.olderThan = UInt(self.olderThan)
+			options.olderThan = UInt(self.olderThan)
 		}
 
 		if self.hasSpaceBudget {
-			command.spaceBudget = UInt(self.spaceBudget)
+			options.spaceBudget = UInt(self.spaceBudget)
 		}
 
-		return command
+		return PurgeHandler(options: options)
 	}
 }
 

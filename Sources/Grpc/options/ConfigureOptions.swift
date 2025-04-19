@@ -3,6 +3,8 @@ import ArgumentParser
 import NIOPortForwarding
 
 public struct ConfigureOptions: ParsableArguments, Sendable {
+	public static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
+
 	@Argument(help: "VM name")
 	public var name: String
 

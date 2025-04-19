@@ -63,7 +63,7 @@ public struct CreateTemplateReply: Codable {
 	public let name: String
 	public let created: Bool
 	public var reason: String? = nil
-	
+
 	public init(name: String, created: Bool, reason: String? = nil) {
 		self.name = name
 		self.created = created
@@ -80,7 +80,7 @@ public struct CreateTemplateReply: Codable {
 		Caked_CreateTemplateReply.with {
 			$0.name = self.name
 			$0.created = self.created
-			
+
 			if let reason = self.reason {
 				$0.reason = reason
 			}
@@ -91,12 +91,12 @@ public struct CreateTemplateReply: Codable {
 public struct DeleteTemplateReply: Codable {
 	public let name: String
 	public let deleted: Bool
-	
+
 	public init(name: String, deleted: Bool) {
 		self.name = name
 		self.deleted = deleted
 	}
-	
+
 	public init(from: Caked_DeleteTemplateReply) {
 		self.name = from.name
 		self.deleted = from.deleted

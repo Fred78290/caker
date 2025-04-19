@@ -22,17 +22,17 @@ extension Caked_Reply {
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()
-		self.oldname = command.name
-		self.newname = command.newName
+		self.oldname = command.rename.name
+		self.newname = command.rename.newName
 	}
 }
 
 extension Caked_DuplicateRequest {
 	init(command: Duplicate) {
 		self.init()
-		self.from = command.from
-		self.to = command.to
-		self.resetMacAddress = command.resetMacAddress
+		self.from = command.duplicate.from
+		self.to = command.duplicate.to
+		self.resetMacAddress = command.duplicate.resetMacAddress
 	}
 }
 
@@ -40,11 +40,11 @@ extension Caked_DeleteRequest {
 	init(command: Delete) {
 		self.init()
 
-		if command.all {
+		if command.delete.all {
 			self.all = true
 		} else {
 			self.names = Caked_VMNames.with {
-				$0.list = command.name
+				$0.list = command.delete.names
 			}
 		}
 	}
@@ -139,11 +139,11 @@ extension Caked_BuildRequest {
 extension Caked_CloneRequest {
 	init(command: Clone) {
 		self.init()
-		self.sourceName = command.sourceName
-		self.targetName = command.newName
-		self.insecure = command.insecure
-		self.concurrency = UInt32(command.concurrency)
-		self.deduplicate = command.deduplicate
+		self.sourceName = command.clone.sourceName
+		self.targetName = command.clone.newName
+		self.insecure = command.clone.insecure
+		self.concurrency = UInt32(command.clone.concurrency)
+		self.deduplicate = command.clone.deduplicate
 	}
 }
 
@@ -165,13 +165,13 @@ extension Caked_StartRequest {
 extension Caked_StopRequest {
 	init(command: Stop) {
 		self.init()
-		self.force = command.force
+		self.force = command.stop.force
 
-		if command.all {
+		if command.stop.all {
 			self.all = true
 		} else {
 			self.names = Caked_VMNames.with {
-				$0.list = command.name
+				$0.list = command.stop.names
 			}
 		}
 	}
@@ -180,17 +180,17 @@ extension Caked_StopRequest {
 extension Caked_PurgeRequest {
 	init (command: Purge) {
 		self.init()
-		self.entries = command.entries
+		self.entries = command.purge.entries
 
-		if let olderThan = command.olderThan {
+		if let olderThan = command.purge.olderThan {
 			self.olderThan = Int32(olderThan)
 		}
 
-		if let cacheBudget = command.cacheBudget {
+		if let cacheBudget = command.purge.cacheBudget {
 			self.cacheBudget = Int32(cacheBudget)
 		}
 
-		if let spaceBudget = command.spaceBudget {
+		if let spaceBudget = command.purge.spaceBudget {
 			self.spaceBudget = Int32(spaceBudget)
 		}
 	}
@@ -200,19 +200,19 @@ extension Caked_LoginRequest {
 	init (command: Login) throws {
 		self.init()
 
-		self.host = command.host
-		self.insecure = command.insecure
-		self.noValidate = command.noValidate
+		self.host = command.login.host
+		self.insecure = command.login.insecure
+		self.noValidate = command.login.noValidate
 
-		if let username = command.username {
+		if let username = command.login.username {
 			self.username = username
 		}
 
-		if command.passwordStdin {
+		if command.login.passwordStdin {
 			if let password = readLine(strippingNewline: true) {
 				self.password = password
 			}
-		} else if let password = command.password {
+		} else if let password = command.login.password {
 			self.password = password
 		}
 	}
@@ -313,8 +313,8 @@ extension Caked_TemplateRequest {
 		self.init()
 		var add: Caked_TemplateRequestAdd = Caked_TemplateRequestAdd()
 
-		add.sourceName = command.name
-		add.templateName = command.template
+		add.sourceName = command.template.name
+		add.templateName = command.template.template
 
 		self.command = .add
 		self.create = add
@@ -324,7 +324,7 @@ extension Caked_TemplateRequest {
 		self.init()
 
 		self.command = .delete
-		self.delete = command.name
+		self.delete = command.template.name
 	}
 
 	init(command: Template.ListTemplate) {
@@ -446,8 +446,8 @@ extension Caked_WaitIPRequest {
 	init(command: WaitIP) {
 		self.init()
 
-		self.name = command.name
-		self.timeout = Int32(command.wait)
+		self.name = command.waitip.name
+		self.timeout = Int32(command.waitip.wait)
 	}
 }
 
@@ -455,9 +455,9 @@ extension Caked_MountRequest {
 	init(command: Mount) {
 		self.init()
 
-		self.name = command.name
+		self.name = command.mount.name
 		self.command = .add
-		self.mounts = command.mounts.map { mount in
+		self.mounts = command.mount.mounts.map { mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name
 				$0.source = mount.source
@@ -473,9 +473,9 @@ extension Caked_MountRequest {
 	init(command: Umount) {
 		self.init()
 
-		self.name = command.name
+		self.name = command.umount.name
 		self.command = .delete
-		self.mounts = command.mounts.map{ mount in
+		self.mounts = command.umount.mounts.map{ mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name
 				$0.source = mount.source
@@ -499,7 +499,7 @@ extension CakeAgentClient {
 	                   callOptions: CallOptions? = nil) async throws -> Int32 {
 		let handler = CakedChannelStreamer(inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle)
 		var callOptions = callOptions ?? CallOptions()
-		
+
 		callOptions.timeLimit = .none
 		callOptions.customMetadata.add(name: "CAKEAGENT_VMNAME", value: name)
 

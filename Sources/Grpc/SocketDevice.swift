@@ -107,11 +107,11 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 	public func validate() throws {
 		if self.mode == .fd {
 			let fds = self.bind.split(separator: ",")
-			
+
 			if fds.count == 0 {
 				throw ValidationError("Invalid file descriptor")
 			}
-			
+
 			for fd in fds {
 				guard let fd = Int32(fd) else {
 					throw ValidationError("Invalid file descriptor fd=\(fd)")

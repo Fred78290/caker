@@ -4,28 +4,21 @@ import GRPC
 import CakeAgentLib
 import NIO
 import Logging
+import GRPCLib
 
 struct Exec: CakeAgentAsyncParsableCommand {
-	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "exec", abstract: "Execute a command on a VM")
+	static let configuration = ExecOptions.configuration
 
-	@Argument(help: "VM name")
-	var name: String
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Exec options")
+	var execute: ExecOptions
 
 	@OptionGroup(title: "override client agent options", visibility: .hidden)
 	var options: CakeAgentClientOptions
 
-	@Argument(help: "Command to execute")
-	var arguments: [String]
-
-	@Flag(help: .hidden)
-	var foreground: Bool = false
-
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
-	var waitIPTimeout = 180
-
-    var createVM: Bool = false
+	var createVM: Bool = false
 
 	var logLevel: Logging.Logger.Level {
 		self.common.logLevel
@@ -33,6 +26,10 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
 	var asSystem: Bool {
 		self.common.asSystem
+	}
+
+	var name: String {
+		self.execute.name
 	}
 
 	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
@@ -49,18 +46,13 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
-
-		if arguments.count < 1 {
-			throw ValidationError("At least one argument is required")
-		}
-
-		try validateOptions(asSystem: self.common.asSystem)
+		try self.validateOptions(asSystem: self.common.asSystem)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		try startVM(on: on.next(), waitIPTimeout: self.waitIPTimeout, foreground: self.foreground, asSystem: self.common.asSystem)
+		try startVM(on: on.next(), name: self.execute.name, waitIPTimeout: self.execute.waitIPTimeout, foreground: self.execute.foreground, asSystem: self.common.asSystem)
 
-		var arguments = self.arguments
+		var arguments = self.execute.arguments
 		let command = arguments.remove(at: 0)
 		let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
 

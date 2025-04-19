@@ -12,18 +12,19 @@ struct VMRun: AsyncParsableCommand {
 
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
 	@Argument(help: "Path to the VM disk.img or his name")
 	var path: String
 
-	@Flag(name: [.customLong("service"), .customShort("l")], help: .hidden)
+	@Flag(name: [.customLong("service"), .customShort("l")], help: ArgumentHelp("VM running from service", discussion: "This option tell that vm run from service", visibility: .private))
 	var launchedFromService: Bool = false
 
-	@Flag(name: [.customLong("lima"), .customShort("m")], help: .hidden)
+	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp("Use socket-vmnet for network", visibility: .private))
 	var useLimaVMNet: Bool = false
 
-	@Flag(help: .hidden)
+	@Flag(help: ArgumentHelp("Show UI", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
 	var display: Bool = false
 
 	var locations: (StorageLocation, VMLocation) {
@@ -43,7 +44,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 	}
 
-	mutating func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
 		let (_, vmLocation) = self.locations
@@ -72,14 +73,14 @@ struct VMRun: AsyncParsableCommand {
 	}
 
 	@MainActor
-	mutating func run() async throws {
+	func run() async throws {
 		let (storageLocation, vmLocation) = self.locations
 		let config = try vmLocation.config()
 
 		let handler = VMRunHandler(storageLocation: storageLocation,
 		                           vmLocation: vmLocation,
 		                           name: vmLocation.name,
-								   asSystem: self.common.asSystem,
+		                           asSystem: self.common.asSystem,
 		                           display: display,
 		                           config: config)
 

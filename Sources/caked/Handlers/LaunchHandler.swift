@@ -15,7 +15,7 @@ struct LaunchHandler: CakedCommandAsync {
 
 	static func buildAndLaunchVM(asSystem: Bool, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
 		try await BuildHandler.build(name: options.name, options: options, asSystem: asSystem)
-		
+
 		let runningIP = try Self.launch(asSystem: asSystem, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode)
 
 		return "VM launched \(options.name) with IP: \(runningIP)"

@@ -25,7 +25,7 @@ public struct MountVirtioFS: Codable {
 	}
 
 	public init() {
-		
+
 	}
 
 	public init(name: String, error: Error) {
@@ -60,7 +60,7 @@ public struct MountVirtioFS: Codable {
 	public init(from: Caked_MountVirtioFSReply) {
 		self.name = from.name
 		self.path = from.path
-		
+
 		if case .success(true) = from.response {
 			self.response = .success(true)
 		} else {
@@ -85,37 +85,37 @@ public struct MountVirtioFS: Codable {
 public struct MountInfos: Codable {
 	public var mounts: [MountVirtioFS] = []
 	public var response: OneOf_Response? = .success(true)
-	
+
 	public init() {
 	}
-	
+
 	public enum CodingKeys: String, CodingKey {
 		case mounts = "mounts"
 		case response = "response"
 	}
-	
+
 	public enum OneOf_Response: Codable, Equatable, Sendable {
 		case error(String)
 		case success(Bool)
 	}
-	
+
 	public func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
-		
+
 		try container.encode(self.mounts, forKey: .mounts)
 		try container.encode(self.response, forKey: .response)
 	}
-	
+
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
-		
+
 		self.mounts = try container.decode([MountVirtioFS].self, forKey: .mounts)
 		self.response = try container.decode(OneOf_Response.self, forKey: .response)
 	}
-	
+
 	public init(fromJSON: String) {
 		let decoder = JSONDecoder()
-		
+
 		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
 	}
 
@@ -134,10 +134,10 @@ public struct MountInfos: Codable {
 						}
 					}
 				}
-				
+
 				return mount
 			}
-			
+
 			if case .error(let reason) = self.response! {
 				$0.response = .error(reason)
 			} else {
@@ -153,7 +153,7 @@ public struct MountInfos: Codable {
 		try populator(&message)
 		return message
 	}
-	
+
 	public func toJSON() -> String {
 		let encoder = JSONEncoder()
 

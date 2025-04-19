@@ -6,7 +6,7 @@ import GRPCLib
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
 	                                                                      subcommands: [Networks.Infos.self,
-																		  				Networks.List.self,
+	                                                                                    Networks.List.self,
 	                                                                                    Networks.Create.self,
 	                                                                                    Networks.Configure.self,
 	                                                                                    Networks.Delete.self,
@@ -14,9 +14,10 @@ struct Networks: ParsableCommand {
 	                                                                                    Networks.Stop.self])
 
 	struct Infos: GrpcParsableCommand {
-		static let configuration = CommandConfiguration(commandName: "infos", abstract: "Network infos", discussion: "This command is used retrieve the network device information")
+		static let configuration = NetworkInfoOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -30,10 +31,13 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Create: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Create named shared network")
+		static let configuration = NetworkCreateOptions.configuration
 
-		@OptionGroup var options: Client.Options
-		@OptionGroup var networkOptions: GRPCLib.NetworkCreateOptions
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
+
+		@OptionGroup(title: "Create network options")
+		var networkOptions: NetworkCreateOptions
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -44,10 +48,13 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Configure: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Configure named shared network")
+		static let configuration = NetworkConfigureOptions.configuration
 
-		@OptionGroup var options: Client.Options
-		@OptionGroup var networkOptions: GRPCLib.NetworkConfigureOptions
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
+
+		@OptionGroup(title: "Configure network options")
+		var networkOptions: NetworkConfigureOptions
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -58,15 +65,16 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Delete: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Delete named shared network")
+		static let configuration = NetworkDeleteOptions.configuration
 
-		@OptionGroup var options: Client.Options
-
-		@Flag(help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Argument(help: ArgumentHelp("Network name", discussion: "network to delete, e.g. \"shared\""))
 		var name: String = "shared"
+
+		@Flag(help: "Output format: text or json")
+		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
@@ -74,15 +82,16 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Start: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Start named shared network")
+		static let configuration = NetworkStartOptions.configuration
 
-		@OptionGroup var options: Client.Options
-
-		@Flag(help: "Output format: text or json")
-		var format: Format = .text
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Argument(help: ArgumentHelp("network name", discussion: "network to start, e.g., \"en0\" or \"shared\""))
 		var name: String = "shared"
+
+		@Flag(help: "Output format: text or json")
+		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
@@ -90,9 +99,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct Stop: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Start named shared network")
+		static let configuration = NetworkStopOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
@@ -106,12 +116,10 @@ struct Networks: ParsableCommand {
 	}
 
 	struct List: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: """
-		List host network devices (physical interfaces, virtual switches, bridges) available
-		to integrate with using the `--bridged` switch to the `launch` command
-		""")
+		static let configuration = NetworkListOptions.configuration
 
-		@OptionGroup var options: Client.Options
+		@OptionGroup(title: "Client options")
+		var options: Client.Options
 
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text

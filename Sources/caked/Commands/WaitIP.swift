@@ -1,22 +1,21 @@
 import ArgumentParser
 import Logging
+import GRPCLib
 
 struct WaitIP: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait for ip of a running VM")
+	static let configuration = WaitIPOptions.configuration
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Argument(help: "VM name")
-	var name: String
-
-	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
-	var wait: Int = 0
+	@OptionGroup(title: "Wait ip options")
+	var waitip: WaitIPOptions
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try WaitIPHandler.waitIP(name: self.name, wait: self.wait, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try WaitIPHandler.waitIP(name: self.waitip.name, wait: self.waitip.wait, asSystem: self.common.asSystem)))
 	}
 }

@@ -6,7 +6,8 @@ import GRPC
 struct Export: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Export VM to a compressed .tvm file")
 
-	@OptionGroup var options: Client.Options
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
 	@Argument(help: "Source VM name.")
 	var name: String

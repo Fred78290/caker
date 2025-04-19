@@ -13,28 +13,18 @@ import Logging
 
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")
-	
-	@OptionGroup var common: CommonOptions
 
-	@Argument(help: "VM name")
-	var names: [String] = []
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Flag(name: [.short, .long], help: "Delete all VM")
-	var all: Bool = false
+	@OptionGroup(title: "Delete options")
+	var delete: DeleteOptions
 
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
-
-		if all {
-			if !names.isEmpty {
-				throw ValidationError("You cannot specify both --all and VM names.")
-			}
-		} else if names.isEmpty {
-			throw ValidationError("You must specify at least one VM name.")
-		}
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.all, names: self.names, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.delete.all, names: self.delete.names, asSystem: self.common.asSystem)))
 	}
 }

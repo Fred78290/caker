@@ -2,7 +2,7 @@ import Foundation
 import ArgumentParser
 
 public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
-    let consoleURL: String
+	let consoleURL: String
 
 	public var defaultValueDescription: String {
 		"[file|unix|fd]://[path|fd[,fd]]"
@@ -12,9 +12,9 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 		consoleURL
 	}
 
-    public init(argument: String) {
+	public init(argument: String) {
 		self.consoleURL = argument
-    }
+	}
 
 	public func validate() throws {
 		if consoleURL !=  "file" && consoleURL != "unix" {
@@ -54,7 +54,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 		}
 	}
 
-    public func consoleURL(vmDir: URL) throws -> URL? {
+	public func consoleURL(vmDir: URL) throws -> URL? {
 		if consoleURL ==  "file" {
 			return vmDir.appendingPathComponent("console.log")
 		} else if consoleURL == "unix" {
@@ -62,6 +62,6 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 		} else {
 			return URL(string: consoleURL)
 		}
-    }
+	}
 
 }

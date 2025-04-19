@@ -5,32 +5,15 @@ import GRPCLib
 import GRPC
 
 struct Pull: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(
-		abstract: "Pull a VM from a registry",
-		discussion: """
-		Pulls a virtual machine from a remote OCI-compatible registry. Supports authorization via Keychain (see "tart login --help"),
-		Docker credential helpers defined in ~/.docker/config.json or via TART_REGISTRY_USERNAME/TART_REGISTRY_PASSWORD environment variables.
+	static let configuration = PullOptions.configuration
 
-		By default, Tart checks available capacity in Tart's home directory and tries to reclaim minimum possible storage for the remote image
-		to fit. This behaviour is called "automatic pruning" and can be disabled by setting TART_NO_AUTO_PRUNE environment variable.
-		"""
-	)
+	@OptionGroup(title: "Client options")
+	var options: Client.Options
 
-	@OptionGroup var options: Client.Options
-
-	@Argument(help: "remote VM name")
-	var remoteName: String
-
-	@Flag(help: "Connect to the OCI registry via insecure HTTP protocol")
-	var insecure: Bool = false
-
-	@Option(help: "Network concurrency to use when pulling a remote VM from the OCI-compatible registry")
-	var concurrency: UInt = 4
-
-	@Flag(help: .hidden)
-	var deduplicate: Bool = false
+	@OptionGroup(title: "Pull options")
+	var pull: PullOptions
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "run", arguments: arguments), callOptions: callOptions).response.wait().successfull().tart.message
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "pull", arguments: pull.arguments()), callOptions: callOptions).response.wait().successfull().tart.message
 	}
 }

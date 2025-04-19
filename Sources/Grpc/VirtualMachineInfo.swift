@@ -29,14 +29,14 @@ public struct StopReply: Codable {
 		self.stopped = from.stopped
 		self.reason = from.reason
 	}
-	
+
 	public init(name: String, status: String, stopped: Bool, reason: String) {
 		self.name = name
 		self.status = status
 		self.stopped = stopped
 		self.reason = reason
 	}
-	
+
 	public func toCaked_StoppedObject() -> Caked_StoppedObject{
 		Caked_StoppedObject.with { object in
 			object.name = name
@@ -59,14 +59,14 @@ public struct DeleteReply: Codable {
 		self.deleted = from.deleted
 		self.reason = from.reason
 	}
-	
+
 	public init(source: String, name: String, deleted: Bool, reason: String) {
 		self.name = name
 		self.source = source
 		self.deleted = deleted
 		self.reason = reason
 	}
-	
+
 	public func toCaked_DeletedObject() -> Caked_DeletedObject{
 		Caked_DeletedObject.with { object in
 			object.source = source

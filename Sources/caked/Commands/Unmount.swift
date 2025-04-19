@@ -8,28 +8,22 @@ import NIO
 import TextTable
 
 struct Umount: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "umount", abstract: "Unmount a directory share from a VM")
+	static let configuration = UmountOptions.configuration
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Argument(help: "VM name")
-	var name: String = ""
+	@OptionGroup(title: "Umount options")
+	var umount: UmountOptions
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm" ))
-	var mounts: [DirectorySharingAttachment] = []
-
-	mutating public func validate() throws {
+	public func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		if name.contains("/") {
-			throw ValidationError("\(name) should be a local name")
-		}
-
-		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.umount.name)
 		let config = try vmLocation.config()
 		let directorySharingAttachments = config.mounts
 
-		try self.mounts.forEach { attachment in
+		try self.umount.mounts.forEach { attachment in
 			let description = attachment.description
 
 			if directorySharingAttachments.contains(where: { $0.description == description }) == false {
@@ -39,8 +33,8 @@ struct Umount: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
-		let response = try MountHandler.Umount(vmLocation: vmLocation, mounts: self.mounts)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.umount.name)
+		let response = try MountHandler.Umount(vmLocation: vmLocation, mounts: self.umount.mounts)
 
 		Logger.appendNewLine(self.common.format.render(response))
 

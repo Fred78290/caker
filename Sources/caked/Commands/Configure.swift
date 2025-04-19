@@ -6,12 +6,14 @@ import Logging
 struct Configure: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")
 
-	@OptionGroup var common: CommonOptions
-	@OptionGroup var options: ConfigureOptions
-	
-	mutating func validate() throws {
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
+
+	@OptionGroup(title: "Configure options")
+	var options: ConfigureOptions
+
+	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
-		try self.options.validate()
 	}
 
 	func run() throws {

@@ -39,12 +39,13 @@ extension CertificatesLocation {
 
 struct Certificates: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
-													subcommands: [Generate.self, Get.self, Agent.self])
+	                                                subcommands: [Generate.self, Get.self, Agent.self])
 
 	struct Get: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Return certificates path")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
@@ -58,7 +59,8 @@ struct Certificates: ParsableCommand {
 	struct Generate: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Generate certificates")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
 		var force: Bool = false
@@ -75,7 +77,8 @@ struct Certificates: ParsableCommand {
 	struct Agent: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Generate certificates for cakeagent")
 
-		@OptionGroup var common: CommonOptions
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
 
 		@Flag(name: .shortAndLong, help: "Force regeneration of certificates")
 		var force: Bool = false

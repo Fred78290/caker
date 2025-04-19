@@ -8,7 +8,8 @@ import Logging
 struct Logout: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
 	@Argument(help: "host")
 	var host: String

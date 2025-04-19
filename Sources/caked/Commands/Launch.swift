@@ -4,22 +4,22 @@ import GRPCLib
 import Logging
 
 struct Launch : AsyncParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Create a linux VM, initialize it with cloud-init and launch in background")
+	static let configuration = BuildOptions.configuration
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@OptionGroup var options: GRPCLib.BuildOptions
+	@OptionGroup(title: "Build VM options")
+	var options: BuildOptions
 
 	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
 	var waitIPTimeout = 180
 
-	@Flag(help: .hidden)
+	@Flag(help: ArgumentHelp("Launch vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
 	var foreground: Bool = false
 
-	mutating func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
-
-		try self.options.validate()
 
 		if StorageLocation(asSystem: self.common.asSystem).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")

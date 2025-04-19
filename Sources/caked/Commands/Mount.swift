@@ -8,28 +8,22 @@ import NIO
 import TextTable
 
 struct Mount: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "mount", abstract: "Mount directory share into VM")
+	static let configuration = MountOptions.configuration
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
-	@Argument(help: "VM name")
-	var name: String = ""
+	@OptionGroup(title: "Mount options")
+	var mount: MountOptions
 
-	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
-	var mounts: [DirectorySharingAttachment] = []
-
-	mutating public func validate() throws {
+	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		if name.contains("/") {
-			throw ValidationError("\(name) should be a local name")
-		}
-
-		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.mount.name)
 		let config: CakeConfig = try vmLocation.config()
 		let directorySharingAttachments = config.mounts
 
-		try self.mounts.forEach { attachment in
+		try self.mount.mounts.forEach { attachment in
 			let description = attachment.description
 
 			if directorySharingAttachments.contains(where: { $0.description == description }) {
@@ -39,8 +33,8 @@ struct Mount: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.name)
-		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mounts)
+		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(self.mount.name)
+		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mount.mounts)
 
 		Logger.appendNewLine(self.common.format.render(response))
 

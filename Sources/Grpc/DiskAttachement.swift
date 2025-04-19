@@ -42,7 +42,7 @@ extension VZDiskImageSynchronizationMode: @retroactive CustomStringConvertible {
 		} else if self == .fsync {
 			return "fsync"
 		}
-		
+
 		return "full"
 	}
 
@@ -119,11 +119,11 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	public var description: String {
 		var value: [String] = [diskPath]
 		let options = self.diskOptions.description
-		
+
 		if !value.isEmpty {
 			value.append(options)
 		}
-		
+
 		return value.joined(separator: ":")
 	}
 
@@ -131,22 +131,22 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		let readOnly: Bool
 		let syncMode: String
 		let cachingMode: String
-		
+
 		var description: String {
 			var options: [String] = []
-			
+
 			if readOnly {
 				options.append("ro")
 			}
-			
+
 			if !syncMode.isEmpty {
 				options.append("sync=\(syncMode)")
 			}
-			
+
 			if !cachingMode.isEmpty {
 				options.append("caching=\(cachingMode)")
 			}
-			
+
 			return options.joined(separator: ",")
 		}
 
@@ -169,7 +169,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 					foundOptions = true
 				}
 			}
-			
+
 			return (.init(readOnly: readOnly, syncMode: syncMode, cachingMode: cachingMode), foundOptions)
 		}
 	}
@@ -199,7 +199,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 					isForcedReadOnly: self.diskOptions.readOnly,
 					synchronizationMode: try VZDiskSynchronizationMode(description: self.diskOptions.syncMode)
 				)
-				
+
 				return VZVirtioBlockDeviceConfiguration(attachment: nbdAttachment)
 			}
 		}
@@ -267,7 +267,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 			}
 		} else {
 			let diskPath = NSString(string: diskPath).expandingTildeInPath
-	
+
 			if diskPath.isEmpty {
 				throw ValidationError("Disk path is empty")
 			}

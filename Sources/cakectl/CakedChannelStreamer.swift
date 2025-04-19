@@ -165,7 +165,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	func stream(command: ExecuteCommand, handler: @escaping () -> CakedExecuteStream) async throws -> Int32 {
 		let shellStream: CakedExecuteStream = handler()
 		let sigwinch: DispatchSourceSignal?
-		
+
 		defer {
 			if var term = self.term {
 				inputHandle.restoreState(&term)

@@ -10,7 +10,8 @@ import TextTable
 struct Infos: CakeAgentAsyncParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
-	@OptionGroup var common: CommonOptions
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
 
 	@Argument(help: "VM name")
 	var name: String
