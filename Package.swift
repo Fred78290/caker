@@ -147,7 +147,8 @@ let package = Package(
 				"cakectl"
 			],
 			exclude: [
-				"echo.py"
+				"echo.py",
+				"TestPlan.xctestplan"
 			]
 		)
 	]

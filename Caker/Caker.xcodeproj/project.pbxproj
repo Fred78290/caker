@@ -17,6 +17,14 @@
 		9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */; };
 		9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */; };
 		9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD52D8AE3E10050BFAD /* MountService.swift */; };
+		9B345C162DB4EB700047D00B /* echo.py in Resources */ = {isa = PBXBuildFile; fileRef = 9B345C0D2DB4EB700047D00B /* echo.py */; };
+		9B345C172DB4EB700047D00B /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
+		9B345C182DB4EB700047D00B /* CloudInitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */; };
+		9B345C192DB4EB700047D00B /* NetworkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C112DB4EB700047D00B /* NetworkTest.swift */; };
+		9B345C1A2DB4EB700047D00B /* GrpcTcpSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */; };
+		9B345C1B2DB4EB700047D00B /* GrpcUnixSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */; };
+		9B345C1C2DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
+		9B345C1D2DB4EB700047D00B /* GrpcTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */; };
 		9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB02D5A3E0300164BF5 /* StartHandler.swift */; };
 		9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ACD2D5A3E0300164BF5 /* VMLocation.swift */; };
 		9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AC62D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift */; };
@@ -286,6 +294,14 @@
 		9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mount.pb.swift; sourceTree = "<group>"; };
 		9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCMountService.swift; sourceTree = "<group>"; };
 		9B24FFD52D8AE3E10050BFAD /* MountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountService.swift; sourceTree = "<group>"; };
+		9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudInitTest.swift; sourceTree = "<group>"; };
+		9B345C0D2DB4EB700047D00B /* echo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = echo.py; sourceTree = "<group>"; };
+		9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTcpSocketTest.swift; sourceTree = "<group>"; };
+		9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcTestCase.swift; sourceTree = "<group>"; };
+		9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrpcUnixSocketTest.swift; sourceTree = "<group>"; };
+		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
+		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
+		9B345C132DB4EB700047D00B /* RemoteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTest.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -585,9 +601,34 @@
 			path = MountService;
 			sourceTree = "<group>";
 		};
+		9B345C142DB4EB700047D00B /* CakerTests */ = {
+			isa = PBXGroup;
+			children = (
+				9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */,
+				9B345C0D2DB4EB700047D00B /* echo.py */,
+				9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */,
+				9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */,
+				9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */,
+				9B345C112DB4EB700047D00B /* NetworkTest.swift */,
+				9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */,
+				9B345C132DB4EB700047D00B /* RemoteTest.swift */,
+			);
+			path = CakerTests;
+			sourceTree = "<group>";
+		};
+		9B345C152DB4EB700047D00B /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				9B345C142DB4EB700047D00B /* CakerTests */,
+			);
+			name = Tests;
+			path = ../Tests;
+			sourceTree = SOURCE_ROOT;
+		};
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
+				9B345C152DB4EB700047D00B /* Tests */,
 				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
@@ -1121,6 +1162,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B345C162DB4EB700047D00B /* echo.py in Resources */,
 				9B464B492D5A3E0300164BF5 /* caker.code-workspace in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1132,6 +1174,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B345C172DB4EB700047D00B /* RemoteTest.swift in Sources */,
+				9B345C182DB4EB700047D00B /* CloudInitTest.swift in Sources */,
+				9B345C192DB4EB700047D00B /* NetworkTest.swift in Sources */,
+				9B345C1A2DB4EB700047D00B /* GrpcTcpSocketTest.swift in Sources */,
+				9B345C1B2DB4EB700047D00B /* GrpcUnixSocketTest.swift in Sources */,
+				9B345C1C2DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift in Sources */,
+				9B345C1D2DB4EB700047D00B /* GrpcTestCase.swift in Sources */,
 				9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */,
 				9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */,
 				9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */,

@@ -17,7 +17,7 @@ Sources/cakectl/Ignored/
 *.d
 *.swiftdeps
 *.swiftdeps~
+*.p12
 
 Caker/Caker.xcodeproj/project.xcworkspace/
-
 Caker/Caker.xcodeproj/xcuserdata

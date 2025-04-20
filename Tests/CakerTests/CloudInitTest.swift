@@ -114,10 +114,10 @@ final class CloudInitTests: XCTestCase {
 
 	func testSimpleStreamsFindImage() async throws {
 		if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
-			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL)
+			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL, asSystem: false)
 			let arch = Architecture.current().rawValue
 			let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
-			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud")
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud", asSystem: false)
 
 			XCTAssertEqual(image.fingerprint, fingerprint)
 
@@ -127,7 +127,7 @@ final class CloudInitTests: XCTestCase {
 				try? temporaryURL.delete()
 			}
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL)
+			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL, asSystem: false)
 
 			print("saved to \(temporaryURL.path)")
 
@@ -137,7 +137,7 @@ final class CloudInitTests: XCTestCase {
 
 	func buildVM(name: String, image: String) async throws {
 		var options: BuildOptions = BuildOptions()
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory()
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(asSystem: false)
 
 		options.name = name
 		options.autostart = true
@@ -145,6 +145,7 @@ final class CloudInitTests: XCTestCase {
 		options.cpu = 1
 		options.memory = 512
 		options.diskSize = 20
+		options.attachedDisks = []
 		options.user = "admin"
 		options.password = nil
 		options.mainGroup = "admin"
@@ -161,11 +162,12 @@ final class CloudInitTests: XCTestCase {
 		options.mounts = []
 		options.networks = []
 		options.sockets = []
+		options.consoleURL = nil
 		//options.netSoftnet = false
 		//options.netSoftnetAllow = nil
 		//options.netHost = false
 
-		_ = try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options)
+		_ = try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options, asSystem: false)
 
 		XCTAssertNoThrow(try StorageLocation(asSystem: false).relocate(options.name, from: tempVMLocation))
 	}
@@ -176,7 +178,7 @@ final class CloudInitTests: XCTestCase {
 
 	func testBuildVMWithQCow2() async throws {
 		let tmpQcow2 = try Home(asSystem: false).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
-		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2)
+		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, asSystem: false)
 		
 		defer {
 			try? tempLocation.delete()
@@ -225,7 +227,7 @@ final class CloudInitTests: XCTestCase {
 		PortForwardingServer.createPortForwardingServer(group: self.group)
 		
 		// Start VM
-		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, promise: promise)
+		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)
 
 		print("startVM got running ip: \(runningIP)")
 

@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "F653144B-8511-4E1E-BDE1-86950BD67221",
+      "id" : "42B57BC4-5BB9-44D5-B4F5-90E9BA3F6A84",
       "name" : "Test Scheme Action",
       "options" : {
 
@@ -17,7 +17,6 @@
   },
   "testTargets" : [
     {
-      "parallelizable" : false,
       "target" : {
         "containerPath" : "container:",
         "identifier" : "CakerTests",

@@ -4,7 +4,8 @@ on:
     branches:
     - 'master'
     tags:
-    - 'v*'
+      - 'v*'
+      - 'snapshot'
   pull_request:
     branches:
     - 'master'
@@ -20,48 +21,72 @@ env:
 
 jobs:
   build:
-    runs-on: macos-13
-    timeout-minutes: 10
+    runs-on: self-hosted
+    timeout-minutes: 60
+    outputs:
+      build_package: ${{ steps.version.outputs.build_package }}
     steps:
       - name: checkout
         uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
+ 
       - name: Setup Go
         uses: actions/setup-go@v5
+
       - name: Setup Swift
-        uses: swift-actions/setup-swift@v2.1.0
+        uses: swift-actions/setup-swift@v2.3.0
+
       - name: Version
+        id: version
         run: |
           VERSION_TAG="${GITHUB_REF##*/}"
+
+          if [[ "$VERSION_TAG" == "snapshot" ]]; then
+            VERSION_TAG=$(git rev-parse --short HEAD)
+            echo "PACKAGE=true" >> $GITHUB_ENV
+            echo "build_package=true" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION_TAG" == v* ]]; then
+            VERSION_TAG="${VERSION_TAG:1}"
+            echo "PACKAGE=true" >> $GITHUB_ENV
+            echo "build_package=true" >> $GITHUB_OUTPUT
+          else
+            echo "PACKAGE=false" >> $GITHUB_ENV
+            echo "build_package=true" >> $GITHUB_OUTPUT
+          fi
+
+          echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
           TMPFILE=$(mktemp)
           envsubst < Sources/caked/CI/CI.swift > $TMPFILE
           cp $TMPFILE Sources/caked/CI/CI.swift
           cp $TMPFILE Sources/cakectl/CI/CI.swift
+
       - name: Build QCow2convert framework
         run: |
           cd qcow2convert
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
-          gomobile bind -target macos -o /tmp/gomobile/Qcow2convert.xcframework
+          ./build.sh
+
       - name: Build Swift package
         run: |
-          swift build -c release --arch x86_64 --product Caker
-          swift build -c release --arch arm64 --product Caker
+          swift build -c release --arch x86_64
+          swift build -c release --arch arm64
+
       - name: Run tests
         run: swift test
+
       - name: Install the Apple certificate and provisioning profile
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           ./ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: package
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           export VERSION_TAG="${GITHUB_REF##*/}"
           ./ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: "Prepare the release note"
+        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           shasha=$(sha256sum _artifacts/SHA256SUMS | awk '{print $1}')
           cat <<-EOF | tee /tmp/release-note.txt
@@ -82,12 +107,12 @@ jobs:
           EOF
 
       - name: "Create release"
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           VERSION_TAG="${GITHUB_REF##*/}"
           gh release create -F /tmp/release-note.txt --draft --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
     
       - name: Clean up keychain and provisioning profile
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
