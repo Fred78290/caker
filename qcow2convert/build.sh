@@ -1,5 +1,7 @@
 #!/bin/bash
-pushd /tmp
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+pushd ${TMPDIR}
 git clone https://github.com/Fred78290/gomobile.git
 cd gomobile
 go mod tidy
