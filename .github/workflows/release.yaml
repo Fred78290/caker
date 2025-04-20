@@ -2,13 +2,13 @@ name: Release
 on:
   push:
     branches:
-    - 'master'
+    - 'main'
     tags:
       - 'v*'
       - 'snapshot'
   pull_request:
     branches:
-    - 'master'
+    - 'main'
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -43,10 +43,10 @@ jobs:
           VERSION_TAG="${GITHUB_REF##*/}"
           PACKAGE=false
 
-          if [[ "$VERSION_TAG" == "snapshot" ]]; then
-            VERSION_TAG=$(git rev-parse --short HEAD)
+          if [[ "${VERSION_TAG}" == "snapshot" ]]; then
+            VERSION_TAG=SNAPSHOT-$(git rev-parse --short HEAD)
             PACKAGE=true
-          elif [[ "$VERSION_TAG" == v* ]]; then
+          elif [[ "$(VERSION_TAG)" == v* ]]; then
             VERSION_TAG="${VERSION_TAG:1}"
             PACKAGE=true
           fi
@@ -54,6 +54,7 @@ jobs:
           echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
           echo "build_package=${PACKAGE}" >> $GITHUB_OUTPUT
+          echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
 
           TMPFILE=$(mktemp)
           envsubst < Sources/caked/CI/CI.swift > $TMPFILE
@@ -94,36 +95,17 @@ jobs:
           export VERSION_TAG="${GITHUB_REF##*/}"
           ./.ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: "Prepare the release note"
-        env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
-        if: github.event_name == 'push' && env.PACKAGE == 'true'
-        run: |
-          shasha=$(sha256sum _artifacts/SHA256SUMS | awk '{print $1}')
-          cat <<-EOF | tee /tmp/release-note.txt
-          (Changes to be documented)
-  
-          ## Usage
-          \`\`\`console
-          [macOS]$ tartctl launch....
-          \`\`\`
-  
-          - - -
-          The binaries were built automatically on GitHub Actions.
-          The build log is available for 90 days: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  
-          The sha256sum of the SHA256SUMS file itself is \`${shasha}\` .
-          - - -
-          Release manager: [ADD YOUR NAME HERE] (@[ADD YOUR GITHUB ID HERE])
-          EOF
-
       - name: "Create release"
         env:
           PACKAGE: ${{ steps.version.outputs.build_package }}
+          VERSION_TAG: ${{ steps.version.outputs.version_tag }}
         if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
-          VERSION_TAG="${GITHUB_REF##*/}"
-          gh release create -F /tmp/release-note.txt --draft --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
+          if [ ${GITHUB_REF##*/} == "snapshot" ]; then
+            gh release create --prerelease --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
+          else
+            gh release create --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
+          fi
     
       - name: Clean up keychain and provisioning profile
         env:
