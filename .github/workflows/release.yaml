@@ -50,7 +50,7 @@ jobs:
           if [[ "${VERSION_TAG}" == "snapshot" ]]; then
             VERSION_TAG=SNAPSHOT-$(git rev-parse --short HEAD)
             PACKAGE=true
-          elif [[ "$(VERSION_TAG)" == v* ]]; then
+          elif [[ "${VERSION_TAG}" == v* ]]; then
             VERSION_TAG="${VERSION_TAG:1}"
             PACKAGE=true
           fi
