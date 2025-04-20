@@ -62,10 +62,18 @@ runcmd:
 - hostnamectl set-hostname openstack-dev-k3s-worker-02
 """
 
+let uuid = UUID().uuidString
+
 final class CloudInitTests: XCTestCase {
 	let networkConfigPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("network-config.yaml").absoluteURL
 	let userDataPath: URL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true).appendingPathComponent("user-data.yaml").absoluteURL
 	let group: MultiThreadedEventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+	let noble_oci_image = "noble-oci-image-\(uuid)"
+	let noble_qcow2_image = "noble-qcow2-image-\(uuid)"
+	let noble_container_image = "noble-container-image-\(uuid)"
+	let noble_lxd_image = "noble-lxd-image-\(uuid)"
+	let noble_cloud_image = "noble-cloud-image-\(uuid)"
+	let noble_must_fail_image = "noble-must-fail-image"
 
 	override func setUp() {
 		do {
@@ -84,7 +92,19 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	override func tearDown() {
+		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
+		let storageLocation: StorageLocation = StorageLocation(asSystem: false)
+
+		for name in names {
+			if storageLocation.exists(name) {
+				if let vmLocation: VMLocation = try? storageLocation.find(name) {
+					try? vmLocation.delete()
+				}
+			}
+		}
+
 		try? group.syncShutdownGracefully()
+
 	}
 
 	/*
@@ -173,7 +193,7 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithCloudImage() async throws {
-		try await buildVM(name: "noble-cloud-image", image: ubuntuCloudImage)
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
 	}
 
 	func testBuildVMWithQCow2() async throws {
@@ -185,32 +205,32 @@ final class CloudInitTests: XCTestCase {
 			try? tmpQcow2.delete()
 		}
 
-		try await buildVM(name: "noble-qcow2-image", image: "qcow2://\(tempLocation.path)")
+		try await buildVM(name: noble_qcow2_image, image: "qcow2://\(tempLocation.path)")
 	}
 
 	func testBuildVMWithOCI() async throws {
-		try await buildVM(name: "noble-oci-image", image: "ocis://ghcr.io/cirruslabs/ubuntu:latest")
+		try await buildVM(name: noble_oci_image, image: "ocis://ghcr.io/cirruslabs/ubuntu:latest")
 	}
 
 	func testBuildVMWithContainer() async throws {
-		try await buildVM(name: "noble-container-image", image: "images:ubuntu/noble/cloud")
+		try await buildVM(name: noble_container_image, image: "images:ubuntu/noble/cloud")
 	}
 
 	func testBuildVMWithLXDContainers() async throws {
-		try await buildVM(name: "noble-lxd-image", image: "ubuntu:noble")
+		try await buildVM(name: noble_lxd_image, image: "ubuntu:noble")
 	}
 
 	func testBuildMustFail() async throws {
 		do {
-			try await buildVM(name: "noble-must-fail-image", image: "zlib://devregistry.aldunelabs.com/ubuntu:latest")
+			try await buildVM(name: noble_must_fail_image, image: "zlib://devregistry.aldunelabs.com/ubuntu:latest")
 	        XCTFail("Error needs to be thrown")
 		} catch {
 		}
 	}
 
 	func testLaunchVMWithCloudImage() async throws {
-		try await buildVM(name: "noble-cloud-image", image: ubuntuCloudImage)
-		let vmLocation: VMLocation = try StorageLocation(asSystem: false).find("noble-cloud-image")
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
+		let vmLocation: VMLocation = try StorageLocation(asSystem: false).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
 
@@ -237,14 +257,15 @@ final class CloudInitTests: XCTestCase {
 		XCTAssertNoThrow(try promise.futureResult.wait())
 	}
 
-	func testDeleteVM() async throws {
-		let names = ["noble-cloud-image", "noble-qcow2-image", "noble-oci-image", "noble-container-image", "noble-lxd-image", "noble-must-fail-image"]
+	func testShouldDeleteVM() async throws {
+		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
 		let storageLocation: StorageLocation = StorageLocation(asSystem: false)
 
 		for name in names {
 			if storageLocation.exists(name) {
 				let vmLocation: VMLocation = try storageLocation.find(name)
-				try vmLocation.delete()
+				XCTAssertNoThrow(try vmLocation.delete())
+				XCTAssertFalse(storageLocation.exists(name), "VM \(name) should be deleted")
 			}
 		}
 	}
