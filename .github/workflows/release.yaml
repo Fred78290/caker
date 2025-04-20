@@ -41,21 +41,20 @@ jobs:
         id: version
         run: |
           VERSION_TAG="${GITHUB_REF##*/}"
+          PACKAGE=false
 
           if [[ "$VERSION_TAG" == "snapshot" ]]; then
             VERSION_TAG=$(git rev-parse --short HEAD)
-            echo "PACKAGE=true" >> $GITHUB_ENV
-            echo "build_package=true" >> $GITHUB_OUTPUT
+            PACKAGE=true
           elif [[ "$VERSION_TAG" == v* ]]; then
             VERSION_TAG="${VERSION_TAG:1}"
-            echo "PACKAGE=true" >> $GITHUB_ENV
-            echo "build_package=true" >> $GITHUB_OUTPUT
-          else
-            echo "PACKAGE=false" >> $GITHUB_ENV
-            echo "build_package=true" >> $GITHUB_OUTPUT
+            PACKAGE=true
           fi
 
           echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
+          echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
+          echo "build_package=${PACKAGE}" >> $GITHUB_OUTPUT
+
           TMPFILE=$(mktemp)
           envsubst < Sources/caked/CI/CI.swift > $TMPFILE
           cp $TMPFILE Sources/caked/CI/CI.swift
@@ -77,13 +76,13 @@ jobs:
       - name: Install the Apple certificate and provisioning profile
         if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
-          ./ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
+          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: package
         if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
         run: |
           export VERSION_TAG="${GITHUB_REF##*/}"
-          ./ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
+          ./.ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: "Prepare the release note"
         if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
