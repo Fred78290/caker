@@ -13,10 +13,12 @@ swift build -c release --arch x86_64
 swift build -c release --arch arm64
 
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/release/caked
+codesign --sign - --entitlements Resources/dev.entitlements --force .build/release/cakectl
 
 rm -Rf ${PKGDIR}
 mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
 cp -c .build/release/caked ${PKGDIR}/Contents/MacOS/caked
+cp -c .build/release/cakectl ${PKGDIR}/Contents/MacOS/cakectl
 cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
@@ -30,3 +32,4 @@ exec "${PKGDIR}/Contents/MacOS/caked" "\$@"
 EOF
 
 chmod +x .bin/caked
+ln -s .build/release/cakectl .bin/cakectl

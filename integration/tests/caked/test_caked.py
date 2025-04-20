@@ -1,3 +1,4 @@
+import random
 import sys
 import uuid
 from time import sleep
@@ -167,8 +168,9 @@ def test_template(caked):
 
 def test_networks(caked):
 	network_name = f"test-network-{uuid.uuid4()}-{uuid.uuid4()}"
+	random_octet = random.randint(128, 254)
 
-	caked.run(["networks", "create", network_name, "--mode=shared", "--gateway=192.168.106.1", "--dhcp-end=192.168.106.128", "--netmask=255.255.254.0"])
+	caked.run(["networks", "create", network_name, "--mode=shared", f"--gateway=192.168.{random_octet}.1", f"--dhcp-end=192.168.{random_octet}.128", "--netmask=255.255.255.0"])
 	stdout, _ = caked.infos_networks(network_name)
 	assert network_name in stdout
 
