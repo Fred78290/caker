@@ -66,26 +66,38 @@ jobs:
           ./build.sh
 
       - name: Build Swift package
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
         run: |
-          swift build -c release --arch x86_64
-          swift build -c release --arch arm64
+          if [ "${PACKAGE}" == 'true' ]; then
+            swift build -c release --arch x86_64
+            swift build -c release --arch arm64
+          else
+            swift build
+          fi
 
       - name: Run tests
         run: swift test
 
       - name: Install the Apple certificate and provisioning profile
-        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
+        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: package
-        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
+        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           export VERSION_TAG="${GITHUB_REF##*/}"
           ./.ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: "Prepare the release note"
-        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
+        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           shasha=$(sha256sum _artifacts/SHA256SUMS | awk '{print $1}')
           cat <<-EOF | tee /tmp/release-note.txt
@@ -106,12 +118,16 @@ jobs:
           EOF
 
       - name: "Create release"
-        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
+        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           VERSION_TAG="${GITHUB_REF##*/}"
           gh release create -F /tmp/release-note.txt --draft --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
     
       - name: Clean up keychain and provisioning profile
-        if: github.event_name == 'push' && steps.version.outputs.build_package == 'true'
+        env:
+          PACKAGE: ${{ steps.version.outputs.build_package }}
+        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db

@@ -6,8 +6,6 @@
 	<array>
 		<string>LE7988HTRN.com.aldunelabs.caker</string>
 	</array>
-	<key>com.apple.vm.networking</key>
-	<true/>
 	<key>com.apple.security.virtualization</key>
 	<true/>
 </dict>

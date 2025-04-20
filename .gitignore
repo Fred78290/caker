@@ -21,3 +21,5 @@ Sources/cakectl/Ignored/
 
 Caker/Caker.xcodeproj/project.xcworkspace/
 Caker/Caker.xcodeproj/xcuserdata
+
+.ci/pkg/Caker.app/
