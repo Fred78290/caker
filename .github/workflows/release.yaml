@@ -27,21 +27,50 @@ jobs:
     outputs:
       build_package: ${{ steps.version.outputs.build_package }}
     steps:
+      - name: Check tools
+        id: check
+        run: |
+          if [ -z "$(command -v python)" ]; then
+            echo "install_python=true" >> $GITHUB_OUTPUT
+          else
+            echo "install_python=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -z "$(command -v python)" ]; then
+            echo "install_golang=true" >> $GITHUB_OUTPUT
+          else
+            echo "install_golang=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -z "$(command -v brew)" ]; then
+            echo "install_brew=true" >> $GITHUB_OUTPUT
+          else
+            echo "install_brew=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -z "$(command -v swift)" ]; then
+            echo "install_swift=true" >> $GITHUB_OUTPUT
+          else
+            echo "install_swift=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: checkout
         uses: actions/checkout@v4.2.2
         with:
           submodules: recursive
  
       - name: Set up Homebrew
-        id: set-up-homebrew
+        if: steps.check.outputs.install_python == 'true'
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Setup Python
         uses: actions/setup-python@v5
+        if: steps.check.outputs.install_python == 'true'
         with:
           python-version: '3.13' 
 
       - name: Setup Go
+        if: steps.check.outputs.install_golang == 'true'
         uses: actions/setup-go@v5.4.0
         with:
           go-version: '>=1.23.0'
@@ -49,6 +78,7 @@ jobs:
           cache-dependency-path: qcow2convert/go.mod
 
       - name: Setup Swift
+        if: steps.check.outputs.install_golang == 'true'
         uses: swift-actions/setup-swift@v2.3.0
 
       - name: Version
