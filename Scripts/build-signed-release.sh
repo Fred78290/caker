@@ -26,7 +26,7 @@ mkdir .bin
 
 cat > .bin/caked <<EOF
 #!/bin/sh
-exec "${PKGDIR}/Contents/MacOS/caked" "$@"
+exec "${PKGDIR}/Contents/MacOS/caked" "\$@"
 EOF
 
 chmod +x .bin/caked
