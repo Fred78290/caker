@@ -65,6 +65,10 @@ jobs:
           cp $TMPFILE Sources/caked/CI/CI.swift
           cp $TMPFILE Sources/cakectl/CI/CI.swift
 
+      - name: Install the Apple certificate and provisioning profile
+        run: |
+          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
+
       - name: Build QCow2convert framework
         run: |
           cd qcow2convert
@@ -74,22 +78,13 @@ jobs:
         env:
           PACKAGE: ${{ steps.version.outputs.build_package }}
         run: |
-          if [ "${PACKAGE}" == 'true' ]; then
-            swift build -c release --arch x86_64
-            swift build -c release --arch arm64
-          else
-            swift build
-          fi
-
+          ./Scripts/build-signed-release.sh
+ 
       - name: Run tests
-        run: swift test
-
-      - name: Install the Apple certificate and provisioning profile
-        env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
-        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
-          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
+          # Run tests for the Swift package
+          export PATH=${PWD}/.bin:$PATH
+          swift test
 
       - name: package
         env:
@@ -112,8 +107,5 @@ jobs:
           fi
     
       - name: Clean up keychain and provisioning profile
-        env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
-        if: github.event_name == 'push' && env.PACKAGE == 'true'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
