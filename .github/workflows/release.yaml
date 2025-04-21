@@ -19,7 +19,7 @@ env:
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
-
+  PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
 jobs:
   build:
     runs-on: self-hosted
@@ -28,13 +28,14 @@ jobs:
       - name: Check tools
         id: check
         run: |
+          echo PATH=$PATH
           if [ -z "$(command -v python)" ]; then
             echo "install_python=true" >> $GITHUB_OUTPUT
           else
             echo "install_python=false" >> $GITHUB_OUTPUT
           fi
 
-          if [ -z "$(command -v python)" ]; then
+          if [ -z "$(command -v go)" ]; then
             echo "install_golang=true" >> $GITHUB_OUTPUT
           else
             echo "install_golang=false" >> $GITHUB_OUTPUT
