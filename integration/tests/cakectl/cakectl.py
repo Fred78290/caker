@@ -7,9 +7,9 @@ class CakeCtl:
 	service_caked = None
 
 	def __init__(self):
-		if "CIRRUS_WORKING_DIR" in os.environ:
+		if "GITHUB_WORKSPACE" in os.environ:
 			# Test on CI
-			self.cake_home = tempfile.TemporaryDirectory(dir=os.environ.get("CIRRUS_WORKING_DIR"))
+			self.cake_home = tempfile.TemporaryDirectory(dir=os.environ.get("GITHUB_WORKSPACE"))
 			self.cleanup = True
 
 			# Link to the users cache to make things faster

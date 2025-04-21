@@ -4,9 +4,8 @@
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -e
 
-pushd $(dirname $0) >/dev/null
-CURDIR=${PWD}
-PKGDIR=${PWD}/../dist/Caker.app
+pushd "$(dirname $0)/.." >/dev/null
+PKGDIR=${PWD}/dist/Caker.app
 popd > /dev/null
 
 swift build -c release --arch x86_64
@@ -32,4 +31,4 @@ exec "${PKGDIR}/Contents/MacOS/caked" "\$@"
 EOF
 
 chmod +x .bin/caked
-ln -s .build/release/cakectl .bin/cakectl
+ln -s ${PKGDIR}/Contents/MacOS/cakectl .bin/cakectl

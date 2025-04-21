@@ -6,9 +6,8 @@ set -e
 
 sudo rm -rf .build *.o *.d *.swiftdeps *.swiftdeps~
 
-pushd $(dirname $0) >/dev/null
-CURDIR=${PWD}
-PKGDIR=${PWD}/../dist/Caker.app
+pushd "$(dirname $0)/.." >/dev/null
+PKGDIR=${PWD}/dist/Caker.app
 popd > /dev/null
 
 swift build

@@ -20,6 +20,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
   PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
+  CAKE_HOME: "${{ github.workspace }}/.cake"
 jobs:
   build:
     runs-on: self-hosted
@@ -86,7 +87,7 @@ jobs:
           VERSION_TAG="${GITHUB_REF##*/}"
           PACKAGE=false
 
-          if [ -z "$(command -v envsubst)"]
+          if [ -z "$(command -v envsubst)"]; then
             brew install envsubst
           fi
 
