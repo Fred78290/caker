@@ -24,8 +24,6 @@ jobs:
   build:
     runs-on: self-hosted
     timeout-minutes: 60
-    outputs:
-      build_package: ${{ steps.version.outputs.build_package }}
     steps:
       - name: Check tools
         id: check
@@ -99,6 +97,10 @@ jobs:
             PACKAGE=true
           fi
 
+          if [ ${PACKAGE} == "true" ] && [ ${GITHUB_EVENT_NAME} != "push" ]; then
+            PACKAGE=false
+          fi
+
           echo "VERSION_TAG=${VERSION_TAG}" >> $GITHUB_ENV
           echo "PACKAGE=${PACKAGE}" >> $GITHUB_ENV
           echo "build_package=${PACKAGE}" >> $GITHUB_OUTPUT
@@ -109,18 +111,12 @@ jobs:
           cp $TMPFILE Sources/caked/CI/CI.swift
           cp $TMPFILE Sources/cakectl/CI/CI.swift
 
-      - name: Install the Apple certificate and provisioning profile
-        run: |
-          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
-
       - name: Build QCow2convert framework
         run: |
           cd qcow2convert
           ./build.sh
 
       - name: Build Swift package
-        env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
         run: |
           ./Scripts/build-signed-release.sh
  
@@ -134,7 +130,7 @@ jobs:
         run: |
           # Run tests for the Swift package
           export PATH=${PWD}/.bin:$PATH
-          if [ -z "$(command -v virtualenv)"]
+          if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
           cd integration/tests
@@ -143,19 +139,21 @@ jobs:
           pip install -r requirements.txt
           pytest --verbose --junit-xml=pytest-junit.xml
 
+      - name: Install the Apple certificate and provisioning profile
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
+  
       - name: package
-        env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
-        if: github.event_name == 'push' && env.PACKAGE == 'true'
+        if: steps.version.outputs.build_package == 'true'
         run: |
           export VERSION_TAG="${GITHUB_REF##*/}"
           ./.ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
 
       - name: "Create release"
         env:
-          PACKAGE: ${{ steps.version.outputs.build_package }}
           VERSION_TAG: ${{ steps.version.outputs.version_tag }}
-        if: github.event_name == 'push' && env.PACKAGE == 'true'
+        if: steps.version.outputs.build_package == 'true'
         run: |
           if [ ${GITHUB_REF##*/} == "snapshot" ]; then
             gh release create --prerelease --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
@@ -164,5 +162,6 @@ jobs:
           fi
     
       - name: Clean up keychain and provisioning profile
+        if: steps.version.outputs.build_package == 'true'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
