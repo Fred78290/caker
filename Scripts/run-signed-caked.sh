@@ -4,9 +4,8 @@
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -e
 
-pushd $(dirname $0) >/dev/null
-CURDIR=${PWD}
-PKGDIR=${PWD}/../dist/Caker.app
+pushd "$(dirname $0)/.." >/dev/null
+PKGDIR=${PWD}/dist/Caker.app
 popd > /dev/null
 
 [ -f *.swiftdeps ] && sudo rm -rf .build *.o *.d *.swiftdeps *.swiftdeps~
