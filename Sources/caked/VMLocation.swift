@@ -16,40 +16,44 @@ struct VMLocation {
 	var rootURL: URL
 	let template: Bool
 
+	private func buildURL(_ path: String) -> URL {
+		return rootURL.appendingPathComponent(path).resolvingSymlinksInPath().absoluteURL
+	}
+
 	var configURL: URL {
-		rootURL.appendingPathComponent("config.json").absoluteURL
+		buildURL("config.json").absoluteURL
 	}
 
 	var cakeURL: URL {
-		rootURL.appendingPathComponent("cake.json").absoluteURL
+		buildURL("cake.json").absoluteURL
 	}
 
 	var diskURL: URL {
-		rootURL.appendingPathComponent("disk.img").absoluteURL
+		buildURL("disk.img").absoluteURL
 	}
 
 	var nvramURL: URL {
-		rootURL.appendingPathComponent("nvram.bin").absoluteURL
+		buildURL("nvram.bin").absoluteURL
 	}
 
 	var stateURL: URL {
-		rootURL.appendingPathComponent("state.vzvmsave").absoluteURL
+		buildURL("state.vzvmsave").absoluteURL
 	}
 
 	var manifestURL: URL {
-		rootURL.appendingPathComponent("manifest.json").absoluteURL
+		buildURL("manifest.json").absoluteURL
 	}
 
 	var cdromISO: URL {
-		rootURL.appendingPathComponent("cloud-init.iso").absoluteURL
+		buildURL("cloud-init.iso").absoluteURL
 	}
 
 	var agentURL: URL {
-		return rootURL.socketPath(name: "agent")
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}
 
 	var mountServiceURL: URL {
-		return rootURL.socketPath(name: "mount")
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "mount")
 	}
 
 	var name: String {

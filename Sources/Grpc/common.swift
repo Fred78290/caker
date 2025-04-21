@@ -115,7 +115,7 @@ public struct Utils {
 
 	public static func getHome(asSystem: Bool = false, createItIfNotExists: Bool = true) throws -> URL {
 		guard let cakeHomeDir = homeDirectories[asSystem] else {
-			let cakeHomeDir: URL
+			var cakeHomeDir: URL
 
 			if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
@@ -138,6 +138,8 @@ public struct Utils {
 			if createItIfNotExists && FileManager.default.fileExists(atPath: cakeHomeDir.path) == false {
 				try FileManager.default.createDirectory(at: cakeHomeDir, withIntermediateDirectories: true)
 			}
+
+			cakeHomeDir = cakeHomeDir.resolvingSymlinksInPath()
 
 			homeDirectories[asSystem] = cakeHomeDir
 

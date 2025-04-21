@@ -78,14 +78,14 @@ struct Home {
 
 	init(asSystem: Bool, createItIfNotExists: Bool = true) throws {
 		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem, createItIfNotExists: createItIfNotExists)
-		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL
-		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL
-		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL
-		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL
-		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL
+		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 
-		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL
-		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL
+		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 
 		if try self.cakeHomeDirectory.exists() && createItIfNotExists {
 			try FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
