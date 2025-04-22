@@ -1,10 +1,12 @@
 import os
 import subprocess
 import tempfile
+from time import sleep
 
 
 class CakeCtl:
 	service_caked = None
+	listen_address = None
 
 	def __init__(self):
 		if "GITHUB_WORKSPACE" in os.environ:
@@ -23,22 +25,34 @@ class CakeCtl:
 
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
-		self.service_caked = subprocess.Popen(["caked", "service", "listen", "--secure"], env=env)
+		self.listen_address = os.path.join(self.home(), "caked.sock")
+		self.service_caked = subprocess.Popen(["caked", "service", "listen", "--secure", "--address", "unix://" + self.listen_address], env=env)
+
+		# Wait for the socket file to be created
+		while not os.path.exists(self.listen_address):
+			if self.service_caked.poll():
+				print("caked service failed to start")
+				raise RuntimeError("caked service failed to start")
+			sleep(1)
 
 	def __del__(self):
-		if self.cleanup:
-			self.cake_home.cleanup()
-
-		if self.service_caked is not None:
-			self.service_caked.kill()
-			self.service_caked.wait()
+		self.do_cleanup()
 
 	def __enter__(self):
 		return self
 
-	def __exit__(self, exc_type, exc_val, exc_tb):
+	def do_cleanup(self):
 		if self.cleanup:
 			self.cake_home.cleanup()
+
+			if self.service_caked is not None:
+				self.service_caked.kill()
+				self.service_caked.wait()
+
+			self.service_caked = None
+			self.cake_home = None
+			self.listen_address = None
+			self.cleanup = False
 
 	def home(self) -> str:
 		if self.cleanup:
@@ -121,8 +135,7 @@ class CakeCtl:
 	def run(self, args, input=None, timeout=None, pass_fds=()):
 		env = os.environ.copy()
 		env.update({"CAKE_HOME": self.home()})
-
-		completed_process = subprocess.run(["cakectl"] + args, env=env, capture_output=True, input=input, timeout=timeout, pass_fds=pass_fds)
+		completed_process = subprocess.run(["cakectl", "--connect", "unix://" + self.listen_address] + args, env=env, capture_output=True, input=input, timeout=timeout, pass_fds=pass_fds)
 
 		completed_process.check_returncode()
 

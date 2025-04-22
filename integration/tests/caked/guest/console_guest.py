@@ -69,17 +69,20 @@ def echo_darwin():
 	with open("/tmp/vsock_echo.pid", "w") as pid_file:
 		try:
 			pid_file.write(str(os.getpid()))
+			print("Reading pipe")
 
-			with open(console_path, "ab+") as pipe:
-				print("Reading pipe")
-				message = readmessage(pipe)
+			with open(console_path, "rb") as input:
+				message = readmessage(input)
 
 				print("Writing pipe")
-				writemessage(pipe, message)
-		
-				print("Acking pipe")
-				response = readmessage(pipe)
 
+				with open(console_path, "wb") as output:
+					writemessage(output, message)
+
+				print("Acking pipe")
+
+				# Read end message
+				response = readmessage(input)
 				print("Received data: {0}".format(response.decode()))
 		except Exception as e:
 			raise e

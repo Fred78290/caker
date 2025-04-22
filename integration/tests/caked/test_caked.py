@@ -3,197 +3,209 @@ import uuid
 from time import sleep
 
 import pytest
+from caked import Caked
 from paramiko.client import AutoAddPolicy, SSHClient
 
 
-@pytest.mark.only_tart_present()
-def test_clone_with_tart(caked):
-	linux = f"linux-{uuid.uuid4()}"
+class TestCaked:
+	@classmethod
+	def setup_class(cls):
+		cls.caked = Caked()
 
-	# Create a Linux VM
-	caked.clone("ghcr.io/cirruslabs/ubuntu:24.04", linux)
+	@classmethod
+	def teardown_class(cls):
+		if cls.caked is not None:
+			cls.caked.do_cleanup()
+			cls.caked = None
 
-	# Ensure that the VM was created
-	stdout, _ = caked.listvm()
-	# Clean up the VM
-	caked.delete(linux)
+	@pytest.mark.only_tart_present()
+	def test_clone_with_tart(self):
+		linux = f"linux-{uuid.uuid4()}"
 
-	assert linux in stdout
+		# Create a Linux VM
+		TestCaked.caked.clone("ghcr.io/cirruslabs/ubuntu:24.04", linux)
 
-def test_create_linux(caked):
-	linux = f"linux-{uuid.uuid4()}"
+		# Ensure that the VM was created
+		stdout, _ = TestCaked.caked.listvm()
+		# Clean up the VM
+		TestCaked.caked.delete(linux)
 
-	# Create a Linux VM
-	caked.build(linux)
+		assert linux in stdout
 
-	# Ensure that the VM was created
-	stdout, _ = caked.listvm()
-	# Clean up the VM
-	caked.delete(linux)
+	def test_create_linux(self):
+		linux = f"linux-{uuid.uuid4()}"
 
-	assert linux in stdout
+		# Create a Linux VM
+		TestCaked.caked.build(linux)
 
-def test_rename(caked):
-	debian = f"debian-{uuid.uuid4()}"
-	ubuntu = f"ubuntu-{uuid.uuid4()}"
+		# Ensure that the VM was created
+		stdout, _ = TestCaked.caked.listvm()
+		# Clean up the VM
+		TestCaked.caked.delete(linux)
 
-	# Create a Linux VM
-	caked.build(debian)
+		assert linux in stdout
 
-	# Rename that VM
-	caked.rename(debian, ubuntu)
+	def test_rename(self):
+		debian = f"debian-{uuid.uuid4()}"
+		ubuntu = f"ubuntu-{uuid.uuid4()}"
 
-	# Ensure that the VM is now named ubuntu
-	stdout, _, = caked.listvm()
+		# Create a Linux VM
+		TestCaked.caked.build(debian)
 
-	caked.delete(ubuntu)
+		# Rename that VM
+		TestCaked.caked.rename(debian, ubuntu)
 
-	assert ubuntu in stdout
+		# Ensure that the VM is now named ubuntu
+		stdout, _, = TestCaked.caked.listvm()
 
-def test_duplicate(caked):
-	debian = f"debian-{uuid.uuid4()}"
-	ubuntu = f"ubuntu-{uuid.uuid4()}"
+		TestCaked.caked.delete(ubuntu)
 
-	# Create a Linux VM
-	caked.build(debian)
+		assert ubuntu in stdout
 
-	# Duplicate that VM
-	caked.duplicate(debian, ubuntu)
+	def test_duplicate(self):
+		debian = f"debian-{uuid.uuid4()}"
+		ubuntu = f"ubuntu-{uuid.uuid4()}"
 
-	# Ensure that the VM is now named ubuntu
-	stdout, _, = caked.listvm()
+		# Create a Linux VM
+		TestCaked.caked.build(debian)
 
-	caked.delete(ubuntu)
-	caked.delete(debian)
+		# Duplicate that VM
+		TestCaked.caked.duplicate(debian, ubuntu)
 
-	assert debian in stdout
-	assert ubuntu in stdout
+		# Ensure that the VM is now named ubuntu
+		stdout, _, = TestCaked.caked.listvm()
 
-def test_delete(caked):
-	vmname = f"vmname-{uuid.uuid4()}"
+		TestCaked.caked.delete(ubuntu)
+		TestCaked.caked.delete(debian)
 
-	# Create an ubuntu VM
-	caked.build(vmname)
+		assert debian in stdout
+		assert ubuntu in stdout
 
-	# Ensure that the VM exists
-	stdout, _, = caked.listvm()
-	assert vmname in stdout
+	def test_delete(self):
+		vmname = f"vmname-{uuid.uuid4()}"
 
-	# Delete the VM
-	caked.delete(vmname)
+		# Create an ubuntu VM
+		TestCaked.caked.build(vmname)
 
-	# Ensure that the VM was removed
-	stdout, _, = caked.listvm()
+		# Ensure that the VM exists
+		stdout, _, = TestCaked.caked.listvm()
+		assert vmname in stdout
 
-	assert vmname not in stdout
+		# Delete the VM
+		TestCaked.caked.delete(vmname)
 
-def test_vmrun(caked):
-	vm_name = f"integration-test-run-{uuid.uuid4()}"
+		# Ensure that the VM was removed
+		stdout, _, = TestCaked.caked.listvm()
 
-	# Instantiate a VM with admin:admin SSH access
-	caked.build(vm_name)
+		assert vmname not in stdout
 
-	# Run the VM asynchronously
-	caked_run_process = caked.run_async(["vmrun", vm_name])
+	def test_vmrun(self):
+		vm_name = f"integration-test-run-{uuid.uuid4()}"
 
-	sleep(2)
+		# Instantiate a VM with admin:admin SSH access
+		TestCaked.caked.build(vm_name)
 
-	# Obtain the VM's IP
-	stdout, _ = caked.waitip(vm_name)
-	ip = stdout.strip()
+		# Run the VM asynchronously
+		caked_run_process = TestCaked.caked.run_async(["vmrun", vm_name])
 
-	# Connect to the VM over SSH and shutdown it
-	client = SSHClient()
-	client.set_missing_host_key_policy(AutoAddPolicy)
-	client.connect(ip, username="admin", password="admin")
-	client.exec_command("sudo shutdown -h now")
+		sleep(2)
 
-	# Wait for the "caked run" to finish successfully
-	caked_run_process.wait()
-	assert caked_run_process.returncode == 0
+		# Obtain the VM's IP
+		stdout, _ = TestCaked.caked.waitip(vm_name)
+		ip = stdout.strip()
 
-	# Delete the VM
-	caked.delete(vm_name)
+		# Connect to the VM over SSH and shutdown it
+		client = SSHClient()
+		client.set_missing_host_key_policy(AutoAddPolicy)
+		client.connect(ip, username="admin", password="admin")
+		client.exec_command("sudo shutdown -h now")
 
-def test_launch(caked):
-	vm_name = f"integration-test-run-{uuid.uuid4()}"
+		# Wait for the "caked run" to finish successfully
+		caked_run_process.wait()
+		assert caked_run_process.returncode == 0
 
-	# Instantiate a VM with admin:admin SSH access
-	stdout, _ = caked.launch(vm_name)
-	assert f"VM launched {vm_name} with IP: " in stdout
+		# Delete the VM
+		TestCaked.caked.delete(vm_name)
 
-	stdout, _ = caked.stop(vm_name)
-	assert f"VM {vm_name} stopped" in stdout
+	def test_launch(self):
+		vm_name = f"integration-test-run-{uuid.uuid4()}"
 
-	# Delete the VM
-	caked.delete(vm_name)
+		# Instantiate a VM with admin:admin SSH access
+		stdout, _ = TestCaked.caked.launch(vm_name)
+		assert f"VM launched {vm_name} with IP: " in stdout
 
-def test_remote(caked):
-	stdout, _ = caked.add_remote("test-remote", "https://images.lxd.canonical.com/")
-	assert "test-remote" in stdout
+		stdout, _ = TestCaked.caked.stop(vm_name)
+		assert f"VM {vm_name} stopped" in stdout
 
-	stdout, _ = caked.list_remote()
-	assert "test-remote" in stdout
+		# Delete the VM
+		TestCaked.caked.delete(vm_name)
 
-	stdout, _ = caked.delete_remote("test-remote")
-	assert "test-remote" in stdout
+	def test_remote(self):
+		stdout, _ = TestCaked.caked.add_remote("test-remote", "https://images.lxd.canonical.com/")
+		assert "test-remote" in stdout
 
-	stdout, _ = caked.list_remote()
-	assert "test-remote" not in stdout
+		stdout, _ = TestCaked.caked.list_remote()
+		assert "test-remote" in stdout
 
-def test_template(caked):
-	debian = f"debian-{uuid.uuid4()}"
-	ubuntu = f"ubuntu-{uuid.uuid4()}"
+		stdout, _ = TestCaked.caked.delete_remote("test-remote")
+		assert "test-remote" in stdout
 
-	# Create a Linux VM (because we can create it really fast)
-	caked.build(debian)
+		stdout, _ = TestCaked.caked.list_remote()
+		assert "test-remote" not in stdout
 
-	# Clone the VM
-	caked.create_template(debian, ubuntu)
+	def test_template(self):
+		debian = f"debian-{uuid.uuid4()}"
+		ubuntu = f"ubuntu-{uuid.uuid4()}"
 
-	# Ensure that we have new template
-	stdout, _, = caked.list_template()
-	assert ubuntu in stdout
+		# Create a Linux VM (because we can create it really fast)
+		TestCaked.caked.build(debian)
 
-	# Clean up the VM to free disk space
-	caked.delete(debian)
-	stdout, _, = caked.listvm()
-	assert debian not in stdout
+		# Clone the VM
+		TestCaked.caked.create_template(debian, ubuntu)
 
-	# Clean up the template to free disk space
-	caked.delete_template(ubuntu)
-	stdout, _, = caked.list_template()
-	assert ubuntu not in stdout
+		# Ensure that we have new template
+		stdout, _, = TestCaked.caked.list_template()
+		assert ubuntu in stdout
 
-def test_networks(caked):
-	network_name = f"test-network-{uuid.uuid4()}"
-	random_octet = random.randint(128, 254)
+		# Clean up the VM to free disk space
+		TestCaked.caked.delete(debian)
+		stdout, _, = TestCaked.caked.listvm()
+		assert debian not in stdout
 
-	caked.run(["networks", "create", network_name, "--mode=shared", f"--gateway=192.168.{random_octet}.1", f"--dhcp-end=192.168.{random_octet}.128", "--netmask=255.255.255.0"])
-	stdout, _ = caked.infos_networks(network_name)
-	assert network_name in stdout
+		# Clean up the template to free disk space
+		TestCaked.caked.delete_template(ubuntu)
+		stdout, _, = TestCaked.caked.list_template()
+		assert ubuntu not in stdout
 
-	caked.start_networks(network_name)
-	stdout, _ = caked.infos_networks(network_name)
-	assert ".sock" in stdout
+	def test_networks(self):
+		network_name = f"test-network-{uuid.uuid4()}"
+		random_octet = random.randint(128, 254)
 
-	sleep(2)
+		TestCaked.caked.run(["networks", "create", network_name, "--mode=shared", f"--gateway=192.168.{random_octet}.1", f"--dhcp-end=192.168.{random_octet}.128", "--netmask=255.255.255.0"])
+		stdout, _ = TestCaked.caked.infos_networks(network_name)
+		assert network_name in stdout
 
-	caked.stop_networks(network_name)
-	stdout, _ = caked.infos_networks(network_name)
-	assert "not running" in stdout
+		TestCaked.caked.start_networks(network_name)
+		stdout, _ = TestCaked.caked.infos_networks(network_name)
+		assert ".sock" in stdout
 
-	caked.delete_networks(network_name)
-	stdout, _ = caked.list_networks()
-	assert network_name not in stdout
+		sleep(2)
 
-def test_exec(caked):
-	ubuntu = f"ubuntu-{uuid.uuid4()}"
+		TestCaked.caked.stop_networks(network_name)
+		stdout, _ = TestCaked.caked.infos_networks(network_name)
+		assert "not running" in stdout
 
-	# Create a Linux VM (because we can create it really fast)
-	caked.launch(ubuntu)
-	stdout, _ = caked.exec(ubuntu, ["cat"], input=b"Hello World")
-	assert "Hello World" in stdout
+		TestCaked.caked.delete_networks(network_name)
+		stdout, _ = TestCaked.caked.list_networks()
+		assert network_name not in stdout
 
-	caked.stop(ubuntu)
-	caked.delete(ubuntu)
+	def test_exec(self):
+		ubuntu = f"ubuntu-{uuid.uuid4()}"
+
+		# Create a Linux VM (because we can create it really fast)
+		TestCaked.caked.launch(ubuntu)
+		stdout, _ = TestCaked.caked.exec(ubuntu, ["cat"], input=b"Hello World")
+		assert "Hello World" in stdout
+
+		TestCaked.caked.stop(ubuntu)
+		TestCaked.caked.delete(ubuntu)

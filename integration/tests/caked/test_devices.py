@@ -81,31 +81,18 @@ def scp_put(ip, src, dst):
 	finally:
 		client.close()
 
-
-def tart_clone_macos_vm(caked, image, vmname):
-	stdout, _, = caked.listvm()
-	exists = False
-
-	if vmname in stdout:
-		exists = True
-
-		try:
-			caked.stop(vmname)
-		except Exception:
-			pass
-
-		# Keep the VM if the test is running in Cirrus CI and recreate_vm is set
-		if recreate_vm:
-			log.info(f"VM {vmname} already exists, deleting it.")
-			caked.delete(vmname)
-
-	# Create the VM if not exists
-	if not exists:
-		log.info("Clone image {0} to VM {1}".format(image, vmname))
-		caked.clone(macos_image, vm_name)
-
 class TestVirtioDevices:
 	interpreter = "python3"
+
+	@classmethod
+	def setup_class(cls):
+		cls.caked = Caked()
+
+	@classmethod
+	def teardown_class(cls):
+		if cls.caked is not None:
+			cls.caked.do_cleanup()
+			cls.caked = None
 
 	class GuestEcho(Thread):
 		def __init__(self, ip, delay, echo_file, interpreter = "python3", need_sudo = False):
@@ -153,8 +140,30 @@ class TestVirtioDevices:
 	
 			log.info("{0} finished".format(self.target))
 
+	@classmethod
+	def tart_clone_macos_vm(self, image, vmname):
+		stdout, _, = TestVirtioDevices.caked.listvm()
+		exists = False
+
+		if vmname in stdout:
+			exists = True
+
+			try:
+				TestVirtioDevices.caked.stop(vmname)
+			except Exception:
+				pass
+
+			# Keep the VM if the test is running in Cirrus CI and recreate_vm is set
+			if recreate_vm:
+				log.info(f"VM {vmname} already exists, deleting it.")
+				TestVirtioDevices.caked.delete(vmname)
+
+		# Create the VM if not exists
+		if not exists:
+			log.info("Clone image {0} to VM {1}".format(image, vmname))
+			TestVirtioDevices.caked.clone(macos_image, vmname)
+
 	def get_vm_name(self, suffix=None):
-		#return vm_name + "-" + str(uuid.uuid4())
 		if suffix:
 			return vm_name + "-" + suffix
 
@@ -247,59 +256,59 @@ class TestVirtioDevices:
 
 		return self.same_content(message, response)	
 
-	def cleanup(self, caked, conn, ip, vmname=vm_name):
+	def cleanup(self, conn, ip, vmname=vm_name):
 		if conn:
 			conn.close()
 
 		# Shutdown the VM
 		if ip:
 			log.info("Shutting down the VM")
-			caked.stop(vmname)
+			TestVirtioDevices.caked.stop(vmname)
 
 		# Keep the VM if the test is running in Cirrus CI
 		if recreate_vm:
 			log.info("Deleting the VM")
-			caked.delete(vmname)
+			TestVirtioDevices.caked.delete(vmname)
 
-	def create_vm(self, caked, image, vsock_argument=None, console_argument=None, vmname=vm_name, diskSize=None, pass_fds=()):
+	def create_vm(self, image, vsock_argument=None, console_argument=None, vmname=vm_name, diskSize=None, pass_fds=()):
 		# Instantiate a VM with admin:admin SSH access
 		exists = False
-		stdout, _, = caked.listvm()
+		stdout, _, = TestVirtioDevices.caked.listvm()
 		if vmname in stdout:
 			exists = True
 
 			try:
-				caked.stop(vmname)
+				TestVirtioDevices.caked.stop(vmname)
 			except Exception:
 				pass
 			# Keep the VM if the test is running in Cirrus CI and recreate_vm is set
 			if recreate_vm:
 				log.info(f"VM {vmname} already exists, deleting it.")
-				caked.delete(vmname)
+				TestVirtioDevices.caked.delete(vmname)
 
 		# Create the VM if not exists
 		if not exists:
 			log.info("Duplicate image {0} to VM {1}".format(image, vmname))
-			caked.duplicate(image, vmname)
+			TestVirtioDevices.caked.duplicate(image, vmname)
 
 			if diskSize:
-				caked.configure(vmname, "--disk-size={0}".format(diskSize))
+				TestVirtioDevices.caked.configure(vmname, "--disk-size={0}".format(diskSize))
 
 		if vsock_argument:
-			caked.configure(vmname, vsock_argument)
+			TestVirtioDevices.caked.configure(vmname, vsock_argument)
 
 		if console_argument:
-			caked.configure(vmname, console_argument)
+			TestVirtioDevices.caked.configure(vmname, console_argument)
 
 		# Run the VM asynchronously
 		log.info("Start VM {0}".format(vmname))
-		caked.vmrun(vmname, pass_fds=pass_fds)
+		TestVirtioDevices.caked.vmrun(vmname, pass_fds=pass_fds)
 
 		sleep(2)
 
 		# Obtain the VM's IP
 		log.info("Waiting for VM to start")
-		stdout, _ = caked.waitip(vmname)
+		stdout, _ = TestVirtioDevices.caked.waitip(vmname)
 		ip = stdout.strip()
 
 		# Repeat until the VM is reachable via SSH
@@ -321,20 +330,20 @@ class TestVirtioDevices:
 
 		return ip
 
-	def create_test_vm(self, caked, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
-		return self.create_vm(caked, image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, pass_fds=pass_fds)
+	def create_test_vm(self, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
+		return self.create_vm(image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, pass_fds=pass_fds)
 
 	def waitpidfile(self, ip):
 		log.info(f"Wait guest echo to be ready on ip: {ip}")
 		ssh_command(ip, "bash waitpid.sh")
 
-	def do_test_virtio_bind(self, caked, interpreter="python3", cleanup=True):
+	def do_test_virtio_bind(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
 		ip = None
 
 		# Create a Linux VM
-		ip = self.create_test_vm(caked, vsock_argument="--socket=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+		ip = self.create_test_vm(vsock_argument="--socket=bind://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -363,15 +372,15 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, vmname)
+				self.cleanup(client_socket, ip, vmname)
 
-	def do_test_virtio_tcp(self, caked, interpreter="python3", cleanup=True):
+	def do_test_virtio_tcp(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
 		ip = None
 
 		# Create a Linux VM
-		ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
+		ip = self.create_test_vm(vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -398,15 +407,15 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, vmname)
+				self.cleanup(client_socket, ip, vmname)
 
-	def do_test_virtio_http(self, caked, interpreter="python3", cleanup=True):
+	def do_test_virtio_http(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
 		ip = None
 
 		# Create a Linux VM
-		ip = self.create_test_vm(caked, vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
+		ip = self.create_test_vm(vsock_argument="--socket=tcp://127.0.0.1:9999", vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -432,9 +441,9 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, vmname)
+				self.cleanup(client_socket, ip, vmname)
 
-	def do_test_virtio_connect(self, caked, interpreter="python3", cleanup=True):
+	def do_test_virtio_connect(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		server = None
 		ip = None
@@ -449,7 +458,7 @@ class TestVirtioDevices:
 			server.listen(1)
 
 			# Create a Linux VM
-			ip = self.create_test_vm(caked, vsock_argument="--socket=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
+			ip = self.create_test_vm(vsock_argument="--socket=connect://vsock:9999{0}".format(unix_socket_path), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -469,9 +478,9 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, server, ip, vmname)
+				self.cleanup(server, ip, vmname)
 
-	def do_test_virtio_pipe(self, caked, interpreter="python3", cleanup=True):
+	def do_test_virtio_pipe(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		vm_read_fd = None
 		host_out_fd = None
@@ -485,7 +494,7 @@ class TestVirtioDevices:
 			host_in_fd, vm_write_fd = os.pipe()
 			
 			# Create a Linux VM
-			ip = self.create_test_vm(caked, vsock_argument="--socket=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
+			ip = self.create_test_vm(vsock_argument="--socket=fd://{0},{1}:9999".format(vm_read_fd, vm_write_fd), pass_fds=(vm_read_fd, vm_write_fd), vmname=vmname)
 
 			# Copy test file to the VM and run the echo client in background
 			echo = self.GuestEcho(ip, 5, "{0}/guest/vsock_echo_client".format(curdir), interpreter)
@@ -514,15 +523,15 @@ class TestVirtioDevices:
 			if vm_write_fd:
 				os.close(vm_write_fd)
 			if cleanup:
-				self.cleanup(caked, None, ip, vmname)
+				self.cleanup(None, ip, vmname)
 
-	def do_test_console_socket(self, caked, interpreter="python3", cleanup=True):
+	def do_test_console_socket(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		client_socket = None
 		ip = None
 
 		# Create a Linux VM
-		ip = self.create_test_vm(caked, console_argument="--console=unix:{0}".format(console_socket_path), vmname=vmname)
+		ip = self.create_test_vm(console_argument="--console=unix:{0}".format(console_socket_path), vmname=vmname)
 
 		try:
 			# Copy test file to the VM and run the echo client in background
@@ -548,9 +557,9 @@ class TestVirtioDevices:
 			raise e
 		finally:
 			if cleanup:
-				self.cleanup(caked, client_socket, ip, vmname)
+				self.cleanup(client_socket, ip, vmname)
 
-	def do_test_console_pipe(self, caked, interpreter="python3", cleanup=True):
+	def do_test_console_pipe(self, interpreter="python3", cleanup=True):
 		vmname = self.get_vm_name()
 		vm_read_fd = None
 		host_out_fd = None
@@ -564,8 +573,7 @@ class TestVirtioDevices:
 			host_in_fd, vm_write_fd = os.pipe()
 
 			# Create a Linux VM
-			ip = self.create_test_vm(caked,
-									console_argument="--console=fd://{0},{1}".format(vm_read_fd, vm_write_fd),
+			ip = self.create_test_vm(console_argument="--console=fd://{0},{1}".format(vm_read_fd, vm_write_fd),
 									vmname=vmname,
 									pass_fds=(vm_read_fd, vm_write_fd))
 
@@ -598,85 +606,86 @@ class TestVirtioDevices:
 			if vm_write_fd:
 				os.close(vm_write_fd)
 			if cleanup:
-				self.cleanup(caked, None, ip, vmname)
+				self.cleanup(None, ip, vmname)
 	
 class TestVirtioDevicesOnLinux(TestVirtioDevices):
 	@classmethod
 	def setup_class(cls):
-		with Caked() as caked:
-			caked.delete(vm_name)
-			caked.build(vm_name)
+		TestVirtioDevices.setup_class()
+		TestVirtioDevices.caked.delete(vm_name)
+		TestVirtioDevices.caked.build(vm_name)
 
 	@classmethod
 	def teardown_class(cls):
-		with Caked() as caked:
-			caked.delete(vm_name)
+		TestVirtioDevices.caked.delete(vm_name)
+		TestVirtioDevices.teardown_class()
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("linux")
 
-	def create_test_vm(self, caked, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
-		return self.create_vm(caked, image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, diskSize=20, pass_fds=pass_fds)
+	def create_test_vm(self, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
+		return self.create_vm(image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, diskSize=20, pass_fds=pass_fds)
 
-	def test_virtio_bind(self, caked):
-		self.do_test_virtio_bind(caked)
+	def test_virtio_bind(self):
+		self.do_test_virtio_bind()
 
-	def test_virtio_http(self, caked):
-		self.do_test_virtio_http(caked)
+	def test_virtio_http(self):
+		self.do_test_virtio_http()
 
-	def test_virtio_tcp(self, caked):
-		self.do_test_virtio_tcp(caked)
+	def test_virtio_tcp(self):
+		self.do_test_virtio_tcp()
 
-	def test_virtio_connect(self, caked):
-		self.do_test_virtio_connect(caked)
+	def test_virtio_connect(self):
+		self.do_test_virtio_connect()
 
-	def test_virtio_pipe(self, caked):
-		self.do_test_virtio_pipe(caked)
+	def test_virtio_pipe(self):
+		self.do_test_virtio_pipe()
 
-	def test_console_socket(self, caked):
-		self.do_test_console_socket(caked)
+	def test_console_socket(self):
+		self.do_test_console_socket()
 
-	def test_console_pipe(self, caked):
-		self.do_test_console_pipe(caked)
+	def test_console_pipe(self):
+		self.do_test_console_pipe()
 
 @pytest.mark.only_tart_present()
 class TestVirtioDevicesOnMacOS(TestVirtioDevices):
 	@classmethod
 	def setup_class(cls):
-		with Caked() as caked:
-			tart_clone_macos_vm(caked, macos_image, vm_name)
+		TestVirtioDevices.setup_class()
+		TestVirtioDevices.caked.delete(vm_name)
+		cls.tart_clone_macos_vm(macos_image, vm_name)
 
 	@classmethod
-	def teardown_class(cls, caked):
-		with Caked() as caked:
-			caked.delete(vm_name)
+	def teardown_class(cls):
+		TestVirtioDevices.caked.delete(vm_name)
+		TestVirtioDevices.teardown_class()
 
 	def get_vm_name(self, suffix=None):
 		return super().get_vm_name("macos")
 
-	def create_test_vm(self, caked, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
-		return self.create_vm(caked, image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, pass_fds=pass_fds)
+	def create_test_vm(self, vsock_argument=None, console_argument=None, vmname=vm_name, pass_fds=()):
+		return self.create_vm(image=vm_name, vsock_argument=vsock_argument, console_argument=console_argument, vmname=vmname, pass_fds=pass_fds)
 
-	def test_virtio_bind(self, caked):
-		self.do_test_virtio_bind(caked, "swift")
+	def test_virtio_bind(self):
+		self.do_test_virtio_bind("swift")
 
-	def test_virtio_http(self, caked):
-		self.do_test_virtio_http(caked, "go")
+	def test_virtio_http(self):
+		self.do_test_virtio_http("go")
 
-	def test_virtio_tcp(self, caked):
-		self.do_test_virtio_tcp(caked, "swift")
+	def test_virtio_tcp(self):
+		self.do_test_virtio_tcp("swift")
 
-	def test_virtio_connect(self, caked):
-		self.do_test_virtio_connect(caked, "swift")
+	def test_virtio_connect(self):
+		self.do_test_virtio_connect("swift")
 
-	def test_virtio_pipe(self, caked):
-		self.do_test_virtio_pipe(caked, "swift")
-
-	@pytest.mark.only_sequoia(macos_image)
-	def test_console_socket(self, caked):
-		self.do_test_console_socket(caked)
+	def test_virtio_pipe(self):
+		self.do_test_virtio_pipe("swift")
 
 	@pytest.mark.only_sequoia(macos_image)
-	def test_console_pipe(self, caked):
-		self.do_test_console_pipe(caked)
+	def test_console_socket(self):
+		self.do_test_console_socket()
+
+	@pytest.mark.only_sequoia(macos_image)
+	def test_console_pipe(self):
+		self.do_test_console_pipe()
 

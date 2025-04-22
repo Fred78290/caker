@@ -137,7 +137,6 @@ let package = Package(
 				.target(name: "GRPCLib"),
 			],
 			exclude: [
-				"Ignored"
 			]
 		),
 		.testTarget(name: "CakerTests",

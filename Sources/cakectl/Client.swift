@@ -115,7 +115,7 @@ struct Client: AsyncParsableCommand {
 		public var asSystem: Bool = false
 
 		@Option(name: [.customLong("connect")], help: ArgumentHelp("Connect to address", valueName: "address"))
-		public var address: String = try! Client.getDefaultServerAddress(asSystem: false)
+		public var address: String = try! Utils.getDefaultServerAddress(asSystem: false)
 
 		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp("CA TLS certificate", valueName: "path"))
 		public var caCert: String? = nil
@@ -224,18 +224,6 @@ struct Client: AsyncParsableCommand {
 			Import.self,
 			Export.self,
 		])
-
-	static func getDefaultServerAddress(asSystem: Bool) throws -> String {
-		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
-			return cakeListenAddress
-		} else {
-			var tartHomeDir = try Utils.getHome(asSystem: asSystem)
-
-			tartHomeDir.append(path: ".caked.sock")
-
-			return "unix://\(tartHomeDir.absoluteURL.path)"
-		}
-	}
 
 	static func createClient(on: EventLoopGroup,
 	                         listeningAddress: URL?,

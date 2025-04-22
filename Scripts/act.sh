@@ -3,7 +3,7 @@ pushd "$(dirname $0)/.." >/dev/null
 CURDIR=${PWD}
 popd > /dev/null
 
-act push -v --workflows "${CURDIR}/.github/workflows/release.yaml" \
+act push --workflows "${CURDIR}/.github/workflows/release.yaml" \
 	--secret GITHUB_TOKEN=${GITHUB_TOKEN} \
 	--secret-file ${CURDIR}/.env \
 	--var-file ${CURDIR}/.vars \

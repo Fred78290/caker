@@ -11,7 +11,7 @@ import GRPC
 final class GrpcUnixSocketTests: XCTestCase {
 	let testCase = GrpcTestCase()
 
-	let address = URL(string: try! Client.getDefaultServerAddress(asSystem: false))
+	let address = URL(string: try! Utils.getDefaultServerAddress(asSystem: false))
 //	let address = URL(string: "unix:///tmp/caked-\(getpid()).sock")
 //	let address = URL(string: "unix:///Users/fboltz/.cake/.cacked.sock")
 

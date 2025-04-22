@@ -154,11 +154,7 @@ public struct Utils {
 		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
 			return cakeListenAddress
 		} else {
-			var tartHomeDir = try Utils.getHome(asSystem: asSystem)
-
-			tartHomeDir.append(path: ".caked.sock")
-
-			return "unix://\(tartHomeDir.absoluteURL.path)"
+			return try Utils.getHome(asSystem: asSystem).socketPath(name: "caked").absoluteString
 		}
 	}
 
@@ -310,7 +306,7 @@ extension URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
 
 		if socketPath.path.utf8.count < 103 {
-			return socketPath
+			return URL(string: "unix://\(socketPath.path)")!
 		} else {
 			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
 		}

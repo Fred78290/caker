@@ -22,9 +22,14 @@ class Caked:
 	def __enter__(self):
 		return self
 
-	def __exit__(self, exc_type, exc_val, exc_tb):
+	def __del__(self):
+		self.do_cleanup()
+
+	def do_cleanup(self):
 		if self.cleanup:
 			self.cake_home.cleanup()
+			self.cleanup = False
+			self.cake_home = None
 
 	def home(self) -> str:
 		if self.cleanup:

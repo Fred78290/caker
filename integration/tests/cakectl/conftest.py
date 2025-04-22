@@ -1,13 +1,7 @@
 from shutil import which
 
 import pytest
-from cakectl import CakeCtl
 
-
-@pytest.fixture(scope="class")
-def cakectl():
-	with CakeCtl() as cakectl:
-		yield cakectl
 
 @pytest.fixture(autouse=True)
 def only_sequoia(request):
@@ -24,3 +18,4 @@ def only_tart_present(request):
 
 def pytest_configure(config):
   config.addinivalue_line("markers", "only_sequoia(image): skip test for the given macos image not sequoia")
+  config.addinivalue_line("markers", "only_tart_present(): skip test if tart is not present")
