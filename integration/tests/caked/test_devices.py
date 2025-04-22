@@ -4,8 +4,6 @@ import logging
 import os
 import select
 import socket
-import subprocess
-import uuid
 from threading import Thread
 from time import sleep
 

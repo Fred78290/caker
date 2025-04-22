@@ -1,3 +1,4 @@
+import logging
 import random
 import uuid
 from time import sleep
@@ -5,6 +6,8 @@ from time import sleep
 import pytest
 from caked import Caked
 from paramiko.client import AutoAddPolicy, SSHClient
+
+log = logging.getLogger()
 
 
 class TestCaked:
@@ -205,6 +208,7 @@ class TestCaked:
 		# Create a Linux VM (because we can create it really fast)
 		TestCaked.caked.launch(ubuntu)
 		stdout, _ = TestCaked.caked.exec(ubuntu, ["cat"], input=b"Hello World")
+		log.info(stdout)
 		assert "Hello World" in stdout
 
 		TestCaked.caked.stop(ubuntu)
