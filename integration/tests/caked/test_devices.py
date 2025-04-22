@@ -14,7 +14,7 @@ from caked import Caked
 from paramiko import AutoAddPolicy, SSHClient
 from scp import SCPClient
 
-recreate_vm = False # "CIRRUS_WORKING_DIR" not in os.environ:
+recreate_vm = True # "CIRRUS_WORKING_DIR" not in os.environ:
 #ubuntu_image="ghcr.io/cirruslabs/ubuntu:24.04"
 macos_image="ghcr.io/cirruslabs/macos-sequoia-xcode:latest"
 #macos_image="ghcr.io/cirruslabs/macos-sonoma-xcode:16"
