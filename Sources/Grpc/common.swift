@@ -227,7 +227,22 @@ public struct ClientCertificatesLocation: Codable {
 	}
 }
 
+let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
+let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
+
 public extension String {
+	func isFingerPrint() -> Bool {
+		if fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+			return true
+		}
+
+		if fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+			return true
+		}
+
+		return false
+	}
+
 	var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
 			return NSString(string: self).expandingTildeInPath

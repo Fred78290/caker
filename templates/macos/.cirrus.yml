@@ -1,0 +1,24 @@
+env:
+  RESOLVE_VM_NAME: "resolve-macos-number-task-id-${CIRRUS_TASK_ID}"
+  RESOLVE_FILE: "${RESOLVE_VM_NAME}.txt"
+  DISK_SIZE: 150
+  MACOS_VERSION: sequoia
+  TART_HOME: ${HOME}/.cake
+  CAKE_HOME: ${HOME}/.cake
+  CAKEAGENT_SNAPSHOT: "SNAPSHOT-0563d90b"
+  REGISTRY: devregistry.aldunelabs.com
+
+task:
+  name: "Build Vanilla Image ($MACOS_VERSION)"
+  <<: *defaults
+  build_script:
+    - packer init templates/vanilla-$MACOS_VERSION.pkr.hcl
+    - packer build -var vm_base_name=$MACOS_VERSION-vanilla -var cake_home=$CAKE_HOME -var cakeagent_snapshot=$CAKEAGENT_SNAPSHOT -var disk_size=$DISK_SIZE -var vm_name=$RESOLVE_VM_NAME -var resolve_file=$RESOLVE_FILE templates/resolve-macos-number.pkr.hcl
+    - echo "MACOS_NUMBER=$(cat $RESOLVE_FILE)" >> $CIRRUS_ENV
+    - rm $RESOLVE_FILE
+    - caked push $MACOS_VERSION-vanilla ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-$MACOS_VERSION-vanilla:$MACOS_NUMBER
+    - caked template create macos-$MACOS_VERSION-vanilla macos-$MACOS_VERSION-vanilla
+    - caked delete $RESOLVE_VM_NAME
+  always:
+    cleanup_script:
+      - tart delete $MACOS_VERSION-vanilla

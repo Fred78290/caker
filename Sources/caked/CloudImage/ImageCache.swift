@@ -97,7 +97,7 @@ class CommonCacheImageCache: PurgeableStorage {
 	}
 
 	func fqn(_ purgeable: Purgeable) -> [String] {
-		["\(self.scheme)://\(purgeable.source())/\(purgeable.name())"]
+		["\(self.scheme)://\(purgeable.source())/\(purgeable.name()).\(self.ext)"]
 	}
 
 	func type() -> String {
@@ -118,7 +118,7 @@ class TemplateImageCache: CommonCacheImageCache {
 }
 
 class CloudImageCache: CommonCacheImageCache {
-	static let scheme = "cloud"
+	static let scheme = "https"
 
 	convenience init(asSystem: Bool) throws {
 		try self.init(name: "", asSystem: asSystem)
@@ -452,7 +452,7 @@ class OCIImageCache: CommonCacheImageCache {
 		}
 
 		func fqn() -> [String] {
-			["\(OCIImageCache.scheme)://\(self._source)@\(self._sha256)"]
+			["\(OCIImageCache.scheme)://\(self._source)/\(self._name)@\(self._sha256)"]
 		}
 	}
 
@@ -462,7 +462,7 @@ class OCIImageCache: CommonCacheImageCache {
 			let container = root.deletingLastPathComponent()
 			let source = container.absoluteURL.path.stringAfter(after: self.baseURL.absoluteURL.path).stringBeforeLast(before: "/")
 
-			return OCIImageCachePurgeable(name: container.lastPathComponent, sha256: root.lastPathComponent, url: purgeable.url, source: source)
+			return OCIImageCachePurgeable(name: container.lastPathComponent, sha256: root.lastPathComponent, url: purgeable.url, source: source.substring(1..<source.count))
 		}
 	}
 

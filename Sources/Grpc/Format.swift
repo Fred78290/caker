@@ -226,19 +226,23 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		} else {
 			return self.renderList(data.reduce(into: [ShortVirtualMachineInfo]()) { result, vm in
 				if vm.fqn.count > 1 {
-					vm.fqn.forEach { fqn in
-						result.append(ShortVirtualMachineInfo(from: VirtualMachineInfo(
-							type: vm.type,
-							source: vm.source,
-							name: fqn.stringAfter(after: "//"),
-							fqn: [fqn],
-							instanceID: vm.instanceID,
-							diskSize: vm.diskSize,
-							totalSize: vm.totalSize,
-							state: vm.state,
-							ip: vm.ip,
-							fingerprint: vm.fingerprint
-						)))
+					vm.fqn.forEach {
+						let fqn = $0.stringAfter(after: "//")
+
+						if fqn.isFingerPrint() == false {
+							result.append(ShortVirtualMachineInfo(from: VirtualMachineInfo(
+								type: vm.type,
+								source: vm.source,
+								name: fqn.stringAfter(after: "//"),
+								fqn: [$0],
+								instanceID: vm.instanceID,
+								diskSize: vm.diskSize,
+								totalSize: vm.totalSize,
+								state: vm.state,
+								ip: vm.ip,
+								fingerprint: vm.fingerprint
+							)))
+						}
 					}
 				} else {
 					result.append(ShortVirtualMachineInfo(from: vm))

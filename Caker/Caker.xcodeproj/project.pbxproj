@@ -6,6 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXAggregateTarget section */
+		9BDD955E2DB8D41B00E46244 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 9BDD955F2DB8D41B00E46244 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				9BDD95652DB8D43E00E46244 /* PBXTargetDependency */,
+				9BDD95632DB8D43A00E46244 /* PBXTargetDependency */,
+			);
+			name = All;
+			packageProductDependencies = (
+			);
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
 /* Begin PBXBuildFile section */
 		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
 		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
@@ -17,14 +34,6 @@
 		9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */; };
 		9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */; };
 		9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD52D8AE3E10050BFAD /* MountService.swift */; };
-		9B345C162DB4EB700047D00B /* echo.py in Resources */ = {isa = PBXBuildFile; fileRef = 9B345C0D2DB4EB700047D00B /* echo.py */; };
-		9B345C172DB4EB700047D00B /* RemoteTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C132DB4EB700047D00B /* RemoteTest.swift */; };
-		9B345C182DB4EB700047D00B /* CloudInitTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0C2DB4EB700047D00B /* CloudInitTest.swift */; };
-		9B345C192DB4EB700047D00B /* NetworkTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C112DB4EB700047D00B /* NetworkTest.swift */; };
-		9B345C1A2DB4EB700047D00B /* GrpcTcpSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0E2DB4EB700047D00B /* GrpcTcpSocketTest.swift */; };
-		9B345C1B2DB4EB700047D00B /* GrpcUnixSocketTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C102DB4EB700047D00B /* GrpcUnixSocketTest.swift */; };
-		9B345C1C2DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */; };
-		9B345C1D2DB4EB700047D00B /* GrpcTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B345C0F2DB4EB700047D00B /* GrpcTestCase.swift */; };
 		9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB02D5A3E0300164BF5 /* StartHandler.swift */; };
 		9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ACD2D5A3E0300164BF5 /* VMLocation.swift */; };
 		9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AC62D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift */; };
@@ -88,7 +97,6 @@
 		9B464B412D5A3E0300164BF5 /* CertificatesLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ABD2D5A3E0300164BF5 /* CertificatesLocation.swift */; };
 		9B464B422D5A3E0300164BF5 /* VMBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ACC2D5A3E0300164BF5 /* VMBuilder.swift */; };
 		9B464B432D5A3E0300164BF5 /* VirtualSocketDevices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB82D5A3E0300164BF5 /* VirtualSocketDevices.swift */; };
-		9B464B492D5A3E0300164BF5 /* caker.code-workspace in Resources */ = {isa = PBXBuildFile; fileRef = 9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
 		9B464B612D5A3E8900164BF5 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A782D5A3E0300164BF5 /* Login.swift */; };
@@ -243,6 +251,7 @@
 		9BD32F842D75F9630066A01E /* MountHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F832D75F9630066A01E /* MountHandler.swift */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
+		9BDD95662DB8D5B400E46244 /* cakectl in Resources */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; };
 		9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AB2D5C9E19000CA07F /* Rename.swift */; };
 		9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */; };
 		9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */; };
@@ -269,6 +278,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
 			remoteInfo = GRPCLib;
+		};
+		9BDD95622DB8D43A00E46244 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464B4E2D5A3E5C00164BF5;
+			remoteInfo = cakectl;
+		};
+		9BDD95642DB8D43E00E46244 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464A532D5A3DA000164BF5;
+			remoteInfo = Caker;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -472,9 +495,22 @@
 		9BE47FCF2DA68386000A759F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9BDD95682DB8D6B600E46244 /* Exceptions for "Caker" folder in "Caker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9B464A532D5A3DA000164BF5 /* Caker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9B464A562D5A3DA000164BF5 /* Caker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9BDD95682DB8D6B600E46244 /* Exceptions for "Caker" folder in "Caker" target */,
+			);
 			path = Caker;
 			sourceTree = "<group>";
 		};
@@ -628,12 +664,12 @@
 		9B464A4B2D5A3DA000164BF5 = {
 			isa = PBXGroup;
 			children = (
-				9B345C152DB4EB700047D00B /* Tests */,
-				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
 				9B464A562D5A3DA000164BF5 /* Caker */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B464A552D5A3DA000164BF5 /* Products */,
+				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
 				9B464ADD2D5A3E0300164BF5 /* Sources */,
+				9B345C152DB4EB700047D00B /* Tests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1101,6 +1137,9 @@
 					9B464C5B2D5A459B00164BF5 = {
 						CreatedOnToolsVersion = 16.2;
 					};
+					9BDD955E2DB8D41B00E46244 = {
+						CreatedOnToolsVersion = 16.3;
+					};
 				};
 			};
 			buildConfigurationList = 9B464A4F2D5A3DA000164BF5 /* Build configuration list for PBXProject "Caker" */;
@@ -1150,6 +1189,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				9BDD955E2DB8D41B00E46244 /* All */,
 				9B464A532D5A3DA000164BF5 /* Caker */,
 				9B464B4E2D5A3E5C00164BF5 /* cakectl */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
@@ -1162,8 +1202,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B345C162DB4EB700047D00B /* echo.py in Resources */,
-				9B464B492D5A3E0300164BF5 /* caker.code-workspace in Resources */,
+				9BDD95662DB8D5B400E46244 /* cakectl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1174,13 +1213,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B345C172DB4EB700047D00B /* RemoteTest.swift in Sources */,
-				9B345C182DB4EB700047D00B /* CloudInitTest.swift in Sources */,
-				9B345C192DB4EB700047D00B /* NetworkTest.swift in Sources */,
-				9B345C1A2DB4EB700047D00B /* GrpcTcpSocketTest.swift in Sources */,
-				9B345C1B2DB4EB700047D00B /* GrpcUnixSocketTest.swift in Sources */,
-				9B345C1C2DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift in Sources */,
-				9B345C1D2DB4EB700047D00B /* GrpcTestCase.swift in Sources */,
 				9B464AE12D5A3E0300164BF5 /* StartHandler.swift in Sources */,
 				9B464AE22D5A3E0300164BF5 /* VMLocation.swift in Sources */,
 				9B464AE32D5A3E0300164BF5 /* ProcessWithSharedFileHandle.swift in Sources */,
@@ -1380,6 +1412,16 @@
 			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
 			targetProxy = 9B464C8D2D5A491D00164BF5 /* PBXContainerItemProxy */;
 		};
+		9BDD95632DB8D43A00E46244 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
+			targetProxy = 9BDD95622DB8D43A00E46244 /* PBXContainerItemProxy */;
+		};
+		9BDD95652DB8D43E00E46244 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464A532D5A3DA000164BF5 /* Caker */;
+			targetProxy = 9BDD95642DB8D43E00E46244 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -1520,8 +1562,9 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Caker/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1543,17 +1586,21 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Caker/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1563,6 +1610,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Caker Develop 2";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1584,11 +1632,16 @@
 		9B464B552D5A3E5C00164BF5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -1616,6 +1669,24 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9BDD95602DB8D41B00E46244 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		9BDD95612DB8D41B00E46244 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -1654,6 +1725,15 @@
 			buildConfigurations = (
 				9B464C632D5A459B00164BF5 /* Debug */,
 				9B464C642D5A459B00164BF5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9BDD955F2DB8D41B00E46244 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BDD95602DB8D41B00E46244 /* Debug */,
+				9BDD95612DB8D41B00E46244 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

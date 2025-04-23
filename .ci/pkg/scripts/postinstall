@@ -12,7 +12,7 @@ chmod +x /usr/local/bin/caked
 
 cat <<EOF > /usr/local/bin/cakectl
 #!/bin/sh
-exec "/Library/Application Support/Caker/Caker.app/Contents/MacOS/cakectl" "\$@"
+exec "/Library/Application Support/Caker/Caker.app/Contents/Resources/cakectl" "\$@"
 EOF
 
 chmod +x /usr/local/bin/cakectl

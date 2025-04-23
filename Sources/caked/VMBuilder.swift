@@ -22,6 +22,14 @@ struct VMBuilder {
 		// Create config
 		if source == .oci {
 			config = try CakeConfig(location: vmLocation.rootURL, options: options)
+		} else if try vmLocation.configURL.exists() {
+			config = try vmLocation.config()
+
+			config.macAddress = VZMACAddress.randomLocallyAdministered()
+
+			if config.os == .darwin {
+				config.ecid = VZMacMachineIdentifier()
+			}
 		} else {
 			// Create NVRAM
 			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
@@ -70,7 +78,7 @@ struct VMBuilder {
 		}
 		var sourceImage: ImageSource = .cloud
 		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
-		var starter = ["http://", "https://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://"]
+		var starter = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
@@ -102,12 +110,14 @@ struct VMBuilder {
 			let templateName = imageURL.host()!
 			let templateLocation = try StorageLocation(asSystem: asSystem, template: true).find(templateName)
 
-			try FileManager.default.copyItem(at: templateLocation.diskURL, to: vmLocation.diskURL)
+			try templateLocation.copyTo(vmLocation)
 			sourceImage = .template
 		} else if scheme == "qcow2" {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
 		} else if scheme == "http" || scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL, asSystem: asSystem)
+		} else if scheme == "cloud" {
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: vmLocation.diskURL, asSystem: asSystem)
 		} else if scheme == "oci" || scheme == "ocis" {
 			if Root.tartIsPresent == false {
 				throw ServiceError("tart is not installed")

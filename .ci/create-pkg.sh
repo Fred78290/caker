@@ -17,13 +17,8 @@ codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --option
 codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force .build/x86_64-apple-macosx/release/cakectl
 codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force .build/arm64-apple-macosx/release/cakectl
 
-lipo -create .build/x86_64-apple-macosx/release/caked .build/arm64-apple-macosx/release/caked -output ${PKGDIR}/bin/caked
-lipo -create .build/x86_64-apple-macosx/release/cakectl .build/arm64-apple-macosx/release/cakectl -output ${PKGDIR}/bin/cakectl
-
-pushd ${PKGDIR}/Contents/MacOS >/dev/null
-ln -s ../../bin/caked .
-ln -s ../../bin/cakectl .
-popd >/dev/null
+lipo -create .build/x86_64-apple-macosx/release/caked .build/arm64-apple-macosx/release/caked -output ${PKGDIR}/Contents/MacOS/caked
+lipo -create .build/x86_64-apple-macosx/release/cakectl .build/arm64-apple-macosx/release/cakectl -output ${PKGDIR}/Contents/Resources/cakectl
 
 cp -c ${CURDIR}/Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c ${CURDIR}/Resources/caked.plist ${PKGDIR}/Contents/Info.plist

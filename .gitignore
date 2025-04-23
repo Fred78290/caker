@@ -25,3 +25,5 @@ Caker/Caker.xcodeproj/xcuserdata
 .ci/pkg/Caker.app/
 
 actions-runner/
+
+.bin/

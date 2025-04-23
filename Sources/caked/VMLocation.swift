@@ -134,6 +134,28 @@ struct VMLocation {
 		return fd != -1
 	}
 
+	func templateTo(_ target: VMLocation) throws -> VMLocation {
+		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
+		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
+		try FileManager.default.copyItem(at: self.configURL, to: target.configURL)
+		try FileManager.default.copyItem(at: self.cakeURL, to: target.cakeURL)
+
+		let templateConfig = try target.config()
+
+		// Clear existing config
+		templateConfig.attachedDisks = []
+		templateConfig.mounts = []
+		templateConfig.networks = []
+		templateConfig.console = nil
+		templateConfig.forwardedPorts = []
+		templateConfig.firstLaunch = true
+		templateConfig.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+
+		try templateConfig.save()
+
+		return target
+	}
+
 	func copyTo(_ target: VMLocation) throws -> VMLocation {
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)

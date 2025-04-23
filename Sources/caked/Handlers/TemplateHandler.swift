@@ -29,18 +29,22 @@ private let cloudInitCleanup = [
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest
 
-	static func cleanCloudInit(location: VMLocation, config: CakeConfig, asSystem: Bool) throws {
+	static func cleanCloudInit(source: VMLocation, config: CakeConfig, asSystem: Bool) throws -> VMLocation {
+		let location = try source.duplicateTemporary(asSystem: asSystem)
 		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach, asSystem: asSystem)
 		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL, asSystem: asSystem)
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")
 
 		try conn.run(command: cloudInitCleanup.joined(separator: " && ")).log()
+		try location.stopVirtualMachine(force: false, asSystem: asSystem)
+
+		return location
 	}
 
 	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {
 		let storage = StorageLocation(asSystem: asSystem, template: true)
-		let source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
+		var source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
 
 		if storage.exists(templateName) {
 			throw ServiceError("template \(templateName) already exists")
@@ -60,16 +64,10 @@ struct TemplateHandler: CakedCommand {
 			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 
 			if config.os == .linux && config.useCloudInit {
-				let tmpVM = try source.duplicateTemporary(asSystem: asSystem)
-
-				try cleanCloudInit(location: tmpVM, config: config, asSystem: asSystem)
-				try tmpVM.stopVirtualMachine(force: false, asSystem: asSystem)
-
-				try FileManager.default.copyItem(at: tmpVM.diskURL, to: templateLocation.diskURL)
-				try FileManager.default.removeItem(at: tmpVM.rootURL)
-			} else {
-				try FileManager.default.copyItem(at: source.diskURL, to: templateLocation.diskURL)
+				source = try cleanCloudInit(source: source, config: config, asSystem: asSystem)
 			}
+
+			try source.templateTo(to: templateLocation)
 
 			return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 		} else {
