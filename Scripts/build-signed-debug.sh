@@ -22,12 +22,13 @@ cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprof
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
 
-mkdir .bin
+mkdir -p .bin
 
 cat > .bin/caked <<EOF
 #!/bin/sh
 exec "${PKGDIR}/Contents/MacOS/caked" "\$@"
 EOF
-
 chmod +x .bin/caked
+
+rm -f .bin/cakectl
 ln -s ${PKGDIR}/Contents/Resources/cakectl .bin/cakectl

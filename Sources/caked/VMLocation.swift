@@ -259,7 +259,7 @@ struct VMLocation {
 			throw ServiceError("vm \(name) is not running")
 		}
 
-		if force || config.useCloudInit == false {
+		if force || config.agent == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem)
@@ -340,8 +340,12 @@ struct VMLocation {
 			}
 
 			if let infos = try? conn.info().wait() {
-				if case let .success(infos) = infos, infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
-					return runningIP
+				let infos = infos
+
+				if case let .success(infos) = infos {
+					if infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
+						return runningIP
+					}
 				}
 			}
 
@@ -356,7 +360,7 @@ struct VMLocation {
 			throw ServiceError("VM \(name) is not running")
 		}
 
-		if config.useCloudInit {
+		if config.agent {
 			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
 		} else {
 			return try waitIPWithLease(wait: wait, asSystem: asSystem, startedProcess: startedProcess)

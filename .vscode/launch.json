@@ -1,10 +1,10 @@
 {
 	"configurations": [
 		{
-			"type": "swift",
+			"type": "lldb",
 			"request": "attach",
 			"name": "caked attach",
-			"pid": "${command:pickMyProcess}"
+			"pid": "${command:pickProcess}",
 		},
 		{
 			"type": "swift",

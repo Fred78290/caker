@@ -4,26 +4,10 @@ packer {
       version = ">= 1.12.0"
       source  = "github.com/cirruslabs/tart"
     }
-    ansible = {
-      version = "~> 1"
-      source = "github.com/hashicorp/ansible"
-    }
   }
 }
 
 variable "vm_name" {
-  type = string
-}
-
-variable "resolve_file" {
-  type = string
-}
-
-variable "cake_home" {
-  type = string
-}
-
-variable "cakeagent_snapshot" {
   type = string
 }
 
@@ -38,7 +22,7 @@ variable "disk_size" {
 
 source "tart-cli" "tart" {
   from_ipsw    = var.from_ipsw
-  vm_name      = "sequoia-vanilla"
+  vm_name      = var.vm_name
   cpu_count    = 4
   memory_gb    = 8
   disk_size_gb = var.disk_size
@@ -139,96 +123,4 @@ source "tart-cli" "tart" {
 
 build {
   sources = ["source.tart-cli.tart"]
-
-  provisioner "file" {
-    source = "${var.cake_home}/agent"
-    destination = "/tmp/cakeagent"
-  }
-
-  # Install cakeagent
-  provisioner "shell" {
-    inline = [
-      "sudo mkdir -p /etc/cakeagent/ssl",
-      "sudo cp /tmp/cakeagent/*.pem /tmp/cakeagent/*.key /etc/cakeagent/ssl",
-      "sudo chmod 600 /etc/cakeagent/ssl/*",
-      "rm -rf /tmp/cakeagent",
-      "curl https://github.com/Fred78290/cakeagent/releases/download/${var.cakeagent_snapshot}/cakeagent-darwin-arm64 -O /tmp/cakeagent",
-      "sudo mv /tmp/cakeagent /usr/local/bin",
-      "sudo chmod +x /usr/local/bin/cakeagent",
-      "sudo /usr/local/bin/cakeagent --install --listen=vsock://any:5000 --ca-cert=/etc/cakeagent/ssl/ca.pem --tls-cert=/etc/cakeagent/ssl/server.pem --tls-key=/etc/cakeagent/ssl/server.key"
-    ]
-  }
-
-  provisioner "shell" {
-    inline = [
-      // Enable passwordless sudo
-      "echo admin | sudo -S sh -c \"mkdir -p /etc/sudoers.d/; echo 'admin ALL=(ALL) NOPASSWD: ALL' | EDITOR=tee visudo /etc/sudoers.d/admin-nopasswd\"",
-      // Enable auto-login
-      //
-      // See https://github.com/xfreebird/kcpassword for details.
-      "echo '00000000: 1ced 3f4a bcbc ba2c caca 4e82' | sudo xxd -r - /etc/kcpassword",
-      "sudo defaults write /Library/Preferences/com.apple.loginwindow autoLoginUser admin",
-      // Disable screensaver at login screen
-      "sudo defaults write /Library/Preferences/com.apple.screensaver loginWindowIdleTime 0",
-      // Disable screensaver for admin user
-      "defaults -currentHost write com.apple.screensaver idleTime 0",
-      // Prevent the VM from sleeping
-      "sudo systemsetup -setsleep Off 2>/dev/null",
-      // Launch Safari to populate the defaults
-      "/Applications/Safari.app/Contents/MacOS/Safari &",
-      "SAFARI_PID=$!",
-      "disown",
-      "sleep 30",
-      "kill -9 $SAFARI_PID",
-      // Enable Safari's remote automation
-      "sudo safaridriver --enable",
-      // Disable screen lock
-      //
-      // Note that this only works if the user is logged-in,
-      // i.e. not on login screen.
-      "sysadminctl -screenLock off -password admin",
-    ]
-  }
-
-  provisioner "shell" {
-    inline = [
-      # Ensure that Gatekeeper is disabled
-      "spctl --status | grep -q 'assessments disabled'"
-    ]
-  }
-
-  provisioner "shell" {
-    inline = [
-      # Install command-line tools
-      "touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress",
-      "softwareupdate --list | sed -n 's/.*Label: \\(Command Line Tools for Xcode-.*\\)/\\1/p' | xargs -I {} softwareupdate --install '{}'",
-      "rm /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress",
-    ]
-  }
-
-  provisioner "ansible" {
-    playbook_file = "ansible/playbook-system-updater.yml"
-    extra_arguments = [
-      "-vvv",
-    ]
-    ansible_env_vars = [
-      "ANSIBLE_TRANSPORT=paramiko",
-      "ANSIBLE_HOST_KEY_CHECKING=False",
-    ]
-    use_proxy = false
-  }
-
-  provisioner "shell" {
-    inline = [
-      # Use "-productVersion" instead of "--productVersion"
-      # to support old-style syntax used on macOS Monterey
-      "sw_vers -productVersion > /tmp/sw-vers-product-version.txt",
-    ]
-  }
-
-  provisioner "file" {
-    source = "/tmp/sw-vers-product-version.txt"
-    destination = "${var.resolve_file}"
-    direction = "download"
-  }
 }

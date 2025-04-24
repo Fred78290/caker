@@ -13,18 +13,13 @@ export CAKEAGENT_SNAPSHOT="SNAPSHOT-0563d90b"
 export REGISTRY=devregistry.aldunelabs.com
 #IPSW=https://updates.cdn-apple.com/2025SpringFCS/fullrestores/082-16517/AACDDC33-9683-4431-98AF-F04EF7C15EE3/UniversalMac_15.4_24E248_Restore.ipsw
 export IPSW=${HOME}/Downloads/UniversalMac_15.4.1_24E263_Restore.ipsw
-export RESOLVE_VM_NAME="macos-${MACOS_VERSION}-vanilla"
+export RESOLVE_VM_NAME="macos-${MACOS_VERSION}-vanilla-test"
 export RESOLVE_FILE="${RESOLVE_VM_NAME}.txt"
 export PACKER_LOG="1"
 
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-packer init ${CURDIR}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl
-packer build \
-		-var vm_name=${RESOLVE_VM_NAME} \
-		-var from_ipsw=${IPSW} \
-		-var disk_size=${DISK_SIZE} \
-		${CURDIR}/templates/macos/vanilla-${MACOS_VERSION}.pkr.hcl
+caked start ${RESOLVE_VM_NAME} --foreground
 
 IP=$(caked start ${RESOLVE_VM_NAME} --foreground --json | jq -r .output)
 
@@ -36,12 +31,12 @@ set -ex
 
 mkdir -p /etc/sudoers.d /usr/local/bin /etc/cakeagent/ssl
 echo 'admin ALL=(ALL) NOPASSWD: ALL' | EDITOR=tee visudo /etc/sudoers.d/admin-nopasswd
-cp /tmp/agent/ca.pem /tmp/agent/server.pem /tmp/agent/server.key /etc/cakeagent/ssl
-chmod 600 /etc/cakeagent/ssl/*
-rm -rf /tmp/cakeagent
-curl https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_SNAPSHOT}/cakeagent-darwin-arm64 -O /usr/local/bin/cakeagent
-chmod +x /usr/local/bin/cakeagent
-/usr/local/bin/cakeagent --install --listen=vsock://any:5000 --ca-cert=/etc/cakeagent/ssl/ca.pem --tls-cert=/etc/cakeagent/ssl/server.pem --tls-key=/etc/cakeagent/ssl/server.key
+#cp /tmp/agent/ca.pem /tmp/agent/server.pem /tmp/agent/server.key /etc/cakeagent/ssl
+#chmod 600 /etc/cakeagent/ssl/*
+#rm -rf /tmp/cakeagent
+#curl https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_SNAPSHOT}/cakeagent-darwin-arm64 -O /usr/local/bin/cakeagent
+#chmod +x /usr/local/bin/cakeagent
+#/usr/local/bin/cakeagent --install --listen=vsock://any:5000 --ca-cert=/etc/cakeagent/ssl/ca.pem --tls-cert=/etc/cakeagent/ssl/server.pem --tls-key=/etc/cakeagent/ssl/server.key
 EOF
 
 cat > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh <<EOF

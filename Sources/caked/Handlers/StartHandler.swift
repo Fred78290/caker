@@ -79,7 +79,7 @@ struct StartHandler: CakedCommand {
 			}
 			
 			do {
-				let runningIP = try vmLocation.waitIP(config: config, wait: 180, asSystem: asSystem, startedProcess: process)
+				let runningIP = try vmLocation.waitIPWithAgent(wait: 180, asSystem: asSystem, startedProcess: process)
 				
 				return runningIP
 			} catch {
