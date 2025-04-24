@@ -11,6 +11,10 @@ packer {
   }
 }
 
+variable "vm_name" {
+  type = string
+}
+
 variable "resolve_file" {
   type = string
 }
@@ -23,13 +27,17 @@ variable "cakeagent_snapshot" {
   type = string
 }
 
+variable "from_ipsw" {
+  type = string
+}
+
 variable "disk_size" {
   type = number
   default = 100
 }
 
 source "tart-cli" "tart" {
-  from_ipsw    = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/082-16517/AACDDC33-9683-4431-98AF-F04EF7C15EE3/UniversalMac_15.4_24E248_Restore.ipsw"
+  from_ipsw    = var.from_ipsw
   vm_name      = "sequoia-vanilla"
   cpu_count    = 4
   memory_gb    = 8
@@ -133,7 +141,7 @@ build {
   sources = ["source.tart-cli.tart"]
 
   provisioner "file" {
-    source = "${env.cake_home}/agent"
+    source = "${var.cake_home}/agent"
     destination = "/tmp/cakeagent"
   }
 
@@ -142,7 +150,7 @@ build {
     inline = [
       "sudo mkdir -p /etc/cakeagent/ssl",
       "sudo cp /tmp/cakeagent/*.pem /tmp/cakeagent/*.key /etc/cakeagent/ssl",
-      "sudo chmod 600 /etc/cakeagent/ssl/*"
+      "sudo chmod 600 /etc/cakeagent/ssl/*",
       "rm -rf /tmp/cakeagent",
       "curl https://github.com/Fred78290/cakeagent/releases/download/${var.cakeagent_snapshot}/cakeagent-darwin-arm64 -O /tmp/cakeagent",
       "sudo mv /tmp/cakeagent /usr/local/bin",

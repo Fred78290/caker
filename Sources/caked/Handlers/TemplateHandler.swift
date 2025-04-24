@@ -67,7 +67,7 @@ struct TemplateHandler: CakedCommand {
 				source = try cleanCloudInit(source: source, config: config, asSystem: asSystem)
 			}
 
-			try source.templateTo(to: templateLocation)
+			try source.templateTo(templateLocation)
 
 			return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 		} else {

@@ -134,6 +134,7 @@ struct VMLocation {
 		return fd != -1
 	}
 
+	@discardableResult
 	func templateTo(_ target: VMLocation) throws -> VMLocation {
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
@@ -156,6 +157,7 @@ struct VMLocation {
 		return target
 	}
 
+	@discardableResult
 	func copyTo(_ target: VMLocation) throws -> VMLocation {
 		try FileManager.default.copyItem(at: self.diskURL, to: target.diskURL)
 		try FileManager.default.copyItem(at: self.nvramURL, to: target.nvramURL)
@@ -168,6 +170,7 @@ struct VMLocation {
 		return target
 	}
 
+	@discardableResult
 	func duplicateTemporary(asSystem: Bool) throws -> VMLocation {
 		return try self.copyTo(try Self.tempDirectory(asSystem: asSystem))
 	}
