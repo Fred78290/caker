@@ -5,7 +5,7 @@ import Yams
 import GRPCLib
 import Gzip
 
-let CAKEAGENT_SNAPSHOT = "0563d90b"
+let CAKEAGENT_SNAPSHOT = "7620a3c8"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 

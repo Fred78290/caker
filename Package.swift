@@ -44,7 +44,7 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git",  from: "0.1.4"),
 //		.package(url: "https://github.com/1024jp/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "0563d90bb27b9ac01081093cfa3bdf1db7eadbd6"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "7620a3c822478d8d84a9fad44d27985bc7389040"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),

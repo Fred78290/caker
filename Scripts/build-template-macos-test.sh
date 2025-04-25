@@ -19,24 +19,17 @@ export PACKER_LOG="1"
 
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-caked start ${RESOLVE_VM_NAME} --foreground
-
+caked stop ${RESOLVE_VM_NAME} || :
+caked delete ${RESOLVE_VM_NAME} || :
+caked clone ghcr.io/cirruslabs/macos-sequoia-vanilla:15.4 ${RESOLVE_VM_NAME}
 IP=$(caked start ${RESOLVE_VM_NAME} --foreground --json | jq -r .output)
 
 mkdir -p ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}
 
-cat > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/prepare.sh <<EOF
-#!/bin/bash
+caked exec ${RESOLVE_VM_NAME} -- bash <<EOF
 set -ex
-
 mkdir -p /etc/sudoers.d /usr/local/bin /etc/cakeagent/ssl
 echo 'admin ALL=(ALL) NOPASSWD: ALL' | EDITOR=tee visudo /etc/sudoers.d/admin-nopasswd
-#cp /tmp/agent/ca.pem /tmp/agent/server.pem /tmp/agent/server.key /etc/cakeagent/ssl
-#chmod 600 /etc/cakeagent/ssl/*
-#rm -rf /tmp/cakeagent
-#curl https://github.com/Fred78290/cakeagent/releases/download/${CAKEAGENT_SNAPSHOT}/cakeagent-darwin-arm64 -O /usr/local/bin/cakeagent
-#chmod +x /usr/local/bin/cakeagent
-#/usr/local/bin/cakeagent --install --listen=vsock://any:5000 --ca-cert=/etc/cakeagent/ssl/ca.pem --tls-cert=/etc/cakeagent/ssl/server.pem --tls-key=/etc/cakeagent/ssl/server.key
 EOF
 
 cat > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh <<EOF
@@ -70,24 +63,22 @@ touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
 softwareupdate --list | sed -n 's/.*Label: \\(Command Line Tools for Xcode-.*\\)/\\1/p' | xargs -I {} softwareupdate --install '{}'
 rm /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
 sw_vers -productVersion > /tmp/sw-vers-product-version.txt
-mkdir -p ~/.ssh
-echo "$(cat ${CAKE_HOME}/cake_rsa.pub)" > ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
 EOF
 
-chmod +x ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/prepare.sh
 chmod +x ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh
 
-sshpass -p admin scp ${SSH_OPTIONS} -r ${CAKE_HOME}/agent admin@${IP}:/tmp
-sshpass -p admin scp ${SSH_OPTIONS} ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/prepare.sh admin@${IP}:/tmp/prepare.sh
 sshpass -p admin scp ${SSH_OPTIONS} ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh admin@${IP}:/tmp/configure.sh
-sshpass -p admin ssh ${SSH_OPTIONS} admin@${IP} -- "echo admin | sudo -S /tmp/prepare.sh"
 sshpass -p admin ssh ${SSH_OPTIONS} admin@${IP} -- /tmp/configure.sh
-sshpass -p admin scp ${SSH_OPTIONS} admin@${IP}:/tmp/sw-vers-product-version.txt ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt
+
+set -x
+
+caked exec ${RESOLVE_VM_NAME} -- cat /tmp/sw-vers-product-version.txt > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt
 
 MACOS_NUMBER=$(cat ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt)
 
 caked stop ${RESOLVE_VM_NAME}
-caked push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
 caked template create ${RESOLVE_VM_NAME} macos-${MACOS_VERSION}-vanilla
+caked push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
 caked delete ${RESOLVE_VM_NAME}
+
+rm -rf ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}

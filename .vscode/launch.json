@@ -336,6 +336,18 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
+				"stop",
+				"macos-sequoia-vanilla-test"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked stop macos-sequoia-vanilla-test",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
 				"service",
 				"listen",
 				"--secure"

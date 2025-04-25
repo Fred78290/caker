@@ -264,7 +264,7 @@ struct VMLocation {
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem)
 
-			try client.run(command: "shutdown", arguments: ["-h", "now"]).log()
+			try client.shutdown().log()
 		} else {
 			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) {
 				let ssh = try SSH(host: ip)
@@ -458,6 +458,8 @@ struct VMLocation {
 		curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
 		echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
+		chown -R \(config.configuredUser) "${SSHDIR}"
+		chmod 600 "${SSHDIR}/authorized_keys"
 
 		cat <<EOF | base64 -d > "${CA}"
 		\(caCert)
@@ -500,6 +502,7 @@ struct VMLocation {
 
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
+		try tempFileURL.delete()
 		let result = try ssh.capture("sudo sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'")
 
 		if result.status == 0 {

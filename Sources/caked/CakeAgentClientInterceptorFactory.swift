@@ -73,6 +73,10 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		[CakeAgentClientInterceptor()]
 	}
 
+	func makeShutdownInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_RunReply>] {
+		[CakeAgentClientInterceptor()]
+	}
+
 	func makeRunInterceptors() -> [ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>] {
 		[CakeAgentClientInterceptor()]
 	}

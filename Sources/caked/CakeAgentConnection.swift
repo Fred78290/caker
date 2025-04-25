@@ -235,37 +235,56 @@ final class CakeAgentConnection: Sendable {
 		}
 	}
 
+	public func shutdown(callOptions: CallOptions? = nil) throws -> Caked_RunReply {
+		let client = try createClient()
+
+		defer {
+			try? client.close().wait()
+		}
+
+		let response = try client.shutdown(.init(), callOptions: callOptions).response.wait()
+
+		return Caked_RunReply.with { reply in
+			reply.exitCode = response.exitCode
+
+			if response.stderr.isEmpty == false {
+				reply.stderr = response.stderr
+			}
+
+			if response.stdout.isEmpty == false {
+				reply.stdout = response.stdout
+			}
+		}
+	}
+
 	public func run(command: String, arguments: [String] = [], input: Data? = nil, callOptions: CallOptions? = nil) throws -> Caked_RunReply {
 		let client = try createClient()
 
-		do {
-			let response = try client.run(Cakeagent_RunCommand.with { req in
-				if let data = input {
-					req.input = data
-				}
-
-				req.command = Cakeagent_Command.with {
-					$0.command = command
-					$0.args = arguments
-				}
-			}, callOptions: callOptions).response.wait()
-
+		defer {
 			try? client.close().wait()
+		}
 
-			return Caked_RunReply.with { reply in
-				reply.exitCode = response.exitCode
-
-				if response.stderr.isEmpty == false {
-					reply.stderr = response.stderr
-				}
-
-				if response.stdout.isEmpty == false {
-					reply.stdout = response.stdout
-				}
+		let response = try client.run(Cakeagent_RunCommand.with { req in
+			if let data = input {
+				req.input = data
 			}
-		} catch {
-			try? client.close().wait()
-			throw error
+
+			req.command = Cakeagent_Command.with {
+				$0.command = command
+				$0.args = arguments
+			}
+		}, callOptions: callOptions).response.wait()
+
+		return Caked_RunReply.with { reply in
+			reply.exitCode = response.exitCode
+
+			if response.stderr.isEmpty == false {
+				reply.stderr = response.stderr
+			}
+
+			if response.stdout.isEmpty == false {
+				reply.stdout = response.stdout
+			}
 		}
 	}
 
