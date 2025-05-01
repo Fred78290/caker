@@ -33,7 +33,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 	}
 
 	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
-		CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput) { method in
+		try? CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput) { method in
 			// We need to cancel the signal source for SIGINT when we are in the exec command
 			if method == Cakeagent_AgentClientMetadata.Methods.execute || method == Cakeagent_AgentClientMetadata.Methods.run {
 				// This is a workaround for the fact that we can't cancel the signal source in the interceptor

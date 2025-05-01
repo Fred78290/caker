@@ -1,5 +1,5 @@
 {
-  "originHash" : "14047d34fbd88716bc32ee5a314e66df866a8d065eb7b8852c6f47bbe376261c",
+  "originHash" : "51c48f310ce79b08e9ae4f8aade49366cab82d3108a0697b4d55d593eb542613",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -24,7 +24,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
-        "revision" : "7620a3c822478d8d84a9fad44d27985bc7389040"
+        "revision" : "20b4fb45a1497bcdba2b0206f955fddd2ec30c72"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/grpc/grpc-swift.git",
       "state" : {
-        "revision" : "8c5e99d0255c373e0330730d191a3423c57373fb",
-        "version" : "1.24.2"
+        "revision" : "5c58b63ca09e787f2c95d6191a05a3193373a352",
+        "version" : "1.25.0"
       }
     },
     {
@@ -86,8 +86,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/getsentry/sentry-cocoa",
       "state" : {
-        "revision" : "dd30b39839f28a9c3cb88ac9cb27cc0eca33e661",
-        "version" : "8.49.1"
+        "revision" : "5bda7f7c1ca97eba3b1ba32cd40041e72c38de03",
+        "version" : "8.49.2"
       }
     },
     {
@@ -203,8 +203,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio.git",
       "state" : {
-        "revision" : "6e17bc946821e550b88d22fd964423f70f1ce42d",
-        "version" : "2.82.0"
+        "revision" : "0f54d58bb5db9e064f332e8524150de379d1e51c",
+        "version" : "2.82.1"
       }
     },
     {

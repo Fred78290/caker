@@ -1899,7 +1899,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-ssl.git";
 			requirement = {
 				kind = exactVersion;
-				version = 2.29.3;
+				version = 2.30.0;
 			};
 		};
 		9B464BBF2D5A40F600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-ssh" */ = {
@@ -1907,7 +1907,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-ssh.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.9.1;
+				version = 0.10.0;
 			};
 		};
 		9B464BC22D5A411900164BF5 /* XCRemoteSwiftPackageReference "grpc-swift" */ = {
@@ -1915,7 +1915,7 @@
 			repositoryURL = "https://github.com/grpc/grpc-swift.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.24.2;
+				version = 1.25.0;
 			};
 		};
 		9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
@@ -1923,7 +1923,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio";
 			requirement = {
 				kind = exactVersion;
-				version = 2.81.0;
+				version = 2.82.1;
 			};
 		};
 		9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */ = {
@@ -1931,7 +1931,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-http2";
 			requirement = {
 				kind = exactVersion;
-				version = 1.35.0;
+				version = 1.36.0;
 			};
 		};
 		9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */ = {
@@ -1939,7 +1939,7 @@
 			repositoryURL = "https://github.com/apple/swift-nio-extras";
 			requirement = {
 				kind = exactVersion;
-				version = 1.24.1;
+				version = 1.26.0;
 			};
 		};
 		9B464BF02D5A41A200164BF5 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
@@ -1947,7 +1947,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.28.2;
+				version = 1.29.0;
 			};
 		};
 		9B464BF52D5A41B300164BF5 /* XCRemoteSwiftPackageReference "swift-log" */ = {
@@ -1987,7 +1987,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = 7620a3c822478d8d84a9fad44d27985bc7389040;
+				revision = 20b4fb45a1497bcdba2b0206f955fddd2ec30c72;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

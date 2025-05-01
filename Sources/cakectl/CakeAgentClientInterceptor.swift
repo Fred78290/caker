@@ -23,10 +23,10 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 			super.init()
 		}
 
-		func restoreState() {
+		func restoreState() throws{
 			var state = self.state
 
-			inputHandle.restoreState(&state)
+			try inputHandle.restoreState(&state)
 		}
 
 		func printError(_ error: Error) {
@@ -51,7 +51,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		}
 
 		override func errorCaught(_ error: Error, context: ClientInterceptorContext<Request, Response>) {
-			self.restoreState()
+			try? self.restoreState()
 
 			printError(error)
 			super.errorCaught(error, context: context)
@@ -59,7 +59,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		}
 
 		override func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<Request, Response>) {
-			self.restoreState()
+			try? self.restoreState()
 
 			FileHandle.standardError.write(Data("canceled\n".utf8))
 			super.cancel(promise: promise, context: context)
@@ -72,19 +72,19 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		self.state = state
 	}
 
-	public init?(inputHandle: FileHandle) {
+	public init?(inputHandle: FileHandle) throws {
 		guard inputHandle.isTTY() else {
 			return nil
 		}
 
 		self.inputHandle = inputHandle
-		self.state = inputHandle.getState()
+		self.state = try inputHandle.getState()
 	}
 
-	public func restoreState() {
+	public func restoreState() throws {
 		var state = self.state
 
-		inputHandle.restoreState(&state)
+		try inputHandle.restoreState(&state)
 	}
 
 	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>] {

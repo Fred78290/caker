@@ -95,7 +95,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	}
 
 	func redbold(_ string: String) {
-		print("\u{001B}[0;31m\u{001B}[1m\(string)\u{001B}[0m")
+		FileHandle.standardError.write("\u{001B}[0;31m\u{001B}[1m\(string)\u{001B}[0m\n".data(using: .utf8)!)
 	}
 
 	func printError(_ string: String) {
@@ -142,7 +142,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 					redbold("channel established")
 				#endif
 				if self.inputHandle.isTTY() {
-					term = self.inputHandle.makeRaw()
+					term = try self.inputHandle.makeRaw()
 				}
 			}
 		} catch {
@@ -168,7 +168,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 
 		defer {
 			if var term = self.term {
-				inputHandle.restoreState(&term)
+				try? inputHandle.restoreState(&term)
 			}
 		}
 
@@ -194,7 +194,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		let fileProxy: Pipe?
 		let fileSize: UInt64
 
-		if self.inputHandle.fileDescriptorIsFile() {
+		if try self.inputHandle.fileDescriptorIsFile() {
 			let proxy = Pipe()
 			let currentOffset = try self.inputHandle.offset()
 
@@ -227,6 +227,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		self.pipeChannel = try await shellStream.subchannel.flatMapThrowing { streamChannel in
 			return Task {
 				return try await NIOPipeBootstrap(group: streamChannel.eventLoop)
+					.channelOption(.autoRead, value: true)
 					.takingOwnershipOfDescriptor(input: fd) { pipeChannel in
 						if let proxy = fileProxy {
 							proxy.fileHandleForWriting.writeabilityHandler = { handle in
@@ -236,13 +237,6 @@ final class CakedChannelStreamer: @unchecked Sendable {
 									}
 								}
 							}
-						}
-
-						pipeChannel.closeFuture.whenComplete { _ in
-							#if TRACE
-								redbold("pipeChannel closed")
-							#endif
-							shellStream.sendEof()
 						}
 
 						return pipeChannel.eventLoop.makeCompletedFuture {
@@ -281,6 +275,8 @@ final class CakedChannelStreamer: @unchecked Sendable {
 				#if TRACE
 					redbold("EOF bufLength=\(bufLength), receivedLength=\(self.receivedLength)")
 				#endif
+
+				shellStream.sendEof()
 			} catch {
 				#if TRACE
 					redbold("error: \(error)")
