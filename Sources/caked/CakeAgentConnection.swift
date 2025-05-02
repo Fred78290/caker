@@ -293,24 +293,10 @@ final class CakeAgentConnection: Sendable {
 	}
 
 	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
-		let errorWasCaught = ManagedAtomic<Bool>(false)
 		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ExecuteResponse.self)
-		let interceptor = CakeAgentClientInterceptorFactory(responseStream: responseStream) {
-			errorWasCaught.store(true, ordering: .sequentiallyConsistent)
-		}
+		let interceptor = CakeAgentClientInterceptorFactory(responseStream: responseStream)
 		let client = try createClient(interceptors: interceptor)
 		var exitCodeSent = false
-
-		let failure = { (error: Error) in
-			if errorWasCaught.load(ordering: .sequentiallyConsistent) == false {
-				Logger(self).error(error)
-				errorWasCaught.store(true, ordering: .sequentiallyConsistent)
-				try? await responseStream.send(Caked_ExecuteResponse.with { 
-					$0.failure = error.localizedDescription
-				})
-			}
-		}
-
 		let finish = {
 			continuation.finish()
 			try? await client.close()
@@ -337,6 +323,20 @@ final class CakeAgentConnection: Sendable {
 			})
 
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
+				let handleFailure = { (error: Error) in
+					continuation.finish()
+
+					if error is CancellationError == false && error is GRPC.GRPCError.AlreadyComplete == false {
+						if interceptor.errorCaught.load() == nil {
+							Logger(self).error(error)
+							_ = interceptor.errorCaught.storeIfNilThenLoad(.init(error: error))
+							return true
+						}
+					}
+					
+					return false
+				}
+
 				group.addTask {
 					do {
 						for try await message: Caked_ExecuteRequest in requestStream {
@@ -371,12 +371,10 @@ final class CakeAgentConnection: Sendable {
 							}).get()
 						}
 					} catch {
-						continuation.finish()
-						if error is CancellationError == false {
-							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								await failure(error)
-								return
-							}
+						if handleFailure(error) {
+							try? await responseStream.send(Caked_ExecuteResponse.with {
+								$0.failure = error.localizedDescription
+							})
 						}
 					}
 				}
@@ -391,21 +389,18 @@ final class CakeAgentConnection: Sendable {
 							}
 						}
 					} catch {
-						continuation.finish()
-
-						if error is CancellationError == false {
-							guard let err = error as? ChannelError, err == ChannelError.ioOnClosedChannel else {
-								await failure(error)
-								return
-							}
+						if handleFailure(error) {
+							try? await responseStream.send(Caked_ExecuteResponse.with {
+								$0.failure = error.localizedDescription
+							})
 						}
 					}
 				}
 
 				try await group.waitForAll()
 
-				if errorWasCaught.load(ordering: .sequentiallyConsistent) == false && exitCodeSent == false {
-					try? await responseStream.send(Caked_ExecuteResponse.with { 
+				if interceptor.errorCaught.load() == nil && exitCodeSent == false {
+					try? await responseStream.send(Caked_ExecuteResponse.with {
 						$0.failure = "canceled"
 					})
 				}

@@ -89,15 +89,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "service"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "listen"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--secure"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--display"
@@ -113,7 +113,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "start"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--mode=bridged"
@@ -129,18 +129,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "macos-sequoia-vanilla-test"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--foreground"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "PATH"
             value = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/opt/bin:/opt/homebrew/bin"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

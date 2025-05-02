@@ -89,16 +89,18 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		configuration.serialPorts = []
 		configuration.memoryBalloonDevices = [memoryBallons]
 
+		let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
+		let spiceAgentPort = VZVirtioConsolePortConfiguration()
+		let spiceAgentPortAttachment = VZSpiceAgentPortAttachment()
+
+		spiceAgentPortAttachment.sharesClipboard = true
+
+		spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
+		spiceAgentPort.attachment = spiceAgentPortAttachment
+		spiceAgentConsoleDevice.ports[0] = spiceAgentPort
+		configuration.consoleDevices.append(spiceAgentConsoleDevice)
+
 		if config.os == .linux {
-			let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
-			let spiceAgentPort = VZVirtioConsolePortConfiguration()
-
-			spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
-			spiceAgentPort.attachment = VZSpiceAgentPortAttachment()
-			spiceAgentConsoleDevice.ports[0] = spiceAgentPort
-
-			configuration.consoleDevices.append(spiceAgentConsoleDevice)
-
 			let cdromURL = URL(fileURLWithPath: "cloud-init.iso", relativeTo: vmLocation.diskURL).absoluteURL
 
 			if FileManager.default.fileExists(atPath: cdromURL.path) {
@@ -132,7 +134,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		return self.virtualMachine
 	}
 
-	private func pause() async throws -> Bool{
+	private func pause() async throws -> Bool {
 		#if arch(arm64)
 			if #available(macOS 14, *) {
 				try configuration.validateSaveRestoreSupport()
@@ -148,7 +150,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				return true
 			} else {
 				Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
-				Foundation.exit(1)
+				throw ExitCode(EXIT_FAILURE)
 			}
 		#else
 			return false
@@ -290,7 +292,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				Logger(self).error("VM \(self.vmLocation.name) can't be stopped")
 
 				if self.virtualMachine.state == VZVirtualMachine.State.starting {
-					Foundation.exit(1)
+					throw ExitCode(EXIT_FAILURE)
 				}
 			}
 		}

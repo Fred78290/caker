@@ -382,11 +382,15 @@ class XPCMountServiceClient: MountServiceClient {
 				return MountInfos.with {
 					$0.response = .error("Timeout")
 				}
+			} else {
+				return MountInfos.with {
+					$0.response = .error("VM is not running")
+				}
 			}
 		}
 
 		return MountInfos.with {
-			$0.response = .error("No mounts")
+			$0.response = .error("No new mounts")
 		}
 	}
 
@@ -431,11 +435,15 @@ class XPCMountServiceClient: MountServiceClient {
 				return MountInfos.with {
 					$0.response = .error("Timeout")
 				}
+			} else {
+				return MountInfos.with {
+					$0.response = .error("VM is not running")
+				}
 			}
 		}
 
 		return MountInfos.with {
-			$0.response = .error("No mounts")
+			$0.response = .error("No umounts")
 		}
 	}
 }

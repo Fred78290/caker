@@ -16,6 +16,13 @@ protocol HasExitCode {
 	var exitCode: Int32 { get }
 }
 
+struct ExitCode: Error, HasExitCode {
+	let exitCode: Int32
+
+	init(_ code: Int32) {
+		self.exitCode = code
+	}
+}
 
 class ServiceError : Error, CustomStringConvertible, Equatable {
 	let description: String

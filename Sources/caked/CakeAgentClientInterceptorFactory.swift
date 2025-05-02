@@ -3,28 +3,37 @@ import NIO
 import GRPCLib
 import SwiftProtobuf
 import CakeAgentLib
+import Atomics
 
 final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 	let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
-	let errorCaught: @Sendable () -> ()
+	let errorCaught: ManagedAtomicLazyReference<AtomicError>
+
+	final class AtomicError: Sendable {
+		let error: Error
+		
+		init(error: Error) {
+			self.error = error
+		}
+	}
 
 	private class ExecuteCakeAgentClientInterceptor: ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>, @unchecked Sendable {
 		let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
-		let errorCaught: () -> ()
+		let errorCaught: ManagedAtomicLazyReference<AtomicError>
 
-		init(responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, errorCaught: @Sendable @escaping () -> ()) {
+		init(responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, errorCaught: ManagedAtomicLazyReference<AtomicError>) {
 			self.responseStream = responseStream
 			self.errorCaught = errorCaught
 		}
 
 		func sendError(error: Error, context: ClientInterceptorContext<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>) {
-			self.errorCaught()
-
 			var error = error
 
 			if let status = error as? GRPCStatusTransformable {
 				error = status.makeGRPCStatus()
 			}
+
+			_ = self.errorCaught.storeIfNilThenLoad(.init(error: error))
 
 			guard let err = error as? GRPCStatus else {
 				_ = context.eventLoop.makeFutureWithTask {
@@ -64,9 +73,9 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		}
 	}
 
-	init(responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, errorCaught: @Sendable @escaping () -> ()) {
+	init(responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) {
 		self.responseStream = responseStream
-		self.errorCaught = errorCaught
+		self.errorCaught = .init()
 	}
 
 	func makeInfoInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>] {

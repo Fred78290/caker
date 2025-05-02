@@ -40,7 +40,7 @@ struct Mount: ParsableCommand {
 
 		if case let .error(error) = response.response {
 			FileHandle.standardError.write("\(error)\n".data(using: .utf8)!)
-			Foundation.exit(EXIT_FAILURE)
+			throw ExitCode(EXIT_FAILURE)
 		}
 	}
 }
