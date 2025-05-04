@@ -16,9 +16,6 @@ struct VMBuilder {
 	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource, asSystem: Bool) throws {
 		let config: CakeConfig
 
-		// Create or resize disk
-		try? vmLocation.expandDiskTo(options.diskSize)
-
 		// Create config
 		if source == .oci {
 			config = try CakeConfig(location: vmLocation.rootURL, options: options)
@@ -46,6 +43,13 @@ struct VMBuilder {
 			config.agent = true
 			config.nested = options.nested
 			config.attachedDisks = options.attachedDisks
+		}
+
+		// Create or resize disk
+		if config.os == .darwin {
+			try? vmLocation.expandDisk(options.diskSize)
+		} else {
+			try? vmLocation.resizeDisk(options.diskSize)
 		}
 
 		config.networks = options.networks

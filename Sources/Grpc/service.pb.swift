@@ -1899,6 +1899,8 @@ public struct Caked_InfoReply: Sendable {
 
   public var cpuCount: Int32 = 0
 
+  public var diskInfos: [Caked_InfoReply.DiskInfo] = []
+
   public var ipaddresses: [String] = []
 
   public var osname: String = String()
@@ -1960,6 +1962,28 @@ public struct Caked_InfoReply: Sendable {
 
     fileprivate var _free: UInt64? = nil
     fileprivate var _used: UInt64? = nil
+  }
+
+  public struct DiskInfo: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var device: String = String()
+
+    public var mount: String = String()
+
+    public var fsType: String = String()
+
+    public var size: UInt64 = 0
+
+    public var used: UInt64 = 0
+
+    public var free: UInt64 = 0
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
   }
 
   public init() {}
@@ -5457,13 +5481,14 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     2: .same(proto: "uptime"),
     3: .same(proto: "memory"),
     4: .same(proto: "cpuCount"),
-    5: .same(proto: "ipaddresses"),
-    6: .same(proto: "osname"),
-    7: .same(proto: "hostname"),
-    8: .same(proto: "release"),
-    9: .same(proto: "status"),
-    10: .same(proto: "mounts"),
-    11: .same(proto: "name"),
+    5: .same(proto: "diskInfos"),
+    6: .same(proto: "ipaddresses"),
+    7: .same(proto: "osname"),
+    8: .same(proto: "hostname"),
+    9: .same(proto: "release"),
+    10: .same(proto: "status"),
+    11: .same(proto: "mounts"),
+    112: .same(proto: "name"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5476,13 +5501,14 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       case 2: try { try decoder.decodeSingularUInt64Field(value: &self._uptime) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._memory) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.cpuCount) }()
-      case 5: try { try decoder.decodeRepeatedStringField(value: &self.ipaddresses) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.osname) }()
-      case 7: try { try decoder.decodeSingularStringField(value: &self._hostname) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self._release) }()
-      case 9: try { try decoder.decodeSingularStringField(value: &self.status) }()
-      case 10: try { try decoder.decodeRepeatedStringField(value: &self.mounts) }()
-      case 11: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 5: try { try decoder.decodeRepeatedMessageField(value: &self.diskInfos) }()
+      case 6: try { try decoder.decodeRepeatedStringField(value: &self.ipaddresses) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.osname) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self._hostname) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self._release) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.status) }()
+      case 11: try { try decoder.decodeRepeatedStringField(value: &self.mounts) }()
+      case 112: try { try decoder.decodeSingularStringField(value: &self.name) }()
       default: break
       }
     }
@@ -5505,26 +5531,29 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if self.cpuCount != 0 {
       try visitor.visitSingularInt32Field(value: self.cpuCount, fieldNumber: 4)
     }
+    if !self.diskInfos.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.diskInfos, fieldNumber: 5)
+    }
     if !self.ipaddresses.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.ipaddresses, fieldNumber: 5)
+      try visitor.visitRepeatedStringField(value: self.ipaddresses, fieldNumber: 6)
     }
     if !self.osname.isEmpty {
-      try visitor.visitSingularStringField(value: self.osname, fieldNumber: 6)
+      try visitor.visitSingularStringField(value: self.osname, fieldNumber: 7)
     }
     try { if let v = self._hostname {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 7)
-    } }()
-    try { if let v = self._release {
       try visitor.visitSingularStringField(value: v, fieldNumber: 8)
     } }()
+    try { if let v = self._release {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 9)
+    } }()
     if !self.status.isEmpty {
-      try visitor.visitSingularStringField(value: self.status, fieldNumber: 9)
+      try visitor.visitSingularStringField(value: self.status, fieldNumber: 10)
     }
     if !self.mounts.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.mounts, fieldNumber: 10)
+      try visitor.visitRepeatedStringField(value: self.mounts, fieldNumber: 11)
     }
     if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 11)
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 112)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -5534,6 +5563,7 @@ extension Caked_InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if lhs._uptime != rhs._uptime {return false}
     if lhs._memory != rhs._memory {return false}
     if lhs.cpuCount != rhs.cpuCount {return false}
+    if lhs.diskInfos != rhs.diskInfos {return false}
     if lhs.ipaddresses != rhs.ipaddresses {return false}
     if lhs.osname != rhs.osname {return false}
     if lhs._hostname != rhs._hostname {return false}
@@ -5589,6 +5619,68 @@ extension Caked_InfoReply.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._Mess
     if lhs.total != rhs.total {return false}
     if lhs._free != rhs._free {return false}
     if lhs._used != rhs._used {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_InfoReply.DiskInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_InfoReply.protoMessageName + ".DiskInfo"
+  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "device"),
+    2: .same(proto: "mount"),
+    3: .same(proto: "fsType"),
+    4: .same(proto: "size"),
+    5: .same(proto: "used"),
+    6: .same(proto: "free"),
+  ]
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.device) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.mount) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.fsType) }()
+      case 4: try { try decoder.decodeSingularUInt64Field(value: &self.size) }()
+      case 5: try { try decoder.decodeSingularUInt64Field(value: &self.used) }()
+      case 6: try { try decoder.decodeSingularUInt64Field(value: &self.free) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.device.isEmpty {
+      try visitor.visitSingularStringField(value: self.device, fieldNumber: 1)
+    }
+    if !self.mount.isEmpty {
+      try visitor.visitSingularStringField(value: self.mount, fieldNumber: 2)
+    }
+    if !self.fsType.isEmpty {
+      try visitor.visitSingularStringField(value: self.fsType, fieldNumber: 3)
+    }
+    if self.size != 0 {
+      try visitor.visitSingularUInt64Field(value: self.size, fieldNumber: 4)
+    }
+    if self.used != 0 {
+      try visitor.visitSingularUInt64Field(value: self.used, fieldNumber: 5)
+    }
+    if self.free != 0 {
+      try visitor.visitSingularUInt64Field(value: self.free, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_InfoReply.DiskInfo, rhs: Caked_InfoReply.DiskInfo) -> Bool {
+    if lhs.device != rhs.device {return false}
+    if lhs.mount != rhs.mount {return false}
+    if lhs.fsType != rhs.fsType {return false}
+    if lhs.size != rhs.size {return false}
+    if lhs.used != rhs.used {return false}
+    if lhs.free != rhs.free {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

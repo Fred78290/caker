@@ -192,7 +192,32 @@ struct VMLocation {
 		}
 	}
 
-	func expandDiskTo(_ sizeGB: UInt16) throws {
+	func expandDisk(_ sizeGB: UInt16) throws {
+		let wantedFileSize = UInt64(sizeGB) * 1000 * 1000 * 1000
+
+		if FileManager.default.fileExists(atPath: diskURL.path) {
+			try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
+		} else {
+			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)
+
+			let diskFileHandle = try FileHandle.init(forWritingTo: diskURL)
+			let curFileSize = try diskFileHandle.seekToEnd()
+
+			defer {
+				try? diskFileHandle.close()
+			}
+
+			if wantedFileSize < curFileSize {
+				let curFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(curFileSize))
+				let wantedFileSizeHuman = ByteCountFormatter().string(fromByteCount: Int64(wantedFileSize))
+				throw ServiceError("the new file size \(wantedFileSizeHuman) is lesser than the current disk size of \(curFileSizeHuman)")
+			} else if wantedFileSize > curFileSize {
+				try diskFileHandle.truncate(atOffset: wantedFileSize)
+			}
+		}
+	}
+
+	func resizeDisk(_ sizeGB: UInt16) throws {
 		let wantedFileSize = UInt64(sizeGB) * 1000 * 1000 * 1000
 
 		if !FileManager.default.fileExists(atPath: diskURL.path) {

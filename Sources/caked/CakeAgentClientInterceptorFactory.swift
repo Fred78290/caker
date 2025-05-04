@@ -78,6 +78,10 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		self.errorCaught = .init()
 	}
 
+	func makeResizeDiskInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_ResizeReply>] {
+		[CakeAgentClientInterceptor()]
+	}
+
 	func makeInfoInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>] {
 		[CakeAgentClientInterceptor()]
 	}

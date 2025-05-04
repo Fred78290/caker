@@ -62,7 +62,15 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		try config.save()
 
 		if let diskSize = options.diskSize {
-			try vmLocation.expandDiskTo(diskSize)
+			if vmLocation.status == .running {
+				throw ServiceError("VM is running, please stop it before resizing the disk")
+			}
+
+			if config.os == .linux {
+				try vmLocation.resizeDisk(diskSize)
+			} else {
+				try vmLocation.expandDisk(diskSize)
+			}
 		}
 
 		return "VM \(name) reconfigured"

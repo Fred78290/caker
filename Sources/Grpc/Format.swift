@@ -60,6 +60,16 @@ extension InfoReply {
 	public func toCaked_InfoReply() -> Caked_InfoReply {
 		Caked_InfoReply.with { reply in
 			reply.name = self.name
+			reply.diskInfos = self.diskInfos.map { diskInfos in
+				Caked_InfoReply.DiskInfo.with {
+					$0.device = diskInfos.device
+					$0.mount = diskInfos.mount
+					$0.fsType = diskInfos.fsType
+					$0.size = diskInfos.total
+					$0.free = diskInfos.free
+					$0.used = diskInfos.used
+				}
+			}
 
 			if let version = self.version {
 				reply.version = version
