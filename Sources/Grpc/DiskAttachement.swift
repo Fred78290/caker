@@ -109,7 +109,7 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 }
 
 public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
-	private let diskPath: String
+	public let diskPath: String
 	private let diskOptions: DiskOptions
 
 	public var defaultValueDescription: String {

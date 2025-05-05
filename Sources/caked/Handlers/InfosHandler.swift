@@ -17,11 +17,21 @@ struct InfosHandler: CakedCommand {
 		if vmLocation.status == .running {
 			infos = try client.info(callOptions: callOptions)
 		} else {
+			var diskInfos: [DiskInfo] = []
+			
+			diskInfos.append(DiskInfo(device: "", mount: "/", fsType: "native", total: UInt64(try vmLocation.diskSize()), free: 0, used: 0))
+
+			for disk in config.attachedDisks {
+				let diskURL = URL(fileURLWithPath: disk.diskPath)
+
+				diskInfos.append(DiskInfo(device: "", mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
+			}
 
 			infos = InfoReply.with {
 				$0.osname = config.os.rawValue
 				$0.status = .stopped
 				$0.cpuCount = Int32(config.cpuCount)
+				$0.diskInfos = diskInfos
 				$0.memory = .with {
 					$0.total = config.memorySize
 				}
