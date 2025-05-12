@@ -1295,7 +1295,7 @@ struct NetworksHandler: CakedCommandAsync {
 						$0.status = result.toCaked_NetworkInfo()
 					}
 				}
-			case .create:
+			case .new:
 				message = try Self.create(networkName: self.request.create.name, network: self.request.create.toVZSharedNetwork(), asSystem: asSystem)
 			case .remove:
 				message = try Self.delete(networkName: self.request.name, asSystem: asSystem)
@@ -1304,7 +1304,7 @@ struct NetworksHandler: CakedCommandAsync {
 				message = "Network \(self.request.name) started"
 			case .shutdown:
 				message = try Self.stop(networkName: self.request.name, asSystem: asSystem)
-			case .configure:
+			case .set:
 				message = try Self.configure(network: self.request.configure.toUsedNetworkConfig(), asSystem: asSystem)
 			default:
 				throw ServiceError("Unknown command")

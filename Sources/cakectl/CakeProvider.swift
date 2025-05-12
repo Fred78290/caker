@@ -43,7 +43,7 @@ extension Caked_DeleteRequest {
 		if command.delete.all {
 			self.all = true
 		} else {
-			self.names = Caked_VMNames.with {
+			self.names = Caked_DeleteRequest.VMNames.with {
 				$0.list = command.delete.names
 			}
 		}
@@ -170,7 +170,7 @@ extension Caked_StopRequest {
 		if command.stop.all {
 			self.all = true
 		} else {
-			self.names = Caked_VMNames.with {
+			self.names = Caked_StopRequest.VMNames.with {
 				$0.list = command.stop.names
 			}
 		}
@@ -311,20 +311,19 @@ extension Caked_ImageRequest {
 extension Caked_TemplateRequest {
 	init(command: Template.CreateTemplate) {
 		self.init()
-		var add: Caked_TemplateRequestAdd = Caked_TemplateRequestAdd()
-
-		add.sourceName = command.template.name
-		add.templateName = command.template.template
 
 		self.command = .add
-		self.create = add
+		self.createRequest = Caked_TemplateRequest.TemplateRequestAdd.with {
+			$0.sourceName = command.template.name
+			$0.templateName = command.template.template
+		}
 	}
 
 	init(command: Template.DeleteTemplate) {
 		self.init()
 
 		self.command = .delete
-		self.delete = command.template.name
+		self.deleteRequest = command.template.name
 	}
 
 	init(command: Template.ListTemplate) {
@@ -337,20 +336,19 @@ extension Caked_TemplateRequest {
 extension Caked_RemoteRequest {
 	init(command: Remote.AddRemote) {
 		self.init()
-		var add: Caked_RemoteRequestAdd = Caked_RemoteRequestAdd()
-
-		add.name = command.remote
-		add.url = command.url
 
 		self.command = .add
-		self.add = add
+		self.addRequest = Caked_RemoteRequest.RemoteRequestAdd.with {
+			$0.name = command.remote
+			$0.url = command.url
+		}
 	}
 
 	init(command: Remote.DeleteRemote) {
 		self.init()
 
 		self.command = .delete
-		self.delete = command.remote
+		self.deleteRequest = command.remote
 	}
 
 	init(command: Remote.ListRemote) {
@@ -377,8 +375,8 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Create) {
 		self.init()
 
-		self.command = .create
-		self.create = Caked_CreateNetworkRequest.with {
+		self.command = .new
+		self.create = Caked_NetworkRequest.CreateNetworkRequest.with {
 			$0.mode = command.networkOptions.mode == .shared ? .shared : .host
 			$0.name = command.networkOptions.name
 			$0.gateway = command.networkOptions.gateway
@@ -394,7 +392,7 @@ extension Caked_NetworkRequest {
 	init(command: Networks.Configure) {
 		self.init()
 
-		self.command = .configure
+		self.command = .set
 		self.configure = Caked_ConfigureNetworkRequest.with {
 			$0.name = command.networkOptions.name
 
@@ -456,7 +454,7 @@ extension Caked_MountRequest {
 		self.init()
 
 		self.name = command.mount.name
-		self.command = .add
+		self.command = .mount
 		self.mounts = command.mount.mounts.map { mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name
@@ -474,7 +472,7 @@ extension Caked_MountRequest {
 		self.init()
 
 		self.name = command.umount.name
-		self.command = .delete
+		self.command = .umount
 		self.mounts = command.umount.mounts.map{ mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name

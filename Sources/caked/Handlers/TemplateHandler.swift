@@ -120,16 +120,16 @@ struct TemplateHandler: CakedCommand {
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		switch request.command {
 		case .add:
-			let result = try Self.createTemplate(on: on, sourceName: request.create.sourceName, templateName: request.create.templateName, asSystem: asSystem)
+			let result = try Self.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, asSystem: asSystem)
 
 			return Caked_Reply.with {
-				$0.templates = Caked_TemplateReply.with {
+				$0.templates = Caked_Caked.Reply.TemplateReply.with {
 					$0.create = result.toCaked_CreateTemplateReply()
 				}
 			}
 
 		case .delete:
-			let result = try Self.deleteTemplate(templateName: request.delete, asSystem: asSystem)
+			let result = try Self.deleteTemplate(templateName: request.deleteRequest, asSystem: asSystem)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_TemplateReply.with {
@@ -144,7 +144,7 @@ struct TemplateHandler: CakedCommand {
 			let result = try Self.listTemplate(asSystem: asSystem)
 
 			return Caked_Reply.with {
-				$0.templates = Caked_TemplateReply.with {
+				$0.templates = Caked_Caked.Reply.TemplateReply.with {
 					$0.list = Caked_ListTemplatesReply.with {
 						$0.templates = result.map {
 							$0.toCaked_TemplateEntry()

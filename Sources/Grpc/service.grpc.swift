@@ -17,124 +17,124 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
   var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
   func build(
-    _ request: Caked_BuildRequest,
+    _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply>
-
-  func start(
-    _ request: Caked_StartRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_StartRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>
 
   func clone(
-    _ request: Caked_CloneRequest,
+    _ request: Caked_Caked.VMRequest.CloneRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_CloneRequest, Caked_Reply>
-
-  func duplicate(
-    _ request: Caked_DuplicateRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_DuplicateRequest, Caked_Reply>
-
-  func cakeCommand(
-    _ request: Caked_CakedCommandRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_CakedCommandRequest, Caked_Reply>
-
-  func launch(
-    _ request: Caked_LaunchRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply>
-
-  func login(
-    _ request: Caked_LoginRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_LoginRequest, Caked_Reply>
-
-  func logout(
-    _ request: Caked_LogoutRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_LogoutRequest, Caked_Reply>
-
-  func purge(
-    _ request: Caked_PurgeRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_PurgeRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply>
 
   func configure(
-    _ request: Caked_ConfigureRequest,
+    _ request: Caked_Caked.VMRequest.ConfigureRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply>
-
-  func waitIP(
-    _ request: Caked_WaitIPRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_WaitIPRequest, Caked_Reply>
-
-  func stop(
-    _ request: Caked_StopRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_StopRequest, Caked_Reply>
-
-  func list(
-    _ request: Caked_ListRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_ListRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply>
 
   func delete(
-    _ request: Caked_DeleteRequest,
+    _ request: Caked_Caked.VMRequest.DeleteRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_DeleteRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply>
 
-  func image(
-    _ request: Caked_ImageRequest,
+  func duplicate(
+    _ request: Caked_Caked.VMRequest.DuplicateRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_ImageRequest, Caked_Reply>
-
-  func remote(
-    _ request: Caked_RemoteRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_RemoteRequest, Caked_Reply>
-
-  func networks(
-    _ request: Caked_NetworkRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_NetworkRequest, Caked_Reply>
-
-  func template(
-    _ request: Caked_TemplateRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_TemplateRequest, Caked_Reply>
-
-  func rename(
-    _ request: Caked_RenameRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_RenameRequest, Caked_Reply>
-
-  func info(
-    _ request: Caked_InfoRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_InfoRequest, Caked_Reply>
-
-  func run(
-    _ request: Caked_RunCommand,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_RunCommand, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply>
 
   func execute(
     callOptions: CallOptions?,
-    handler: @escaping (Caked_ExecuteResponse) -> Void
-  ) -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
+    handler: @escaping (Caked_Caked.VMRequest.ExecuteResponse) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse>
+
+  func info(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
+
+  func launch(
+    _ request: Caked_Caked.VMRequest.LaunchRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>
+
+  func list(
+    _ request: Caked_Caked.VMRequest.ListRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply>
+
+  func rename(
+    _ request: Caked_Caked.VMRequest.RenameRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply>
+
+  func run(
+    _ request: Caked_Caked.VMRequest.RunCommand,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply>
+
+  func start(
+    _ request: Caked_Caked.VMRequest.StartRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply>
+
+  func stop(
+    _ request: Caked_Caked.VMRequest.StopRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>
+
+  func template(
+    _ request: Caked_Caked.VMRequest.TemplateRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>
+
+  func waitIP(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply>
+
+  func image(
+    _ request: Caked_Caked.ImageRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.ImageRequest, Caked_Caked.Reply>
+
+  func cakeCommand(
+    _ request: Caked_Caked.CakedCommandRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply>
+
+  func login(
+    _ request: Caked_Caked.LoginRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.LoginRequest, Caked_Caked.Reply>
+
+  func logout(
+    _ request: Caked_Caked.LogoutRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply>
+
+  func purge(
+    _ request: Caked_Caked.PurgeRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.PurgeRequest, Caked_Caked.Reply>
+
+  func remote(
+    _ request: Caked_Caked.RemoteRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.RemoteRequest, Caked_Caked.Reply>
+
+  func networks(
+    _ request: Caked_Caked.NetworkRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.NetworkRequest, Caked_Caked.Reply>
 
   func mount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_MountRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
 
   func umount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_MountRequest, Caked_Reply>
+  ) -> UnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -149,32 +149,14 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func build(
-    _ request: Caked_BuildRequest,
+    _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_BuildRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeBuildInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Start
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Start.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func start(
-    _ request: Caked_StartRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_StartRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
     )
   }
 
@@ -185,14 +167,50 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func clone(
-    _ request: Caked_CloneRequest,
+    _ request: Caked_Caked.VMRequest.CloneRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_CloneRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeCloneInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Configure
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Configure.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func configure(
+    _ request: Caked_Caked.VMRequest.ConfigureRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Delete
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Delete.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func delete(
+    _ request: Caked_Caked.VMRequest.DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
     )
   }
 
@@ -203,9 +221,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func duplicate(
-    _ request: Caked_DuplicateRequest,
+    _ request: Caked_Caked.VMRequest.DuplicateRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_DuplicateRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.duplicate.path,
       request: request,
@@ -214,21 +232,42 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to CakeCommand
+  /// Bidirectional streaming call to Execute
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
   ///
   /// - Parameters:
-  ///   - request: Request to send to CakeCommand.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
+  public func execute(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.VMRequest.ExecuteResponse) -> Void
+  ) -> BidirectionalStreamingCall<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse> {
+    return self.makeBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  /// Unary call to Info
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Info.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func cakeCommand(
-    _ request: Caked_CakedCommandRequest,
+  public func info(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_CakedCommandRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
     )
   }
 
@@ -239,14 +278,176 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func launch(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_LaunchRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to List
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to List.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func list(
+    _ request: Caked_Caked.VMRequest.ListRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.list.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Rename
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Rename.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func rename(
+    _ request: Caked_Caked.VMRequest.RenameRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.rename.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Run
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Run.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func run(
+    _ request: Caked_Caked.VMRequest.RunCommand,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.run.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRunInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Start
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Start.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func start(
+    _ request: Caked_Caked.VMRequest.StartRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.start.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Stop
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Stop.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func stop(
+    _ request: Caked_Caked.VMRequest.StopRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Template
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Template.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func template(
+    _ request: Caked_Caked.VMRequest.TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to WaitIP
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to WaitIP.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func waitIP(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Image
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Image.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func image(
+    _ request: Caked_Caked.ImageRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.ImageRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to CakeCommand
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to CakeCommand.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func cakeCommand(
+    _ request: Caked_Caked.CakedCommandRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
     )
   }
 
@@ -257,9 +458,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func login(
-    _ request: Caked_LoginRequest,
+    _ request: Caked_Caked.LoginRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_LoginRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.LoginRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
@@ -275,9 +476,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func logout(
-    _ request: Caked_LogoutRequest,
+    _ request: Caked_Caked.LogoutRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_LogoutRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.logout.path,
       request: request,
@@ -293,122 +494,14 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func purge(
-    _ request: Caked_PurgeRequest,
+    _ request: Caked_Caked.PurgeRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_PurgeRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.PurgeRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.purge.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makePurgeInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Configure
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Configure.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func configure(
-    _ request: Caked_ConfigureRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_ConfigureRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.configure.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to WaitIP
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to WaitIP.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func waitIP(
-    _ request: Caked_WaitIPRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_WaitIPRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Stop
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Stop.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func stop(
-    _ request: Caked_StopRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_StopRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to List
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to List.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func list(
-    _ request: Caked_ListRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_ListRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Delete
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Delete.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func delete(
-    _ request: Caked_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_DeleteRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Image
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Image.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func image(
-    _ request: Caked_ImageRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_ImageRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.image.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImageInterceptors() ?? []
     )
   }
 
@@ -419,9 +512,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func remote(
-    _ request: Caked_RemoteRequest,
+    _ request: Caked_Caked.RemoteRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_RemoteRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.RemoteRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.remote.path,
       request: request,
@@ -437,107 +530,14 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func networks(
-    _ request: Caked_NetworkRequest,
+    _ request: Caked_Caked.NetworkRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_NetworkRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.NetworkRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.networks.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeNetworksInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Template
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Template.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func template(
-    _ request: Caked_TemplateRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_TemplateRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.template.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Rename
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Rename.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func rename(
-    _ request: Caked_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_RenameRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Info
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Info.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func info(
-    _ request: Caked_InfoRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_InfoRequest, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.info.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
-    )
-  }
-
-  /// Unary call to Run
-  ///
-  /// - Parameters:
-  ///   - request: Request to send to Run.
-  ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func run(
-    _ request: Caked_RunCommand,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_RunCommand, Caked_Reply> {
-    return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.run.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunInterceptors() ?? []
-    )
-  }
-
-  /// Bidirectional streaming call to Execute
-  ///
-  /// Callers should use the `send` method on the returned object to send messages
-  /// to the server. The caller should send an `.end` after the final message has been sent.
-  ///
-  /// - Parameters:
-  ///   - callOptions: Call options.
-  ///   - handler: A closure called when each response is received from the server.
-  /// - Returns: A `ClientStreamingCall` with futures for the metadata and status.
-  public func execute(
-    callOptions: CallOptions? = nil,
-    handler: @escaping (Caked_ExecuteResponse) -> Void
-  ) -> BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
-    return self.makeBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.execute.path,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
-      handler: handler
     )
   }
 
@@ -548,9 +548,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func mount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_MountRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.mount.path,
       request: request,
@@ -566,9 +566,9 @@ extension Caked_ServiceClientProtocol {
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
   public func umount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_MountRequest, Caked_Reply> {
+  ) -> UnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.umount.path,
       request: request,
@@ -641,123 +641,123 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
   func makeBuildCall(
-    _ request: Caked_BuildRequest,
+    _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply>
-
-  func makeStartCall(
-    _ request: Caked_StartRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>
 
   func makeCloneCall(
-    _ request: Caked_CloneRequest,
+    _ request: Caked_Caked.VMRequest.CloneRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_CloneRequest, Caked_Reply>
-
-  func makeDuplicateCall(
-    _ request: Caked_DuplicateRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_DuplicateRequest, Caked_Reply>
-
-  func makeCakeCommandCall(
-    _ request: Caked_CakedCommandRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_CakedCommandRequest, Caked_Reply>
-
-  func makeLaunchCall(
-    _ request: Caked_LaunchRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply>
-
-  func makeLoginCall(
-    _ request: Caked_LoginRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_LoginRequest, Caked_Reply>
-
-  func makeLogoutCall(
-    _ request: Caked_LogoutRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_LogoutRequest, Caked_Reply>
-
-  func makePurgeCall(
-    _ request: Caked_PurgeRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_PurgeRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply>
 
   func makeConfigureCall(
-    _ request: Caked_ConfigureRequest,
+    _ request: Caked_Caked.VMRequest.ConfigureRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply>
-
-  func makeWaitIpCall(
-    _ request: Caked_WaitIPRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_WaitIPRequest, Caked_Reply>
-
-  func makeStopCall(
-    _ request: Caked_StopRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_StopRequest, Caked_Reply>
-
-  func makeListCall(
-    _ request: Caked_ListRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_ListRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply>
 
   func makeDeleteCall(
-    _ request: Caked_DeleteRequest,
+    _ request: Caked_Caked.VMRequest.DeleteRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_DeleteRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply>
 
-  func makeImageCall(
-    _ request: Caked_ImageRequest,
+  func makeDuplicateCall(
+    _ request: Caked_Caked.VMRequest.DuplicateRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_ImageRequest, Caked_Reply>
-
-  func makeRemoteCall(
-    _ request: Caked_RemoteRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_RemoteRequest, Caked_Reply>
-
-  func makeNetworksCall(
-    _ request: Caked_NetworkRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_NetworkRequest, Caked_Reply>
-
-  func makeTemplateCall(
-    _ request: Caked_TemplateRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_TemplateRequest, Caked_Reply>
-
-  func makeRenameCall(
-    _ request: Caked_RenameRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_RenameRequest, Caked_Reply>
-
-  func makeInfoCall(
-    _ request: Caked_InfoRequest,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_Reply>
-
-  func makeRunCall(
-    _ request: Caked_RunCommand,
-    callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply>
 
   func makeExecuteCall(
     callOptions: CallOptions?
-  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse>
+
+  func makeInfoCall(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
+
+  func makeLaunchCall(
+    _ request: Caked_Caked.VMRequest.LaunchRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>
+
+  func makeListCall(
+    _ request: Caked_Caked.VMRequest.ListRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply>
+
+  func makeRenameCall(
+    _ request: Caked_Caked.VMRequest.RenameRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply>
+
+  func makeRunCall(
+    _ request: Caked_Caked.VMRequest.RunCommand,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply>
+
+  func makeStartCall(
+    _ request: Caked_Caked.VMRequest.StartRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply>
+
+  func makeStopCall(
+    _ request: Caked_Caked.VMRequest.StopRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>
+
+  func makeTemplateCall(
+    _ request: Caked_Caked.VMRequest.TemplateRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>
+
+  func makeWaitIpCall(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply>
+
+  func makeImageCall(
+    _ request: Caked_Caked.ImageRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.ImageRequest, Caked_Caked.Reply>
+
+  func makeCakeCommandCall(
+    _ request: Caked_Caked.CakedCommandRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply>
+
+  func makeLoginCall(
+    _ request: Caked_Caked.LoginRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.LoginRequest, Caked_Caked.Reply>
+
+  func makeLogoutCall(
+    _ request: Caked_Caked.LogoutRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply>
+
+  func makePurgeCall(
+    _ request: Caked_Caked.PurgeRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.PurgeRequest, Caked_Caked.Reply>
+
+  func makeRemoteCall(
+    _ request: Caked_Caked.RemoteRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.RemoteRequest, Caked_Caked.Reply>
+
+  func makeNetworksCall(
+    _ request: Caked_Caked.NetworkRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.NetworkRequest, Caked_Caked.Reply>
 
   func makeMountCall(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
 
   func makeUmountCall(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -771,9 +771,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeBuildCall(
-    _ request: Caked_BuildRequest,
+    _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_BuildRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
@@ -782,22 +782,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeStartCall(
-    _ request: Caked_StartRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_StartRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
-    )
-  }
-
   public func makeCloneCall(
-    _ request: Caked_CloneRequest,
+    _ request: Caked_Caked.VMRequest.CloneRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_CloneRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
@@ -806,10 +794,34 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeDuplicateCall(
-    _ request: Caked_DuplicateRequest,
+  public func makeConfigureCall(
+    _ request: Caked_Caked.VMRequest.ConfigureRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_DuplicateRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
+    )
+  }
+
+  public func makeDeleteCall(
+    _ request: Caked_Caked.VMRequest.DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+    )
+  }
+
+  public func makeDuplicateCall(
+    _ request: Caked_Caked.VMRequest.DuplicateRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.duplicate.path,
       request: request,
@@ -818,22 +830,32 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeCakeCommandCall(
-    _ request: Caked_CakedCommandRequest,
+  public func makeExecuteCall(
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_CakedCommandRequest, Caked_Reply> {
+  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse> {
+    return self.makeAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
+    )
+  }
+
+  public func makeInfoCall(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
     )
   }
 
   public func makeLaunchCall(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_LaunchRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
@@ -842,10 +864,118 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeLoginCall(
-    _ request: Caked_LoginRequest,
+  public func makeListCall(
+    _ request: Caked_Caked.VMRequest.ListRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_LoginRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.list.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListInterceptors() ?? []
+    )
+  }
+
+  public func makeRenameCall(
+    _ request: Caked_Caked.VMRequest.RenameRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.rename.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+    )
+  }
+
+  public func makeRunCall(
+    _ request: Caked_Caked.VMRequest.RunCommand,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.run.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRunInterceptors() ?? []
+    )
+  }
+
+  public func makeStartCall(
+    _ request: Caked_Caked.VMRequest.StartRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.start.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func makeStopCall(
+    _ request: Caked_Caked.VMRequest.StopRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func makeTemplateCall(
+    _ request: Caked_Caked.VMRequest.TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
+    )
+  }
+
+  public func makeWaitIpCall(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  public func makeImageCall(
+    _ request: Caked_Caked.ImageRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.ImageRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
+    )
+  }
+
+  public func makeCakeCommandCall(
+    _ request: Caked_Caked.CakedCommandRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
+    )
+  }
+
+  public func makeLoginCall(
+    _ request: Caked_Caked.LoginRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.LoginRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
@@ -855,9 +985,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeLogoutCall(
-    _ request: Caked_LogoutRequest,
+    _ request: Caked_Caked.LogoutRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_LogoutRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.logout.path,
       request: request,
@@ -867,9 +997,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makePurgeCall(
-    _ request: Caked_PurgeRequest,
+    _ request: Caked_Caked.PurgeRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_PurgeRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.PurgeRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.purge.path,
       request: request,
@@ -878,82 +1008,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeConfigureCall(
-    _ request: Caked_ConfigureRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_ConfigureRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.configure.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
-    )
-  }
-
-  public func makeWaitIpCall(
-    _ request: Caked_WaitIPRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_WaitIPRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
-    )
-  }
-
-  public func makeStopCall(
-    _ request: Caked_StopRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_StopRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
-
-  public func makeListCall(
-    _ request: Caked_ListRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_ListRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
-
-  public func makeDeleteCall(
-    _ request: Caked_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_DeleteRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
-
-  public func makeImageCall(
-    _ request: Caked_ImageRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_ImageRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.image.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImageInterceptors() ?? []
-    )
-  }
-
   public func makeRemoteCall(
-    _ request: Caked_RemoteRequest,
+    _ request: Caked_Caked.RemoteRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_RemoteRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.RemoteRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.remote.path,
       request: request,
@@ -963,9 +1021,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeNetworksCall(
-    _ request: Caked_NetworkRequest,
+    _ request: Caked_Caked.NetworkRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_NetworkRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.NetworkRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.networks.path,
       request: request,
@@ -974,68 +1032,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeTemplateCall(
-    _ request: Caked_TemplateRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_TemplateRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.template.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
-    )
-  }
-
-  public func makeRenameCall(
-    _ request: Caked_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_RenameRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
-
-  public func makeInfoCall(
-    _ request: Caked_InfoRequest,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_InfoRequest, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.info.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
-    )
-  }
-
-  public func makeRunCall(
-    _ request: Caked_RunCommand,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_RunCommand, Caked_Reply> {
-    return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.run.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunInterceptors() ?? []
-    )
-  }
-
-  public func makeExecuteCall(
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncBidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse> {
-    return self.makeAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.execute.path,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-    )
-  }
-
   public func makeMountCall(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.mount.path,
       request: request,
@@ -1045,9 +1045,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func makeUmountCall(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_MountRequest, Caked_Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.umount.path,
       request: request,
@@ -1060,9 +1060,9 @@ extension Caked_ServiceAsyncClientProtocol {
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Caked_ServiceAsyncClientProtocol {
   public func build(
-    _ request: Caked_BuildRequest,
+    _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
@@ -1071,22 +1071,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func start(
-    _ request: Caked_StartRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.start.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStartInterceptors() ?? []
-    )
-  }
-
   public func clone(
-    _ request: Caked_CloneRequest,
+    _ request: Caked_Caked.VMRequest.CloneRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
@@ -1095,10 +1083,34 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func duplicate(
-    _ request: Caked_DuplicateRequest,
+  public func configure(
+    _ request: Caked_Caked.VMRequest.ConfigureRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.configure.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
+    )
+  }
+
+  public func delete(
+    _ request: Caked_Caked.VMRequest.DeleteRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.delete.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
+    )
+  }
+
+  public func duplicate(
+    _ request: Caked_Caked.VMRequest.DuplicateRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.duplicate.path,
       request: request,
@@ -1107,22 +1119,46 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func cakeCommand(
-    _ request: Caked_CakedCommandRequest,
+  public func execute<RequestStream>(
+    _ requests: RequestStream,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) -> GRPCAsyncResponseStream<Caked_Caked.VMRequest.ExecuteResponse> where RequestStream: Sequence, RequestStream.Element == Caked_Caked.VMRequest.ExecuteRequest {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
+    )
+  }
+
+  public func execute<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.VMRequest.ExecuteResponse> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.VMRequest.ExecuteRequest {
+    return self.performAsyncBidirectionalStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.execute.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
+    )
+  }
+
+  public func info(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      path: Caked_ServiceClientMetadata.Methods.info.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
     )
   }
 
   public func launch(
-    _ request: Caked_LaunchRequest,
+    _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
@@ -1131,10 +1167,118 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func login(
-    _ request: Caked_LoginRequest,
+  public func list(
+    _ request: Caked_Caked.VMRequest.ListRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.list.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListInterceptors() ?? []
+    )
+  }
+
+  public func rename(
+    _ request: Caked_Caked.VMRequest.RenameRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.rename.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
+    )
+  }
+
+  public func run(
+    _ request: Caked_Caked.VMRequest.RunCommand,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.run.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRunInterceptors() ?? []
+    )
+  }
+
+  public func start(
+    _ request: Caked_Caked.VMRequest.StartRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.start.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartInterceptors() ?? []
+    )
+  }
+
+  public func stop(
+    _ request: Caked_Caked.VMRequest.StopRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.stop.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func template(
+    _ request: Caked_Caked.VMRequest.TemplateRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.template.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
+    )
+  }
+
+  public func waitIP(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
+    )
+  }
+
+  public func image(
+    _ request: Caked_Caked.ImageRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.image.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeImageInterceptors() ?? []
+    )
+  }
+
+  public func cakeCommand(
+    _ request: Caked_Caked.CakedCommandRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.cakeCommand.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? []
+    )
+  }
+
+  public func login(
+    _ request: Caked_Caked.LoginRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.login.path,
       request: request,
@@ -1144,9 +1288,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func logout(
-    _ request: Caked_LogoutRequest,
+    _ request: Caked_Caked.LogoutRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.logout.path,
       request: request,
@@ -1156,9 +1300,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func purge(
-    _ request: Caked_PurgeRequest,
+    _ request: Caked_Caked.PurgeRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.purge.path,
       request: request,
@@ -1167,82 +1311,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func configure(
-    _ request: Caked_ConfigureRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.configure.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeConfigureInterceptors() ?? []
-    )
-  }
-
-  public func waitIP(
-    _ request: Caked_WaitIPRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.waitIP.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeWaitIPInterceptors() ?? []
-    )
-  }
-
-  public func stop(
-    _ request: Caked_StopRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.stop.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeStopInterceptors() ?? []
-    )
-  }
-
-  public func list(
-    _ request: Caked_ListRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.list.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeListInterceptors() ?? []
-    )
-  }
-
-  public func delete(
-    _ request: Caked_DeleteRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.delete.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeDeleteInterceptors() ?? []
-    )
-  }
-
-  public func image(
-    _ request: Caked_ImageRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.image.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeImageInterceptors() ?? []
-    )
-  }
-
   public func remote(
-    _ request: Caked_RemoteRequest,
+    _ request: Caked_Caked.RemoteRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.remote.path,
       request: request,
@@ -1252,9 +1324,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func networks(
-    _ request: Caked_NetworkRequest,
+    _ request: Caked_Caked.NetworkRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.networks.path,
       request: request,
@@ -1263,82 +1335,10 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func template(
-    _ request: Caked_TemplateRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.template.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeTemplateInterceptors() ?? []
-    )
-  }
-
-  public func rename(
-    _ request: Caked_RenameRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.rename.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRenameInterceptors() ?? []
-    )
-  }
-
-  public func info(
-    _ request: Caked_InfoRequest,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.info.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
-    )
-  }
-
-  public func run(
-    _ request: Caked_RunCommand,
-    callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
-    return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.run.path,
-      request: request,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeRunInterceptors() ?? []
-    )
-  }
-
-  public func execute<RequestStream>(
-    _ requests: RequestStream,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncResponseStream<Caked_ExecuteResponse> where RequestStream: Sequence, RequestStream.Element == Caked_ExecuteRequest {
-    return self.performAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.execute.path,
-      requests: requests,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-    )
-  }
-
-  public func execute<RequestStream>(
-    _ requests: RequestStream,
-    callOptions: CallOptions? = nil
-  ) -> GRPCAsyncResponseStream<Caked_ExecuteResponse> where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_ExecuteRequest {
-    return self.performAsyncBidirectionalStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.execute.path,
-      requests: requests,
-      callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeExecuteInterceptors() ?? []
-    )
-  }
-
   public func mount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.mount.path,
       request: request,
@@ -1348,9 +1348,9 @@ extension Caked_ServiceAsyncClientProtocol {
   }
 
   public func umount(
-    _ request: Caked_MountRequest,
+    _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Reply {
+  ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
       path: Caked_ServiceClientMetadata.Methods.umount.path,
       request: request,
@@ -1380,76 +1380,76 @@ public struct Caked_ServiceAsyncClient: Caked_ServiceAsyncClientProtocol {
 public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'build'.
-  func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'start'.
-  func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>]
+  func makeBuildInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'clone'.
-  func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'duplicate'.
-  func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'cakeCommand'.
-  func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'launch'.
-  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'login'.
-  func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'logout'.
-  func makeLogoutInterceptors() -> [ClientInterceptor<Caked_LogoutRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'purge'.
-  func makePurgeInterceptors() -> [ClientInterceptor<Caked_PurgeRequest, Caked_Reply>]
+  func makeCloneInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'configure'.
-  func makeConfigureInterceptors() -> [ClientInterceptor<Caked_ConfigureRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'waitIP'.
-  func makeWaitIPInterceptors() -> [ClientInterceptor<Caked_WaitIPRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'stop'.
-  func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'list'.
-  func makeListInterceptors() -> [ClientInterceptor<Caked_ListRequest, Caked_Reply>]
+  func makeConfigureInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'delete'.
-  func makeDeleteInterceptors() -> [ClientInterceptor<Caked_DeleteRequest, Caked_Reply>]
+  func makeDeleteInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'image'.
-  func makeImageInterceptors() -> [ClientInterceptor<Caked_ImageRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'remote'.
-  func makeRemoteInterceptors() -> [ClientInterceptor<Caked_RemoteRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'networks'.
-  func makeNetworksInterceptors() -> [ClientInterceptor<Caked_NetworkRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'template'.
-  func makeTemplateInterceptors() -> [ClientInterceptor<Caked_TemplateRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'rename'.
-  func makeRenameInterceptors() -> [ClientInterceptor<Caked_RenameRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'info'.
-  func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when invoking 'run'.
-  func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_Reply>]
+  /// - Returns: Interceptors to use when invoking 'duplicate'.
+  func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'execute'.
-  func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>]
+  func makeExecuteInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'info'.
+  func makeInfoInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'launch'.
+  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'list'.
+  func makeListInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'rename'.
+  func makeRenameInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'run'.
+  func makeRunInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'start'.
+  func makeStartInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'stop'.
+  func makeStopInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'template'.
+  func makeTemplateInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'waitIP'.
+  func makeWaitIPInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'image'.
+  func makeImageInterceptors() -> [ClientInterceptor<Caked_Caked.ImageRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'cakeCommand'.
+  func makeCakeCommandInterceptors() -> [ClientInterceptor<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'login'.
+  func makeLoginInterceptors() -> [ClientInterceptor<Caked_Caked.LoginRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'logout'.
+  func makeLogoutInterceptors() -> [ClientInterceptor<Caked_Caked.LogoutRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'purge'.
+  func makePurgeInterceptors() -> [ClientInterceptor<Caked_Caked.PurgeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'remote'.
+  func makeRemoteInterceptors() -> [ClientInterceptor<Caked_Caked.RemoteRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'networks'.
+  func makeNetworksInterceptors() -> [ClientInterceptor<Caked_Caked.NetworkRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'mount'.
-  func makeMountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>]
+  func makeMountInterceptors() -> [ClientInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'umount'.
-  func makeUmountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>]
+  func makeUmountInterceptors() -> [ClientInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1458,27 +1458,27 @@ public enum Caked_ServiceClientMetadata {
     fullName: "caked.Service",
     methods: [
       Caked_ServiceClientMetadata.Methods.build,
-      Caked_ServiceClientMetadata.Methods.start,
       Caked_ServiceClientMetadata.Methods.clone,
+      Caked_ServiceClientMetadata.Methods.configure,
+      Caked_ServiceClientMetadata.Methods.delete,
       Caked_ServiceClientMetadata.Methods.duplicate,
-      Caked_ServiceClientMetadata.Methods.cakeCommand,
+      Caked_ServiceClientMetadata.Methods.execute,
+      Caked_ServiceClientMetadata.Methods.info,
       Caked_ServiceClientMetadata.Methods.launch,
+      Caked_ServiceClientMetadata.Methods.list,
+      Caked_ServiceClientMetadata.Methods.rename,
+      Caked_ServiceClientMetadata.Methods.run,
+      Caked_ServiceClientMetadata.Methods.start,
+      Caked_ServiceClientMetadata.Methods.stop,
+      Caked_ServiceClientMetadata.Methods.template,
+      Caked_ServiceClientMetadata.Methods.waitIP,
+      Caked_ServiceClientMetadata.Methods.image,
+      Caked_ServiceClientMetadata.Methods.cakeCommand,
       Caked_ServiceClientMetadata.Methods.login,
       Caked_ServiceClientMetadata.Methods.logout,
       Caked_ServiceClientMetadata.Methods.purge,
-      Caked_ServiceClientMetadata.Methods.configure,
-      Caked_ServiceClientMetadata.Methods.waitIP,
-      Caked_ServiceClientMetadata.Methods.stop,
-      Caked_ServiceClientMetadata.Methods.list,
-      Caked_ServiceClientMetadata.Methods.delete,
-      Caked_ServiceClientMetadata.Methods.image,
       Caked_ServiceClientMetadata.Methods.remote,
       Caked_ServiceClientMetadata.Methods.networks,
-      Caked_ServiceClientMetadata.Methods.template,
-      Caked_ServiceClientMetadata.Methods.rename,
-      Caked_ServiceClientMetadata.Methods.info,
-      Caked_ServiceClientMetadata.Methods.run,
-      Caked_ServiceClientMetadata.Methods.execute,
       Caked_ServiceClientMetadata.Methods.mount,
       Caked_ServiceClientMetadata.Methods.umount,
     ]
@@ -1491,15 +1491,21 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let start = GRPCMethodDescriptor(
-      name: "Start",
-      path: "/caked.Service/Start",
-      type: GRPCCallType.unary
-    )
-
     public static let clone = GRPCMethodDescriptor(
       name: "Clone",
       path: "/caked.Service/Clone",
+      type: GRPCCallType.unary
+    )
+
+    public static let configure = GRPCMethodDescriptor(
+      name: "Configure",
+      path: "/caked.Service/Configure",
+      type: GRPCCallType.unary
+    )
+
+    public static let delete = GRPCMethodDescriptor(
+      name: "Delete",
+      path: "/caked.Service/Delete",
       type: GRPCCallType.unary
     )
 
@@ -1509,15 +1515,75 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let cakeCommand = GRPCMethodDescriptor(
-      name: "CakeCommand",
-      path: "/caked.Service/CakeCommand",
+    public static let execute = GRPCMethodDescriptor(
+      name: "Execute",
+      path: "/caked.Service/Execute",
+      type: GRPCCallType.bidirectionalStreaming
+    )
+
+    public static let info = GRPCMethodDescriptor(
+      name: "Info",
+      path: "/caked.Service/Info",
       type: GRPCCallType.unary
     )
 
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/caked.Service/Launch",
+      type: GRPCCallType.unary
+    )
+
+    public static let list = GRPCMethodDescriptor(
+      name: "List",
+      path: "/caked.Service/List",
+      type: GRPCCallType.unary
+    )
+
+    public static let rename = GRPCMethodDescriptor(
+      name: "Rename",
+      path: "/caked.Service/Rename",
+      type: GRPCCallType.unary
+    )
+
+    public static let run = GRPCMethodDescriptor(
+      name: "Run",
+      path: "/caked.Service/Run",
+      type: GRPCCallType.unary
+    )
+
+    public static let start = GRPCMethodDescriptor(
+      name: "Start",
+      path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let template = GRPCMethodDescriptor(
+      name: "Template",
+      path: "/caked.Service/Template",
+      type: GRPCCallType.unary
+    )
+
+    public static let waitIP = GRPCMethodDescriptor(
+      name: "WaitIP",
+      path: "/caked.Service/WaitIP",
+      type: GRPCCallType.unary
+    )
+
+    public static let image = GRPCMethodDescriptor(
+      name: "Image",
+      path: "/caked.Service/Image",
+      type: GRPCCallType.unary
+    )
+
+    public static let cakeCommand = GRPCMethodDescriptor(
+      name: "CakeCommand",
+      path: "/caked.Service/CakeCommand",
       type: GRPCCallType.unary
     )
 
@@ -1539,42 +1605,6 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let configure = GRPCMethodDescriptor(
-      name: "Configure",
-      path: "/caked.Service/Configure",
-      type: GRPCCallType.unary
-    )
-
-    public static let waitIP = GRPCMethodDescriptor(
-      name: "WaitIP",
-      path: "/caked.Service/WaitIP",
-      type: GRPCCallType.unary
-    )
-
-    public static let stop = GRPCMethodDescriptor(
-      name: "Stop",
-      path: "/caked.Service/Stop",
-      type: GRPCCallType.unary
-    )
-
-    public static let list = GRPCMethodDescriptor(
-      name: "List",
-      path: "/caked.Service/List",
-      type: GRPCCallType.unary
-    )
-
-    public static let delete = GRPCMethodDescriptor(
-      name: "Delete",
-      path: "/caked.Service/Delete",
-      type: GRPCCallType.unary
-    )
-
-    public static let image = GRPCMethodDescriptor(
-      name: "Image",
-      path: "/caked.Service/Image",
-      type: GRPCCallType.unary
-    )
-
     public static let remote = GRPCMethodDescriptor(
       name: "Remote",
       path: "/caked.Service/Remote",
@@ -1585,36 +1615,6 @@ public enum Caked_ServiceClientMetadata {
       name: "Networks",
       path: "/caked.Service/Networks",
       type: GRPCCallType.unary
-    )
-
-    public static let template = GRPCMethodDescriptor(
-      name: "Template",
-      path: "/caked.Service/Template",
-      type: GRPCCallType.unary
-    )
-
-    public static let rename = GRPCMethodDescriptor(
-      name: "Rename",
-      path: "/caked.Service/Rename",
-      type: GRPCCallType.unary
-    )
-
-    public static let info = GRPCMethodDescriptor(
-      name: "Info",
-      path: "/caked.Service/Info",
-      type: GRPCCallType.unary
-    )
-
-    public static let run = GRPCMethodDescriptor(
-      name: "Run",
-      path: "/caked.Service/Run",
-      type: GRPCCallType.unary
-    )
-
-    public static let execute = GRPCMethodDescriptor(
-      name: "Execute",
-      path: "/caked.Service/Execute",
-      type: GRPCCallType.bidirectionalStreaming
     )
 
     public static let mount = GRPCMethodDescriptor(
@@ -1635,53 +1635,53 @@ public enum Caked_ServiceClientMetadata {
 public protocol Caked_ServiceProvider: CallHandlerProvider {
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
-  func build(request: Caked_BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func build(request: Caked_Caked.VMRequest.BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func start(request: Caked_StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func clone(request: Caked_Caked.VMRequest.CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func clone(request: Caked_CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func configure(request: Caked_Caked.VMRequest.ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func duplicate(request: Caked_DuplicateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func delete(request: Caked_Caked.VMRequest.DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func cakeCommand(request: Caked_CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func duplicate(request: Caked_Caked.VMRequest.DuplicateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func launch(request: Caked_LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func execute(context: StreamingResponseCallContext<Caked_Caked.VMRequest.ExecuteResponse>) -> EventLoopFuture<(StreamEvent<Caked_Caked.VMRequest.ExecuteRequest>) -> Void>
 
-  func login(request: Caked_LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func info(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func logout(request: Caked_LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func purge(request: Caked_PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func list(request: Caked_Caked.VMRequest.ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func configure(request: Caked_ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func rename(request: Caked_Caked.VMRequest.RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func waitIP(request: Caked_WaitIPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func run(request: Caked_Caked.VMRequest.RunCommand, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func stop(request: Caked_StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func start(request: Caked_Caked.VMRequest.StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func list(request: Caked_ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func stop(request: Caked_Caked.VMRequest.StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func delete(request: Caked_DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func template(request: Caked_Caked.VMRequest.TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func image(request: Caked_ImageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func waitIP(request: Caked_Caked.VMRequest.WaitIPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func remote(request: Caked_RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func image(request: Caked_Caked.ImageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func networks(request: Caked_NetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func cakeCommand(request: Caked_Caked.CakedCommandRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func template(request: Caked_TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func login(request: Caked_Caked.LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func rename(request: Caked_RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func logout(request: Caked_Caked.LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func info(request: Caked_InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func purge(request: Caked_Caked.PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func run(request: Caked_RunCommand, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func remote(request: Caked_Caked.RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func execute(context: StreamingResponseCallContext<Caked_ExecuteResponse>) -> EventLoopFuture<(StreamEvent<Caked_ExecuteRequest>) -> Void>
+  func networks(request: Caked_Caked.NetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func mount(request: Caked_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func mount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func umount(request: Caked_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Reply>
+  func umount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -1699,62 +1699,161 @@ extension Caked_ServiceProvider {
     case "Build":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.BuildRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
         userFunction: self.build(request:context:)
-      )
-
-    case "Start":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
-        userFunction: self.start(request:context:)
       )
 
     case "Clone":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_CloneRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.CloneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
         userFunction: self.clone(request:context:)
+      )
+
+    case "Configure":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ConfigureRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
+        userFunction: self.configure(request:context:)
+      )
+
+    case "Delete":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.DeleteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+        userFunction: self.delete(request:context:)
       )
 
     case "Duplicate":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_DuplicateRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.DuplicateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeDuplicateInterceptors() ?? [],
         userFunction: self.duplicate(request:context:)
       )
 
-    case "CakeCommand":
+    case "Execute":
+      return BidirectionalStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ExecuteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.VMRequest.ExecuteResponse>(),
+        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
+        observerFactory: self.execute(context:)
+      )
+
+    case "Info":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_CakedCommandRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
-        userFunction: self.cakeCommand(request:context:)
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
+        userFunction: self.info(request:context:)
       )
 
     case "Launch":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.LaunchRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         userFunction: self.launch(request:context:)
+      )
+
+    case "List":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ListRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeListInterceptors() ?? [],
+        userFunction: self.list(request:context:)
+      )
+
+    case "Rename":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RenameRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
+        userFunction: self.rename(request:context:)
+      )
+
+    case "Run":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RunCommand>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRunInterceptors() ?? [],
+        userFunction: self.run(request:context:)
+      )
+
+    case "Start":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.StartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
+        userFunction: self.start(request:context:)
+      )
+
+    case "Stop":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.StopRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        userFunction: self.stop(request:context:)
+      )
+
+    case "Template":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.TemplateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
+        userFunction: self.template(request:context:)
+      )
+
+    case "WaitIP":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.WaitIPRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
+        userFunction: self.waitIP(request:context:)
+      )
+
+    case "Image":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.ImageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
+        userFunction: self.image(request:context:)
+      )
+
+    case "CakeCommand":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CakedCommandRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
+        userFunction: self.cakeCommand(request:context:)
       )
 
     case "Login":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LoginRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.LoginRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
         userFunction: self.login(request:context:)
       )
@@ -1762,8 +1861,8 @@ extension Caked_ServiceProvider {
     case "Logout":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LogoutRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.LogoutRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
         userFunction: self.logout(request:context:)
       )
@@ -1771,71 +1870,17 @@ extension Caked_ServiceProvider {
     case "Purge":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_PurgeRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.PurgeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makePurgeInterceptors() ?? [],
         userFunction: self.purge(request:context:)
-      )
-
-    case "Configure":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ConfigureRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
-        userFunction: self.configure(request:context:)
-      )
-
-    case "WaitIP":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_WaitIPRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
-        userFunction: self.waitIP(request:context:)
-      )
-
-    case "Stop":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_StopRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
-        userFunction: self.stop(request:context:)
-      )
-
-    case "List":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ListRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeListInterceptors() ?? [],
-        userFunction: self.list(request:context:)
-      )
-
-    case "Delete":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_DeleteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
-        userFunction: self.delete(request:context:)
-      )
-
-    case "Image":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ImageRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
-        userFunction: self.image(request:context:)
       )
 
     case "Remote":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RemoteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.RemoteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeRemoteInterceptors() ?? [],
         userFunction: self.remote(request:context:)
       )
@@ -1843,62 +1888,17 @@ extension Caked_ServiceProvider {
     case "Networks":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_NetworkRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.NetworkRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeNetworksInterceptors() ?? [],
         userFunction: self.networks(request:context:)
-      )
-
-    case "Template":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_TemplateRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
-        userFunction: self.template(request:context:)
-      )
-
-    case "Rename":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RenameRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
-        userFunction: self.rename(request:context:)
-      )
-
-    case "Info":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_InfoRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
-        userFunction: self.info(request:context:)
-      )
-
-    case "Run":
-      return UnaryServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RunCommand>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeRunInterceptors() ?? [],
-        userFunction: self.run(request:context:)
-      )
-
-    case "Execute":
-      return BidirectionalStreamingServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ExecuteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ExecuteResponse>(),
-        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
-        observerFactory: self.execute(context:)
       )
 
     case "Mount":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeMountInterceptors() ?? [],
         userFunction: self.mount(request:context:)
       )
@@ -1906,8 +1906,8 @@ extension Caked_ServiceProvider {
     case "Umount":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeUmountInterceptors() ?? [],
         userFunction: self.umount(request:context:)
       )
@@ -1925,125 +1925,125 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
   func build(
-    request: Caked_BuildRequest,
+    request: Caked_Caked.VMRequest.BuildRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func start(
-    request: Caked_StartRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 
   func clone(
-    request: Caked_CloneRequest,
+    request: Caked_Caked.VMRequest.CloneRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func duplicate(
-    request: Caked_DuplicateRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func cakeCommand(
-    request: Caked_CakedCommandRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func launch(
-    request: Caked_LaunchRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func login(
-    request: Caked_LoginRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func logout(
-    request: Caked_LogoutRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func purge(
-    request: Caked_PurgeRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 
   func configure(
-    request: Caked_ConfigureRequest,
+    request: Caked_Caked.VMRequest.ConfigureRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func waitIP(
-    request: Caked_WaitIPRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func stop(
-    request: Caked_StopRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func list(
-    request: Caked_ListRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 
   func delete(
-    request: Caked_DeleteRequest,
+    request: Caked_Caked.VMRequest.DeleteRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 
-  func image(
-    request: Caked_ImageRequest,
+  func duplicate(
+    request: Caked_Caked.VMRequest.DuplicateRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func remote(
-    request: Caked_RemoteRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func networks(
-    request: Caked_NetworkRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func template(
-    request: Caked_TemplateRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func rename(
-    request: Caked_RenameRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func info(
-    request: Caked_InfoRequest,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
-
-  func run(
-    request: Caked_RunCommand,
-    context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 
   func execute(
-    requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>,
-    responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>,
+    requestStream: GRPCAsyncRequestStream<Caked_Caked.VMRequest.ExecuteRequest>,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.VMRequest.ExecuteResponse>,
     context: GRPCAsyncServerCallContext
   ) async throws
 
-  func mount(
-    request: Caked_MountRequest,
+  func info(
+    request: Caked_Caked.VMRequest.InfoRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
+
+  func launch(
+    request: Caked_Caked.VMRequest.LaunchRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func list(
+    request: Caked_Caked.VMRequest.ListRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func rename(
+    request: Caked_Caked.VMRequest.RenameRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func run(
+    request: Caked_Caked.VMRequest.RunCommand,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func start(
+    request: Caked_Caked.VMRequest.StartRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func stop(
+    request: Caked_Caked.VMRequest.StopRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func template(
+    request: Caked_Caked.VMRequest.TemplateRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func waitIP(
+    request: Caked_Caked.VMRequest.WaitIPRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func image(
+    request: Caked_Caked.ImageRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func cakeCommand(
+    request: Caked_Caked.CakedCommandRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func login(
+    request: Caked_Caked.LoginRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func logout(
+    request: Caked_Caked.LogoutRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func purge(
+    request: Caked_Caked.PurgeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func remote(
+    request: Caked_Caked.RemoteRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func networks(
+    request: Caked_Caked.NetworkRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func mount(
+    request: Caked_Caked.MountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
 
   func umount(
-    request: Caked_MountRequest,
+    request: Caked_Caked.MountRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Reply
+  ) async throws -> Caked_Caked.Reply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2068,62 +2068,161 @@ extension Caked_ServiceAsyncProvider {
     case "Build":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.BuildRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
         wrapping: { try await self.build(request: $0, context: $1) }
-      )
-
-    case "Start":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_StartRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
-        wrapping: { try await self.start(request: $0, context: $1) }
       )
 
     case "Clone":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_CloneRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.CloneRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
         wrapping: { try await self.clone(request: $0, context: $1) }
+      )
+
+    case "Configure":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ConfigureRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
+        wrapping: { try await self.configure(request: $0, context: $1) }
+      )
+
+    case "Delete":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.DeleteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
+        wrapping: { try await self.delete(request: $0, context: $1) }
       )
 
     case "Duplicate":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_DuplicateRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.DuplicateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeDuplicateInterceptors() ?? [],
         wrapping: { try await self.duplicate(request: $0, context: $1) }
       )
 
-    case "CakeCommand":
+    case "Execute":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_CakedCommandRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
-        wrapping: { try await self.cakeCommand(request: $0, context: $1) }
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ExecuteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.VMRequest.ExecuteResponse>(),
+        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
+        wrapping: { try await self.execute(requestStream: $0, responseStream: $1, context: $2) }
+      )
+
+    case "Info":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
+        wrapping: { try await self.info(request: $0, context: $1) }
       )
 
     case "Launch":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.LaunchRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         wrapping: { try await self.launch(request: $0, context: $1) }
+      )
+
+    case "List":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.ListRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeListInterceptors() ?? [],
+        wrapping: { try await self.list(request: $0, context: $1) }
+      )
+
+    case "Rename":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RenameRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
+        wrapping: { try await self.rename(request: $0, context: $1) }
+      )
+
+    case "Run":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RunCommand>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRunInterceptors() ?? [],
+        wrapping: { try await self.run(request: $0, context: $1) }
+      )
+
+    case "Start":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.StartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeStartInterceptors() ?? [],
+        wrapping: { try await self.start(request: $0, context: $1) }
+      )
+
+    case "Stop":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.StopRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
+        wrapping: { try await self.stop(request: $0, context: $1) }
+      )
+
+    case "Template":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.TemplateRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
+        wrapping: { try await self.template(request: $0, context: $1) }
+      )
+
+    case "WaitIP":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.WaitIPRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
+        wrapping: { try await self.waitIP(request: $0, context: $1) }
+      )
+
+    case "Image":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.ImageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
+        wrapping: { try await self.image(request: $0, context: $1) }
+      )
+
+    case "CakeCommand":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CakedCommandRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCakeCommandInterceptors() ?? [],
+        wrapping: { try await self.cakeCommand(request: $0, context: $1) }
       )
 
     case "Login":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LoginRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.LoginRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLoginInterceptors() ?? [],
         wrapping: { try await self.login(request: $0, context: $1) }
       )
@@ -2131,8 +2230,8 @@ extension Caked_ServiceAsyncProvider {
     case "Logout":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_LogoutRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.LogoutRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeLogoutInterceptors() ?? [],
         wrapping: { try await self.logout(request: $0, context: $1) }
       )
@@ -2140,71 +2239,17 @@ extension Caked_ServiceAsyncProvider {
     case "Purge":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_PurgeRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.PurgeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makePurgeInterceptors() ?? [],
         wrapping: { try await self.purge(request: $0, context: $1) }
-      )
-
-    case "Configure":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ConfigureRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeConfigureInterceptors() ?? [],
-        wrapping: { try await self.configure(request: $0, context: $1) }
-      )
-
-    case "WaitIP":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_WaitIPRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeWaitIPInterceptors() ?? [],
-        wrapping: { try await self.waitIP(request: $0, context: $1) }
-      )
-
-    case "Stop":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_StopRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeStopInterceptors() ?? [],
-        wrapping: { try await self.stop(request: $0, context: $1) }
-      )
-
-    case "List":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ListRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeListInterceptors() ?? [],
-        wrapping: { try await self.list(request: $0, context: $1) }
-      )
-
-    case "Delete":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_DeleteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeDeleteInterceptors() ?? [],
-        wrapping: { try await self.delete(request: $0, context: $1) }
-      )
-
-    case "Image":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ImageRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeImageInterceptors() ?? [],
-        wrapping: { try await self.image(request: $0, context: $1) }
       )
 
     case "Remote":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RemoteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.RemoteRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeRemoteInterceptors() ?? [],
         wrapping: { try await self.remote(request: $0, context: $1) }
       )
@@ -2212,62 +2257,17 @@ extension Caked_ServiceAsyncProvider {
     case "Networks":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_NetworkRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.NetworkRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeNetworksInterceptors() ?? [],
         wrapping: { try await self.networks(request: $0, context: $1) }
-      )
-
-    case "Template":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_TemplateRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeTemplateInterceptors() ?? [],
-        wrapping: { try await self.template(request: $0, context: $1) }
-      )
-
-    case "Rename":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RenameRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeRenameInterceptors() ?? [],
-        wrapping: { try await self.rename(request: $0, context: $1) }
-      )
-
-    case "Info":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_InfoRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
-        wrapping: { try await self.info(request: $0, context: $1) }
-      )
-
-    case "Run":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_RunCommand>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
-        interceptors: self.interceptors?.makeRunInterceptors() ?? [],
-        wrapping: { try await self.run(request: $0, context: $1) }
-      )
-
-    case "Execute":
-      return GRPCAsyncServerHandler(
-        context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_ExecuteRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_ExecuteResponse>(),
-        interceptors: self.interceptors?.makeExecuteInterceptors() ?? [],
-        wrapping: { try await self.execute(requestStream: $0, responseStream: $1, context: $2) }
       )
 
     case "Mount":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeMountInterceptors() ?? [],
         wrapping: { try await self.mount(request: $0, context: $1) }
       )
@@ -2275,8 +2275,8 @@ extension Caked_ServiceAsyncProvider {
     case "Umount":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_MountRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Reply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.MountRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeUmountInterceptors() ?? [],
         wrapping: { try await self.umount(request: $0, context: $1) }
       )
@@ -2291,99 +2291,99 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'build'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeBuildInterceptors() -> [ServerInterceptor<Caked_BuildRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'start'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStartInterceptors() -> [ServerInterceptor<Caked_StartRequest, Caked_Reply>]
+  func makeBuildInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'clone'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeCloneInterceptors() -> [ServerInterceptor<Caked_CloneRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'duplicate'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeDuplicateInterceptors() -> [ServerInterceptor<Caked_DuplicateRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'cakeCommand'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeCakeCommandInterceptors() -> [ServerInterceptor<Caked_CakedCommandRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'launch'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_LaunchRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'login'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLoginInterceptors() -> [ServerInterceptor<Caked_LoginRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'logout'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLogoutInterceptors() -> [ServerInterceptor<Caked_LogoutRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'purge'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makePurgeInterceptors() -> [ServerInterceptor<Caked_PurgeRequest, Caked_Reply>]
+  func makeCloneInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.CloneRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'configure'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeConfigureInterceptors() -> [ServerInterceptor<Caked_ConfigureRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'waitIP'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeWaitIPInterceptors() -> [ServerInterceptor<Caked_WaitIPRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'stop'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeStopInterceptors() -> [ServerInterceptor<Caked_StopRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'list'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeListInterceptors() -> [ServerInterceptor<Caked_ListRequest, Caked_Reply>]
+  func makeConfigureInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'delete'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeDeleteInterceptors() -> [ServerInterceptor<Caked_DeleteRequest, Caked_Reply>]
+  func makeDeleteInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.DeleteRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when handling 'image'.
+  /// - Returns: Interceptors to use when handling 'duplicate'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeImageInterceptors() -> [ServerInterceptor<Caked_ImageRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'remote'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRemoteInterceptors() -> [ServerInterceptor<Caked_RemoteRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'networks'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeNetworksInterceptors() -> [ServerInterceptor<Caked_NetworkRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'template'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeTemplateInterceptors() -> [ServerInterceptor<Caked_TemplateRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'rename'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRenameInterceptors() -> [ServerInterceptor<Caked_RenameRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'info'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeInfoInterceptors() -> [ServerInterceptor<Caked_InfoRequest, Caked_Reply>]
-
-  /// - Returns: Interceptors to use when handling 'run'.
-  ///   Defaults to calling `self.makeInterceptors()`.
-  func makeRunInterceptors() -> [ServerInterceptor<Caked_RunCommand, Caked_Reply>]
+  func makeDuplicateInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.DuplicateRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'execute'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeExecuteInterceptors() -> [ServerInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>]
+  func makeExecuteInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.ExecuteRequest, Caked_Caked.VMRequest.ExecuteResponse>]
+
+  /// - Returns: Interceptors to use when handling 'info'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeInfoInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'launch'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'list'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'rename'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRenameInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.RenameRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'run'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRunInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.RunCommand, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'start'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStartInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.StartRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'stop'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStopInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'template'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeTemplateInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'waitIP'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeWaitIPInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'image'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeImageInterceptors() -> [ServerInterceptor<Caked_Caked.ImageRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'cakeCommand'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCakeCommandInterceptors() -> [ServerInterceptor<Caked_Caked.CakedCommandRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'login'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeLoginInterceptors() -> [ServerInterceptor<Caked_Caked.LoginRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'logout'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeLogoutInterceptors() -> [ServerInterceptor<Caked_Caked.LogoutRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'purge'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makePurgeInterceptors() -> [ServerInterceptor<Caked_Caked.PurgeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'remote'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRemoteInterceptors() -> [ServerInterceptor<Caked_Caked.RemoteRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'networks'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeNetworksInterceptors() -> [ServerInterceptor<Caked_Caked.NetworkRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'mount'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeMountInterceptors() -> [ServerInterceptor<Caked_MountRequest, Caked_Reply>]
+  func makeMountInterceptors() -> [ServerInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'umount'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeUmountInterceptors() -> [ServerInterceptor<Caked_MountRequest, Caked_Reply>]
+  func makeUmountInterceptors() -> [ServerInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -2392,27 +2392,27 @@ public enum Caked_ServiceServerMetadata {
     fullName: "caked.Service",
     methods: [
       Caked_ServiceServerMetadata.Methods.build,
-      Caked_ServiceServerMetadata.Methods.start,
       Caked_ServiceServerMetadata.Methods.clone,
+      Caked_ServiceServerMetadata.Methods.configure,
+      Caked_ServiceServerMetadata.Methods.delete,
       Caked_ServiceServerMetadata.Methods.duplicate,
-      Caked_ServiceServerMetadata.Methods.cakeCommand,
+      Caked_ServiceServerMetadata.Methods.execute,
+      Caked_ServiceServerMetadata.Methods.info,
       Caked_ServiceServerMetadata.Methods.launch,
+      Caked_ServiceServerMetadata.Methods.list,
+      Caked_ServiceServerMetadata.Methods.rename,
+      Caked_ServiceServerMetadata.Methods.run,
+      Caked_ServiceServerMetadata.Methods.start,
+      Caked_ServiceServerMetadata.Methods.stop,
+      Caked_ServiceServerMetadata.Methods.template,
+      Caked_ServiceServerMetadata.Methods.waitIP,
+      Caked_ServiceServerMetadata.Methods.image,
+      Caked_ServiceServerMetadata.Methods.cakeCommand,
       Caked_ServiceServerMetadata.Methods.login,
       Caked_ServiceServerMetadata.Methods.logout,
       Caked_ServiceServerMetadata.Methods.purge,
-      Caked_ServiceServerMetadata.Methods.configure,
-      Caked_ServiceServerMetadata.Methods.waitIP,
-      Caked_ServiceServerMetadata.Methods.stop,
-      Caked_ServiceServerMetadata.Methods.list,
-      Caked_ServiceServerMetadata.Methods.delete,
-      Caked_ServiceServerMetadata.Methods.image,
       Caked_ServiceServerMetadata.Methods.remote,
       Caked_ServiceServerMetadata.Methods.networks,
-      Caked_ServiceServerMetadata.Methods.template,
-      Caked_ServiceServerMetadata.Methods.rename,
-      Caked_ServiceServerMetadata.Methods.info,
-      Caked_ServiceServerMetadata.Methods.run,
-      Caked_ServiceServerMetadata.Methods.execute,
       Caked_ServiceServerMetadata.Methods.mount,
       Caked_ServiceServerMetadata.Methods.umount,
     ]
@@ -2425,15 +2425,21 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let start = GRPCMethodDescriptor(
-      name: "Start",
-      path: "/caked.Service/Start",
-      type: GRPCCallType.unary
-    )
-
     public static let clone = GRPCMethodDescriptor(
       name: "Clone",
       path: "/caked.Service/Clone",
+      type: GRPCCallType.unary
+    )
+
+    public static let configure = GRPCMethodDescriptor(
+      name: "Configure",
+      path: "/caked.Service/Configure",
+      type: GRPCCallType.unary
+    )
+
+    public static let delete = GRPCMethodDescriptor(
+      name: "Delete",
+      path: "/caked.Service/Delete",
       type: GRPCCallType.unary
     )
 
@@ -2443,15 +2449,75 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let cakeCommand = GRPCMethodDescriptor(
-      name: "CakeCommand",
-      path: "/caked.Service/CakeCommand",
+    public static let execute = GRPCMethodDescriptor(
+      name: "Execute",
+      path: "/caked.Service/Execute",
+      type: GRPCCallType.bidirectionalStreaming
+    )
+
+    public static let info = GRPCMethodDescriptor(
+      name: "Info",
+      path: "/caked.Service/Info",
       type: GRPCCallType.unary
     )
 
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/caked.Service/Launch",
+      type: GRPCCallType.unary
+    )
+
+    public static let list = GRPCMethodDescriptor(
+      name: "List",
+      path: "/caked.Service/List",
+      type: GRPCCallType.unary
+    )
+
+    public static let rename = GRPCMethodDescriptor(
+      name: "Rename",
+      path: "/caked.Service/Rename",
+      type: GRPCCallType.unary
+    )
+
+    public static let run = GRPCMethodDescriptor(
+      name: "Run",
+      path: "/caked.Service/Run",
+      type: GRPCCallType.unary
+    )
+
+    public static let start = GRPCMethodDescriptor(
+      name: "Start",
+      path: "/caked.Service/Start",
+      type: GRPCCallType.unary
+    )
+
+    public static let stop = GRPCMethodDescriptor(
+      name: "Stop",
+      path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let template = GRPCMethodDescriptor(
+      name: "Template",
+      path: "/caked.Service/Template",
+      type: GRPCCallType.unary
+    )
+
+    public static let waitIP = GRPCMethodDescriptor(
+      name: "WaitIP",
+      path: "/caked.Service/WaitIP",
+      type: GRPCCallType.unary
+    )
+
+    public static let image = GRPCMethodDescriptor(
+      name: "Image",
+      path: "/caked.Service/Image",
+      type: GRPCCallType.unary
+    )
+
+    public static let cakeCommand = GRPCMethodDescriptor(
+      name: "CakeCommand",
+      path: "/caked.Service/CakeCommand",
       type: GRPCCallType.unary
     )
 
@@ -2473,42 +2539,6 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let configure = GRPCMethodDescriptor(
-      name: "Configure",
-      path: "/caked.Service/Configure",
-      type: GRPCCallType.unary
-    )
-
-    public static let waitIP = GRPCMethodDescriptor(
-      name: "WaitIP",
-      path: "/caked.Service/WaitIP",
-      type: GRPCCallType.unary
-    )
-
-    public static let stop = GRPCMethodDescriptor(
-      name: "Stop",
-      path: "/caked.Service/Stop",
-      type: GRPCCallType.unary
-    )
-
-    public static let list = GRPCMethodDescriptor(
-      name: "List",
-      path: "/caked.Service/List",
-      type: GRPCCallType.unary
-    )
-
-    public static let delete = GRPCMethodDescriptor(
-      name: "Delete",
-      path: "/caked.Service/Delete",
-      type: GRPCCallType.unary
-    )
-
-    public static let image = GRPCMethodDescriptor(
-      name: "Image",
-      path: "/caked.Service/Image",
-      type: GRPCCallType.unary
-    )
-
     public static let remote = GRPCMethodDescriptor(
       name: "Remote",
       path: "/caked.Service/Remote",
@@ -2519,36 +2549,6 @@ public enum Caked_ServiceServerMetadata {
       name: "Networks",
       path: "/caked.Service/Networks",
       type: GRPCCallType.unary
-    )
-
-    public static let template = GRPCMethodDescriptor(
-      name: "Template",
-      path: "/caked.Service/Template",
-      type: GRPCCallType.unary
-    )
-
-    public static let rename = GRPCMethodDescriptor(
-      name: "Rename",
-      path: "/caked.Service/Rename",
-      type: GRPCCallType.unary
-    )
-
-    public static let info = GRPCMethodDescriptor(
-      name: "Info",
-      path: "/caked.Service/Info",
-      type: GRPCCallType.unary
-    )
-
-    public static let run = GRPCMethodDescriptor(
-      name: "Run",
-      path: "/caked.Service/Run",
-      type: GRPCCallType.unary
-    )
-
-    public static let execute = GRPCMethodDescriptor(
-      name: "Execute",
-      path: "/caked.Service/Execute",
-      type: GRPCCallType.bidirectionalStreaming
     )
 
     public static let mount = GRPCMethodDescriptor(

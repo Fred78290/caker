@@ -125,7 +125,7 @@ struct ImageHandler : CakedCommandAsync {
 	}
 
 
-	static func execute(command: Caked_RemoteCommand, name: String, asSystem: Bool) async throws -> Caked_Reply {
+	static func execute(command: Caked_ImageCommand, name: String, asSystem: Bool) async throws -> Caked_Reply {
 		switch command {
 		case .info:
 			let result = try await ImageHandler.info(name: name, asSystem: asSystem)

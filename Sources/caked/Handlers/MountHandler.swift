@@ -63,7 +63,7 @@ struct MountHandler: CakedCommandAsync {
 		return on.submit {
 			let response: MountInfos
 
-			if command == .add {
+			if command == .mount {
 				response = try Self.Mount(vmLocation: vmLocation, mounts: directorySharingAttachment)
 			} else {
 				response = try Self.Umount(vmLocation: vmLocation, mounts: directorySharingAttachment)

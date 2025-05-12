@@ -62,9 +62,9 @@ struct RemoteHandler: CakedCommand {
 				}
 			}
 		case .add:
-			message = try Self.addRemote(name: request.add.name, url: URL(string: request.add.url)!, asSystem: asSystem)
+			message = try Self.addRemote(name: request.addRequest.name, url: URL(string: request.addRequest.url)!, asSystem: asSystem)
 		case .delete:
-			message = try Self.deleteRemote(name: request.delete, asSystem: asSystem)
+			message = try Self.deleteRemote(name: request.deleteRequest, asSystem: asSystem)
 		default:
 			throw ServiceError("Unknown command \(request.command)")
 		}

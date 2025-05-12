@@ -9,532 +9,562 @@ option objc_class_prefix = "caked";
 package caked;
 
 service Service {
-	rpc Build (BuildRequest) returns (Reply) {}
-	rpc Start (StartRequest) returns (Reply) {}
-	rpc Clone (CloneRequest) returns (Reply) {}
-	rpc Duplicate (DuplicateRequest) returns (Reply) {}
-	rpc CakeCommand (CakedCommandRequest) returns (Reply) {}
-	rpc Launch (LaunchRequest) returns (Reply) {}
-	rpc Login (LoginRequest) returns (Reply) {}
-	rpc Logout (LogoutRequest) returns (Reply) {}
-	rpc Purge (PurgeRequest) returns (Reply) {}
-	rpc Configure (ConfigureRequest) returns (Reply) {}
-	rpc WaitIP (WaitIPRequest) returns (Reply) {}
-	rpc Stop (StopRequest) returns (Reply) {}
-	rpc List(ListRequest) returns (Reply) {}
-	rpc Delete(DeleteRequest) returns (Reply) {}
-	rpc Image(ImageRequest) returns (Reply) {}
-	rpc Remote(RemoteRequest) returns (Reply) {}
-	rpc Networks(NetworkRequest) returns (Reply) {}
-	rpc Template(TemplateRequest) returns (Reply) {}
-	rpc Rename(RenameRequest) returns (Reply);
-	rpc Info (InfoRequest) returns (Reply);
-	rpc Run (RunCommand) returns (Reply);
-	rpc Execute (stream ExecuteRequest) returns (stream ExecuteResponse);
-	rpc Mount(MountRequest) returns (Reply);
-	rpc Umount(MountRequest) returns (Reply);
+	rpc Build (Caked.VMRequest.BuildRequest) returns (Caked.Reply) {}
+	rpc Clone (Caked.VMRequest.CloneRequest) returns (Caked.Reply) {}
+	rpc Configure (Caked.VMRequest.ConfigureRequest) returns (Caked.Reply) {}
+	rpc Delete(Caked.VMRequest.DeleteRequest) returns (Caked.Reply) {}
+	rpc Duplicate (Caked.VMRequest.DuplicateRequest) returns (Caked.Reply) {}
+	rpc Execute (stream Caked.VMRequest.ExecuteRequest) returns (stream Caked.VMRequest.ExecuteResponse);
+	rpc Info (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
+	rpc Launch (Caked.VMRequest.LaunchRequest) returns (Caked.Reply) {}
+	rpc List(Caked.VMRequest.ListRequest) returns (Caked.Reply) {}
+	rpc Rename(Caked.VMRequest.RenameRequest) returns (Caked.Reply);
+	rpc Run (Caked.VMRequest.RunCommand) returns (Caked.Reply);
+	rpc Start (Caked.VMRequest.StartRequest) returns (Caked.Reply) {}
+	rpc Stop (Caked.VMRequest.StopRequest) returns (Caked.Reply) {}
+	rpc Template(Caked.VMRequest.TemplateRequest) returns (Caked.Reply) {}
+	rpc WaitIP (Caked.VMRequest.WaitIPRequest) returns (Caked.Reply) {}
+	rpc Image(Caked.ImageRequest) returns (Caked.Reply) {}
+	rpc CakeCommand (Caked.CakedCommandRequest) returns (Caked.Reply) {}
+	rpc Login (Caked.LoginRequest) returns (Caked.Reply) {}
+	rpc Logout (Caked.LogoutRequest) returns (Caked.Reply) {}
+	rpc Purge (Caked.PurgeRequest) returns (Caked.Reply) {}
+	rpc Remote(Caked.RemoteRequest) returns (Caked.Reply) {}
+	rpc Networks(Caked.NetworkRequest) returns (Caked.Reply) {}
+	rpc Mount(Caked.MountRequest) returns (Caked.Reply);
+	rpc Umount(Caked.MountRequest) returns (Caked.Reply);
 }
 
-message DuplicateRequest {
-	string from = 1;
-	string to = 2;
-	bool resetMacAddress = 3;
-}
+message Caked {
+	message VMRequest {
+		message CommonBuildRequest {
+			string name = 1;
+			optional int32 cpu = 2;
+			optional int32 memory = 3;
+			optional string user = 4;
+			optional string password = 22;
+			optional string mainGroup = 5;
+			optional bool sshPwAuth = 6;
+			optional string image = 7;
+			optional bytes sshAuthorizedKey = 8;
+			optional bytes vendorData = 9;
+			optional bytes userData = 10;
+			optional bytes networkConfig = 11;
+			optional int32 diskSize = 12;
+			optional bool autostart = 13;
+			optional bool nested = 14;
+			optional string forwardedPort = 15;
+			optional string mounts = 16;
+			optional string networks = 17;
+			optional string sockets = 18;
+			optional string console = 19;
+			optional string attachedDisks = 20;
+		}
 
-message ListNetworksReply {
-	repeated NetworkInfo networks = 1;
-}
+		message BuildRequest {
+			CommonBuildRequest options = 1;
+		}
 
-message NetworkInfo {
-	string name = 1;
-	string mode = 2;
-	string description = 3;
-	string gateway = 4;
-	string dhcpEnd = 5;
-	string netmask = 6;
-	string interfaceID = 7;
-	string endpoint = 8;
-}
+		message StartRequest {
+			string name = 1;
+			optional int32 waitIPTimeout = 2;
+		}
+		
+		message CloneRequest {
+			string sourceName = 1;
+			string targetName = 2;
+			optional bool insecure = 3;
+			optional uint32 concurrency = 4;
+			optional bool deduplicate = 5;
+		}
 
-message PulledImageInfo {
-	optional string alias = 1;
-	string path = 2;
-	uint64 size = 3;
-	string fingerprint = 4;
-	string remoteName = 5;
-	string description = 6;
-}
+		message DuplicateRequest {
+			string from = 1;
+			string to = 2;
+			bool resetMacAddress = 3;
+		}
+		
+		
+		message LaunchRequest {
+			CommonBuildRequest options = 1;
+			optional int32 waitIPTimeout = 2;
+		}
 
-message ListImagesInfoReply {
-	repeated ImageInfo infos = 1;
-}
+		message ConfigureRequest {
+			string name = 1;
+			optional int32 cpu = 2;
+			optional int32 memory = 3;
+			optional int32 diskSize = 4;
+			optional bool displayRefit = 5;
+			optional bool autostart = 6;
+			optional bool nested = 7;
+			optional string mounts = 8;
+			optional string networks = 9;
+			optional string sockets = 10;
+			optional string console = 11;
+			optional bool randomMAC = 12;
+			optional string forwardedPort = 13;
+			optional string attachedDisks = 14;
+		}
 
-message ImageInfo {
-	repeated string aliases = 1;
-	string architecture = 2;
-	bool pub = 3;
-	string fileName = 4;
-	string fingerprint = 5;
-	uint64 size = 6;
-	string type = 7;
-	optional string created = 8;
-	optional string expires = 9;
-	optional string uploaded = 10;
-	map<string,string> properties = 11;
-}
+		message WaitIPRequest {
+			string name = 1;
+			int32 timeout = 2;
+		}
+		
+		message StopRequest {
+			message VMNames {
+				repeated string list = 1;
+			}
+			
+			bool force = 1;
+			oneof stop {
+				bool all = 2;
+				VMNames names = 3;
+			}
+		}
+		
+		message DeleteRequest {
+			message VMNames {
+				repeated string list = 1;
+			}
+			
+			oneof delete {
+				bool all = 2;
+				VMNames names = 3;
+			}
+		}
 
-message VirtualMachineInfoReply {
-	repeated VirtualMachineInfo infos = 1;
-}
+		message ListRequest {
+			bool vmonly = 1;
+		}
 
-message VirtualMachineInfo {
-	string type = 1;
-	string source = 2;
-	string name = 3;
-	repeated string fqn = 4;
-	optional string instanceID = 5;
-	uint64 diskSize = 6;
-	uint64 totalSize = 7;
-	string state = 8;
-	optional string ip = 9;
-	optional string fingerprint = 10;
-}
+		message InfoRequest {
+			string name = 1;
+		}
 
-message DeletedObject {
-	string source = 1;
-	string name = 2;
-	bool deleted = 3;
-	string reason = 4;
-}
+		message RenameRequest {
+			string oldname = 1;
+			string newname = 2;
+		}
+		
+		message TemplateRequest {
+			enum TemplateCommand {
+				none = 0;
+				add = 1;
+				delete = 2;
+				list = 3;
+			}
 
-message StoppedObject {
-	string name = 1;
-	string status = 2;
-	bool stopped = 3;
-	string reason = 4;
-}
+			message TemplateRequestAdd {
+				string sourceName = 1;
+				string templateName = 2;
+			}
+			
+			TemplateCommand command = 1;
 
-message DeleteReply {
-	repeated DeletedObject objects = 1;
-}
-
-message StopReply {
-	repeated StoppedObject objects = 1;
-}
-
-enum RemoteCommand {
-	none = 0;
-	add = 1;
-	delete = 2;
-	list = 3;
-	info = 4;
-	pull = 5;
-}
-
-message DeleteRequest {
-	oneof delete {
-		bool all = 2;
-		VMNames names = 3;
+			oneof template {
+				TemplateRequestAdd createRequest = 2;
+				string deleteRequest = 3;
+			}
+		}
+		
+		message RunCommand {
+			string vmname = 1;
+			string command = 2;
+			repeated string args = 3;
+			optional bytes input = 4;
+		}
+		
+		message ExecuteResponse {
+			oneof response {
+				int32 exitCode = 1;
+				bytes stdout = 2;
+				bytes stderr = 3;
+				string failure = 4;
+				bool established = 5;
+			}
+		}
+		
+		message ExecuteRequest {
+			message ExecuteCommand {
+				message Command {
+					string command = 1;
+					repeated string args = 2;
+				}
+				
+				oneof execute {
+					Command command = 1;
+					bool shell = 2;
+				}
+			}
+			
+			message TerminalSize {
+				int32 rows = 1;
+				int32 cols = 2;
+			}
+			
+			oneof execute {
+				ExecuteCommand command = 1;
+				bytes input = 2;
+				TerminalSize size = 3;
+				bool eof = 4;
+			}
+		}
+		
 	}
-}
 
-message ListRequest {
-	bool vmonly = 1;
-}
+	message Reply {
+		message Error {
+			int32 code = 1;
+			string reason = 2;
+		}
+		
+		message VirtualMachineReply {
+			message VirtualMachineInfoReply {
+				message VirtualMachineInfo {
+					string type = 1;
+					string source = 2;
+					string name = 3;
+					repeated string fqn = 4;
+					optional string instanceID = 5;
+					uint64 diskSize = 6;
+					uint64 totalSize = 7;
+					string state = 8;
+					optional string ip = 9;
+					optional string fingerprint = 10;
+				}
+			
+				repeated VirtualMachineInfo infos = 1;
+			}
+			
+			message DeleteReply {
+				message DeletedObject {
+					string source = 1;
+					string name = 2;
+					bool deleted = 3;
+					string reason = 4;
+				}
+				
+				repeated DeletedObject objects = 1;
+			}
+			
+			message StopReply {
+				message StoppedObject {
+					string name = 1;
+					string status = 2;
+					bool stopped = 3;
+					string reason = 4;
+				}
+				
+				repeated StoppedObject objects = 1;
+			}
+			
+			message InfoReply {
+				message MemoryInfo {
+					uint64 total = 1;
+					optional uint64 free = 2;
+					optional uint64 used = 3;
+				}
+			
+				message DiskInfo {
+					string device = 1;
+					string mount = 2;
+					string fsType = 3;
+					uint64 size = 4;
+					uint64 used = 5;
+					uint64 free = 6;
+				}
+			
+				optional string version = 1;
+				optional uint64 uptime = 2;
+				MemoryInfo memory = 3;
+				int32 cpuCount = 4;
+				repeated DiskInfo diskInfos = 5;
+				repeated string ipaddresses = 6;
+				string osname = 7;
+				optional string hostname = 8;
+				optional string release = 9;
+				string status = 10;
+				repeated string mounts = 11;
+				string name = 112;
+			}
+			
+			oneof response {
+				VirtualMachineInfoReply list = 1;
+				DeleteReply delete = 2;
+				StopReply stop = 3;
+				InfoReply infos = 4;
+				string message = 5;
+			}
+		}	
 
-message VMNames {
-	repeated string list = 1;
-}
+		message ImageReply {
+			message ListImagesInfoReply {
+				repeated ImageInfo infos = 1;
+			}
+			
+			message ImageInfo {
+				repeated string aliases = 1;
+				string architecture = 2;
+				bool pub = 3;
+				string fileName = 4;
+				string fingerprint = 5;
+				uint64 size = 6;
+				string type = 7;
+				optional string created = 8;
+				optional string expires = 9;
+				optional string uploaded = 10;
+				map<string,string> properties = 11;
+			}
+		
+			message PulledImageInfo {
+				optional string alias = 1;
+				string path = 2;
+				uint64 size = 3;
+				string fingerprint = 4;
+				string remoteName = 5;
+				string description = 6;
+			}
+			
+			oneof response {
+				ImageInfo infos = 1;
+				PulledImageInfo pull = 2;
+				ListImagesInfoReply list = 3;
+			}
+		}
+			
+		message NetworksReply {
+			message NetworkInfo {
+				string name = 1;
+				string mode = 2;
+				string description = 3;
+				string gateway = 4;
+				string dhcpEnd = 5;
+				string netmask = 6;
+				string interfaceID = 7;
+				string endpoint = 8;
+			}
+			
+			message ListNetworksReply {
+				repeated NetworkInfo networks = 1;
+			}
+			
+			oneof response {
+				ListNetworksReply list = 1;
+				NetworkInfo status = 2;
+				string message = 3;
+			}
+		}
+		
+		message RemoteReply {
+			message ListRemoteReply {
+				message RemoteEntry {
+					string name = 1;
+					string url = 2;
+				}
+			
+				repeated RemoteEntry remotes = 1;
+			}
+			
+			oneof response {
+				ListRemoteReply list = 1;
+				string message = 2;
+			}
+		}
+		
+		message TemplateReply {
+			message ListTemplatesReply {
+				message TemplateEntry {
+					string name = 1;
+					string fqn = 2;
+					uint64 diskSize = 3;
+					uint64 totalSize = 4;
+				}
+		
+				repeated TemplateEntry templates = 1;
+			}
+			
+			message CreateTemplateReply {
+				string name = 1;
+				bool created = 2;
+				optional string reason = 3;
+			}
+			
+			message DeleteTemplateReply {
+				string name = 1;
+				bool deleted = 2;
+				optional string reason = 3;
+			}
+			
+			oneof response {
+				ListTemplatesReply list = 1;
+				CreateTemplateReply create = 2;
+				DeleteTemplateReply delete = 3;
+			}
+		}
 
-message StopRequest {
-	bool force = 1;
-	oneof stop {
-		bool all = 2;
-		VMNames names = 3;
+		message RunReply {
+			int32 exitCode = 1;
+			bytes stdout = 2;
+			bytes stderr = 3;
+		}
+		
+		message MountReply {
+			message MountVirtioFSReply {
+				string name = 1;
+				string path = 2;
+				oneof response {
+					string error = 3;
+					bool success = 4;
+				}
+			}
+			
+			repeated MountVirtioFSReply mounts = 1;
+			oneof response {
+				string error = 2;
+				bool success = 3;
+			}
+		}
+		
+		message TartReply {
+			string message = 1;
+		}
+		
+		oneof response {
+			Error error = 1;
+			VirtualMachineReply vms = 3;
+			ImageReply images = 4;
+			NetworksReply networks = 5;
+			RemoteReply remotes = 6;
+			TemplateReply templates = 7;
+			RunReply run = 8;
+			MountReply mounts = 9;
+			TartReply tart = 10;
+		}
 	}
-}
 
-message WaitIPRequest {
-	string name = 1;
-	int32 timeout = 2;
-}
+	message NetworkRequest {
+		enum NetworkMode {
+			shared = 0;
+			host = 1;
+		}
+		
+		enum NetworkCommand {
+			infos = 0;
+			new = 1;
+			set = 2;
+			start = 3;
+			shutdown = 4;
+			remove = 5;
+			status = 6;
+		}
+			
+		message ConfigureNetworkRequest {
+			string name = 1;
+			optional string gateway = 2;
+			optional string dhcpEnd = 3;
+			optional string netmask = 4;
+			optional string uuid = 5;
+			optional string nat66prefix = 6;
+			optional int32 dhcpLease = 7;
+		}
+		
+		message CreateNetworkRequest {
+			NetworkMode mode = 1;
+			string name = 2;
+			string gateway = 3;
+			string dhcpEnd = 4;
+			string netmask = 5;
+			optional string uuid = 6;
+			optional string nat66prefix = 7;
+			optional int32 dhcpLease = 8;
+		}
+		
+		NetworkCommand command = 1;
 
-enum NetworkCommand {
-	infos = 0;
-	create = 1;
-	configure = 2;
-	start = 3;
-	shutdown = 4;
-	remove = 5;
-	status = 6;
-}
+		oneof network {
+			string name = 2;
+			CreateNetworkRequest create = 3;
+			ConfigureNetworkRequest configure = 4;
+		}
+	}
 
-enum NetworkMode {
-	shared = 0;
-	host = 1;
-}
-
-message CreateNetworkRequest {
-	NetworkMode mode = 1;
-	string name = 2;
-	string gateway = 3;
-	string dhcpEnd = 4;
-	string netmask = 5;
-	optional string uuid = 6;
-	optional string nat66prefix = 7;
-	optional int32 dhcpLease = 8;
-}
-
-message ConfigureNetworkRequest {
-	string name = 1;
-	optional string gateway = 2;
-	optional string dhcpEnd = 3;
-	optional string netmask = 4;
-	optional string uuid = 5;
-	optional string nat66prefix = 6;
-	optional int32 dhcpLease = 7;
-}
-
-message NetworkRequest {
-	NetworkCommand command = 1;
-	oneof network {
+	message ImageRequest {
+		enum ImageCommand {
+			none = 0;
+			info = 1;
+			pull = 2;
+			list = 3;
+		}
+		ImageCommand command = 1;
 		string name = 2;
-		CreateNetworkRequest create = 3;
-		ConfigureNetworkRequest configure = 4;
-	}
-}
-
-message ImageRequest {
-	RemoteCommand command = 1;
-	string name = 2;
-}
-
-message RemoteRequestAdd {
-	string name = 1;
-	string url = 2;
-}
-
-message ListRemoteReply {
-	repeated RemoteEntry remotes = 1;
-}
-
-message RemoteEntry {
-	string name = 1;
-	string url = 2;
-}
-
-message RemoteRequest {
-	RemoteCommand command = 1;
-	oneof remote {
-		RemoteRequestAdd add = 2;
-		string delete = 3;
-	}
-}
-
-message TemplateRequestAdd {
-	string sourceName = 1;
-	string templateName = 2;
-}
-
-message ListTemplatesReply {
-	repeated TemplateEntry templates = 1;
-}
-
-message TemplateEntry {
-	string name = 1;
-	string fqn = 2;
-	uint64 diskSize = 3;
-	uint64 totalSize = 4;
-}
-
-message CreateTemplateReply {
-	string name = 1;
-	bool created = 2;
-	optional string reason = 3;
-}
-
-message DeleteTemplateReply {
-	string name = 1;
-	bool deleted = 2;
-	optional string reason = 3;
-}
-
-message TemplateRequest {
-	RemoteCommand command = 1;
-	oneof template {
-		TemplateRequestAdd create = 2;
-		string delete = 3;
-	}
-}
-
-message CakedCommandRequest {
-	string command = 1;
-	repeated string arguments = 2;
-}
-
-message CommonBuildRequest {
-	string name = 1;
-	optional int32 cpu = 2;
-	optional int32 memory = 3;
-	optional string user = 4;
-	optional string password = 22;
-	optional string mainGroup = 5;
-	optional bool sshPwAuth = 6;
-	optional string image = 7;
-	optional bytes sshAuthorizedKey = 8;
-	optional bytes vendorData = 9;
-	optional bytes userData = 10;
-	optional bytes networkConfig = 11;
-	optional int32 diskSize = 12;
-	optional bool autostart = 13;
-	optional bool nested = 14;
-	optional string forwardedPort = 15;
-	optional string mounts = 16;
-	optional string networks = 17;
-	optional string sockets = 18;
-	optional string console = 19;
-	optional string attachedDisks = 20;
-}
-
-message BuildRequest {
-	CommonBuildRequest options = 1;
-}
-
-message LaunchRequest {
-	CommonBuildRequest options = 1;
-	optional int32 waitIPTimeout = 2;
-}
-
-message CloneRequest {
-	string sourceName = 1;
-	string targetName = 2;
-	optional bool insecure = 3;
-	optional uint32 concurrency = 4;
-	optional bool deduplicate = 5;
-}
-
-message StartRequest {
-	string name = 1;
-	optional int32 waitIPTimeout = 2;
-}
-
-message Error {
-	int32 code = 1;
-	string reason = 2;
-}
-
-message PurgeRequest {
-	optional string entries = 1;
-	optional int32 olderThan = 2;
-	optional int32 cacheBudget = 3;
-	optional int32 spaceBudget = 4;
-	optional bool gc = 5;
-}
-
-message ConfigureRequest {
-	string name = 1;
-	optional int32 cpu = 2;
-	optional int32 memory = 3;
-	optional int32 diskSize = 4;
-	optional bool displayRefit = 5;
-	optional bool autostart = 6;
-	optional bool nested = 7;
-	optional string mounts = 8;
-	optional string networks = 9;
-	optional string sockets = 10;
-	optional string console = 11;
-	optional bool randomMAC = 12;
-	optional string forwardedPort = 13;
-	optional string attachedDisks = 14;
-}
-
-message LogoutRequest {
-	string host = 1;
-}
-
-message LoginRequest {
-	string host = 1;
-	string username = 2;
-	string password = 3;
-	bool insecure = 4;
-	bool noValidate = 5;
-}
-
-message ImageReply {
-	oneof response {
-		ImageInfo infos = 1;
-		PulledImageInfo pull = 2;
-		ListImagesInfoReply list = 3;
-	}
-}
-
-message VirtualMachineReply {
-	oneof response {
-		VirtualMachineInfoReply list = 1;
-		DeleteReply delete = 2;
-		StopReply stop = 3;
-		InfoReply infos = 4;
-		string message = 5;
-	}
-}
-
-message NetworksReply {
-	oneof response {
-		ListNetworksReply list = 1;
-		NetworkInfo status = 2;
-		string message = 3;
-	}
-}
-
-message RemoteReply {
-	oneof response {
-		ListRemoteReply list = 1;
-		string message = 2;
-	}
-}
-
-message TemplateReply {
-	oneof response {
-		ListTemplatesReply list = 1;
-		CreateTemplateReply create = 2;
-		DeleteTemplateReply delete = 3;
-	}
-}
-
-message TartReply {
-	string message = 1;
-}
-
-message Reply {
-  oneof response {
-    Error error = 1;
-	VirtualMachineReply vms = 3;
-	ImageReply images = 4;
-	NetworksReply networks = 5;
-	RemoteReply remotes = 6;
-	TemplateReply templates = 7;
-	RunReply run = 8;
-	MountReply mounts = 9;
-	TartReply tart = 10;
-  }
-}
-
-message InfoRequest {
-	string name = 1;
-}
-
-message InfoReply {
-	message MemoryInfo {
-		uint64 total = 1;
-		optional uint64 free = 2;
-		optional uint64 used = 3;
 	}
 
-	message DiskInfo {
-		string device = 1;
-		string mount = 2;
-		string fsType = 3;
-		uint64 size = 4;
-		uint64 used = 5;
-		uint64 free = 6;
+	message RemoteRequest {
+		enum RemoteCommand {
+			none = 0;
+			list = 1;
+			add = 2;
+			delete = 3;
+		}
+		
+		message RemoteRequestAdd {
+			string name = 1;
+			string url = 2;
+		}
+		
+		RemoteCommand command = 1;
+
+		oneof remote {
+			RemoteRequestAdd addRequest = 2;
+			string deleteRequest = 3;
+		}
 	}
 
-	optional string version = 1;
-	optional uint64 uptime = 2;
-	MemoryInfo memory = 3;
-	int32 cpuCount = 4;
-	repeated DiskInfo diskInfos = 5;
-	repeated string ipaddresses = 6;
-	string osname = 7;
-	optional string hostname = 8;
-	optional string release = 9;
-	string status = 10;
-	repeated string mounts = 11;
-	string name = 112;
-}
-
-message Command {
-	string command = 1;
-	repeated string args = 2;
-}
-
-message RunCommand {
-	string vmname = 1;
-	string command = 2;
-	repeated string args = 3;
-	optional bytes input = 4;
-}
-
-message RunReply {
-	int32 exitCode = 1;
-	bytes stdout = 2;
-	bytes stderr = 3;
-}
-
-message ExecuteCommand {
-	oneof execute {
-		Command command = 1;
-		bool shell = 2;
+	message CakedCommandRequest {
+		string command = 1;
+		repeated string arguments = 2;
 	}
-}
 
-message TerminalSize {
-	int32 rows = 1;
-	int32 cols = 2;
-}
-
-message ExecuteRequest {
-	oneof execute {
-		ExecuteCommand command = 1;
-		bytes input = 2;
-		TerminalSize size = 3;
-		bool eof = 4;
+	message PurgeRequest {
+		optional string entries = 1;
+		optional int32 olderThan = 2;
+		optional int32 cacheBudget = 3;
+		optional int32 spaceBudget = 4;
+		optional bool gc = 5;
 	}
-}
 
-message ExecuteResponse {
-	oneof response {
-		int32 exitCode = 1;
-		bytes stdout = 2;
-		bytes stderr = 3;
-		string failure = 4;
-		bool established = 5;
+	message LogoutRequest {
+		string host = 1;
 	}
-}
 
-message RenameRequest {
-	string oldname = 1;
-	string newname = 2;
-}
-
-message MountVirtioFS {
-	string source = 1;
-	optional string target = 2;
-	optional string name = 3;
-	optional int32 uid = 4;
-	optional int32 gid = 5;
-	bool readonly = 6;
-}
-
-message MountRequest {
-	RemoteCommand command = 1;
-	string name = 2;
-	repeated MountVirtioFS mounts = 3;
-}
-
-message MountVirtioFSReply {
-	string name = 1;
-	string path = 2;
-	oneof response {
-		string error = 3;
-		bool success = 4;
+	message LoginRequest {
+		string host = 1;
+		string username = 2;
+		string password = 3;
+		bool insecure = 4;
+		bool noValidate = 5;
 	}
-}
 
-message MountReply {
-	repeated MountVirtioFSReply mounts = 1;
-	oneof response {
-		string error = 2;
-		bool success = 3;
+	message MountRequest {
+		enum MountCommand {
+			none = 0;
+			mount = 1;
+			umount = 2;
+		}
+
+		message MountVirtioFS {
+			string source = 1;
+			optional string target = 2;
+			optional string name = 3;
+			optional int32 uid = 4;
+			optional int32 gid = 5;
+			bool readonly = 6;
+		}
+		
+		MountCommand command = 1;
+		string name = 2;
+		repeated MountVirtioFS mounts = 3;
 	}
 }

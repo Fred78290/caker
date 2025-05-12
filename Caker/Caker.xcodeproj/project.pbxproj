@@ -222,6 +222,7 @@
 		9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
+		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
 		9BB0CA802D688AB4004CEA20 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */; };
 		9BB0CA812D688AB4004CEA20 /* ARPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
@@ -454,6 +455,7 @@
 		9B98B7762D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptorFactory.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
+		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
 		9BB0CA7E2D688AB4004CEA20 /* ARPParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPParser.swift; sourceTree = "<group>"; };
 		9BB0CA7F2D688AB4004CEA20 /* DHCPLeases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DHCPLeases.swift; sourceTree = "<group>"; };
 		9BB3BE092DB3F17500799A6A /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
@@ -877,6 +879,7 @@
 		9B464ADB2D5A3E0300164BF5 /* grpc */ = {
 			isa = PBXGroup;
 			children = (
+				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B464ACF2D5A3E0300164BF5 /* BridgeAttachement.swift */,
@@ -1365,6 +1368,7 @@
 				9B7C80822DAA742C003E95FA /* Templates.swift in Sources */,
 				9B7C80782DA91131003E95FA /* Images.swift in Sources */,
 				9B464C662D5A45DF00164BF5 /* Format.swift in Sources */,
+				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
 				9B464C6C2D5A45EF00164BF5 /* SocketDevice.swift in Sources */,
 				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,
@@ -1987,7 +1991,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = f980a3e508aef8a716ab3232e0d47ba8e4ef12b9;
+				revision = 075a6d80fc5dc60b25536668fbad924b3c5fd58d;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
