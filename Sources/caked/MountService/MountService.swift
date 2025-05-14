@@ -39,9 +39,9 @@ class MountService: NSObject {
 		                           retries: retries)
 	}
 
-	func mount(request: Cakeagent_MountRequest, umount: Bool) -> Cakeagent_MountReply {
+	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {
 		guard request.mounts.isEmpty == false else {
-			return Cakeagent_MountReply.with {
+			return CakeAgent.MountReply.with {
 				$0.response = .error("No mounts")
 			}
 		}
@@ -51,7 +51,7 @@ class MountService: NSObject {
 
 			if config.os == .darwin {
 				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
-					return Cakeagent_MountReply.with { 
+					return CakeAgent.MountReply.with { 
 						$0.response = .error("No shared devices")
 					}
 				}
@@ -60,10 +60,10 @@ class MountService: NSObject {
 					sharedDevices.share = config.mounts.multipleDirectoryShares
 				}
 
-				return Cakeagent_MountReply.with {
+				return CakeAgent.MountReply.with {
 					$0.response = .success(true)
 					$0.mounts = request.mounts.map { mount in
-						Cakeagent_MountVirtioFSReply.with { 
+						CakeAgent.MountReply.MountVirtioFSReply.with {
 							$0.name = mount.name
 							$0.response = .success(true)
 						}
@@ -80,7 +80,7 @@ class MountService: NSObject {
 			}
 
 		} catch {
-			return Cakeagent_MountReply.with {
+			return CakeAgent.MountReply.with {
 				$0.response = .error(error.localizedDescription)
 			}
 		}

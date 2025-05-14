@@ -32,10 +32,10 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		self.execute.name
 	}
 
-	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
+	var interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? {
 		try? CakeAgentLib.CakeAgentClientInterceptorFactory(inputHandle: FileHandle.standardInput) { method in
 			// We need to cancel the signal source for SIGINT when we are in the exec command
-			if method == Cakeagent_AgentClientMetadata.Methods.execute || method == Cakeagent_AgentClientMetadata.Methods.run {
+			if method == CakeAgentServiceClientMetadata.Methods.execute || method == CakeAgentServiceClientMetadata.Methods.run {
 				// This is a workaround for the fact that we can't cancel the signal source in the interceptor
 				// because it is not thread safe. So we cancel it here and then we can safely exit.
 				Root.sigintSrc.cancel()

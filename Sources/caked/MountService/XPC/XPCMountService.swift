@@ -34,7 +34,7 @@ extension DirectorySharingAttachment {
 }
 
 extension MountVirtioFS {
-	init(from: Cakeagent_MountVirtioFSReply) {
+	init(from: CakeAgent.MountReply.MountVirtioFSReply) {
 		self.init()
 
 		self.name = from.name
@@ -60,7 +60,7 @@ extension MountInfos {
 		self.mounts = request.mounts.map { MountVirtioFS(name: $0.name, error: error) }
 	}
 
-	init(_ from: Cakeagent_MountReply) {
+	init(_ from: CakeAgent.MountReply) {
 		self.init()
 
 		self.mounts = from.mounts.map { GRPCLib.MountVirtioFS(from: $0) }
@@ -162,8 +162,8 @@ struct XPCMountVirtioFS: Codable {
 		DirectorySharingAttachment(source: self.source, destination: self.target, readOnly: self.readonly, name: self.name, uid: Int(self.uid), gid: Int(self.gid))
 	}
 
-	func toCakeAgent() -> Cakeagent_MountVirtioFS {
-		Cakeagent_MountVirtioFS.with {
+	func toCakeAgent() -> CakeAgent.MountRequest.MountVirtioFS {
+		CakeAgent.MountRequest.MountVirtioFS.with {
 			$0.name = self.name
 			$0.target = self.target
 			$0.uid = self.uid
@@ -174,7 +174,7 @@ struct XPCMountVirtioFS: Codable {
 	}
 }
 
-extension Cakeagent_MountReply {
+extension CakeAgent.MountReply {
 	func toXPC() -> MountInfos {
 		MountInfos(self)
 	}
@@ -215,8 +215,8 @@ struct MountRequest: Codable {
 		}
 	}
 
-	func toCakeAgent() -> Cakeagent_MountRequest {
-		Cakeagent_MountRequest.with { request in
+	func toCakeAgent() -> CakeAgent.MountRequest {
+		CakeAgent.MountRequest.with { request in
 			request.mounts = self.mounts.map { $0.toCakeAgent() }
 		}
 	}

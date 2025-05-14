@@ -274,14 +274,14 @@ final class CakeConfig{
 		}
 	}
 
-	var forwardedPorts: [ForwardedPort] {
+	var forwardedPorts: [TunnelAttachement] {
 		set { self.cake["forwardedPorts"] = newValue.map{$0.description} }
 		get {
 			guard let mounts:[String] = self.cake["forwardedPorts"] as? [String] else {
 				return []
 			}
 
-			return mounts.compactMap { ForwardedPort(argument: $0) }
+			return mounts.compactMap { TunnelAttachement(argument: $0) }
 		}
 	}
 

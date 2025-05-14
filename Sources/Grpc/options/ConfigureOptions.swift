@@ -142,14 +142,14 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 	}
 
-	public var forwardedPort: [ForwardedPort]? {
+	public var forwardedPort: [TunnelAttachement]? {
 		get {
 			if published.contains("unset") {
 				return nil
 			}
 
 			return published.compactMap {
-				ForwardedPort(argument: $0)
+				TunnelAttachement(argument: $0)
 			}
 		}
 	}

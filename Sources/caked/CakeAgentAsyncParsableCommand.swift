@@ -14,7 +14,7 @@ protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var logLevel: Logging.Logger.Level { get }
 	var retries: ConnectionBackoff.Retries { get }
 	var callOptions: CallOptions? { get }
-	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? { get }
+	var interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? { get }
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws
 }
@@ -24,7 +24,7 @@ extension CakeAgentAsyncParsableCommand {
 		.upTo(1)
 	}
 
-	var interceptors: Cakeagent_AgentClientInterceptorFactoryProtocol? {
+	var interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? {
 		nil
 	}
 

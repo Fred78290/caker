@@ -18,13 +18,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	private let networks: [NetworkAttachement]
 	private let sigcaught: [Int32:DispatchSourceSignal]
 	private var semaphore = AsyncSemaphore(value: 0)
-	private var identifier: String? = nil
 	private var mountService: MountServiceServerProtocol? = nil
 	private var requestStopFromUIPending = false
 	private let asSystem: Bool
-	private func setIdentifier(_ id: String?) {
-		self.identifier = id
-	}
 
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
@@ -317,10 +313,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	private func stopForwaringPorts() {
-		if let id = self.identifier {
-			try? PortForwardingServer.closeForwardedPort(identifier: id)
-			self.setIdentifier(nil)
-		}
+		try? PortForwardingServer.closeForwardedPort()
 	}
 
 	private func stopMountService() {
@@ -408,11 +401,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				if config.forwardedPorts.isEmpty == false {
 					Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 
-					PortForwardingServer.createPortForwardingServer(group: on.next())
-
-					if let identifier = try? PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: self.config.forwardedPorts) {
-						self.setIdentifier(identifier)
-					}
+					PortForwardingServer.createPortForwardingServer(group: on.next(), forwardedPorts: self.config.forwardedPorts)
 				}
 			}
 		}

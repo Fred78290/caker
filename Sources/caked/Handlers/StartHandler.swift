@@ -106,127 +106,6 @@ struct StartHandler: CakedCommand {
 		}
 	}
 	
-	private final class StartHandlerTart: @unchecked Sendable {
-		var identifier: String? = nil
-		
-		private func runningArguments(vmLocation: VMLocation, startMode: StartMode) throws -> ([String], [Int32]) {
-			let config: CakeConfig = try vmLocation.config()
-			let vsock = vmLocation.agentURL.absoluteURL.path
-			let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL.path
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
-			
-			var arguments: [String] = ["exec", "tart", "run", vmLocation.name]
-			var sharedFileDescriptors: [Int32] = []
-			
-			if startMode != .foreground {
-				arguments.append("--no-graphics")
-				arguments.append("--no-audio")
-			}
-			
-			if config.nestedVirtualization {
-				arguments.append("--nested")
-			}
-			
-			arguments.append(contentsOf: config.mounts.map {
-				"--dir=\($0.description)"
-			})
-			
-			arguments.append(contentsOf: config.attachedDisks.map {
-				"--disk=\($0.description)"
-			})
-			
-			arguments.append(contentsOf: config.networks.map {
-				"--net-bridged=\($0.network)"
-			})
-			
-			arguments.append(contentsOf: config.sockets.map {
-				if let fds = $0.sharedFileDescriptors {
-					sharedFileDescriptors.append(contentsOf: fds)
-				}
-				
-				return "--vsock=\($0.description)"
-			})
-			
-			arguments.append("--vsock=bind://any:5000\(vsock)")
-			
-			if FileManager.default.fileExists(atPath: cloudInit) {
-				arguments.append("--disk=\(cloudInit)")
-			}
-			
-			if let console = config.console {
-				arguments.append("--console=\(console.description)")
-			}
-			
-			arguments.append("2>&1")
-			arguments.append(">")
-			arguments.append(log)
-			
-			return (arguments, sharedFileDescriptors)
-		}
-		
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, asSystem: Bool, promise: EventLoopPromise<String>?) throws -> String {
-			let (arguments, sharedFileDescriptors) = try self.runningArguments(vmLocation: vmLocation, startMode: startMode)
-			
-			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, asSystem: asSystem) { process in
-				Logger(self).debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
-				
-				if let id = self.identifier {
-					try? PortForwardingServer.closeForwardedPort(identifier: id)
-				}
-				
-				if let promise = promise {
-					if process.terminationStatus == 0 {
-						promise.succeed(vmLocation.name)
-					} else {
-						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: vmLocation.name))
-					}
-				}
-			}
-			
-			do {
-				let runningIP = try vmLocation.waitIPWithLease(wait: 180, asSystem: asSystem, startedProcess: process)
-				let config: CakeConfig = try vmLocation.config()
-				
-				if config.firstLaunch && config.agent == false {
-					config.agent = try vmLocation.installAgent(config: config, runningIP: runningIP, asSystem: asSystem)
-				}
-				
-				config.runningIP = runningIP
-				config.firstLaunch = false
-				
-				try config.save()
-				
-				self.identifier = try PortForwardingServer.createForwardedPort(remoteHost: runningIP, forwardedPorts: config.forwardedPorts)
-				
-				return runningIP
-			} catch {
-				Logger(self).error(error)
-				
-				if process.isRunning == false {
-					if let promise: EventLoopPromise<String> = promise {
-						promise.fail(error)
-					}
-					
-					throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
-				} else {
-					process.terminationHandler = { (p: ProcessWithSharedFileHandle) in
-						if let id = self.identifier {
-							try? PortForwardingServer.closeForwardedPort(identifier: id)
-						}
-						
-						if let promise: EventLoopPromise<String> = promise {
-							promise.fail(error)
-						}
-					}
-					
-					process.terminate()
-					
-					throw error
-				}
-			}
-		}
-	}
-	
 	static func autostart(on: EventLoop, asSystem: Bool) throws {
 		let storageLocation = StorageLocation(asSystem: asSystem)
 		
@@ -293,11 +172,7 @@ struct StartHandler: CakedCommand {
 	}
 	
 	public static func internalStartVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, asSystem: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
-		if Root.vmrunAvailable() {
-			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
-		} else {
-			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
-		}
+		return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
 	}
 	
 	public static func startVM(on: EventLoop, vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, asSystem: Bool) throws -> String {
@@ -324,11 +199,7 @@ struct StartHandler: CakedCommand {
 			return try vmLocation.waitIP(wait: 180, asSystem: asSystem)
 		}
 		
-		if Root.vmrunAvailable() {
-			return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
-		} else {
-			return try StartHandlerTart().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
-		}
+		return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, asSystem: asSystem, promise: promise)
 	}
 	
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {

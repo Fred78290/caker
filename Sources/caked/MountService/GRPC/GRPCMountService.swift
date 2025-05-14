@@ -9,7 +9,7 @@ import SwiftASN1
 import X509
 import NIOSSL
 
-extension Cakeagent_MountReply {
+extension CakeAgent.MountReply {
 	func toCaked() -> Vmrun_MountReply {
 		Vmrun_MountReply.with { mountReply in
 			if case let .error(value) = self.response {
@@ -33,10 +33,10 @@ extension Cakeagent_MountReply {
 }
 
 extension Vmrun_MountRequest {
-	func toCakeAgent() -> Cakeagent_MountRequest {
-		Cakeagent_MountRequest.with {
+	func toCakeAgent() -> CakeAgent.MountRequest {
+		CakeAgent.MountRequest.with {
 			$0.mounts = self.mounts.map { mount in
-				Cakeagent_MountVirtioFS.with {
+				CakeAgent.MountRequest.MountVirtioFS.with {
 					$0.name = mount.name
 					$0.target = mount.target
 					$0.uid = Int32(mount.uid)
@@ -50,7 +50,7 @@ extension Vmrun_MountRequest {
 }
 
 extension Vmrun_MountReply {
-	init(_ from: Cakeagent_MountReply) {
+	init(_ from: CakeAgent.MountReply) {
 		self = Vmrun_MountReply.with { mountReply in
 			if case let .error(value) = from.response {
 				mountReply.error = value

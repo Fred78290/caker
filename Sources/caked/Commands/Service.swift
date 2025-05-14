@@ -314,10 +314,6 @@ extension Service {
 		}
 
 		func run() async throws {
-			if Root.vmrunAvailable() == false {
-				PortForwardingServer.createPortForwardingServer(group: Root.group)
-			}
-
 			try StartHandler.autostart(on: Root.group.next(), asSystem: self.asSystem)
 
 			let listenAddress = try self.getServerAddress()

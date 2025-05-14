@@ -5,7 +5,7 @@ import SwiftProtobuf
 import CakeAgentLib
 import Atomics
 
-final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
+final class CakeAgentClientInterceptorFactory: CakeAgentServiceClientInterceptorFactoryProtocol {
 	let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
 	let errorCaught: ManagedAtomicLazyReference<AtomicError>
 
@@ -17,7 +17,7 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		}
 	}
 
-	private class ExecuteCakeAgentClientInterceptor: ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>, @unchecked Sendable {
+	private class ExecuteCakeAgentClientInterceptor: ClientInterceptor<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>, @unchecked Sendable {
 		let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
 		let errorCaught: ManagedAtomicLazyReference<AtomicError>
 
@@ -26,7 +26,7 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 			self.errorCaught = errorCaught
 		}
 
-		func sendError(error: Error, context: ClientInterceptorContext<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>) {
+		func sendError(error: Error, context: ClientInterceptorContext<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>) {
 			var error = error
 
 			if let status = error as? GRPCStatusTransformable {
@@ -51,13 +51,13 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 			}
 		}
 
-		override func errorCaught(_ error: Error, context: ClientInterceptorContext<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>) {
+		override func errorCaught(_ error: Error, context: ClientInterceptorContext<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>) {
 			super.errorCaught(error, context: context)
 			Logger(self).error(error)
 			self.sendError(error: error, context: context)
 		}
 
-		override func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>) {
+		override func cancel(promise: EventLoopPromise<Void>?, context: ClientInterceptorContext<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>) {
 			super.cancel(promise: promise, context: context)
 			self.sendError(error: GRPCStatus(code: .cancelled), context: context)
 		}
@@ -78,33 +78,36 @@ final class CakeAgentClientInterceptorFactory: CakeAgentInterceptor {
 		self.errorCaught = .init()
 	}
 
-	func makeResizeDiskInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_ResizeReply>] {
+	func makeResizeDiskInterceptors() -> [ClientInterceptor<CakeAgent.Empty, CakeAgent.ResizeReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeInfoInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_InfoReply>] {
+	func makeInfoInterceptors() -> [ClientInterceptor<CakeAgent.Empty, CakeAgent.InfoReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeShutdownInterceptors() -> [ClientInterceptor<Google_Protobuf_Empty, Cakeagent_RunReply>] {
+	func makeShutdownInterceptors() -> [ClientInterceptor<CakeAgent.Empty, CakeAgent.RunReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeRunInterceptors() -> [ClientInterceptor<Cakeagent_RunCommand, Cakeagent_RunReply>] {
+	func makeRunInterceptors() -> [ClientInterceptor<CakeAgent.RunCommand, CakeAgent.RunReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeExecuteInterceptors() -> [ClientInterceptor<Cakeagent_ExecuteRequest, Cakeagent_ExecuteResponse>] {
+	func makeExecuteInterceptors() -> [ClientInterceptor<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>] {
 		[ExecuteCakeAgentClientInterceptor(responseStream: self.responseStream, errorCaught: errorCaught)]
 	}
 
-	func makeMountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
+	func makeMountInterceptors() -> [ClientInterceptor<CakeAgent.MountRequest, CakeAgent.MountReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeUmountInterceptors() -> [ClientInterceptor<Cakeagent_MountRequest, Cakeagent_MountReply>] {
+	func makeUmountInterceptors() -> [ClientInterceptor<CakeAgent.MountRequest, CakeAgent.MountReply>] {
 		[CakeAgentClientInterceptor()]
 	}
 
+	func makeTunnelInterceptors() -> [ClientInterceptor<CakeAgent.TunnelMessage, CakeAgent.TunnelMessage>] {
+		[CakeAgentClientInterceptor()]
+	}
 }
 

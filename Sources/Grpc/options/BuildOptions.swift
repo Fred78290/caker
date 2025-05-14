@@ -58,7 +58,7 @@ public struct BuildOptions: ParsableArguments {
 	public var displayRefit: Bool = false
 
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", discussion: "value is like host:guest/(tcp|udp|both)", valueName: "value"))
-	public var forwardedPorts: [ForwardedPort] = []
+	public var forwardedPorts: [TunnelAttachement] = []
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
 	public var mounts: [DirectorySharingAttachment] = []
@@ -89,7 +89,7 @@ public struct BuildOptions: ParsableArguments {
 	            userData: String? = nil,
 	            networkConfig: String? = nil,
 	            displayRefit: Bool = true,
-	            forwardedPorts: [ForwardedPort] = [],
+	            forwardedPorts: [TunnelAttachement] = [],
 	            mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0)},
 	            networks: [BridgeAttachement] = [],
 	            sockets: [SocketDevice]	= [],
@@ -216,7 +216,7 @@ public struct BuildOptions: ParsableArguments {
 
 		if request.hasForwardedPort && request.forwardedPort.isEmpty == false {
 			self.forwardedPorts = request.forwardedPort.components(separatedBy: ",").compactMap { argument in
-				return ForwardedPort(argument: argument)
+				return TunnelAttachement(argument: argument)
 			}
 		} else {
 			self.forwardedPorts = []
