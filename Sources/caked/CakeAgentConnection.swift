@@ -444,12 +444,12 @@ final class CakeAgentConnection: Sendable {
 	static func createCakeAgentClient(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 
-		return CakeAgentHelper.createClient(on: on,
-		                                    listeningAddress: listeningAddress,
-		                                    connectionTimeout: timeout,
-		                                    caCert: certLocation.caCertURL.path,
-		                                    tlsCert: certLocation.clientCertURL.path,
-		                                    tlsKey: certLocation.clientKeyURL.path,
-		                                    retries: retries)
+		return try CakeAgentHelper.createClient(on: on,
+		                                        listeningAddress: listeningAddress,
+		                                        connectionTimeout: Int64(timeout),
+		                                        caCert: certLocation.caCertURL.path,
+		                                        tlsCert: certLocation.clientCertURL.path,
+		                                        tlsKey: certLocation.clientKeyURL.path,
+		                                        retries: retries)
 	}
 }

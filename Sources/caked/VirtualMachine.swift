@@ -401,7 +401,11 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				if config.forwardedPorts.isEmpty == false {
 					Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 
-					PortForwardingServer.createPortForwardingServer(group: on.next(), forwardedPorts: self.config.forwardedPorts)
+					do {
+						try PortForwardingServer.createPortForwardingServer(group: on.next(), remoteAddress: runningIP, forwardedPorts: self.config.forwardedPorts, listeningAddress: self.vmLocation.agentURL, asSystem: asSystem)
+					} catch {
+						Logger(self).error(error)
+					}
 				}
 			}
 		}

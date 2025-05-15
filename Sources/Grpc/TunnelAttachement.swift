@@ -62,7 +62,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		public let host: String
 		public let guest: String
 	}
-	
+
 	public init?(argument: String) {
 		let expr = try! NSRegularExpression(pattern: #"(?<domain>tcp|udp):(?<hostPath>\/.+):(?<guestPath>\/.+)|(?<host>\d+)(:(?<guest>\d+)(\/(?<proto>tcp|udp|both))?)?"#, options: [])
 		let range = NSRange(argument.startIndex..<argument.endIndex, in: argument)
@@ -75,11 +75,11 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 			guard let hostPathRange = Range(match.range(withName: "hostPath"), in: argument), let guestPathRange = Range(match.range(withName: "guestPath"), in: argument) else {
 				return nil
 			}
-			
+
 			guard let proto = MappedPort.Proto(rawValue: String(argument[domainRange])) else {
 				return nil
 			}
-			
+
 			self.oneOf = .unixDomain(.init(proto: proto, host: String(argument[hostPathRange]), guest: String(argument[guestPathRange])))
 		} else {
 			var host: Int = 0
@@ -90,7 +90,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 				guard let value = Int(argument[hostRange]) else {
 					return nil
 				}
-				
+
 				host = value
 			}
 
@@ -98,6 +98,8 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 				guard let value = Int(argument[guestRange]) else {
 					return nil
 				}
+
+				guest = value
 			} else {
 				guest = host
 			}
@@ -111,7 +113,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 			self.oneOf = .forward(.init(proto: proto, host: host, guest: guest))
 		}
 	}
-	
+
 	public init(from decoder: Decoder) throws {
 		let container: KeyedDecodingContainer<Self.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
 
@@ -127,7 +129,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 
 	public func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-		
+
 		switch oneOf {
 		case .forward(let value):
 			try container.encode(value, forKey: .forward)

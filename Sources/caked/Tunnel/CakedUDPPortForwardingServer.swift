@@ -3,32 +3,20 @@ import NIOPortForwarding
 import NIO
 import CakeAgentLib
 
-class CakedUDPPortForwardingServer: PortForwarding {
-	public let bootstrap: Bindable
-	public let eventLoop: EventLoop
-	public let bindAddress: SocketAddress
-	public let remoteAddress: SocketAddress
-	public var channel: Channel?
-	public var proto: MappedPort.Proto { return .udp }
+class CakedUDPPortForwardingServer: UDPPortForwardingServer {
 	internal let cakeAgentClient: CakeAgentClient
 
 	public init(on: EventLoop,
 	            bindAddress: SocketAddress,
 	            remoteAddress: SocketAddress,
 	            ttl: Int,
-				cakeAgentClient: CakeAgentClient) {
+	            cakeAgentClient: CakeAgentClient) {
+		self.cakeAgentClient = cakeAgentClient
 
-		self.eventLoop = on
-		self.bindAddress = bindAddress
-		self.remoteAddress = remoteAddress
-		self.bootstrap = DatagramBootstrap(group: on)
-			.channelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-			.channelInitializer { inboundChannel in
-				inboundChannel.pipeline.addHandler(InboundUDPWrapperHandler(remoteAddress: remoteAddress, bindAddress: bindAddress, ttl: ttl))
-			}
+		super.init(on: on, bindAddress: bindAddress, remoteAddress: remoteAddress, ttl: ttl)
 	}
 
-	public func setChannel(_ channel: any NIOCore.Channel) {
-		self.channel = channel
+	override func channelInitializer(channel: Channel) -> EventLoopFuture<Void> {
+		return channel.pipeline.addHandler(CakedChannelTunnelHandlerAdapter(proto: .udp, bindAddress: self.bindAddress, remoteAddress: self.remoteAddress, cakeAgentClient: self.cakeAgentClient))
 	}
 }
