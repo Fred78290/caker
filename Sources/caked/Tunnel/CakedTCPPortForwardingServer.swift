@@ -1,6 +1,8 @@
 
 import Foundation
 import NIOPortForwarding
+import NIO
+import CakeAgentLib
 
 class CakedTCPPortForwardingServer: TCPPortForwardingServer {
 	let cakeAgentClient: CakeAgentClient

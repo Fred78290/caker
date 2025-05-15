@@ -29,7 +29,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		}
 	}
 
-	internal let oneOf: OneOf
+	public let oneOf: OneOf
 
 	public var mappedPort: MappedPort? {
 		guard case .forward(let value) = self.oneOf else {

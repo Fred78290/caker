@@ -1,5 +1,7 @@
 import Foundation
 import NIOPortForwarding
+import NIO
+import CakeAgentLib
 
 class CakedUDPPortForwardingServer: PortForwarding {
 	public let bootstrap: Bindable

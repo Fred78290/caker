@@ -1,24 +1,24 @@
 import Foundation
+import GRPCLib
+import CakeAgentLib
 import NIOPortForwarding
+import NIOCore
 
-class CakedPortForwarder: PortForwarder {
-	internal let forwardedPorts: [TunnelAttachment]
+class CakedPortForwarder: PortForwarder, @unchecked Sendable {
+	internal let forwardedPorts: [TunnelAttachement]
 	internal let cakeAgentClient: CakeAgentClient
 
-	init(group: EventLoopGroup, remoteHost: String, bindAddress: String, forwardedPorts: [TunnelAttachment], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
-		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.map { $0.mappedPort }
+	init(group: EventLoopGroup, remoteHost: String, bindAddress: String, forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
+		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap{ $0.mappedPort }
 
-		super.init(group: group, remoteHost: remoteHost, mappedPorts: mappedPorts, bindAddress: bindAddress, udpConnectionTTL: ttl)
+		try super.init(group: group, remoteHost: remoteHost, mappedPorts: mappedPorts, bindAddress: bindAddress, udpConnectionTTL: ttl)
 
 		self.forwardedPorts = forwardedPorts
 		self.cakeAgentClient = CakeAgentHelper.createCakeAgentClient(on: group.next(), listeningAddress: listeningAddress, timeout: 5, asSystem: asSystem)
 
-		defer {
-			self.buildTunnel = false
-		}
 
 		forwardedPorts.forEach { forwarded in
-			if case forwarded.unixDomain(_) {
+			if let unixDomain = forwarded.unixDomain {
 				self.addPortForwardingServer(bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
 			}
 		}
