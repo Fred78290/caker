@@ -1,18 +1,57 @@
 import Foundation
 import ArgumentParser
+import CakeAgentLib
 
-public enum SocketMode: String, Codable {
+public enum SocketMode: String, CustomStringConvertible, Codable {
 	case bind = "bind"  // Listen on unix socket
 	case connect = "connect"  // Connect to unix socket
 	case tcp = "tcp"  // Listen on tcp socket
 	case udp = "udp"  // Listen on udp socket
 	case fd = "fd"  // File descriptor
+
+	public var description: String {
+		switch self {
+		case .bind:
+			return "bind"
+		case .connect:
+			return "connect"
+		case .tcp:
+			return "tcp"
+		case .udp:
+			return "udp"
+		case .fd:
+			return "fd"
+		}
+	}
+
+	var intValue: Int {
+		switch self {
+		case .bind:
+			return 0
+		case .connect:
+			return 1
+		case .tcp:
+			return 2
+		case .udp:
+			return 3
+		case .fd:
+			return 4
+		}
+	}
 }
 
 public struct SocketDevice: Codable {
 	public var mode: SocketMode = .bind
 	public var port: Int = -1
 	public var bind: String
+
+	var socketInfo: SocketInfo? {
+		guard self.mode != .fd else {
+			return nil
+		}
+
+		return SocketInfo(mode: .init(rawValue: self.mode.intValue), path: bind, port: port)
+	}
 
 	public init(mode: SocketMode, port: Int, bind: String) {
 		self.mode = mode

@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e9a4a776a418617b55323ba0e0ce2e8eccb75def9c0f413c9e8b91e330d8420",
+  "originHash" : "932e1728b9509e7668a15cd673511db8244287219e87d59bf5ebb11d8846bfea",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -24,7 +24,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
-        "revision" : "1cad96e77cc18eb18ff3051e8f0e7636f00eb9be"
+        "revision" : "d7c4328f3635b43aa6714275d2591938c61b835b"
       }
     },
     {
@@ -230,7 +230,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/swift-nio-portforwarding.git",
       "state" : {
-        "revision" : "b4af57ead7328319f6ea482b87f3c0d0c9909b40"
+        "revision" : "fc3ee06dfe6e46e14ccae8bbf30fd3994ef06ba7"
       }
     },
     {

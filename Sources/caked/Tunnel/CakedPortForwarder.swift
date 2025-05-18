@@ -7,10 +7,14 @@ import NIOCore
 class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	internal let forwardedPorts: [TunnelAttachement]
 	internal let cakeAgentClient: CakeAgentClient
+	internal let listeningAddress: URL
+	internal let asSystem: Bool
 
 	init(group: EventLoopGroup, remoteHost: String, bindAddress: String, forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
 		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap{ $0.mappedPort }
 
+		self.asSystem = asSystem
+		self.listeningAddress = listeningAddress
 		self.forwardedPorts = forwardedPorts
 		self.cakeAgentClient = try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: listeningAddress, timeout: 5, asSystem: asSystem)
 
@@ -18,7 +22,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		try forwardedPorts.forEach { forwarded in
 			if let unixDomain = forwarded.unixDomain {
-				_ = try self.addPortForwardingServer(bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
+				_ = try self.addPortForwardingServer(bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host.expandingTildeInPath), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
 			}
 		}
 	}

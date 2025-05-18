@@ -948,6 +948,16 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func makeWaitIPCall(
+    _ request: Caked_Caked.VMRequest.WaitIPRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.WaitIPRequest, Caked_Caked.Reply> {
+    return self.makeWaitIpCall(
+      request,
+      callOptions: callOptions
+    )
+  }
+
   public func makeImageCall(
     _ request: Caked_Caked.ImageRequest,
     callOptions: CallOptions? = nil

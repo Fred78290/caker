@@ -2,7 +2,7 @@ import Foundation
 import ArgumentParser
 import Virtualization
 
-public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument, Codable {
+public enum NetworkMode: Int,  CaseIterable, CustomStringConvertible, ExpressibleByArgument, Codable {
 	case manual, auto
 
 	public init?(argument: String) {
@@ -14,6 +14,17 @@ public enum NetworkMode: Int,  CaseIterable, ExpressibleByArgument, Codable {
 		default:
 			return nil
 		}
+	}
+
+	public var description: String {
+		switch self {
+		case .manual:
+			return "manual"
+		case .auto:
+			return "auto"
+		}
+
+		return ""
 	}
 }
 

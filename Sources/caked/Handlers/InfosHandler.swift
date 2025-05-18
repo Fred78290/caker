@@ -44,7 +44,10 @@ struct InfosHandler: CakedCommand {
 
 		infos.name = name
 		infos.mounts = config.mounts.map { $0.description }
-
+		infos.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil) }
+		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
+		infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
+	
 		return infos
 	}
 

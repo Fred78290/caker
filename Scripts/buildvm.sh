@@ -90,6 +90,8 @@ write_files:
   permissions: '0644'
 runcmd:
 - hostnamectl set-hostname openstack-dev-k3s-worker-02
+- curl -fsSL https://get.docker.com | sh -
+- usermod -aG docker admin
 users:
 - name: local
   plain_text_passwd: admin
@@ -111,8 +113,8 @@ EOF
 fi
 
 NETWORKS_OPTIONS="--network=nat --network=en0 --network=shared --network=host"
-NETWORKS_OPTIONS="--network=en0"
-BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp ${NETWORKS_OPTIONS} --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+NETWORKS_OPTIONS="--network=nat --network=en0"
+BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp ${NETWORKS_OPTIONS} --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --cloud-init=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --cloud-init=/tmp/user-data.yaml"
 

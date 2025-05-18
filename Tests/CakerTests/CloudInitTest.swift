@@ -177,7 +177,7 @@ final class CloudInitTests: XCTestCase {
 		options.vendorData = nil
 		options.networkConfig = self.networkConfigPath.path
 		options.forwardedPorts = [
-			ForwardedPort(argument: "2222:22/tcp")
+			TunnelAttachement(host: 2022, guest: 22, proto: .tcp),
 		]
 		options.mounts = []
 		options.networks = []
@@ -243,8 +243,6 @@ final class CloudInitTests: XCTestCase {
 					XCTFail(err.localizedDescription)
 			}
 		}
-
-		PortForwardingServer.createPortForwardingServer(group: self.group)
 		
 		// Start VM
 		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)

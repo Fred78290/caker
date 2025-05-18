@@ -30,6 +30,56 @@ public struct ShortInfoReply: Sendable, Codable {
 	}
 }
 
+extension Caked_InfoReply.AttachedNetwork {
+	init(from: CakeAgentLib.AttachedNetwork) {
+		self.network = from.network
+
+		if let mode = from.mode {
+			self.mode = Caked_InfoReply.AttachedNetwork.Mode(rawValue: mode.rawValue) ?? .unknown
+		} else {
+			self.mode = nil
+		}
+
+		if let macAddress = from.macAddress {
+			self.macAddress = Caked_InfoReply.AttachedNetwork.MacAddress
+		} else {
+			self.macAddress = nil
+		}
+	}
+}
+
+extension Caked_InfoReply.TunnelInfo {
+	init?(from: CakeAgentLib.TunnelInfo) {
+		if case .forward(let value) = from.oneOf {
+			self.forward = Caked_InfoReply.TunnelInfo.ForwardedPort.with {
+				if value.proto == .tcp {
+					$0.proto = .tcp
+				} else {
+					$0.proto = .udp
+				}
+				$0.host = value.host
+				$0.guest = value.guest
+			}
+		} else if case .unixDomain(let value) = from.oneOf {
+			self.unixDomain = Caked_InfoReply.TunnelInfo.UnixDomainSocket.with {
+				$0.proto = value.proto
+				$0.host = value.host
+				$0.guest = value.guest
+			}
+		} else {
+			return nil
+		}
+	}
+}
+
+extension Caked_InfoReply.SocketInfo {
+	init(from: CakeAgentLib.SocketInfo) {
+		self.mode = from.mode
+		self.host = from.host
+		self.port = from.port
+	}
+}
+
 extension InfoReply {
 	static func with(infos: Caked_InfoReply) -> InfoReply  {
 		var memory: InfoReply.MemoryInfo? = nil
@@ -54,6 +104,9 @@ extension InfoReply {
 			$0.status = .init(rawValue: infos.status) ?? .unknown
 			$0.mounts = infos.mounts
 			$0.memory = memory
+			$0.attachedNetworks = infos.networks.compactMap { Caked_InfoReply.AttachedNetwork(from: $0) }
+			$0.tunnelInfos = infos.tunnels.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
+			$0.socketInfos = infos.sockets.compactMap { Caked_InfoReply.SocketInfo.init(from: $0) }
 		}
 	}
 

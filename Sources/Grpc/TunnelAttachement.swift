@@ -7,17 +7,33 @@
 import Foundation
 import NIOPortForwarding
 import ArgumentParser
+import CakeAgentLib
 
-extension ForwardedPort {
-	init(proto: MappedPort.Proto, host: Int, guest: Int) {
-		self.init()
-		self.host = host
-		self.guest = guest
-		self.proto = proto
+public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleByArgument, Codable, Equatable {
+	public static func == (lhs: TunnelAttachement, rhs: TunnelAttachement) -> Bool {
+		switch (lhs.oneOf, rhs.oneOf) {
+		case (.none, .none):
+			return true			
+		case (.forward(let lhs), .forward(let rhs)):
+			return lhs == rhs
+		case (.unixDomain(let lhs), .unixDomain(let rhs)):
+			return lhs == rhs
+		default:
+			return false
+		}
 	}
-}
 
-public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleByArgument, Codable {
+	public var tunnelInfo: TunnelInfo? {
+		switch self.oneOf {
+		case .none:
+			return nil
+		case .forward(let value):
+			return .init(from: value)
+		case .unixDomain(let value):
+			return .init(from: TunnelInfo.UnixDomainSocket(proto: value.proto, host: value.host, guest: value.guest))
+		}
+	}
+
 	public var description: String {
 		switch self.oneOf {
 		case .none:
@@ -47,13 +63,26 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		return value
 	}
 
-	public enum OneOf: Sendable {
+	public enum OneOf: Sendable, Equatable {
 		case none
 		case forward(ForwardedPort)
 		case unixDomain(ForwardUnixDomainSocket)
+
+		public static func == (lhs: OneOf, rhs: OneOf) -> Bool {
+			switch (lhs, rhs) {
+			case (.none, .none):
+				return true
+			case (.forward(let lhs), .forward(let rhs)):
+				return lhs == rhs
+			case (.unixDomain(let lhs), .unixDomain(let rhs)):
+				return lhs == rhs
+			default:
+				return false
+			}
+		}
 	}
 
-	public struct ForwardUnixDomainSocket: Sendable, CustomStringConvertible, Codable {
+	public struct ForwardUnixDomainSocket: Sendable, CustomStringConvertible, Codable, Equatable {
 		public var description: String {
 			"\(proto):\(host):\(guest)"
 		}
@@ -61,10 +90,14 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		public let proto: MappedPort.Proto
 		public let host: String
 		public let guest: String
+
+		public static func == (lhs: ForwardUnixDomainSocket, rhs: ForwardUnixDomainSocket) -> Bool {
+			return lhs.proto == rhs.proto && lhs.host == rhs.host && lhs.guest == rhs.guest
+		}
 	}
 
 	public init?(argument: String) {
-		let expr = try! NSRegularExpression(pattern: #"(?<domain>tcp|udp):(?<hostPath>\/.+):(?<guestPath>\/.+)|(?<host>\d+)(:(?<guest>\d+)(\/(?<proto>tcp|udp|both))?)?"#, options: [])
+		let expr = try! NSRegularExpression(pattern: #"(?<domain>tcp|udp):(?<hostPath>[\/~].+):(?<guestPath>\/.+)|(?<host>\d+)(:(?<guest>\d+)(\/(?<proto>tcp|udp|both))?)?"#, options: [])
 		let range = NSRange(argument.startIndex..<argument.endIndex, in: argument)
 
 		guard let match = expr.firstMatch(in: argument, options: [], range: range) else {
@@ -125,6 +158,34 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 			self.oneOf = .none
 		}
 
+	}
+
+	public init(host: Int, guest: Int, proto: MappedPort.Proto) {
+		self.oneOf = .forward(.init(proto: proto, host: host, guest: guest))
+	}
+
+	public init(host: String, guest: String, proto: MappedPort.Proto) {
+		self.oneOf = .unixDomain(.init(proto: proto, host: host, guest: guest))
+	}
+
+	public init(host: String, guest: String) {
+		self.oneOf = .unixDomain(.init(proto: .tcp, host: host, guest: guest))
+	}
+
+	public init(host: Int, guest: Int) {
+		self.oneOf = .forward(.init(proto: .tcp, host: host, guest: guest))
+	}
+
+	public init(host: Int) {
+		self.oneOf = .forward(.init(proto: .tcp, host: host, guest: host))
+	}
+
+	public init(host: String) {
+		self.oneOf = .unixDomain(.init(proto: .tcp, host: host, guest: host))
+	}
+
+	public init() {
+		self.oneOf = .none
 	}
 
 	public func encode(to encoder: Encoder) throws {
