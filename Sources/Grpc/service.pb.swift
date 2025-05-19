@@ -227,6 +227,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
       public mutating func clearAttachedDisks() {_uniqueStorage()._attachedDisks = nil}
 
+      public var dynamicPortForwarding: Bool {
+        get {return _storage._dynamicPortForwarding ?? false}
+        set {_uniqueStorage()._dynamicPortForwarding = newValue}
+      }
+      /// Returns true if `dynamicPortForwarding` has been explicitly set.
+      public var hasDynamicPortForwarding: Bool {return _storage._dynamicPortForwarding != nil}
+      /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
+      public mutating func clearDynamicPortForwarding() {_uniqueStorage()._dynamicPortForwarding = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -2807,6 +2816,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     18: .same(proto: "sockets"),
     19: .same(proto: "console"),
     20: .same(proto: "attachedDisks"),
+    21: .same(proto: "dynamicPortForwarding"),
   ]
 
   fileprivate class _StorageClass {
@@ -2831,6 +2841,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _sockets: String? = nil
     var _console: String? = nil
     var _attachedDisks: String? = nil
+    var _dynamicPortForwarding: Bool? = nil
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -2866,6 +2877,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       _sockets = source._sockets
       _console = source._console
       _attachedDisks = source._attachedDisks
+      _dynamicPortForwarding = source._dynamicPortForwarding
     }
   }
 
@@ -2904,6 +2916,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._sockets) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._console) }()
         case 20: try { try decoder.decodeSingularStringField(value: &_storage._attachedDisks) }()
+        case 21: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
         case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         default: break
         }
@@ -2977,6 +2990,9 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       try { if let v = _storage._attachedDisks {
         try visitor.visitSingularStringField(value: v, fieldNumber: 20)
       } }()
+      try { if let v = _storage._dynamicPortForwarding {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 21)
+      } }()
       try { if let v = _storage._password {
         try visitor.visitSingularStringField(value: v, fieldNumber: 22)
       } }()
@@ -3010,6 +3026,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         if _storage._sockets != rhs_storage._sockets {return false}
         if _storage._console != rhs_storage._console {return false}
         if _storage._attachedDisks != rhs_storage._attachedDisks {return false}
+        if _storage._dynamicPortForwarding != rhs_storage._dynamicPortForwarding {return false}
         return true
       }
       if !storagesAreEqual {return false}

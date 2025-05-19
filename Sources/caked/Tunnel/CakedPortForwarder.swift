@@ -9,6 +9,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	internal let cakeAgentClient: CakeAgentClient
 	internal let listeningAddress: URL
 	internal let asSystem: Bool
+	internal var dynamicPorts: [SocketAddress] = []
 
 	init(group: EventLoopGroup, remoteHost: String, bindAddress: String, forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
 		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap{ $0.mappedPort }
@@ -25,6 +26,9 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				_ = try self.addPortForwardingServer(bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host.expandingTildeInPath), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
 			}
 		}
+	}
+
+	func startDynamicPortForwarding() throws {
 	}
 
 	override func createTCPPortForwardingServer(on: EventLoop, bindAddress: SocketAddress, remoteAddress: SocketAddress) throws -> any PortForwarding {

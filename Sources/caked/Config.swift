@@ -159,6 +159,11 @@ final class CakeConfig{
 		}
 	}
 
+	var dynamicPortFarwarding: Bool {
+		set { self.config["dynamicPortFarwarding"] = newValue }
+		get { self.config["dynamicPortFarwarding"] as? Bool ?? false }
+	}
+
 	var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
 		get { self.config["displayRefit"] as? Bool ?? false}

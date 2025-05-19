@@ -17,17 +17,19 @@ class PortForwardingServer {
 	let bindAddress: String
 	let remoteAddress: String
 	let portForwarder: CakedPortForwarder
+	let dynamicPortFarwarding: Bool
 	var closeFuture: PortForwarderClosure? = nil
 
 	deinit {
 		try? portForwarder.syncShutdownGracefully()
 	}
 
-	private init(group: EventLoopGroup, bindAddress: String = "0.0.0.0", remoteAddress: String, forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
+	private init(group: EventLoopGroup, bindAddress: String = "0.0.0.0", remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
 		self.mainGroup = group
 		self.bindAddress = bindAddress
 		self.remoteAddress = remoteAddress
 		self.ttl = ttl
+		self.dynamicPortFarwarding = dynamicPortFarwarding
 		self.portForwarder = try CakedPortForwarder(group: group,
 		                                            remoteHost: remoteAddress,
 		                                            bindAddress: bindAddress,
@@ -39,6 +41,9 @@ class PortForwardingServer {
 
 	private func bind() throws {
 		self.closeFuture = try self.portForwarder.bind()
+		if self.dynamicPortFarwarding {
+			try self.portForwarder.startDynamicPortForwarding()
+		}
 	}
 
 	private func close() throws {
@@ -66,9 +71,9 @@ class PortForwardingServer {
 		}
 	}
 
-	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], listeningAddress: URL, asSystem: Bool) throws {
+	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, listeningAddress: URL, asSystem: Bool) throws {
 		if portForwardingServer == nil {
-			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, listeningAddress: listeningAddress, asSystem: asSystem)
+			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortFarwarding: dynamicPortFarwarding, listeningAddress: listeningAddress, asSystem: asSystem)
 
 			try server.bind()
 

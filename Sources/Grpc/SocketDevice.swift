@@ -46,7 +46,7 @@ public struct SocketDevice: Codable {
 	public var port: Int = -1
 	public var bind: String
 
-	var socketInfo: CakeAgentLib.SocketInfo? {
+	public var socketInfo: CakeAgentLib.SocketInfo? {
 		guard self.mode != .fd else {
 			return nil
 		}

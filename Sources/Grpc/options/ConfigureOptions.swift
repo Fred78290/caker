@@ -29,6 +29,9 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	public var displayRefit: Bool? = nil
 
+	@Option(help: ArgumentHelp("Allow to use dynamic port forwarding, default is false", discussion: "This option is supported on linux platforms only"))
+	public var dynamicPortForwarding: Bool? = nil
+
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", discussion: "value is like host:guest/(tcp|udp|both)", valueName: "value"))
 	internal var published: [String] = ["unset"]
 
@@ -202,6 +205,24 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	}
 
 	public init() {
+	}
+
+	public func validate() throws {
+		if let forwardedPorts = self.forwardedPort {
+			try forwardedPorts.forEach { port in
+				if case .none = port.oneOf {
+					throw ValidationError("Port is not set")
+				}
+				if case .unixDomain(let value) = port.oneOf {
+					if value.host.utf8.count > 103 {
+						throw ValidationError("Unix domain socket name is too long")
+					}
+					if value.guest.utf8.count > 103 {
+						throw ValidationError("Unix domain socket name is too long")
+					}
+				}
+			}
+		}
 	}
 }
 

@@ -31,6 +31,21 @@ public struct ShortInfoReply: Sendable, Codable {
 	}
 }
 
+extension CakeAgentLib.AttachedNetwork {
+	init(from: Caked_InfoReply.AttachedNetwork) {
+		self.init()
+		self.network = from.network
+
+		if from.hasMode {
+			self.mode = from.mode
+		}
+
+		if from.hasMacAddress {
+			self.macAddress = from.macAddress
+		}
+	}
+}
+
 extension Caked_InfoReply.AttachedNetwork {
 	init(from: CakeAgentLib.AttachedNetwork) {
 		self.network = from.network
@@ -45,7 +60,27 @@ extension Caked_InfoReply.AttachedNetwork {
 	}
 }
 
+extension CakeAgentLib.TunnelInfo {
+	init?(from: Caked_InfoReply.TunnelInfo) {
+		if case .forward(let value) = from.tunnel {
+			self.init(from: ForwardedPort(proto: value.protocol.mappedPort, host: Int(value.host), guest: Int(value.guest)))
+		} else if case .unixDomain(let value) = from.tunnel {
+			self.init(from: UnixDomainSocket(proto: value.protocol.mappedPort, host: value.host, guest: value.guest))
+		} else {
+			return nil
+		}
+	}
+}
+
 extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
+	var mappedPort: MappedPort.Proto {
+		switch self {
+		case .tcp: return .tcp
+		case .udp: return .udp
+		default: return .tcp
+		}
+	}
+
 	init(from: MappedPort.Proto) {
 		switch (from) {
 			case .tcp: self = .tcp
@@ -54,6 +89,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 		}
 	}
 }
+
 extension Caked_InfoReply.TunnelInfo {
 	init?(from: CakeAgentLib.TunnelInfo) {
 		if case .forward(let value) = from.oneOf {
@@ -71,6 +107,12 @@ extension Caked_InfoReply.TunnelInfo {
 		} else {
 			return nil
 		}
+	}
+}
+
+extension CakeAgentLib.SocketInfo {
+	init(from: Caked_InfoReply.SocketInfo) {
+		self.init(mode: SocketInfo.Mode(rawValue: from.mode.rawValue) ?? .bind, host: from.host, port: from.port)
 	}
 }
 
@@ -106,9 +148,9 @@ extension InfoReply {
 			$0.status = .init(rawValue: infos.status) ?? .unknown
 			$0.mounts = infos.mounts
 			$0.memory = memory
-			$0.attachedNetworks = infos.networks.compactMap { Caked_InfoReply.AttachedNetwork(from: $0) }
-			$0.tunnelInfos = infos.tunnels.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
-			$0.socketInfos = infos.sockets.compactMap { Caked_InfoReply.SocketInfo.init(from: $0) }
+			$0.attachedNetworks = infos.networks.compactMap { CakeAgentLib.AttachedNetwork(from: $0) }
+			$0.tunnelInfos = infos.tunnels.compactMap { CakeAgentLib.TunnelInfo(from: $0) }
+			$0.socketInfos = infos.sockets.compactMap { CakeAgentLib.SocketInfo(from: $0) }
 		}
 	}
 
@@ -167,6 +209,18 @@ extension InfoReply {
 			}
 
 			reply.status = self.status.rawValue
+
+			if let attachedNetworks = self.attachedNetworks {
+				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }
+			}
+
+			if let tunnelInfos = self.tunnelInfos {
+				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
+			}
+
+			if let sockets = self.socketInfos {
+				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo(from: $0) }
+			}
 		}
 	}
 }

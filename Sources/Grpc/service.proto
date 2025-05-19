@@ -59,6 +59,7 @@ message Caked {
 			optional string sockets = 18;
 			optional string console = 19;
 			optional string attachedDisks = 20;
+			optional bool dynamicPortForwarding = 21;
 		}
 
 		message BuildRequest {

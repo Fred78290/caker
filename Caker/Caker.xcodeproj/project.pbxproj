@@ -34,6 +34,9 @@
 		9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */; };
 		9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */; };
 		9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD52D8AE3E10050BFAD /* MountService.swift */; };
+		9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA12DDB259E00B5A0AF /* ArgumentParser */; };
+		9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */; };
+		9B28BFA62DDB25CA00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA52DDB25CA00B5A0AF /* ArgumentParser */; };
 		9B4229E52DD4F8310042F01F /* CakedTCPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E22DD4F8310042F01F /* CakedTCPPortForwardingServer.swift */; };
 		9B4229E62DD4F8310042F01F /* CakedPortForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E12DD4F8310042F01F /* CakedPortForwarder.swift */; };
 		9B4229E72DD4F8310042F01F /* CakedUDPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E32DD4F8310042F01F /* CakedUDPPortForwardingServer.swift */; };
@@ -127,7 +130,6 @@
 		9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A742D5A3E0300164BF5 /* Infos.swift */; };
 		9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */; };
 		9B464B7F2D5A3E9000164BF5 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A662D5A3E0300164BF5 /* CI.swift */; };
-		9B464B822D5A3EEA00164BF5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464B812D5A3EEA00164BF5 /* ArgumentParser */; };
 		9B464B852D5A3F0300164BF5 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464B842D5A3F0300164BF5 /* Dynamic */; };
 		9B464B882D5A3F2300164BF5 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464B872D5A3F2300164BF5 /* Algorithms */; };
 		9B464B8B2D5A3F4200164BF5 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464B8A2D5A3F4200164BF5 /* AsyncAlgorithms */; };
@@ -159,7 +161,6 @@
 		9B464BFA2D5A41CF00164BF5 /* Shout in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464BF92D5A41CF00164BF5 /* Shout */; };
 		9B464BFD2D5A41E600164BF5 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464BFC2D5A41E600164BF5 /* NIOPortForwarding */; };
 		9B464C002D5A41FD00164BF5 /* Gzip in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464BFF2D5A41FD00164BF5 /* Gzip */; };
-		9B464C062D5A426200164BF5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C052D5A426200164BF5 /* ArgumentParser */; };
 		9B464C082D5A426200164BF5 /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C072D5A426200164BF5 /* SwiftDate */; };
 		9B464C0A2D5A426200164BF5 /* SwiftFormat in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C092D5A426200164BF5 /* SwiftFormat */; };
 		9B464C0C2D5A426200164BF5 /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C0B2D5A426200164BF5 /* TextTable */; };
@@ -187,7 +188,6 @@
 		9B464C6B2D5A45DF00164BF5 /* DiskAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AD32D5A3E0300164BF5 /* DiskAttachement.swift */; };
 		9B464C6C2D5A45EF00164BF5 /* SocketDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464ADA2D5A3E0300164BF5 /* SocketDevice.swift */; };
 		9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AD92D5A3E0300164BF5 /* service.pb.swift */; };
-		9B464C6F2D5A464000164BF5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C6E2D5A464000164BF5 /* ArgumentParser */; };
 		9B464C712D5A464B00164BF5 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C702D5A464B00164BF5 /* GRPC */; };
 		9B464C732D5A468A00164BF5 /* NIOPortForwarding in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C722D5A468A00164BF5 /* NIOPortForwarding */; };
 		9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AD82D5A3E0300164BF5 /* service.grpc.swift */; };
@@ -554,7 +554,6 @@
 				9B464C4A2D5A427100164BF5 /* Virtualization.framework in Frameworks */,
 				9B464B8E2D5A3F5800164BF5 /* SwiftDate in Frameworks */,
 				9B464C7B2D5A482900164BF5 /* libGRPCLib.a in Frameworks */,
-				9B464B822D5A3EEA00164BF5 /* ArgumentParser in Frameworks */,
 				9B464B9A2D5A3FCD00164BF5 /* TextTable in Frameworks */,
 				9B464C002D5A41FD00164BF5 /* Gzip in Frameworks */,
 				9B464BFA2D5A41CF00164BF5 /* Shout in Frameworks */,
@@ -563,6 +562,7 @@
 				9B464BC42D5A411900164BF5 /* CGRPCZlib in Frameworks */,
 				9B464B8B2D5A3F4200164BF5 /* AsyncAlgorithms in Frameworks */,
 				9B464C572D5A44FB00164BF5 /* NIOHTTP1 in Frameworks */,
+				9B28BFA62DDB25CA00B5A0AF /* ArgumentParser in Frameworks */,
 				9B464BDC2D5A416F00164BF5 /* NIOExtras in Frameworks */,
 				9B464BA92D5A406000164BF5 /* XAttr in Frameworks */,
 				9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */,
@@ -589,6 +589,7 @@
 				9B464C262D5A426200164BF5 /* NIOCore in Frameworks */,
 				9B464C922D5A493900164BF5 /* XAttr in Frameworks */,
 				9B464C362D5A426200164BF5 /* NIOHTTP2 in Frameworks */,
+				9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */,
 				9B464C7F2D5A487300164BF5 /* Antlr4Static in Frameworks */,
 				9B464C0C2D5A426200164BF5 /* TextTable in Frameworks */,
 				9B464C122D5A426200164BF5 /* NIOSSL in Frameworks */,
@@ -597,7 +598,6 @@
 				9B464C102D5A426200164BF5 /* Crypto in Frameworks */,
 				9B464C2E2D5A426200164BF5 /* NIOPosix in Frameworks */,
 				9B464C852D5A489E00164BF5 /* DMRetry in Frameworks */,
-				9B464C062D5A426200164BF5 /* ArgumentParser in Frameworks */,
 				9B7C808B2DAAA77F003E95FA /* CakeAgentLib in Frameworks */,
 				9B464C872D5A48A900164BF5 /* Dynamic in Frameworks */,
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
@@ -613,8 +613,8 @@
 			files = (
 				9B464C712D5A464B00164BF5 /* GRPC in Frameworks */,
 				9B464C732D5A468A00164BF5 /* NIOPortForwarding in Frameworks */,
+				9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */,
 				9B18FA242DAFF79000603B92 /* CakeAgentLib in Frameworks */,
-				9B464C6F2D5A464000164BF5 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1036,7 +1036,6 @@
 			);
 			name = Caker;
 			packageProductDependencies = (
-				9B464B812D5A3EEA00164BF5 /* ArgumentParser */,
 				9B464B842D5A3F0300164BF5 /* Dynamic */,
 				9B464B872D5A3F2300164BF5 /* Algorithms */,
 				9B464B8A2D5A3F4200164BF5 /* AsyncAlgorithms */,
@@ -1070,6 +1069,7 @@
 				9B464BFF2D5A41FD00164BF5 /* Gzip */,
 				9B464C562D5A44FB00164BF5 /* NIOHTTP1 */,
 				9B58EE912D637313001B8347 /* CakeAgentLib */,
+				9B28BFA52DDB25CA00B5A0AF /* ArgumentParser */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1090,7 +1090,6 @@
 			);
 			name = cakectl;
 			packageProductDependencies = (
-				9B464C052D5A426200164BF5 /* ArgumentParser */,
 				9B464C072D5A426200164BF5 /* SwiftDate */,
 				9B464C092D5A426200164BF5 /* SwiftFormat */,
 				9B464C0B2D5A426200164BF5 /* TextTable */,
@@ -1116,6 +1115,7 @@
 				9B464C8F2D5A492F00164BF5 /* X509 */,
 				9B464C912D5A493900164BF5 /* XAttr */,
 				9B7C808A2DAAA77F003E95FA /* CakeAgentLib */,
+				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -1135,10 +1135,10 @@
 			);
 			name = GRPCLib;
 			packageProductDependencies = (
-				9B464C6E2D5A464000164BF5 /* ArgumentParser */,
 				9B464C702D5A464B00164BF5 /* GRPC */,
 				9B464C722D5A468A00164BF5 /* NIOPortForwarding */,
 				9B18FA232DAFF79000603B92 /* CakeAgentLib */,
+				9B28BFA12DDB259E00B5A0AF /* ArgumentParser */,
 			);
 			productName = GRPCLib;
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
@@ -1178,7 +1178,6 @@
 			mainGroup = 9B464A4B2D5A3DA000164BF5;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 				9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */,
 				9B464B862D5A3F2300164BF5 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				9B464B892D5A3F4200164BF5 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
@@ -1209,6 +1208,7 @@
 				9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */,
 				9B464C782D5A480000164BF5 /* XCLocalSwiftPackageReference "../../caker" */,
 				9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */,
+				9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -1782,9 +1782,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
+		9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			repositoryURL = "https://github.com/apple/swift-argument-parser.git";
 			requirement = {
 				kind = exactVersion;
 				version = 1.5.0;
@@ -2002,8 +2002,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
-				kind = revision;
-				revision = c9dc91edce13264dc857e5fdfb940ca07565845d;
+				kind = exactVersion;
+				version = 0.2.3;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -2019,7 +2019,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent";
 			requirement = {
 				kind = revision;
-				revision = d7c4328f3635b43aa6714275d2591938c61b835b;
+				revision = f9a6cbd2cd80e0611ef0f63b1d31cba4db7b3448;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -2030,9 +2030,19 @@
 			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
 		};
-		9B464B812D5A3EEA00164BF5 /* ArgumentParser */ = {
+		9B28BFA12DDB259E00B5A0AF /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		9B28BFA52DDB25CA00B5A0AF /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
 			productName = ArgumentParser;
 		};
 		9B464B842D5A3F0300164BF5 /* Dynamic */ = {
@@ -2190,11 +2200,6 @@
 			package = 9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */;
 			productName = Gzip;
 		};
-		9B464C052D5A426200164BF5 /* ArgumentParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
-			productName = ArgumentParser;
-		};
 		9B464C072D5A426200164BF5 /* SwiftDate */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464B8C2D5A3F5800164BF5 /* XCRemoteSwiftPackageReference "SwiftDate" */;
@@ -2274,11 +2279,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
 			productName = NIOHTTP1;
-		};
-		9B464C6E2D5A464000164BF5 /* ArgumentParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B464B802D5A3EE900164BF5 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
-			productName = ArgumentParser;
 		};
 		9B464C702D5A464B00164BF5 /* GRPC */ = {
 			isa = XCSwiftPackageProductDependency;

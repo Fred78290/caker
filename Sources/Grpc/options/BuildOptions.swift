@@ -57,6 +57,9 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))
 	public var displayRefit: Bool = false
 
+	@Flag(help: ArgumentHelp("Allow to use dynamic port forwarding, default is false", discussion: "This option is supported on linux platforms only"))
+	public var dynamicPortForwarding: Bool = false
+
 	@Option(name: [.customLong("publish"), .customShort("p")], help: ArgumentHelp("Optional forwarded port for VM, syntax like docker", discussion: "value is like host:guest/(tcp|udp|both)", valueName: "value"))
 	public var forwardedPorts: [TunnelAttachement] = []
 
@@ -116,6 +119,7 @@ public struct BuildOptions: ParsableArguments {
 		self.networks = networks
 		self.sockets = sockets
 		self.consoleURL = consoleURL
+		self.dynamicPortForwarding = false
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
@@ -250,6 +254,12 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.consoleURL = nil
 		}
+
+		if request.hasDynamicPortForwarding {
+			self.dynamicPortForwarding = request.dynamicPortForwarding
+		} else {
+			self.dynamicPortForwarding = false
+		}
 	}
 
 	mutating public func validate() throws {
@@ -259,6 +269,20 @@ public struct BuildOptions: ParsableArguments {
 
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
+		}
+
+		try self.forwardedPorts.forEach { port in
+			if case .none = port.oneOf {
+				throw ValidationError("Port is not set")
+			}
+			if case .unixDomain(let value) = port.oneOf {
+				if value.host.utf8.count > 103 {
+					throw ValidationError("Unix domain socket name is too long")
+				}
+				if value.guest.utf8.count > 103 {
+					throw ValidationError("Unix domain socket name is too long")
+				}
+			}
 		}
 	}
 }
