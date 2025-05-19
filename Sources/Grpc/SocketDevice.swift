@@ -1,6 +1,7 @@
 import Foundation
 import ArgumentParser
 import CakeAgentLib
+import NIOPortForwarding
 
 public enum SocketMode: String, CustomStringConvertible, Codable {
 	case bind = "bind"  // Listen on unix socket
@@ -45,12 +46,12 @@ public struct SocketDevice: Codable {
 	public var port: Int = -1
 	public var bind: String
 
-	var socketInfo: SocketInfo? {
+	var socketInfo: CakeAgentLib.SocketInfo? {
 		guard self.mode != .fd else {
 			return nil
 		}
 
-		return SocketInfo(mode: .init(rawValue: self.mode.intValue), path: bind, port: port)
+		return CakeAgentLib.SocketInfo(mode: SocketInfo.Mode(rawValue: self.mode.intValue) ?? .bind, host: bind, port: Int32(port))
 	}
 
 	public init(mode: SocketMode, port: Int, bind: String) {

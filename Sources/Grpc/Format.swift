@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import TextTable
 import CakeAgentLib
+import NIOPortForwarding
 
 extension Data {
 	func toString() -> String {
@@ -35,34 +36,35 @@ extension Caked_InfoReply.AttachedNetwork {
 		self.network = from.network
 
 		if let mode = from.mode {
-			self.mode = Caked_InfoReply.AttachedNetwork.Mode(rawValue: mode.rawValue) ?? .unknown
-		} else {
-			self.mode = nil
+			self.mode = mode
 		}
 
 		if let macAddress = from.macAddress {
-			self.macAddress = Caked_InfoReply.AttachedNetwork.MacAddress
-		} else {
-			self.macAddress = nil
+			self.macAddress = macAddress
 		}
 	}
 }
 
+extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
+	init(from: MappedPort.Proto) {
+		switch (from) {
+			case .tcp: self = .tcp
+		case .udp: self = .udp
+		default: fatalError()
+		}
+	}
+}
 extension Caked_InfoReply.TunnelInfo {
 	init?(from: CakeAgentLib.TunnelInfo) {
 		if case .forward(let value) = from.oneOf {
 			self.forward = Caked_InfoReply.TunnelInfo.ForwardedPort.with {
-				if value.proto == .tcp {
-					$0.proto = .tcp
-				} else {
-					$0.proto = .udp
-				}
-				$0.host = value.host
-				$0.guest = value.guest
+				$0.protocol = .init(from: value.proto)
+				$0.host = Int32(value.host)
+				$0.guest = Int32(value.guest)
 			}
 		} else if case .unixDomain(let value) = from.oneOf {
-			self.unixDomain = Caked_InfoReply.TunnelInfo.UnixDomainSocket.with {
-				$0.proto = value.proto
+			self.unixDomain = Caked_InfoReply.TunnelInfo.Tunnel.with {
+				$0.protocol = .init(from: value.proto)
 				$0.host = value.host
 				$0.guest = value.guest
 			}
@@ -74,7 +76,7 @@ extension Caked_InfoReply.TunnelInfo {
 
 extension Caked_InfoReply.SocketInfo {
 	init(from: CakeAgentLib.SocketInfo) {
-		self.mode = from.mode
+		self.mode = .init(rawValue: self.mode.rawValue) ?? .bind
 		self.host = from.host
 		self.port = from.port
 	}

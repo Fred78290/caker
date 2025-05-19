@@ -23,8 +23,6 @@ public enum NetworkMode: Int,  CaseIterable, CustomStringConvertible, Expressibl
 		case .auto:
 			return "auto"
 		}
-
-		return ""
 	}
 }
 
