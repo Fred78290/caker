@@ -65,6 +65,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "vmrun"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "start"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "list"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "networks"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -73,10 +85,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "create"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "linux"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -89,31 +97,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "service"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "listen"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--secure"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--display"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "networks"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "list"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "start"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--mode=bridged"
@@ -124,15 +120,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--foreground"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--all"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "macos-sequoia-vanilla-test"
-            isEnabled = "NO">
+            argument = "linux"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--foreground"
+            argument = "macos-sequoia-vanilla-test"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
@@ -140,7 +140,7 @@
          <EnvironmentVariable
             key = "PATH"
             value = "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/opt/bin:/opt/homebrew/bin"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

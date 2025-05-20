@@ -397,15 +397,13 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			try? config.save()
 
-			if self.vmLocation.template == false {
-				if config.forwardedPorts.isEmpty == false || config.dynamicPortFarwarding {
-					Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
+			if self.vmLocation.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortFarwarding) {
+				Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 
-					do {
-						try PortForwardingServer.createPortForwardingServer(group: on.next(), remoteAddress: runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortFarwarding: config.dynamicPortFarwarding, listeningAddress: self.vmLocation.agentURL, asSystem: asSystem)
-					} catch {
-						Logger(self).error(error)
-					}
+				do {
+					try PortForwardingServer.createPortForwardingServer(group: on.next(), remoteAddress: runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortFarwarding: config.dynamicPortFarwarding, listeningAddress: self.vmLocation.agentURL, asSystem: asSystem)
+				} catch {
+					Logger(self).error(error)
 				}
 			}
 		}

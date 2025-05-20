@@ -14,25 +14,25 @@ enum PortForwardingServerError: Error {
 class PortForwardingServer {
 	let mainGroup: EventLoopGroup
 	let ttl: Int
-	let bindAddress: String
+	let bindAddresses: [String]
 	let remoteAddress: String
 	let portForwarder: CakedPortForwarder
 	let dynamicPortFarwarding: Bool
 	var closeFuture: PortForwarderClosure? = nil
 
 	deinit {
-		try? portForwarder.syncShutdownGracefully()
+		try? portForwarder.close()
 	}
 
-	private init(group: EventLoopGroup, bindAddress: String = "0.0.0.0", remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
+	private init(group: EventLoopGroup, bindAddresses: [String] = ["0.0.0.0", "[::]"], remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
 		self.mainGroup = group
-		self.bindAddress = bindAddress
+		self.bindAddresses = bindAddresses
 		self.remoteAddress = remoteAddress
 		self.ttl = ttl
 		self.dynamicPortFarwarding = dynamicPortFarwarding
 		self.portForwarder = try CakedPortForwarder(group: group,
 		                                            remoteHost: remoteAddress,
-		                                            bindAddress: bindAddress,
+		                                            bindAddress: bindAddresses,
 		                                            forwardedPorts: forwardedPorts,
 		                                            ttl: ttl,
 		                                            listeningAddress: listeningAddress,
@@ -47,26 +47,34 @@ class PortForwardingServer {
 	}
 
 	private func close() throws {
-		try portForwarder.syncShutdownGracefully()
+		Logger(self).info("Closing port forwarder")
+
+		try portForwarder.close()
+
+		Logger(self).info("Waiting for port forwarder to close")
+		// Wait for the close future to complete
 		try self.closeFuture?.wait()
+		Logger(self).info("Port forwarder closed")
 	}
 
 	private func add(forwardedPorts: [ForwardedPort]) throws -> [any PortForwarding] {
 		try self.portForwarder.addPortForwardingServer(remoteHost: self.remoteAddress,
 		                                               mappedPorts: forwardedPorts.map { MappedPort(host: $0.host, guest: $0.guest, proto: $0.proto) },
-		                                               bindAddress: [self.bindAddress],
+		                                               bindAddress: self.bindAddresses,
 		                                               udpConnectionTTL: self.ttl)
 	}
 
 	private func delete(forwardedPorts: [ForwardedPort]) throws {
-		try forwardedPorts.forEach {
-			let bindAddress = try SocketAddress.makeAddress("tcp://\(self.bindAddress):\($0.host)")
-			let remoteAddress = try SocketAddress.makeAddress("tcp://\(self.remoteAddress):\($0.guest)")
+		try self.bindAddresses.forEach { bindAddress in
+			try forwardedPorts.forEach {
+				let bindAddress = try SocketAddress.makeAddress("tcp://\(bindAddress):\($0.host)")
+				let remoteAddress = try SocketAddress.makeAddress("tcp://\(self.remoteAddress):\($0.guest)")
 
-			do {
-				try self.portForwarder.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: $0.proto, ttl: self.ttl)
-			} catch (PortForwardingError.alreadyBinded(let error)) {
-				Logger(self).error(error)
+				do {
+					try self.portForwarder.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: $0.proto, ttl: self.ttl)
+				} catch (PortForwardingError.alreadyBinded(let error)) {
+					Logger(self).error(error)
+				}
 			}
 		}
 	}

@@ -198,7 +198,7 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
-				"configure",
+				"delete",
 				"vm://integration-test-devices-linux"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -215,6 +215,19 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete sequoia",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"configure",
+				"linux",
+				"--dynamic-port-forwarding=true",
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked configure linux",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

@@ -59,6 +59,10 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 			config.attachedDisks = attachedDisks
 		}
 
+		if let dynamicPortForwarding = options.dynamicPortForwarding {
+			config.dynamicPortFarwarding = dynamicPortForwarding
+		}
+
 		try config.save()
 
 		if let diskSize = options.diskSize {
