@@ -30,7 +30,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.29.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "f9a6cbd2cd80e0611ef0f63b1d31cba4db7b3448"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "abd3c6b008acba2c4f59dcd503ded2816d0e526d"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", from: "0.2.3"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", from: "0.2.4"),

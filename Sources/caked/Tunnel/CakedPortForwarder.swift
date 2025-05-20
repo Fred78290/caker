@@ -29,6 +29,22 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	}
 
 	func startDynamicPortForwarding() throws {
+		let stream: ServerStreamingCall<Cakeagent_CakeAgent.Empty, CakeAgent.TunnelPortForwardEvent>
+		var subchannel: Channel? = nil
+
+		let stream = self.cakeAgentClient.events(.init(), callOptions: .init(timeLimit: .none)) { event in
+			if case let .forwardEvent(event) = event.event {
+				handler(event)
+			} else if case let .error(error) = event.event {
+				//	throw error
+				if let subchannel = subchannel {
+					#if TRACE
+						redbold("Event error: \(error)")
+					#endif
+					subchannel.pipeline.fireErrorCaught(GRPCStatus(code: .internalError, message: error))
+				}
+			}
+		}
 	}
 
 	override func createTCPPortForwardingServer(on: EventLoop, bindAddress: SocketAddress, remoteAddress: SocketAddress) throws -> any PortForwarding {
