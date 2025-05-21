@@ -157,8 +157,8 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		addedPorts.forEach { forward in
 			self.bindAddress.forEach { bindAddress in
+				let bindAddress: SocketAddress = try! SocketAddress.makeAddress("tcp://\(bindAddress):\(forward.port)")
 				let remoteAddress = try! SocketAddress(ipAddress: forward.addr, port: forward.port)
-				let bindAddress = try! SocketAddress.makeAddressResolvingHost("tcp://\(bindAddress):\(forward.port)")
 
 				if bindAddress.protocol == remoteAddress.protocol {
 					self.log.info("Add dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
@@ -194,7 +194,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		removedPorts.forEach { port in
 			self.bindAddress.forEach { bindAddress in
-				let bindAddress = try! SocketAddress.makeAddressResolvingHost("tcp://\(bindAddress):\(forward.port)")
+				let bindAddress = try! SocketAddress.makeAddress("tcp://\(bindAddress):\(port.port)")
 				let remoteAddress = try! SocketAddress(ipAddress: port.addr, port: port.port)
 
 				if bindAddress.protocol == remoteAddress.protocol {
@@ -239,7 +239,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 			case .success(let status):
 				if status.code != .ok {
 					Logger(self).error("Status failed: \(status)")
-					self.eventChannel?.close(promise: nil)
+					//self.eventChannel?.close(promise: nil)
 				} else {
 					Logger(self).info("Stream receive success: \(status)")
 				}
@@ -249,8 +249,6 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		self.eventStream = stream
 
 		_ = stream.subchannel.flatMap { channel in
-			self.log.info("stream.subchannel.flatMap")
-
 			self.eventChannel = channel
 
 			return channel.eventLoop.makeSucceededVoidFuture()

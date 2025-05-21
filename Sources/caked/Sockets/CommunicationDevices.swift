@@ -9,8 +9,18 @@ class CommunicationDevices {
 	let virtioSocketDevices: VirtioSocketDevices
 	let consoleDevice: ConsoleDevice
 
-	private init(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws {
-		self.virtioSocketDevices = VirtioSocketDevices.setupVirtioSocketDevices(on: group, configuration: configuration, sockets: sockets)
+	var delegate: VirtioSocketDeviceDelegate? {
+		set {
+			virtioSocketDevices.delegate = newValue
+		}
+		
+		get {
+			return virtioSocketDevices.delegate
+		}
+	}
+
+	private init(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice], delegate: VirtioSocketDeviceDelegate? = nil) throws {
+		self.virtioSocketDevices = VirtioSocketDevices.setupVirtioSocketDevices(on: group, configuration: configuration, sockets: sockets, delegate: delegate)
 		self.consoleDevice = try ConsoleDevice.setupConsole(on: group, consoleURL: consoleURL, configuration: configuration)
 	}
 
@@ -26,7 +36,7 @@ class CommunicationDevices {
 	}
 
 	// Create the communication devices console and socket devices
-	public static func setup(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice]) throws -> CommunicationDevices {
-		return try CommunicationDevices(group: group, configuration: configuration, consoleURL: consoleURL, sockets: sockets)
+	public static func setup(group: EventLoopGroup, configuration: VZVirtualMachineConfiguration, consoleURL: URL?, sockets: [SocketDevice], delegate: VirtioSocketDeviceDelegate? = nil) throws -> CommunicationDevices {
+		return try CommunicationDevices(group: group, configuration: configuration, consoleURL: consoleURL, sockets: sockets, delegate: delegate)
 	}
 }

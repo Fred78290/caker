@@ -238,8 +238,7 @@
 				"vmrun",
 				"linux",
 				"--display",
-				"--log-level=info",
-				"-l"
+				"--log-level=info"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux",

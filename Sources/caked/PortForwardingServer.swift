@@ -91,10 +91,10 @@ class PortForwardingServer {
 
 	static func removeForwardedPort(forwardedPorts: [ForwardedPort]) throws {
 		if forwardedPorts.count > 0 {
-			if let portForwardingServer = portForwardingServer {
+			if let server = portForwardingServer {
 				Logger(self).info("Remove forwarded ports \(forwardedPorts.map { $0.description }.joined(separator: ", "))")
 
-				try portForwardingServer.delete(forwardedPorts: forwardedPorts)
+				try server.delete(forwardedPorts: forwardedPorts)
 			}
 		}
 	}
@@ -112,10 +112,14 @@ class PortForwardingServer {
 	}
 
 	static func closeForwardedPort() throws {
-		if let portForwardingServer = portForwardingServer {
+		if let server = portForwardingServer {
 			Logger(self).info("Close forwarded ports")
 
-			try portForwardingServer.close()
+			defer {
+				portForwardingServer = nil
+			}
+
+			try server.close()
 		}
 	}
 }

@@ -76,15 +76,23 @@ class SocketState {
 	}
 }
 
+protocol VirtioSocketDeviceDelegate: AnyObject {
+	func closedByRemote(socket: SocketDevice)
+	func connectionInitiatedByGuest(socket: SocketDevice)
+	func connectionInitiatedByHost(socket: SocketDevice)
+}
+
 class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemoteCloseDelegate {
-	private let queue = DispatchQueue(label: "com.cirruslabs.VirtualSocketQueue")
+	private let queue = DispatchQueue(label: "com.aldunelabs.caker.VirtualSocketQueue")
 	private let mainGroup: EventLoopGroup
 	private var sockets: [Int: SocketState]
 	private var channels: [Channel]
 	private var socketDevice: VZVirtioSocketDevice?
 	private var idle: RepeatedTask?
+	
+	var delegate: VirtioSocketDeviceDelegate? = nil
 
-	private init(on: EventLoopGroup, sockets: [SocketDevice]) {
+	private init(on: EventLoopGroup, sockets: [SocketDevice], delegate: VirtioSocketDeviceDelegate? = nil) {
 		var socketStates: [Int: SocketState] = [:]
 
 		sockets.map({ SocketState(vsock: $0) }).forEach {
@@ -94,6 +102,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		self.channels = []
 		self.sockets = socketStates
 		self.mainGroup = on
+		self.delegate = delegate
 	}
 
 	// Close all channels
@@ -122,10 +131,17 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 	}
 
 	func closedByRemote(port: Int, fd: Int32) {
+		Logger(self).debug("Closed socket connection on port:\(port) via fd:\(fd) is closed by remote")
+
 		if let socket = sockets[port] {
 			if let channel = socket.closedByRemote(fd) {
 				self.queue.sync {
 					self.channels.removeAll { $0 === channel }
+
+					if let delegate = self.delegate {
+						// Notify the delegate that the socket is closed
+						delegate.closedByRemote(socket: socket.socket)
+					}
 				}
 
 				return
@@ -141,7 +157,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 	{
 		Logger(self).debug("Guest connected on \(socket.description) via fd:\(connection.fileDescriptor)")
 
-		return NIOPipeBootstrap(group: inboundChannel.eventLoop)
+		let bootstrap = NIOPipeBootstrap(group: inboundChannel.eventLoop)
 			.takingOwnershipOfDescriptor(inputOutput: dup(connection.fileDescriptor))
 			.flatMap { childChannel in
 				let (ours, theirs) = GlueHandler.matchedPair()
@@ -153,6 +169,16 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					])
 				}
 			}
+
+		if let delegate = self.delegate {
+			bootstrap.whenSuccess {
+				self.queue.sync {
+					delegate.connectionInitiatedByGuest(socket: socket.socket)
+				}
+			}
+		}
+
+		return bootstrap
 	}
 
 	// The host initiates the connection to the guest, the guest must listen for the connection on the port
@@ -191,6 +217,14 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 									inboundChannel.pipeline.addHandlers([handler, theirs])
 								}
 						}.wait()
+
+					if let delegate = self.delegate {
+						self.queue.sync {
+							// Notify the delegate that the socket is connected
+							// The connection is initiated by the host
+							delegate.connectionInitiatedByHost(socket: socket.socket)
+						}
+					}
 
 					// Notify the promise that the connection is successful
 					promise.succeed(())
@@ -387,8 +421,10 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 	static func setupVirtioSocketDevices(
 		on: EventLoopGroup,
-		configuration: VZVirtualMachineConfiguration, sockets: [SocketDevice]
+		configuration: VZVirtualMachineConfiguration,
+		sockets: [SocketDevice],
+		delegate: VirtioSocketDeviceDelegate? = nil
 	) -> VirtioSocketDevices {
-		return VirtioSocketDevices(on: on, sockets: sockets).configure(configuration: configuration)
+		return VirtioSocketDevices(on: on, sockets: sockets, delegate: delegate).configure(configuration: configuration)
 	}
 }
