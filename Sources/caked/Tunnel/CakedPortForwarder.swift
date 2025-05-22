@@ -110,6 +110,16 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	internal let log: Logger
 	internal var eventStream: ServerStreamingCall<Cakeagent_CakeAgent.Empty, CakeAgent.TunnelPortForwardEvent>? = nil
 	internal var eventChannel: Channel? = nil
+	internal let queue = DispatchQueue(label: "CakedPortForwarder")
+	internal var status: Status = .idle
+
+	enum Status: Int {
+		case idle = 0
+		case starting = 1
+		case started = 2
+		case stopping = 3
+		case stopped = 4
+	}
 
 	init(group: EventLoopGroup, remoteHost: String, bindAddress: [String], forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
 		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap{ $0.mappedPort }
@@ -199,7 +209,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 				if bindAddress.protocol == remoteAddress.protocol {
 					self.log.info("Will remove dynamic port forwarding: \(port.description)")
-		
+
 					if let _ = try? self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: port.proto, ttl: self.ttl) {
 						self.log.info("Remove dynamic port forwarding: \(port.description)")
 
@@ -216,32 +226,67 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		}
 	}
 
+	func removeDynamicPortForwarding() throws {
+		self.log.info("Remove dynamic port forwarding")
+
+		defer {
+			self.dynamicPorts.removeAll()
+		}
+
+		try self.dynamicPorts.forEach { forward in
+			try self.bindAddress.forEach { bindAddress in
+				let bindAddress = try! SocketAddress.makeAddress("tcp://\(bindAddress):\(forward.port)")
+				let remoteAddress = try! SocketAddress(ipAddress: forward.addr, port: forward.port)
+
+				if bindAddress.protocol == remoteAddress.protocol {
+					self.log.info("Remove dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
+
+					do {
+						try self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: forward.proto, ttl: self.ttl)
+					} catch (PortForwardingError.alreadyBinded(let error)) {
+						Logger(self).error(error)
+					}
+				}
+			}
+		}
+	}
+
 	func startDynamicPortForwarding() throws {
 		log.info("Start dynamic port forwarding")
 
-		let stream = self.cakeAgentClient.events(.init(), callOptions: .init(timeLimit: .none)) { event in
-			if case let .forwardEvent(event) = event.event {
-				self.handleEvent(event: event)
-			} else if case let .error(error) = event.event {
-				self.log.error("Event error: \(error)")
+		self.status = .starting
 
-				//	throw error
-				if let subchannel = self.eventChannel {
-					subchannel.pipeline.fireErrorCaught(GRPCStatus(code: .internalError, message: error))
+		let stream = self.cakeAgentClient.events(.init(), callOptions: .init(timeLimit: .none)) { event in
+			self.queue.async {
+				if case let .forwardEvent(event) = event.event {
+					self.handleEvent(event: event)
+				} else if case let .error(error) = event.event {
+					self.log.error("Event error: \(error)")
+
+					//	throw error
+					if let subchannel = self.eventChannel {
+						subchannel.pipeline.fireErrorCaught(GRPCStatus(code: .internalError, message: error))
+					}
 				}
 			}
 		}
 
 		stream.status.whenComplete { result in
-			switch result {
-			case .failure(let err):
-				Logger(self).error("Stream receive failure: \(err)")
-			case .success(let status):
-				if status.code != .ok {
-					Logger(self).error("Status failed: \(status)")
-					//self.eventChannel?.close(promise: nil)
-				} else {
-					Logger(self).info("Stream receive success: \(status)")
+			self.queue.sync {
+				switch result {
+				case .failure(let err):
+					Logger(self).error("Dynamic port forwarding stream receive failure: \(err)")
+				case .success(let status):
+					if status.code != .ok {
+						if status.code == .unavailable {
+							self.disconnected()
+						} else {
+							Logger(self).error("Dynamic port forwarding stream status: \(status)")
+							self.eventChannel?.close(promise: nil)
+						}
+					} else {
+						Logger(self).info("Dynamic port forwarding stream receive success: \(status)")
+					}
 				}
 			}
 		}
@@ -250,11 +295,12 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		_ = stream.subchannel.flatMap { channel in
 			self.eventChannel = channel
+			self.status = .started
+
+			self.log.info("Started dynamic port forwarding")
 
 			return channel.eventLoop.makeSucceededVoidFuture()
 		}
-
-		log.info("Started dynamic port forwarding")
 	}
 
 	override func createTCPPortForwardingServer(on: EventLoop, bindAddress: SocketAddress, remoteAddress: SocketAddress) throws -> any PortForwarding {
@@ -287,5 +333,30 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		}
 
 		try self.syncShutdownGracefully()
+	}
+
+	func disconnected() {
+		Logger(self).info("Dynamic port forwarding stream disconnected")
+		self.status = .stopping
+
+		try? self.removeDynamicPortForwarding()
+
+		if let subchannel = self.eventChannel {
+			let promise = subchannel.eventLoop.makePromise(of : Void.self)
+
+			promise.futureResult.whenComplete { _ in
+				self.status = .stopped
+				self.eventChannel = nil
+				self.eventStream = nil
+
+				self.log.info("Event channel closed")
+			}
+
+			self.close(promise: promise)
+		} else {
+			self.status = .stopped
+			self.eventStream = nil
+			self.log.info("Event channel already closed")
+		}
 	}
 }
