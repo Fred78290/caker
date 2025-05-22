@@ -471,7 +471,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 	
 	func closedByRemote(socket: SocketDevice) {
-		Logger(self).info("Close forwarding ports for VM \(self.vmLocation.name)")
+		Logger(self).info("Close forwarding ports for VM \(self.vmLocation.name), socket: \(socket.description)")
 		/*if socket.bind == self.vmLocation.agentURL.path {
 			Logger(self).info("Close forwarding ports for VM \(self.vmLocation.name)")
 			
@@ -487,6 +487,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 	
 	func connectionInitiatedByHost(socket: SocketDevice) {
+		Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name) socket: \(socket.description)")
+
 		/*if socket.bind == self.vmLocation.agentURL.path {
 			Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 			

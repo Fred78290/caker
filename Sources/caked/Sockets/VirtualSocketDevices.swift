@@ -138,9 +138,11 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				self.queue.sync {
 					self.channels.removeAll { $0 === channel }
 
-					if let delegate = self.delegate {
-						// Notify the delegate that the socket is closed
-						delegate.closedByRemote(socket: socket.socket)
+					if socket.connections.isEmpty {
+						if let delegate = self.delegate {
+							// Notify the delegate that the socket is closed
+							delegate.closedByRemote(socket: socket.socket)
+						}
 					}
 				}
 
