@@ -4,6 +4,19 @@ import NIOPosix
 import Virtualization
 import GRPCLib
 
+extension Error {
+	var isLoggable: Bool {
+		if self.localizedDescription.contains("Connection reset by peer") {
+			return false
+		}
+
+		if let error = self as? VZError {
+			return error.code != .invalidVirtualMachineState
+		}
+
+		return true
+	}
+}
 class EstablishedConnection {
 	let connection: VZVirtioSocketConnection
 	let channel: Channel
@@ -53,13 +66,15 @@ class SocketState {
 
 	// Called when the guest vsock is closed by remote or host socket is closed
 	func closedByRemote(_ fd: Int32) -> Channel? {
-		self.connections.first { $0.connection.fileDescriptor == fd }.map { connection in
-			self.connections.removeAll { $0 === connection }
-
-			Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
-
-			return connection.channel
+		guard let connection = self.connections.first(where: { $0.connection.fileDescriptor == fd }) else {
+			return nil
 		}
+
+		self.connections.removeAll { $0 === connection }
+
+		Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
+
+		return connection.channel
 	}
 
 	// Check broken connections
@@ -89,7 +104,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 	private var channels: [Channel]
 	private var socketDevice: VZVirtioSocketDevice?
 	private var idle: RepeatedTask?
-	
+
 	var delegate: VirtioSocketDeviceDelegate? = nil
 
 	private init(on: EventLoopGroup, sockets: [SocketDevice], delegate: VirtioSocketDeviceDelegate? = nil) {
@@ -231,15 +246,19 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					// Notify the promise that the connection is successful
 					promise.succeed(())
 				} catch {
-					if error.localizedDescription.contains("Connection reset by peer") == false {
+					if error.isLoggable {
+						// Log the error
 						Logger(self).error("Failed to connect to socket device on port:\(port) via fd:\(connection.fileDescriptor), \(error)")
 					}
+
+					// Notify the promise that the connection is failed
 					promise.fail(error)
 				}
 			case let .failure(error):
-				if error.localizedDescription.contains("Connection reset by peer") == false {
+				if error.isLoggable {
 					Logger(self).error("Failed to connect to socket device on port:\(port), \(error)")
 				}
+
 				// Notify the promise that the connection is failed
 				promise.fail(error)
 			}

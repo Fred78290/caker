@@ -404,15 +404,15 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			
 			try? config.save()
 			
-			if self.vmLocation.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortFarwarding) {
-				Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
-				
-				do {
-					try PortForwardingServer.createPortForwardingServer(group: on.next(), remoteAddress: runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortFarwarding: config.dynamicPortFarwarding, listeningAddress: self.vmLocation.agentURL, asSystem: asSystem)
-				} catch {
-					Logger(self).error(error)
-				}
-			}
+//			if self.vmLocation.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortFarwarding) {
+//				Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
+//				
+//				do {
+//					try PortForwardingServer.createPortForwardingServer(group: on.next(), remoteAddress: runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortFarwarding: config.dynamicPortFarwarding, listeningAddress: self.vmLocation.agentURL, asSystem: asSystem)
+//				} catch {
+//					Logger(self).error(error)
+//				}
+//			}
 		}
 		
 		response.whenFailure { error in
@@ -471,25 +471,13 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 	
 	func closedByRemote(socket: SocketDevice) {
-		Logger(self).info("Close forwarding ports for VM \(self.vmLocation.name), socket: \(socket.description)")
-		/*if socket.bind == self.vmLocation.agentURL.path {
-			Logger(self).info("Close forwarding ports for VM \(self.vmLocation.name)")
-			
-			do {
-				try PortForwardingServer.closeForwardedPort()
-			} catch {
-				Logger(self).error(error)
-			}
-		}*/
 	}
 	
 	func connectionInitiatedByGuest(socket: SocketDevice) {
 	}
 	
 	func connectionInitiatedByHost(socket: SocketDevice) {
-		Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name) socket: \(socket.description)")
-
-		/*if socket.bind == self.vmLocation.agentURL.path {
+		if socket.bind == self.vmLocation.agentURL.path {
 			Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
 			
 			do {
@@ -497,7 +485,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			} catch {
 				Logger(self).error(error)
 			}
-		}*/
+		}
 	}
 	
 }

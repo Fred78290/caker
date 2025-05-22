@@ -80,12 +80,19 @@ class PortForwardingServer {
 	}
 
 	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, listeningAddress: URL, asSystem: Bool) throws {
-		if portForwardingServer == nil {
+		guard let server = portForwardingServer else {
 			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortFarwarding: dynamicPortFarwarding, listeningAddress: listeningAddress, asSystem: asSystem)
 
 			try server.bind()
 
 			portForwardingServer = server
+			Logger(self).info("Port forwarding server created")
+			return
+		}
+
+		if case .stopped = server.portForwarder.status {
+			Logger(self).info("Port forwarding server is stopped, restarting")
+			try server.bind()
 		}
 	}
 
