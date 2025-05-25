@@ -70,7 +70,7 @@ class SocketState {
 			return nil
 		}
 
-		self.connections.removeAll { $0 === connection }
+		self.connections.removeAll { $0.connection.fileDescriptor == fd }
 
 		Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
 
