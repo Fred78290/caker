@@ -4,10 +4,60 @@ import Virtualization
 import Yams
 import GRPCLib
 import Gzip
+import Multipart
 
 let CAKEAGENT_SNAPSHOT = "0cd1f9a2"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
+
+extension Multipart {
+	mutating func appendCloudInitData(_ data: Data, withName name: String) {
+		var filePart = Part(body: data.base64EncodedString(options: .lineLength76Characters), contentType: "text/cloud-config")
+
+		filePart.setValue("base64", forHeaderField: "Content-Transfer-Encoding")
+		filePart.setValue("attachment", forHeaderField: "Content-Disposition")
+		filePart.setAttribute(attribute: "filename", value: name, forHeaderField: "Content-Disposition")
+
+		self.append(filePart)
+	}
+	
+	var cloudInit: String {
+		var descriptionString = self.headers.string()
+		
+		descriptionString += "MIME-Version: 1.0" + Multipart.CRLF
+		descriptionString += "Number-Attachments: \(self.entities.count)" + Multipart.CRLF
+
+		if let preamble = self.preamble {
+			descriptionString += preamble + Multipart.CRLF + Multipart.CRLF
+		} else {
+			descriptionString +=  Multipart.CRLF
+		}
+		
+		if self.entities.count > 0 {
+			for entity in self.entities {
+				descriptionString += self.boundary.delimiter + Multipart.CRLF + entity.description + Multipart.CRLF + Multipart.CRLF + Multipart.CRLF
+			}
+		} else {
+			descriptionString += self.boundary.delimiter + Multipart.CRLF + Multipart.CRLF
+		}
+		
+		descriptionString += self.boundary.distinguishedDelimiter
+		
+		return descriptionString
+	}
+}
+
+extension Data {
+	func buildConfigData() throws -> Data {
+		guard var cloudConfigHeader: Data = "#cloud-config\n".data(using: .ascii) else {
+			throw CloudInitGenerateError("unable to encode buildConfigData")
+		}
+
+		cloudConfigHeader.append(self)
+
+		return cloudConfigHeader
+	}
+}
 
 extension Dictionary {
 	init(contentsOf: URL) throws {
@@ -181,16 +231,16 @@ struct CloudConfigData: Codable {
 	var merge: [Merging]? = nil
 	var packageUpdate: Bool = false
 	var packageUpgrade = false
-	var growpart: Growpart? = Growpart()
-	var manageEtcHosts: Bool?
-	var packages: [String]?
+	var growpart: Growpart? = nil
+	var manageEtcHosts: Bool? = nil
+	var packages: [String]? = nil
 	var sshAuthorizedKeys: [String]?
-	var sshPwAuth: Bool?
+	var sshPwAuth: Bool? = nil
 	var systemInfo: SystemInfo?
-	var timezone: String?
-	var users: [User]?
+	var timezone: String? = nil
+	var users: [User]? = nil
 	var writeFiles: [WriteFile]?
-	var runcmd: [String]?
+	var runcmd: [String]? = nil
 
 	enum CodingKeys: String, CodingKey {
 		case merge = "merge_how"
@@ -208,18 +258,23 @@ struct CloudConfigData: Codable {
 		case runcmd = "runcmd"
 	}
 
+	init(merge: [Merging]) {
+		self.merge = merge
+	}
+
 	init(defaultUser: String = "admin",
 	     password: String? = nil,
 	     mainGroup: String = "adm",
 	     clearPassword: Bool = false,
 	     sshAuthorizedKeys: [String]? = nil,
 	     tz: String = "UTC",
-	     packages: [String]?,
+	     packages: [String]? = nil,
 	     writeFiles: [WriteFile]? = nil,
 	     runcmd: [String]? = nil,
 	     growPart: Bool = true,
 	     merge: [Merging]? = nil) {
 
+		self.growpart = Growpart()
 		self.merge = merge
 		self.manageEtcHosts = true
 		self.packages = packages
@@ -279,46 +334,28 @@ struct CloudConfigData: Codable {
 		let encoder: YAMLEncoder = newYAMLEncoder()
 		let encoded: String
 
-		if let encodedPart1 = encodedPart1 {
-			guard let encodedPart2 = try encoder.encode(self).data(using: .ascii) else {
+		if var userData = try encodedPart1?.buildConfigData() {
+			let merge: [Merging] = [
+				Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
+				Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
+			]
+
+			guard let vendorData = try encoder.encode(self).data(using: .ascii)?.buildConfigData() else {
 				throw CloudInitGenerateError("Failed to encode userData")
 			}
 
-			encoded =
-				"""
-				Content-Type: multipart/mixed; boundary="===============2389165605550749110=="
-				MIME-Version: 1.0
-				Number-Attachments: 2
+			guard let mergeData = "\r\n\(try encoder.encode(CloudConfigData(merge: merge)))".data(using: .ascii) else {
+				throw CloudInitGenerateError("Failed to encode mergeData")
+			}
 
-				--===============2389165605550749110==
-				Content-Type: text/cloud-config; charset="utf-8"
-				MIME-Version: 1.0
-				Content-Transfer-Encoding: base64
-				Content-Disposition: attachment; filename="vendor-data"
+			userData.append(mergeData)
 
+			var message = Multipart(type: .mixed)
+			
+			message.appendCloudInitData(vendorData, withName: "vendor-data")
+			message.appendCloudInitData(userData, withName: "user-data")
 
-				"""
-
-				+ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
-
-				"""
-
-
-				--===============2389165605550749110==
-				Content-Type: text/cloud-config; charset="utf-8"
-				MIME-Version: 1.0
-				Content-Transfer-Encoding: base64
-				Content-Disposition: attachment; filename="user-data"
-
-
-				"""
-				+ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
-
-				"""
-
-
-				--===============2389165605550749110==--
-				"""
+			encoded = message.cloudInit
 		} else {
 			encoded = "#cloud-config\n\(try encoder.encode(self))"
 		}
@@ -677,16 +714,6 @@ class CloudInit {
 		return vendorData
 	}
 
-	private func buildConfigData(_ userData: Data) throws -> Data {
-		guard var cloudConfigHeader: Data = "#cloud-config\n".data(using: .ascii) else {
-			throw CloudInitGenerateError("unable to encode buildConfigData")
-		}
-
-		cloudConfigHeader.append(userData)
-
-		return cloudConfigHeader
-	}
-
 	private func createUserData(config: CakeConfig) throws -> Data {
 		if let userData = self.userData {
 			return try buildVendorData(config: config, asSystem: self.asSystem).toCloudInit(userData)
@@ -712,7 +739,7 @@ class CloudInit {
 			}
 		}
 
-		return try buildConfigData(vendorData)
+		return try vendorData.buildConfigData()
 	}
 
 	private func createSeed(writer: ISOWriter, path: String, configUrl: URL) throws -> URL {

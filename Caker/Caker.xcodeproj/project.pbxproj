@@ -1209,6 +1209,7 @@
 				9B464C782D5A480000164BF5 /* XCLocalSwiftPackageReference "../../caker" */,
 				9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */,
 				9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
+				9B4148892DE4A07600FEAAB6 /* XCRemoteSwiftPackageReference "Multipart" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -1788,6 +1789,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 1.5.0;
+			};
+		};
+		9B4148892DE4A07600FEAAB6 /* XCRemoteSwiftPackageReference "Multipart" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Fyrts/Multipart.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.1.2;
 			};
 		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {

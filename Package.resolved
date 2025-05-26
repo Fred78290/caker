@@ -1,5 +1,5 @@
 {
-  "originHash" : "ed582ccf1e07cfc3c859fae43f5d3df73300ee3e7d6e64d8a190878f23bfae70",
+  "originHash" : "59a896dc5eba563b2c9c92025acf7dc686d3c978c5bf77ec250da77eace662c7",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -70,6 +70,14 @@
       "state" : {
         "revision" : "56e4285f64a34f543cba5d40805537ac927f9723",
         "version" : "1.11.0-OpenSSL-1-1-1w"
+      }
+    },
+    {
+      "identity" : "multipart",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Fred78290/Multipart.git",
+      "state" : {
+        "revision" : "9901ef8f452ed13e176c49e4b079f2daada76bde"
       }
     },
     {

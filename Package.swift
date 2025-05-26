@@ -43,7 +43,8 @@ let package = Package(
 		.package(url: "https://github.com/mhdhejazi/Dynamic", branch: "master"),
 		.package(url: "https://github.com/nicklockwood/SwiftFormat", from: "0.53.6"),
 		.package(url: "https://github.com/orchetect/SwiftRadix", from: "1.3.1"),
-		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", from: "1.8.0"),
+		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
+ 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", from: "1.8.0"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -94,6 +95,7 @@ let package = Package(
 				.product(name: "X509", package: "swift-certificates"),
 				.product(name: "XAttr", package: "swift-xattr"),
 				.product(name: "Yams", package: "Yams"),
+				.product(name: "Multipart", package: "multipart"),
 				.target(name: "GRPCLib"),
 				.target(name: "Qcow2convert"),
 			],
