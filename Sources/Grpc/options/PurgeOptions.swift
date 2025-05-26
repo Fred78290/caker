@@ -12,9 +12,6 @@ public struct PurgeOptions: ParsableArguments {
 	                           valueName: "n"))
 	public var olderThan: UInt? = nil
 
-	@Option(help: .hidden)
-	public var cacheBudget: UInt?
-
 	@Option(help: ArgumentHelp("Remove the least recently used entries that do not fit the specified space size budget n, expressed in gigabytes",
 	                           discussion: "For example, --space-budget=50 will effectively shrink all entries to a total size of 50 gigabytes.",
 	                           valueName: "n"))

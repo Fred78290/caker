@@ -159,10 +159,14 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 
 		if self.hasOlderThan {
 			options.olderThan = UInt(self.olderThan)
+		} else {
+			options.olderThan = nil
 		}
 
 		if self.hasSpaceBudget {
 			options.spaceBudget = UInt(self.spaceBudget)
+		} else {
+			options.spaceBudget = nil
 		}
 
 		return PurgeHandler(options: options)

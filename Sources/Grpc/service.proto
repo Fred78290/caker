@@ -577,8 +577,7 @@ message Caked {
 	message PurgeRequest {
 		optional string entries = 1;
 		optional int32 olderThan = 2;
-		optional int32 cacheBudget = 3;
-		optional int32 spaceBudget = 4;
+		optional int32 spaceBudget = 3;
 		optional bool gc = 5;
 	}
 

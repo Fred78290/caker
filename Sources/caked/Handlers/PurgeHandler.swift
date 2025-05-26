@@ -9,7 +9,7 @@ struct PurgeHandler: CakedCommand {
 	var options: PurgeOptions
 
 	@discardableResult static func purge(direct: Bool, asSystem: Bool, options: PurgeOptions) throws -> String {
-		var arguments: [String] = [ options.entries ]
+		var arguments: [String] = [ "--entries=\(options.entries)" ]
 
 		if let olderThan = options.olderThan {
 			arguments.append("--older-than=\(olderThan)")

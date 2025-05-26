@@ -186,10 +186,6 @@ extension Caked_PurgeRequest {
 			self.olderThan = Int32(olderThan)
 		}
 
-		if let cacheBudget = command.purge.cacheBudget {
-			self.cacheBudget = Int32(cacheBudget)
-		}
-
 		if let spaceBudget = command.purge.spaceBudget {
 			self.spaceBudget = Int32(spaceBudget)
 		}

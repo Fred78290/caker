@@ -2568,15 +2568,6 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `olderThan`. Subsequent reads from it will return its default value.
     public mutating func clearOlderThan() {self._olderThan = nil}
 
-    public var cacheBudget: Int32 {
-      get {return _cacheBudget ?? 0}
-      set {_cacheBudget = newValue}
-    }
-    /// Returns true if `cacheBudget` has been explicitly set.
-    public var hasCacheBudget: Bool {return self._cacheBudget != nil}
-    /// Clears the value of `cacheBudget`. Subsequent reads from it will return its default value.
-    public mutating func clearCacheBudget() {self._cacheBudget = nil}
-
     public var spaceBudget: Int32 {
       get {return _spaceBudget ?? 0}
       set {_spaceBudget = newValue}
@@ -2601,7 +2592,6 @@ public struct Caked_Caked: Sendable {
 
     fileprivate var _entries: String? = nil
     fileprivate var _olderThan: Int32? = nil
-    fileprivate var _cacheBudget: Int32? = nil
     fileprivate var _spaceBudget: Int32? = nil
     fileprivate var _gc: Bool? = nil
   }
@@ -6977,8 +6967,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "entries"),
     2: .same(proto: "olderThan"),
-    3: .same(proto: "cacheBudget"),
-    4: .same(proto: "spaceBudget"),
+    3: .same(proto: "spaceBudget"),
     5: .same(proto: "gc"),
   ]
 
@@ -6990,8 +6979,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._entries) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self._olderThan) }()
-      case 3: try { try decoder.decodeSingularInt32Field(value: &self._cacheBudget) }()
-      case 4: try { try decoder.decodeSingularInt32Field(value: &self._spaceBudget) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self._spaceBudget) }()
       case 5: try { try decoder.decodeSingularBoolField(value: &self._gc) }()
       default: break
       }
@@ -7009,11 +6997,8 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     try { if let v = self._olderThan {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
     } }()
-    try { if let v = self._cacheBudget {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
-    } }()
     try { if let v = self._spaceBudget {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 4)
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
     } }()
     try { if let v = self._gc {
       try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
@@ -7024,7 +7009,6 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   public static func ==(lhs: Caked_Caked.PurgeRequest, rhs: Caked_Caked.PurgeRequest) -> Bool {
     if lhs._entries != rhs._entries {return false}
     if lhs._olderThan != rhs._olderThan {return false}
-    if lhs._cacheBudget != rhs._cacheBudget {return false}
     if lhs._spaceBudget != rhs._spaceBudget {return false}
     if lhs._gc != rhs._gc {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}

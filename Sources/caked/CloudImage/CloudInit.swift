@@ -294,12 +294,12 @@ struct CloudConfigData: Codable {
 				Content-Type: text/cloud-config; charset="utf-8"
 				MIME-Version: 1.0
 				Content-Transfer-Encoding: base64
-				Content-Disposition: attachment; filename="user-data"
+				Content-Disposition: attachment; filename="vendor-data"
 
 
 				"""
 
-				+ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
+				+ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
 
 				"""
 
@@ -308,11 +308,11 @@ struct CloudConfigData: Codable {
 				Content-Type: text/cloud-config; charset="utf-8"
 				MIME-Version: 1.0
 				Content-Transfer-Encoding: base64
-				Content-Disposition: attachment; filename="vendor-data"
+				Content-Disposition: attachment; filename="user-data"
 
 
 				"""
-				+ encodedPart2.base64EncodedString(options: .lineLength76Characters) +
+				+ encodedPart1.base64EncodedString(options: .lineLength76Characters) +
 
 				"""
 
