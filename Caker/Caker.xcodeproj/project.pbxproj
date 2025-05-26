@@ -26,7 +26,6 @@
 /* Begin PBXBuildFile section */
 		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
 		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
-		9B18FA242DAFF79000603B92 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B18FA232DAFF79000603B92 /* CakeAgentLib */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
 		9B2177BE2D6504AD0092B182 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2177BD2D6504AD0092B182 /* VMRunHandler.swift */; };
 		9B24FFD72D8AE3E10050BFAD /* mount.grpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD02D8AE3E10050BFAD /* mount.grpc.swift */; };
@@ -34,9 +33,11 @@
 		9B24FFDA2D8AE3E10050BFAD /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD32D8AE3E10050BFAD /* XPCMountService.swift */; };
 		9B24FFDB2D8AE3E10050BFAD /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD12D8AE3E10050BFAD /* mount.pb.swift */; };
 		9B24FFDC2D8AE3E10050BFAD /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B24FFD52D8AE3E10050BFAD /* MountService.swift */; };
+		9B2828152DE4DA9C00163078 /* Multipart in Frameworks */ = {isa = PBXBuildFile; productRef = 9B2828142DE4DA9C00163078 /* Multipart */; };
 		9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA12DDB259E00B5A0AF /* ArgumentParser */; };
 		9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */; };
 		9B28BFA62DDB25CA00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA52DDB25CA00B5A0AF /* ArgumentParser */; };
+		9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30992A2DE4DC0C00231C1E /* CakeAgentLib */; };
 		9B4229E52DD4F8310042F01F /* CakedTCPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E22DD4F8310042F01F /* CakedTCPPortForwardingServer.swift */; };
 		9B4229E62DD4F8310042F01F /* CakedPortForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E12DD4F8310042F01F /* CakedPortForwarder.swift */; };
 		9B4229E72DD4F8310042F01F /* CakedUDPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4229E32DD4F8310042F01F /* CakedUDPPortForwardingServer.swift */; };
@@ -202,14 +203,12 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
-		9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B58EE912D637313001B8347 /* CakeAgentLib */; };
 		9B7C80782DA91131003E95FA /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80772DA91128003E95FA /* Images.swift */; };
 		9B7C807A2DAA67FF003E95FA /* VirtualMachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */; };
 		9B7C807C2DAA6C88003E95FA /* Mounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807B2DAA6C84003E95FA /* Mounts.swift */; };
 		9B7C807E2DAA70A4003E95FA /* BridgedNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807D2DAA70A2003E95FA /* BridgedNetwork.swift */; };
 		9B7C80802DAA7292003E95FA /* RemoteEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807F2DAA728F003E95FA /* RemoteEntry.swift */; };
 		9B7C80822DAA742C003E95FA /* Templates.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80812DAA7428003E95FA /* Templates.swift */; };
-		9B7C808B2DAAA77F003E95FA /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C808A2DAAA77F003E95FA /* CakeAgentLib */; };
 		9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027652D997EAC002C680E /* VZVMNet.swift */; };
 		9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027682D997EAC002C680E /* VZVMNetHandler.swift */; };
 		9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8027672D997EAC002C680E /* VZVMNetFileHandle.swift */; };
@@ -257,6 +256,7 @@
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDD95662DB8D5B400E46244 /* cakectl in Resources */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; };
+		9BDFBF132DE4CF66001616BA /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9BDFBF122DE4CF66001616BA /* CakeAgentLib */; };
 		9BE2E7AC2D5C9E19000CA07F /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AB2D5C9E19000CA07F /* Rename.swift */; };
 		9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7AD2D5C9E2A000CA07F /* RenameHandler.swift */; };
 		9BE2E7B82D5F85CE000CA07F /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7B62D5F85CE000CA07F /* LogoutHandler.swift */; };
@@ -544,6 +544,7 @@
 				9B464B912D5A3F7B00164BF5 /* Antlr4Static in Frameworks */,
 				9B464BD12D5A413300164BF5 /* NIOEmbedded in Frameworks */,
 				9B464B852D5A3F0300164BF5 /* Dynamic in Frameworks */,
+				9B2828152DE4DA9C00163078 /* Multipart in Frameworks */,
 				9B464BF22D5A41A200164BF5 /* SwiftProtobuf in Frameworks */,
 				9B464BCF2D5A413300164BF5 /* NIOCore in Frameworks */,
 				9B464BA62D5A404A00164BF5 /* DMRetry in Frameworks */,
@@ -565,7 +566,7 @@
 				9B28BFA62DDB25CA00B5A0AF /* ArgumentParser in Frameworks */,
 				9B464BDC2D5A416F00164BF5 /* NIOExtras in Frameworks */,
 				9B464BA92D5A406000164BF5 /* XAttr in Frameworks */,
-				9B58EE922D637313001B8347 /* CakeAgentLib in Frameworks */,
+				9BDFBF132DE4CF66001616BA /* CakeAgentLib in Frameworks */,
 				9B464BC12D5A40F600164BF5 /* NIOSSH in Frameworks */,
 				9B464BAF2D5A408E00164BF5 /* Yams in Frameworks */,
 				9B464BD32D5A413300164BF5 /* NIOFoundationCompat in Frameworks */,
@@ -598,7 +599,6 @@
 				9B464C102D5A426200164BF5 /* Crypto in Frameworks */,
 				9B464C2E2D5A426200164BF5 /* NIOPosix in Frameworks */,
 				9B464C852D5A489E00164BF5 /* DMRetry in Frameworks */,
-				9B7C808B2DAAA77F003E95FA /* CakeAgentLib in Frameworks */,
 				9B464C872D5A48A900164BF5 /* Dynamic in Frameworks */,
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
 				9B464C482D5A426200164BF5 /* Logging in Frameworks */,
@@ -613,8 +613,8 @@
 			files = (
 				9B464C712D5A464B00164BF5 /* GRPC in Frameworks */,
 				9B464C732D5A468A00164BF5 /* NIOPortForwarding in Frameworks */,
+				9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */,
 				9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */,
-				9B18FA242DAFF79000603B92 /* CakeAgentLib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1068,8 +1068,9 @@
 				9B464BFC2D5A41E600164BF5 /* NIOPortForwarding */,
 				9B464BFF2D5A41FD00164BF5 /* Gzip */,
 				9B464C562D5A44FB00164BF5 /* NIOHTTP1 */,
-				9B58EE912D637313001B8347 /* CakeAgentLib */,
 				9B28BFA52DDB25CA00B5A0AF /* ArgumentParser */,
+				9BDFBF122DE4CF66001616BA /* CakeAgentLib */,
+				9B2828142DE4DA9C00163078 /* Multipart */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1114,7 +1115,6 @@
 				9B464C8A2D5A48F500164BF5 /* Semaphore */,
 				9B464C8F2D5A492F00164BF5 /* X509 */,
 				9B464C912D5A493900164BF5 /* XAttr */,
-				9B7C808A2DAAA77F003E95FA /* CakeAgentLib */,
 				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
 			);
 			productName = cakectl;
@@ -1137,8 +1137,8 @@
 			packageProductDependencies = (
 				9B464C702D5A464B00164BF5 /* GRPC */,
 				9B464C722D5A468A00164BF5 /* NIOPortForwarding */,
-				9B18FA232DAFF79000603B92 /* CakeAgentLib */,
 				9B28BFA12DDB259E00B5A0AF /* ArgumentParser */,
+				9B30992A2DE4DC0C00231C1E /* CakeAgentLib */,
 			);
 			productName = GRPCLib;
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
@@ -1207,9 +1207,9 @@
 				9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */,
 				9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */,
 				9B464C782D5A480000164BF5 /* XCLocalSwiftPackageReference "../../caker" */,
-				9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */,
 				9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
-				9B4148892DE4A07600FEAAB6 /* XCRemoteSwiftPackageReference "Multipart" */,
+				9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */,
+				9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -1791,14 +1791,6 @@
 				version = 1.5.0;
 			};
 		};
-		9B4148892DE4A07600FEAAB6 /* XCRemoteSwiftPackageReference "Multipart" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Fyrts/Multipart.git";
-			requirement = {
-				kind = exactVersion;
-				version = 0.1.2;
-			};
-		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mhdhejazi/Dynamic";
@@ -2012,7 +2004,7 @@
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.2.3;
+				version = 0.2.7;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
@@ -2023,9 +2015,17 @@
 				kind = branch;
 			};
 		};
-		9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */ = {
+		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Fred78290/cakeagent";
+			repositoryURL = "https://github.com/Fred78290/Multipart";
+			requirement = {
+				kind = revision;
+				revision = 9901ef8f452ed13e176c49e4b079f2daada76bde;
+			};
+		};
+		9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
 				revision = abd3c6b008acba2c4f59dcd503ded2816d0e526d;
@@ -2034,10 +2034,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9B18FA232DAFF79000603B92 /* CakeAgentLib */ = {
+		9B2828142DE4DA9C00163078 /* Multipart */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
-			productName = CakeAgentLib;
+			package = 9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */;
+			productName = Multipart;
 		};
 		9B28BFA12DDB259E00B5A0AF /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2053,6 +2053,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
 			productName = ArgumentParser;
+		};
+		9B30992A2DE4DC0C00231C1E /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
 		};
 		9B464B842D5A3F0300164BF5 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2344,14 +2349,9 @@
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
 		};
-		9B58EE912D637313001B8347 /* CakeAgentLib */ = {
+		9BDFBF122DE4CF66001616BA /* CakeAgentLib */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
-			productName = CakeAgentLib;
-		};
-		9B7C808A2DAAA77F003E95FA /* CakeAgentLib */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B58EE902D6372C2001B8347 /* XCRemoteSwiftPackageReference "cakeagent" */;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
 		};
 /* End XCSwiftPackageProductDependency section */
