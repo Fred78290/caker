@@ -83,7 +83,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 
 	init(from: MappedPort.Proto) {
 		switch (from) {
-			case .tcp: self = .tcp
+		case .tcp: self = .tcp
 		case .udp: self = .udp
 		default: fatalError()
 		}

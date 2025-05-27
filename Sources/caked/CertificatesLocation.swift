@@ -35,9 +35,9 @@ struct CertificatesLocation: Codable {
 		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path) == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
 			try RSAKeyGenerator.generateClientServerCertificate(subject: subject, numberOfYears: numberOfYears,
-																	caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
-																	serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
-																	clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
+			                                                    caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
+			                                                    serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
+			                                                    clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
 		}
 
 		return self

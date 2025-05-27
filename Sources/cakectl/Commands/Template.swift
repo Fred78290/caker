@@ -5,7 +5,7 @@ import GRPC
 
 struct Template: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage simplestream remote",
-	                                                subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
+	                                                                      subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
 
 	struct CreateTemplate : GrpcParsableCommand {
 		static let configuration = TemplateCreateOptions.configuration

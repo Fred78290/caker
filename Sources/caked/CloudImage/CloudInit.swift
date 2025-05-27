@@ -20,10 +20,10 @@ extension Multipart {
 
 		self.append(filePart)
 	}
-	
+
 	var cloudInit: String {
 		var descriptionString = self.headers.string()
-		
+
 		descriptionString += "MIME-Version: 1.0" + Multipart.CRLF
 		descriptionString += "Number-Attachments: \(self.entities.count)" + Multipart.CRLF
 
@@ -32,7 +32,7 @@ extension Multipart {
 		} else {
 			descriptionString +=  Multipart.CRLF
 		}
-		
+
 		if self.entities.count > 0 {
 			for entity in self.entities {
 				descriptionString += self.boundary.delimiter + Multipart.CRLF + entity.description + Multipart.CRLF + Multipart.CRLF + Multipart.CRLF
@@ -40,9 +40,9 @@ extension Multipart {
 		} else {
 			descriptionString += self.boundary.delimiter + Multipart.CRLF + Multipart.CRLF
 		}
-		
+
 		descriptionString += self.boundary.distinguishedDelimiter
-		
+
 		return descriptionString
 	}
 }

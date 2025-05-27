@@ -340,7 +340,7 @@ class VZVMNet: @unchecked Sendable {
 			if status != .VMNET_SUCCESS {
 				self.logger.error("Failed to stop interface \(status.stringValue)")
 			}
-		
+
 			self.iface = nil
 		}
 	}

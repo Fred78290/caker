@@ -9,58 +9,58 @@ import XCTest
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
 let networkConfig = 
-"""
-#cloud-config
-network:
-  version: 2
-  ethernets:
-    enp0s1:
-      match:
-        name: enp0s1
-      dhcp4: true
-      dhcp-identifier: mac
-      addresses:
-      - $$Shared_Net_Address$$/24
-      nameservers:
-        addresses:
-        - 8.8.8.8
-        search:
-        - aldunelabs.com
-"""
+	"""
+	#cloud-config
+	network:
+	  version: 2
+	  ethernets:
+	    enp0s1:
+	      match:
+	        name: enp0s1
+	      dhcp4: true
+	      dhcp-identifier: mac
+	      addresses:
+	      - $$Shared_Net_Address$$/24
+	      nameservers:
+	        addresses:
+	        - 8.8.8.8
+	        search:
+	        - aldunelabs.com
+	"""
 
 let userData = 
-"""
-#cloud-config
-package_update: false
-package_upgrade: false
-timezone: Europe/Paris
-write_files:
-- content: |
-    apiVersion: kubelet.config.k8s.io/v1
-    kind: CredentialProviderConfig
-    providers:
-      - name: ecr-credential-provider
-        matchImages:
-          - "*.dkr.ecr.*.amazonaws.com"
-          - "*.dkr.ecr.*.amazonaws.cn"
-          - "*.dkr.ecr-fips.*.amazonaws.com"
-          - "*.dkr.ecr.us-iso-east-1.c2s.ic.gov"
-          - "*.dkr.ecr.us-isob-east-1.sc2s.sgov.gov"
-        defaultCacheDuration: "12h"
-        apiVersion: credentialprovider.kubelet.k8s.io/v1
-        args:
-          - get-credentials
-        env:
-          - name: AWS_ACCESS_KEY_ID 
-            value: HIDDEN
-          - name: AWS_SECRET_ACCESS_KEY
-            value: HIDDEN
-  owner: root:root
-  path: /var/lib/rancher/credentialprovider/config.yaml
-  permissions: '0644'
-runcmd:
-- hostnamectl set-hostname openstack-dev-k3s-worker-02
-"""
+	"""
+	#cloud-config
+	package_update: false
+	package_upgrade: false
+	timezone: Europe/Paris
+	write_files:
+	- content: |
+	    apiVersion: kubelet.config.k8s.io/v1
+	    kind: CredentialProviderConfig
+	    providers:
+	      - name: ecr-credential-provider
+	        matchImages:
+	          - "*.dkr.ecr.*.amazonaws.com"
+	          - "*.dkr.ecr.*.amazonaws.cn"
+	          - "*.dkr.ecr-fips.*.amazonaws.com"
+	          - "*.dkr.ecr.us-iso-east-1.c2s.ic.gov"
+	          - "*.dkr.ecr.us-isob-east-1.sc2s.sgov.gov"
+	        defaultCacheDuration: "12h"
+	        apiVersion: credentialprovider.kubelet.k8s.io/v1
+	        args:
+	          - get-credentials
+	        env:
+	          - name: AWS_ACCESS_KEY_ID 
+	            value: HIDDEN
+	          - name: AWS_SECRET_ACCESS_KEY
+	            value: HIDDEN
+	  owner: root:root
+	  path: /var/lib/rancher/credentialprovider/config.yaml
+	  permissions: '0644'
+	runcmd:
+	- hostnamectl set-hostname openstack-dev-k3s-worker-02
+	"""
 
 let uuid = UUID().uuidString
 
@@ -199,7 +199,7 @@ final class CloudInitTests: XCTestCase {
 	func testBuildVMWithQCow2() async throws {
 		let tmpQcow2 = try Home(asSystem: false).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
 		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, asSystem: false)
-		
+
 		defer {
 			try? tempLocation.delete()
 			try? tmpQcow2.delete()
@@ -223,7 +223,7 @@ final class CloudInitTests: XCTestCase {
 	func testBuildMustFail() async throws {
 		do {
 			try await buildVM(name: noble_must_fail_image, image: "zlib://devregistry.aldunelabs.com/ubuntu:latest")
-	        XCTFail("Error needs to be thrown")
+			XCTFail("Error needs to be thrown")
 		} catch {
 		}
 	}
@@ -236,14 +236,14 @@ final class CloudInitTests: XCTestCase {
 
 		promise.futureResult.whenComplete { result in
 			switch result {
-				case let .success(name):
-					print("VM Stopped: \(name)")
-					break
-				case let .failure(err):
-					XCTFail(err.localizedDescription)
+			case let .success(name):
+				print("VM Stopped: \(name)")
+				break
+			case let .failure(err):
+				XCTFail(err.localizedDescription)
 			}
 		}
-		
+
 		// Start VM
 		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)
 

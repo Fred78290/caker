@@ -104,12 +104,12 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 						Logger(self).error("Failed to read \(packetLen) bytes")
 					}
 					/*
-					let readerIndex = byteBuffer.readerIndex
+					 let readerIndex = byteBuffer.readerIndex
 
-					byteBuffer.withUnsafeMutableReadableBytes {
-						let unsafeData = Data(bytesNoCopy: $0.baseAddress! + readerIndex, count: Int(packetLen), deallocator: .none)
-						partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
-					}*/
+					 byteBuffer.withUnsafeMutableReadableBytes {
+					 	let unsafeData = Data(bytesNoCopy: $0.baseAddress! + readerIndex, count: Int(packetLen), deallocator: .none)
+					 	partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
+					 }*/
 
 					readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
 					//Logger(self).info("Remains \(readableBytes) bytes")
@@ -117,22 +117,22 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 
 				//Logger(self).info("Done reading")
 
-/*				byteBuffer.withUnsafeMutableReadableBytes {
-					var baseAddress = $0.baseAddress!
+				/*				byteBuffer.withUnsafeMutableReadableBytes {
+				 	var baseAddress = $0.baseAddress!
 
-					while readableBytes > 0 {
-						let packetLen = baseAddress.assumingMemoryBound(to: UInt32.self).pointee.bigEndian
-						let unsafeData = Data(bytesNoCopy: baseAddress + MemoryLayout<UInt32>.size, count: Int(packetLen), deallocator: .none)
+				 	while readableBytes > 0 {
+				 		let packetLen = baseAddress.assumingMemoryBound(to: UInt32.self).pointee.bigEndian
+				 		let unsafeData = Data(bytesNoCopy: baseAddress + MemoryLayout<UInt32>.size, count: Int(packetLen), deallocator: .none)
 
-						partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
-	
-						readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
-						baseAddress += Int(packetLen) + MemoryLayout<UInt32>.size
-					}
-				}
+				 		partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
 
-				byteBuffer.moveReaderIndex(forwardBy: byteBuffer.readableBytes)
-*/
+				 		readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
+				 		baseAddress += Int(packetLen) + MemoryLayout<UInt32>.size
+				 	}
+				 }
+
+				 byteBuffer.moveReaderIndex(forwardBy: byteBuffer.readableBytes)
+				 */
 			} else {
 				var buffer = context.channel.allocator.buffer(capacity: MemoryLayout<UInt32>.size + readableBytes)
 

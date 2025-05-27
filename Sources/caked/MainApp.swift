@@ -119,7 +119,7 @@ struct AboutCaker: View {
 		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
 		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
 		infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
-		
+
 		if let runningIP = config.runningIP {
 			infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
 		}

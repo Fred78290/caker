@@ -3,14 +3,14 @@ import Algorithms
 import AsyncAlgorithms
 
 final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
-  let progress: Progress
-  init(_ progress: Progress) throws {
-	self.progress = progress
-  }
+	let progress: Progress
+	init(_ progress: Progress) throws {
+		self.progress = progress
+	}
 
-  func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
-	self.progress.addChild(task.progress, withPendingUnitCount: self.progress.totalUnitCount)
-  }
+	func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+		self.progress.addChild(task.progress, withPendingUnitCount: self.progress.totalUnitCount)
+	}
 }
 
 class Curl {

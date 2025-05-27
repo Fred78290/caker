@@ -12,33 +12,33 @@ import Synchronization
 import Foundation
 
 extension NSObject {
-    static func unretainedReference<R: NSObject>(_ value: UnsafeRawPointer) -> R {
-        return unsafeBitCast(value, to: R.self)
-    }
-    
-    static func unretainedReference<R: NSObject>(_ value: UnsafeMutableRawPointer) -> R {
-        return unretainedReference(UnsafeRawPointer(value))
-    }
+	static func unretainedReference<R: NSObject>(_ value: UnsafeRawPointer) -> R {
+		return unsafeBitCast(value, to: R.self)
+	}
 
-    func withRetainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
-        let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
-        return work(selfPtr)
-    }
-    
-    func withRetainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
-        let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
-        return work(selfPtr)
-    }
-    
-    func withUnretainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
-        let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
-        return work(selfPtr)
-    }
-    
-    func withUnretainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
-        let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
-        return work(selfPtr)
-    }
+	static func unretainedReference<R: NSObject>(_ value: UnsafeMutableRawPointer) -> R {
+		return unretainedReference(UnsafeRawPointer(value))
+	}
+
+	func withRetainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
+		let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
+		return work(selfPtr)
+	}
+
+	func withRetainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
+		let selfPtr = Unmanaged.passRetained(self).toOpaque().assumingMemoryBound(to: T.self)
+		return work(selfPtr)
+	}
+
+	func withUnretainedReference<T, R>(_ work: (UnsafePointer<T>) -> R) -> R {
+		let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
+		return work(selfPtr)
+	}
+
+	func withUnretainedReference<T, R>(_ work: (UnsafeMutablePointer<T>) -> R) -> R {
+		let selfPtr = Unmanaged.passUnretained(self).toOpaque().assumingMemoryBound(to: T.self)
+		return work(selfPtr)
+	}
 }
 
 extension NSLock {
@@ -60,33 +60,33 @@ internal func _NSErrorWithErrno(_ posixErrno : Int32, reading : Bool, path : Str
 	var cocoaError : CocoaError.Code
 	if reading {
 		switch posixErrno {
-			case EFBIG: cocoaError = .fileReadTooLarge
-			case ENOENT: cocoaError = .fileReadNoSuchFile
-			case EPERM, EACCES: cocoaError = .fileReadNoPermission
-			case ENAMETOOLONG: cocoaError = .fileReadUnknown
-			default: cocoaError = .fileReadUnknown
+		case EFBIG: cocoaError = .fileReadTooLarge
+		case ENOENT: cocoaError = .fileReadNoSuchFile
+		case EPERM, EACCES: cocoaError = .fileReadNoPermission
+		case ENAMETOOLONG: cocoaError = .fileReadUnknown
+		default: cocoaError = .fileReadUnknown
 		}
 	} else {
 		switch posixErrno {
-			case ENOENT: cocoaError = .fileNoSuchFile
-			case EPERM, EACCES: cocoaError = .fileWriteNoPermission
-			case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
-			case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
-			case EROFS: cocoaError = .fileWriteVolumeReadOnly
-			case EEXIST: cocoaError = .fileWriteFileExists
-			default: cocoaError = .fileWriteUnknown
+		case ENOENT: cocoaError = .fileNoSuchFile
+		case EPERM, EACCES: cocoaError = .fileWriteNoPermission
+		case ENAMETOOLONG: cocoaError = .fileWriteInvalidFileName
+		case EDQUOT, ENOSPC: cocoaError = .fileWriteOutOfSpace
+		case EROFS: cocoaError = .fileWriteVolumeReadOnly
+		case EEXIST: cocoaError = .fileWriteFileExists
+		default: cocoaError = .fileWriteUnknown
 		}
 	}
-	
+
 	var userInfo = extraUserInfo ?? [String : Any]()
 	if let path = path {
 		userInfo[NSFilePathErrorKey] = path
 	} else if let url = url {
 		userInfo[NSURLErrorKey] = url
 	}
-	
+
 	userInfo[NSUnderlyingErrorKey] = NSError(domain: NSPOSIXErrorDomain, code: Int(posixErrno))
-	
+
 	return NSError(domain: NSCocoaErrorDomain, code: cocoaError.rawValue, userInfo: userInfo)
 }
 typealias CFPosixSpawnFileActionsRef = UnsafeMutablePointer<posix_spawn_file_actions_t?>
@@ -182,42 +182,42 @@ private func runLoopSourceRelease(_ pointer : UnsafeRawPointer?) -> Void {
 // Equal method for run loop source
 
 private func runloopIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) -> DarwinBoolean {
-	
+
 	let unmanagedrunLoopA = Unmanaged<AnyObject>.fromOpaque(a!)
 	guard let runLoopA = unmanagedrunLoopA.takeUnretainedValue() as? RunLoop else {
 		return false
 	}
-	
+
 	let unmanagedRunLoopB = Unmanaged<AnyObject>.fromOpaque(a!)
 	guard let runLoopB = unmanagedRunLoopB.takeUnretainedValue() as? RunLoop else {
 		return false
 	}
-	
+
 	guard runLoopA == runLoopB else {
 		return false
 	}
-	
+
 	return true
 }
 
 
 // Equal method for process in run loop source
 private func processIsEqual(_ a : UnsafeRawPointer?, _ b : UnsafeRawPointer?) -> DarwinBoolean {
-	
+
 	let unmanagedProcessA = Unmanaged<AnyObject>.fromOpaque(a!)
 	guard let processA = unmanagedProcessA.takeUnretainedValue() as? ProcessWithSharedFileHandle else {
 		return false
 	}
-	
+
 	let unmanagedProcessB = Unmanaged<AnyObject>.fromOpaque(a!)
 	guard let processB = unmanagedProcessB.takeUnretainedValue() as? ProcessWithSharedFileHandle else {
 		return false
 	}
-	
+
 	guard processA == processB else {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -227,7 +227,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			static var done = false
 			static let lock = NSLock()
 		}
-		
+
 		Once.lock.synchronized {
 			if !Once.done {
 				let thread = Thread {
@@ -244,15 +244,15 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 					}
 
 					CFRunLoopAddSource(managerThreadRunLoop?.getCFRunLoop(), CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &emptySourceContext), CFRunLoopMode.defaultMode)
-					
+
 					managerThreadRunLoopIsRunningCondition.lock()
-					
+
 					CFRunLoopPerformBlock(managerThreadRunLoop?.getCFRunLoop(), "kCFRunLoopDefaultMode" as CFString) {
 						managerThreadRunLoopIsRunning = true
 						managerThreadRunLoopIsRunningCondition.broadcast()
 						managerThreadRunLoopIsRunningCondition.unlock()
 					}
-					
+
 					managerThreadRunLoop?.run()
 					fatalError("ProcessWithSharedFileHandle manager run loop exited unexpectedly; it should run forever once initialized")
 				}
@@ -273,7 +273,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 	// Upon process death a notification will be sent
 	//   { Name = ProcessDidTerminateNotification; object = process; }
 	//
-	
+
 	public override init() {
 
 	}
@@ -324,24 +324,24 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 	open var standardInput: Any? = FileHandle.standardInput {
 		willSet {
 			precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
-						 "standardInput must be either Pipe or FileHandle")
+			             "standardInput must be either Pipe or FileHandle")
 		}
 	}
 
 	open var standardOutput: Any? = FileHandle.standardOutput {
 		willSet {
 			precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
-						 "standardOutput must be either Pipe or FileHandle")
+			             "standardOutput must be either Pipe or FileHandle")
 		}
 	}
-	
+
 	open var standardError: Any? = FileHandle.standardError {
 		willSet {
 			precondition(newValue is Pipe || newValue is FileHandle || newValue == nil,
-						 "standardError must be either Pipe or FileHandle")
+			             "standardError must be either Pipe or FileHandle")
 		}
 	}
-	
+
 	open var sharedFileHandles: [FileHandle]? = nil
 
 	private class NonexportedCFRunLoopSourceContextStorage {
@@ -357,19 +357,19 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		get { _runLoopSourceContextStorage.value }
 		set { _runLoopSourceContextStorage.value = newValue }
 	}
-	
+
 	private var _runLoopSourceStorage = NonexportedCFRunLoopSourceStorage()
 	private final var runLoopSource: CFRunLoopSource? {
 		get { _runLoopSourceStorage.value }
 		set { _runLoopSourceStorage.value = newValue }
 	}
-	
+
 	fileprivate weak var runLoop : RunLoop? = nil
-	
+
 	private var processLaunchedCondition = NSCondition()
-	
+
 	// Actions
-	
+
 	@available(*, deprecated, renamed: "run")
 	open func launch() {
 		do {
@@ -428,7 +428,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		// can return success even if executing the program fails, eg fork() works but execve()
 		// fails, so try and check as much as possible beforehand.
 		var fsRep = FileManager.default.fileSystemRepresentation(withPath: launchPath)
-		
+
 		var statInfo = stat()
 		guard stat(fsRep, &statInfo) == 0 else {
 			throw _NSErrorWithErrno(errno, reading: true, path: launchPath)
@@ -444,12 +444,12 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		}
 
 		// Convert the arguments array into a posix_spawn-friendly format
-		
+
 		var args = [launchPath]
 		if let arguments = self.arguments {
 			args.append(contentsOf: arguments)
 		}
-		
+
 		let argv : UnsafeMutablePointer<UnsafeMutablePointer<Int8>?> = args.withUnsafeBufferPointer {
 			let array : UnsafeBufferPointer<String> = $0
 			let buffer = UnsafeMutablePointer<UnsafeMutablePointer<Int8>?>.allocate(capacity: array.count + 1)
@@ -457,7 +457,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			buffer[array.count] = nil
 			return buffer
 		}
-		
+
 		defer {
 			for arg in argv ..< argv + args.count {
 				free(UnsafeMutableRawPointer(arg.pointee))
@@ -491,7 +491,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		context.retain = runLoopSourceRetain
 		context.release = runLoopSourceRelease
 		context.info = Unmanaged.passUnretained(self).toOpaque()
-		
+
 		let socket = CFSocketCreateWithNative( nil, taskSocketPair[0], CFOptionFlags(kCFSocketDataCallBack), {
 			(socket, type, address, data, info )  in
 
@@ -501,9 +501,9 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 			while process.isRunning == false {
 				process.processLaunchedCondition.wait()
 			}
-			
+
 			process.processLaunchedCondition.unlock()
-			
+
 			var exitCode : Int32 = 0
 			var waitResult : Int32 = 0
 
@@ -519,16 +519,16 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 				process._terminationStatus = WEXITSTATUS(exitCode)
 				process._terminationReason = .exit
 			}
-			
+
 			// Signal waitUntilExit() and optionally invoke termination handler.
 			process.terminateRunLoop()
-			
+
 			CFSocketInvalidate( socket )
-			
+
 		}, &context )
-		
+
 		CFSocketSetSocketFlags( socket, CFOptionFlags(kCFSocketCloseOnInvalidate))
-		
+
 		let source = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket, 0)
 		CFRunLoopAddSource(managerThreadRunLoop?.getCFRunLoop(), source, CFRunLoopMode.defaultMode)
 
@@ -629,19 +629,19 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 		try _throwIfPosixError(posix_spawnattr_init(&spawnAttrs))
 		try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_SETPGROUP)))
-#if canImport(Darwin)
-		try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
-#else
-		// POSIX_SPAWN_CLOEXEC_DEFAULT is an Apple extension so emulate it.
-		for fd in 3 ... findMaximumOpenFD() {
-			guard adddup2[fd] == nil &&
-				  !addclose.contains(fd) &&
-				  fd != taskSocketPair[1] else {
+		#if canImport(Darwin)
+			try _throwIfPosixError(posix_spawnattr_setflags(&spawnAttrs, .init(POSIX_SPAWN_CLOEXEC_DEFAULT)))
+		#else
+			// POSIX_SPAWN_CLOEXEC_DEFAULT is an Apple extension so emulate it.
+			for fd in 3 ... findMaximumOpenFD() {
+				guard adddup2[fd] == nil &&
+					!addclose.contains(fd) &&
+					fd != taskSocketPair[1] else {
 					continue // Do not double-close descriptors, or close those pertaining to Pipes or FileHandles we want inherited.
+				}
+				try _throwIfPosixError(CFPosixSpawnFileActionsAddClose(fileActions, fd))
 			}
-			try _throwIfPosixError(CFPosixSpawnFileActionsAddClose(fileActions, fd))
-		}
-#endif
+		#endif
 
 		let fileManager = FileManager()
 		let previousDirectoryPath = fileManager.currentDirectoryPath
@@ -679,23 +679,23 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 		self.runLoop = RunLoop.current
 		self.runLoopSourceContext = CFRunLoopSourceContext(version: 0,
-														   info: Unmanaged.passUnretained(self).toOpaque(),
-														   retain: { return runLoopSourceRetain($0) },
-														   release: { runLoopSourceRelease($0) },
-														   copyDescription: nil,
-														   equal: { return processIsEqual($0, $1) },
-														   hash: nil,
-														   schedule: nil,
-														   cancel: nil,
-														   perform: { emptyRunLoopCallback($0) })
+		                                                   info: Unmanaged.passUnretained(self).toOpaque(),
+		                                                   retain: { return runLoopSourceRetain($0) },
+		                                                   release: { runLoopSourceRelease($0) },
+		                                                   copyDescription: nil,
+		                                                   equal: { return processIsEqual($0, $1) },
+		                                                   hash: nil,
+		                                                   schedule: nil,
+		                                                   cancel: nil,
+		                                                   perform: { emptyRunLoopCallback($0) })
 		self.runLoopSource = CFRunLoopSourceCreate(kCFAllocatorDefault, 0, &runLoopSourceContext!)
 		CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, CFRunLoopMode.defaultMode)
-		
+
 		isRunning = true
-		
+
 		self.processIdentifier = pid
 	}
-	
+
 	open func interrupt() {
 		precondition(hasStarted, "task not launched")
 		kill(processIdentifier, SIGINT)
@@ -728,7 +728,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		}
 		return success
 	}
-	
+
 	// status
 	open private(set) var processIdentifier: Int32 = 0
 	open private(set) var isRunning: Bool = false
@@ -750,8 +750,8 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 	}
 
 	/*
-	A block to be invoked when the process underlying the ProcessWithSharedFileHandle terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The ProcessWithSharedFileHandle is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the ProcessWithSharedFileHandle has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an ProcessWithSharedFileHandle, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of ProcessWithSharedFileHandle which hasn't been updated to include an implementation of the storage and use of it.  
-	*/
+	 A block to be invoked when the process underlying the ProcessWithSharedFileHandle terminates.  Setting the block to nil is valid, and stops the previous block from being invoked, as long as it hasn't started in any way.  The ProcessWithSharedFileHandle is passed as the argument to the block so the block does not have to capture, and thus retain, it.  The block is copied when set.  Only one termination handler block can be set at any time.  The execution context in which the block is invoked is undefined.  If the ProcessWithSharedFileHandle has already finished, the block is executed immediately/soon (not necessarily on the current thread).  If a terminationHandler is set on an ProcessWithSharedFileHandle, the ProcessDidTerminateNotification notification is not posted for that process.  Also note that -waitUntilExit won't wait until the terminationHandler has been fully executed.  You cannot use this property in a concrete subclass of ProcessWithSharedFileHandle which hasn't been updated to include an implementation of the storage and use of it.  
+	 */
 	open var terminationHandler: (@Sendable (ProcessWithSharedFileHandle) -> Void)?
 	open var qualityOfService: QualityOfService = .default  // read-only after the process is launched
 
@@ -772,7 +772,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		process.launchPath = path
 		process.arguments = arguments
 		process.launch()
-	
+
 		return process
 	}
 
@@ -782,8 +782,8 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		let currentRunLoop = RunLoop.current
 
 		let runRunLoop : () -> Void = (currentRunLoop == self.runLoop)
-				? { _ = currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
-				: { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)) }
+			? { _ = currentRunLoop.run(mode: .default, before: Date(timeIntervalSinceNow: runInterval)) }
+			: { currentRunLoop.run(until: Date(timeIntervalSinceNow: runInterval)) }
 		// update .runLoop to allow early wakeup triggered by terminateRunLoop.
 		self.runLoop = currentRunLoop
 

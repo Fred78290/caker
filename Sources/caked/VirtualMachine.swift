@@ -25,9 +25,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(url: cdromURL,
-																									readOnly: true,
-																									cachingMode: .cached,
-																									synchronizationMode: VZDiskImageSynchronizationMode.none)
+		                                                                                            readOnly: true,
+		                                                                                            cachingMode: .cached,
+		                                                                                            synchronizationMode: VZDiskImageSynchronizationMode.none)
 		
 		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
 		
@@ -136,26 +136,26 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 	
 	private func pause() async throws -> Bool {
-#if arch(arm64)
-		if #available(macOS 14, *) {
-			try configuration.validateSaveRestoreSupport()
+		#if arch(arm64)
+			if #available(macOS 14, *) {
+				try configuration.validateSaveRestoreSupport()
 			
-			Logger(self).info("Pause VM \(self.vmLocation.name)...")
-			try await virtualMachine.pause()
+				Logger(self).info("Pause VM \(self.vmLocation.name)...")
+				try await virtualMachine.pause()
 			
-			Logger(self).info("Create a snapshot of VM \(self.vmLocation.name)...")
-			try await virtualMachine.saveMachineStateTo(url: vmLocation.stateURL)
+				Logger(self).info("Create a snapshot of VM \(self.vmLocation.name)...")
+				try await virtualMachine.saveMachineStateTo(url: vmLocation.stateURL)
 			
-			Logger(self).info("Snap created successfully...")
+				Logger(self).info("Snap created successfully...")
 			
-			return true
-		} else {
-			Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
-			throw ExitCode(EXIT_FAILURE)
-		}
-#else
-		return false
-#endif
+				return true
+			} else {
+				Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
+				throw ExitCode(EXIT_FAILURE)
+			}
+		#else
+			return false
+		#endif
 	}
 	
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
@@ -163,28 +163,28 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		
 		self.mountService = createMountServiceServer(group: Root.group.next(), asSystem: self.asSystem, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(asSystem:  self.asSystem))
 		
-#if arch(arm64)
-		if #available(macOS 14, *) {
-			if FileManager.default.fileExists(atPath: vmLocation.stateURL.path) {
-				Logger(self).info("Restore VM \(self.vmLocation.name) snapshot...")
+		#if arch(arm64)
+			if #available(macOS 14, *) {
+				if FileManager.default.fileExists(atPath: vmLocation.stateURL.path) {
+					Logger(self).info("Restore VM \(self.vmLocation.name) snapshot...")
 				
-				try await virtualMachine.restoreMachineStateFrom(url: vmLocation.stateURL)
-				try FileManager.default.removeItem(at: vmLocation.stateURL)
+					try await virtualMachine.restoreMachineStateFrom(url: vmLocation.stateURL)
+					try FileManager.default.removeItem(at: vmLocation.stateURL)
 				
-				resumeVM = true
+					resumeVM = true
+				}
 			}
-		}
-		if resumeVM {
-			Logger(self).info("Resume VM \(self.vmLocation.name)...")
-			self.resumeVM(completionHandler: completionHandler)
-		} else {
+			if resumeVM {
+				Logger(self).info("Resume VM \(self.vmLocation.name)...")
+				self.resumeVM(completionHandler: completionHandler)
+			} else {
+				Logger(self).info("Start VM \(self.vmLocation.name)...")
+				self.startVM(completionHandler: completionHandler)
+			}
+		#else
 			Logger(self).info("Start VM \(self.vmLocation.name)...")
 			self.startVM(completionHandler: completionHandler)
-		}
-#else
-		Logger(self).info("Start VM \(self.vmLocation.name)...")
-		self.startVM(completionHandler: completionHandler)
-#endif
+		#endif
 		
 		defer {
 			stopMountService()

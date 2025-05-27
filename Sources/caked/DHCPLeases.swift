@@ -109,7 +109,7 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 		if let hwAddressProto = Int(hwAddressSplits[0]), hwAddressProto != ARPHRD_ETHER {
 			return nil
 		}
-		
+
 		let macAddress = String(hwAddressSplits[1])
 
 		return DHCPLease(ipAddress: ipAddress, macAddress: macAddress, hostname: hostname, expireAt: Date(timeIntervalSince1970: TimeInterval(expiresAt)))

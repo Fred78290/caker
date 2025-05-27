@@ -27,8 +27,8 @@ class CloudImageConverter {
 		}
 
 		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path,
-													  destination: to.absoluteURL.path,
-													  outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor) {
+		                                              destination: to.absoluteURL.path,
+		                                              outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor) {
 			if converter.convert() < 0 {
 				throw ServiceError(String(data: outputData, encoding: .utf8)!)
 			}

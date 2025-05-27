@@ -135,9 +135,9 @@ public struct RSAKeyGenerator {
 	}
 
 	static func generateClientServerCertificate(subject: String, numberOfYears: Int,
-												caKeyURL: URL, caCertURL: URL,
-												serverKeyURL: URL, serverCertURL:URL,
-												clientKeyURL: URL, clientCertURL: URL) throws {
+	                                            caKeyURL: URL, caCertURL: URL,
+	                                            serverKeyURL: URL, serverCertURL:URL,
+	                                            clientKeyURL: URL, clientCertURL: URL) throws {
 		let notValidBefore = Date()
 		let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
 		let rootPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
@@ -228,33 +228,33 @@ public struct RSAKeyGenerator {
 
 		// Save CA key & cert
 		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path,
-									   contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o600])
+		                               contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o600])
 
 		FileManager.default.createFile(atPath: caCertURL.absoluteURL.path,
-									   contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o600])
+		                               contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o600])
 
 
 		// Save server key & cert
 		FileManager.default.createFile(atPath: serverKeyURL.absoluteURL.path,
-									   contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o644])
+		                               contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o644])
 
 		FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path,
-									   contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o644])
+		                               contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o644])
 
 
 
 		// Save Client key & cert
 		FileManager.default.createFile(atPath: clientKeyURL.absoluteURL.path,
-									   contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o644])
+		                               contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o644])
 
 		FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path,
-									   contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
-									   attributes: [.posixPermissions : 0o644])
+		                               contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
+		                               attributes: [.posixPermissions : 0o644])
 	}
 }
 

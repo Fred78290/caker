@@ -64,7 +64,7 @@ struct Shell {
 	                                       direct: Bool = false,
 	                                       input: String? = nil,
 	                                       sharedFileHandles: [FileHandle]? = nil,
-										   asSystem: Bool) throws -> String{
+	                                       asSystem: Bool) throws -> String{
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()

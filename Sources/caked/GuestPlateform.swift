@@ -54,64 +54,64 @@ struct LinuxPlateform: GuestPlateForm {
 }
 
 #if arch(arm64)
-struct DarwinPlateform: GuestPlateForm {
-	let nvramURL: URL
-    let ecid: VZMacMachineIdentifier
-    let hardwareModel: VZMacHardwareModel
+	struct DarwinPlateform: GuestPlateForm {
+		let nvramURL: URL
+		let ecid: VZMacMachineIdentifier
+		let hardwareModel: VZMacHardwareModel
 
-    func bootLoader() throws -> VZBootLoader {
-		VZMacOSBootLoader()
-    }
-
-    func platform() throws -> VZPlatformConfiguration {
-		let result: VZMacPlatformConfiguration = VZMacPlatformConfiguration()
-
-		result.machineIdentifier = ecid
-		result.auxiliaryStorage = VZMacAuxiliaryStorage(url: nvramURL)
-
-		if hardwareModel.isSupported == false {
-			throw ServiceError("Unsupported hardware model")
+		func bootLoader() throws -> VZBootLoader {
+			VZMacOSBootLoader()
 		}
 
-		result.hardwareModel = hardwareModel
+		func platform() throws -> VZPlatformConfiguration {
+			let result: VZMacPlatformConfiguration = VZMacPlatformConfiguration()
 
-		return result
-    }
+			result.machineIdentifier = ecid
+			result.auxiliaryStorage = VZMacAuxiliaryStorage(url: nvramURL)
 
-    func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration {
-		let result: VZMacGraphicsDeviceConfiguration = VZMacGraphicsDeviceConfiguration()
+			if hardwareModel.isSupported == false {
+				throw ServiceError("Unsupported hardware model")
+			}
 
-		if let hostMainScreen = NSScreen.main {
-			let vmScreenSize = NSSize(width: vmConfig.display.width, height: vmConfig.display.height)
+			result.hardwareModel = hardwareModel
+
+			return result
+		}
+
+		func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration {
+			let result: VZMacGraphicsDeviceConfiguration = VZMacGraphicsDeviceConfiguration()
+
+			if let hostMainScreen = NSScreen.main {
+				let vmScreenSize = NSSize(width: vmConfig.display.width, height: vmConfig.display.height)
+
+				result.displays = [
+					VZMacGraphicsDisplayConfiguration(for: hostMainScreen, sizeInPoints: vmScreenSize)
+				]
+
+				return result
+			}
 
 			result.displays = [
-				VZMacGraphicsDisplayConfiguration(for: hostMainScreen, sizeInPoints: vmScreenSize)
+				VZMacGraphicsDisplayConfiguration(
+					widthInPixels: vmConfig.display.width,
+					heightInPixels: vmConfig.display.height,
+					pixelsPerInch: 72
+				)
 			]
 
 			return result
 		}
 
-		result.displays = [
-			VZMacGraphicsDisplayConfiguration(
-				widthInPixels: vmConfig.display.width,
-				heightInPixels: vmConfig.display.height,
-				pixelsPerInch: 72
-			)
-		]
-
-		return result
-    }
-
-    func keyboards() -> [VZKeyboardConfiguration] {
-		if #available(macOS 14, *) {
-			return [VZUSBKeyboardConfiguration(), VZMacKeyboardConfiguration()]
-		} else {
-			return [VZUSBKeyboardConfiguration()]
+		func keyboards() -> [VZKeyboardConfiguration] {
+			if #available(macOS 14, *) {
+				return [VZUSBKeyboardConfiguration(), VZMacKeyboardConfiguration()]
+			} else {
+				return [VZUSBKeyboardConfiguration()]
+			}
 		}
-    }
 
-	func pointingDevices() -> [VZPointingDeviceConfiguration] {
-		[VZUSBScreenCoordinatePointingDeviceConfiguration(), VZMacTrackpadConfiguration()]
+		func pointingDevices() -> [VZPointingDeviceConfiguration] {
+			[VZUSBScreenCoordinatePointingDeviceConfiguration(), VZMacTrackpadConfiguration()]
+		}
 	}
-}
 #endif

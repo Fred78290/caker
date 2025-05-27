@@ -16,7 +16,7 @@ class GrpcTestCase {
 	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> ClientConnection {
 		let client = try Client.createClient(on: on,
 		                                     listeningAddress: listeningAddress,
-											 retries: .upTo(1),
+		                                     retries: .upTo(1),
 		                                     caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
 		                                     tlsCert: tls ? certs.clientCertURL.absoluteURL.path : nil,
 		                                     tlsKey: tls ? certs.clientKeyURL.absoluteURL.path : nil)
@@ -57,7 +57,7 @@ class GrpcTestCase {
 		}
 
 		let reply = serviceNIOClient.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
-		
+
 		print(Format.text.render(try reply.response.wait().successfull().vms.list))
 	}
 }

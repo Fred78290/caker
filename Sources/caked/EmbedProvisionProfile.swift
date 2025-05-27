@@ -12,15 +12,15 @@ import Foundation
 /* Decode mobileprovision plist file
 
  Usage:
- 
+
  1. To get mobileprovision data as embedded in your app:
 
  EmbedProvisionProfile.read()
 
  2. To get mobile provision data from a file on disk:
- 
+
  EmbedProvisionProfile.read(from: "my.mobileprovision")
- 
+
  */
 
 struct EmbedProvisionProfile: Decodable {
@@ -31,7 +31,7 @@ struct EmbedProvisionProfile: Decodable {
 	var creationDate: Date
 	var expirationDate: Date
 	var entitlements: Entitlements
-    
+
 	private enum CodingKeys : String, CodingKey {
 		case name = "Name"
 		case appIDName = "AppIDName"
@@ -41,7 +41,7 @@ struct EmbedProvisionProfile: Decodable {
 		case expirationDate = "ExpirationDate"
 		case entitlements = "Entitlements"
 	}
-    
+
 	// Sublevel: decode entitlements informations
 	struct Entitlements: Decodable {
 		let keychainAccessGroups: [String]
@@ -57,11 +57,11 @@ struct EmbedProvisionProfile: Decodable {
 			case vmNetworking = "com.apple.vm.networking"
 			case securityVirtualization = "com.apple.security.virtualization"
 		}
-        
+
 		enum Environment: String, Decodable {
 			case development, production, disabled
 		}
-        
+
 		init(keychainAccessGroups: Array<String>, getTaskAllow: Bool, apsEnvironment: Environment, vmNetworking: Bool, securityVirtualization: Bool) {
 			self.keychainAccessGroups = keychainAccessGroups
 			self.getTaskAllow = getTaskAllow
@@ -69,14 +69,14 @@ struct EmbedProvisionProfile: Decodable {
 			self.vmNetworking = vmNetworking
 			self.securityVirtualization = securityVirtualization
 		}
-        
+
 		init(from decoder: Decoder) throws {
 			let container = try decoder.container(keyedBy: CodingKeys.self)
 
 			let keychainAccessGroups = try container.decodeIfPresent([String].self, forKey: .keychainAccessGroups)
 			let getTaskAllow = try container.decodeIfPresent(Bool.self, forKey: .getTaskAllow)
 			let apsEnvironment = try container.decodeIfPresent(Environment.self, forKey: .apsEnvironment)
-            let vmNetworking =  try container.decodeIfPresent(Bool.self, forKey: .apsEnvironment)
+			let vmNetworking =  try container.decodeIfPresent(Bool.self, forKey: .apsEnvironment)
 			let securityVirtualization =  try container.decodeIfPresent(Bool.self, forKey: .vmNetworking)
 
 			self.init(keychainAccessGroups: keychainAccessGroups ?? [], getTaskAllow: getTaskAllow ?? false, apsEnvironment: apsEnvironment ?? .disabled, vmNetworking: vmNetworking ?? false, securityVirtualization: securityVirtualization ?? false)
@@ -108,16 +108,16 @@ extension EmbedProvisionProfile {
 		guard let plistDataString = String(data: try Data(contentsOf: profilePath), encoding: .isoLatin1) else {
 			return nil
 		}
-                
+
 		// Skip binary part at the start of the mobile provisionning profile
 		let scanner = Scanner(string: plistDataString)
 		guard let _ = scanner.scanUpToString("<plist") else {
 			return nil
 		}
-        
+
 		// ... and extract plist until end of plist payload (skip the end binary part.
 		guard let extractedPlist = scanner.scanUpToString("</plist>") else { return nil }
-        
+
 		guard let plist = extractedPlist.appending("</plist>").data(using: .isoLatin1) else { return nil }
 		let decoder = PropertyListDecoder()
 

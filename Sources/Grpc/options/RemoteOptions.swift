@@ -10,14 +10,14 @@ public struct RemoteAddOptions: ParsableArguments {
 
 public struct RemoteDeleteOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "delete", abstract: "Remove remotes")
-	
+
 	public init() {
 	}
 }
 
 public struct RemoteListOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
-	
+
 	public init() {
 	}
 }

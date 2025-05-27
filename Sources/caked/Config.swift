@@ -240,7 +240,7 @@ final class CakeConfig{
 	var qualifiedNetworks: [BridgeAttachement] {
 		let networks = self.networks
 		var attachedNetworks: [BridgeAttachement] = []
-		
+
 		if let nat = networks.first(where: { $0.isNAT() }) {
 			attachedNetworks.append(nat)
 		} else {
@@ -248,7 +248,7 @@ final class CakeConfig{
 		}
 
 		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
-								
+
 		return attachedNetworks
 	}
 

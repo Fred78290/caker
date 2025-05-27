@@ -10,7 +10,7 @@ struct VZSharedNetwork: Codable, Equatable {
 	let interfaceID: String
 	let nat66Prefix: String?
 
-    static func == (lhs: Self, rhs: Self) -> Bool {
+	static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.mode == rhs.mode &&
 			lhs.netmask == rhs.netmask &&
 			lhs.dhcpStart == rhs.dhcpStart &&
@@ -134,7 +134,7 @@ struct VZSharedNetwork: Codable, Equatable {
 				return (String(format: "%d.%d.%d.%d", base[0], base[1], base[2], 1), String(format: "%d.%d.%d.%d", base[0], base[1], base[2], 254))
 			}
 		}
-		
+
 		throw ServiceError("No free network address available")
 	}
 
@@ -168,14 +168,14 @@ extension String {
 
 		return cidr
 	}
-	
+
 	func cidrToNetmask() -> String {
 		var value = Int(self) ?? 0
 		value = 0xFFFFFFFF ^ ((1 << (32 - value)) - 1)
 
 		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
 	}
-	
+
 	func IPToInt() -> Int {
 		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
 		var numValue: Int = 0

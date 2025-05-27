@@ -24,13 +24,13 @@ struct StorageLocation {
 	init(asSystem: Bool, name: String = "vms") {
 		self.template = name != "vms"
 		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent(name, isDirectory: true)
-	    try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
+		try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
 	}
 
 	init(asSystem: Bool, template: Bool) {
 		self.template = template
 		self.rootURL = try! Utils.getHome(asSystem: asSystem).appendingPathComponent("templates", isDirectory: true)
-	    try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
+		try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
 	}
 
 	private func vmURL(_ name: String) -> URL {
