@@ -1,13 +1,14 @@
-import Foundation
 import ArgumentParser
-import GRPCLib
+import Foundation
 import GRPC
+import GRPCLib
 
 struct ImagesManagement: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "image", abstract: "Manage simplestream images",
-	                                                subcommands: [ListImage.self, InfoImage.self, PullImage.self])
+	static let configuration = CommandConfiguration(
+		commandName: "image", abstract: "Manage simplestream images",
+		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
-	struct ListImage : GrpcParsableCommand {
+	struct ListImage: GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
 		@OptionGroup(title: "Client options")
@@ -24,7 +25,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 	}
 
-	struct InfoImage : GrpcParsableCommand {
+	struct InfoImage: GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
 		@OptionGroup(title: "Client options")
@@ -41,7 +42,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 	}
 
-	struct PullImage : GrpcParsableCommand {
+	struct PullImage: GrpcParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
 		@OptionGroup(title: "Client options")

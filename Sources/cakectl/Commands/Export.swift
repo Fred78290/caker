@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 
 struct Export: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Export VM to a compressed .tvm file")

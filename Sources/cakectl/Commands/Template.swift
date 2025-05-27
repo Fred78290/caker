@@ -1,13 +1,13 @@
-import Foundation
 import ArgumentParser
-import GRPCLib
+import Foundation
 import GRPC
+import GRPCLib
 
 struct Template: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage simplestream remote",
 	                                                                      subcommands: [CreateTemplate.self, DeleteTemplate.self, ListTemplate.self])
 
-	struct CreateTemplate : GrpcParsableCommand {
+	struct CreateTemplate: GrpcParsableCommand {
 		static let configuration = TemplateCreateOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -24,7 +24,7 @@ struct Template: ParsableCommand {
 		}
 	}
 
-	struct DeleteTemplate : GrpcParsableCommand {
+	struct DeleteTemplate: GrpcParsableCommand {
 		static let configuration = TemplateDeletionOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -41,7 +41,7 @@ struct Template: ParsableCommand {
 		}
 	}
 
-	struct ListTemplate : GrpcParsableCommand {
+	struct ListTemplate: GrpcParsableCommand {
 		static let configuration = TemplateListOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -55,4 +55,3 @@ struct Template: ParsableCommand {
 		}
 	}
 }
-

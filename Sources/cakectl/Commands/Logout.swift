@@ -1,8 +1,8 @@
 import ArgumentParser
 import Dispatch
-import SwiftUI
-import GRPCLib
 import GRPC
+import GRPCLib
+import SwiftUI
 
 struct Logout: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")

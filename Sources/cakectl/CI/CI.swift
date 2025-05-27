@@ -10,8 +10,8 @@ struct CI {
 	}
 }
 
-private extension String {
-	func expanded() -> Bool {
+extension String {
+	fileprivate func expanded() -> Bool {
 		!isEmpty && !starts(with: "$")
 	}
 }

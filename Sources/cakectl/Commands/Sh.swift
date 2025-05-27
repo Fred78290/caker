@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
-import GRPCLib
 @preconcurrency import GRPC
+import GRPCLib
 import NIO
 import NIOPosix
 import NIOSSL

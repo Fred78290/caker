@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 
 struct Import: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Import VM from a compressed .tvm file")

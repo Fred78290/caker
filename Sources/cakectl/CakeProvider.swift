@@ -67,9 +67,9 @@ extension Caked_CakedCommandRequest {
 
 extension Caked_CommonBuildRequest {
 	init(buildOptions: BuildOptions) throws {
-		let mounts = buildOptions.mounts.map{$0.description}
-		let networks = buildOptions.networks.map{$0.description}
-		let sockets = buildOptions.sockets.map{$0.description}
+		let mounts = buildOptions.mounts.map { $0.description }
+		let networks = buildOptions.networks.map { $0.description }
+		let sockets = buildOptions.sockets.map { $0.description }
 
 		self.init()
 		self.name = buildOptions.name
@@ -115,7 +115,7 @@ extension Caked_CommonBuildRequest {
 
 		if let userData = buildOptions.userData {
 			if userData == "-" {
-				if let input = (readLine(strippingNewline: true))?.split(whereSeparator: {$0 == " "}).map (String.init) {
+				if let input = (readLine(strippingNewline: true))?.split(whereSeparator: { $0 == " " }).map(String.init) {
 					self.userData = input.joined(separator: "\n").data(using: .utf8)!
 				}
 			} else {
@@ -178,7 +178,7 @@ extension Caked_StopRequest {
 }
 
 extension Caked_PurgeRequest {
-	init (command: Purge) {
+	init(command: Purge) {
 		self.init()
 		self.entries = command.purge.entries
 
@@ -193,7 +193,7 @@ extension Caked_PurgeRequest {
 }
 
 extension Caked_LoginRequest {
-	init (command: Login) throws {
+	init(command: Login) throws {
 		self.init()
 
 		self.host = command.login.host
@@ -215,14 +215,14 @@ extension Caked_LoginRequest {
 }
 
 extension Caked_LogoutRequest {
-	init (command: Logout) {
+	init(command: Logout) {
 		self.init()
 		self.host = command.host
 	}
 }
 
 extension Caked_ConfigureRequest {
-	init (options: ConfigureOptions) {
+	init(options: ConfigureOptions) {
 		self.init()
 		self.name = options.name
 
@@ -251,15 +251,15 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let mounts = options.mounts {
-			self.mounts = mounts.map{$0.description}.joined(separator: ",")
+			self.mounts = mounts.map { $0.description }.joined(separator: ",")
 		}
 
 		if let networks = options.networks {
-			self.networks = networks.map{$0.description}.joined(separator: ",")
+			self.networks = networks.map { $0.description }.joined(separator: ",")
 		}
 
 		if let sockets = options.sockets {
-			self.networks = sockets.map{$0.description}.joined(separator: ",")
+			self.networks = sockets.map { $0.description }.joined(separator: ",")
 		}
 
 		if let consoleURL = options.consoleURL {
@@ -267,7 +267,7 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let forwardedPort = options.forwardedPort {
-			self.forwardedPort = forwardedPort.map{$0.description}.joined(separator: ",")
+			self.forwardedPort = forwardedPort.map { $0.description }.joined(separator: ",")
 		}
 
 		self.randomMac = options.randomMAC
@@ -456,7 +456,7 @@ extension Caked_MountRequest {
 				$0.name = mount.name
 				$0.source = mount.source
 				$0.uid = Int32(mount.uid)
-				$0.gid	= Int32(mount.gid)
+				$0.gid = Int32(mount.gid)
 				if let destination = mount.destination {
 					$0.target = destination
 				}
@@ -469,12 +469,12 @@ extension Caked_MountRequest {
 
 		self.name = command.umount.name
 		self.command = .umount
-		self.mounts = command.umount.mounts.map{ mount in
+		self.mounts = command.umount.mounts.map { mount in
 			Caked_MountVirtioFS.with {
 				$0.name = mount.name
 				$0.source = mount.source
 				$0.uid = Int32(mount.uid)
-				$0.gid	= Int32(mount.gid)
+				$0.gid = Int32(mount.gid)
 				if let destination = mount.destination {
 					$0.target = destination
 				}
@@ -483,14 +483,15 @@ extension Caked_MountRequest {
 	}
 }
 
-
 extension CakeAgentClient {
-	internal func exec(name: String,
-	                   command: CakedChannelStreamer.ExecuteCommand,
-	                   inputHandle: FileHandle = FileHandle.standardInput,
-	                   outputHandle: FileHandle = FileHandle.standardOutput,
-	                   errorHandle: FileHandle = FileHandle.standardError,
-	                   callOptions: CallOptions? = nil) async throws -> Int32 {
+	internal func exec(
+		name: String,
+		command: CakedChannelStreamer.ExecuteCommand,
+		inputHandle: FileHandle = FileHandle.standardInput,
+		outputHandle: FileHandle = FileHandle.standardOutput,
+		errorHandle: FileHandle = FileHandle.standardError,
+		callOptions: CallOptions? = nil
+	) async throws -> Int32 {
 		let handler = CakedChannelStreamer(inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle)
 		var callOptions = callOptions ?? CallOptions()
 

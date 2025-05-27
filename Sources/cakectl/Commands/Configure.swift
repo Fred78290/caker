@@ -1,7 +1,7 @@
 import ArgumentParser
-import Virtualization
-import GRPCLib
 import GRPC
+import GRPCLib
+import Virtualization
 
 struct Configure: AsyncParsableCommand {
 	static let configuration = ConfigureOptions.configuration

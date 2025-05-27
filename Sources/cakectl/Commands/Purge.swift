@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 
 struct Purge: GrpcParsableCommand {
 	static let configuration = PurgeOptions.configuration

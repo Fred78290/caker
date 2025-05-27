@@ -1,7 +1,7 @@
 import ArgumentParser
 import Dispatch
-import GRPCLib
 import GRPC
+import GRPCLib
 import TextTable
 
 struct Duplicate: GrpcParsableCommand {

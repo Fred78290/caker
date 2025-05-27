@@ -4,8 +4,8 @@
 //
 import ArgumentParser
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 
 struct Cake: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(

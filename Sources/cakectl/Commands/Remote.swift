@@ -1,13 +1,13 @@
-import Foundation
 import ArgumentParser
-import GRPCLib
+import Foundation
 import GRPC
+import GRPCLib
 
 struct Remote: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
 	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
-	struct AddRemote : GrpcParsableCommand {
+	struct AddRemote: GrpcParsableCommand {
 		static let configuration = RemoteAddOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -24,7 +24,7 @@ struct Remote: ParsableCommand {
 		}
 	}
 
-	struct DeleteRemote : GrpcParsableCommand {
+	struct DeleteRemote: GrpcParsableCommand {
 		static let configuration = RemoteDeleteOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -38,7 +38,7 @@ struct Remote: ParsableCommand {
 		}
 	}
 
-	struct ListRemote : GrpcParsableCommand {
+	struct ListRemote: GrpcParsableCommand {
 		static let configuration = RemoteListOptions.configuration
 
 		@OptionGroup(title: "Client options")
@@ -52,4 +52,3 @@ struct Remote: ParsableCommand {
 		}
 	}
 }
-

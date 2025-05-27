@@ -1,6 +1,6 @@
 import Foundation
-import GRPCLib
 @preconcurrency import GRPC
+import GRPCLib
 import NIO
 import Semaphore
 
@@ -108,7 +108,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		self.errorHandle.write(errMessage)
 	}
 
-	func handleResponse(response: Caked_ExecuteResponse) -> Void {
+	func handleResponse(response: Caked_ExecuteResponse) {
 		guard let pipeChannel = self.pipeChannel else {
 			return
 		}

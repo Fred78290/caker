@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 13/03/2025.
 //
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 import NIO
 
 final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {
@@ -23,7 +23,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 			super.init()
 		}
 
-		func restoreState() throws{
+		func restoreState() throws {
 			var state = self.state
 
 			try inputHandle.restoreState(&state)
@@ -38,7 +38,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 			}
 
 			if let err: GRPCStatus = error as? GRPCStatus {
-				if err.code == .unavailable || err.code == .cancelled{
+				if err.code == .unavailable || err.code == .cancelled {
 					description = "Connection refused"
 				} else {
 					description = err.description

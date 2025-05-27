@@ -3,11 +3,11 @@ import Darwin
 import Foundation
 import GRPC
 import GRPCLib
+import Logging
 import NIOCore
 import NIOPosix
 import NIOSSL
 import SwiftDate
-import Logging
 
 class GrpcError: Error {
 	let code: Int

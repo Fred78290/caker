@@ -1,9 +1,9 @@
 import ArgumentParser
-import Foundation
-import GRPCLib
-import GRPC
-import TextTable
 import CakeAgentLib
+import Foundation
+import GRPC
+import GRPCLib
+import TextTable
 
 struct Infos: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")

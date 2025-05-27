@@ -1,9 +1,9 @@
 import ArgumentParser
 import Foundation
-import GRPCLib
 import GRPC
+import GRPCLib
 
-struct Launch : GrpcParsableCommand {
+struct Launch: GrpcParsableCommand {
 	static let configuration = BuildOptions.configuration
 
 	@OptionGroup(title: "Client options")

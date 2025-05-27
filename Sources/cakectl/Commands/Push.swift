@@ -1,9 +1,9 @@
 import ArgumentParser
+import Compression
 import Dispatch
 import Foundation
-import Compression
-import GRPCLib
 import GRPC
+import GRPCLib
 
 struct Push: GrpcParsableCommand {
 	static let configuration = PushOptions.configuration
