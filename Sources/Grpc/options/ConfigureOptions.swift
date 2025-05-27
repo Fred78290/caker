@@ -87,19 +87,19 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 
 		if request.hasAttachedDisks {
-			self.disks = request.attachedDisks.components(separatedBy: ",")
+			self.disks = request.attachedDisks.components(separatedBy: String.grpcSeparator)
 		} else {
 			self.disks = ["unset"]
 		}
 
 		if request.hasMounts {
-			self.mount = request.mounts.components(separatedBy: ",")
+			self.mount = request.mounts.components(separatedBy: String.grpcSeparator)
 		} else {
 			self.mount = ["unset"]
 		}
 
 		if request.hasNetworks {
-			self.network = request.networks.components(separatedBy: ",")
+			self.network = request.networks.components(separatedBy: String.grpcSeparator)
 		} else {
 			self.network = ["unset"]
 		}
@@ -109,13 +109,13 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 
 		if request.hasForwardedPort {
-			self.published = request.forwardedPort.components(separatedBy: ",")
+			self.published = request.forwardedPort.components(separatedBy: String.grpcSeparator)
 		} else {
 			self.published = ["unset"]
 		}
 
 		if request.hasSockets {
-			self.socket = request.sockets.components(separatedBy: ",")
+			self.socket = request.sockets.components(separatedBy: String.grpcSeparator)
 		} else {
 			self.socket = []
 		}

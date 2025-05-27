@@ -84,15 +84,15 @@ extension Caked_CommonBuildRequest {
 		self.image = buildOptions.image
 
 		if mounts.isEmpty == false {
-			self.mounts = mounts.joined(separator: ",")
+			self.mounts = mounts.joined(separator: String.grpcSeparator)
 		}
 
 		if networks.isEmpty == false {
-			self.networks = networks.joined(separator: ",")
+			self.networks = networks.joined(separator: String.grpcSeparator)
 		}
 
 		if sockets.isEmpty == false {
-			self.sockets = sockets.joined(separator: ",")
+			self.sockets = sockets.joined(separator: String.grpcSeparator)
 		}
 
 		if let console = buildOptions.consoleURL {
@@ -102,7 +102,7 @@ extension Caked_CommonBuildRequest {
 		if buildOptions.forwardedPorts.isEmpty == false {
 			self.forwardedPort = buildOptions.forwardedPorts.map { forwardedPort in
 				return forwardedPort.description
-			}.joined(separator: ",")
+			}.joined(separator: String.grpcSeparator)
 		}
 
 		if let sshAuthorizedKey = buildOptions.sshAuthorizedKey {
@@ -251,15 +251,15 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let mounts = options.mounts {
-			self.mounts = mounts.map { $0.description }.joined(separator: ",")
+			self.mounts = mounts.map { $0.description }.joined(separator: String.grpcSeparator)
 		}
 
 		if let networks = options.networks {
-			self.networks = networks.map { $0.description }.joined(separator: ",")
+			self.networks = networks.map { $0.description }.joined(separator: String.grpcSeparator)
 		}
 
 		if let sockets = options.sockets {
-			self.networks = sockets.map { $0.description }.joined(separator: ",")
+			self.networks = sockets.map { $0.description }.joined(separator: String.grpcSeparator)
 		}
 
 		if let consoleURL = options.consoleURL {
@@ -267,7 +267,7 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let forwardedPort = options.forwardedPort {
-			self.forwardedPort = forwardedPort.map { $0.description }.joined(separator: ",")
+			self.forwardedPort = forwardedPort.map { $0.description }.joined(separator: String.grpcSeparator)
 		}
 
 		self.randomMac = options.randomMAC

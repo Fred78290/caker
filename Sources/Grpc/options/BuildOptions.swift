@@ -149,7 +149,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasAttachedDisks {
-			self.attachedDisks = try request.attachedDisks.components(separatedBy: ",").compactMap {
+			self.attachedDisks = try request.attachedDisks.components(separatedBy: String.grpcSeparator).compactMap {
 				try DiskAttachement(parseFrom: $0)
 			}
 		} else {
@@ -223,7 +223,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasForwardedPort && request.forwardedPort.isEmpty == false {
-			self.forwardedPorts = request.forwardedPort.components(separatedBy: ",").compactMap { argument in
+			self.forwardedPorts = request.forwardedPort.components(separatedBy: String.grpcSeparator).compactMap { argument in
 				return TunnelAttachement(argument: argument)
 			}
 		} else {
@@ -231,7 +231,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasMounts && request.mounts.isEmpty == false {
-			self.mounts = try request.mounts.components(separatedBy: ",").compactMap {
+			self.mounts = try request.mounts.components(separatedBy: String.grpcSeparator).compactMap {
 				try DirectorySharingAttachment(parseFrom: $0)
 			}
 		} else {
@@ -239,7 +239,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasNetworks && request.networks.isEmpty == false {
-			self.networks = try request.networks.components(separatedBy: ",").compactMap {
+			self.networks = try request.networks.components(separatedBy: String.grpcSeparator).compactMap {
 				try BridgeAttachement(parseFrom: $0)
 			}
 		} else {
@@ -247,7 +247,7 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasSockets && request.sockets.isEmpty == false {
-			self.sockets = try request.sockets.components(separatedBy: ",").compactMap {
+			self.sockets = try request.sockets.components(separatedBy: String.grpcSeparator).compactMap {
 				try SocketDevice(parseFrom: $0)
 			}
 		} else {
