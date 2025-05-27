@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct PurgeOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
@@ -7,14 +7,18 @@ public struct PurgeOptions: ParsableArguments {
 	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs."))
 	public var entries: String = "caches"
 
-	@Option(help: ArgumentHelp("Remove entries that were last accessed more than n days ago",
-	                           discussion: "For example, --older-than=7 will remove entries that weren't accessed by Tart in the last 7 days.",
-	                           valueName: "n"))
+	@Option(
+		help: ArgumentHelp(
+			"Remove entries that were last accessed more than n days ago",
+			discussion: "For example, --older-than=7 will remove entries that weren't accessed by Tart in the last 7 days.",
+			valueName: "n"))
 	public var olderThan: UInt? = nil
 
-	@Option(help: ArgumentHelp("Remove the least recently used entries that do not fit the specified space size budget n, expressed in gigabytes",
-	                           discussion: "For example, --space-budget=50 will effectively shrink all entries to a total size of 50 gigabytes.",
-	                           valueName: "n"))
+	@Option(
+		help: ArgumentHelp(
+			"Remove the least recently used entries that do not fit the specified space size budget n, expressed in gigabytes",
+			discussion: "For example, --space-budget=50 will effectively shrink all entries to a total size of 50 gigabytes.",
+			valueName: "n"))
 	public var spaceBudget: UInt? = nil
 
 	public init() {

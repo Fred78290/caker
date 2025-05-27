@@ -36,7 +36,6 @@ public class PIDLock {
 		_ = try flockWrapper(F_SETLK, F_UNLCK)
 	}
 
-
 	public func pid() throws -> pid_t {
 		let (_, result) = try flockWrapper(F_GETLK, F_RDLCK)
 
@@ -59,4 +58,3 @@ public class PIDLock {
 		return (true, result)
 	}
 }
-

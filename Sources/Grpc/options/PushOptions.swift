@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct PushOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: "Push a VM to a registry")
@@ -16,19 +16,23 @@ public struct PushOptions: ParsableArguments {
 	@Option(help: "Network concurrency to use when pushing a local VM to the OCI-compatible registry")
 	public var concurrency: UInt = 4
 
-	@Option(help: ArgumentHelp("Chunk size in MB if registry supports chunked uploads",
-	                           discussion: """
-	                           By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.
-	                           For example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.
-	                           Please refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size.
-	                           """))
+	@Option(
+		help: ArgumentHelp(
+			"Chunk size in MB if registry supports chunked uploads",
+			discussion: """
+				By default monolithic method is used for uploading blobs to the registry but some registries support a more efficient chunked method.
+				For example, AWS Elastic Container Registry supports only chunks larger than 5MB but GitHub Container Registry supports only chunks smaller than 4MB. Google Container Registry on the other hand doesn't support chunked uploads at all.
+				Please refer to the documentation of your particular registry in order to see if this option is suitable for you and what's the recommended chunk size.
+				"""))
 	public var chunkSize: Int = 0
 
 	@Option(help: .hidden)
 	public var diskFormat: String = "v2"
 
-	@Flag(help: ArgumentHelp("Cache pushed images locally",
-	                         discussion: "Increases disk usage, but saves time if you're going to pull the pushed images later."))
+	@Flag(
+		help: ArgumentHelp(
+			"Cache pushed images locally",
+			discussion: "Increases disk usage, but saves time if you're going to pull the pushed images later."))
 	public var populateCache: Bool = false
 
 	public init() {

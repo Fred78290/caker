@@ -37,7 +37,7 @@ public struct StopReply: Codable {
 		self.reason = reason
 	}
 
-	public func toCaked_StoppedObject() -> Caked_StoppedObject{
+	public func toCaked_StoppedObject() -> Caked_StoppedObject {
 		Caked_StoppedObject.with { object in
 			object.name = name
 			object.status = status
@@ -67,7 +67,7 @@ public struct DeleteReply: Codable {
 		self.reason = reason
 	}
 
-	public func toCaked_DeletedObject() -> Caked_DeletedObject{
+	public func toCaked_DeletedObject() -> Caked_DeletedObject {
 		Caked_DeletedObject.with { object in
 			object.source = source
 			object.name = name

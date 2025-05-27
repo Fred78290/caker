@@ -1,8 +1,8 @@
 import ArgumentParser
-import Foundation
-import TextTable
 import CakeAgentLib
+import Foundation
 import NIOPortForwarding
+import TextTable
 
 extension Data {
 	func toString() -> String {
@@ -82,7 +82,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 	}
 
 	init(from: MappedPort.Proto) {
-		switch (from) {
+		switch from {
 		case .tcp: self = .tcp
 		case .udp: self = .udp
 		default: fatalError()
@@ -125,16 +125,18 @@ extension Caked_InfoReply.SocketInfo {
 }
 
 extension InfoReply {
-	static func with(infos: Caked_InfoReply) -> InfoReply  {
+	static func with(infos: Caked_InfoReply) -> InfoReply {
 		var memory: InfoReply.MemoryInfo? = nil
 
-		memory = infos.hasMemory ? InfoReply.MemoryInfo.with {
-			let memory = infos.memory
+		memory =
+			infos.hasMemory
+			? InfoReply.MemoryInfo.with {
+				let memory = infos.memory
 
-			$0.total = memory.total
-			$0.free = memory.hasFree ? memory.free : nil
-			$0.used = memory.hasUsed ? memory.used : nil
-		} : nil
+				$0.total = memory.total
+				$0.free = memory.hasFree ? memory.free : nil
+				$0.used = memory.hasUsed ? memory.used : nil
+			} : nil
 
 		return InfoReply.with {
 			$0.name = infos.name
@@ -228,7 +230,7 @@ extension InfoReply {
 public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codable, EnumerableFlag {
 	case text, json
 
-	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)"}
+	public private(set) static var allValueStrings: [String] = Format.allCases.map { "\($0)" }
 
 	public func renderSingle<T>(style: TextTableStyle.Type = Style.grid, uppercased: Bool = true, _ data: T) -> String where T: Encodable {
 		switch self {
@@ -241,10 +243,10 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		}
 	}
 
-	public func renderList<T>(style: TextTableStyle.Type = Style.grid, uppercased: Bool = true, _ data: Array<T>) -> String where T: Encodable {
+	public func renderList<T>(style: TextTableStyle.Type = Style.grid, uppercased: Bool = true, _ data: [T]) -> String where T: Encodable {
 		switch self {
 		case .text:
-			if (data.count == 0) {
+			if data.count == 0 {
 				return ""
 			}
 			let table = TextTable<T> { (item: T) in
@@ -328,7 +330,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_DeleteReply) -> String {
-		return self.render(data.objects.map{ DeleteReply(from: $0) })
+		return self.render(data.objects.map { DeleteReply(from: $0) })
 	}
 
 	public func render(_ data: [StopReply]) -> String {
@@ -336,37 +338,40 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_StopReply) -> String {
-		return self.render(data.objects.map{ StopReply(from: $0) })
+		return self.render(data.objects.map { StopReply(from: $0) })
 	}
 
 	public func render(_ data: VirtualMachineInfos) -> String {
 		if self == .json {
 			return self.renderList(data)
 		} else {
-			return self.renderList(data.reduce(into: [ShortVirtualMachineInfo]()) { result, vm in
-				if vm.fqn.count > 1 {
-					vm.fqn.forEach {
-						let fqn = $0.stringAfter(after: "//")
+			return self.renderList(
+				data.reduce(into: [ShortVirtualMachineInfo]()) { result, vm in
+					if vm.fqn.count > 1 {
+						vm.fqn.forEach {
+							let fqn = $0.stringAfter(after: "//")
 
-						if fqn.isFingerPrint() == false {
-							result.append(ShortVirtualMachineInfo(from: VirtualMachineInfo(
-								type: vm.type,
-								source: vm.source,
-								name: fqn.stringAfter(after: "//"),
-								fqn: [$0],
-								instanceID: vm.instanceID,
-								diskSize: vm.diskSize,
-								totalSize: vm.totalSize,
-								state: vm.state,
-								ip: vm.ip,
-								fingerprint: vm.fingerprint
-							)))
+							if fqn.isFingerPrint() == false {
+								result.append(
+									ShortVirtualMachineInfo(
+										from: VirtualMachineInfo(
+											type: vm.type,
+											source: vm.source,
+											name: fqn.stringAfter(after: "//"),
+											fqn: [$0],
+											instanceID: vm.instanceID,
+											diskSize: vm.diskSize,
+											totalSize: vm.totalSize,
+											state: vm.state,
+											ip: vm.ip,
+											fingerprint: vm.fingerprint
+										)))
+							}
 						}
+					} else {
+						result.append(ShortVirtualMachineInfo(from: vm))
 					}
-				} else {
-					result.append(ShortVirtualMachineInfo(from: vm))
-				}
-			})
+				})
 		}
 	}
 

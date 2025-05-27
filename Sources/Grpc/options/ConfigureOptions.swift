@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import NIOPortForwarding
 
 public struct ConfigureOptions: ParsableArguments, Sendable {
@@ -124,68 +124,57 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	}
 
 	public var consoleURL: ConsoleAttachment? {
-		get {
-			if let console = self.console {
-				return ConsoleAttachment(argument: console)
-			}
-
-			return nil
+		if let console = self.console {
+			return ConsoleAttachment(argument: console)
 		}
+
+		return nil
 	}
 
 	public var attachedDisks: [DiskAttachement]? {
-		get {
-			if disks.contains("unset") {
-				return nil
-			}
+		if disks.contains("unset") {
+			return nil
+		}
 
-			return disks.compactMap {
-				DiskAttachement(argument: $0)
-			}
+		return disks.compactMap {
+			DiskAttachement(argument: $0)
 		}
 	}
 
 	public var forwardedPort: [TunnelAttachement]? {
-		get {
-			if published.contains("unset") {
-				return nil
-			}
+		if published.contains("unset") {
+			return nil
+		}
 
-			return published.compactMap {
-				TunnelAttachement(argument: $0)
-			}
+		return published.compactMap {
+			TunnelAttachement(argument: $0)
 		}
 	}
 
 	public var sockets: [SocketDevice]? {
-		get {
-			if socket.contains("unset") {
-				return nil
-			}
-
-			return socket.compactMap { SocketDevice(argument: $0) }
+		if socket.contains("unset") {
+			return nil
 		}
+
+		return socket.compactMap { SocketDevice(argument: $0) }
 	}
 
 	public var mounts: [DirectorySharingAttachment]? {
-		get {
-			if mount.contains("unset") {
-				return nil
-			}
+		if mount.contains("unset") {
+			return nil
+		}
 
-			return mount.compactMap { DirectorySharingAttachment(argument: $0)
-			}
+		return mount.compactMap {
+			DirectorySharingAttachment(argument: $0)
 		}
 	}
 
 	public var networks: [BridgeAttachement]? {
-		get {
-			if network.contains("unset") {
-				return nil
-			}
-
-			return network.compactMap { BridgeAttachement(argument: $0) }
+		if network.contains("unset") {
+			return nil
 		}
+
+		return network.compactMap { BridgeAttachement(argument: $0) }
 	}
 
 	mutating public func setMount(value: [String] = []) {
@@ -225,4 +214,3 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 	}
 }
-

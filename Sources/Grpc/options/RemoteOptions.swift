@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct RemoteAddOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "add", abstract: "Add new remote servers")

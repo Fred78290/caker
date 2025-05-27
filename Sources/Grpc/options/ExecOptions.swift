@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct ExecOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(commandName: "exec", abstract: "Execute a command on a VM")

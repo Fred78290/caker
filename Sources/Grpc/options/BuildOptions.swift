@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import NIOPortForwarding
 
 public struct BuildOptions: ParsableArguments {
@@ -66,7 +66,7 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
 	public var mounts: [DirectorySharingAttachment] = []
 
-	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help , valueName: "spec"))
+	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
 
 	@Option(name: [.customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
@@ -236,7 +236,8 @@ public struct BuildOptions: ParsableArguments {
 
 		if request.hasNetworks && request.networks.isEmpty == false {
 			self.networks = try request.networks.components(separatedBy: ",").compactMap {
-				try BridgeAttachement(parseFrom: $0) }
+				try BridgeAttachement(parseFrom: $0)
+			}
 		} else {
 			self.networks = []
 		}
@@ -286,4 +287,3 @@ public struct BuildOptions: ParsableArguments {
 		}
 	}
 }
-

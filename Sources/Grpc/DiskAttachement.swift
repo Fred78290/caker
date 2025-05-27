@@ -1,7 +1,7 @@
-import Foundation
 import ArgumentParser
-import Virtualization
+import Foundation
 import System
+import Virtualization
 
 @available(macOS 14, *)
 extension VZDiskSynchronizationMode: @retroactive CustomStringConvertible {
@@ -261,7 +261,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		let diskPath = arguments.joined(separator: ":")
 		let diskURL = URL(string: diskPath)
 
-		if (["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme)) {
+		if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL?.scheme) {
 			guard #available(macOS 14, *) else {
 				throw ValidationError("Attaching Network Block Devices are not supported prior MacOS 14")
 			}
@@ -296,4 +296,3 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		return (st.st_mode & S_IFMT) == S_IFBLK
 	}
 }
-

@@ -1,6 +1,6 @@
+import ArgumentParser
 import Foundation
 import Virtualization
-import ArgumentParser
 
 public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 

@@ -36,7 +36,7 @@ public class LinuxContainerImage: Codable {
 	public let description: String
 
 	public init(from: Caked_PulledImageInfo) {
-		self.alias = from.hasAlias ? from.alias.split(separator: ",").map{ String($0) } : nil
+		self.alias = from.hasAlias ? from.alias.split(separator: ",").map { String($0) } : nil
 		self.path = URL(fileURLWithPath: from.path)
 		self.size = Int(from.size)
 		self.fingerprint = from.fingerprint

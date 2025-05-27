@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
 	let consoleURL: String
@@ -17,7 +17,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 	}
 
 	public func validate() throws {
-		if consoleURL !=  "file" && consoleURL != "unix" {
+		if consoleURL != "file" && consoleURL != "unix" {
 			guard let u: URL = URL(string: consoleURL) else {
 				throw ValidationError("Invalid serial console URL")
 			}
@@ -55,7 +55,7 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 	}
 
 	public func consoleURL(vmDir: URL) throws -> URL? {
-		if consoleURL ==  "file" {
+		if consoleURL == "file" {
 			return vmDir.appendingPathComponent("console.log")
 		} else if consoleURL == "unix" {
 			return vmDir.socketPath(name: "console.sock")

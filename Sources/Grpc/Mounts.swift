@@ -122,7 +122,7 @@ public struct MountInfos: Codable {
 	public func withDirectorySharingAttachment(directorySharingAttachment: [DirectorySharingAttachment]) -> MountInfos {
 		MountInfos.with {
 			$0.mounts = self.mounts.map { mount in
-				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name}) {
+				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name }) {
 					return MountVirtioFS.with {
 						$0.name = mount.name
 						$0.path = attachement.path.path

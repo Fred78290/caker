@@ -1,8 +1,8 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import Virtualization
 
-public enum NetworkMode: Int,  CaseIterable, CustomStringConvertible, ExpressibleByArgument, Codable {
+public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, ExpressibleByArgument, Codable {
 	case manual, auto
 
 	public init?(argument: String) {
@@ -36,7 +36,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	}
 
 	public var description: String {
-		var value: [String]	= ["name=\(network)"]
+		var value: [String] = ["name=\(network)"]
 
 		if let mode = mode {
 			value.append("mode=\(mode)")

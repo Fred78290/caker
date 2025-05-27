@@ -1,19 +1,19 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import NIOPortForwarding
 
 public struct CloneOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(
 		abstract: "Clone a VM",
 		discussion: """
-		Creates a local virtual machine by cloning either a remote or another local virtual machine.
+			Creates a local virtual machine by cloning either a remote or another local virtual machine.
 
-		Due to copy-on-write magic in Apple File System, a cloned VM won't actually claim all the space right away.
-		Only changes to a cloned disk will be written and claim new space. This also speeds up clones enormously.
+			Due to copy-on-write magic in Apple File System, a cloned VM won't actually claim all the space right away.
+			Only changes to a cloned disk will be written and claim new space. This also speeds up clones enormously.
 
-		By default, Tart checks available capacity in Tart's home directory and tries to reclaim minimum possible storage for the cloned image
-		to fit. This behaviour is called "automatic pruning" and can be disabled by setting TART_NO_AUTO_PRUNE environment variable.
-		"""
+			By default, Tart checks available capacity in Tart's home directory and tries to reclaim minimum possible storage for the cloned image
+			to fit. This behaviour is called "automatic pruning" and can be disabled by setting TART_NO_AUTO_PRUNE environment variable.
+			"""
 	)
 
 	@Argument(help: "source VM name")

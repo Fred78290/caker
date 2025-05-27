@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 
 public struct NetworkInfoOptions {
 	public static let configuration = CommandConfiguration(abstract: "Network infos", discussion: "This command is used retrieve the network device information")
@@ -18,11 +18,12 @@ public struct NetworkStopOptions {
 }
 
 public struct NetworkListOptions {
-	public static let configuration = CommandConfiguration(abstract:
-		"""
-		List host network devices (physical interfaces, virtual switches, bridges) available
-		to integrate with using the `--bridged` switch to the `launch` command
-		""")
+	public static let configuration = CommandConfiguration(
+		abstract:
+			"""
+			List host network devices (physical interfaces, virtual switches, bridges) available
+			to integrate with using the `--bridged` switch to the `launch` command
+			""")
 }
 
 public struct NetworkCreateOptions: ParsableArguments, Sendable {
@@ -85,4 +86,3 @@ public struct NetworkConfigureOptions: ParsableArguments, Sendable {
 	}
 
 }
-

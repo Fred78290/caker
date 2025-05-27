@@ -1,6 +1,6 @@
-import Foundation
 import ArgumentParser
 import CakeAgentLib
+import Foundation
 import NIOPortForwarding
 
 public enum SocketMode: String, CustomStringConvertible, Codable {
@@ -118,7 +118,7 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 			}
 
 			for fd in fds {
-				guard let _ = Int32(fd) else {
+				guard Int32(fd) != nil else {
 					throw ValidationError("Invalid file descriptor fd=\(fd)")
 				}
 
@@ -178,4 +178,3 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 		return nil
 	}
 }
-

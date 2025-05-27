@@ -1,9 +1,9 @@
-import Foundation
 import ArgumentParser
-import Virtualization
+import Foundation
 import NIOPortForwarding
-import System
 import Security
+import System
+import Virtualization
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -103,7 +103,7 @@ extension Bundle {
 
 public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
-	private static var homeDirectories: [Bool:URL] = [:]
+	private static var homeDirectories: [Bool: URL] = [:]
 
 	public static func isNestedVirtualizationSupported() -> Bool {
 		if #available(macOS 15, *) {
@@ -145,7 +145,6 @@ public struct Utils {
 
 			return cakeHomeDir
 		}
-
 
 		return cakeHomeDir
 	}
@@ -230,8 +229,8 @@ public struct ClientCertificatesLocation: Codable {
 let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
 let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
 
-public extension String {
-	func isFingerPrint() -> Bool {
+extension String {
+	public func isFingerPrint() -> Bool {
 		if fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
@@ -243,7 +242,7 @@ public extension String {
 		return false
 	}
 
-	var expandingTildeInPath: String {
+	public var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
 			return NSString(string: self).expandingTildeInPath
 		}
@@ -251,15 +250,15 @@ public extension String {
 		return self
 	}
 
-	init(errno: Errno) {
+	public init(errno: Errno) {
 		self = String(cString: strerror(errno.rawValue))
 	}
 
-	init(errno: Int32) {
+	public init(errno: Int32) {
 		self = String(cString: strerror(errno))
 	}
 
-	func stringBeforeLast(before: Character) -> String {
+	public func stringBeforeLast(before: Character) -> String {
 		if let r = self.lastIndex(of: before) {
 			return String(self[self.startIndex..<r])
 		} else {
@@ -267,7 +266,7 @@ public extension String {
 		}
 	}
 
-	func stringAfterLast(before: Character) -> String {
+	public func stringAfterLast(before: Character) -> String {
 		if let r = self.lastIndex(of: before) {
 			guard let start = self.index(r, offsetBy: 1, limitedBy: self.endIndex) else {
 				return ""
@@ -278,7 +277,7 @@ public extension String {
 		}
 	}
 
-	func stringBefore(before: String) -> String {
+	public func stringBefore(before: String) -> String {
 		if let r = self.range(of: before) {
 			return String(self[self.startIndex..<r.lowerBound])
 		} else {
@@ -286,7 +285,7 @@ public extension String {
 		}
 	}
 
-	func stringAfter(after: String) -> String {
+	public func stringAfter(after: String) -> String {
 		if let r = self.range(of: after) {
 			return String(self[r.upperBound..<self.endIndex])
 		} else {
@@ -294,7 +293,7 @@ public extension String {
 		}
 	}
 
-	func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
+	public func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
 		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
 			return self
 		}
@@ -302,7 +301,7 @@ public extension String {
 		return String(self[self.startIndex..<endIndex])
 	}
 
-	func substring(_ bounds: Range<Int>) -> String {
+	public func substring(_ bounds: Range<Int>) -> String {
 		guard let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound, limitedBy: self.endIndex) else {
 			return ""
 		}

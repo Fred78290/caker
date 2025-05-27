@@ -1,3 +1,5 @@
+import ArgumentParser
+import CakeAgentLib
 //
 //  TunnelAttachement.swift
 //  Caker
@@ -6,14 +8,12 @@
 //
 import Foundation
 import NIOPortForwarding
-import ArgumentParser
-import CakeAgentLib
 
 public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleByArgument, Codable, Equatable {
 	public static func == (lhs: TunnelAttachement, rhs: TunnelAttachement) -> Bool {
 		switch (lhs.oneOf, rhs.oneOf) {
 		case (.none, .none):
-			return true			
+			return true
 		case (.forward(let lhs), .forward(let rhs)):
 			return lhs == rhs
 		case (.unixDomain(let lhs), .unixDomain(let rhs)):

@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public struct TemplateEntry: Codable {
 	public let name: String
 	public let fqn: String
