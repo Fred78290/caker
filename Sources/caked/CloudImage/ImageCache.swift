@@ -22,7 +22,7 @@ protocol PurgeableStorage {
 	func purgeables() throws -> [Purgeable]
 }
 
-final class CacheError : Error, Sendable {
+final class CacheError: Error, Sendable {
 	let description: String
 
 	init(_ what: String) {
@@ -151,18 +151,18 @@ struct CacheEntry: Codable {
 }
 
 struct SimpleStreamCache: Codable {
-	private var cache: Dictionary<String, CacheEntry>
+	private var cache: [String: CacheEntry]
 	private var dirty: Bool = false
 
 	enum CodingKeys: String, CodingKey {
 		case cache
 	}
 
-	init () {
+	init() {
 		self.cache = [:]
 	}
 
-	static func createSimpleStreamCache(from:URL) throws -> SimpleStreamCache {
+	static func createSimpleStreamCache(from: URL) throws -> SimpleStreamCache {
 		if FileManager.default.fileExists(atPath: from.absoluteURL.path) {
 			let content = try Data(contentsOf: from)
 
@@ -178,7 +178,7 @@ struct SimpleStreamCache: Codable {
 		}
 	}
 
-	func reduce<Result>(into initialResult: Result, _ updateAccumulatingResult: (inout Result, String) throws -> ()) rethrows -> Result {
+	func reduce<Result>(into initialResult: Result, _ updateAccumulatingResult: (inout Result, String) throws -> Void) rethrows -> Result {
 		return try self.cache.reduce(into: initialResult) { (result: inout Result, element: (key: String, value: CacheEntry)) in
 			try updateAccumulatingResult(&result, element.key)
 		}
@@ -220,7 +220,7 @@ struct SimpleStreamCache: Codable {
 		return self.cache[fingerprint]
 	}
 
-	mutating func deleteCache(fingerprint: String) -> CacheEntry?{
+	mutating func deleteCache(fingerprint: String) -> CacheEntry? {
 		self.dirty = true
 		return self.cache.removeValue(forKey: fingerprint)
 	}
@@ -366,7 +366,7 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 			} else {
 				return ["\(_remote)://\(self._fingerprint)"]
 			}
-		}			
+		}
 	}
 
 	func purgeables(remote: String) throws -> [Purgeable] {
@@ -391,7 +391,7 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 
 		try FileManager.default.contentsOfDirectory(at: self.baseURL, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles).forEach { url in
 			if let remote = remoteDb.reverseLookup(url.lastPathComponent) {
-				purgeableItems.append(contentsOf: try SimpleStreamsImageCache(name: url.lastPathComponent, asSystem: self.asSystem).purgeables(remote: remote))	
+				purgeableItems.append(contentsOf: try SimpleStreamsImageCache(name: url.lastPathComponent, asSystem: self.asSystem).purgeables(remote: remote))
 			}
 		}
 

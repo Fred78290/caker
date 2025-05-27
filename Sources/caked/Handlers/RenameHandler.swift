@@ -6,7 +6,7 @@ import NIOCore
 struct RenameHandler: CakedCommand {
 	let request: Caked_RenameRequest
 
-	static func rename(oldname: String, newname: String, asSystem: Bool) throws -> String{
+	static func rename(oldname: String, newname: String, asSystem: Bool) throws -> String {
 		let storage = StorageLocation(asSystem: asSystem)
 		let vmLocation = try storage.find(oldname)
 

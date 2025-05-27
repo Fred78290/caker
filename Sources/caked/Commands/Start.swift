@@ -1,6 +1,6 @@
 import ArgumentParser
-import NIOPortForwarding
 import Logging
+import NIOPortForwarding
 
 struct Start: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")

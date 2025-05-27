@@ -1,9 +1,9 @@
 import Foundation
-import NIOCore
-import NIOPosix
 import GRPC
 import GRPCLib
+import NIOCore
 import NIOPortForwarding
+import NIOPosix
 
 nonisolated(unsafe) var portForwardingServer: PortForwardingServer? = nil
 
@@ -30,13 +30,14 @@ class PortForwardingServer {
 		self.remoteAddress = remoteAddress
 		self.ttl = ttl
 		self.dynamicPortFarwarding = dynamicPortFarwarding
-		self.portForwarder = try CakedPortForwarder(group: group,
-		                                            remoteHost: remoteAddress,
-		                                            bindAddress: bindAddresses,
-		                                            forwardedPorts: forwardedPorts,
-		                                            ttl: ttl,
-		                                            listeningAddress: listeningAddress,
-		                                            asSystem: asSystem)
+		self.portForwarder = try CakedPortForwarder(
+			group: group,
+			remoteHost: remoteAddress,
+			bindAddress: bindAddresses,
+			forwardedPorts: forwardedPorts,
+			ttl: ttl,
+			listeningAddress: listeningAddress,
+			asSystem: asSystem)
 	}
 
 	private func bind() throws {
@@ -58,10 +59,11 @@ class PortForwardingServer {
 	}
 
 	private func add(forwardedPorts: [ForwardedPort]) throws -> [any PortForwarding] {
-		try self.portForwarder.addPortForwardingServer(remoteHost: self.remoteAddress,
-		                                               mappedPorts: forwardedPorts.map { MappedPort(host: $0.host, guest: $0.guest, proto: $0.proto) },
-		                                               bindAddress: self.bindAddresses,
-		                                               udpConnectionTTL: self.ttl)
+		try self.portForwarder.addPortForwardingServer(
+			remoteHost: self.remoteAddress,
+			mappedPorts: forwardedPorts.map { MappedPort(host: $0.host, guest: $0.guest, proto: $0.proto) },
+			bindAddress: self.bindAddresses,
+			udpConnectionTTL: self.ttl)
 	}
 
 	private func delete(forwardedPorts: [ForwardedPort]) throws {

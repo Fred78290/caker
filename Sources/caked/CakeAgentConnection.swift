@@ -1,14 +1,13 @@
-import Foundation
+import Atomics
 import CakeAgentLib
-import NIOCore
-import NIOPosix
-import NIOSSL
+import Foundation
 @preconcurrency import GRPC
 import GRPCLib
 import Logging
-import CakeAgentLib
+import NIOCore
+import NIOPosix
+import NIOSSL
 import SwiftProtobuf
-import Atomics
 
 extension CakeAgentClient {
 	static func log(_ error: Error) {
@@ -25,23 +24,24 @@ extension CakeAgentClient {
 		let response = self.info(.init(), callOptions: callOptions).response
 
 		return response.flatMapThrowing { response in
-			return .success(Caked_InfoReply.with {
-				$0.version = response.version
-				$0.uptime = response.uptime
-				$0.cpuCount = response.cpuCount
-				$0.ipaddresses = response.ipaddresses
-				$0.osname = response.osname
-				$0.release = response.release
+			return .success(
+				Caked_InfoReply.with {
+					$0.version = response.version
+					$0.uptime = response.uptime
+					$0.cpuCount = response.cpuCount
+					$0.ipaddresses = response.ipaddresses
+					$0.osname = response.osname
+					$0.release = response.release
 
-				if response.hasMemory {
-					let mem = response.memory
-					$0.memory = .with{ memory in
-						memory.total = mem.total
-						memory.free = mem.free
-						memory.used = mem.used
+					if response.hasMemory {
+						let mem = response.memory
+						$0.memory = .with { memory in
+							memory.total = mem.total
+							memory.free = mem.free
+							memory.used = mem.used
+						}
 					}
-				}
-			})
+				})
 		}.flatMapErrorWithEventLoop { error, eventLoop in
 			Self.log(error)
 
@@ -63,26 +63,29 @@ extension CakeAgentClient {
 	}
 
 	func run(request: Caked_RunCommand, callOptions: CallOptions? = nil) -> EventLoopFuture<Result<Caked_RunReply, Error>> {
-		let response = self.run(CakeAgent.RunCommand.with { req in
-			req.input = request.input
-			req.command = CakeAgent.RunCommand.Command.with {
-				$0.command = request.command
-				$0.args = request.args
-			}
-		}, callOptions: callOptions).response
+		let response = self.run(
+			CakeAgent.RunCommand.with { req in
+				req.input = request.input
+				req.command = CakeAgent.RunCommand.Command.with {
+					$0.command = request.command
+					$0.args = request.args
+				}
+			}, callOptions: callOptions
+		).response
 
 		return response.flatMapThrowing { response in
-			return .success(Caked_RunReply.with { reply in
-				reply.exitCode = response.exitCode
+			return .success(
+				Caked_RunReply.with { reply in
+					reply.exitCode = response.exitCode
 
-				if response.stderr.isEmpty == false {
-					reply.stderr = response.stderr
-				}
+					if response.stderr.isEmpty == false {
+						reply.stderr = response.stderr
+					}
 
-				if response.stdout.isEmpty == false {
-					reply.stdout = response.stdout
-				}
-			})
+					if response.stdout.isEmpty == false {
+						reply.stdout = response.stdout
+					}
+				})
 		}.flatMapErrorWithEventLoop { error, eventLoop in
 			Self.log(error)
 
@@ -104,16 +107,18 @@ extension CakeAgentClient {
 	}
 
 	func mount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
-		let response: CakeAgent.MountReply = try self.mount(CakeAgent.MountRequest.with {
-			$0.mounts = request.mounts.map { option in
-				CakeAgent.MountRequest.MountVirtioFS.with {
-					$0.uid = option.uid
-					$0.gid = option.gid
-					$0.name = option.name
-					$0.target = option.target
+		let response: CakeAgent.MountReply = try self.mount(
+			CakeAgent.MountRequest.with {
+				$0.mounts = request.mounts.map { option in
+					CakeAgent.MountRequest.MountVirtioFS.with {
+						$0.uid = option.uid
+						$0.gid = option.gid
+						$0.name = option.name
+						$0.target = option.target
+					}
 				}
-			}
-		}, callOptions: callOptions).response.wait()
+			}, callOptions: callOptions
+		).response.wait()
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
@@ -135,16 +140,18 @@ extension CakeAgentClient {
 	}
 
 	func umount(request: Caked_MountRequest, callOptions: CallOptions? = nil) throws -> Caked_MountReply {
-		let response: CakeAgent.MountReply = try self.umount(CakeAgent.MountRequest.with {
-			$0.mounts = request.mounts.map { option in
-				CakeAgent.MountRequest.MountVirtioFS.with {
-					$0.uid = option.uid
-					$0.gid = option.gid
-					$0.name = option.name
-					$0.target = option.target
+		let response: CakeAgent.MountReply = try self.umount(
+			CakeAgent.MountRequest.with {
+				$0.mounts = request.mounts.map { option in
+					CakeAgent.MountRequest.MountVirtioFS.with {
+						$0.uid = option.uid
+						$0.gid = option.gid
+						$0.name = option.name
+						$0.target = option.target
+					}
 				}
-			}
-		}, callOptions: callOptions).response.wait()
+			}, callOptions: callOptions
+		).response.wait()
 
 		return try Caked_MountReply.with { reply in
 			if case CakeAgent.MountReply.OneOf_Response.error(let v)? = response.response {
@@ -181,7 +188,7 @@ final class CakeAgentConnection: Sendable {
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
 
-	internal init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {	// swiftlint:disable:this function_parameter_count
+	internal init(eventLoop: EventLoopGroup, listeningAddress: URL, caCert: String?, tlsCert: String?, tlsKey: String?, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {  // swiftlint:disable:this function_parameter_count
 		self.caCert = caCert
 		self.tlsCert = tlsCert
 		self.tlsKey = tlsKey
@@ -264,16 +271,18 @@ final class CakeAgentConnection: Sendable {
 			try? client.close().wait()
 		}
 
-		let response = try client.run(CakeAgent.RunCommand.with { req in
-			if let data = input {
-				req.input = data
-			}
+		let response = try client.run(
+			CakeAgent.RunCommand.with { req in
+				if let data = input {
+					req.input = data
+				}
 
-			req.command = CakeAgent.RunCommand.Command.with {
-				$0.command = command
-				$0.args = arguments
-			}
-		}, callOptions: callOptions).response.wait()
+				req.command = CakeAgent.RunCommand.Command.with {
+					$0.command = command
+					$0.args = arguments
+				}
+			}, callOptions: callOptions
+		).response.wait()
 
 		return Caked_RunReply.with { reply in
 			reply.exitCode = response.exitCode
@@ -304,23 +313,26 @@ final class CakeAgentConnection: Sendable {
 
 		do {
 
-			let streamShell: BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse> = client.execute(callOptions: .init(timeLimit: .none), handler: { response in
-				continuation.yield(Caked_ExecuteResponse.with { reply in
-					switch response.response {
-					case .exitCode(let exitCode):
-						reply.exitCode = exitCode
-						exitCodeSent = true
-					case .stdout(let stdout):
-						reply.stdout = stdout
-					case .stderr(let stderr):
-						reply.stderr = stderr
-					case .established:
-						reply.established = true
-					case .none:
-						break
-					}
+			let streamShell: BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse> = client.execute(
+				callOptions: .init(timeLimit: .none),
+				handler: { response in
+					continuation.yield(
+						Caked_ExecuteResponse.with { reply in
+							switch response.response {
+							case .exitCode(let exitCode):
+								reply.exitCode = exitCode
+								exitCodeSent = true
+							case .stdout(let stdout):
+								reply.stdout = stdout
+							case .stderr(let stderr):
+								reply.stderr = stderr
+							case .established:
+								reply.established = true
+							case .none:
+								break
+							}
+						})
 				})
-			})
 
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 				let handleFailure = { (error: Error) in
@@ -340,41 +352,44 @@ final class CakeAgentConnection: Sendable {
 				group.addTask {
 					do {
 						for try await message: Caked_ExecuteRequest in requestStream {
-							try await streamShell.sendMessage(CakeAgent.ExecuteRequest.with{msg in
-								switch message.execute {
-								case .command(let command):
-									msg.command = CakeAgent.ExecuteRequest.ExecuteCommand.with{ cmd in
-										switch command.execute {
-										case .shell:
-											cmd.shell = true
-										case .command(let execute):
-											cmd.command = CakeAgent.ExecuteRequest.ExecuteCommand.Command.with{ cmd in
-												cmd.command = execute.command
-												cmd.args = execute.args
+							try await streamShell.sendMessage(
+								CakeAgent.ExecuteRequest.with { msg in
+									switch message.execute {
+									case .command(let command):
+										msg.command = CakeAgent.ExecuteRequest.ExecuteCommand.with { cmd in
+											switch command.execute {
+											case .shell:
+												cmd.shell = true
+											case .command(let execute):
+												cmd.command = CakeAgent.ExecuteRequest.ExecuteCommand.Command.with { cmd in
+													cmd.command = execute.command
+													cmd.args = execute.args
+												}
+											case .none:
+												break
 											}
-										case .none:
-											break
 										}
+									case .input(let input):
+										msg.input = input
+									case .size(let size):
+										msg.size = CakeAgent.ExecuteRequest.TerminalSize.with { termSize in
+											termSize.cols = size.cols
+											termSize.rows = size.rows
+										}
+									case .eof(let eof):
+										msg.eof = eof
+									case .none:
+										break
 									}
-								case .input(let input):
-									msg.input = input
-								case .size(let size):
-									msg.size = CakeAgent.ExecuteRequest.TerminalSize.with{ termSize in
-										termSize.cols = size.cols
-										termSize.rows = size.rows
-									}
-								case .eof(let eof):
-									msg.eof = eof
-								case .none:
-									break
 								}
-							}).get()
+							).get()
 						}
 					} catch {
 						if handleFailure(error) {
-							try? await responseStream.send(Caked_ExecuteResponse.with {
-								$0.failure = error.localizedDescription
-							})
+							try? await responseStream.send(
+								Caked_ExecuteResponse.with {
+									$0.failure = error.localizedDescription
+								})
 						}
 					}
 				}
@@ -390,9 +405,10 @@ final class CakeAgentConnection: Sendable {
 						}
 					} catch {
 						if handleFailure(error) {
-							try? await responseStream.send(Caked_ExecuteResponse.with {
-								$0.failure = error.localizedDescription
-							})
+							try? await responseStream.send(
+								Caked_ExecuteResponse.with {
+									$0.failure = error.localizedDescription
+								})
 						}
 					}
 				}
@@ -400,17 +416,19 @@ final class CakeAgentConnection: Sendable {
 				try await group.waitForAll()
 
 				if interceptor.errorCaught.load() == nil && exitCodeSent == false {
-					try? await responseStream.send(Caked_ExecuteResponse.with {
-						$0.failure = "canceled"
-					})
+					try? await responseStream.send(
+						Caked_ExecuteResponse.with {
+							$0.failure = "canceled"
+						})
 				}
 
 				await finish()
 			}
 		} catch {
-			try? await responseStream.send(Caked_ExecuteResponse.with { 
-				$0.failure = error.localizedDescription
-			})
+			try? await responseStream.send(
+				Caked_ExecuteResponse.with {
+					$0.failure = error.localizedDescription
+				})
 
 			await finish()
 			throw error

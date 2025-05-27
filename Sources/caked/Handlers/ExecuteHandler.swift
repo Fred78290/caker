@@ -5,11 +5,11 @@
 //  Created by Frederic BOLTZ on 17/04/2025.
 //
 
+import CakeAgentLib
 import Foundation
-import NIO
 import GRPC
 import GRPCLib
-import CakeAgentLib
+import NIO
 
 struct ExecuteHandler: CakedCommandAsync {
 	let requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>

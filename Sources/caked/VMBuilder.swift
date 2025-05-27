@@ -1,6 +1,6 @@
 import Foundation
-import Virtualization
 import GRPCLib
+import Virtualization
 
 let cloudInitIso = "cloud-init.iso"
 
@@ -30,14 +30,15 @@ struct VMBuilder {
 		} else {
 			// Create NVRAM
 			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
-			config = CakeConfig(location: vmLocation.rootURL,
-			                    os: .linux,
-			                    autostart: options.autostart,
-			                    configuredUser: options.user,
-			                    configuredPassword: options.password,
-			                    displayRefit: options.displayRefit,
-			                    cpuCountMin: Int(options.cpu),
-			                    memorySizeMin: options.memory * 1024 * 1024)
+			config = CakeConfig(
+				location: vmLocation.rootURL,
+				os: .linux,
+				autostart: options.autostart,
+				configuredUser: options.user,
+				configuredPassword: options.password,
+				displayRefit: options.displayRefit,
+				cpuCountMin: Int(options.cpu),
+				memorySizeMin: options.memory * 1024 * 1024)
 
 			config.useCloudInit = true
 			config.agent = true
@@ -63,15 +64,16 @@ struct VMBuilder {
 		try config.save()
 
 		if config.os == .linux && config.useCloudInit {
-			let cloudInit = try CloudInit(userName: options.user,
-			                              password: options.password,
-			                              mainGroup: options.mainGroup,
-			                              clearPassword: options.clearPassword,
-			                              sshAuthorizedKeyPath: options.sshAuthorizedKey,
-			                              vendorDataPath: options.vendorData,
-			                              userDataPath: options.userData,
-			                              networkConfigPath: options.networkConfig,
-			                              asSystem: asSystem)
+			let cloudInit = try CloudInit(
+				userName: options.user,
+				password: options.password,
+				mainGroup: options.mainGroup,
+				clearPassword: options.clearPassword,
+				sshAuthorizedKeyPath: options.sshAuthorizedKey,
+				vendorDataPath: options.vendorData,
+				userDataPath: options.userData,
+				networkConfigPath: options.networkConfig,
+				asSystem: asSystem)
 
 			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
 		}

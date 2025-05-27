@@ -11,20 +11,14 @@ struct VZSharedNetwork: Codable, Equatable {
 	let nat66Prefix: String?
 
 	static func == (lhs: Self, rhs: Self) -> Bool {
-		return lhs.mode == rhs.mode &&
-			lhs.netmask == rhs.netmask &&
-			lhs.dhcpStart == rhs.dhcpStart &&
-			lhs.dhcpEnd == rhs.dhcpEnd &&
-			lhs.dhcpLease == rhs.dhcpLease &&
-			lhs.interfaceID == rhs.interfaceID &&
-			lhs.nat66Prefix == rhs.nat66Prefix
+		return lhs.mode == rhs.mode && lhs.netmask == rhs.netmask && lhs.dhcpStart == rhs.dhcpStart && lhs.dhcpEnd == rhs.dhcpEnd && lhs.dhcpLease == rhs.dhcpLease && lhs.interfaceID == rhs.interfaceID && lhs.nat66Prefix == rhs.nat66Prefix
 	}
 
 	static func != (lhs: Self, rhs: Self) -> Bool {
 		return !(lhs == rhs)
 	}
 
-	private enum CodingKeys : String, CodingKey {
+	private enum CodingKeys: String, CodingKey {
 		case mode = "mode"
 		case netmask = "netmask"
 		case dhcpStart = "dhcp-start"
@@ -57,12 +51,12 @@ struct VZSharedNetwork: Codable, Equatable {
 			$0.network
 		}
 
-		guard networks.first(where: { $0.contains(gateway)}) == nil else {
+		guard networks.first(where: { $0.contains(gateway) }) == nil else {
 			throw ServiceError("Gateway \(dhcpStart) is already in use")
 		}
 
 		if let dhcpLease = dhcpLease {
-			if dhcpLease > 24*3600 || dhcpLease < 60 {
+			if dhcpLease > 24 * 3600 || dhcpLease < 60 {
 				throw ServiceError("Invalid dhcp lease \(dhcpLease)")
 			}
 		}
@@ -88,7 +82,7 @@ struct VZSharedNetwork: Codable, Equatable {
 				let interface = addr.pointee
 				let addrFamily = interface.sa_family
 
-				if (flags & (IFF_UP|IFF_RUNNING|IFF_LOOPBACK)) == (IFF_UP|IFF_RUNNING) {
+				if (flags & (IFF_UP | IFF_RUNNING | IFF_LOOPBACK)) == (IFF_UP | IFF_RUNNING) {
 					var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
 
 					if addrFamily == UInt8(AF_INET) {
@@ -101,7 +95,7 @@ struct VZSharedNetwork: Codable, Equatable {
 								addrStr = String(cString: hostname)
 							}
 
-							if let ip:IP.Block<IP.V4> = .init(addrStr) {
+							if let ip: IP.Block<IP.V4> = .init(addrStr) {
 								ipAddresses.append(ip)
 							}
 						}
@@ -130,7 +124,7 @@ struct VZSharedNetwork: Codable, Equatable {
 
 			let ip: IP.V4 = .init(base[0], base[1], base[2], base[3])
 
-			if networks.first(where: { $0.contains(ip)}) == nil {
+			if networks.first(where: { $0.contains(ip) }) == nil {
 				return (String(format: "%d.%d.%d.%d", base[0], base[1], base[2], 1), String(format: "%d.%d.%d.%d", base[0], base[1], base[2], 254))
 			}
 		}
@@ -159,7 +153,7 @@ extension String {
 	}
 
 	func netmaskToCidr() -> Int {
-		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
+		let octets: [Int] = self.split(separator: ".").map({ Int($0)! })
 		var cidr: Int = 0
 
 		for i in 0..<4 {
@@ -171,17 +165,17 @@ extension String {
 
 	func cidrToNetmask() -> String {
 		var value = Int(self) ?? 0
-		value = 0xFFFFFFFF ^ ((1 << (32 - value)) - 1)
+		value = 0xFFFF_FFFF ^ ((1 << (32 - value)) - 1)
 
 		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
 	}
 
 	func IPToInt() -> Int {
-		let octets: [Int] = self.split(separator: ".").map({Int($0)!})
+		let octets: [Int] = self.split(separator: ".").map({ Int($0)! })
 		var numValue: Int = 0
 
-		for i in stride(from:3, through:0, by:-1) {
-			numValue += octets[3-i] << (i * 8)
+		for i in stride(from: 3, through: 0, by: -1) {
+			numValue += octets[3 - i] << (i * 8)
 		}
 
 		return numValue
@@ -189,20 +183,20 @@ extension String {
 }
 
 struct VZVMNetConfig: Codable {
-	var sharedNetworks: [String:VZSharedNetwork]
+	var sharedNetworks: [String: VZSharedNetwork]
 
 	var sharedNetworkNames: [String] {
 		return Array(sharedNetworks.keys)
 	}
 
-	private enum CodingKeys : String, CodingKey {
+	private enum CodingKeys: String, CodingKey {
 		case sharedNetworks = "networks"
 	}
 
 	init() throws {
 		self.sharedNetworks = [
 			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24),
-			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24)
+			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24),
 		]
 	}
 
@@ -216,7 +210,7 @@ struct VZVMNetConfig: Codable {
 
 	init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
-		self.sharedNetworks = try container.decodeIfPresent([String:VZSharedNetwork].self, forKey: .sharedNetworks) ?? [:]
+		self.sharedNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .sharedNetworks) ?? [:]
 	}
 
 	func encode(to encoder: Encoder) throws {

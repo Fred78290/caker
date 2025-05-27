@@ -17,7 +17,7 @@ struct CertificatesLocation: Codable {
 			self.clientKeyURL,
 			self.clientCertURL,
 			self.serverKeyURL,
-			self.serverCertURL
+			self.serverCertURL,
 		]
 	}
 
@@ -34,10 +34,11 @@ struct CertificatesLocation: Codable {
 	func createCertificats(subject: String, numberOfYears: Int = 10, _ force: Bool = false) throws -> CertificatesLocation {
 		if force || FileManager.default.fileExists(atPath: self.serverKeyURL.path) == false {
 			try FileManager.default.createDirectory(at: self.certHome, withIntermediateDirectories: true)
-			try RSAKeyGenerator.generateClientServerCertificate(subject: subject, numberOfYears: numberOfYears,
-			                                                    caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
-			                                                    serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
-			                                                    clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
+			try RSAKeyGenerator.generateClientServerCertificate(
+				subject: subject, numberOfYears: numberOfYears,
+				caKeyURL: self.caKeyURL, caCertURL: self.caCertURL,
+				serverKeyURL: self.serverKeyURL, serverCertURL: self.serverCertURL,
+				clientKeyURL: self.clientKeyURL, clientCertURL: self.clientCertURL)
 		}
 
 		return self
@@ -59,4 +60,3 @@ struct CertificatesLocation: Codable {
 		return try certs.createCertificats(subject: "CakeAgent", force)
 	}
 }
-

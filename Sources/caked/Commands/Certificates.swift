@@ -1,4 +1,3 @@
-
 import ArgumentParser
 import Foundation
 import GRPCLib
@@ -38,8 +37,9 @@ extension CertificatesLocation {
 }
 
 struct Certificates: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Generate tls certificates for grpc",
-	                                                subcommands: [Generate.self, Get.self, Agent.self])
+	static let configuration = CommandConfiguration(
+		abstract: "Generate tls certificates for grpc",
+		subcommands: [Generate.self, Get.self, Agent.self])
 
 	struct Get: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Return certificates path")

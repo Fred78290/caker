@@ -1,10 +1,10 @@
 import ArgumentParser
+import Cocoa
 import Foundation
 import GRPCLib
 import NIO
-import TextTable
 import Shout
-import Cocoa
+import TextTable
 
 private let cloudInitCleanup = [
 	"systemctl disable cakeagent",
@@ -23,7 +23,7 @@ private let cloudInitCleanup = [
 	"find /var/log -type f -exec rm -f {} +",
 	"rm -rf /tmp/* /tmp/.*-unix /var/tmp/* /var/lib/apt/*",
 	"/bin/sync",
-//	"shutdown -h now"
+	//	"shutdown -h now"
 ]
 
 struct TemplateHandler: CakedCommand {

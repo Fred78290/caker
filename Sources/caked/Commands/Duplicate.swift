@@ -5,11 +5,11 @@
 //  Created by Frederic BOLTZ on 07/02/2025.
 //
 
-import Foundation
 import ArgumentParser
+import Foundation
 import GRPCLib
-import TextTable
 import Logging
+import TextTable
 
 struct Duplicate: ParsableCommand {
 	static let configuration = DuplicateOptions.configuration
@@ -37,9 +37,12 @@ struct Duplicate: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try DuplicateHandler.duplicate(from: self.duplicate.from,
-		                                                                              to: self.duplicate.to,
-		                                                                              resetMacAddress: self.duplicate.resetMacAddress,
-		                                                                              asSystem: self.common.asSystem)))
+		Logger.appendNewLine(
+			self.common.format.render(
+				try DuplicateHandler.duplicate(
+					from: self.duplicate.from,
+					to: self.duplicate.to,
+					resetMacAddress: self.duplicate.resetMacAddress,
+					asSystem: self.common.asSystem)))
 	}
 }

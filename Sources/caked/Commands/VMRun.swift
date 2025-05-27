@@ -1,11 +1,11 @@
 import ArgumentParser
-import Foundation
-import Logging
-import Virtualization
-import GRPCLib
 import Cocoa
+import Foundation
+import GRPCLib
+import Logging
 import NIOPortForwarding
 import System
+import Virtualization
 
 struct VMRun: AsyncParsableCommand {
 	static var launchedFromService = false
@@ -77,12 +77,13 @@ struct VMRun: AsyncParsableCommand {
 		let (storageLocation, vmLocation) = self.locations
 		let config = try vmLocation.config()
 
-		let handler = VMRunHandler(storageLocation: storageLocation,
-		                           vmLocation: vmLocation,
-		                           name: vmLocation.name,
-		                           asSystem: self.common.asSystem,
-		                           display: display,
-		                           config: config)
+		let handler = VMRunHandler(
+			storageLocation: storageLocation,
+			vmLocation: vmLocation,
+			name: vmLocation.name,
+			asSystem: self.common.asSystem,
+			display: display,
+			config: config)
 
 		try handler.run()
 	}

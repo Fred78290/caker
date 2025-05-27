@@ -1,8 +1,8 @@
 import Foundation
+import GRPCLib
 import NIOCore
 import NIOPosix
 import Virtualization
-import GRPCLib
 
 // This class represents the console device and socket devices that is used to communicate with the virtual machine.
 class CommunicationDevices {
@@ -13,7 +13,7 @@ class CommunicationDevices {
 		set {
 			virtioSocketDevices.delegate = newValue
 		}
-		
+
 		get {
 			return virtioSocketDevices.delegate
 		}

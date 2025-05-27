@@ -1,10 +1,10 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPC
-import CakeAgentLib
-import NIO
-import Logging
 import GRPCLib
+import Logging
+import NIO
 
 struct Exec: CakeAgentAsyncParsableCommand {
 	static let configuration = ExecOptions.configuration

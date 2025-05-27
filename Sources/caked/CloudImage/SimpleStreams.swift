@@ -65,7 +65,7 @@ class Streamable {
 struct SimpleStream: JsonDecodable {
 	let updated: String?
 	let format: String
-	let index: Dictionary<String, SimpleStreamImageInfos>
+	let index: [String: SimpleStreamImageInfos]
 
 	enum CodingKeys: String, CodingKey {
 		case updated
@@ -131,7 +131,7 @@ struct SimpleStreamImageIndex: JsonDecodable {
 	let contentID: String
 	let format: String
 	let datatype: String
-	let products: Dictionary<String, SimpleStreamProduct>
+	let products: [String: SimpleStreamProduct]
 	let updated: String?
 	let license: String?
 	let creator: String?
@@ -181,7 +181,7 @@ struct SimpleStreamProduct: Codable {
 	let supported: Bool?
 	let variant: String
 	let version: String?
-	let versions: Dictionary<String, ImageVersion>
+	let versions: [String: ImageVersion]
 
 	enum CodingKeys: String, CodingKey {
 		case aliases
@@ -350,7 +350,7 @@ extension LinuxContainerImage {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
 				let temporaryLocation = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
-				try cacheLocation.updateAccessDate() 
+				try cacheLocation.updateAccessDate()
 				try FileManager.default.copyItem(at: cacheLocation, to: temporaryLocation)
 
 				_ = try FileManager.default.replaceItemAt(to, withItemAt: temporaryLocation)

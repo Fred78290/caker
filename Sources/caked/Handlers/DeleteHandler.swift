@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 07/02/2025.
 //
 import Foundation
-import NIO
 import GRPCLib
+import NIO
 import TextTable
 
 struct DeleteHandler: CakedCommand {
@@ -33,14 +33,14 @@ struct DeleteHandler: CakedCommand {
 		return nil
 	}
 
-	static func delete(names: [String], asSystem: Bool) throws -> [DeleteReply]{		
+	static func delete(names: [String], asSystem: Bool) throws -> [DeleteReply] {
 		return try names.compactMap { name in
 			guard let result = tryDeleteLocal(name: name, asSystem: asSystem) else {
 				if let u = URL(string: name) {
 					var purgeableStorages: [String: CommonCacheImageCache] = [
 						CloudImageCache.scheme: try CloudImageCache(asSystem: asSystem),
 						RawImageCache.scheme: try RawImageCache(asSystem: asSystem),
-						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(asSystem: asSystem)
+						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(asSystem: asSystem),
 					]
 
 					if true {

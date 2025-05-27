@@ -1,15 +1,15 @@
 import ArgumentParser
 import Foundation
-import SystemConfiguration
-import NIOCore
 import GRPCLib
+import NIOCore
 import SwiftDate
+import SystemConfiguration
 
 struct PurgeHandler: CakedCommand {
 	var options: PurgeOptions
 
 	@discardableResult static func purge(direct: Bool, asSystem: Bool, options: PurgeOptions) throws -> String {
-		var arguments: [String] = [ "--entries=\(options.entries)" ]
+		var arguments: [String] = ["--entries=\(options.entries)"]
 
 		if let olderThan = options.olderThan {
 			arguments.append("--older-than=\(olderThan)")
@@ -24,7 +24,7 @@ struct PurgeHandler: CakedCommand {
 				try OCIImageCache(asSystem: asSystem),
 				try CloudImageCache(asSystem: asSystem),
 				try RawImageCache(asSystem: asSystem),
-				try SimpleStreamsImageCache(name: "", asSystem: asSystem)
+				try SimpleStreamsImageCache(name: "", asSystem: asSystem),
 			]
 
 			if let olderThan = options.olderThan {
@@ -53,7 +53,8 @@ struct PurgeHandler: CakedCommand {
 	}
 
 	static func purgeSpaceBudget(purgeableStorages: [PurgeableStorage], spaceBudgetBytes: UInt64) throws {
-		let purgeables: [Purgeable] = try purgeableStorages
+		let purgeables: [Purgeable] =
+			try purgeableStorages
 			.flatMap { try $0.purgeables() }
 			.sorted { try $0.accessDate() > $1.accessDate() }
 

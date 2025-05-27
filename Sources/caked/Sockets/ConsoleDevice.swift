@@ -19,14 +19,14 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		self.channel = channel
 	}
 
-	private func createUnixConsole(consoleURL: URL) -> (FileHandle, FileHandle){
+	private func createUnixConsole(consoleURL: URL) -> (FileHandle, FileHandle) {
 		let inputPipe = Pipe()
 		let outputPipe = Pipe()
 
 		let bootstrap: ServerBootstrap = ServerBootstrap(group: self.mainGroup)
 			.serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
 			.childChannelOption(.maxMessagesPerRead, value: 16)
-			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())  
+			.childChannelOption(.recvAllocator, value: AdaptiveRecvByteBufferAllocator())
 			.childChannelInitializer { inboundChannel in
 				// Dup fd pipe because nio close it then the socket is closed
 				let input = dup(inputPipe.fileHandleForReading.fileDescriptor)
@@ -149,7 +149,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		}
 	}
 
-	static public func setupConsole(on: EventLoopGroup, consoleURL: URL?, configuration: VZVirtualMachineConfiguration) throws  -> ConsoleDevice{
+	static public func setupConsole(on: EventLoopGroup, consoleURL: URL?, configuration: VZVirtualMachineConfiguration) throws -> ConsoleDevice {
 		try ConsoleDevice(on: on, consoleURL: consoleURL).create(configuration: configuration)
 	}
 }

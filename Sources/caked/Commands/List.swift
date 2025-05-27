@@ -2,8 +2,8 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
-import TextTable
 import Logging
+import TextTable
 
 struct List: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "List all VMs")

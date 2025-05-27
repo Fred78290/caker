@@ -1,8 +1,8 @@
+import CakeAgentLib
 import Foundation
-import NIO
 import GRPC
 import GRPCLib
-import CakeAgentLib
+import NIO
 import TextTable
 
 struct InfosHandler: CakedCommand {

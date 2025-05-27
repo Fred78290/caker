@@ -1,7 +1,7 @@
 import Foundation
+import GRPCLib
 import System
 import Virtualization
-import GRPCLib
 
 enum Architecture: String, Codable, CustomStringConvertible {
 	var description: String {
@@ -121,7 +121,7 @@ func processExist(_ runningPID: pid_t) throws -> Bool {
 	var procList: UnsafeMutablePointer<kinfo_proc>?
 	procList = UnsafeMutablePointer.allocate(capacity: bufferSize)
 	defer {
-		procList?.deallocate() 
+		procList?.deallocate()
 	}
 
 	// Now we actually perform our query to get all the processes.
@@ -313,10 +313,9 @@ extension URL: Purgeable {
 	}
 }
 
-
 extension DirectorySharingAttachments {
 	public var multipleDirectoryShares: VZDirectoryShare {
-		var directories: [String : VZSharedDirectory] = [:]
+		var directories: [String: VZSharedDirectory] = [:]
 
 		self.forEach {
 			if let config = $0.configuration {
@@ -328,7 +327,7 @@ extension DirectorySharingAttachments {
 	}
 
 	public var singleDirectoryShares: [VZDirectoryShare] {
-		self.compactMap{ mount in
+		self.compactMap { mount in
 			VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
 		}
 	}
@@ -346,7 +345,7 @@ extension DirectorySharingAttachments {
 			return [sharingDevice]
 		}
 
-		return self.compactMap{ mount in
+		return self.compactMap { mount in
 			let sharingDevice = VZVirtioFileSystemDeviceConfiguration(tag: mount.name)
 
 			sharingDevice.share = VZSingleDirectoryShare(directory: .init(url: mount.path, readOnly: mount.readOnly))
@@ -355,4 +354,3 @@ extension DirectorySharingAttachments {
 		}
 	}
 }
-

@@ -1,11 +1,11 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPC
 import GRPCLib
-import TextTable
-import CakeAgentLib
 import NIO
 import Semaphore
+import TextTable
 
 class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 	static let supportsSecureCoding: Bool = false
@@ -21,7 +21,7 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 		self.response = coder.decodeObject(forKey: "reply") as? MountInfos
 	}
 
-	func reply(response: String) -> Void {
+	func reply(response: String) {
 		self.response = MountInfos(fromJSON: response)
 		self.semaphore.signal()
 	}

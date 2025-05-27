@@ -1,14 +1,15 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import GRPCLib
 import Logging
 import TextTable
 
 struct Remote: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
-	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
+	static let configuration = CommandConfiguration(
+		abstract: "Manage simplestream remote",
+		subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
-	struct AddRemote : ParsableCommand {
+	struct AddRemote: ParsableCommand {
 		static let configuration = RemoteAddOptions.configuration
 
 		@OptionGroup(title: "Global options")
@@ -29,7 +30,7 @@ struct Remote: ParsableCommand {
 		}
 	}
 
-	struct DeleteRemote : ParsableCommand {
+	struct DeleteRemote: ParsableCommand {
 		static let configuration = RemoteDeleteOptions.configuration
 
 		@OptionGroup(title: "Global options")
@@ -47,7 +48,7 @@ struct Remote: ParsableCommand {
 		}
 	}
 
-	struct ListRemote : ParsableCommand {
+	struct ListRemote: ParsableCommand {
 		static let configuration = RemoteListOptions.configuration
 
 		@OptionGroup(title: "Global options")
@@ -62,4 +63,3 @@ struct Remote: ParsableCommand {
 		}
 	}
 }
-

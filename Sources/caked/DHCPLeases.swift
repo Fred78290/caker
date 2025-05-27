@@ -6,7 +6,7 @@ extension String {
 		let components = macAddress.split(separator: ":")
 
 		if components.count == 6 {
-			self = components.map{ String(format: "%02X", UInt8($0, radix: 16)!) }.joined(separator: ":")
+			self = components.map { String(format: "%02X", UInt8($0, radix: 16)!) }.joined(separator: ":")
 		} else {
 			return nil
 		}
@@ -50,7 +50,7 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 		}
 	}
 
-	private static func parseLeases(_ filePath: String) throws -> [String:DHCPLease] {
+	private static func parseLeases(_ filePath: String) throws -> [String: DHCPLease] {
 		let content = try String(contentsOfFile: filePath)
 		var leases = [DHCPLease]()
 		let lines = content.split(separator: "\n")
@@ -90,9 +90,10 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 
 	private static func createLease(from: [String: String]) -> DHCPLease? {
 		guard let ipAddress = from["ip_address"],
-		      let hwAddress = from["hw_address"],
-		      let hostname = from["name"],
-		      let lease = from["lease"] else {
+			let hwAddress = from["hw_address"],
+			let hostname = from["name"],
+			let lease = from["lease"]
+		else {
 			return nil
 		}
 

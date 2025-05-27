@@ -1,12 +1,12 @@
 import ArgumentParser
-@preconcurrency import GRPC
 import CakeAgentLib
 import Foundation
-import NIO
-import Logging
+@preconcurrency import GRPC
 import GRPCLib
+import Logging
+import NIO
 
-struct Sh: CakeAgentAsyncParsableCommand {	
+struct Sh: CakeAgentAsyncParsableCommand {
 	static let configuration = ShellOptions.configuration
 
 	@OptionGroup(title: "Global options")

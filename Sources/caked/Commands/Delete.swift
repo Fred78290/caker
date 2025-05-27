@@ -5,11 +5,11 @@
 //  Created by Frederic BOLTZ on 07/02/2025.
 //
 
-import Foundation
 import ArgumentParser
+import Foundation
 import GRPCLib
-import TextTable
 import Logging
+import TextTable
 
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")

@@ -1,11 +1,11 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
 import GRPC
 import GRPCLib
 import NIOCore
-import NIOPosix
 import NIOPortForwarding
-import CakeAgentLib
+import NIOPosix
 
 protocol CakedCommand {
 	mutating func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply
@@ -78,7 +78,7 @@ extension Caked_RunCommand: CreateCakedCommand {
 	}
 }
 
-extension Caked_InfoRequest : CreateCakedCommand {
+extension Caked_InfoRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return InfosHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.name))
 	}
@@ -97,12 +97,13 @@ extension Caked_MountRequest: CreateCakedCommand {
 
 	func directorySharingAttachment() -> [DirectorySharingAttachment] {
 		return self.mounts.map { mount in
-			DirectorySharingAttachment(source: mount.source,
-			                           destination: mount.hasTarget ? mount.target : nil,
-			                           readOnly: mount.readonly,
-			                           name: mount.hasName ? mount.name : nil,
-			                           uid: mount.hasUid ? Int(mount.uid) : nil,
-			                           gid: mount.hasGid ? Int(mount.gid) : nil)
+			DirectorySharingAttachment(
+				source: mount.source,
+				destination: mount.hasTarget ? mount.target : nil,
+				readOnly: mount.readonly,
+				name: mount.hasName ? mount.name : nil,
+				uid: mount.hasUid ? Int(mount.uid) : nil,
+				gid: mount.hasGid ? Int(mount.gid) : nil)
 		}
 	}
 }
@@ -149,7 +150,7 @@ extension Caked_LaunchRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_PurgeRequest : CreateCakedCommand {
+extension Caked_PurgeRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		var options = PurgeOptions()
 
@@ -173,7 +174,7 @@ extension Caked_PurgeRequest : CreateCakedCommand {
 	}
 }
 
-extension Caked_DeleteRequest : CreateCakedCommand {
+extension Caked_DeleteRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return DeleteHandler(request: self)
 	}

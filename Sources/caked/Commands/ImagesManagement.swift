@@ -5,10 +5,11 @@ import Logging
 import TextTable
 
 struct ImagesManagement: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "image", abstract: "Manage simplestream images",
-	                                                subcommands: [ListImage.self, InfoImage.self, PullImage.self])
+	static let configuration = CommandConfiguration(
+		commandName: "image", abstract: "Manage simplestream images",
+		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
-	struct ListImage : AsyncParsableCommand {
+	struct ListImage: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
 
 		@OptionGroup(title: "Global options")
@@ -26,7 +27,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 	}
 
-	struct InfoImage : AsyncParsableCommand {
+	struct InfoImage: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "info", abstract: "Show useful information about images")
 
 		@OptionGroup(title: "Global options")
@@ -44,7 +45,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 	}
 
-	struct PullImage : AsyncParsableCommand {
+	struct PullImage: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "pull", abstract: "Pull image")
 
 		@OptionGroup(title: "Global options")

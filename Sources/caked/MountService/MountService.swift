@@ -1,5 +1,5 @@
-import Foundation
 import CakeAgentLib
+import Foundation
 import GRPC
 import GRPCLib
 import NIO
@@ -15,7 +15,6 @@ protocol MountServiceServerProtocol {
 	func stop()
 }
 
-
 class MountService: NSObject {
 	let asSystem: Bool
 	let vm: VirtualMachine
@@ -30,13 +29,14 @@ class MountService: NSObject {
 	}
 
 	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
-		return try CakeAgentHelper(on: self.group.next(),
-		                           listeningAddress: self.vm.vmLocation.agentURL,
-		                           connectionTimeout: 30,
-		                           caCert: self.certLocation.caCertURL.path,
-		                           tlsCert: self.certLocation.clientCertURL.path,
-		                           tlsKey: self.certLocation.clientKeyURL.path,
-		                           retries: retries)
+		return try CakeAgentHelper(
+			on: self.group.next(),
+			listeningAddress: self.vm.vmLocation.agentURL,
+			connectionTimeout: 30,
+			caCert: self.certLocation.caCertURL.path,
+			tlsCert: self.certLocation.clientCertURL.path,
+			tlsKey: self.certLocation.clientKeyURL.path,
+			retries: retries)
 	}
 
 	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {
@@ -51,7 +51,7 @@ class MountService: NSObject {
 
 			if config.os == .darwin {
 				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
-					return CakeAgent.MountReply.with { 
+					return CakeAgent.MountReply.with {
 						$0.response = .error("No shared devices")
 					}
 				}
@@ -94,4 +94,3 @@ func createMountServiceClient(vmLocation: VMLocation) -> MountServiceClient {
 func createMountServiceServer(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {
 	return XPCMountServiceServer(group: Root.group.next(), asSystem: asSystem, vm: vm, certLocation: certLocation)
 }
-

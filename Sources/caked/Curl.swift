@@ -1,6 +1,6 @@
-import Foundation
 import Algorithms
 import AsyncAlgorithms
+import Foundation
 
 final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
 	let progress: Progress
@@ -52,7 +52,7 @@ class Curl {
 		try FileManager.default.removeItem(at: fileURL)
 
 		Task {
-			for chunk in (0 ..< mappedFile.count).chunks(ofCount: 64 * 1024 * 1024) {
+			for chunk in (0..<mappedFile.count).chunks(ofCount: 64 * 1024 * 1024) {
 				await channel.send(mappedFile.subdata(in: chunk))
 			}
 

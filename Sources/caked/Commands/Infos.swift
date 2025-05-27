@@ -1,10 +1,10 @@
 import ArgumentParser
+import CakeAgentLib
 import Foundation
-import NIO
 import GRPC
 import GRPCLib
-import CakeAgentLib
 import Logging
+import NIO
 import TextTable
 
 struct Infos: CakeAgentAsyncParsableCommand {

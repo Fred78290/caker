@@ -1,16 +1,17 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import GRPCLib
 import TextTable
 
 struct Template: ParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "template",
-	                                                abstract: "Manage VM templates",
-	                                                subcommands: [
-	                                                	ListTemplate.self,
-	                                                	CreateTemplate.self,
-	                                                	DeleteTemplate.self
-	                                                ]
+	static let configuration = CommandConfiguration(
+		commandName: "template",
+		abstract: "Manage VM templates",
+		subcommands: [
+			ListTemplate.self,
+			CreateTemplate.self,
+			DeleteTemplate.self,
+		]
 	)
 
 	struct ListTemplate: ParsableCommand {
@@ -41,7 +42,7 @@ struct Template: ParsableCommand {
 			Logger.setLevel(self.common.logLevel)
 		}
 
-		func run() throws {			
+		func run() throws {
 			Logger.appendNewLine(self.common.format.render(try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: self.template.name, templateName: self.template.template, asSystem: self.common.asSystem)))
 		}
 	}

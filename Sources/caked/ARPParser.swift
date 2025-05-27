@@ -21,14 +21,14 @@ class ARPParser: DHCPLeaseProvider {
 		return arp[macAddress]?.ipAddress
 	}
 
-	private static func parseArp(arpOutput: String) -> [String:ARPEntry] {
+	private static func parseArp(arpOutput: String) -> [String: ARPEntry] {
 		var entries = [ARPEntry]()
 		let lines = arpOutput.split(separator: "\n")
 
 		for line in lines {
 			let components = line.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: " ", omittingEmptySubsequences: true)
 
-			if components.count >= 8 {			
+			if components.count >= 8 {
 				if let hwAddress = String(macAddress: String(components[3])) {
 					let ipAddress = String(components[1].trimmingCharacters(in: CharacterSet(charactersIn: "()")))
 					let interface = String(components[5])
@@ -41,6 +41,6 @@ class ARPParser: DHCPLeaseProvider {
 
 		return entries.reduce(into: [:]) { result, entry in
 			result[entry.macAddress] = entry
-		}		
+		}
 	}
 }

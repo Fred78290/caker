@@ -1,25 +1,27 @@
 import ArgumentParser
 import Dispatch
-import SwiftUI
-import GRPCLib
 import GRPC
+import GRPCLib
 import Logging
+import SwiftUI
 import TextTable
 import Virtualization
 
 struct Networks: ParsableCommand {
-	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
-	                                                                      subcommands: [
-	                                                                      	Networks.Infos.self,
-	                                                                      	Networks.List.self,
-	                                                                      	Networks.Create.self,
-	                                                                      	Networks.Configure.self,
-	                                                                      	Networks.DHCPLease.self,
-	                                                                      	Networks.Delete.self,
-	                                                                      	Networks.Run.self,
-	                                                                      	Networks.Start.self,
-	                                                                      	Networks.Restart.self,
-	                                                                      	Networks.Stop.self])
+	static let configuration: CommandConfiguration = CommandConfiguration(
+		abstract: "Manage host network devices",
+		subcommands: [
+			Networks.Infos.self,
+			Networks.List.self,
+			Networks.Create.self,
+			Networks.Configure.self,
+			Networks.DHCPLease.self,
+			Networks.Delete.self,
+			Networks.Run.self,
+			Networks.Start.self,
+			Networks.Restart.self,
+			Networks.Stop.self,
+		])
 
 	static func validateNetwork(networkName: String, asSystem: Bool) throws {
 		// Validate the network name

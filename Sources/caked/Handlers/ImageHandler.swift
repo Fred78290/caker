@@ -31,7 +31,7 @@ extension ImageInfo {
 
 		if serial.contains("_") {
 			dateFormatter.dateFormat = "yyyyMMdd'_'HH:mm"
-		} else if serial.contains("."){
+		} else if serial.contains(".") {
 			dateFormatter.dateFormat = "yyyyMMdd'.'"
 		} else {
 			dateFormatter.dateFormat = "yyyyMMdd"
@@ -67,11 +67,13 @@ extension ImageInfo {
 			properties["version"] = version
 		}
 
-		self.init(aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: imageDisk.size, type: "virtual-machine", created: created, expires: expires, uploaded: created, properties: properties)
+		self.init(
+			aliases: aliases, architecture: product.arch.rawValue, pub: true, fileName: imageDisk.path.components(separatedBy: "/").last!, fingerprint: imageDisk.sha256, size: imageDisk.size, type: "virtual-machine", created: created,
+			expires: expires, uploaded: created, properties: properties)
 	}
 }
 
-struct ImageHandler : CakedCommandAsync {
+struct ImageHandler: CakedCommandAsync {
 	var request: Caked_ImageRequest
 
 	static func getSimpleStreamProtocol(remote: String, asSystem: Bool) async throws -> SimpleStreamProtocol {
@@ -94,7 +96,7 @@ struct ImageHandler : CakedCommandAsync {
 		var result: [ImageInfo] = []
 
 		images.forEach { product in
-			if let image = product.latest()  {
+			if let image = product.latest() {
 				result.append(ImageInfo(product: product, imageVersion: image.1))
 			}
 		}
@@ -123,7 +125,6 @@ struct ImageHandler : CakedCommandAsync {
 
 		return image
 	}
-
 
 	static func execute(command: Caked_ImageCommand, name: String, asSystem: Bool) async throws -> Caked_Reply {
 		switch command {

@@ -3,7 +3,7 @@ import Foundation
 import GRPCLib
 import Logging
 
-struct Launch : AsyncParsableCommand {
+struct Launch: AsyncParsableCommand {
 	static let configuration = BuildOptions.configuration
 
 	@OptionGroup(title: "Global options")

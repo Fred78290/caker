@@ -1,6 +1,6 @@
+import ArgumentParser
 import Foundation
 import Logging
-import ArgumentParser
 
 public enum LogLevel: Int, Equatable, Comparable {
 	case trace = 6
@@ -57,7 +57,6 @@ extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
 		}
 	}
 }
-
 
 struct Logger {
 	private static let eraseCursorDown: String = "\u{001B}[J"

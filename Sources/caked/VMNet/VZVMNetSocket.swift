@@ -1,8 +1,8 @@
+import Darwin
 import Foundation
 import NIO
-import vmnet
-import Darwin
 import Virtualization
+import vmnet
 
 final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 	internal let channelsSyncQueue = DispatchQueue(label: "channelsQueue")
@@ -95,11 +95,11 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 			switch result {
 			case .success:
 				self.logger.info("VZVMNet listening on \(self.socketPath)")
-				if (chown(socketPath, getegid(), self.socketGroup) < 0) {
+				if chown(socketPath, getegid(), self.socketGroup) < 0 {
 					self.logger.error("Failed to set group \(self.socketGroup) on socket \(socketPath)")
 				}
 
-				if (chmod(socketPath, 0o0770) < 0) {
+				if chmod(socketPath, 0o0770) < 0 {
 					self.logger.error("Failed to set mod 770 on socket \(socketPath)")
 				}
 
@@ -120,12 +120,14 @@ final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 
 			self.logger.info("Will stop VZVMNet on \(self.socketPath)")
 
-			EventLoopFuture.andAllComplete(self.childrenChannels.map { child in
-				let promise: EventLoopPromise<Void> = child.eventLoop.makePromise()
-				child.close(promise: promise)
+			EventLoopFuture.andAllComplete(
+				self.childrenChannels.map { child in
+					let promise: EventLoopPromise<Void> = child.eventLoop.makePromise()
+					child.close(promise: promise)
 
-				return promise.futureResult
-			}, on: self.eventLoop).whenComplete { _ in
+					return promise.futureResult
+				}, on: self.eventLoop
+			).whenComplete { _ in
 				self.childrenChannels.removeAll()
 				serverChannel.close(mode: .all, promise: promise)
 			}

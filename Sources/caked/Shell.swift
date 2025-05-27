@@ -1,7 +1,7 @@
 import Foundation
 import GRPCLib
 
-nonisolated(unsafe) private var tartLocation : String = ""
+nonisolated(unsafe) private var tartLocation: String = ""
 
 public struct ShellError: Swift.Error {
 	/// The termination status of the command that was run
@@ -10,15 +10,11 @@ public struct ShellError: Swift.Error {
 	public let message: String
 
 	var description: String {
-		get {
-			return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
-		}
+		return "exitCode:\(terminationStatus), reason: \(error) infos: \(message)"
 	}
 
 	var localizedDescription: String {
-		get {
-			self.description
-		}
+		self.description
 	}
 }
 
@@ -60,15 +56,17 @@ struct Shell {
 		)
 	}
 
-	@discardableResult static func runTart(command: String, arguments: [String],
-	                                       direct: Bool = false,
-	                                       input: String? = nil,
-	                                       sharedFileHandles: [FileHandle]? = nil,
-	                                       asSystem: Bool) throws -> String{
+	@discardableResult static func runTart(
+		command: String, arguments: [String],
+		direct: Bool = false,
+		input: String? = nil,
+		sharedFileHandles: [FileHandle]? = nil,
+		asSystem: Bool
+	) throws -> String {
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
-		let errorPipe : Pipe = direct ? Pipe() : outputPipe
+		let errorPipe: Pipe = direct ? Pipe() : outputPipe
 		let cakeHomeDir = try Utils.getHome(asSystem: asSystem)
 
 		if command.count > 0 {
@@ -97,14 +95,15 @@ struct Shell {
 
 		Logger(self).debug("Executing tart \(args.joined(separator: " "))")
 
-		let _ = try Self.bash(to: "tart", arguments: args,
-		                      input: input,
-		                      outputHandle: outputPipe.fileHandleForWriting,
-		                      errorHandle: errorPipe.fileHandleForWriting,
-		                      environment: environment,
-		                      sharedFileHandles: sharedFileHandles)
+		let _ = try Self.bash(
+			to: "tart", arguments: args,
+			input: input,
+			outputHandle: outputPipe.fileHandleForWriting,
+			errorHandle: errorPipe.fileHandleForWriting,
+			environment: environment,
+			sharedFileHandles: sharedFileHandles)
 
-		return String(data: outputData,  encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
+		return String(data: outputData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 
 	@discardableResult static public func bash(
@@ -115,7 +114,7 @@ struct Shell {
 		input: String? = nil,
 		outputHandle: FileHandle? = nil,
 		errorHandle: FileHandle? = nil,
-		environment: [String : String]? = nil,
+		environment: [String: String]? = nil,
 		sharedFileHandles: [FileHandle]? = nil
 	) throws -> String {
 		let command = "cd \(path.replacingOccurrences(of: " ", with: "\\ ")) && exec \(command) \(arguments.joined(separator: " "))"
@@ -131,21 +130,21 @@ struct Shell {
 	}
 }
 
-private extension FileHandle {
-	var isStandard: Bool {
-		return self === FileHandle.standardOutput ||
-			self === FileHandle.standardError ||
-			self === FileHandle.standardInput
+extension FileHandle {
+	fileprivate var isStandard: Bool {
+		return self === FileHandle.standardOutput || self === FileHandle.standardError || self === FileHandle.standardInput
 	}
 }
 
-private extension Process {
-	@discardableResult func sudo(with command: String,
-	                             input: String? = nil,
-	                             outputHandle: FileHandle? = nil,
-	                             errorHandle: FileHandle? = nil,
-	                             environment: [String : String]? = nil) throws -> String {
-		var runningArguments = [ "--non-interactive" ]
+extension Process {
+	@discardableResult fileprivate func sudo(
+		with command: String,
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+		environment: [String: String]? = nil
+	) throws -> String {
+		var runningArguments = ["--non-interactive"]
 
 		if #available(OSX 10.13, *) {
 			self.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
@@ -153,7 +152,7 @@ private extension Process {
 			self.launchPath = "/usr/bin/sudo"
 		}
 
-		runningArguments.append(contentsOf: [ "--", command ])
+		runningArguments.append(contentsOf: ["--", command])
 
 		self.arguments = runningArguments
 
@@ -203,7 +202,6 @@ private extension Process {
 			self.standardInput = inputPipe
 		}
 
-
 		if #available(OSX 10.13, *) {
 			try self.run()
 		} else {
@@ -239,13 +237,15 @@ private extension Process {
 	}
 }
 
-private extension ProcessWithSharedFileHandle {
-	@discardableResult func bash(with command: String,
-	                             input: String? = nil,
-	                             outputHandle: FileHandle? = nil,
-	                             errorHandle: FileHandle? = nil,
-	                             environment: [String : String]? = nil,
-	                             sharedFileHandles: [FileHandle]? = nil) throws -> String {
+extension ProcessWithSharedFileHandle {
+	@discardableResult fileprivate func bash(
+		with command: String,
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+		environment: [String: String]? = nil,
+		sharedFileHandles: [FileHandle]? = nil
+	) throws -> String {
 
 		if #available(OSX 10.13, *) {
 			self.executableURL = URL(fileURLWithPath: "/bin/bash")
@@ -300,7 +300,6 @@ private extension ProcessWithSharedFileHandle {
 
 			self.standardInput = inputPipe
 		}
-
 
 		if #available(OSX 10.13, *) {
 			try self.run()

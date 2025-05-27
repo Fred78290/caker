@@ -97,7 +97,7 @@ struct MainApp: App {
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if (kill(getpid(), SIGINT) == 0) {
+		if kill(getpid(), SIGINT) == 0 {
 			return .terminateLater
 		} else {
 			return .terminateNow
@@ -114,7 +114,7 @@ struct AboutCaker: View {
 
 		style.alignment = NSTextAlignment.center
 
-		let center: [NSAttributedString.Key : Any] = [ .paragraphStyle: style ]
+		let center: [NSAttributedString.Key: Any] = [.paragraphStyle: style]
 
 		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
 		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))

@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct MainUI: App {
-    var body: some Scene {
-        WindowGroup {
-            MainView()
-        }
-    }
+	var body: some Scene {
+		WindowGroup {
+			MainView()
+		}
+	}
 }

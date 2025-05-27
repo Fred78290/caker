@@ -1,8 +1,8 @@
 import Foundation
-import Virtualization
 import GRPCLib
 import NIO
 import Shout
+import Virtualization
 
 struct VMLocation {
 	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
@@ -69,9 +69,7 @@ struct VMLocation {
 			return FileManager.default.fileExists(atPath: diskURL.path)
 		}
 
-		return FileManager.default.fileExists(atPath: configURL.path) &&
-			FileManager.default.fileExists(atPath: diskURL.path) &&
-			FileManager.default.fileExists(atPath: nvramURL.path)
+		return FileManager.default.fileExists(atPath: configURL.path) && FileManager.default.fileExists(atPath: diskURL.path) && FileManager.default.fileExists(atPath: nvramURL.path)
 	}
 
 	func config() throws -> CakeConfig {
@@ -91,16 +89,14 @@ struct VMLocation {
 	}
 
 	var status: Status {
-		get {
-			if isPIDRunning() {
-				return .running
-			} else if tartRunning() {
-				return .running
-			} else if FileManager.default.fileExists(atPath: stateURL.path) {
-				return .suspended
-			} else {
-				return .stopped
-			}
+		if isPIDRunning() {
+			return .running
+		} else if tartRunning() {
+			return .running
+		} else if FileManager.default.fileExists(atPath: stateURL.path) {
+			return .suspended
+		} else {
+			return .stopped
 		}
 	}
 
@@ -125,7 +121,7 @@ struct VMLocation {
 	}
 
 	func lock() -> Bool {
-		let fd = open(configURL.path, O_RDWR) 
+		let fd = open(configURL.path, O_RDWR)
 
 		if fd != -1 {
 			close(fd)
@@ -441,85 +437,85 @@ struct VMLocation {
 		let ssh = try createSSH(host: runningIP, timeout: 120)
 		let tempFileURL = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
-		#!/bin/sh
-		set -xe
+			#!/bin/sh
+			set -xe
 
-		case $(uname -m) in
-			x86_64)
-				ARCH=amd64
-				;;
-			aarch64|arm64)
-				ARCH=arm64
-				;;
-		esac
+			case $(uname -m) in
+				x86_64)
+					ARCH=amd64
+					;;
+				aarch64|arm64)
+					ARCH=arm64
+					;;
+			esac
 
-		case $(uname -s) in
-			Darwin)
-				OSDISTRO=darwin
-				;;
-			*)
-				OSDISTRO=linux
-				;;
-		esac
+			case $(uname -s) in
+				Darwin)
+					OSDISTRO=darwin
+					;;
+				*)
+					OSDISTRO=linux
+					;;
+			esac
 
-		AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
+			AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
 
-		if [ "${OSDISTRO}" = "darwin" ]; then
-			CERTS="/Library/Application Support/CakeAgent/certs"
-			SSHDIR="/Users/\(config.configuredUser)/.ssh"
-		else
-			CERTS="/etc/cakeagent/ssl"
-			SSHDIR="/home/\(config.configuredUser)/.ssh"
-		fi
+			if [ "${OSDISTRO}" = "darwin" ]; then
+				CERTS="/Library/Application Support/CakeAgent/certs"
+				SSHDIR="/Users/\(config.configuredUser)/.ssh"
+			else
+				CERTS="/etc/cakeagent/ssl"
+				SSHDIR="/home/\(config.configuredUser)/.ssh"
+			fi
 
-		mkdir -p "${CERTS}"
+			mkdir -p "${CERTS}"
 
-		CA="${CERTS}/ca.pem"
-		SERVER="${CERTS}/server.pem"
-		KEY="${CERTS}/server.key"
+			CA="${CERTS}/ca.pem"
+			SERVER="${CERTS}/server.pem"
+			KEY="${CERTS}/server.key"
 
-		mkdir -p /usr/local/bin ${SSHDIR}
+			mkdir -p /usr/local/bin ${SSHDIR}
 
-		curl -L $AGENT_URL -o /usr/local/bin/cakeagent
+			curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
-		echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
-		chown -R \(config.configuredUser) "${SSHDIR}"
-		chmod 600 "${SSHDIR}/authorized_keys"
+			echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
+			chown -R \(config.configuredUser) "${SSHDIR}"
+			chmod 600 "${SSHDIR}/authorized_keys"
 
-		cat <<EOF | base64 -d > "${CA}"
-		\(caCert)
-		EOF
+			cat <<EOF | base64 -d > "${CA}"
+			\(caCert)
+			EOF
 
-		cat <<EOF | base64 -d > "${SERVER}"
-		\(serverPem)
-		EOF
+			cat <<EOF | base64 -d > "${SERVER}"
+			\(serverPem)
+			EOF
 
-		cat <<EOF | base64 -d > "${KEY}"
-		\(serverKey)
-		EOF
+			cat <<EOF | base64 -d > "${KEY}"
+			\(serverKey)
+			EOF
 
-		chmod -R 600 "${CERTS}"
+			chmod -R 600 "${CERTS}"
 
-		if [ "${OSDISTRO}" = "darwin" ]; then
-			chown root:wheel /usr/local/bin/cakeagent
-			chown -R root:wheel "${CERTS}"
-		else
-			chown root:adm /usr/local/bin/cakeagent
-			chown -R root:adm "${CERTS}"
-			mkdir -p /mnt/shared
-			chmod 777 /mnt/shared
-			mount /mnt/shared
-		fi
+			if [ "${OSDISTRO}" = "darwin" ]; then
+				chown root:wheel /usr/local/bin/cakeagent
+				chown -R root:wheel "${CERTS}"
+			else
+				chown root:adm /usr/local/bin/cakeagent
+				chown -R root:adm "${CERTS}"
+				mkdir -p /mnt/shared
+				chmod 777 /mnt/shared
+				mount /mnt/shared
+			fi
 
-		chmod 755 /usr/local/bin/cakeagent
+			chmod 755 /usr/local/bin/cakeagent
 
-		/usr/local/bin/cakeagent --install \\
-			--listen="vsock://any:5000" \\
-			--ca-cert="${CA}" \\
-			--tls-cert="${SERVER}" \\
-			--tls-key="${KEY}" \(config.linuxMounts)
+			/usr/local/bin/cakeagent --install \\
+				--listen="vsock://any:5000" \\
+				--ca-cert="${CA}" \\
+				--tls-cert="${SERVER}" \\
+				--tls-key="${KEY}" \(config.linuxMounts)
 
-		"""
+			"""
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
@@ -538,6 +534,5 @@ struct VMLocation {
 
 		return result.status == 0
 	}
-
 
 }

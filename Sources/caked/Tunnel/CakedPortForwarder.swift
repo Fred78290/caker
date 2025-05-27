@@ -1,9 +1,9 @@
-import Foundation
-import GRPCLib
 import CakeAgentLib
-import NIOPortForwarding
-import NIOCore
+import Foundation
 import GRPC
+import GRPCLib
+import NIOCore
+import NIOPortForwarding
 import Network
 
 extension CakeAgent.TunnelMessage.TunnelProtocol {
@@ -122,7 +122,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	}
 
 	init(group: EventLoopGroup, remoteHost: String, bindAddress: [String], forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
-		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap{ $0.mappedPort }
+		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap { $0.mappedPort }
 
 		self.bindAddress = bindAddress
 		self.ttl = ttl
@@ -136,20 +136,21 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		try forwardedPorts.forEach { forwarded in
 			if let unixDomain = forwarded.unixDomain {
-				_ = try self.addPortForwardingServer(bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host.expandingTildeInPath, cleanupExistingSocketFile: true), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
+				_ = try self.addPortForwardingServer(
+					bindAddress: SocketAddress(unixDomainSocketPath: unixDomain.host.expandingTildeInPath, cleanupExistingSocketFile: true), remoteAddress: SocketAddress(unixDomainSocketPath: unixDomain.guest), proto: unixDomain.proto, ttl: ttl)
 			}
 		}
 	}
 
 	func handleEvent(event: CakeAgent.TunnelPortForwardEvent.ForwardEvent) {
-		let discardedPort: [Int32] = [ 22, 53, 68 ]
+		let discardedPort: [Int32] = [22, 53, 68]
 		let addedPorts = event.addedPorts.reduce(into: [ForwardedSocketAddress]()) { addedPorts, port in
 			if let remoteAddress = try? SocketAddress(ipAddress: port.ip, port: Int(port.port)) {
 				let forward = ForwardedSocketAddress(proto: port.protocol, addr: port.ip, port: Int(port.port))
 
 				if discardedPort.contains(port.port) {
 					self.log.info("Discard dynamic port forwarding: \(forward.description) (discarded port)")
-				} else  if addedPorts.first(where: { $0.port == port.port && $0.addr == port.ip }) != nil {
+				} else if addedPorts.first(where: { $0.port == port.port && $0.addr == port.ip }) != nil {
 					self.log.info("Already binded dynamic port forwarding: \(forward.description)")
 				} else {
 					if remoteAddress.isLoopback || remoteAddress.isLinkLocal {
@@ -210,7 +211,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				if bindAddress.protocol == remoteAddress.protocol {
 					self.log.info("Will remove dynamic port forwarding: \(port.description)")
 
-					if let _ = try? self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: port.proto, ttl: self.ttl) {
+					if (try? self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: port.proto, ttl: self.ttl)) != nil {
 						self.log.info("Remove dynamic port forwarding: \(port.description)")
 
 						self.dynamicPorts.removeAll {
@@ -342,7 +343,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		try? self.removeDynamicPortForwarding()
 
 		if let subchannel = self.eventChannel {
-			let promise = subchannel.eventLoop.makePromise(of : Void.self)
+			let promise = subchannel.eventLoop.makePromise(of: Void.self)
 
 			promise.futureResult.whenComplete { _ in
 				self.status = .stopped

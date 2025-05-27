@@ -1,8 +1,8 @@
+import Darwin
 import Foundation
 import NIO
-import vmnet
-import Darwin
 import Virtualization
+import vmnet
 
 final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	private let fileDescriptor: CInt

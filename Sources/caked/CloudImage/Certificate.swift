@@ -1,10 +1,10 @@
-import Foundation
-import Security
 import Crypto
+import Foundation
+import GRPCLib
+import Security
 import SwiftASN1
 import X509
 import _CryptoExtras
-import GRPCLib
 
 struct CypherKeyGeneratorError: Error {
 	let description: String
@@ -23,12 +23,12 @@ public struct PrivateKeyModel {
 		self.privateKey = privateKey
 	}
 
-	public func save(privateURL: URL , publicURL: URL) throws {
+	public func save(privateURL: URL, publicURL: URL) throws {
 		let privateKey = try self.privateKeyString()
 		let publicKey = try self.publicKeyString()
 
-		FileManager.default.createFile(atPath: privateURL.path, contents: privateKey.data(using: .ascii), attributes: [.posixPermissions : 0o600])
-		FileManager.default.createFile(atPath: publicURL.path, contents: publicKey.data(using: .ascii), attributes: [.posixPermissions : 0o644])
+		FileManager.default.createFile(atPath: privateURL.path, contents: privateKey.data(using: .ascii), attributes: [.posixPermissions: 0o600])
+		FileManager.default.createFile(atPath: publicURL.path, contents: publicKey.data(using: .ascii), attributes: [.posixPermissions: 0o644])
 	}
 
 	public func publicKeyString() throws -> String {
@@ -45,10 +45,10 @@ public struct PrivateKeyModel {
 			0x73, 0x73, 0x68, 0x2d, 0x72, 0x73, 0x61,
 			0x00, 0x00, 0x00, 0x03,
 			0x01, 0x00, 0x01,
-			0x00, 0x00
+			0x00, 0x00,
 		]
 
-		let pubKey = [UInt8](data[6...data.count-6])
+		let pubKey = [UInt8](data[6...data.count - 6])
 
 		sshRsa.append(contentsOf: pubKey)
 
@@ -68,21 +68,18 @@ public struct PrivateKeyModel {
 	}
 }
 
-
 public struct RSAKeyGenerator {
 	private var privateKey: PrivateKeyModel
 
-	var publicKeyString : String {
-		get {
-			return try! self.privateKey.publicKeyString()
-		}
+	var publicKeyString: String {
+		return try! self.privateKey.publicKeyString()
 	}
 
 	init() throws {
 		self.privateKey = try Self.generateKey()
 	}
 
-	public func save(privateURL: URL , publicURL: URL) throws {
+	public func save(privateURL: URL, publicURL: URL) throws {
 		try privateKey.save(privateURL: privateURL, publicURL: publicURL)
 	}
 
@@ -122,7 +119,6 @@ public struct RSAKeyGenerator {
 				kSecAttrProtocol: kSecAttrProtocolSSH,
 			] as CFDictionary
 
-
 		guard let privateKey = SecKeyCreateRandomKey(parameters, &error) else {
 			throw error!.takeRetainedValue() as Error
 		}
@@ -134,10 +130,12 @@ public struct RSAKeyGenerator {
 		return PrivateKeyModel(publicKey: publicKey, privateKey: privateKey)
 	}
 
-	static func generateClientServerCertificate(subject: String, numberOfYears: Int,
-	                                            caKeyURL: URL, caCertURL: URL,
-	                                            serverKeyURL: URL, serverCertURL:URL,
-	                                            clientKeyURL: URL, clientCertURL: URL) throws {
+	static func generateClientServerCertificate(
+		subject: String, numberOfYears: Int,
+		caKeyURL: URL, caCertURL: URL,
+		serverKeyURL: URL, serverCertURL: URL,
+		clientKeyURL: URL, clientCertURL: URL
+	) throws {
 		let notValidBefore = Date()
 		let notValidAfter = notValidBefore.addingTimeInterval(TimeInterval(60 * 60 * 24 * 365 * numberOfYears))
 		let rootPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
@@ -165,8 +163,8 @@ public struct RSAKeyGenerator {
 		)
 
 		let subjectName = try DistinguishedName {
-			CommonName("\(subject) server");
-			OrganizationName("AlduneLabs");
+			CommonName("\(subject) server")
+			OrganizationName("AlduneLabs")
 		}
 
 		let serverPrivateKey = try _RSA.Signing.PrivateKey(keySize: .bits4096)
@@ -193,7 +191,7 @@ public struct RSAKeyGenerator {
 				SubjectAlternativeNames([
 					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1])),
 					.dnsName("localhost"),
-					.dnsName("*")
+					.dnsName("*"),
 				])
 			},
 			issuerPrivateKey: rootCertKey)
@@ -208,8 +206,8 @@ public struct RSAKeyGenerator {
 			notValidAfter: notValidAfter,
 			issuer: rootCertName,
 			subject: try DistinguishedName {
-				CommonName("\(subject) client");
-				OrganizationName("AlduneLabs");
+				CommonName("\(subject) client")
+				OrganizationName("AlduneLabs")
 			},
 			signatureAlgorithm: .sha512WithRSAEncryption,
 			extensions: try Certificate.Extensions {
@@ -221,48 +219,50 @@ public struct RSAKeyGenerator {
 				)
 				SubjectAlternativeNames([
 					.dnsName("localhost"),
-					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1]))
+					.ipAddress(ASN1OctetString(contentBytes: [127, 0, 0, 1])),
 				])
 			},
 			issuerPrivateKey: rootCertKey)
 
 		// Save CA key & cert
-		FileManager.default.createFile(atPath: caKeyURL.absoluteURL.path,
-		                               contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o600])
+		FileManager.default.createFile(
+			atPath: caKeyURL.absoluteURL.path,
+			contents: try rootCertKey.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o600])
 
-		FileManager.default.createFile(atPath: caCertURL.absoluteURL.path,
-		                               contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o600])
-
+		FileManager.default.createFile(
+			atPath: caCertURL.absoluteURL.path,
+			contents: try rootCert.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o600])
 
 		// Save server key & cert
-		FileManager.default.createFile(atPath: serverKeyURL.absoluteURL.path,
-		                               contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o644])
+		FileManager.default.createFile(
+			atPath: serverKeyURL.absoluteURL.path,
+			contents: try serverCertKey.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o644])
 
-		FileManager.default.createFile(atPath: serverCertURL.absoluteURL.path,
-		                               contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o644])
-
-
+		FileManager.default.createFile(
+			atPath: serverCertURL.absoluteURL.path,
+			contents: try serverCertificate.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o644])
 
 		// Save Client key & cert
-		FileManager.default.createFile(atPath: clientKeyURL.absoluteURL.path,
-		                               contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o644])
+		FileManager.default.createFile(
+			atPath: clientKeyURL.absoluteURL.path,
+			contents: try clientCertKey.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o644])
 
-		FileManager.default.createFile(atPath: clientCertURL.absoluteURL.path,
-		                               contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
-		                               attributes: [.posixPermissions : 0o644])
+		FileManager.default.createFile(
+			atPath: clientCertURL.absoluteURL.path,
+			contents: try clientCertificate.serializeAsPEM().pemString.data(using: .ascii),
+			attributes: [.posixPermissions: 0o644])
 	}
 }
 
-struct CloudInitGenerateError : Error {
+struct CloudInitGenerateError: Error {
 	let description: String
 
 	init(_ what: String) {
 		self.description = what
 	}
 }
-

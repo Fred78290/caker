@@ -1,16 +1,16 @@
 import ArgumentParser
+import Crypto
 import Foundation
 import GRPC
-import NIOSSL
-import NIOCore
-import NIOPosix
-import Synchronization
-import Crypto
-import SwiftASN1
-import X509
-import Security
 import GRPCLib
 import Logging
+import NIOCore
+import NIOPosix
+import NIOSSL
+import Security
+import SwiftASN1
+import Synchronization
+import X509
 
 protocol HasExitCode {
 	var exitCode: Int32 { get }
@@ -24,7 +24,7 @@ struct ExitCode: Error, HasExitCode {
 	}
 }
 
-class ServiceError : Error, CustomStringConvertible, Equatable {
+class ServiceError: Error, CustomStringConvertible, Equatable {
 	let description: String
 	let exitCode: Int32
 
@@ -53,8 +53,9 @@ struct Certs {
 }
 
 struct Service: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "caked as launchctl agent",
-	                                                subcommands: [Install.self, Listen.self, Show.self])
+	static let configuration = CommandConfiguration(
+		abstract: "caked as launchctl agent",
+		subcommands: [Install.self, Listen.self, Show.self])
 	static let SyncSemaphore = DispatchSemaphore(value: 0)
 
 }
@@ -63,11 +64,11 @@ extension Service {
 	struct LaunchAgent: Codable {
 		let label: String
 		let programArguments: [String]
-		let keepAlive: [String:Bool]
+		let keepAlive: [String: Bool]
 		let runAtLoad: Bool
 		let abandonProcessGroup: Bool
-		let softResourceLimits: [String:Int]
-		let environmentVariables: [String:String]
+		let softResourceLimits: [String: Int]
+		let environmentVariables: [String: String]
 		let standardErrorPath: String
 		let standardOutPath: String
 		let processType: String
@@ -93,7 +94,7 @@ extension Service {
 			try data.write(to: to)
 		}
 	}
-	struct Install : ParsableCommand {    
+	struct Install: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
@@ -154,7 +155,7 @@ extension Service {
 				"service",
 				"listen",
 				"--log-level=\(self.logLevel.rawValue)",
-				"--address=\(listenAddress)"
+				"--address=\(listenAddress)",
 			]
 
 			if asSystem {
@@ -177,23 +178,24 @@ extension Service {
 				}
 			}
 
-			let agent = LaunchAgent(label: cakedSignature,
-			                        programArguments: arguments,
-			                        keepAlive: [
-			                        	"SuccessfulExit" : false
-			                        ],
-			                        runAtLoad: true,
-			                        abandonProcessGroup: true,
-			                        softResourceLimits: [
-			                        	"NumberOfFiles" : 4096
-			                        ],
-			                        environmentVariables: [
-			                        	"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-			                        	"CAKE_HOME" : cakeHome.path
-			                        ],
-			                        standardErrorPath: outputLog,
-			                        standardOutPath: outputLog,
-			                        processType: "Background")
+			let agent = LaunchAgent(
+				label: cakedSignature,
+				programArguments: arguments,
+				keepAlive: [
+					"SuccessfulExit": false
+				],
+				runAtLoad: true,
+				abandonProcessGroup: true,
+				softResourceLimits: [
+					"NumberOfFiles": 4096
+				],
+				environmentVariables: [
+					"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
+					"CAKE_HOME": cakeHome.path,
+				],
+				standardErrorPath: outputLog,
+				standardOutPath: outputLog,
+				processType: "Background")
 
 			let agentURL: URL
 
@@ -207,7 +209,7 @@ extension Service {
 		}
 	}
 
-	struct Listen : AsyncParsableCommand {
+	struct Listen: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
@@ -265,12 +267,14 @@ extension Service {
 			}
 		}
 
-		static func createServer(eventLoopGroup: EventLoopGroup,
-		                         asSystem: Bool,
-		                         listeningAddress: URL?,
-		                         caCert: String?,
-		                         tlsCert: String?,
-		                         tlsKey: String?) throws -> EventLoopFuture<Server> {
+		static func createServer(
+			eventLoopGroup: EventLoopGroup,
+			asSystem: Bool,
+			listeningAddress: URL?,
+			caCert: String?,
+			tlsCert: String?,
+			tlsKey: String?
+		) throws -> EventLoopFuture<Server> {
 
 			if let listeningAddress = listeningAddress {
 				let target: ConnectionTarget
@@ -284,9 +288,10 @@ extension Service {
 					throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
 				}
 
-				var serverConfiguration = Server.Configuration.default(target: target,
-				                                                       eventLoopGroup: eventLoopGroup,
-				                                                       serviceProviders: [try CakedProvider(group: eventLoopGroup, asSystem: asSystem)])
+				var serverConfiguration = Server.Configuration.default(
+					target: target,
+					eventLoopGroup: eventLoopGroup,
+					serviceProviders: [try CakedProvider(group: eventLoopGroup, asSystem: asSystem)])
 
 				if let tlsCert = tlsCert, let tlsKey = tlsKey {
 					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
@@ -320,12 +325,14 @@ extension Service {
 
 			let servers: [Server] = try listenAddress.map { address in
 				Logger(self).info("Start listening on \(address)")
-				return try Self.createServer(eventLoopGroup: Root.group,
-				                             asSystem: self.asSystem,
-				                             listeningAddress: URL(string: address),
-				                             caCert: self.caCert,
-				                             tlsCert: self.tlsCert,
-				                             tlsKey: self.tlsKey).wait()
+				return try Self.createServer(
+					eventLoopGroup: Root.group,
+					asSystem: self.asSystem,
+					listeningAddress: URL(string: address),
+					caCert: self.caCert,
+					tlsCert: self.tlsCert,
+					tlsKey: self.tlsKey
+				).wait()
 			}
 
 			Root.sigintSrc.cancel()
@@ -361,7 +368,7 @@ extension Service {
 		}
 	}
 
-	struct Show : ParsableCommand {    
+	struct Show: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Help to run caked daemon")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
@@ -419,7 +426,7 @@ extension Service {
 				"service",
 				"listen",
 				"--log-level=\(self.logLevel.rawValue)",
-				"--address=\(listenAddress)"
+				"--address=\(listenAddress)",
 			]
 
 			if asSystem {

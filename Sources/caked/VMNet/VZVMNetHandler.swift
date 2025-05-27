@@ -1,8 +1,8 @@
 import Foundation
-import System
-import Virtualization
 import GRPCLib
 import NIO
+import System
+import Virtualization
 
 // This is a simple ChannelDuplexHandler that glues two channels together.
 // It is used to create a forwarder that forwards all data from one channel to another.
@@ -105,7 +105,7 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 					}
 					/*
 					 let readerIndex = byteBuffer.readerIndex
-
+					
 					 byteBuffer.withUnsafeMutableReadableBytes {
 					 	let unsafeData = Data(bytesNoCopy: $0.baseAddress! + readerIndex, count: Int(packetLen), deallocator: .none)
 					 	partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
@@ -119,18 +119,18 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 
 				/*				byteBuffer.withUnsafeMutableReadableBytes {
 				 	var baseAddress = $0.baseAddress!
-
+				
 				 	while readableBytes > 0 {
 				 		let packetLen = baseAddress.assumingMemoryBound(to: UInt32.self).pointee.bigEndian
 				 		let unsafeData = Data(bytesNoCopy: baseAddress + MemoryLayout<UInt32>.size, count: Int(packetLen), deallocator: .none)
-
+				
 				 		partner?.partnerWrite(NIOAny(ByteBuffer(data: unsafeData)))
-
+				
 				 		readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
 				 		baseAddress += Int(packetLen) + MemoryLayout<UInt32>.size
 				 	}
 				 }
-
+				
 				 byteBuffer.moveReaderIndex(forwardBy: byteBuffer.readableBytes)
 				 */
 			} else {
@@ -153,7 +153,7 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 	func channelInactive(context: ChannelHandlerContext) {
 		context.flush()
 
-		if let delegate , notified == false, partner?.notified == false {
+		if let delegate, notified == false, partner?.notified == false {
 			notified = true
 			partner?.notified = true
 
@@ -170,7 +170,7 @@ final class VZVMNetHandlerClient: ChannelDuplexHandler {
 		}
 	}
 
-	func errorCaught(context _: ChannelHandlerContext, error : Error) {
+	func errorCaught(context _: ChannelHandlerContext, error: Error) {
 		Logger(self).error(error)
 		partner?.partnerCloseFull()
 	}

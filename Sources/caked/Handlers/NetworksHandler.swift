@@ -1,14 +1,14 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
-import Virtualization
-import NIOCore
-import TextTable
-import NIOPosix
 import Logging
-import vmnet
+import NIOCore
+import NIOPosix
 import SystemConfiguration
+import TextTable
 import UniformTypeIdentifiers
+import Virtualization
+import vmnet
 
 let SUDO = "sudo"
 
@@ -173,7 +173,7 @@ final class SudoCaked {
 		self.process = process
 	}
 
-	func run() throws -> Self{
+	func run() throws -> Self {
 		try self.process.run()
 
 		return self
@@ -206,7 +206,7 @@ final class SudoCaked {
 			return ""
 		}
 
-		if  let error = String(data: stderr, encoding: .utf8) {
+		if let error = String(data: stderr, encoding: .utf8) {
 			return error
 		} else {
 			return ""
@@ -473,11 +473,12 @@ struct NetworksHandler: CakedCommandAsync {
 
 			try? pidUrl.delete()
 
-			let vzvmnet = VZVMNetFileHandle(on: Root.group.next(),
-			                                inputOutput: CInt(vmfd),
-			                                networkName: self.networkName,
-			                                networkConfig: network,
-			                                pidFile: pidUrl)
+			let vzvmnet = VZVMNetFileHandle(
+				on: Root.group.next(),
+				inputOutput: CInt(vmfd),
+				networkName: self.networkName,
+				networkConfig: network,
+				pidFile: pidUrl)
 
 			return (pidUrl, vzvmnet)
 		}
@@ -491,9 +492,10 @@ struct NetworksHandler: CakedCommandAsync {
 
 			Logger(self).info("Set DHCP lease time to \(leaseTime) seconds")
 
-			let lease = [
-				"DHCPLeaseTimeSecs" as CFString: leaseTime as CFNumber,
-			] as CFDictionary
+			let lease =
+				[
+					"DHCPLeaseTimeSecs" as CFString: leaseTime as CFNumber
+				] as CFDictionary
 
 			SCPreferencesSetValue(ref, "bootpd" as CFString, lease)
 			SCPreferencesCommitChanges(ref)
@@ -587,7 +589,7 @@ struct NetworksHandler: CakedCommandAsync {
 		let process = ProcessWithSharedFileHandle()
 
 		if phUseLimaVMNet == false {
-			arguments.append(contentsOf: [ "networks", "run" ])
+			arguments.append(contentsOf: ["networks", "run"])
 		}
 
 		if Logger.LoggingLevel() > .info {
@@ -1226,16 +1228,16 @@ struct NetworksHandler: CakedCommandAsync {
 			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
 		}
 
-		try networks.append(contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-			return try createBridgedNetwork(inf.identifier, "bridged", inf.localizedDisplayName ?? inf.identifier, "", "", "")
-		})
+		try networks.append(
+			contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
+				return try createBridgedNetwork(inf.identifier, "bridged", inf.localizedDisplayName ?? inf.identifier, "", "", "")
+			})
 
 		return try networkConfig.sharedNetworks.reduce(into: networks) {
 			let cidr = $1.value.netmask.netmaskToCidr()
 			let gateway = "\($1.value.dhcpStart)/\(cidr)"
 			let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 			let uuid = $1.value.interfaceID
-
 
 			$0.append(try createBridgedNetwork($1.key, $1.value.mode.rawValue, $1.value.mode == .host ? "Hosted network" : "Shared network", uuid, gateway, dhcpEnd))
 		}

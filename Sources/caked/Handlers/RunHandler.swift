@@ -1,8 +1,8 @@
+import CakeAgentLib
 import Foundation
-import NIO
 import GRPC
 import GRPCLib
-import CakeAgentLib
+import NIO
 
 struct RunHandler: CakedCommandAsync {
 	var request: Caked_RunCommand
@@ -31,8 +31,10 @@ struct RunHandler: CakedCommandAsync {
 	}
 
 	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
-		on.makeFutureWithTask{
-			let reply = try await Self.run(name: self.request.vmname, command: self.request.command, arguments: self.request.args, input: self.request.hasInput ? self.request.input : nil, client: self.client, callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))), asSystem: asSystem)
+		on.makeFutureWithTask {
+			let reply = try await Self.run(
+				name: self.request.vmname, command: self.request.command, arguments: self.request.args, input: self.request.hasInput ? self.request.input : nil, client: self.client,
+				callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))), asSystem: asSystem)
 
 			return Caked_Reply.with {
 				$0.run = reply

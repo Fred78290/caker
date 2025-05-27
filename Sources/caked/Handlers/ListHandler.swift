@@ -1,8 +1,8 @@
 import ArgumentParser
 import Foundation
-import SystemConfiguration
 import GRPCLib
 import NIOCore
+import SystemConfiguration
 import TextTable
 
 struct ListHandler: CakedCommand {
@@ -37,7 +37,7 @@ struct ListHandler: CakedCommand {
 				try OCIImageCache(asSystem: asSystem),
 				try CloudImageCache(asSystem: asSystem),
 				try RawImageCache(asSystem: asSystem),
-				try SimpleStreamsImageCache(name: "", asSystem: asSystem)
+				try SimpleStreamsImageCache(name: "", asSystem: asSystem),
 			]
 
 			_ = try purgeableStorages.map { imageCache in

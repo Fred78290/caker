@@ -1,35 +1,35 @@
+import Darwin
 import Foundation
 import NIO
-import vmnet
-import Darwin
 import Virtualization
+import vmnet
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 extension vmnet_return_t {
 	var stringValue: String {
-		switch (self)
+		switch self
 		{
 		case .VMNET_SUCCESS:
-			return "VMNET_SUCCESS";
+			return "VMNET_SUCCESS"
 		case .VMNET_FAILURE:
-			return "VMNET_FAILURE";
+			return "VMNET_FAILURE"
 		case .VMNET_MEM_FAILURE:
-			return "VMNET_MEM_FAILURE";
+			return "VMNET_MEM_FAILURE"
 		case .VMNET_INVALID_ARGUMENT:
-			return "VMNET_INVALID_ARGUMENT";
+			return "VMNET_INVALID_ARGUMENT"
 		case .VMNET_SETUP_INCOMPLETE:
-			return "VMNET_SETUP_INCOMPLETE";
+			return "VMNET_SETUP_INCOMPLETE"
 		case .VMNET_INVALID_ACCESS:
-			return "VMNET_INVALID_ACCESS";
+			return "VMNET_INVALID_ACCESS"
 		case .VMNET_PACKET_TOO_BIG:
-			return "VMNET_PACKET_TOO_BIG";
+			return "VMNET_PACKET_TOO_BIG"
 		case .VMNET_BUFFER_EXHAUSTED:
-			return "VMNET_BUFFER_EXHAUSTED";
+			return "VMNET_BUFFER_EXHAUSTED"
 		case .VMNET_TOO_MANY_PACKETS:
-			return "VMNET_TOO_MANY_PACKETS";
+			return "VMNET_TOO_MANY_PACKETS"
 		default:
-			return "(unknown status)";
+			return "(unknown status)"
 		}
 	}
 }
@@ -65,29 +65,31 @@ class VZVMNet: @unchecked Sendable {
 			let bufSize = buffer.readableBytes
 			let iface = self.vzvmnet.iface!
 
-			buffer.withUnsafeMutableReadableBytes { 
+			buffer.withUnsafeMutableReadableBytes {
 				var count: Int32 = 1
-				var buf: iovec = iovec(iov_base:  $0.baseAddress!, iov_len: Int(bufSize))
+				var buf: iovec = iovec(iov_base: $0.baseAddress!, iov_len: Int(bufSize))
 
-				withUnsafeMutablePointer(to: &buf, {
-					var pd: vmpktdesc = vmpktdesc(vm_pkt_size: $0.pointee.iov_len, vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
-					let status = vmnet_write(iface, &pd, &count)
+				withUnsafeMutablePointer(
+					to: &buf,
+					{
+						var pd: vmpktdesc = vmpktdesc(vm_pkt_size: $0.pointee.iov_len, vm_pkt_iov: $0, vm_pkt_iovcnt: 1, vm_flags: 0)
+						let status = vmnet_write(iface, &pd, &count)
 
-					guard  status == .VMNET_SUCCESS else {
-						self.logger.error("Failed to write to interface \(status.stringValue)")
-						return
-					}
-
-					if self.trace {
-						self.vzvmnet.traceMacAddress(0, ptr: $0, size: pd.vm_pkt_size, direction: "received from guest")
-
-						if count != 1 {
-							self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
-						} else {
-							self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
+						guard status == .VMNET_SUCCESS else {
+							self.logger.error("Failed to write to interface \(status.stringValue)")
+							return
 						}
-					}
-				})
+
+						if self.trace {
+							self.vzvmnet.traceMacAddress(0, ptr: $0, size: pd.vm_pkt_size, direction: "received from guest")
+
+							if count != 1 {
+								self.logger.error("Failed to write all bytes to interface = written_count: \(pd.vm_pkt_size), bufData.count: \(bufSize)")
+							} else {
+								self.logger.trace("Wrote \(pd.vm_pkt_size) bytes to interface")
+							}
+						}
+					})
 			}
 
 			self.forwardBuffer(buffer: buffer, context: context)
@@ -113,7 +115,7 @@ class VZVMNet: @unchecked Sendable {
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
 		self.pidFile = pidFile
 		self.trace = Logger.Level() >= LogLevel.trace
-		self.sigcaught = [ SIGINT, SIGHUP, SIGQUIT, SIGTERM ].map {
+		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
 			signal($0, SIG_IGN)
 
 			return DispatchSource.makeSignalSource(signal: $0)
@@ -187,7 +189,7 @@ class VZVMNet: @unchecked Sendable {
 	internal func traceMacAddress(_ i: Int, ptr: UnsafeMutableRawPointer, size: Int, direction: String = "received from host") {
 		if self.trace {
 			let numberOfItems = 2
-			let macAddress = ptr.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems)  { typedPtr in
+			let macAddress = ptr.withMemoryRebound(to: ether_addr_t.self, capacity: numberOfItems) { typedPtr in
 				// Convert pointer to buffer pointer to access buffer via indices
 				let bufferPointer = UnsafeBufferPointer(start: typedPtr, count: numberOfItems)
 
@@ -205,8 +207,8 @@ class VZVMNet: @unchecked Sendable {
 	}
 
 	internal func vmnetPacketAvailable(_ estim_count: UInt64) {
-		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE;
-		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE;
+		let q = estim_count / MAX_PACKET_COUNT_AT_ONCE
+		let r = estim_count % MAX_PACKET_COUNT_AT_ONCE
 
 		let on_vmnet_packets_available = { (count: UInt64) in
 			let max_bytes = Int(self.max_bytes)
@@ -277,35 +279,35 @@ class VZVMNet: @unchecked Sendable {
 		if self.networkConfig.mode == .bridged {
 			xpc_dictionary_set_string(dict, vmnet_shared_interface_name_key, self.networkName)
 		} else if self.networkConfig.mode == .shared {
-			xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.networkConfig.interfaceID);
+			xpc_dictionary_set_uuid(dict, vmnet_interface_id_key, self.networkConfig.interfaceID)
 
-			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart);
-			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd);
-			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask);
+			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart)
+			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd)
+			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask)
 
 			if let nat66Prefix = self.networkConfig.nat66Prefix {
-				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix);
+				xpc_dictionary_set_string(dict, vmnet_nat66_prefix_key, nat66Prefix)
 			}
 		} else {
-			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart);
-			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd);
-			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask);
+			xpc_dictionary_set_string(dict, vmnet_start_address_key, self.networkConfig.dhcpStart)
+			xpc_dictionary_set_string(dict, vmnet_end_address_key, self.networkConfig.dhcpEnd)
+			xpc_dictionary_set_string(dict, vmnet_subnet_mask_key, self.networkConfig.netmask)
 
 			xpc_dictionary_set_bool(dict, vmnet_enable_isolation_key, true)
 
-			xpc_dictionary_set_string(dict, vmnet_host_ip_address_key, self.networkConfig.dhcpStart);
-			xpc_dictionary_set_string(dict, vmnet_host_subnet_mask_key, self.networkConfig.netmask);
-			xpc_dictionary_set_string(dict, vmnet_network_identifier_key, self.networkConfig.interfaceID);
+			xpc_dictionary_set_string(dict, vmnet_host_ip_address_key, self.networkConfig.dhcpStart)
+			xpc_dictionary_set_string(dict, vmnet_host_subnet_mask_key, self.networkConfig.netmask)
+			xpc_dictionary_set_string(dict, vmnet_network_identifier_key, self.networkConfig.interfaceID)
 		}
 
-		self.print_vmnet_start_param(params: dict, info: "setup");
+		self.print_vmnet_start_param(params: dict, info: "setup")
 
 		self.iface = vmnet_start_interface(dict, self.hostQueue) { (result: vmnet_return_t, params) in
 			status = result
 
 			if let params = params, result == .VMNET_SUCCESS {
-				self.print_vmnet_start_param(params: params);
-				self.max_bytes = xpc_dictionary_get_uint64(params, vmnet_max_packet_size_key);
+				self.print_vmnet_start_param(params: params)
+				self.max_bytes = xpc_dictionary_get_uint64(params, vmnet_max_packet_size_key)
 			}
 
 			semaphore.signal()

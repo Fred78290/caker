@@ -1,8 +1,8 @@
 import ArgumentParser
 import Foundation
-import SystemConfiguration
-import NIOCore
 import GRPCLib
+import NIOCore
+import SystemConfiguration
 
 struct LogoutHandler: CakedCommand {
 	let request: Caked_LogoutRequest

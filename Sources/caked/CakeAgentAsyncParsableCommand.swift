@@ -1,10 +1,10 @@
 import ArgumentParser
-import Foundation
 import CakeAgentLib
-import NIO
+import Foundation
 import GRPC
 import GRPCLib
 import Logging
+import NIO
 
 protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var name: String { get }
@@ -59,7 +59,7 @@ extension CakeAgentAsyncParsableCommand {
 			listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
 		}
 
-		if self.options.insecure == false{
+		if self.options.insecure == false {
 			if self.options.caCert == nil {
 				self.options.caCert = certificates.caCertURL.path
 			}

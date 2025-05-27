@@ -1,3 +1,5 @@
+import CakeAgentLib
+import CryptoKit
 //
 //  CakedChannelTunnelHandlerAdapter.swift
 //  Caker
@@ -5,10 +7,8 @@
 //  Created by Frederic BOLTZ on 15/05/2025.
 //
 import Foundation
-import NIO
 import GRPC
-import CakeAgentLib
-import CryptoKit
+import NIO
 
 class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 	public typealias InboundIn = ByteBuffer
@@ -101,7 +101,7 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 			#if TRACE
 				redbold("Disconnect tunnel from \(self.bindAddress) to \(self.remoteAddress)")
 			#endif
-			tunnel.sendMessage(CakeAgent.TunnelMessage.with { $0.eof = true}).whenComplete { _ in
+			tunnel.sendMessage(CakeAgent.TunnelMessage.with { $0.eof = true }).whenComplete { _ in
 				_ = tunnel.sendEnd()
 			}
 		}

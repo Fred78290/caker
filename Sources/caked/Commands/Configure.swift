@@ -1,7 +1,7 @@
 import ArgumentParser
-import Virtualization
 import GRPCLib
 import Logging
+import Virtualization
 
 struct Configure: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")

@@ -1,16 +1,18 @@
-import Foundation
-import NIOPortForwarding
-import NIO
 import CakeAgentLib
+import Foundation
+import NIO
+import NIOPortForwarding
 
 class CakedUDPPortForwardingServer: UDPPortForwardingServer {
 	internal let cakeAgentClient: CakeAgentClient
 
-	public init(on: EventLoop,
-	            bindAddress: SocketAddress,
-	            remoteAddress: SocketAddress,
-	            ttl: Int,
-	            cakeAgentClient: CakeAgentClient) {
+	public init(
+		on: EventLoop,
+		bindAddress: SocketAddress,
+		remoteAddress: SocketAddress,
+		ttl: Int,
+		cakeAgentClient: CakeAgentClient
+	) {
 		self.cakeAgentClient = cakeAgentClient
 
 		super.init(on: on, bindAddress: bindAddress, remoteAddress: remoteAddress, ttl: ttl)

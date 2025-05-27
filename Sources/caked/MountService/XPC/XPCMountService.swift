@@ -1,11 +1,10 @@
-import Foundation
 import CakeAgentLib
-import Virtualization
-import Semaphore
+import Foundation
 import GRPC
 import GRPCLib
-import CakeAgentLib
 import NIO
+import Semaphore
+import Virtualization
 
 extension DirectorySharingAttachment {
 	func equals(to: XPCMountVirtioFS) -> Bool {
@@ -237,12 +236,12 @@ struct MountRequest: Codable {
 }
 
 @objc protocol ReplyMountServiceProtocol {
-	func reply(response: String) -> Void
+	func reply(response: String)
 }
 
 @objc protocol MountServiceProtocol {
-	func mount(request: String) -> Void
-	func umount(request: String) -> Void
+	func mount(request: String)
+	func umount(request: String)
 }
 
 class XPCMountService: MountService, MountServiceProtocol {
@@ -253,7 +252,7 @@ class XPCMountService: MountService, MountServiceProtocol {
 		super.init(group: group, asSystem: asSystem, vm: vm, certLocation: certLocation)
 	}
 
-	func mount(request: MountRequest, umount: Bool) -> Void {
+	func mount(request: MountRequest, umount: Bool) {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 		let reply: MountInfos
 
@@ -269,11 +268,11 @@ class XPCMountService: MountService, MountServiceProtocol {
 		mountServiceReply.reply(response: reply.toJSON())
 	}
 
-	public func mount(request: String) -> Void {
+	public func mount(request: String) {
 		self.mount(request: MountRequest(fromJSON: request), umount: false)
 	}
 
-	public func umount(request: String) -> Void {
+	public func umount(request: String) {
 		self.mount(request: MountRequest(fromJSON: request), umount: true)
 	}
 }
@@ -402,7 +401,7 @@ class XPCMountServiceClient: MountServiceClient {
 			var directorySharingAttachments = config.mounts
 
 			valided.forEach { mount in
-				directorySharingAttachments.removeAll{ $0.name == mount.name }
+				directorySharingAttachments.removeAll { $0.name == mount.name }
 			}
 
 			config.mounts = directorySharingAttachments

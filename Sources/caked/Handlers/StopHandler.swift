@@ -1,9 +1,9 @@
 import ArgumentParser
 import Foundation
-import SystemConfiguration
 import GRPCLib
-import Shout
 import NIOCore
+import Shout
+import SystemConfiguration
 
 struct StopHandler: CakedCommand {
 	var request: Caked_StopRequest

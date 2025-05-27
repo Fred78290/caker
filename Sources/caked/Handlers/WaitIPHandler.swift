@@ -1,10 +1,10 @@
 import ArgumentParser
 import Foundation
-import SystemConfiguration
 import GRPC
 import GRPCLib
 import NIOCore
 import NIOPosix
+import SystemConfiguration
 
 struct WaitIPHandler: CakedCommand {
 	var name: String

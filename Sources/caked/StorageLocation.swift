@@ -11,9 +11,10 @@ extension Error {
 	func fileNotFound() -> Bool {
 		let nsError: NSError = self as NSError
 
-		return nsError.fileNotFound() || nsError.underlyingErrors.contains(where: {
-			$0.fileNotFound()
-		})
+		return nsError.fileNotFound()
+			|| nsError.underlyingErrors.contains(where: {
+				$0.fileNotFound()
+			})
 	}
 }
 
@@ -64,7 +65,8 @@ struct StorageLocation {
 			let vms: [VMLocation] = try FileManager.default.contentsOfDirectory(
 				at: rootURL,
 				includingPropertiesForKeys: [.isDirectoryKey],
-				options: .skipsSubdirectoryDescendants).compactMap { url in
+				options: .skipsSubdirectoryDescendants
+			).compactMap { url in
 				let vmDir = VMLocation(rootURL: url, template: self.template)
 
 				if !vmDir.inited {

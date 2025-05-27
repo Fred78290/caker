@@ -1,19 +1,19 @@
 import ArgumentParser
 import Darwin
 import Foundation
-import Logging
-import NIO
 import GRPC
 import GRPCLib
+import Logging
+import NIO
 
 let delegatedCommand: [String] = [
 	"pull",
 	"push",
 	"import",
-	"export"
+	"export",
 ]
 
-let COMMAND_NAME="caked"
+let COMMAND_NAME = "caked"
 
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")
@@ -22,7 +22,10 @@ struct CommonOptions: ParsableArguments {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	@Flag(name: [.customLong("system"), .customShort("s")], help: ArgumentHelp("Act as system agent, need sudo", discussion: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service", visibility: .private))
+	@Flag(
+		name: [.customLong("system"), .customShort("s")],
+		help: ArgumentHelp(
+			"Act as system agent, need sudo", discussion: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service", visibility: .private))
 	var asSystem: Bool = false
 }
 
@@ -50,36 +53,36 @@ struct Root: AsyncParsableCommand {
 
 	static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	nonisolated(unsafe)
-	static var configuration = CommandConfiguration(
-		commandName: "\(COMMAND_NAME)",
-		usage: "\(COMMAND_NAME) <subcommand>",
-		discussion: "\(COMMAND_NAME) is an hypervisor running VM",
-		version: CI.version,
-		subcommands: [
-			Build.self,
-			Certificates.self,
-			Configure.self,
-			Delete.self,
-			Duplicate.self,
-			Exec.self,
-			ImagesManagement.self,
-			Infos.self,
-			Launch.self,
-			List.self,
-			Mount.self,
-			Networks.self,
-			Purge.self,
-			Remote.self,
-			Rename.self,
-			Service.self,
-			Sh.self,
-			Start.self,
-			Stop.self,
-			Template.self,
-			Umount.self,
-			VMRun.self,
-			WaitIP.self,
-		])
+		static var configuration = CommandConfiguration(
+			commandName: "\(COMMAND_NAME)",
+			usage: "\(COMMAND_NAME) <subcommand>",
+			discussion: "\(COMMAND_NAME) is an hypervisor running VM",
+			version: CI.version,
+			subcommands: [
+				Build.self,
+				Certificates.self,
+				Configure.self,
+				Delete.self,
+				Duplicate.self,
+				Exec.self,
+				ImagesManagement.self,
+				Infos.self,
+				Launch.self,
+				List.self,
+				Mount.self,
+				Networks.self,
+				Purge.self,
+				Remote.self,
+				Rename.self,
+				Service.self,
+				Sh.self,
+				Start.self,
+				Stop.self,
+				Template.self,
+				Umount.self,
+				VMRun.self,
+				WaitIP.self,
+			])
 
 	static func environment(asSystem: Bool) throws -> [String: String] {
 		var environment = ProcessInfo.processInfo.environment
@@ -114,7 +117,7 @@ struct Root: AsyncParsableCommand {
 	}
 
 	private static func checkIfTartPresent() -> Bool {
-		guard let _ = URL.binary("tart") else {
+		guard URL.binary("tart") != nil else {
 			return false
 		}
 
@@ -127,7 +130,7 @@ struct Root: AsyncParsableCommand {
 
 	public static func main() async throws {
 		// Set up logging to stderr
-		LoggingSystem.bootstrap{ label in
+		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)
 		}
 

@@ -1,6 +1,6 @@
 import ArgumentParser
-import Logging
 import GRPCLib
+import Logging
 
 struct WaitIP: ParsableCommand {
 	static let configuration = WaitIPOptions.configuration

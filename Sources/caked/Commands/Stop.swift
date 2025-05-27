@@ -1,6 +1,6 @@
 import ArgumentParser
-import Logging
 import GRPCLib
+import Logging
 
 struct Stop: ParsableCommand {
 	static let configuration = StopOptions.configuration

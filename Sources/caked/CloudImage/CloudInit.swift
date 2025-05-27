@@ -1,10 +1,10 @@
 import Foundation
-import ISO9660
-import Virtualization
-import Yams
 import GRPCLib
 import Gzip
+import ISO9660
 import Multipart
+import Virtualization
+import Yams
 
 let CAKEAGENT_SNAPSHOT = "0cd1f9a2"
 
@@ -30,7 +30,7 @@ extension Multipart {
 		if let preamble = self.preamble {
 			descriptionString += preamble + Multipart.CRLF + Multipart.CRLF
 		} else {
-			descriptionString +=  Multipart.CRLF
+			descriptionString += Multipart.CRLF
 		}
 
 		if self.entities.count > 0 {
@@ -48,11 +48,11 @@ extension Multipart {
 }
 
 extension Data {
-	mutating func appendMergeDirective() throws -> Data{
+	mutating func appendMergeDirective() throws -> Data {
 		let encoder: YAMLEncoder = newYAMLEncoder()
 		let merge: [Merging] = [
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
-			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
+			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
 
 		guard let mergeData = "\r\n\(try encoder.encode(CloudConfigData(merge: merge)))".data(using: .ascii) else {
@@ -180,7 +180,6 @@ struct CloudInitNetwork: Codable {
 	}
 }
 
-
 struct DHCPOverides: Codable {
 	var routeMetric: Int = 200
 
@@ -278,17 +277,19 @@ struct CloudConfigData: Codable {
 		self.merge = merge
 	}
 
-	init(defaultUser: String = "admin",
-	     password: String? = nil,
-	     mainGroup: String = "adm",
-	     clearPassword: Bool = false,
-	     sshAuthorizedKeys: [String]? = nil,
-	     tz: String = "UTC",
-	     packages: [String]? = nil,
-	     writeFiles: [WriteFile]? = nil,
-	     runcmd: [String]? = nil,
-	     growPart: Bool = true,
-	     merge: [Merging]? = nil) {
+	init(
+		defaultUser: String = "admin",
+		password: String? = nil,
+		mainGroup: String = "adm",
+		clearPassword: Bool = false,
+		sshAuthorizedKeys: [String]? = nil,
+		tz: String = "UTC",
+		packages: [String]? = nil,
+		writeFiles: [WriteFile]? = nil,
+		runcmd: [String]? = nil,
+		growPart: Bool = true,
+		merge: [Merging]? = nil
+	) {
 
 		self.growpart = Growpart()
 		self.merge = merge
@@ -300,14 +301,18 @@ struct CloudConfigData: Codable {
 		self.timezone = tz
 		self.writeFiles = writeFiles
 		self.runcmd = runcmd
-		self.users = [User.userClass(UserClass(name: defaultUser,
-		                                       password: password,
-		                                       lockPasswd: password == nil,
-		                                       shell: "/bin/bash",
-		                                       sshAuthorizedKeys: sshAuthorizedKeys,
-		                                       primaryGroup: mainGroup,
-		                                       groups: nil,
-		                                       sudo: true))]
+		self.users = [
+			User.userClass(
+				UserClass(
+					name: defaultUser,
+					password: password,
+					lockPasswd: password == nil,
+					shell: "/bin/bash",
+					sshAuthorizedKeys: sshAuthorizedKeys,
+					primaryGroup: mainGroup,
+					groups: nil,
+					sudo: true))
+		]
 
 		if growPart {
 			self.growpart = Growpart()
@@ -408,7 +413,7 @@ struct WriteFile: Codable {
 	var permissions: String?
 	var owner: String?
 
-	init(path: String,  content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = "root:adm") {
+	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = "root:adm") {
 		self.path = path
 		self.content = content
 		self.encoding = encoding
@@ -480,7 +485,7 @@ struct UserClass: Codable {
 
 	enum CodingKeys: String, CodingKey {
 		case expiredate
-		case gecos 
+		case gecos
 		case groups
 		case inactive
 		case lockPasswd = "lock_passwd"
@@ -491,21 +496,23 @@ struct UserClass: Codable {
 		case selinuxUser = "selinux_user"
 		case shell
 		case snapuser
-		case sshAuthorizedKeys  = "ssh_authorized_keys"
+		case sshAuthorizedKeys = "ssh_authorized_keys"
 		case sshImportID = "ssh_import_id"
 		case sshRedirectUser = "ssh_redirect_user"
 		case sudo
 		case system
 	}
 
-	init(name: String,
-	     password: String?,
-	     lockPasswd: Bool?,
-	     shell :String?,
-	     sshAuthorizedKeys: [String]?,
-	     primaryGroup: String?,
-	     groups: [String]?,
-	     sudo: Bool?) {
+	init(
+		name: String,
+		password: String?,
+		lockPasswd: Bool?,
+		shell: String?,
+		sshAuthorizedKeys: [String]?,
+		primaryGroup: String?,
+		groups: [String]?,
+		sudo: Bool?
+	) {
 		self.name = name
 		self.shell = shell
 		self.plainTextPasswd = password
@@ -613,7 +620,7 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData:Data?, networkConfig: Data?, asSystem: Bool) throws {
+	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, asSystem: Bool) throws {
 		self.userName = userName
 		self.password = password
 		self.mainGroup = mainGroup
@@ -626,14 +633,15 @@ class CloudInit {
 	}
 
 	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, asSystem: Bool) throws {
-		try self.init(userName: userName,
-		              password: password,
-		              mainGroup: mainGroup,
-		              clearPassword: clearPassword,
-		              sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath, asSystem: asSystem),
-		              vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
-		              userData:userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
-		              networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil, asSystem: asSystem)
+		try self.init(
+			userName: userName,
+			password: password,
+			mainGroup: mainGroup,
+			clearPassword: clearPassword,
+			sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath, asSystem: asSystem),
+			vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
+			userData: userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
+			networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil, asSystem: asSystem)
 	}
 
 	private func createMetaData(hostname: String, instanceID: String) throws -> Data {
@@ -695,7 +703,7 @@ class CloudInit {
 		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
 		let merge: [Merging] = [
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
-			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
+			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
 		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh" ] : ["/usr/local/bin/install-cakeagent.sh"]
 		let vendorData = CloudConfigData(defaultUser: self.userName,
@@ -788,7 +796,8 @@ class CloudInit {
 		let writeOptions = ISOWriter.WriteOptions(volumeIdentifier: "CIDATA")
 
 		let writer: ISOWriter = ISOWriter(
-			media: media, options: writeOptions, contentCallback: { (path: String) -> InputStream in
+			media: media, options: writeOptions,
+			contentCallback: { (path: String) -> InputStream in
 				if let data = seed[path] as? Data {
 					return InputStream(data: data)
 				} else if let url = seed[path] as? URL, let input = InputStream(url: url) {

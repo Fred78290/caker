@@ -1,8 +1,8 @@
 import Foundation
+import GRPCLib
 import NIOCore
 import NIOPosix
 import Virtualization
-import GRPCLib
 
 extension Error {
 	var isLoggable: Bool {
@@ -126,21 +126,23 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 			return
 		}
 
-		let futures = self.sockets.reduce(into: [EventLoopFuture<Void>](), { futures, socket in
-			socket.value.connections.forEach { connection in
-				self.channels.removeAll { $0 === connection.channel }
-				let futureResult: EventLoopFuture<Void> = connection.channel.close()
+		let futures = self.sockets.reduce(
+			into: [EventLoopFuture<Void>](),
+			{ futures, socket in
+				socket.value.connections.forEach { connection in
+					self.channels.removeAll { $0 === connection.channel }
+					let futureResult: EventLoopFuture<Void> = connection.channel.close()
 
-				futureResult.whenComplete { _ in
-					self.queue.sync {
-						// When the channel is closed, close the connection
-						connection.connection.close()
+					futureResult.whenComplete { _ in
+						self.queue.sync {
+							// When the channel is closed, close the connection
+							connection.connection.close()
+						}
 					}
-				}
 
-				futures.append(connection.channel.close())
-			}
-		})
+					futures.append(connection.channel.close())
+				}
+			})
 
 		_ = try? EventLoopFuture.whenAllComplete(futures, on: mainGroup.next()).wait()
 	}
@@ -182,7 +184,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 				return childChannel.pipeline.addHandlers([handler, ours]).flatMap {
 					inboundChannel.pipeline.addHandlers([
-						handler, theirs
+						handler, theirs,
 					])
 				}
 			}

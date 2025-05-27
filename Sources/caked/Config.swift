@@ -1,9 +1,9 @@
 import Foundation
-import Virtualization
 import GRPCLib
 import NIOPortForwarding
+import Virtualization
 
-typealias DisplaySize = Dictionary<String, Int>
+typealias DisplaySize = [String: Int]
 
 extension DisplaySize {
 	var width: Int {
@@ -27,18 +27,18 @@ enum VirtualizedOS: String, Codable {
 	case linux
 }
 
-final class CakeConfig{
+final class CakeConfig {
 	var config: Config
 	var cake: Config
 	let location: URL
 
 	internal final class Config {
-		var data: Dictionary<String, Any>
+		var data: [String: Any]
 		var dirty: Bool
 
 		init() {
 			self.dirty = false
-			self.data = Dictionary<String, Any>()
+			self.data = [String: Any]()
 		}
 
 		init(contentsOf: URL) throws {
@@ -63,7 +63,6 @@ final class CakeConfig{
 			}
 		}
 	}
-
 
 	var version: Int {
 		set { self.config["version"] = newValue }
@@ -100,7 +99,6 @@ final class CakeConfig{
 		set { self.config["cpuCountMin"] = newValue }
 		get { self.config["cpuCountMin"] as! Int }
 	}
-
 
 	#if arch(arm64)
 		var ecid: VZMacMachineIdentifier {
@@ -151,11 +149,12 @@ final class CakeConfig{
 
 	var macAddress: VZMACAddress? {
 		set { if let value = newValue { self.config["macAddress"] = value.string } else { self.config["macAddress"] = nil } }
-		get { if let addr = self.config["macAddress"] as? String {
-			return VZMACAddress(string: addr)
-		}
+		get {
+			if let addr = self.config["macAddress"] as? String {
+				return VZMACAddress(string: addr)
+			}
 
-		return nil
+			return nil
 		}
 	}
 
@@ -166,7 +165,7 @@ final class CakeConfig{
 
 	var displayRefit: Bool {
 		set { self.config["displayRefit"] = newValue }
-		get { self.config["displayRefit"] as? Bool ?? false}
+		get { self.config["displayRefit"] as? Bool ?? false }
 	}
 
 	var instanceID: String {
@@ -205,9 +204,9 @@ final class CakeConfig{
 	}
 
 	var attachedDisks: [DiskAttachement] {
-		set { self.cake["disks"] = newValue.map{$0.description} }
+		set { self.cake["disks"] = newValue.map { $0.description } }
 		get {
-			guard let mounts:[String] = self.cake["disks"] as? [String] else {
+			guard let mounts: [String] = self.cake["disks"] as? [String] else {
 				return []
 			}
 
@@ -216,9 +215,9 @@ final class CakeConfig{
 	}
 
 	var mounts: [DirectorySharingAttachment] {
-		set { self.cake["mounts"] = newValue.map{$0.description} }
+		set { self.cake["mounts"] = newValue.map { $0.description } }
 		get {
-			guard let mounts:[String] = self.cake["mounts"] as? [String] else {
+			guard let mounts: [String] = self.cake["mounts"] as? [String] else {
 				return []
 			}
 
@@ -227,9 +226,9 @@ final class CakeConfig{
 	}
 
 	var networks: [BridgeAttachement] {
-		set { self.cake["networks"] = newValue.map{$0.description} }
+		set { self.cake["networks"] = newValue.map { $0.description } }
 		get {
-			guard let networks:[String] = self.cake["networks"] as? [String] else {
+			guard let networks: [String] = self.cake["networks"] as? [String] else {
 				return []
 			}
 
@@ -254,13 +253,13 @@ final class CakeConfig{
 
 	var useCloudInit: Bool {
 		set { self.cake["cloud-init"] = newValue }
-		get { self.cake["cloud-init"] as? Bool ?? false}
+		get { self.cake["cloud-init"] as? Bool ?? false }
 	}
 
 	var sockets: [SocketDevice] {
-		set { self.cake["sockets"] = newValue.map{$0.description} }
+		set { self.cake["sockets"] = newValue.map { $0.description } }
 		get {
-			guard let mounts:[String] = self.cake["sockets"] as? [String] else {
+			guard let mounts: [String] = self.cake["sockets"] as? [String] else {
 				return []
 			}
 
@@ -280,9 +279,9 @@ final class CakeConfig{
 	}
 
 	var forwardedPorts: [TunnelAttachement] {
-		set { self.cake["forwardedPorts"] = newValue.map{$0.description} }
+		set { self.cake["forwardedPorts"] = newValue.map { $0.description } }
 		get {
-			guard let mounts:[String] = self.cake["forwardedPorts"] as? [String] else {
+			guard let mounts: [String] = self.cake["forwardedPorts"] as? [String] else {
 				return []
 			}
 
@@ -296,13 +295,11 @@ final class CakeConfig{
 	}
 
 	var nestedVirtualization: Bool {
-		get {
-			if self.os == .linux && Utils.isNestedVirtualizationSupported() {
-				return self.nested
-			}
-
-			return false
+		if self.os == .linux && Utils.isNestedVirtualizationSupported() {
+			return self.nested
 		}
+
+		return false
 	}
 
 	var display: DisplaySize {
@@ -334,15 +331,17 @@ final class CakeConfig{
 		}.joined(separator: " ")
 	}
 
-	init(location: URL,
-	     os: VirtualizedOS,
-	     autostart: Bool,
-	     configuredUser: String,
-	     configuredPassword: String?,
-	     displayRefit: Bool,
-	     cpuCountMin: Int,
-	     memorySizeMin: UInt64,
-	     macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered()) {
+	init(
+		location: URL,
+		os: VirtualizedOS,
+		autostart: Bool,
+		configuredUser: String,
+		configuredPassword: String?,
+		displayRefit: Bool,
+		cpuCountMin: Int,
+		memorySizeMin: UInt64,
+		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered()
+	) {
 
 		var display = DisplaySize()
 

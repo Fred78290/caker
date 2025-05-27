@@ -10,7 +10,7 @@ struct RemoteHandler: CakedCommand {
 		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
 		if url.scheme == "https" || url.scheme == "http" {
-			guard let _: String = remoteDb.get(name) else {
+			guard remoteDb.get(name) != nil else {
 				remoteDb.add(name, url.absoluteString)
 				try remoteDb.save()
 
@@ -28,7 +28,7 @@ struct RemoteHandler: CakedCommand {
 	static func deleteRemote(name: String, asSystem: Bool) throws -> String {
 		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
 
-		if let _: String = remoteDb.get(name) {
+		if remoteDb.get(name) != nil {
 			remoteDb.remove(name)
 			try remoteDb.save()
 

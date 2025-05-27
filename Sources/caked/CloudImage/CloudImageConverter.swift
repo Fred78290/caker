@@ -1,15 +1,17 @@
 import Foundation
-import Qcow2convert
 import GRPCLib
+import Qcow2convert
 
 class CloudImageConverter {
 	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {
 		do {
-			let convertOuput = try Shell.execute(to: "qemu-img", arguments: [
-				"convert", "-p", "-f", "qcow2", "-O", "raw",
-				from.path,
-				to.path
-			])
+			let convertOuput = try Shell.execute(
+				to: "qemu-img",
+				arguments: [
+					"convert", "-p", "-f", "qcow2", "-O", "raw",
+					from.path,
+					to.path,
+				])
 			Logger(self).info(convertOuput)
 		} catch {
 			Logger(self).error(error)
@@ -26,16 +28,18 @@ class CloudImageConverter {
 			outputData.append(handler.availableData)
 		}
 
-		if let converter = Qcow2convertQCow2Converter(from.absoluteURL.path,
-		                                              destination: to.absoluteURL.path,
-		                                              outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor) {
+		if let converter = Qcow2convertQCow2Converter(
+			from.absoluteURL.path,
+			destination: to.absoluteURL.path,
+			outputFileHandle: outputPipe.fileHandleForWriting.fileDescriptor)
+		{
 			if converter.convert() < 0 {
 				throw ServiceError(String(data: outputData, encoding: .utf8)!)
 			}
 		}
 	}
 
-	static func downloadLinuxImage(fromURL: URL, toURL: URL, asSystem: Bool) async throws -> URL{
+	static func downloadLinuxImage(fromURL: URL, toURL: URL, asSystem: Bool) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
 			throw ServiceError("file already exists: \(toURL.path)")
 		}
@@ -74,7 +78,7 @@ class CloudImageConverter {
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
 
-	static func downloadLinuxImage(remoteURL: URL, asSystem: Bool) async throws -> URL{
+	static func downloadLinuxImage(remoteURL: URL, asSystem: Bool) async throws -> URL {
 		// Check if we already have this linux image in cache
 		let fileName = (remoteURL.lastPathComponent as NSString).deletingPathExtension
 		let imageCache = try CloudImageCache(name: remoteURL.host()!, asSystem: asSystem)
@@ -112,7 +116,7 @@ class CloudImageConverter {
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
 			Logger(self).info("Using cached \(cacheLocation.path) file...")
-			try cacheLocation.updateAccessDate() 
+			try cacheLocation.updateAccessDate()
 		} else {
 			// Download the cloud-image
 			Logger(self).info("Fetching \(from.lastPathComponent)...")

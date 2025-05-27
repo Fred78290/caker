@@ -32,7 +32,7 @@ struct EmbedProvisionProfile: Decodable {
 	var expirationDate: Date
 	var entitlements: Entitlements
 
-	private enum CodingKeys : String, CodingKey {
+	private enum CodingKeys: String, CodingKey {
 		case name = "Name"
 		case appIDName = "AppIDName"
 		case platform = "Platform"
@@ -62,7 +62,7 @@ struct EmbedProvisionProfile: Decodable {
 			case development, production, disabled
 		}
 
-		init(keychainAccessGroups: Array<String>, getTaskAllow: Bool, apsEnvironment: Environment, vmNetworking: Bool, securityVirtualization: Bool) {
+		init(keychainAccessGroups: [String], getTaskAllow: Bool, apsEnvironment: Environment, vmNetworking: Bool, securityVirtualization: Bool) {
 			self.keychainAccessGroups = keychainAccessGroups
 			self.getTaskAllow = getTaskAllow
 			self.apsEnvironment = apsEnvironment
@@ -76,8 +76,8 @@ struct EmbedProvisionProfile: Decodable {
 			let keychainAccessGroups = try container.decodeIfPresent([String].self, forKey: .keychainAccessGroups)
 			let getTaskAllow = try container.decodeIfPresent(Bool.self, forKey: .getTaskAllow)
 			let apsEnvironment = try container.decodeIfPresent(Environment.self, forKey: .apsEnvironment)
-			let vmNetworking =  try container.decodeIfPresent(Bool.self, forKey: .apsEnvironment)
-			let securityVirtualization =  try container.decodeIfPresent(Bool.self, forKey: .vmNetworking)
+			let vmNetworking = try container.decodeIfPresent(Bool.self, forKey: .apsEnvironment)
+			let securityVirtualization = try container.decodeIfPresent(Bool.self, forKey: .vmNetworking)
 
 			self.init(keychainAccessGroups: keychainAccessGroups ?? [], getTaskAllow: getTaskAllow ?? false, apsEnvironment: apsEnvironment ?? .disabled, vmNetworking: vmNetworking ?? false, securityVirtualization: securityVirtualization ?? false)
 		}
@@ -111,7 +111,7 @@ extension EmbedProvisionProfile {
 
 		// Skip binary part at the start of the mobile provisionning profile
 		let scanner = Scanner(string: plistDataString)
-		guard let _ = scanner.scanUpToString("<plist") else {
+		guard scanner.scanUpToString("<plist") != nil else {
 			return nil
 		}
 
