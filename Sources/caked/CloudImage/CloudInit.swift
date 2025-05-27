@@ -48,6 +48,22 @@ extension Multipart {
 }
 
 extension Data {
+	mutating func appendMergeDirective() throws -> Data{
+		let encoder: YAMLEncoder = newYAMLEncoder()
+		let merge: [Merging] = [
+			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
+			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
+		]
+
+		guard let mergeData = "\r\n\(try encoder.encode(CloudConfigData(merge: merge)))".data(using: .ascii) else {
+			throw CloudInitGenerateError("Failed to encode merge directive")
+		}
+
+		self.append(mergeData)
+
+		return self
+	}
+
 	func buildConfigData() throws -> Data {
 		guard var cloudConfigHeader: Data = "#cloud-config\n".data(using: .ascii) else {
 			throw CloudInitGenerateError("unable to encode buildConfigData")
@@ -335,25 +351,14 @@ struct CloudConfigData: Codable {
 		let encoded: String
 
 		if var userData = try encodedPart1?.buildConfigData() {
-			let merge: [Merging] = [
-				Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
-				Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"])
-			]
-
 			guard let vendorData = try encoder.encode(self).data(using: .ascii)?.buildConfigData() else {
 				throw CloudInitGenerateError("Failed to encode userData")
 			}
 
-			guard let mergeData = "\r\n\(try encoder.encode(CloudConfigData(merge: merge)))".data(using: .ascii) else {
-				throw CloudInitGenerateError("Failed to encode mergeData")
-			}
-
-			userData.append(mergeData)
-
 			var message = Multipart(type: .mixed)
-			
+
 			message.appendCloudInitData(vendorData, withName: "vendor-data")
-			message.appendCloudInitData(userData, withName: "user-data")
+			message.appendCloudInitData(try userData.appendMergeDirective(), withName: "user-data")
 
 			encoded = message.cloudInit
 		} else {
@@ -739,7 +744,7 @@ class CloudInit {
 			}
 		}
 
-		return try vendorData.buildConfigData()
+		return try vendorData
 	}
 
 	private func createSeed(writer: ISOWriter, path: String, configUrl: URL) throws -> URL {
