@@ -4,8 +4,9 @@ import GRPC
 import GRPCLib
 
 struct Remote: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Manage simplestream remote",
-	                                                subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
+	static let configuration = CommandConfiguration(
+		abstract: "Manage simplestream remote",
+		subcommands: [AddRemote.self, DeleteRemote.self, ListRemote.self])
 
 	struct AddRemote: GrpcParsableCommand {
 		static let configuration = RemoteAddOptions.configuration

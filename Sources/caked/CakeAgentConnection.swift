@@ -199,24 +199,26 @@ final class CakeAgentConnection: Sendable {
 	}
 
 	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, certLocation: CertificatesLocation, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited) {
-		self.init(eventLoop: eventLoop,
-		          listeningAddress: listeningAddress,
-		          caCert: certLocation.caCertURL.path,
-		          tlsCert: certLocation.clientCertURL.path,
-		          tlsKey: certLocation.clientKeyURL.path,
-		          timeout: timeout,
-		          retries: retries)
+		self.init(
+			eventLoop: eventLoop,
+			listeningAddress: listeningAddress,
+			caCert: certLocation.caCertURL.path,
+			tlsCert: certLocation.clientCertURL.path,
+			tlsKey: certLocation.clientKeyURL.path,
+			timeout: timeout,
+			retries: retries)
 	}
 
 	internal func createClient(interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? = nil) throws -> CakeAgentClient {
-		return try CakeAgentHelper.createClient(on: self.eventLoop,
-		                                        listeningAddress: self.listeningAddress,
-		                                        connectionTimeout: self.timeout,
-		                                        caCert: self.caCert,
-		                                        tlsCert: self.tlsCert,
-		                                        tlsKey: self.tlsKey,
-		                                        retries: self.retries,
-		                                        interceptors: interceptors)
+		return try CakeAgentHelper.createClient(
+			on: self.eventLoop,
+			listeningAddress: self.listeningAddress,
+			connectionTimeout: self.timeout,
+			caCert: self.caCert,
+			tlsCert: self.tlsCert,
+			tlsKey: self.tlsKey,
+			retries: self.retries,
+			interceptors: interceptors)
 
 	}
 
@@ -462,12 +464,13 @@ final class CakeAgentConnection: Sendable {
 	static func createCakeAgentClient(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 
-		return try CakeAgentHelper.createClient(on: on,
-		                                        listeningAddress: listeningAddress,
-		                                        connectionTimeout: Int64(timeout),
-		                                        caCert: certLocation.caCertURL.path,
-		                                        tlsCert: certLocation.clientCertURL.path,
-		                                        tlsKey: certLocation.clientKeyURL.path,
-		                                        retries: retries)
+		return try CakeAgentHelper.createClient(
+			on: on,
+			listeningAddress: listeningAddress,
+			connectionTimeout: Int64(timeout),
+			caCert: certLocation.caCertURL.path,
+			tlsCert: certLocation.clientCertURL.path,
+			tlsKey: certLocation.clientKeyURL.path,
+			retries: retries)
 	}
 }

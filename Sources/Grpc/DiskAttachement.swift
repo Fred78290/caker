@@ -228,9 +228,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 				}
 			}
 
-			let blockAttachment = try VZDiskBlockDeviceStorageDeviceAttachment(fileHandle: FileHandle(fileDescriptor: fd, closeOnDealloc: true),
-			                                                                   readOnly: self.diskOptions.readOnly,
-			                                                                   synchronizationMode: try VZDiskSynchronizationMode(description: self.diskOptions.syncMode))
+			let blockAttachment = try VZDiskBlockDeviceStorageDeviceAttachment(
+				fileHandle: FileHandle(fileDescriptor: fd, closeOnDealloc: true),
+				readOnly: self.diskOptions.readOnly,
+				synchronizationMode: try VZDiskSynchronizationMode(description: self.diskOptions.syncMode))
 
 			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
 		}

@@ -20,12 +20,13 @@ extension CakedCommand {
 		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
 		let listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
 
-		return try CakeAgentHelper.createClient(on: on,
-		                                        listeningAddress: listeningAddress,
-		                                        connectionTimeout: 30,
-		                                        caCert: certificates.caCertURL.path,
-		                                        tlsCert: certificates.clientCertURL.path,
-		                                        tlsKey: certificates.clientKeyURL.path)
+		return try CakeAgentHelper.createClient(
+			on: on,
+			listeningAddress: listeningAddress,
+			connectionTimeout: 30,
+			caCert: certificates.caCertURL.path,
+			tlsCert: certificates.clientCertURL.path,
+			tlsKey: certificates.clientKeyURL.path)
 	}
 }
 

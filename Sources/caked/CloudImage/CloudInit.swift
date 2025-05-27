@@ -705,24 +705,25 @@ class CloudInit {
 			Merging(name: "list", settings: ["append", "recurse_dict", "recurse_list"]),
 			Merging(name: "dict", settings: ["no_replace", "recurse_dict", "recurse_list"]),
 		]
-		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh" ] : ["/usr/local/bin/install-cakeagent.sh"]
-		let vendorData = CloudConfigData(defaultUser: self.userName,
-		                                 password: self.password,
-		                                 mainGroup: self.mainGroup,
-		                                 clearPassword: self.clearPassword,
-		                                 sshAuthorizedKeys: sshAuthorizedKeys,
-		                                 tz: TimeZone.current.identifier,
-		                                 packages: nil,
-		                                 writeFiles: [
-		                                 	WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755"),
-		                                 	WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
-		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),
-		                                 	WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
-		                                 	WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),
-		                                 ],
-		                                 runcmd: runCommand,
-		                                 growPart: true,
-		                                 merge: merge)
+		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		let vendorData = CloudConfigData(
+			defaultUser: self.userName,
+			password: self.password,
+			mainGroup: self.mainGroup,
+			clearPassword: self.clearPassword,
+			sshAuthorizedKeys: sshAuthorizedKeys,
+			tz: TimeZone.current.identifier,
+			packages: nil,
+			writeFiles: [
+				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755"),
+				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
+				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),
+			],
+			runcmd: runCommand,
+			growPart: true,
+			merge: merge)
 
 		return vendorData
 	}

@@ -69,7 +69,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
 
-	@Option(name: [.customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
+	@Option(
+		name: [.customLong("socket")],
+		help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
 	public var sockets: [SocketDevice] = []
 
 	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help, valueName: "url"))
@@ -78,25 +80,27 @@ public struct BuildOptions: ParsableArguments {
 	public init() {
 	}
 
-	public init(name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
-	            attachedDisks: [DiskAttachement] = [],
-	            user: String = "admin",
-	            password: String? = "nil",
-	            mainGroup: String = "admin",
-	            clearPassword: Bool = false,
-	            autostart: Bool = true,
-	            nested: Bool = true,
-	            image: String = defaultUbuntuImage,
-	            sshAuthorizedKey: String? = nil,
-	            vendorData: String? = nil,
-	            userData: String? = nil,
-	            networkConfig: String? = nil,
-	            displayRefit: Bool = true,
-	            forwardedPorts: [TunnelAttachement] = [],
-	            mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0)},
-	            networks: [BridgeAttachement] = [],
-	            sockets: [SocketDevice]	= [],
-	            consoleURL: ConsoleAttachment? = nil) {
+	public init(
+		name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
+		attachedDisks: [DiskAttachement] = [],
+		user: String = "admin",
+		password: String? = "nil",
+		mainGroup: String = "admin",
+		clearPassword: Bool = false,
+		autostart: Bool = true,
+		nested: Bool = true,
+		image: String = defaultUbuntuImage,
+		sshAuthorizedKey: String? = nil,
+		vendorData: String? = nil,
+		userData: String? = nil,
+		networkConfig: String? = nil,
+		displayRefit: Bool = true,
+		forwardedPorts: [TunnelAttachement] = [],
+		mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0) },
+		networks: [BridgeAttachement] = [],
+		sockets: [SocketDevice] = [],
+		consoleURL: ConsoleAttachment? = nil
+	) {
 		self.name = name
 		self.cpu = cpu
 		self.memory = memory

@@ -31,7 +31,9 @@ struct ExecuteHandler: CakedCommandAsync {
 		self.vmname = vmname
 	}
 
-	static func execute(on: EventLoop, asSystem: Bool, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) -> EventLoopFuture<Caked_Reply> {
+	static func execute(on: EventLoop, asSystem: Bool, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) -> EventLoopFuture<
+		Caked_Reply
+	> {
 		var vmname = vmname
 
 		return on.makeFutureWithTask {

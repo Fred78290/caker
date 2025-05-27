@@ -4,14 +4,17 @@ import GRPC
 import GRPCLib
 
 struct Networks: ParsableCommand {
-	static let configuration: CommandConfiguration = CommandConfiguration(abstract: "Manage host network devices",
-	                                                                      subcommands: [Networks.Infos.self,
-	                                                                                    Networks.List.self,
-	                                                                                    Networks.Create.self,
-	                                                                                    Networks.Configure.self,
-	                                                                                    Networks.Delete.self,
-	                                                                                    Networks.Start.self,
-	                                                                                    Networks.Stop.self])
+	static let configuration: CommandConfiguration = CommandConfiguration(
+		abstract: "Manage host network devices",
+		subcommands: [
+			Networks.Infos.self,
+			Networks.List.self,
+			Networks.Create.self,
+			Networks.Configure.self,
+			Networks.Delete.self,
+			Networks.Start.self,
+			Networks.Stop.self,
+		])
 
 	struct Infos: GrpcParsableCommand {
 		static let configuration = NetworkInfoOptions.configuration

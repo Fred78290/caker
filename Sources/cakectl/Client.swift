@@ -128,13 +128,14 @@ struct Client: AsyncParsableCommand {
 
 		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeAgentClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-			let connection = try Client.createClient(on: group,
-			                                         listeningAddress: URL(string: self.address),
-			                                         connectionTimeout: self.timeout,
-			                                         retries: retries,
-			                                         caCert: self.caCert,
-			                                         tlsCert: self.tlsCert,
-			                                         tlsKey: self.tlsKey)
+			let connection = try Client.createClient(
+				on: group,
+				listeningAddress: URL(string: self.address),
+				connectionTimeout: self.timeout,
+				retries: retries,
+				caCert: self.caCert,
+				tlsCert: self.tlsCert,
+				tlsKey: self.tlsKey)
 
 			return (group, CakeAgentClient(channel: connection, interceptors: interceptors))
 		}
@@ -225,13 +226,15 @@ struct Client: AsyncParsableCommand {
 			Export.self,
 		])
 
-	static func createClient(on: EventLoopGroup,
-	                         listeningAddress: URL?,
-	                         connectionTimeout: Int64 = 60,
-	                         retries: ConnectionBackoff.Retries,
-	                         caCert: String?,
-	                         tlsCert: String?,
-	                         tlsKey: String?) throws -> ClientConnection {
+	static func createClient(
+		on: EventLoopGroup,
+		listeningAddress: URL?,
+		connectionTimeout: Int64 = 60,
+		retries: ConnectionBackoff.Retries,
+		caCert: String?,
+		tlsCert: String?,
+		tlsKey: String?
+	) throws -> ClientConnection {
 		if let listeningAddress = listeningAddress {
 			let target: ConnectionTarget
 
@@ -243,7 +246,7 @@ struct Client: AsyncParsableCommand {
 				throw GrpcError(
 					code: -1,
 					reason:
-					"unsupported address scheme: \(String(describing: listeningAddress.scheme))")
+						"unsupported address scheme: \(String(describing: listeningAddress.scheme))")
 			}
 
 			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)

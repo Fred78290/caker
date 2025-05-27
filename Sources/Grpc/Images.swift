@@ -92,17 +92,19 @@ public struct ImageInfo: Codable {
 		self.properties = from.properties
 	}
 
-	public init(aliases: Aliases,
-	            architecture: String,
-	            pub: Bool,
-	            fileName: String,
-	            fingerprint: String,
-	            size: Int,
-	            type: String,
-	            created: String?,
-	            expires: String?,
-	            uploaded: String?,
-	            properties: [String: String]) {
+	public init(
+		aliases: Aliases,
+		architecture: String,
+		pub: Bool,
+		fileName: String,
+		fingerprint: String,
+		size: Int,
+		type: String,
+		created: String?,
+		expires: String?,
+		uploaded: String?,
+		properties: [String: String]
+	) {
 		self.aliases = aliases
 		self.architecture = architecture
 		self.pub = pub

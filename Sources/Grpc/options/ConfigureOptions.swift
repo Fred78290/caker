@@ -44,10 +44,12 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Flag(help: ArgumentHelp("Generate a new random MAC address for the VM."))
 	public var randomMAC: Bool = false
 
-	@Option(name: [.customLong("socket")], help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
+	@Option(
+		name: [.customLong("socket")],
+		help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
 	internal var socket: [String] = ["unset"]
 
-	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help,  valueName: "url"))
+	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help, valueName: "url"))
 	public var console: String?
 
 	public init(request: Caked_ConfigureRequest) {

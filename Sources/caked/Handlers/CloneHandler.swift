@@ -43,7 +43,8 @@ struct CloneHandler: CakedCommand {
 	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
 		return try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
-				$0.message = try Self.clone(name: self.request.targetName, from: self.request.sourceName, concurrency: UInt(self.request.concurrency), deduplicate: self.request.deduplicate, insecure: self.request.insecure, direct: false, asSystem: asSystem)
+				$0.message = try Self.clone(
+					name: self.request.targetName, from: self.request.sourceName, concurrency: UInt(self.request.concurrency), deduplicate: self.request.deduplicate, insecure: self.request.insecure, direct: false, asSystem: asSystem)
 			}
 		}
 	}

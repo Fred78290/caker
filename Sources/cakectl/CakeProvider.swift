@@ -503,21 +503,25 @@ extension CakeAgentClient {
 		}
 	}
 
-	public func exec(name: String,
-	                 command: String,
-	                 arguments: [String],
-	                 inputHandle: FileHandle = FileHandle.standardInput,
-	                 outputHandle: FileHandle = FileHandle.standardOutput,
-	                 errorHandle: FileHandle = FileHandle.standardError,
-	                 callOptions: CallOptions? = nil) async throws -> Int32 {
+	public func exec(
+		name: String,
+		command: String,
+		arguments: [String],
+		inputHandle: FileHandle = FileHandle.standardInput,
+		outputHandle: FileHandle = FileHandle.standardOutput,
+		errorHandle: FileHandle = FileHandle.standardError,
+		callOptions: CallOptions? = nil
+	) async throws -> Int32 {
 		return try await self.exec(name: name, command: .execute(command, arguments), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
 	}
 
-	public func shell(name: String,
-	                  inputHandle: FileHandle = FileHandle.standardInput,
-	                  outputHandle: FileHandle = FileHandle.standardOutput,
-	                  errorHandle: FileHandle = FileHandle.standardError,
-	                  callOptions: CallOptions? = nil) async throws -> Int32 {
+	public func shell(
+		name: String,
+		inputHandle: FileHandle = FileHandle.standardInput,
+		outputHandle: FileHandle = FileHandle.standardOutput,
+		errorHandle: FileHandle = FileHandle.standardError,
+		callOptions: CallOptions? = nil
+	) async throws -> Int32 {
 		return try await self.exec(name: name, command: .shell(), inputHandle: inputHandle, outputHandle: outputHandle, errorHandle: errorHandle, callOptions: callOptions)
 	}
 }

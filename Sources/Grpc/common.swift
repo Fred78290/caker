@@ -123,9 +123,10 @@ public struct Utils {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
-				applicationSupportDirectory = URL(fileURLWithPath: cakerSignature,
-				                                  isDirectory: true,
-				                                  relativeTo: applicationSupportDirectory)
+				applicationSupportDirectory = URL(
+					fileURLWithPath: cakerSignature,
+					isDirectory: true,
+					relativeTo: applicationSupportDirectory)
 				cakeHomeDir = applicationSupportDirectory
 			} else if Bundle.main.isSandboxed {
 				cakeHomeDir = FileManager.default.homeDirectoryForCurrentUser
