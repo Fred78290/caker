@@ -611,6 +611,36 @@
 			"preLaunchTask": "Build signed cakectl"
 		},
 		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"build",
+				"linux",
+				"--user=admin",
+				"--password=admin",
+				"--clear-password",
+				"--display-refit",
+				"--dynamic-port-forwarding",
+				"--publish=2222:22/tcp",
+				"--network=nat",
+				"--network=en0",
+				"--publish=tcp:~/.docker/run/docker.sock:/var/run/docker.sock",
+				"--cpus=2",
+				"--memory=2048",
+				"--disk-size=20",
+				"--nested",
+				"--ssh-authorized-key=~/.ssh/id_rsa.pub",
+				"--mount=~/Projects",
+				"--mount=~/Downloads",
+				"--cloud-init=/tmp/user-data.yaml",
+				"https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "cakectl build linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
+			"preLaunchTask": "Build signed cakectl"
+		},
+		{
 			"name": "-----------------------------------------------------------------------------"
 		},
 		{

@@ -3,28 +3,9 @@ VMNAME=$1
 
 set -e
 
-pushd "$(dirname $0)/.." >/dev/null
-PKGDIR=${PWD}/dist/Caker.app
-popd > /dev/null
-
 if [ -z "$VMNAME" ]; then
     VMNAME=linux
 fi
-
-swift build
-codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
-codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/cakectl
-
-rm -Rf ${PKGDIR}
-mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
-cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
-cp -c .build/debug/cakectl ${PKGDIR}/Contents/Resources/cakectl
-cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
-cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
-
-BIN_PATH=$(swift build --show-bin-path)
-BIN_PATH=${PKGDIR}/Contents/MacOS
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
@@ -35,7 +16,7 @@ LXD_IMAGE=ubuntu:noble
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 #CMD="cakectl --insecure "
-CMD="caked "
+CMD="cakectl "
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -120,8 +101,6 @@ BUILD_OPTIONS="--autostart --user admin --password admin --clear-password --disp
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --cloud-init=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --cloud-init=/tmp/user-data.yaml"
 
-${BIN_PATH}/${CMD} delete ${VMNAME} 
-#${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
-${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE}
-#${BIN_PATH}/${CMD} launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
-#${BIN_PATH}/${CMD} waitip ${VMNAME}  --wait 60
+${CMD} delete ${VMNAME} 
+${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE}
+#${CMD} start ${VMNAME}

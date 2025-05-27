@@ -5,11 +5,13 @@ pushd "$(dirname $0)/.." >/dev/null
 CURDIR=${PWD}
 popd > /dev/null
 
+COMMAND=caked
+
 export DISK_SIZE=100
 export MACOS_VERSION=sequoia
 export TART_HOME=${HOME}/.cake
 export CAKE_HOME=${TART_HOME}
-export CAKEAGENT_SNAPSHOT="SNAPSHOT-0563d90b"
+export CAKEAGENT_SNAPSHOT="SNAPSHOT-053aa055"
 export REGISTRY=devregistry.aldunelabs.com
 #IPSW=https://updates.cdn-apple.com/2025SpringFCS/fullrestores/082-16517/AACDDC33-9683-4431-98AF-F04EF7C15EE3/UniversalMac_15.4_24E248_Restore.ipsw
 export IPSW=${HOME}/Downloads/UniversalMac_15.4.1_24E263_Restore.ipsw
@@ -19,14 +21,14 @@ export PACKER_LOG="1"
 
 SSH_OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
-caked stop ${RESOLVE_VM_NAME} || :
-caked delete ${RESOLVE_VM_NAME} || :
-caked clone ghcr.io/cirruslabs/macos-sequoia-vanilla:15.4 ${RESOLVE_VM_NAME}
-IP=$(caked start ${RESOLVE_VM_NAME} --foreground --json | jq -r .output)
+${COMMAND} stop ${RESOLVE_VM_NAME} || :
+${COMMAND} delete ${RESOLVE_VM_NAME} || :
+${COMMAND} clone ghcr.io/cirruslabs/macos-sequoia-vanilla:15.4 ${RESOLVE_VM_NAME}
+IP="$(${COMMAND} start ${RESOLVE_VM_NAME} --foreground --json | tee /dev/stderr | jq -r .output)"
 
 mkdir -p ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}
 
-caked exec ${RESOLVE_VM_NAME} -- bash <<EOF
+${COMMAND} exec ${RESOLVE_VM_NAME} -- bash <<EOF
 set -ex
 mkdir -p /etc/sudoers.d /usr/local/bin /etc/cakeagent/ssl
 echo 'admin ALL=(ALL) NOPASSWD: ALL' | EDITOR=tee visudo /etc/sudoers.d/admin-nopasswd
@@ -67,18 +69,18 @@ EOF
 
 chmod +x ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh
 
+set -x
+
 sshpass -p admin scp ${SSH_OPTIONS} ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/configure.sh admin@${IP}:/tmp/configure.sh
 sshpass -p admin ssh ${SSH_OPTIONS} admin@${IP} -- /tmp/configure.sh
 
-set -x
-
-caked exec ${RESOLVE_VM_NAME} -- cat /tmp/sw-vers-product-version.txt > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt
+${COMMAND} exec ${RESOLVE_VM_NAME} -- cat /tmp/sw-vers-product-version.txt > ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt
 
 MACOS_NUMBER=$(cat ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}/sw-vers-product-version.txt)
 
-caked stop ${RESOLVE_VM_NAME}
-caked template create ${RESOLVE_VM_NAME} macos-${MACOS_VERSION}-vanilla
-caked push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
-caked delete ${RESOLVE_VM_NAME}
+${COMMAND} stop ${RESOLVE_VM_NAME}
+${COMMAND} template create ${RESOLVE_VM_NAME} macos-${MACOS_VERSION}-vanilla
+${COMMAND} push ${RESOLVE_VM_NAME} ${REGISTRY}/macos-$MACOS_VERSION-vanilla:latest ${REGISTRY}/macos-${MACOS_VERSION}-vanilla:${MACOS_NUMBER}
+${COMMAND} delete ${RESOLVE_VM_NAME}
 
 rm -rf ${CAKE_HOME}/tmp/${RESOLVE_VM_NAME}
