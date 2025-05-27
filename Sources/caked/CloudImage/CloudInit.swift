@@ -744,7 +744,7 @@ class CloudInit {
 			}
 		}
 
-		return try vendorData
+		return vendorData
 	}
 
 	private func createSeed(writer: ISOWriter, path: String, configUrl: URL) throws -> URL {
