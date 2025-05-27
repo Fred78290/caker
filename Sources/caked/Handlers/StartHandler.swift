@@ -47,17 +47,19 @@ struct StartHandler: CakedCommand {
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, asSystem: Bool, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
-			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path]
+			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(asSystem: asSystem)
 
-			if startMode == .background {
-				arguments.append(contentsOf: ["2>&1", ">", log])
-			} else if startMode == .foreground {
+			if startMode == .foreground {
 				arguments.append("--display")
 			} else if startMode == .service {
 				arguments.append("--service")
+			}
+
+			if startMode == .service || startMode == .background {
+				arguments.append(contentsOf: ["2>&1", "|", "tee", log])
 			}
 
 			config.sockets.forEach {
@@ -152,6 +154,10 @@ struct StartHandler: CakedCommand {
 			process.standardError = errorPipe
 			process.standardOutput = outputPipe
 			process.standardInput = FileHandle.standardInput
+		} else if startMode == .service {
+			process.standardError = FileHandle.standardError
+			process.standardOutput = FileHandle.standardOutput
+			process.standardInput = FileHandle.nullDevice
 		} else {
 			process.standardError = FileHandle.nullDevice
 			process.standardOutput = FileHandle.nullDevice

@@ -123,6 +123,12 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		if request.hasConsole {
 			self.console = request.console
 		}
+
+		if request.hasDynamicPortForwarding {
+			self.dynamicPortForwarding = request.dynamicPortForwarding
+		} else {
+			self.dynamicPortForwarding = nil
+		}
 	}
 
 	public var consoleURL: ConsoleAttachment? {

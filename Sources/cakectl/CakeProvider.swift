@@ -126,6 +126,8 @@ extension Caked_CommonBuildRequest {
 		if let networkConfig = buildOptions.networkConfig {
 			self.networkConfig = try Data(contentsOf: URL(filePath: networkConfig))
 		}
+
+		self.dynamicPortForwarding = buildOptions.dynamicPortForwarding
 	}
 }
 
@@ -268,6 +270,10 @@ extension Caked_ConfigureRequest {
 
 		if let forwardedPort = options.forwardedPort {
 			self.forwardedPort = forwardedPort.map { $0.description }.joined(separator: String.grpcSeparator)
+		}
+
+		if let dynamicPortForwarding = options.dynamicPortForwarding {
+			self.dynamicPortForwarding = dynamicPortForwarding
 		}
 
 		self.randomMac = options.randomMAC

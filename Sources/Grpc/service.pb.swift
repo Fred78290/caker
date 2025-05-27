@@ -503,6 +503,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
       public mutating func clearAttachedDisks() {self._attachedDisks = nil}
 
+      public var dynamicPortForwarding: Bool {
+        get {return _dynamicPortForwarding ?? false}
+        set {_dynamicPortForwarding = newValue}
+      }
+      /// Returns true if `dynamicPortForwarding` has been explicitly set.
+      public var hasDynamicPortForwarding: Bool {return self._dynamicPortForwarding != nil}
+      /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
+      public mutating func clearDynamicPortForwarding() {self._dynamicPortForwarding = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -520,6 +529,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _randomMac: Bool? = nil
       fileprivate var _forwardedPort: String? = nil
       fileprivate var _attachedDisks: String? = nil
+      fileprivate var _dynamicPortForwarding: Bool? = nil
     }
 
     public struct WaitIPRequest: Sendable {
@@ -3267,6 +3277,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     12: .same(proto: "randomMAC"),
     13: .same(proto: "forwardedPort"),
     14: .same(proto: "attachedDisks"),
+    15: .same(proto: "dynamicPortForwarding"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3289,6 +3300,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
       case 12: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
       case 13: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
       case 14: try { try decoder.decodeSingularStringField(value: &self._attachedDisks) }()
+      case 15: try { try decoder.decodeSingularBoolField(value: &self._dynamicPortForwarding) }()
       default: break
       }
     }
@@ -3341,6 +3353,9 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     try { if let v = self._attachedDisks {
       try visitor.visitSingularStringField(value: v, fieldNumber: 14)
     } }()
+    try { if let v = self._dynamicPortForwarding {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 15)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3359,6 +3374,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     if lhs._randomMac != rhs._randomMac {return false}
     if lhs._forwardedPort != rhs._forwardedPort {return false}
     if lhs._attachedDisks != rhs._attachedDisks {return false}
+    if lhs._dynamicPortForwarding != rhs._dynamicPortForwarding {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

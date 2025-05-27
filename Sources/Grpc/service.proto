@@ -106,6 +106,7 @@ message Caked {
 			optional bool randomMAC = 12;
 			optional string forwardedPort = 13;
 			optional string attachedDisks = 14;
+			optional bool dynamicPortForwarding = 15;
 		}
 
 		message WaitIPRequest {
