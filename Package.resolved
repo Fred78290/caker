@@ -1,5 +1,5 @@
 {
-  "originHash" : "59a896dc5eba563b2c9c92025acf7dc686d3c978c5bf77ec250da77eace662c7",
+  "originHash" : "38428acbd5994adf79a8f63aa7604f0e4e44627972c02cebc845acfef2adfed5",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -238,8 +238,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/swift-nio-portforwarding.git",
       "state" : {
-        "revision" : "95a1b343f7b32c425c851217d7216352c8637d12",
-        "version" : "0.2.7"
+        "revision" : "06445596869fd2fe8f69fe8d9705cb71e73007c7"
       }
     },
     {
