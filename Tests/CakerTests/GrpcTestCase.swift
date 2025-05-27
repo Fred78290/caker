@@ -1,14 +1,13 @@
-
-import XCTest
-import Synchronization
+import ArgumentParser
+import GRPC
 import NIOCore
 import NIOPosix
-import GRPC
-import ArgumentParser
+import Synchronization
+import XCTest
 
-@testable import caked
-@testable import cakectl
 @testable import GRPCLib
+@testable import cakectl
+@testable import caked
 
 class GrpcTestCase {
 	let certs: CertificatesLocation = try! CertificatesLocation.createCertificats(asSystem: false)

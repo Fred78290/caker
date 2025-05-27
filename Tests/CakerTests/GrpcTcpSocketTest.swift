@@ -1,12 +1,12 @@
-import XCTest
-import Synchronization
+import GRPC
 import NIOCore
 import NIOPosix
-import GRPC
+import Synchronization
+import XCTest
 
-@testable import caked
-@testable import cakectl
 @testable import GRPCLib
+@testable import cakectl
+@testable import caked
 
 final class GrpcTcpSocketTests: XCTestCase {
 	let testCase = GrpcTestCase()

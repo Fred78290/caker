@@ -1,14 +1,14 @@
 import XCTest
 
+@testable import GRPCLib
 @testable import NIOCore
+@testable import NIOPortForwarding
 @testable import NIOPosix
 @testable import caked
-@testable import GRPCLib
-@testable import NIOPortForwarding
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
-let networkConfig = 
+let networkConfig =
 	"""
 	#cloud-config
 	network:
@@ -28,7 +28,7 @@ let networkConfig =
 	        - aldunelabs.com
 	"""
 
-let userData = 
+let userData =
 	"""
 	#cloud-config
 	package_update: false
@@ -79,7 +79,7 @@ final class CloudInitTests: XCTestCase {
 		do {
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
-			let sharedNetAddressStr = sharedNetAddress[0]+"."+sharedNetAddress[1]+"."+sharedNetAddress[2]+".10"
+			let sharedNetAddressStr = sharedNetAddress[0] + "." + sharedNetAddress[1] + "." + sharedNetAddress[2] + ".10"
 
 			networkconfig.replace("$$Shared_Net_Address$$", with: sharedNetAddressStr)
 
@@ -122,7 +122,7 @@ final class CloudInitTests: XCTestCase {
 	/*
 	 * Helper to retrieve the correct finger print
 	 */
-	static func getFingerPrint(url: URL, product: String) throws -> String{
+	static func getFingerPrint(url: URL, product: String) throws -> String {
 		do {
 			return try Shell.execute(to: "curl -Ls \(url.absoluteString) | jq -r 'last(.products.\"\(product)\".versions|to_entries[]|.value.items.\"disk.qcow2\".sha256)' -r")
 		} catch {
@@ -177,7 +177,7 @@ final class CloudInitTests: XCTestCase {
 		options.vendorData = nil
 		options.networkConfig = self.networkConfigPath.path
 		options.forwardedPorts = [
-			TunnelAttachement(host: 2022, guest: 22, proto: .tcp),
+			TunnelAttachement(host: 2022, guest: 22, proto: .tcp)
 		]
 		options.mounts = []
 		options.networks = []
