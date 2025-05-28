@@ -82,6 +82,7 @@ extension Caked_CommonBuildRequest {
 		self.autostart = buildOptions.autostart
 		self.nested = buildOptions.nested
 		self.image = buildOptions.image
+		self.ifnames = buildOptions.netIfnames
 
 		if mounts.isEmpty == false {
 			self.mounts = mounts.joined(separator: String.grpcSeparator)

@@ -27,7 +27,7 @@ public struct BuildOptions: ParsableArguments {
 	public var password: String?
 
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
-	public var mainGroup: String = "admin"
+	public var mainGroup: String = "adm"
 
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
 	public var clearPassword: Bool = false
@@ -68,6 +68,9 @@ public struct BuildOptions: ParsableArguments {
 
 	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
+
+	@Option(name: [.customLong("net.ifnames")], help: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")
+	public var netIfnames: Bool = true
 
 	@Option(
 		name: [.customLong("socket")],
@@ -244,6 +247,12 @@ public struct BuildOptions: ParsableArguments {
 			}
 		} else {
 			self.networks = []
+		}
+
+		if request.hasIfnames {
+			self.netIfnames = request.ifnames
+		} else {
+			self.netIfnames = true
 		}
 
 		if request.hasSockets && request.sockets.isEmpty == false {

@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-let CAKEAGENT_SNAPSHOT = "053aa055"
+let CAKEAGENT_SNAPSHOT = "08e98411"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
@@ -132,13 +132,13 @@ func newYAMLEncoder() -> YAMLEncoder {
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
-	init(config: CakeConfig) {
+	init(netIfnames: Bool, config: CakeConfig) {
 		let networks = config.qualifiedNetworks
 
 		var index: Int = 1
 
 		networks.forEach { network in
-			let name = "enp0s\(index)"
+			let name = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
 
 			index += 1
 
@@ -413,7 +413,7 @@ struct WriteFile: Codable {
 	var permissions: String?
 	var owner: String?
 
-	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = "root:adm") {
+	init(path: String, content: String, encoding: String? = nil, permissions: String? = nil, owner: String? = nil) {
 		self.path = path
 		self.content = content
 		self.encoding = encoding
@@ -593,10 +593,11 @@ class CloudInit {
 	var networkConfig: Data?
 	var userName: String = "admin"
 	var password: String? = nil
-	var mainGroup: String = "admin"
+	var mainGroup: String = "adm"
 	var sshAuthorizedKeys: [String]?
 	var clearPassword: Bool = false
 	var asSystem: Bool = false
+	var netIfnames: Bool = true
 
 	private static func loadPublicKey(sshAuthorizedKey: String) throws -> String {
 		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey))
@@ -620,7 +621,7 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, asSystem: Bool) throws {
+	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, asSystem: Bool) throws {
 		self.userName = userName
 		self.password = password
 		self.mainGroup = mainGroup
@@ -629,10 +630,11 @@ class CloudInit {
 		self.userData = userData
 		self.vendorData = vendorData
 		self.networkConfig = networkConfig
+		self.netIfnames = netIfnames
 		self.asSystem = asSystem
 	}
 
-	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, asSystem: Bool) throws {
+	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, asSystem: Bool) throws {
 		try self.init(
 			userName: userName,
 			password: password,
@@ -641,7 +643,8 @@ class CloudInit {
 			sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath, asSystem: asSystem),
 			vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
 			userData: userDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: userDataPath!)) : nil,
-			networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil, asSystem: asSystem)
+			networkConfig: networkConfigPath != nil ? try Data(contentsOf: URL(fileURLWithPath: networkConfigPath!)) : nil,
+			netIfnames: netIfnames, asSystem: asSystem)
 	}
 
 	private func createMetaData(hostname: String, instanceID: String) throws -> Data {
@@ -715,11 +718,11 @@ class CloudInit {
 			tz: TimeZone.current.identifier,
 			packages: nil,
 			writeFiles: [
-				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755"),
-				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600"),
-				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600"),
-				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600"),
+				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			],
 			runcmd: runCommand,
 			growPart: true,
@@ -780,7 +783,7 @@ class CloudInit {
 		if let networkConfig = self.networkConfig {
 			return networkConfig
 		} else {
-			let networkConfig: NetworkConfig = NetworkConfig(config: config)
+			let networkConfig: NetworkConfig = NetworkConfig(netIfnames: self.netIfnames, config: config)
 
 			return try networkConfig.toCloudInit()
 		}

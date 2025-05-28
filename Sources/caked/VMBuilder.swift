@@ -73,6 +73,7 @@ struct VMBuilder {
 				vendorDataPath: options.vendorData,
 				userDataPath: options.userData,
 				networkConfigPath: options.networkConfig,
+				netIfnames: options.netIfnames,
 				asSystem: asSystem)
 
 			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
