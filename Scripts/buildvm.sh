@@ -3,6 +3,9 @@ VMNAME=$1
 
 set -e
 
+# Help tool to inspect the disk image
+# qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
+
 pushd "$(dirname $0)/.." >/dev/null
 PKGDIR=${PWD}/dist/Caker.app
 popd > /dev/null
@@ -28,7 +31,32 @@ BIN_PATH=${PKGDIR}/Contents/MacOS
 
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
-CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+MAINGROUP=adm
+NETIFNAMES=true
+
+case ${VMNAME} in
+    ubuntu*)
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+        ;;
+    centos*)
+        CLOUD_IMAGE=https://cloud.centos.org/centos/10-stream/aarch64/images/CentOS-Stream-GenericCloud-10-20250520.0.aarch64.qcow2
+        ;;
+    alpine*)
+        CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/nocloud_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2
+        ;;
+    opensuse*)
+        CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.aarch64-NoCloud.qcow2
+        MAINGROUP=root
+        NETIFNAMES=false
+        ;;
+    fedora*)
+        CLOUD_IMAGE=https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-42-1.1.aarch64.qcow2
+        ;;
+    *)
+        CLOUD_IMAGE=
+        ;;
+esac
+
 #LXD_IMAGE=images:ubuntu/noble/cloud
 LXD_IMAGE=ubuntu:noble
 #LXD_IMAGE=images:fedora/41/cloud
@@ -93,13 +121,15 @@ write_files:
 runcmd:
 - hostnamectl set-hostname openstack-dev-k3s-worker-02
 - curl -fsSL https://get.docker.com | sh -
+- systemctl enable docker
+- systemctl start docker
 - usermod -aG docker admin
 users:
 - name: local
   plain_text_passwd: admin
   lock_passwd: false
   sudo: ALL=(ALL) NOPASSWD:ALL
-  groups: users, admin
+  groups: users, ${MAINGROUP}
   shell: /bin/bash
   ssh_authorized_keys:
   - ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhniyEBZs0t7aQZhn8gWfYrFacYJKQQx9x6pckZvMJIceLsQPB/J9CbqARtcCKZkK47yDzlH/zZNwt/AJvOawKZp6LDIWMOMF6TGicVhA+0RD3dOuqKRT0uJmaSo3Cz0GAaanTJXkhsEDZzaPkyLWXYaf6LxGAuMKCxv69j4H9ffGhRxNZ+62bs7DY+SH12hlcObZaz9GRydvEI/PUDghKJ4h1QKgvCKM1Mre1vQ2DHOuSifQC0Qbh0zK/JiJpHyBgFWRvKz72e2ya6+RW0ZuDGa6Qc3Zt8FIfH6eoiX+WOG7BUsXRN3n5gcWSXyYA9kxzBlNdMyYtD0fRlyb3+HgL
@@ -114,14 +144,20 @@ packages:
 EOF
 fi
 
-NETWORKS_OPTIONS="--network=nat --network=en0 --network=shared --network=host"
-NETWORKS_OPTIONS="--network=nat --network=en0"
-BUILD_OPTIONS="--autostart --user admin --password admin --clear-password --display-refit --dynamic-port-forwarding --publish 2222:22/tcp ${NETWORKS_OPTIONS} --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --network=shared --network=host --console=file"
+NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --console=file"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --cloud-init=/tmp/user-data.yaml"
 #BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --cloud-init=/tmp/user-data.yaml"
 
 ${BIN_PATH}/${CMD} delete ${VMNAME} 
-#${BIN_PATH}/${CMD} build ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
-${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE}
+
+if [ -z "${CLOUD_IMAGE}" ]; then
+    BUILD_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --dynamic-port-forwarding --publish 2222:22/tcp ${NETWORKS_OPTIONS} --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+    ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
+else
+    BUILD_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit ${NETWORKS_OPTIONS} --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+    ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+fi
+
 #${BIN_PATH}/${CMD} launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
 #${BIN_PATH}/${CMD} waitip ${VMNAME}  --wait 60
