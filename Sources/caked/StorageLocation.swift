@@ -39,7 +39,7 @@ struct StorageLocation {
 			return rootURL.appendingPathComponent(String(name.dropFirst("vm://".count)), isDirectory: true)
 		}
 
-		return rootURL.appendingPathComponent(name, isDirectory: true)
+		return rootURL.appendingPathComponent("\(name).cakedvm", isDirectory: true)
 	}
 
 	func exists(_ name: String) -> Bool {

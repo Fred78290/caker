@@ -14,7 +14,8 @@ cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
 cp -c .build/debug/cakectl ${PKGDIR}/Contents/Resources/cakectl
 cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
+cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 
 BIN_PATH=$(swift build --show-bin-path)
 BIN_PATH=${PKGDIR}/Contents/MacOS

@@ -24,7 +24,8 @@ cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
 cp -c .build/debug/cakectl ${PKGDIR}/Contents/Resources/cakectl
 cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
+cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 
 BIN_PATH=$(swift build --show-bin-path)
 BIN_PATH=${PKGDIR}/Contents/MacOS
@@ -42,7 +43,7 @@ case ${VMNAME} in
         CLOUD_IMAGE=https://cloud.centos.org/centos/10-stream/aarch64/images/CentOS-Stream-GenericCloud-10-20250520.0.aarch64.qcow2
         ;;
     alpine*)
-        CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/nocloud_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2
+        CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2
         ;;
     opensuse*)
         CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.aarch64-NoCloud.qcow2

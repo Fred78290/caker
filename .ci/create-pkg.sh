@@ -22,7 +22,8 @@ lipo -create .build/x86_64-apple-macosx/release/cakectl .build/arm64-apple-macos
 
 cp -c ${CURDIR}/Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c ${CURDIR}/Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c ${CURDIR}/Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+cp -c ${CURDIR}/Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
+cp -c ${CURDIR}/Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 
 #codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force .ci/pkg/Caker.app
 

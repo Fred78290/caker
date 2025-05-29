@@ -57,7 +57,7 @@ struct VMLocation {
 	}
 
 	var name: String {
-		rootURL.lastPathComponent
+		rootURL.deletingPathExtension().lastPathComponent
 	}
 
 	var url: URL {

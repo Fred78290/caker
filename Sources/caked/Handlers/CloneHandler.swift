@@ -16,7 +16,7 @@ struct CloneHandler: CakedCommand {
 			throw ServiceError("Tart is not installed")
 		}
 
-		var arguments = [from, name]
+		var arguments = [from, "\(name).cakedvm"]
 
 		if concurrency != 4 {
 			arguments.append("--concurrency=\(concurrency)")

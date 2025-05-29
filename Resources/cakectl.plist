@@ -12,7 +12,7 @@
 	<string>cakectl</string>
 	<key>CFBundleIconFiles</key>
 	<array>
-		<string>AppIcon.png</string>
+		<string>AppIcon.icns</string>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>

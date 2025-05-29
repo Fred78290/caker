@@ -20,7 +20,8 @@ cp -c .build/release/caked ${PKGDIR}/Contents/MacOS/caked
 cp -c .build/release/cakectl ${PKGDIR}/Contents/Resources/cakectl
 cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c Resources/CakedAppIcon.png ${PKGDIR}/Contents/Resources/AppIcon.png
+cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
+cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 
 mkdir .bin
 
