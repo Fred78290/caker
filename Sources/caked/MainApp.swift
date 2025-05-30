@@ -55,7 +55,7 @@ struct MainApp: App {
 			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(config: MainApp.config, vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
+				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
 					let ret = kill(getpid(), SIGINT)
@@ -88,7 +88,7 @@ struct MainApp: App {
 
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
-		MainApp.virtualMachine = vm.getVM()
+		MainApp.virtualMachine = vm.getVM()!
 		MainApp.name = name
 		MainApp.config = config
 		MainApp.main()
@@ -108,7 +108,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 struct AboutCaker: View {
 	var infos: NSAttributedString
 
-	init(config: CakeConfig) {
+	init(config: CakeConfig?) {
 		let infos = NSMutableAttributedString()
 		let style: NSMutableParagraphStyle = NSMutableParagraphStyle()
 
@@ -116,12 +116,14 @@ struct AboutCaker: View {
 
 		let center: [NSAttributedString.Key: Any] = [.paragraphStyle: style]
 
-		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
-		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
-		infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
+		if let config = config {
+			infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
+			infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
+			infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
 
-		if let runningIP = config.runningIP {
-			infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
+			if let runningIP = config.runningIP {
+				infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
+			}
 		}
 
 		self.infos = infos
@@ -142,16 +144,16 @@ struct AboutCaker: View {
 struct VMView: NSViewRepresentable {
 	typealias NSViewType = VZVirtualMachineView
 
-	let config: CakeConfig
+	let automaticallyReconfiguresDisplay: Bool
 
 	@ObservedObject
 	var vm: VirtualMachine
-	var virtualMachine: VZVirtualMachine
+	var virtualMachine: VZVirtualMachine?
 
 	func makeNSView(context: Context) -> NSViewType {
 		let machineView = VZVirtualMachineView()
-		if #available(macOS 14.0, *), config.displayRefit || (config.os == .darwin) {
-			machineView.automaticallyReconfiguresDisplay = true
+		if #available(macOS 14.0, *) {
+			machineView.automaticallyReconfiguresDisplay = self.automaticallyReconfiguresDisplay
 		}
 
 		return machineView

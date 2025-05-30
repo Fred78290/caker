@@ -50,14 +50,16 @@ class MountService: NSObject {
 			let config: CakeConfig = try vm.vmLocation.config()
 
 			if config.os == .darwin {
-				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
-					return CakeAgent.MountReply.with {
-						$0.response = .error("No shared devices")
+				if let virtualMachine = vm.virtualMachine {
+					guard let sharedDevices: VZVirtioFileSystemDevice = virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
+						return CakeAgent.MountReply.with {
+							$0.response = .error("No shared devices")
+						}
 					}
-				}
 
-				DispatchQueue.main.sync {
-					sharedDevices.share = config.mounts.multipleDirectoryShares
+					DispatchQueue.main.sync {
+						sharedDevices.share = config.mounts.multipleDirectoryShares
+					}
 				}
 
 				return CakeAgent.MountReply.with {

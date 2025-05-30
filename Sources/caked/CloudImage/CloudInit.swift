@@ -634,7 +634,9 @@ class CloudInit {
 		self.asSystem = asSystem
 	}
 
-	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, asSystem: Bool) throws {
+	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, asSystem: Bool)
+		throws
+	{
 		try self.init(
 			userName: userName,
 			password: password,

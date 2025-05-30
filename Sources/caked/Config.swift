@@ -15,6 +15,13 @@ extension DisplaySize {
 		set { self["height"] = newValue }
 		get { self["height"]! }
 	}
+
+	init(width: Int, height: Int) {
+		self.init()
+
+		self.width = width
+		self.height = height
+	}
 }
 
 enum ConfigFileName: String {

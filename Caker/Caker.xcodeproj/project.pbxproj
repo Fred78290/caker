@@ -24,6 +24,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B1752182DE9F7630067D5A8 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */; };
 		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
 		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
@@ -314,6 +315,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineView.swift; sourceTree = "<group>"; };
 		9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
 		9B18FA212DAFF4E500603B92 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
@@ -999,6 +1001,7 @@
 		9BE47FD02DA68386000A759F /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */,
 				9BE47FCE2DA68386000A759F /* MainUI.swift */,
 				9BE47FCF2DA68386000A759F /* MainView.swift */,
 			);
@@ -1152,7 +1155,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -1332,6 +1335,7 @@
 				9B464B362D5A3E0300164BF5 /* RemoteHandler.swift in Sources */,
 				9B464B372D5A3E0300164BF5 /* Config.swift in Sources */,
 				9B464B382D5A3E0300164BF5 /* LaunchHandler.swift in Sources */,
+				9B1752182DE9F7630067D5A8 /* VirtualMachineView.swift in Sources */,
 				9B464B392D5A3E0300164BF5 /* Service.swift in Sources */,
 				9B464B3A2D5A3E0300164BF5 /* NetworkAttachement.swift in Sources */,
 				9B464B3B2D5A3E0300164BF5 /* Exec.swift in Sources */,
@@ -1622,7 +1626,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
