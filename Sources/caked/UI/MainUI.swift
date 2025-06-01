@@ -1,7 +1,7 @@
 import SwiftUI
 
 class AppState: ObservableObject {
-	@Published var currentVirtualMachine: VirtualMachine? = nil
+	@Published var currentDocument: VirtualMachineDocument? = nil
 }
 
 struct MainUI: App {
@@ -10,8 +10,16 @@ struct MainUI: App {
 	@NSApplicationDelegateAdaptor private var appDelegate: MainUIAppDelegate
 
 	var body: some Scene {
-		DocumentGroup(newDocument: VirtualMachine()) { file in
-			VirtualMachineView(appState: self.appState, document: file.$document)
+		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
+			if let fileURL = file.fileURL {
+				if file.document.loadVirtualMachine(from: fileURL) {
+					VirtualMachineView(appState: self.appState, document: file.$document)
+				} else {
+					Color.black
+				}
+			} else {
+				Color.red
+			}
 		}.commands {
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
@@ -19,21 +27,21 @@ struct MainUI: App {
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			CommandGroup(replacing: .appInfo) { AboutCaker(config: appState.currentVirtualMachine?.config) }
+			CommandGroup(replacing: .appInfo) { /*AboutCaker(config: appState.currentDocument?.config)*/ }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task {
-						appState.currentVirtualMachine?.startFromUI()
+						appState.currentDocument?.startFromUI()
 					}
 				}
 				Button("Stop") {
 					Task {
-						appState.currentVirtualMachine?.stopFromUI()
+						appState.currentDocument?.stopFromUI()
 					}
 				}
 				Button("Request Stop") {
 					Task {
-						try appState.currentVirtualMachine?.requestStopFromUI()
+						try appState.currentDocument?.requestStopFromUI()
 					}
 				}
 			}

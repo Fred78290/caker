@@ -24,6 +24,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B04883A2DEB1419009D31ED /* VMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0488392DEB1414009D31ED /* VMView.swift */; };
 		9B1752182DE9F7630067D5A8 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */; };
 		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
 		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
@@ -268,6 +269,7 @@
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE47FD12DA68386000A759F /* MainUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE47FCE2DA68386000A759F /* MainUI.swift */; };
 		9BE47FD22DA68386000A759F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE47FCF2DA68386000A759F /* MainView.swift */; };
+		9BF2A2422DEAF0B0005F1FCD /* VirtualMachineDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */; };
 		9BFCE6D12DD48E17005DDFBF /* TunnelAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFCE6D02DD48E0D005DDFBF /* TunnelAttachement.swift */; };
 /* End PBXBuildFile section */
 
@@ -315,6 +317,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B0488392DEB1414009D31ED /* VMView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMView.swift; sourceTree = "<group>"; };
 		9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineView.swift; sourceTree = "<group>"; };
 		9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
 		9B18FA212DAFF4E500603B92 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
@@ -506,6 +509,7 @@
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE47FCE2DA68386000A759F /* MainUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUI.swift; sourceTree = "<group>"; };
 		9BE47FCF2DA68386000A759F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocument.swift; sourceTree = "<group>"; };
 		9BFCE6D02DD48E0D005DDFBF /* TunnelAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelAttachement.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1001,6 +1005,8 @@
 		9BE47FD02DA68386000A759F /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				9B0488392DEB1414009D31ED /* VMView.swift */,
+				9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */,
 				9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */,
 				9BE47FCE2DA68386000A759F /* MainUI.swift */,
 				9BE47FCF2DA68386000A759F /* MainView.swift */,
@@ -1277,6 +1283,7 @@
 				9B464B002D5A3E0300164BF5 /* ListHandler.swift in Sources */,
 				9B464B012D5A3E0300164BF5 /* CakeAgentAsyncParsableCommand.swift in Sources */,
 				9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */,
+				9BF2A2422DEAF0B0005F1FCD /* VirtualMachineDocument.swift in Sources */,
 				9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */,
 				9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */,
 				9B80276E2D997EAC002C680E /* VZVMNetConfig.swift in Sources */,
@@ -1288,6 +1295,7 @@
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
 				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
+				9B04883A2DEB1419009D31ED /* VMView.swift in Sources */,
 				9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,

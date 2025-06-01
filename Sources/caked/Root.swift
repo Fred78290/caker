@@ -30,7 +30,7 @@ struct CommonOptions: ParsableArguments {
 }
 
 @main
-struct Root: AsyncParsableCommand {
+struct Root: ParsableCommand {
 	static let tartIsPresent = checkIfTartPresent()
 	static let sigintSrc: any DispatchSourceSignal = {
 		signal(SIGINT, SIG_IGN)
@@ -124,8 +124,8 @@ struct Root: AsyncParsableCommand {
 		return true
 	}
 
-	func run() async throws {
-		await MainUI.main()
+	func run() throws {
+		MainUI.main()
 	}
 
 	public static func main() async throws {

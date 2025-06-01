@@ -9,32 +9,30 @@ import SwiftUI
 
 struct VirtualMachineView: View {
 	@ObservedObject var appState: AppState
-	@Binding var document: VirtualMachine
+	@Binding var document: VirtualMachineDocument
 
 	var body: some View {
-		let display = document.config?.display ?? DisplaySize(width: 800, height: 600)
+		let virtualMachine = document.virtualMachine!
+		let config = virtualMachine.config
+		let display = config.display
 		let minWidth = CGFloat(display.width)
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
-		let automaticallyReconfiguresDisplay: Bool
-
-		if let config = document.config {
-			automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
-		} else {
-			automaticallyReconfiguresDisplay = false
-		}
-
-		return VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document, virtualMachine: document.virtualMachine).onAppear {
+		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
+		
+		return VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: virtualMachine, virtualMachine: virtualMachine.virtualMachine)
+		.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity).onAppear {
 			NSWindow.allowsAutomaticWindowTabbing = false
-		}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity).onAppear {
-			self.appState.currentVirtualMachine = self.document
+			self.appState.currentDocument = self.document
 		}.onDisappear {
-			self.appState.currentVirtualMachine = nil
+			self.appState.currentDocument = nil
+		}.onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { _ in
+			try? document.requestStopFromUI()
 		}
 	}
 }
 
 #Preview {
-	VirtualMachineView(appState: AppState(), document: .constant(VirtualMachine()))
+	VirtualMachineView(appState: AppState(), document: .constant(VirtualMachineDocument()))
 }

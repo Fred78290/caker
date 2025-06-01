@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-let CAKEAGENT_SNAPSHOT = "08e98411"
+let CAKEAGENT_SNAPSHOT = "d4147385"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
@@ -307,7 +307,7 @@ struct CloudConfigData: Codable {
 					name: defaultUser,
 					password: password,
 					lockPasswd: password == nil,
-					shell: "/bin/bash",
+					shell: "/bin/sh",
 					sshAuthorizedKeys: sshAuthorizedKeys,
 					primaryGroup: mainGroup,
 					groups: nil,

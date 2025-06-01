@@ -58,8 +58,7 @@ struct MainApp: App {
 				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
-					let ret = kill(getpid(), SIGINT)
-					if ret != 0 {
+					if kill(getpid(), SIGINT) != 0 {
 						NSApplication.shared.terminate(self)
 					}
 				}
@@ -74,21 +73,33 @@ struct MainApp: App {
 			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
-					Task { MainApp.vm.startFromUI() }
+					Task { self.startFromUI() }
 				}
 				Button("Stop") {
-					Task { MainApp.vm.stopFromUI() }
+					Task { self.stopFromUI() }
 				}
 				Button("Request Stop") {
-					Task { try MainApp.vm.requestStopFromUI() }
+					Task { try self.requestStopFromUI() }
 				}
 			}
 		}
 	}
 
+	func startFromUI() {
+		MainApp._vm?.startFromUI()
+	}
+
+	func stopFromUI() {
+		MainApp._vm?.stopFromUI()
+	}
+
+	func requestStopFromUI() throws {
+		try MainApp._vm?.requestStopFromUI()
+	}
+
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
-		MainApp.virtualMachine = vm.getVM()!
+		MainApp.virtualMachine = vm.getVM()
 		MainApp.name = name
 		MainApp.config = config
 		MainApp.main()
@@ -108,7 +119,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 struct AboutCaker: View {
 	var infos: NSAttributedString
 
-	init(config: CakeConfig?) {
+	init(config: CakeConfig) {
 		let infos = NSMutableAttributedString()
 		let style: NSMutableParagraphStyle = NSMutableParagraphStyle()
 
@@ -116,14 +127,12 @@ struct AboutCaker: View {
 
 		let center: [NSAttributedString.Key: Any] = [.paragraphStyle: style]
 
-		if let config = config {
-			infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
-			infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
-			infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
+		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
+		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
+		infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
 
-			if let runningIP = config.runningIP {
-				infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
-			}
+		if let runningIP = config.runningIP {
+			infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
 		}
 
 		self.infos = infos
@@ -138,28 +147,5 @@ struct AboutCaker: View {
 				NSApplication.AboutPanelOptionKey.credits: self.infos,
 			])
 		}
-	}
-}
-
-struct VMView: NSViewRepresentable {
-	typealias NSViewType = VZVirtualMachineView
-
-	let automaticallyReconfiguresDisplay: Bool
-
-	@ObservedObject
-	var vm: VirtualMachine
-	var virtualMachine: VZVirtualMachine?
-
-	func makeNSView(context: Context) -> NSViewType {
-		let machineView = VZVirtualMachineView()
-		if #available(macOS 14.0, *) {
-			machineView.automaticallyReconfiguresDisplay = self.automaticallyReconfiguresDisplay
-		}
-
-		return machineView
-	}
-
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.virtualMachine = virtualMachine
 	}
 }
