@@ -10,6 +10,16 @@ struct MainUI: App {
 	@NSApplicationDelegateAdaptor private var appDelegate: MainUIAppDelegate
 
 	var body: some Scene {
+		WindowGroup {
+			MainView()
+		}.commands {
+			CommandGroup(replacing: .help, addition: {})
+			CommandGroup(replacing: .newItem, addition: {})
+			CommandGroup(replacing: .pasteboard, addition: {})
+			CommandGroup(replacing: .textEditing, addition: {})
+			CommandGroup(replacing: .undoRedo, addition: {})
+			CommandGroup(replacing: .windowSize, addition: {})
+		}
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
 				if file.document.loadVirtualMachine(from: fileURL) {
@@ -27,7 +37,6 @@ struct MainUI: App {
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			CommandGroup(replacing: .appInfo) { /*AboutCaker(config: appState.currentDocument?.config)*/ }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task {
@@ -58,11 +67,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 		urls.forEach { u in print("Opening URL: \(u)") }
 	}
 
-	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+	/*func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
 		if kill(getpid(), SIGINT) == 0 {
 			return .terminateLater
 		} else {
 			return .terminateNow
 		}
-	}
+	}*/
 }
