@@ -34,6 +34,7 @@ SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration
 DISK_SIZE=20
 MAINGROUP=adm
 NETIFNAMES=true
+USER_SHELL=/bin/bash
 
 case ${VMNAME} in
     ubuntu*)
@@ -44,6 +45,7 @@ case ${VMNAME} in
         ;;
     alpine*)
         CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2
+        USER_SHELL=/bin/sh
         ;;
     opensuse*)
         CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.aarch64-NoCloud.qcow2
@@ -119,19 +121,50 @@ write_files:
   owner: root:root
   path: /var/lib/rancher/credentialprovider/config.yaml
   permissions: '0644'
+- content: |
+    #!/bin/sh
+    SUFFIX=${RANDOM}
+
+    if [ "\$(grep ^ID= /etc/os-release | cut -d= -f 2)" == "alpine" ]; then
+        hostname openstack-dev-k3s-worker-\$SUFFIX
+        apk add docker
+        rc-update add docker default
+        service docker start
+    else
+      if [ -n "\$(command -v hostnamectl)" ]; then
+          hostnamectl set-hostname openstack-dev-k3s-worker-\$SUFFIX
+      else
+          echo "openstack-dev-k3s-worker-\$SUFFIX" > /etc/hostname
+      fi
+
+      if [ -n "\$(command -v curl)" ]; then
+          curl -fsSL https://get.docker.com | sh -
+      else
+          wget https://get.docker.com -O | sh -
+      fi
+
+      if [ -n "\$(command -v systemctl)" ]; then
+          systemctl enable docker
+          systemctl start docker
+      else
+          service docker start
+      fi
+    fi
+
+    usermod -aG docker admin
+    usermod -aG docker local
+  owner: root:root
+  path: /tmp/setup.sh
+  permissions: '0755'
 runcmd:
-- hostnamectl set-hostname openstack-dev-k3s-worker-02
-- curl -fsSL https://get.docker.com | sh -
-- systemctl enable docker
-- systemctl start docker
-- usermod -aG docker admin
+- /tmp/setup.sh
 users:
 - name: local
   plain_text_passwd: admin
   lock_passwd: false
   sudo: ALL=(ALL) NOPASSWD:ALL
   groups: users, ${MAINGROUP}
-  shell: /bin/bash
+  shell: ${USER_SHELL}
   ssh_authorized_keys:
   - ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhniyEBZs0t7aQZhn8gWfYrFacYJKQQx9x6pckZvMJIceLsQPB/J9CbqARtcCKZkK47yDzlH/zZNwt/AJvOawKZp6LDIWMOMF6TGicVhA+0RD3dOuqKRT0uJmaSo3Cz0GAaanTJXkhsEDZzaPkyLWXYaf6LxGAuMKCxv69j4H9ffGhRxNZ+62bs7DY+SH12hlcObZaz9GRydvEI/PUDghKJ4h1QKgvCKM1Mre1vQ2DHOuSifQC0Qbh0zK/JiJpHyBgFWRvKz72e2ya6+RW0ZuDGa6Qc3Zt8FIfH6eoiX+WOG7BUsXRN3n5gcWSXyYA9kxzBlNdMyYtD0fRlyb3+HgL
 EOF
