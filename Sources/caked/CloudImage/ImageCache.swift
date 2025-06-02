@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import GRPCLib
 
 protocol Purgeable {
 	var url: URL { get }
@@ -35,36 +36,36 @@ class CommonCacheImageCache: PurgeableStorage {
 	let scheme: String
 	let name: String
 	let location: String
-	let asSystem: Bool
+	let runMode: Utils.RunMode
 	private let ext: String
 
-	init(scheme: String, location: String, name: String, ext: String = "img", root: URL? = nil, asSystem: Bool) throws {
+	init(scheme: String, location: String, name: String, ext: String = "img", root: URL? = nil, runMode: Utils.RunMode) throws {
 		self.scheme = scheme
 		self.name = name
 		self.location = location
 		self.ext = ext
-		self.asSystem = asSystem
+		self.runMode = runMode
 
 		if let root = root {
 			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
 		} else {
-			self.baseURL = try Home(asSystem: asSystem).cacheDirectory.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
+			self.baseURL = try Home(runMode: runMode).cacheDirectory.appendingPathComponent(self.location, isDirectory: true).appendingPathComponent(self.name, isDirectory: true)
 		}
 
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
 	}
 
-	init(scheme: String, location: String, ext: String = "img", root: URL? = nil, asSystem: Bool) throws {
+	init(scheme: String, location: String, ext: String = "img", root: URL? = nil, runMode: Utils.RunMode) throws {
 		self.scheme = scheme
 		self.name = ""
 		self.location = location
 		self.ext = ext
-		self.asSystem = asSystem
+		self.runMode = runMode
 
 		if let root = root {
 			self.baseURL = root.appendingPathComponent(self.location, isDirectory: true)
 		} else {
-			self.baseURL = try Home(asSystem: asSystem).cacheDirectory.appendingPathComponent(self.location, isDirectory: true)
+			self.baseURL = try Home(runMode: runMode).cacheDirectory.appendingPathComponent(self.location, isDirectory: true)
 		}
 
 		try FileManager.default.createDirectory(at: baseURL, withIntermediateDirectories: true)
@@ -108,32 +109,32 @@ class CommonCacheImageCache: PurgeableStorage {
 class TemplateImageCache: CommonCacheImageCache {
 	static let scheme = "template"
 
-	convenience init(asSystem: Bool) throws {
-		try self.init(name: "", asSystem: asSystem)
+	convenience init(runMode: Utils.RunMode) throws {
+		try self.init(name: "", runMode: runMode)
 	}
 
-	init(name: String, asSystem: Bool) throws {
-		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(asSystem: asSystem).cakeHomeDirectory, asSystem: asSystem)
+	init(name: String, runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(runMode: runMode).cakeHomeDirectory, runMode: runMode)
 	}
 }
 
 class CloudImageCache: CommonCacheImageCache {
 	static let scheme = "https"
 
-	convenience init(asSystem: Bool) throws {
-		try self.init(name: "", asSystem: asSystem)
+	convenience init(runMode: Utils.RunMode) throws {
+		try self.init(name: "", runMode: runMode)
 	}
 
-	init(name: String, asSystem: Bool) throws {
-		try super.init(scheme: Self.scheme, location: "cloud-images", name: name, asSystem: asSystem)
+	init(name: String, runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "cloud-images", name: name, runMode: runMode)
 	}
 }
 
 class RawImageCache: CommonCacheImageCache {
 	static let scheme = "img"
 
-	init(asSystem: Bool) throws {
-		try super.init(scheme: Self.scheme, location: "raw-images", asSystem: asSystem)
+	init(runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "raw-images", runMode: runMode)
 	}
 }
 
@@ -245,12 +246,12 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 	static let scheme = "stream"
 	private var cache: SimpleStreamCache?
 
-	convenience init(asSystem: Bool) throws {
-		try self.init(name: "", asSystem: asSystem)
+	convenience init(runMode: Utils.RunMode) throws {
+		try self.init(name: "", runMode: runMode)
 	}
 
-	init(name: String, asSystem: Bool) throws {
-		try super.init(scheme: Self.scheme, location: "container-images", name: name, ext: ".img", asSystem: asSystem)
+	init(name: String, runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "container-images", name: name, ext: ".img", runMode: runMode)
 
 		if name.count > 0 {
 			self.cache = try SimpleStreamCache.createSimpleStreamCache(from: URL(fileURLWithPath: "cache.plist", relativeTo: self.baseURL))
@@ -386,12 +387,12 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 	}
 
 	override func purgeables() throws -> [Purgeable] {
-		let remoteDb = try Home(asSystem: self.asSystem).remoteDatabase()
+		let remoteDb = try Home(runMode: self.runMode).remoteDatabase()
 		var purgeableItems: [Purgeable] = []
 
 		try FileManager.default.contentsOfDirectory(at: self.baseURL, includingPropertiesForKeys: [.isDirectoryKey], options: .skipsHiddenFiles).forEach { url in
 			if let remote = remoteDb.reverseLookup(url.lastPathComponent) {
-				purgeableItems.append(contentsOf: try SimpleStreamsImageCache(name: url.lastPathComponent, asSystem: self.asSystem).purgeables(remote: remote))
+				purgeableItems.append(contentsOf: try SimpleStreamsImageCache(name: url.lastPathComponent, runMode: self.runMode).purgeables(remote: remote))
 			}
 		}
 
@@ -402,8 +403,8 @@ class SimpleStreamsImageCache: CommonCacheImageCache {
 class OCIImageCache: CommonCacheImageCache {
 	static let scheme = "oci"
 
-	init(asSystem: Bool) throws {
-		try super.init(scheme: Self.scheme, location: "OCIs", asSystem: asSystem)
+	init(runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "OCIs", runMode: runMode)
 	}
 
 	private class OCIImageCachePurgeable: Purgeable {

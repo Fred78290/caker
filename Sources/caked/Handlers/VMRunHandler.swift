@@ -9,7 +9,7 @@ struct VMRunHandler {
 	let storageLocation: StorageLocation
 	let vmLocation: VMLocation
 	let name: String
-	let asSystem: Bool
+	let runMode: Utils.RunMode
 	let display: Bool
 	let config: CakeConfig
 
@@ -36,7 +36,7 @@ struct VMRunHandler {
 			}
 		}
 
-		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, internalCall: false, asSystem: asSystem)
+		let (_, vm) = try vmLocation.startVirtualMachine(on: Root.group.next(), config: config, internalCall: false, runMode: runMode)
 
 		if display {
 			MainApp.runUI(name: name, vm: vm, config: config)

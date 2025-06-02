@@ -7,8 +7,8 @@ import NIO
 struct CloneHandler: CakedCommand {
 	var request: Caked_CloneRequest
 
-	static func clone(name: String, from: String, concurrency: UInt = 4, deduplicate: Bool = false, insecure: Bool = false, direct: Bool, asSystem: Bool) throws -> String {
-		if StorageLocation(asSystem: asSystem).exists(name) {
+	static func clone(name: String, from: String, concurrency: UInt = 4, deduplicate: Bool = false, insecure: Bool = false, direct: Bool, runMode: Utils.RunMode) throws -> String {
+		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
 
@@ -30,9 +30,9 @@ struct CloneHandler: CakedCommand {
 			arguments.append("--deduplicate")
 		}
 
-		try Shell.runTart(command: "clone", arguments: arguments, direct: direct, asSystem: asSystem)
+		try Shell.runTart(command: "clone", arguments: arguments, direct: direct, runMode: runMode)
 
-		let location = try StorageLocation(asSystem: asSystem).find(name)
+		let location = try StorageLocation(runMode: runMode).find(name)
 		let cakeConfig = try CakeConfig(location: location.rootURL, configuredUser: "admin", configuredPassword: "admin")
 
 		try cakeConfig.save()
@@ -40,11 +40,11 @@ struct CloneHandler: CakedCommand {
 		return "VM \(name) cloned"
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		return try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
 				$0.message = try Self.clone(
-					name: self.request.targetName, from: self.request.sourceName, concurrency: UInt(self.request.concurrency), deduplicate: self.request.deduplicate, insecure: self.request.insecure, direct: false, asSystem: asSystem)
+					name: self.request.targetName, from: self.request.sourceName, concurrency: UInt(self.request.concurrency), deduplicate: self.request.deduplicate, insecure: self.request.insecure, direct: false, runMode: runMode)
 			}
 		}
 	}

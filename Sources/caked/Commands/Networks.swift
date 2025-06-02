@@ -23,10 +23,10 @@ struct Networks: ParsableCommand {
 			Networks.Stop.self,
 		])
 
-	static func validateNetwork(networkName: String, asSystem: Bool) throws {
+	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws {
 		// Validate the network name
 		if NetworksHandler.isPhysicalInterface(name: networkName) == false {
-			let home: Home = try Home(asSystem: asSystem)
+			let home: Home = try Home(runMode: runMode)
 			let networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[networkName] == nil {
@@ -47,11 +47,11 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
+			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.status(networkName: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -69,7 +69,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.setDHCPLease(leaseTime: self.dhcpLease, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.setDHCPLease(leaseTime: self.dhcpLease, runMode: self.common.runMode)))
 		}
 	}
 
@@ -85,9 +85,9 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
+			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
 
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: self.common.asSystem)
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Network \(self.name) already running")
@@ -95,7 +95,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, asSystem: self.common.asSystem), asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: try NetworksHandler.VMNetOptions(networkName: self.name, runMode: self.common.runMode), runMode: self.common.runMode)))
 		}
 	}
 
@@ -111,9 +111,9 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			try validateNetwork(networkName: self.name, asSystem: self.common.asSystem)
+			try validateNetwork(networkName: self.name, runMode: self.common.runMode)
 
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, asSystem: self.common.asSystem)
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) == false {
 				throw ValidationError("Network \(self.name) is not running")
@@ -121,7 +121,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.restartNetworkService(networkName: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.restartNetworkService(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -139,7 +139,7 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(asSystem: self.common.asSystem)
+			let home: Home = try Home(runMode: self.common.runMode)
 			let networkConfig = try home.sharedNetworks()
 
 			if networkConfig.sharedNetworks[self.options.name] != nil {
@@ -165,7 +165,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -183,7 +183,7 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(asSystem: self.common.asSystem)
+			let home: Home = try Home(runMode: self.common.runMode)
 			let networkConfig = try home.sharedNetworks()
 
 			if NetworksHandler.isPhysicalInterface(name: self.options.name) {
@@ -212,7 +212,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.configure(networkName: self.options.name, network: self.changedNetwork!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -228,9 +228,9 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let home: Home = try Home(asSystem: self.common.asSystem)
+			let home: Home = try Home(runMode: self.common.runMode)
 			let networkConfig = try home.sharedNetworks()
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.name, asSystem: self.common.asSystem)
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: self.name, runMode: self.common.runMode)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Unable to delete running network \(self.name)")
@@ -246,7 +246,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.delete(networkName: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.delete(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -262,7 +262,7 @@ struct Networks: ParsableCommand {
 		mutating func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			let socketURL = try self.options.vmnetEndpoint(asSystem: self.common.asSystem)
+			let socketURL = try self.options.vmnetEndpoint(runMode: self.common.runMode)
 
 			if FileManager.default.fileExists(atPath: socketURL.0.path) {
 				throw ValidationError("Network already running")
@@ -280,7 +280,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: self.options, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.start(options: self.options, runMode: self.common.runMode)))
 		}
 	}
 
@@ -308,7 +308,7 @@ struct Networks: ParsableCommand {
 			}
 
 			if let networkName {
-				try Networks.validateNetwork(networkName: networkName, asSystem: self.common.asSystem)
+				try Networks.validateNetwork(networkName: networkName, runMode: self.common.runMode)
 			} else if let pidFile {
 				if !FileManager.default.fileExists(atPath: pidFile) {
 					throw ValidationError("PID file \(pidFile) does not exist")
@@ -318,9 +318,9 @@ struct Networks: ParsableCommand {
 
 		func run() throws {
 			if let pidFile {
-				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), asSystem: self.common.asSystem)))
+				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
-				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(networkName: networkName, asSystem: self.common.asSystem)))
+				Logger.appendNewLine(self.common.format.render(try NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
 			} else {
 				throw ValidationError("No network name provided")
 			}
@@ -338,7 +338,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try NetworksHandler.networks(asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try NetworksHandler.networks(runMode: self.common.runMode)))
 		}
 	}
 }

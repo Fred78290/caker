@@ -167,12 +167,12 @@ struct VMLocation {
 	}
 
 	@discardableResult
-	func duplicateTemporary(asSystem: Bool) throws -> VMLocation {
-		return try self.copyTo(try Self.tempDirectory(asSystem: asSystem))
+	func duplicateTemporary(runMode: Utils.RunMode) throws -> VMLocation {
+		return try self.copyTo(try Self.tempDirectory(runMode: runMode))
 	}
 
-	static func tempDirectory(asSystem: Bool) throws -> VMLocation {
-		let tmpDir = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString)
+	static func tempDirectory(runMode: Utils.RunMode) throws -> VMLocation {
+		let tmpDir = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString)
 		try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
 
 		return VMLocation(rootURL: tmpDir, template: false)
@@ -265,7 +265,7 @@ struct VMLocation {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
-	func stopVirtualMachine(force: Bool, asSystem: Bool) throws {
+	func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
 			if let pid = readPID() {
 				kill(pid, SIGINT)
@@ -274,7 +274,7 @@ struct VMLocation {
 		}
 
 		let config = try self.config()
-		let home = try Home(asSystem: asSystem)
+		let home = try Home(runMode: runMode)
 
 		if self.status != .running {
 			throw ServiceError("vm \(name) is not running")
@@ -283,11 +283,11 @@ struct VMLocation {
 		if force || config.agent == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
-			let client = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, asSystem: asSystem)
+			let client = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
 			try client.shutdown().log()
 		} else {
-			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, asSystem: asSystem) {
+			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
 				let ssh = try SSH(host: ip)
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
 				try ssh.execute("sudo shutdown now")
@@ -301,8 +301,8 @@ struct VMLocation {
 		}
 	}
 
-	func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, asSystem: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
-		let vm = try VirtualMachine(vmLocation: self, config: config, asSystem: asSystem)
+	func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
+		let vm = try VirtualMachine(vmLocation: self, config: config, runMode: runMode)
 
 		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall) {
 			if let handler = completionHandler {
@@ -320,7 +320,7 @@ struct VMLocation {
 		return (runningIP, vm)
 	}
 
-	func waitIPWithLease(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+	func waitIPWithLease(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let config = try self.config()
 		let start: Date = Date.now
 		let macAddress = config.macAddress?.string ?? ""
@@ -350,8 +350,8 @@ struct VMLocation {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
 	}
 
-	func waitIPWithAgent(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 5, asSystem: asSystem, retries: .none)
+	func waitIPWithAgent(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Root.group.next(), listeningAddress: self.agentURL, timeout: 5, runMode: runMode, retries: .none)
 		let start: Date = Date.now
 		var count = 0
 
@@ -376,25 +376,25 @@ struct VMLocation {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
 	}
 
-	func waitIP(config: CakeConfig, wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+	func waitIP(config: CakeConfig, wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		if startedProcess == nil && self.status != .running {
 			throw ServiceError("VM \(name) is not running")
 		}
 
 		if config.agent {
-			return try waitIPWithAgent(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+			return try waitIPWithAgent(wait: wait, runMode: runMode, startedProcess: startedProcess)
 		} else {
-			return try waitIPWithLease(wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+			return try waitIPWithLease(wait: wait, runMode: runMode, startedProcess: startedProcess)
 		}
 	}
 
-	func waitIP(wait: Int, asSystem: Bool, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
-		return try self.waitIP(config: self.config(), wait: wait, asSystem: asSystem, startedProcess: startedProcess)
+	func waitIP(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
+		return try self.waitIP(config: self.config(), wait: wait, runMode: runMode, startedProcess: startedProcess)
 	}
 
-	func waitIP(on: EventLoop, config: CakeConfig, wait: Int, asSystem: Bool) throws -> EventLoopFuture<String?> {
+	func waitIP(on: EventLoop, config: CakeConfig, wait: Int, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 		if config.agent {
-			return try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, asSystem: asSystem).info().flatMap { response in
+			return try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, runMode: runMode).info().flatMap { response in
 				switch response {
 				case .success(let infos):
 					return on.makeSucceededFuture(infos.ipaddresses.first)
@@ -404,7 +404,7 @@ struct VMLocation {
 			}
 		} else {
 			return on.submit {
-				try? self.waitIPWithLease(wait: wait, asSystem: asSystem)
+				try? self.waitIPWithLease(wait: wait, runMode: runMode)
 			}
 		}
 	}
@@ -425,17 +425,17 @@ struct VMLocation {
 		} while true
 	}
 
-	func installAgent(config: CakeConfig, runningIP: String, asSystem: Bool) throws -> Bool {
+	func installAgent(config: CakeConfig, runningIP: String, runMode: Utils.RunMode) throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
-		let home: Home = try Home(asSystem: asSystem)
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
+		let home: Home = try Home(runMode: runMode)
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
 		let serverKey: String = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
 		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
 		let sharedPublicKey = try home.getSharedPublicKey()
 		let ssh = try createSSH(host: runningIP, timeout: 120)
-		let tempFileURL = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent("install-agent.sh")
+		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
 			#!/bin/sh
 			set -xe

@@ -8,17 +8,17 @@ import NIOPortForwarding
 import NIOPosix
 
 protocol CakedCommand {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply
 }
 
 protocol CakedCommandAsync: CakedCommand {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply>
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply>
 }
 
 extension CakedCommand {
-	func createCakeAgentClient(on: EventLoopGroup, asSystem: Bool, name: String) throws -> CakeAgentClient {
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
-		let listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
+	func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
 
 		return try CakeAgentHelper.createClient(
 			on: on,
@@ -31,8 +31,8 @@ extension CakedCommand {
 }
 
 extension CakedCommandAsync {
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
-		return try self.run(on: on, asSystem: asSystem).wait()
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+		return try self.run(on: on, runMode: runMode).wait()
 	}
 }
 
@@ -195,7 +195,7 @@ extension Caked_ListRequest: CreateCakedCommand {
 
 extension Caked_StartRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background, asSystem: provider.asSystem)
+		return try StartHandler(name: self.name, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 120, startMode: .background, runMode: provider.runMode)
 	}
 }
 
@@ -257,14 +257,14 @@ extension Caked_Error {
 }
 
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
-	let asSystem: Bool
+	let runMode: Utils.RunMode
 	let group: EventLoopGroup
 	let certLocation: CertificatesLocation
 
-	init(group: EventLoopGroup, asSystem: Bool) throws {
-		self.asSystem = asSystem
+	init(group: EventLoopGroup, runMode: Utils.RunMode) throws {
+		self.runMode = runMode
 		self.group = group
-		self.certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
+		self.certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 	}
 
 	func execute(command: CakedCommand) throws -> Caked_Reply {
@@ -275,11 +275,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		do {
 			if var cmd = command as? CakedCommandAsync {
-				let future = try cmd.run(on: eventLoop, asSystem: self.asSystem)
+				let future = try cmd.run(on: eventLoop, runMode: self.runMode)
 
 				return try future.wait()
 			} else {
-				return try command.run(on: eventLoop, asSystem: self.asSystem)
+				return try command.run(on: eventLoop, runMode: self.runMode)
 			}
 		} catch {
 			return Caked_Reply.with { reply in
@@ -395,7 +395,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
-		let listeningAddress = try StorageLocation(asSystem: asSystem).find(vmName).agentURL
+		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
 
 		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
 	}

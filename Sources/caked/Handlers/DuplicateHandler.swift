@@ -6,8 +6,8 @@ import Virtualization
 struct DuplicateHandler: CakedCommand {
 	var request: Caked_DuplicateRequest
 
-	static func duplicate(from: String, to: String, resetMacAddress: Bool, asSystem: Bool) throws -> String {
-		let storageLocation = StorageLocation(asSystem: asSystem)
+	static func duplicate(from: String, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) throws -> String {
+		let storageLocation = StorageLocation(runMode: runMode)
 		let fromLocation = try storageLocation.find(from)
 
 		// Check if the VM exists
@@ -19,7 +19,7 @@ struct DuplicateHandler: CakedCommand {
 			throw ServiceError("VM \(to) already exists")
 		}
 
-		let tmpLocation = try fromLocation.duplicateTemporary(asSystem: asSystem)
+		let tmpLocation = try fromLocation.duplicateTemporary(runMode: runMode)
 		let config = try tmpLocation.config()
 
 		// Change mac address and network mode
@@ -37,10 +37,10 @@ struct DuplicateHandler: CakedCommand {
 		return "VM duplicated from (\(from)) to (\(to))"
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		return try Caked_Reply.with {
 			$0.vms = try Caked_VirtualMachineReply.with {
-				$0.message = try Self.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, asSystem: asSystem)
+				$0.message = try Self.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, runMode: runMode)
 			}
 		}
 	}

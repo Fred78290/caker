@@ -9,8 +9,8 @@ struct InfosHandler: CakedCommand {
 	var request: Caked_InfoRequest
 	var client: CakeAgentConnection
 
-	static func infos(name: String, asSystem: Bool, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+	static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
+		let vmLocation = try StorageLocation(runMode: runMode).find(name)
 		let config: CakeConfig = try vmLocation.config()
 		var infos: InfoReply
 
@@ -51,10 +51,10 @@ struct InfosHandler: CakedCommand {
 		return infos
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		return try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
-				$0.infos = try Self.infos(name: self.request.name, asSystem: asSystem, client: CakeAgentHelper(on: on, client: client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5)))).toCaked_InfoReply()
+				$0.infos = try Self.infos(name: self.request.name, runMode: runMode, client: CakeAgentHelper(on: on, client: client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5)))).toCaked_InfoReply()
 			}
 		}
 	}

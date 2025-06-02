@@ -44,18 +44,18 @@ struct CertificatesLocation: Codable {
 		return self
 	}
 
-	static func getCertificats(asSystem: Bool) throws -> CertificatesLocation {
-		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
+	static func getCertificats(runMode: Utils.RunMode) throws -> CertificatesLocation {
+		return CertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(runMode: runMode)))
 	}
 
-	static func createCertificats(asSystem: Bool, force: Bool = false) throws -> CertificatesLocation {
-		let certs: CertificatesLocation = try getCertificats(asSystem: asSystem)
+	static func createCertificats(runMode: Utils.RunMode, force: Bool = false) throws -> CertificatesLocation {
+		let certs: CertificatesLocation = try getCertificats(runMode: runMode)
 
 		return try certs.createCertificats(subject: "Caker", force)
 	}
 
-	static func createAgentCertificats(asSystem: Bool, force: Bool = false) throws -> CertificatesLocation {
-		let certs: CertificatesLocation = CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
+	static func createAgentCertificats(runMode: Utils.RunMode, force: Bool = false) throws -> CertificatesLocation {
+		let certs: CertificatesLocation = CertificatesLocation(certHome: URL(fileURLWithPath: "agent", isDirectory: true, relativeTo: try Utils.getHome(runMode: runMode)))
 
 		return try certs.createCertificats(subject: "CakeAgent", force)
 	}

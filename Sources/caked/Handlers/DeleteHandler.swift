@@ -12,13 +12,13 @@ import TextTable
 struct DeleteHandler: CakedCommand {
 	var request: Caked_DeleteRequest
 
-	static func tryDeleteLocal(name: String, asSystem: Bool) -> DeleteReply? {
+	static func tryDeleteLocal(name: String, runMode: Utils.RunMode) -> DeleteReply? {
 		var vmLocation: VMLocation? = nil
 
-		if let location = try? StorageLocation(asSystem: asSystem).find(name) {
+		if let location = try? StorageLocation(runMode: runMode).find(name) {
 			vmLocation = location
 		} else if let u = URL(string: name), u.scheme == "vm" {
-			vmLocation = try? StorageLocation(asSystem: asSystem).find(u.host()!)
+			vmLocation = try? StorageLocation(runMode: runMode).find(u.host()!)
 		}
 
 		if let location = vmLocation {
@@ -33,21 +33,21 @@ struct DeleteHandler: CakedCommand {
 		return nil
 	}
 
-	static func delete(names: [String], asSystem: Bool) throws -> [DeleteReply] {
+	static func delete(names: [String], runMode: Utils.RunMode) throws -> [DeleteReply] {
 		return try names.compactMap { name in
-			guard let result = tryDeleteLocal(name: name, asSystem: asSystem) else {
+			guard let result = tryDeleteLocal(name: name, runMode: runMode) else {
 				if let u = URL(string: name) {
 					var purgeableStorages: [String: CommonCacheImageCache] = [
-						CloudImageCache.scheme: try CloudImageCache(asSystem: asSystem),
-						RawImageCache.scheme: try RawImageCache(asSystem: asSystem),
-						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(asSystem: asSystem),
+						CloudImageCache.scheme: try CloudImageCache(runMode: runMode),
+						RawImageCache.scheme: try RawImageCache(runMode: runMode),
+						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(runMode: runMode),
 					]
 
 					if true {
-						let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
+						let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
 						try remoteDb.keys.forEach {
-							purgeableStorages[$0] = try SimpleStreamsImageCache(asSystem: asSystem)
+							purgeableStorages[$0] = try SimpleStreamsImageCache(runMode: runMode)
 						}
 					}
 
@@ -73,21 +73,21 @@ struct DeleteHandler: CakedCommand {
 		}
 	}
 
-	static func delete(all: Bool, names: [String], asSystem: Bool) throws -> [DeleteReply] {
+	static func delete(all: Bool, names: [String], runMode: Utils.RunMode) throws -> [DeleteReply] {
 		var names = names
 
 		if all {
-			names = try StorageLocation(asSystem: asSystem).list().map { $0.key }
+			names = try StorageLocation(runMode: runMode).list().map { $0.key }
 		}
 
-		return try DeleteHandler.delete(names: names, asSystem: asSystem)
+		return try DeleteHandler.delete(names: names, runMode: runMode)
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		try Caked_Reply.with { reply in
 			reply.vms = try Caked_VirtualMachineReply.with {
 				$0.delete = try Caked_DeleteReply.with {
-					$0.objects = try Self.delete(all: self.request.all, names: self.request.names.list, asSystem: asSystem).map {
+					$0.objects = try Self.delete(all: self.request.all, names: self.request.names.list, runMode: runMode).map {
 						$0.toCaked_DeletedObject()
 					}
 				}

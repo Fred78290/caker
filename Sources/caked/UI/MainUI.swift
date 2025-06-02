@@ -9,6 +9,36 @@ struct MainUI: App {
 
 	@NSApplicationDelegateAdaptor private var appDelegate: MainUIAppDelegate
 
+	enum ControlMenuItem {
+		case start
+		case suspend
+		case stop
+		case requestStop
+	}
+
+	func controlMenuDisabled(_ menuItem: ControlMenuItem) -> Bool {
+		guard let currentDocument = appState.currentDocument else {
+			return true
+		}
+		
+		let vmStatus = currentDocument.status
+
+		if vmStatus == .empty {
+			return true
+		}
+
+		switch menuItem {
+		case .start:
+			return !currentDocument.canStart
+		case .suspend:
+			return !(currentDocument.canPause && currentDocument.suspendable)
+		case .stop:
+			return !currentDocument.canStop
+		case .requestStop:
+			return !currentDocument.canRequestStop
+		}
+	}
+
 	var body: some Scene {
 		WindowGroup {
 			MainView()
@@ -42,16 +72,31 @@ struct MainUI: App {
 					Task {
 						appState.currentDocument?.startFromUI()
 					}
-				}
+				}.disabled(
+					self.controlMenuDisabled(.start)
+				)
 				Button("Stop") {
 					Task {
 						appState.currentDocument?.stopFromUI()
 					}
-				}
+				}.disabled(
+					self.controlMenuDisabled(.stop)
+				)
 				Button("Request Stop") {
 					Task {
 						try appState.currentDocument?.requestStopFromUI()
 					}
+				}.disabled(
+					self.controlMenuDisabled(.requestStop)
+				)
+				if #available(macOS 14, *) {
+					Button("Suspend") {
+						Task {
+							try appState.currentDocument?.suspendFromUI()
+						}
+					}.disabled(
+						self.controlMenuDisabled(.suspend)
+					)
 				}
 			}
 		}
@@ -66,12 +111,4 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func application(_ application: NSApplication, open urls: [URL]) {
 		urls.forEach { u in print("Opening URL: \(u)") }
 	}
-
-	/*func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-		if kill(getpid(), SIGINT) == 0 {
-			return .terminateLater
-		} else {
-			return .terminateNow
-		}
-	}*/
 }

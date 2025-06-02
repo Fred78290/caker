@@ -139,6 +139,17 @@ final class CakeConfig {
 		}
 	#endif
 
+	var suspendable: Bool {
+		set { self.cake["suspendable"] = newValue }
+		get {
+			if #available(macOS 14, *) {
+				self.cake["suspendable"] as? Bool ?? false
+			} else {
+				false
+			}
+		}
+	}
+
 	var cpuCount: Int {
 		set { self.config["cpuCount"] = newValue }
 		get { self.config["cpuCount"] as! Int }
@@ -447,9 +458,9 @@ final class CakeConfig {
 }
 
 extension CakeConfig {
-	func startNetworkServices(asSystem: Bool) throws {
+	func startNetworkServices(runMode: Utils.RunMode) throws {
 		let vmNetworking: Bool
-		let home: Home = try Home(asSystem: asSystem)
+		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
 
@@ -466,16 +477,16 @@ extension CakeConfig {
 				if sharedNetworks[inf.network] == nil && physicalInterface == false {
 					Logger(self).error("Network interface \(inf.network) not found")
 				} else if (physicalInterface && vmNetworking) == false {
-					try NetworksHandler.startNetworkService(networkName: inf.network, asSystem: asSystem)
+					try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
 				}
 			}
 		}
 	}
 
-	func collectNetworks(asSystem: Bool) throws -> [NetworkAttachement] {
+	func collectNetworks(runMode: Utils.RunMode) throws -> [NetworkAttachement] {
 		let networks = self.qualifiedNetworks
 		let vmNetworking: Bool
-		let home: Home = try Home(asSystem: asSystem)
+		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 		let sharedNetworks = networkConfig.sharedNetworks
 

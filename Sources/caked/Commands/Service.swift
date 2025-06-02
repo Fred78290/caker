@@ -124,7 +124,7 @@ extension Service {
 
 		func getCertificats() throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
 
 				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
@@ -137,7 +137,7 @@ extension Service {
 				return address
 			}
 
-			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
+			return try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)
 		}
 
 		func validate() throws {
@@ -145,9 +145,10 @@ extension Service {
 		}
 
 		func run() throws {
+			let runMode: Utils.RunMode = self.asSystem ? .system : .user
 			let listenAddress: String = try getListenAddress()
-			let outputLog: String = Utils.getOutputLog(asSystem: self.asSystem)
-			let cakeHome: URL = try Utils.getHome(asSystem: self.asSystem)
+			let outputLog: String = Utils.getOutputLog(runMode: runMode)
+			let cakeHome: URL = try Utils.getHome(runMode: runMode)
 			let cakedSignature = Utils.cakerSignature
 
 			var arguments: [String] = [
@@ -158,7 +159,7 @@ extension Service {
 				"--address=\(listenAddress)",
 			]
 
-			if asSystem {
+			if self.asSystem {
 				arguments.append("--system")
 			}
 
@@ -237,7 +238,7 @@ extension Service {
 			Logger.setLevel(self.logLevel)
 
 			if self.secure {
-				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
 
 				self.caCert = certs.caCertURL.path
 				self.tlsCert = certs.serverCertURL.path
@@ -261,7 +262,7 @@ extension Service {
 
 		private func getServerAddress() throws -> [String] {
 			if self.address.isEmpty {
-				return try [Utils.getDefaultServerAddress(asSystem: asSystem)]
+				return try [Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
 			} else {
 				return self.address
 			}
@@ -269,7 +270,7 @@ extension Service {
 
 		static func createServer(
 			eventLoopGroup: EventLoopGroup,
-			asSystem: Bool,
+			runMode: Utils.RunMode,
 			listeningAddress: URL?,
 			caCert: String?,
 			tlsCert: String?,
@@ -291,7 +292,7 @@ extension Service {
 				var serverConfiguration = Server.Configuration.default(
 					target: target,
 					eventLoopGroup: eventLoopGroup,
-					serviceProviders: [try CakedProvider(group: eventLoopGroup, asSystem: asSystem)])
+					serviceProviders: [try CakedProvider(group: eventLoopGroup, runMode: runMode)])
 
 				if let tlsCert = tlsCert, let tlsKey = tlsKey {
 					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
@@ -319,7 +320,7 @@ extension Service {
 		}
 
 		func run() async throws {
-			try StartHandler.autostart(on: Root.group.next(), asSystem: self.asSystem)
+			try StartHandler.autostart(on: Root.group.next(), runMode: self.asSystem ? .system : .user)
 
 			let listenAddress = try self.getServerAddress()
 
@@ -327,7 +328,7 @@ extension Service {
 				Logger(self).info("Start listening on \(address)")
 				return try Self.createServer(
 					eventLoopGroup: Root.group,
-					asSystem: self.asSystem,
+					runMode: self.asSystem ? .system : .user,
 					listeningAddress: URL(string: address),
 					caCert: self.caCert,
 					tlsCert: self.tlsCert,
@@ -398,7 +399,7 @@ extension Service {
 
 		func getCertificats() throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.createCertificats(asSystem: self.asSystem)
+				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
 
 				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
 			}
@@ -411,7 +412,7 @@ extension Service {
 				return address
 			}
 
-			return try Utils.getDefaultServerAddress(asSystem: self.asSystem)
+			return try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)
 		}
 
 		mutating func validate() throws {
@@ -429,7 +430,7 @@ extension Service {
 				"--address=\(listenAddress)",
 			]
 
-			if asSystem {
+			if self.asSystem {
 				arguments.append("--system")
 			}
 

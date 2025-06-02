@@ -24,7 +24,7 @@ class PortForwardingServer {
 		try? portForwarder.close()
 	}
 
-	private init(group: EventLoopGroup, bindAddresses: [String] = ["0.0.0.0", "[::]"], remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
+	private init(group: EventLoopGroup, bindAddresses: [String] = ["0.0.0.0", "[::]"], remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		self.mainGroup = group
 		self.bindAddresses = bindAddresses
 		self.remoteAddress = remoteAddress
@@ -37,7 +37,7 @@ class PortForwardingServer {
 			forwardedPorts: forwardedPorts,
 			ttl: ttl,
 			listeningAddress: listeningAddress,
-			asSystem: asSystem)
+			runMode: runMode)
 	}
 
 	private func bind() throws {
@@ -81,9 +81,9 @@ class PortForwardingServer {
 		}
 	}
 
-	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, listeningAddress: URL, asSystem: Bool) throws {
+	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		guard let server = portForwardingServer else {
-			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortFarwarding: dynamicPortFarwarding, listeningAddress: listeningAddress, asSystem: asSystem)
+			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortFarwarding: dynamicPortFarwarding, listeningAddress: listeningAddress, runMode: runMode)
 
 			try server.bind()
 

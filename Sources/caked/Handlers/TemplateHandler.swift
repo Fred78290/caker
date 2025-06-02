@@ -29,22 +29,22 @@ private let cloudInitCleanup = [
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest
 
-	static func cleanCloudInit(source: VMLocation, config: CakeConfig, asSystem: Bool) throws -> VMLocation {
-		let location = try source.duplicateTemporary(asSystem: asSystem)
-		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach, asSystem: asSystem)
-		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL, asSystem: asSystem)
+	static func cleanCloudInit(source: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws -> VMLocation {
+		let location = try source.duplicateTemporary(runMode: runMode)
+		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
+		let conn = try CakeAgentConnection(eventLoop: Root.group.next(), listeningAddress: location.agentURL, runMode: runMode)
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")
 
 		try conn.run(command: cloudInitCleanup.joined(separator: " && ")).log()
-		try location.stopVirtualMachine(force: false, asSystem: asSystem)
+		try location.stopVirtualMachine(force: false, runMode: runMode)
 
 		return location
 	}
 
-	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, asSystem: Bool) throws -> CreateTemplateReply {
-		let storage = StorageLocation(asSystem: asSystem, template: true)
-		var source: VMLocation = try StorageLocation(asSystem: asSystem).find(sourceName)
+	static func createTemplate(on: EventLoop, sourceName: String, templateName: String, runMode: Utils.RunMode) throws -> CreateTemplateReply {
+		let storage = StorageLocation(runMode: runMode, template: true)
+		var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
 
 		if storage.exists(templateName) {
 			throw ServiceError("template \(templateName) already exists")
@@ -64,7 +64,7 @@ struct TemplateHandler: CakedCommand {
 			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 
 			if config.os == .linux && config.useCloudInit {
-				source = try cleanCloudInit(source: source, config: config, asSystem: asSystem)
+				source = try cleanCloudInit(source: source, config: config, runMode: runMode)
 			}
 
 			try source.templateTo(templateLocation)
@@ -75,8 +75,8 @@ struct TemplateHandler: CakedCommand {
 		}
 	}
 
-	static func deleteTemplate(templateName: String, asSystem: Bool) throws -> DeleteTemplateReply {
-		let storage = StorageLocation(asSystem: asSystem, template: true)
+	static func deleteTemplate(templateName: String, runMode: Utils.RunMode) throws -> DeleteTemplateReply {
+		let storage = StorageLocation(runMode: runMode, template: true)
 		let lock = try FileLock(lockURL: storage.rootURL)
 		var vmLocation: VMLocation? = nil
 
@@ -89,7 +89,7 @@ struct TemplateHandler: CakedCommand {
 		if let location: VMLocation = try? storage.find(templateName) {
 			vmLocation = location
 		} else if let u = URL(string: templateName), u.scheme == "template" {
-			vmLocation = try? StorageLocation(asSystem: asSystem).find(u.host()!)
+			vmLocation = try? StorageLocation(runMode: runMode).find(u.host()!)
 		}
 
 		if let location = vmLocation, location.status != .running {
@@ -104,8 +104,8 @@ struct TemplateHandler: CakedCommand {
 		return .init(name: templateName, deleted: false)
 	}
 
-	static func listTemplate(asSystem: Bool) throws -> [TemplateEntry] {
-		let storage = StorageLocation(asSystem: asSystem, template: true)
+	static func listTemplate(runMode: Utils.RunMode) throws -> [TemplateEntry] {
+		let storage = StorageLocation(runMode: runMode, template: true)
 
 		return try storage.list().map { (key: String, value: VMLocation) in
 			return TemplateEntry(
@@ -117,10 +117,10 @@ struct TemplateHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		switch request.command {
 		case .add:
-			let result = try Self.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, asSystem: asSystem)
+			let result = try Self.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_Caked.Reply.TemplateReply.with {
@@ -129,7 +129,7 @@ struct TemplateHandler: CakedCommand {
 			}
 
 		case .delete:
-			let result = try Self.deleteTemplate(templateName: request.deleteRequest, asSystem: asSystem)
+			let result = try Self.deleteTemplate(templateName: request.deleteRequest, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_TemplateReply.with {
@@ -141,7 +141,7 @@ struct TemplateHandler: CakedCommand {
 			}
 
 		case .list:
-			let result = try Self.listTemplate(asSystem: asSystem)
+			let result = try Self.listTemplate(runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_Caked.Reply.TemplateReply.with {

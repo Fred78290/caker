@@ -8,8 +8,8 @@ import TextTable
 struct ListHandler: CakedCommand {
 	let vmonly: Bool
 
-	static func list(vmonly: Bool, asSystem: Bool) throws -> [VirtualMachineInfo] {
-		var vmInfos = try StorageLocation(asSystem: asSystem).list().map { (name: String, location: VMLocation) in
+	static func list(vmonly: Bool, runMode: Utils.RunMode) throws -> [VirtualMachineInfo] {
+		var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 			let status = location.status
 			let config = try location.config()
 
@@ -33,11 +33,11 @@ struct ListHandler: CakedCommand {
 
 		if vmonly == false {
 			let purgeableStorages = [
-				try TemplateImageCache(asSystem: asSystem),
-				try OCIImageCache(asSystem: asSystem),
-				try CloudImageCache(asSystem: asSystem),
-				try RawImageCache(asSystem: asSystem),
-				try SimpleStreamsImageCache(name: "", asSystem: asSystem),
+				try TemplateImageCache(runMode: runMode),
+				try OCIImageCache(runMode: runMode),
+				try CloudImageCache(runMode: runMode),
+				try RawImageCache(runMode: runMode),
+				try SimpleStreamsImageCache(name: "", runMode: runMode),
 			]
 
 			_ = try purgeableStorages.map { imageCache in
@@ -69,8 +69,8 @@ struct ListHandler: CakedCommand {
 		return vmInfos
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> Caked_Reply {
-		let result = try Self.list(vmonly: self.vmonly, asSystem: asSystem)
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+		let result = try Self.list(vmonly: self.vmonly, runMode: runMode)
 
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {

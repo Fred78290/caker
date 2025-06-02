@@ -19,6 +19,6 @@ struct List: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: !all, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: !all, runMode: self.common.runMode)))
 	}
 }

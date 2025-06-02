@@ -16,9 +16,75 @@ extension UTType {
 
 class VirtualMachineDocument: FileDocument {
 	static var readableContentTypes: [UTType] { [.VirtualMachine] }
-	
+
+	enum Status: String {
+		case running
+		case suspended
+		case stopped
+		case empty
+	}
+
 	var virtualMachine: VirtualMachine?
-	
+	var status: Status {
+		guard let virtualMachine = self.virtualMachine else {
+			return .empty
+		}
+		
+		guard let status = Status(rawValue: virtualMachine.vmLocation.status.rawValue) else {
+			return .empty
+		}
+		
+		return status
+	}
+
+	var canStart: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+
+		return virtualMachine.virtualMachine.canStart
+	}
+
+	var canStop: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+
+		return virtualMachine.virtualMachine.canStop
+	}
+
+	var canPause: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+
+		return virtualMachine.virtualMachine.canPause
+	}
+
+	var canResume: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+
+		return virtualMachine.virtualMachine.canResume
+	}
+
+	var canRequestStop: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+		
+		return virtualMachine.virtualMachine.canRequestStop
+	}
+
+	var suspendable: Bool {
+		guard let virtualMachine = self.virtualMachine else {
+			return false
+		}
+
+		return virtualMachine.suspendable
+	}
+
 	init() {
 		self.virtualMachine = nil
 	}
@@ -39,7 +105,7 @@ class VirtualMachineDocument: FileDocument {
 		if self.virtualMachine != nil {
 			return true
 		}
-
+		
 		do {
 			let vmLocation = VMLocation(rootURL: fileURL, template: false)
 			
@@ -48,12 +114,12 @@ class VirtualMachineDocument: FileDocument {
 			
 			let config = try vmLocation.config()
 			
-			self.virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, asSystem: false)
+			self.virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
 		} catch {
 			print("Error loading \(fileURL): \(error)")
 			return false
 		}
-
+		
 		return true
 	}
 	
@@ -72,6 +138,12 @@ class VirtualMachineDocument: FileDocument {
 	func requestStopFromUI() throws {
 		if let virtualMachine = self.virtualMachine {
 			try virtualMachine.requestStopFromUI()
+		}
+	}
+	
+	func suspendFromUI() throws {
+		if let virtualMachine = self.virtualMachine {
+			virtualMachine.suspendFromUI()
 		}
 	}
 }

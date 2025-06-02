@@ -52,7 +52,7 @@ struct Certificates: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.getCertificats(asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.getCertificats(runMode: self.common.runMode)))
 		}
 	}
 
@@ -70,7 +70,7 @@ struct Certificates: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createCertificats(asSystem: self.common.asSystem, force: self.force)))
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createCertificats(runMode: self.common.runMode, force: self.force)))
 		}
 	}
 
@@ -88,7 +88,7 @@ struct Certificates: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createAgentCertificats(asSystem: self.common.asSystem, force: self.force)))
+			Logger.appendNewLine(self.common.format.render(try CertificatesLocation.createAgentCertificats(runMode: self.common.runMode, force: self.force)))
 		}
 	}
 }

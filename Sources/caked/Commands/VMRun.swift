@@ -28,8 +28,8 @@ struct VMRun: AsyncParsableCommand {
 	var display: Bool = false
 
 	var locations: (StorageLocation, VMLocation) {
-		if StorageLocation(asSystem: self.common.asSystem).exists(path) {
-			let storageLocation = StorageLocation(asSystem: self.common.asSystem)
+		if StorageLocation(runMode: self.common.runMode).exists(path) {
+			let storageLocation = StorageLocation(runMode: self.common.runMode)
 			let vm = try! storageLocation.find(path)
 
 			return (storageLocation, vm)
@@ -37,7 +37,7 @@ struct VMRun: AsyncParsableCommand {
 			let u: URL = URL(fileURLWithPath: path)
 			let parent = u.deletingLastPathComponent()
 			let storage = parent.deletingLastPathComponent()
-			let storageLocation = StorageLocation(asSystem: self.common.asSystem, name: storage.lastPathComponent)
+			let storageLocation = StorageLocation(runMode: self.common.runMode, name: storage.lastPathComponent)
 			let vm = VMLocation(rootURL: parent, template: storageLocation.template)
 
 			return (storageLocation, vm)
@@ -81,7 +81,7 @@ struct VMRun: AsyncParsableCommand {
 			storageLocation: storageLocation,
 			vmLocation: vmLocation,
 			name: vmLocation.name,
-			asSystem: self.common.asSystem,
+			runMode: self.common.runMode,
 			display: display,
 			config: config)
 

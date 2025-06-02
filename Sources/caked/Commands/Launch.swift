@@ -21,12 +21,12 @@ struct Launch: AsyncParsableCommand {
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		if StorageLocation(asSystem: self.common.asSystem).exists(self.options.name) {
+		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")
 		}
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try await LaunchHandler.buildAndLaunchVM(asSystem: self.common.asSystem, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background)))
+		Logger.appendNewLine(self.common.format.render(try await LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background)))
 	}
 }

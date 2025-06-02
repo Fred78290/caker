@@ -27,6 +27,10 @@ struct CommonOptions: ParsableArguments {
 		help: ArgumentHelp(
 			"Act as system agent, need sudo", discussion: "Using this argument tell caked to act as system agent, which means it will run as a daemon. This option is useful when you want to run caked as a launchd service", visibility: .private))
 	var asSystem: Bool = false
+
+	var runMode: Utils.RunMode {
+		self.asSystem ? .system : .user
+	}
 }
 
 @main
@@ -84,9 +88,9 @@ struct Root: ParsableCommand {
 				WaitIP.self,
 			])
 
-	static func environment(asSystem: Bool) throws -> [String: String] {
+	static func environment(runMode: Utils.RunMode) throws -> [String: String] {
 		var environment = ProcessInfo.processInfo.environment
-		let home = try Utils.getHome(asSystem: asSystem)
+		let home = try Utils.getHome(runMode: runMode)
 
 		environment["TART_HOME"] = home.path
 
@@ -156,7 +160,7 @@ struct Root: ParsableCommand {
 
 				if let commandName = commandName {
 					if delegatedCommand.contains(commandName) {
-						try Shell.runTart(command: commandName, arguments: arguments, direct: true, asSystem: geteuid() == 0)
+						try Shell.runTart(command: commandName, arguments: arguments, direct: true, runMode: geteuid() == 0 ? .system : .user)
 						try? await Self.group.shutdownGracefully()
 						return
 					}

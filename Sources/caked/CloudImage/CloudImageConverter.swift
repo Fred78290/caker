@@ -39,7 +39,7 @@ class CloudImageConverter {
 		}
 	}
 
-	static func downloadLinuxImage(fromURL: URL, toURL: URL, asSystem: Bool) async throws -> URL {
+	static func downloadLinuxImage(fromURL: URL, toURL: URL, runMode: Utils.RunMode) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
 			throw ServiceError("file already exists: \(toURL.path)")
 		}
@@ -48,7 +48,7 @@ class CloudImageConverter {
 		Logger(self).debug("Fetching \(fromURL.lastPathComponent)...")
 
 		let channel = try await Curl(fromURL: fromURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
-		let temporaryLocation = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
+		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
 
@@ -78,10 +78,10 @@ class CloudImageConverter {
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
 
-	static func downloadLinuxImage(remoteURL: URL, asSystem: Bool) async throws -> URL {
+	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode) async throws -> URL {
 		// Check if we already have this linux image in cache
 		let fileName = (remoteURL.lastPathComponent as NSString).deletingPathExtension
-		let imageCache = try CloudImageCache(name: remoteURL.host()!, asSystem: asSystem)
+		let imageCache = try CloudImageCache(name: remoteURL.host()!, runMode: runMode)
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
@@ -90,19 +90,19 @@ class CloudImageConverter {
 			return cacheLocation
 		}
 
-		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation, asSystem: asSystem)
+		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode)
 	}
 
-	static func retrieveCloudImageAndConvert(from: URL, to: URL, asSystem: Bool) async throws {
+	static func retrieveCloudImageAndConvert(from: URL, to: URL, runMode: Utils.RunMode) async throws {
 		let fileName = (from.lastPathComponent as NSString).deletingPathExtension
-		let imageCache: CloudImageCache = try CloudImageCache(name: from.host()!, asSystem: asSystem)
+		let imageCache: CloudImageCache = try CloudImageCache(name: from.host()!, runMode: runMode)
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
-		try await retrieveRemoteImageCacheItAndConvert(from: from, to: to, cacheLocation: cacheLocation, asSystem: asSystem)
+		try await retrieveRemoteImageCacheItAndConvert(from: from, to: to, cacheLocation: cacheLocation, runMode: runMode)
 	}
 
-	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL, asSystem: Bool) async throws {
-		let temporaryLocation = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
+	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL, runMode: Utils.RunMode) async throws {
+		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
 			if FileManager.default.fileExists(atPath: temporaryLocation.path) {

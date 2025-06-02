@@ -55,8 +55,8 @@ struct MountHandler: CakedCommandAsync {
 		return try createMountServiceClient(vmLocation: vmLocation).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(self.request.name)
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+		let vmLocation = try StorageLocation(runMode: runMode).find(self.request.name)
 		let directorySharingAttachment = self.request.directorySharingAttachment()
 		let command = self.request.command
 
