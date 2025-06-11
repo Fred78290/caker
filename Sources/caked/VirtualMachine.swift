@@ -5,6 +5,10 @@ import NIOPortForwarding
 import Semaphore
 import Virtualization
 
+protocol VirtualMachineDelegate {
+	func didChangedState(_ vm: VirtualMachine)
+}
+
 final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject, VirtioSocketDeviceDelegate {
 	public typealias StartCompletionHandler = (Result<Void, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
@@ -12,6 +16,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let vmLocation: VMLocation
+	public var delegate: VirtualMachineDelegate? = nil
 
 	private let communicationDevices: CommunicationDevices?
 	private let configuration: VZVirtualMachineConfiguration
@@ -270,6 +275,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 								}
 							}
 						}
+
+						self.didChangedState()
 					}
 				} catch {
 					Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
@@ -291,6 +298,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 					if let completionHandler = completionHandler {
 						completionHandler(result)
 					}
+
+					self.didChangedState()
 				}
 			}
 		}
@@ -323,6 +332,8 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			if let completionHandler = completionHandler {
 				completionHandler(result)
 			}
+
+			self.didChangedState()
 		}
 	}
 
@@ -347,6 +358,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 				Logger(self).info("VM \(self.vmLocation.name) stopped")
 
 				self.stopServices()
+				self.didChangedState()
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			Logger(self).error("VM \(self.vmLocation.name) can't be stopped")
@@ -470,12 +482,16 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			config.firstLaunch = false
 
 			try? config.save()
+			
+			self.didChangedState()
 		}
 
 		response.whenFailure { error in
 			if let promise = promise {
 				promise.fail(error)
 			}
+
+			self.didChangedState()
 
 			Logger(self).error("VM \(self.vmLocation.name) failed to get primary IP: \(error)")
 		}
@@ -513,18 +529,21 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		Logger(self).info("VM \(self.vmLocation.name) stopped")
 
 		self.signalStop()
+		self.didChangedState()
 	}
 
 	func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
 		Logger(self).error(error)
 
 		self.signalStop()
+		self.didChangedState()
 	}
 
 	func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
 		Logger(self).error(error)
 
 		self.signalStop()
+		self.didChangedState()
 	}
 
 	func closedByRemote(socket: SocketDevice) {
@@ -546,4 +565,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 	}
 
+	func didChangedState() {
+		if let delegate = self.delegate {
+			delegate.didChangedState(self)
+		}
+	}
 }

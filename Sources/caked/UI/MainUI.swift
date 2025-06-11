@@ -23,7 +23,7 @@ struct MainUI: App {
 		
 		let vmStatus = currentDocument.status
 
-		if vmStatus == .empty {
+		if vmStatus == .none {
 			return true
 		}
 
@@ -84,7 +84,7 @@ struct MainUI: App {
 				)
 				Button("Request Stop") {
 					Task {
-						try appState.currentDocument?.requestStopFromUI()
+						appState.currentDocument?.requestStopFromUI()
 					}
 				}.disabled(
 					self.controlMenuDisabled(.requestStop)
@@ -92,7 +92,7 @@ struct MainUI: App {
 				if #available(macOS 14, *) {
 					Button("Suspend") {
 						Task {
-							try appState.currentDocument?.suspendFromUI()
+							appState.currentDocument?.suspendFromUI()
 						}
 					}.disabled(
 						self.controlMenuDisabled(.suspend)
