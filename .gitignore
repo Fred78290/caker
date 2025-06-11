@@ -27,3 +27,5 @@ Caker/Caker.xcodeproj/xcuserdata
 actions-runner/
 
 .bin/
+
+Sources/WebUI/node_modules/
