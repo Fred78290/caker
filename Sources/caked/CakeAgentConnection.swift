@@ -182,8 +182,8 @@ final class CakeAgentConnection: Sendable {
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
 
-	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited, asSystem: Bool) throws {
-		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
+	internal convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited, runMode: Utils.RunMode) throws {
+		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 
 		self.init(eventLoop: eventLoop, listeningAddress: listeningAddress, certLocation: certLocation, timeout: timeout, retries: retries)
 	}
@@ -457,12 +457,12 @@ final class CakeAgentConnection: Sendable {
 		return try client.umount(request: request, callOptions: callOptions)
 	}
 
-	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
-		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries, asSystem: asSystem)
+	static func createCakeAgentConnection(on: EventLoop, listeningAddress: URL, timeout: Int, runMode: Utils.RunMode, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
+		return try CakeAgentConnection(eventLoop: on, listeningAddress: listeningAddress, timeout: Int64(timeout), retries: retries, runMode: runMode)
 	}
 
-	static func createCakeAgentClient(on: EventLoop, listeningAddress: URL, timeout: Int, asSystem: Bool, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
-		let certLocation = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
+	static func createCakeAgentClient(on: EventLoop, listeningAddress: URL, timeout: Int, runMode: Utils.RunMode, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 
 		return try CakeAgentHelper.createClient(
 			on: on,

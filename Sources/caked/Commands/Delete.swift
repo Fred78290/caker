@@ -25,6 +25,6 @@ struct Delete: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.delete.all, names: self.delete.names, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.delete.all, names: self.delete.names, runMode: self.common.runMode)))
 	}
 }

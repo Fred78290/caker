@@ -25,17 +25,17 @@ struct Infos: CakeAgentAsyncParsableCommand {
 		self.common.logLevel
 	}
 
-	var asSystem: Bool {
-		self.common.asSystem
+	var runMode: Utils.RunMode {
+		self.common.runMode
 	}
 
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		try self.validateOptions(asSystem: self.common.asSystem)
+		try self.validateOptions(runMode: self.common.runMode)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		Logger.appendNewLine(self.common.format.render(try InfosHandler.infos(name: self.name, asSystem: self.common.asSystem, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
+		Logger.appendNewLine(self.common.format.render(try InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
 	}
 }

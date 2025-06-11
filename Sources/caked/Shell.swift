@@ -61,13 +61,13 @@ struct Shell {
 		direct: Bool = false,
 		input: String? = nil,
 		sharedFileHandles: [FileHandle]? = nil,
-		asSystem: Bool
+		runMode: Utils.RunMode
 	) throws -> String {
 		var args: [String] = []
 		var outputData: Data = Data()
 		let outputPipe = Pipe()
 		let errorPipe: Pipe = direct ? Pipe() : outputPipe
-		let cakeHomeDir = try Utils.getHome(asSystem: asSystem)
+		let cakeHomeDir = try Utils.getHome(runMode: runMode)
 
 		if command.count > 0 {
 			args.append(command)

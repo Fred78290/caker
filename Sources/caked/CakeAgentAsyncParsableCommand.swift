@@ -9,7 +9,7 @@ import NIO
 protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var name: String { get }
 	var createVM: Bool { get }
-	var asSystem: Bool { get }
+	var runMode: Utils.RunMode { get }
 	var options: CakeAgentClientOptions { set get }
 	var logLevel: Logging.Logger.Level { get }
 	var retries: ConnectionBackoff.Retries { get }
@@ -32,21 +32,21 @@ extension CakeAgentAsyncParsableCommand {
 		CallOptions(timeLimit: .none)
 	}
 
-	func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, asSystem: Bool) throws {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+	func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, runMode: Utils.RunMode) throws {
+		let vmLocation = try StorageLocation(runMode: runMode).find(name)
 
 		if vmLocation.status != .running {
 			Logger(self).info("Starting VM \(name)")
 			let config = try vmLocation.config()
 
-			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, asSystem: asSystem)
+			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, runMode: runMode)
 		}
 	}
 
-	mutating func validateOptions(asSystem: Bool) throws {
+	mutating func validateOptions(runMode: Utils.RunMode) throws {
 		Logger.setLevel(self.logLevel)
 
-		let certificates = try CertificatesLocation.createAgentCertificats(asSystem: asSystem)
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress: URL
 
 		if name.contains("/") {
@@ -54,9 +54,9 @@ extension CakeAgentAsyncParsableCommand {
 		}
 
 		if self.createVM {
-			listeningAddress = StorageLocation(asSystem: asSystem).location(name).agentURL
+			listeningAddress = StorageLocation(runMode: runMode).location(name).agentURL
 		} else {
-			listeningAddress = try StorageLocation(asSystem: asSystem).find(name).agentURL
+			listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
 		}
 
 		if self.options.insecure == false {
@@ -77,7 +77,7 @@ extension CakeAgentAsyncParsableCommand {
 	}
 
 	mutating func validate() throws {
-		try self.validateOptions(asSystem: self.asSystem)
+		try self.validateOptions(runMode: self.runMode)
 	}
 
 	mutating func run() async throws {

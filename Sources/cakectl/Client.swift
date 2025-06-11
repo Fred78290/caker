@@ -115,7 +115,7 @@ struct Client: AsyncParsableCommand {
 		public var asSystem: Bool = false
 
 		@Option(name: [.customLong("connect")], help: ArgumentHelp("Connect to address", valueName: "address"))
-		public var address: String = try! Utils.getDefaultServerAddress(asSystem: false)
+		public var address: String = try! Utils.getDefaultServerAddress(runMode: .user)
 
 		@Option(name: [.customLong("ca-cert")], help: ArgumentHelp("CA TLS certificate", valueName: "path"))
 		public var caCert: String? = nil
@@ -177,7 +177,7 @@ struct Client: AsyncParsableCommand {
 				self.tlsKey = nil
 			} else {
 				if self.tlsCert == nil && self.tlsKey == nil {
-					let certs = try ClientCertificatesLocation.getCertificats(asSystem: self.asSystem)
+					let certs = try ClientCertificatesLocation.getCertificats(runMode: self.asSystem ? .system : .user)
 
 					if certs.exists() {
 						self.caCert = certs.caCertURL.path

@@ -25,7 +25,7 @@ struct Template: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try TemplateHandler.listTemplate(asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try TemplateHandler.listTemplate(runMode: self.common.runMode)))
 		}
 	}
 
@@ -43,7 +43,7 @@ struct Template: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: self.template.name, templateName: self.template.template, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try TemplateHandler.createTemplate(on: Root.group.next(), sourceName: self.template.name, templateName: self.template.template, runMode: self.common.runMode)))
 		}
 	}
 
@@ -61,7 +61,7 @@ struct Template: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try TemplateHandler.deleteTemplate(templateName: self.template.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try TemplateHandler.deleteTemplate(templateName: self.template.name, runMode: self.common.runMode)))
 		}
 	}
 }

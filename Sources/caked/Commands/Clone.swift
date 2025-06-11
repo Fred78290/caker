@@ -26,6 +26,6 @@ struct Clone: ParsableCommand {
 					deduplicate: self.clone.deduplicate,
 					insecure: self.clone.insecure,
 					direct: true,
-					asSystem: self.common.asSystem)))
+					runMode: self.common.runMode)))
 	}
 }

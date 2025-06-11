@@ -24,8 +24,8 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		self.common.logLevel
 	}
 
-	var asSystem: Bool {
-		self.common.asSystem
+	var runMode: Utils.RunMode {
+		self.common.runMode
 	}
 
 	var name: String {
@@ -50,18 +50,18 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		if self.shell.name == "" {
 			self.shell.name = "primary"
 
-			self.createVM = StorageLocation(asSystem: self.common.asSystem).exists(self.shell.name) == false
+			self.createVM = StorageLocation(runMode: self.common.runMode).exists(self.shell.name) == false
 		}
 
-		try self.validateOptions(asSystem: self.common.asSystem)
+		try self.validateOptions(runMode: self.common.runMode)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		if self.createVM {
-			try await BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), asSystem: self.common.asSystem)
+			try await BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), runMode: self.common.runMode)
 		}
 
-		try startVM(on: on.next(), name: self.shell.name, waitIPTimeout: self.shell.waitIPTimeout, foreground: self.shell.foreground, asSystem: self.common.asSystem)
+		try startVM(on: on.next(), name: self.shell.name, waitIPTimeout: self.shell.waitIPTimeout, foreground: self.shell.foreground, runMode: self.common.runMode)
 		_ = try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
 	}
 }

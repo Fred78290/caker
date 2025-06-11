@@ -16,14 +16,14 @@ protocol MountServiceServerProtocol {
 }
 
 class MountService: NSObject {
-	let asSystem: Bool
+	let runMode: Utils.RunMode
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
-	init(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation) {
+	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
 		self.vm = vm
-		self.asSystem = asSystem
+		self.runMode = runMode
 		self.group = group
 		self.certLocation = certLocation
 	}
@@ -91,6 +91,6 @@ func createMountServiceClient(vmLocation: VMLocation) -> MountServiceClient {
 	return XPCMountServiceClient(vmLocation: vmLocation)
 }
 
-func createMountServiceServer(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {
-	return XPCMountServiceServer(group: Root.group.next(), asSystem: asSystem, vm: vm, certLocation: certLocation)
+func createMountServiceServer(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {
+	return XPCMountServiceServer(group: Root.group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
 }

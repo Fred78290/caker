@@ -24,8 +24,8 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		self.common.logLevel
 	}
 
-	var asSystem: Bool {
-		self.common.asSystem
+	var runMode: Utils.RunMode {
+		self.common.runMode
 	}
 
 	var name: String {
@@ -46,11 +46,11 @@ struct Exec: CakeAgentAsyncParsableCommand {
 
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
-		try self.validateOptions(asSystem: self.common.asSystem)
+		try self.validateOptions(runMode: self.common.runMode)
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		try startVM(on: on.next(), name: self.execute.name, waitIPTimeout: self.execute.waitIPTimeout, foreground: self.execute.foreground, asSystem: self.common.asSystem)
+		try startVM(on: on.next(), name: self.execute.name, waitIPTimeout: self.execute.waitIPTimeout, foreground: self.execute.foreground, runMode: self.common.runMode)
 
 		var arguments = self.execute.arguments
 		let command = arguments.remove(at: 0)

@@ -105,6 +105,20 @@ public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
 	private static var homeDirectories: [Bool: URL] = [:]
 
+	public enum RunMode {
+		case system
+		case user
+		case app
+
+		public var isSystem: Bool {
+			return self == .system
+		}
+
+		public var isUser: Bool {
+			return self != .system
+		}
+	}
+
 	public static func isNestedVirtualizationSupported() -> Bool {
 		if #available(macOS 15, *) {
 			return VZGenericPlatformConfiguration.isNestedVirtualizationSupported
@@ -113,13 +127,13 @@ public struct Utils {
 		return false
 	}
 
-	public static func getHome(asSystem: Bool = false, createItIfNotExists: Bool = true) throws -> URL {
-		guard let cakeHomeDir = homeDirectories[asSystem] else {
+	public static func getHome(runMode: RunMode, createItIfNotExists: Bool = true) throws -> URL {
+		guard let cakeHomeDir = homeDirectories[runMode.isSystem] else {
 			var cakeHomeDir: URL
 
 			if let customHome = ProcessInfo.processInfo.environment["CAKE_HOME"] {
 				cakeHomeDir = URL(fileURLWithPath: customHome)
-			} else if asSystem || geteuid() == 0 {
+			} else if runMode.isSystem || geteuid() == 0 {
 				let paths = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory, .systemDomainMask, true)
 				var applicationSupportDirectory = URL(fileURLWithPath: paths.first!, isDirectory: true)
 
@@ -142,7 +156,7 @@ public struct Utils {
 
 			cakeHomeDir = cakeHomeDir.resolvingSymlinksInPath()
 
-			homeDirectories[asSystem] = cakeHomeDir
+			homeDirectories[runMode.isSystem] = cakeHomeDir
 
 			return cakeHomeDir
 		}
@@ -150,20 +164,20 @@ public struct Utils {
 		return cakeHomeDir
 	}
 
-	public static func getDefaultServerAddress(asSystem: Bool) throws -> String {
+	public static func getDefaultServerAddress(runMode: RunMode) throws -> String {
 		if let cakeListenAddress = ProcessInfo.processInfo.environment["CAKE_LISTEN_ADDRESS"] {
 			return cakeListenAddress
 		} else {
-			return try Utils.getHome(asSystem: asSystem).socketPath(name: "caked").absoluteString
+			return try Utils.getHome(runMode: runMode).socketPath(name: "caked").absoluteString
 		}
 	}
 
-	public static func getOutputLog(asSystem: Bool) -> String {
-		if asSystem {
+	public static func getOutputLog(runMode: RunMode) -> String {
+		if runMode.isSystem {
 			return "/Library/Logs/caked.log"
 		}
 
-		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(asSystem: false)).absoluteURL.path
+		return URL(fileURLWithPath: "caked.log", relativeTo: try? getHome(runMode: runMode)).absoluteURL.path
 	}
 
 	public static func saveToTempFile(_ data: Data) throws -> String {
@@ -218,8 +232,8 @@ public struct ClientCertificatesLocation: Codable {
 		self.clientCertURL = URL(fileURLWithPath: "client.pem", relativeTo: certHome).absoluteURL
 	}
 
-	public static func getCertificats(asSystem: Bool) throws -> ClientCertificatesLocation {
-		return ClientCertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(asSystem: asSystem)))
+	public static func getCertificats(runMode: Utils.RunMode) throws -> ClientCertificatesLocation {
+		return ClientCertificatesLocation(certHome: URL(fileURLWithPath: "certs", isDirectory: true, relativeTo: try Utils.getHome(runMode: runMode)))
 	}
 
 	public func exists() -> Bool {

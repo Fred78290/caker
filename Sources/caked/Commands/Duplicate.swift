@@ -23,7 +23,7 @@ struct Duplicate: ParsableCommand {
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		let storageLocation = StorageLocation(asSystem: self.common.asSystem)
+		let storageLocation = StorageLocation(runMode: self.common.runMode)
 		let fromLocation = try storageLocation.find(self.duplicate.from)
 
 		// Check if the VM exists
@@ -43,6 +43,6 @@ struct Duplicate: ParsableCommand {
 					from: self.duplicate.from,
 					to: self.duplicate.to,
 					resetMacAddress: self.duplicate.resetMacAddress,
-					asSystem: self.common.asSystem)))
+					runMode: self.common.runMode)))
 	}
 }

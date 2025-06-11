@@ -8,13 +8,13 @@ import Virtualization
 struct BuildHandler: CakedCommandAsync {
 	var options: BuildOptions
 
-	static func build(name: String, options: BuildOptions, asSystem: Bool) async throws {
+	static func build(name: String, options: BuildOptions, runMode: Utils.RunMode) async throws {
 
-		if StorageLocation(asSystem: asSystem).exists(name) {
+		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
 
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(asSystem: asSystem)
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		// Lock the temporary VM directory to prevent it's garbage collection
 		let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
@@ -23,10 +23,10 @@ struct BuildHandler: CakedCommandAsync {
 		try await withTaskCancellationHandler(
 			operation: {
 				do {
-					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options, asSystem: asSystem) == .oci {
+					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options, runMode: runMode) == .oci {
 						try tempVMLocation.delete()
 					} else {
-						try StorageLocation(asSystem: asSystem).relocate(name, from: tempVMLocation)
+						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
 					}
 				} catch {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
@@ -38,9 +38,9 @@ struct BuildHandler: CakedCommandAsync {
 			})
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
-			try await Self.build(name: self.options.name, options: self.options, asSystem: asSystem)
+			try await Self.build(name: self.options.name, options: self.options, runMode: runMode)
 
 			return Caked_Reply.with { reply in
 				reply.vms = Caked_VirtualMachineReply.with {

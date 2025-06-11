@@ -12,12 +12,12 @@
 			<key>CFBundleTypeName</key>
 			<string>Virtual machine</string>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.aldunelabs.com.caked-vm</string>
+				<string>com.aldunelabs.caker.caked-vm</string>
 			</array>
 		</dict>
 	</array>
@@ -26,7 +26,7 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>UTExportedTypeDeclarations</key>
+	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
 			<key>UTTypeConformsTo</key>
@@ -45,7 +45,7 @@
 				<string>Document</string>
 			</dict>
 			<key>UTTypeIdentifier</key>
-			<string>com.aldunelabs.caked-vm</string>
+			<string>com.aldunelabs.caker.caked-vm</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
@@ -53,7 +53,9 @@
 					<string>cakedvm</string>
 				</array>
 				<key>public.mime-type</key>
-				<array/>
+				<array>
+					<string>application/x-caked-vm</string>
+				</array>
 			</dict>
 		</dict>
 	</array>

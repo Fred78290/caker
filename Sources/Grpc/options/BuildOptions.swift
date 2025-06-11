@@ -38,6 +38,11 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool = false
 
+	#if arch(arm64)
+	@Flag(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
+	#endif
+	public var suspendable: Bool = false
+
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion: cloudimage_help, valueName: "url"))
 	public var image: String = defaultUbuntuImage
 
@@ -273,6 +278,12 @@ public struct BuildOptions: ParsableArguments {
 			self.dynamicPortForwarding = request.dynamicPortForwarding
 		} else {
 			self.dynamicPortForwarding = false
+		}
+
+		if request.hasSuspendable {
+			self.suspendable = request.suspendable
+		} else {
+			self.suspendable = false
 		}
 	}
 

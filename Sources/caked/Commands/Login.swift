@@ -21,6 +21,6 @@ struct Login: AsyncParsableCommand {
 
 		Logger.appendNewLine(
 			self.common.format.render(
-				try LoginHandler.login(host: self.login.host, username: self.login.username!, password: self.login.password!, insecure: self.login.insecure, noValidate: self.login.noValidate, direct: true, asSystem: self.common.asSystem)))
+				try LoginHandler.login(host: self.login.host, username: self.login.username!, password: self.login.password!, insecure: self.login.insecure, noValidate: self.login.noValidate, direct: true, runMode: self.common.runMode)))
 	}
 }

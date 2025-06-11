@@ -247,9 +247,9 @@ struct MountRequest: Codable {
 class XPCMountService: MountService, MountServiceProtocol {
 	let connection: NSXPCConnection
 
-	init(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection) {
+	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection) {
 		self.connection = connection
-		super.init(group: group, asSystem: asSystem, vm: vm, certLocation: certLocation)
+		super.init(group: group, runMode: runMode, vm: vm, certLocation: certLocation)
 	}
 
 	func mount(request: MountRequest, umount: Bool) {
@@ -282,15 +282,15 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 	private let certLocation: CertificatesLocation
 	private let semaphore = AsyncSemaphore(value: 0)
 	private let group: EventLoopGroup
-	private let asSystem: Bool
+	private let runMode: Utils.RunMode
 	private let vm: VirtualMachine
 
-	init(group: EventLoopGroup, asSystem: Bool, vm: VirtualMachine, certLocation: CertificatesLocation) {
+	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
 		let name = vm.vmLocation.name
 
 		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.MountService.\(name)")
 		self.group = group
-		self.asSystem = asSystem
+		self.runMode = runMode
 		self.vm = vm
 		self.certLocation = certLocation
 		super.init()
@@ -302,7 +302,7 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 		Logger(self).info("XPC receive connection: \(String(describing: newConnection))")
 
 		newConnection.exportedInterface = NSXPCInterface(with: MountServiceProtocol.self)
-		newConnection.exportedObject = XPCMountService(group: self.group.next(), asSystem: self.asSystem, vm: self.vm, certLocation: self.certLocation, connection: newConnection)
+		newConnection.exportedObject = XPCMountService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection)
 		newConnection.remoteObjectInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
 		newConnection.activate()
 

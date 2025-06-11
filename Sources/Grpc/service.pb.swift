@@ -245,6 +245,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `ifnames`. Subsequent reads from it will return its default value.
       public mutating func clearIfnames() {_uniqueStorage()._ifnames = nil}
 
+      public var suspendable: Bool {
+        get {return _storage._suspendable ?? false}
+        set {_uniqueStorage()._suspendable = newValue}
+      }
+      /// Returns true if `suspendable` has been explicitly set.
+      public var hasSuspendable: Bool {return _storage._suspendable != nil}
+      /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
+      public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -521,6 +530,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
       public mutating func clearDynamicPortForwarding() {self._dynamicPortForwarding = nil}
 
+      public var suspendable: Bool {
+        get {return _suspendable ?? false}
+        set {_suspendable = newValue}
+      }
+      /// Returns true if `suspendable` has been explicitly set.
+      public var hasSuspendable: Bool {return self._suspendable != nil}
+      /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
+      public mutating func clearSuspendable() {self._suspendable = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -539,6 +557,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _forwardedPort: String? = nil
       fileprivate var _attachedDisks: String? = nil
       fileprivate var _dynamicPortForwarding: Bool? = nil
+      fileprivate var _suspendable: Bool? = nil
     }
 
     public struct WaitIPRequest: Sendable {
@@ -2827,6 +2846,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     20: .same(proto: "attachedDisks"),
     21: .same(proto: "dynamicPortForwarding"),
     23: .same(proto: "ifnames"),
+    24: .same(proto: "suspendable"),
   ]
 
   fileprivate class _StorageClass {
@@ -2853,16 +2873,13 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _attachedDisks: String? = nil
     var _dynamicPortForwarding: Bool? = nil
     var _ifnames: Bool? = nil
+    var _suspendable: Bool? = nil
 
-    #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
       // This will force a copy to be made of this reference when the first mutation occurs;
       // hence, it is safe to mark this as `nonisolated(unsafe)`.
       static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
 
     private init() {}
 
@@ -2890,6 +2907,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       _attachedDisks = source._attachedDisks
       _dynamicPortForwarding = source._dynamicPortForwarding
       _ifnames = source._ifnames
+      _suspendable = source._suspendable
     }
   }
 
@@ -2931,6 +2949,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 21: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
         case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         case 23: try { try decoder.decodeSingularBoolField(value: &_storage._ifnames) }()
+        case 24: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
         default: break
         }
       }
@@ -3012,6 +3031,9 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       try { if let v = _storage._ifnames {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 23)
       } }()
+      try { if let v = _storage._suspendable {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 24)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -3044,6 +3066,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         if _storage._attachedDisks != rhs_storage._attachedDisks {return false}
         if _storage._dynamicPortForwarding != rhs_storage._dynamicPortForwarding {return false}
         if _storage._ifnames != rhs_storage._ifnames {return false}
+        if _storage._suspendable != rhs_storage._suspendable {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -3295,6 +3318,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     13: .same(proto: "forwardedPort"),
     14: .same(proto: "attachedDisks"),
     15: .same(proto: "dynamicPortForwarding"),
+    16: .same(proto: "suspendable"),
   ]
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3318,6 +3342,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
       case 13: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
       case 14: try { try decoder.decodeSingularStringField(value: &self._attachedDisks) }()
       case 15: try { try decoder.decodeSingularBoolField(value: &self._dynamicPortForwarding) }()
+      case 16: try { try decoder.decodeSingularBoolField(value: &self._suspendable) }()
       default: break
       }
     }
@@ -3373,6 +3398,9 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     try { if let v = self._dynamicPortForwarding {
       try visitor.visitSingularBoolField(value: v, fieldNumber: 15)
     } }()
+    try { if let v = self._suspendable {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 16)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3392,6 +3420,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     if lhs._forwardedPort != rhs._forwardedPort {return false}
     if lhs._attachedDisks != rhs._attachedDisks {return false}
     if lhs._dynamicPortForwarding != rhs._dynamicPortForwarding {return false}
+    if lhs._suspendable != rhs._suspendable {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4921,15 +4950,11 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
     var _tunnels: [Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo] = []
     var _sockets: [Caked_Caked.Reply.VirtualMachineReply.InfoReply.SocketInfo] = []
 
-    #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
       // This will force a copy to be made of this reference when the first mutation occurs;
       // hence, it is safe to mark this as `nonisolated(unsafe)`.
       static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
 
     private init() {}
 

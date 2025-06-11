@@ -14,7 +14,7 @@ struct Build: AsyncParsableCommand {
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		if StorageLocation(asSystem: self.common.asSystem).exists(self.options.name) {
+		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")
 		}
 
@@ -24,6 +24,6 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		try await BuildHandler.build(name: self.options.name, options: self.options, asSystem: self.common.asSystem)
+		try await BuildHandler.build(name: self.options.name, options: self.options, runMode: self.common.runMode)
 	}
 }

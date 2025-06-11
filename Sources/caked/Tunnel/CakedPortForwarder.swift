@@ -103,7 +103,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	internal let forwardedPorts: [TunnelAttachement]
 	internal let cakeAgentClient: CakeAgentClient
 	internal let listeningAddress: URL
-	internal let asSystem: Bool
+	internal let runMode: Utils.RunMode
 	internal let bindAddress: [String]
 	internal let ttl: Int
 	internal var dynamicPorts: [ForwardedSocketAddress] = []
@@ -121,15 +121,15 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		case stopped = 4
 	}
 
-	init(group: EventLoopGroup, remoteHost: String, bindAddress: [String], forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, asSystem: Bool) throws {
+	init(group: EventLoopGroup, remoteHost: String, bindAddress: [String], forwardedPorts: [TunnelAttachement], ttl: Int = 5, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		let mappedPorts = forwardedPorts.filter { $0.unixDomain == nil }.compactMap { $0.mappedPort }
 
 		self.bindAddress = bindAddress
 		self.ttl = ttl
-		self.asSystem = asSystem
+		self.runMode = runMode
 		self.listeningAddress = listeningAddress
 		self.forwardedPorts = forwardedPorts
-		self.cakeAgentClient = try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: listeningAddress, timeout: 5, asSystem: asSystem)
+		self.cakeAgentClient = try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: listeningAddress, timeout: 5, runMode: runMode)
 		self.log = Logger("CakedPortForwarder")
 
 		try super.init(group: group, remoteHost: remoteHost, mappedPorts: mappedPorts, bindAddresses: bindAddress, udpConnectionTTL: ttl)

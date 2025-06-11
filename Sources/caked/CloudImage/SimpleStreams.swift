@@ -16,8 +16,8 @@ public protocol JsonDecodable: Decodable {
 }
 
 class Streamable {
-	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String, kind: CacheEntryKind, asSystem: Bool) async throws -> T {
-		let simpleStreamCache = try SimpleStreamsImageCache(name: remoteName, asSystem: asSystem)
+	static func loadSimpleStreamObject<T: JsonDecodable>(remoteURL: URL, remoteName: String, cachedFile: String, kind: CacheEntryKind, runMode: Utils.RunMode) async throws -> T {
+		let simpleStreamCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let indexLocation: URL = simpleStreamCache.locationFor(fileName: cachedFile)
 		let (_, headResponse) = try await Curl(fromURL: remoteURL).head()
 
@@ -327,8 +327,8 @@ struct ImageVersionItem: Codable {
 }
 
 extension LinuxContainerImage {
-	func pullSimpleStreamImageAndConvert(asSystem: Bool) async throws {
-		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, asSystem: asSystem)
+	func pullSimpleStreamImageAndConvert(runMode: Utils.RunMode) async throws {
+		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
 		if let cached = imageCache.getCache(fingerprint: fingerprint) {
@@ -339,16 +339,16 @@ extension LinuxContainerImage {
 
 		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
-		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, asSystem: asSystem)
+		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, runMode: runMode)
 	}
 
-	func retrieveSimpleStreamImageAndConvert(to: URL, asSystem: Bool) async throws {
-		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, asSystem: asSystem)
+	func retrieveSimpleStreamImageAndConvert(to: URL, runMode: Utils.RunMode) async throws {
+		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
 		if let cached = imageCache.getCache(fingerprint: fingerprint) {
 			if FileManager.default.fileExists(atPath: cacheLocation.path) && cached.fingerprint == self.fingerprint {
-				let temporaryLocation = try Home(asSystem: asSystem).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
+				let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 				try cacheLocation.updateAccessDate()
 				try FileManager.default.copyItem(at: cacheLocation, to: temporaryLocation)
@@ -359,7 +359,7 @@ extension LinuxContainerImage {
 
 		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
-		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation, asSystem: asSystem)
+		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation, runMode: runMode)
 	}
 }
 
@@ -389,18 +389,18 @@ class SimpleStreamProtocol {
 	private let name: String
 	private let index: SimpleStream
 
-	convenience init(baseURL: URL, asSystem: Bool) async throws {
-		try await self.init(name: baseURL.host()!, baseURL: baseURL, asSystem: asSystem)
+	convenience init(baseURL: URL, runMode: Utils.RunMode) async throws {
+		try await self.init(name: baseURL.host()!, baseURL: baseURL, runMode: runMode)
 	}
 
-	init(name: String, baseURL: URL, asSystem: Bool) async throws {
+	init(name: String, baseURL: URL, runMode: Utils.RunMode) async throws {
 		guard let indexURL = URL(string: "streams/v1/index.json", relativeTo: baseURL) else {
 			throw SimpleStreamError("unable to decode url:\(baseURL)")
 		}
 
 		self.baseURL = baseURL
 		self.name = name
-		self.index = try await Streamable.loadSimpleStreamObject(remoteURL: indexURL, remoteName: name, cachedFile: "index.json", kind: CacheEntryKind.index, asSystem: asSystem)
+		self.index = try await Streamable.loadSimpleStreamObject(remoteURL: indexURL, remoteName: name, cachedFile: "index.json", kind: CacheEntryKind.index, runMode: runMode)
 	}
 
 	public func GetImagesIndexURL() throws -> URL {
@@ -414,17 +414,17 @@ class SimpleStreamProtocol {
 	}
 
 	// Load images index from container URL
-	private func loadSimpleStreamImages(asSystem: Bool) async throws -> SimpleStreamImageIndex {
+	private func loadSimpleStreamImages(runMode: Utils.RunMode) async throws -> SimpleStreamImageIndex {
 		let imageURL = try self.GetImagesIndexURL()
 
-		return try await Streamable.loadSimpleStreamObject(remoteURL: imageURL, remoteName: self.name, cachedFile: "images.json", kind: CacheEntryKind.stream, asSystem: asSystem)
+		return try await Streamable.loadSimpleStreamObject(remoteURL: imageURL, remoteName: self.name, cachedFile: "images.json", kind: CacheEntryKind.stream, runMode: runMode)
 	}
 
-	public func GetImages(asSystem: Bool) async throws -> [SimpleStreamProduct] {
+	public func GetImages(runMode: Utils.RunMode) async throws -> [SimpleStreamProduct] {
 		let currentArch = Architecture.current()
 
 		// Try to load images index
-		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages(asSystem: asSystem)
+		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages(runMode: runMode)
 		var foundProducts: [SimpleStreamProduct] = []
 
 		imageIndex.products.forEach { (key: String, value: SimpleStreamProduct) in
@@ -436,7 +436,7 @@ class SimpleStreamProtocol {
 		return foundProducts
 	}
 
-	public func GetImage(alias: String, asSystem: Bool) async throws -> SimpleStreamProduct {
+	public func GetImage(alias: String, runMode: Utils.RunMode) async throws -> SimpleStreamProduct {
 		let currentArch = Architecture.current()
 		let images = try self.index.images
 
@@ -462,7 +462,7 @@ class SimpleStreamProtocol {
 		}
 
 		// Try to load images index
-		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages(asSystem: asSystem)
+		let imageIndex: SimpleStreamImageIndex = try await self.loadSimpleStreamImages(runMode: runMode)
 		let foundVersions = imageIndex.products.firstNonNil {
 			(key: String, value: SimpleStreamProduct) in
 			if value.arch == currentArch {
@@ -505,8 +505,8 @@ class SimpleStreamProtocol {
 		return foundVersions
 	}
 
-	public func GetImageAlias(alias: String, asSystem: Bool) async throws -> LinuxContainerImage {
-		let product = try await self.GetImage(alias: alias, asSystem: asSystem)
+	public func GetImageAlias(alias: String, runMode: Utils.RunMode) async throws -> LinuxContainerImage {
+		let product = try await self.GetImage(alias: alias, runMode: runMode)
 
 		if let imageVersion = product.latest() {
 			let imageDisk: ImageVersionItem = imageVersion.1.items.imageDisk!

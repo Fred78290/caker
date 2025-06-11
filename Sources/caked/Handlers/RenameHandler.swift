@@ -6,8 +6,8 @@ import NIOCore
 struct RenameHandler: CakedCommand {
 	let request: Caked_RenameRequest
 
-	static func rename(oldname: String, newname: String, asSystem: Bool) throws -> String {
-		let storage = StorageLocation(asSystem: asSystem)
+	static func rename(oldname: String, newname: String, runMode: Utils.RunMode) throws -> String {
+		let storage = StorageLocation(runMode: runMode)
 		let vmLocation = try storage.find(oldname)
 
 		if vmLocation.status == .running {
@@ -19,13 +19,13 @@ struct RenameHandler: CakedCommand {
 		return "VM renamed from (\(oldname)) to (\(newname))"
 	}
 
-	mutating func run(on: any EventLoop, asSystem: Bool) throws -> Caked_Reply {
+	mutating func run(on: any EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		let oldname = self.request.oldname
 		let newname = self.request.newname
 
 		return try Caked_Reply.with {
 			$0.vms = try Caked_VirtualMachineReply.with {
-				$0.message = try Self.rename(oldname: oldname, newname: newname, asSystem: asSystem)
+				$0.message = try Self.rename(oldname: oldname, newname: newname, runMode: runMode)
 			}
 		}
 	}

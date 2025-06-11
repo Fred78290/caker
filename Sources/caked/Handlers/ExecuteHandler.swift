@@ -31,7 +31,7 @@ struct ExecuteHandler: CakedCommandAsync {
 		self.vmname = vmname
 	}
 
-	static func execute(on: EventLoop, asSystem: Bool, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) -> EventLoopFuture<
+	static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) -> EventLoopFuture<
 		Caked_Reply
 	> {
 		var vmname = vmname
@@ -40,18 +40,18 @@ struct ExecuteHandler: CakedCommandAsync {
 			if vmname == "" {
 				vmname = "primary"
 
-				if StorageLocation(asSystem: asSystem).exists(vmname) == false {
+				if StorageLocation(runMode: runMode).exists(vmname) == false {
 					Logger(self).info("Creating primary VM")
-					try await BuildHandler.build(name: vmname, options: .init(name: vmname), asSystem: asSystem)
+					try await BuildHandler.build(name: vmname, options: .init(name: vmname), runMode: runMode)
 				}
 			}
 
-			let vmLocation: VMLocation = try StorageLocation(asSystem: asSystem).find(vmname)
+			let vmLocation: VMLocation = try StorageLocation(runMode: runMode).find(vmname)
 
 			if vmLocation.status != .running {
 				Logger(self).info("Starting \(vmname)")
 
-				_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), asSystem: asSystem)
+				_ = try StartHandler(location: vmLocation, waitIPTimeout: 180, startMode: .background).run(on: Root.group.next(), runMode: runMode)
 			}
 
 			try await client.execute(requestStream: requestStream, responseStream: responseStream)
@@ -60,7 +60,7 @@ struct ExecuteHandler: CakedCommandAsync {
 		}
 	}
 
-	mutating func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
-		return Self.execute(on: on, asSystem: asSystem, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+		return Self.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
 	}
 }

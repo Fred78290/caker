@@ -16,6 +16,6 @@ struct WaitIP: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try WaitIPHandler.waitIP(name: self.waitip.name, wait: self.waitip.wait, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try WaitIPHandler.waitIP(name: self.waitip.name, wait: self.waitip.wait, runMode: self.common.runMode)))
 	}
 }

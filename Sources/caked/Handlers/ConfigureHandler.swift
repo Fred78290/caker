@@ -7,8 +7,8 @@ import Virtualization
 struct ConfigureHandler: CakedCommandAsync, Sendable {
 	var options: ConfigureOptions
 
-	static func configure(name: String, options: ConfigureOptions, asSystem: Bool) throws -> String {
-		let vmLocation = try StorageLocation(asSystem: asSystem).find(name)
+	static func configure(name: String, options: ConfigureOptions, runMode: Utils.RunMode) throws -> String {
+		let vmLocation = try StorageLocation(runMode: runMode).find(name)
 		let config = try vmLocation.config()
 
 		if let cpu = options.cpu {
@@ -63,6 +63,10 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 			config.dynamicPortFarwarding = dynamicPortForwarding
 		}
 
+		if let suspendable = options.suspendable {
+			config.suspendable = suspendable
+		}
+
 		try config.save()
 
 		if let diskSize = options.diskSize {
@@ -80,11 +84,11 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		return "VM \(name) reconfigured"
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
 		return on.submit {
 			return try Caked_Reply.with { reply in
 				reply.vms = try Caked_VirtualMachineReply.with {
-					$0.message = try Self.configure(name: self.options.name, options: options, asSystem: asSystem)
+					$0.message = try Self.configure(name: self.options.name, options: options, runMode: runMode)
 				}
 			}
 		}

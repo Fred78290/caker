@@ -23,7 +23,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.listImage(remote: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.listImage(remote: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -41,7 +41,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.info(name: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.info(name: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -59,7 +59,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.pull(name: self.name, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try await ImageHandler.pull(name: self.name, runMode: self.common.runMode)))
 		}
 	}
 }

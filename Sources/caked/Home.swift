@@ -76,8 +76,8 @@ struct Home {
 	let sshPrivateKey: URL
 	let sshPublicKey: URL
 
-	init(asSystem: Bool, createItIfNotExists: Bool = true) throws {
-		self.cakeHomeDirectory = try Utils.getHome(asSystem: asSystem, createItIfNotExists: createItIfNotExists)
+	init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
+		self.cakeHomeDirectory = try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists)
 		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()

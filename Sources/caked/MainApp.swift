@@ -55,11 +55,10 @@ struct MainApp: App {
 			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(config: MainApp.config, vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
+				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
-					let ret = kill(getpid(), SIGINT)
-					if ret != 0 {
+					if kill(getpid(), SIGINT) != 0 {
 						NSApplication.shared.terminate(self)
 					}
 				}
@@ -74,16 +73,28 @@ struct MainApp: App {
 			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
 			CommandMenu("Control") {
 				Button("Start") {
-					Task { MainApp.vm.startFromUI() }
+					Task { self.startFromUI() }
 				}
 				Button("Stop") {
-					Task { MainApp.vm.stopFromUI() }
+					Task { self.stopFromUI() }
 				}
 				Button("Request Stop") {
-					Task { try MainApp.vm.requestStopFromUI() }
+					Task { try self.requestStopFromUI() }
 				}
 			}
 		}
+	}
+
+	func startFromUI() {
+		MainApp._vm?.startFromUI()
+	}
+
+	func stopFromUI() {
+		MainApp._vm?.stopFromUI()
+	}
+
+	func requestStopFromUI() throws {
+		try MainApp._vm?.requestStopFromUI()
 	}
 
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
@@ -136,28 +147,5 @@ struct AboutCaker: View {
 				NSApplication.AboutPanelOptionKey.credits: self.infos,
 			])
 		}
-	}
-}
-
-struct VMView: NSViewRepresentable {
-	typealias NSViewType = VZVirtualMachineView
-
-	let config: CakeConfig
-
-	@ObservedObject
-	var vm: VirtualMachine
-	var virtualMachine: VZVirtualMachine
-
-	func makeNSView(context: Context) -> NSViewType {
-		let machineView = VZVirtualMachineView()
-		if #available(macOS 14.0, *), config.displayRefit || (config.os == .darwin) {
-			machineView.automaticallyReconfiguresDisplay = true
-		}
-
-		return machineView
-	}
-
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.virtualMachine = virtualMachine
 	}
 }

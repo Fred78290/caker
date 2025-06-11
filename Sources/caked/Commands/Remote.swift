@@ -26,7 +26,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -44,7 +44,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.deleteRemote(name: remote, asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.deleteRemote(name: remote, runMode: self.common.runMode)))
 		}
 	}
 
@@ -59,7 +59,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.listRemote(asSystem: self.common.asSystem)))
+			Logger.appendNewLine(self.common.format.render(try RemoteHandler.listRemote(runMode: self.common.runMode)))
 		}
 	}
 }

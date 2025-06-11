@@ -76,8 +76,8 @@ extension ImageInfo {
 struct ImageHandler: CakedCommandAsync {
 	var request: Caked_ImageRequest
 
-	static func getSimpleStreamProtocol(remote: String, asSystem: Bool) async throws -> SimpleStreamProtocol {
-		let remoteDb = try Home(asSystem: asSystem).remoteDatabase()
+	static func getSimpleStreamProtocol(remote: String, runMode: Utils.RunMode) async throws -> SimpleStreamProtocol {
+		let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
 		guard let remoteContainerServer = remoteDb.get(remote) else {
 			throw ServiceError("remote \(remote) not found")
@@ -87,12 +87,12 @@ struct ImageHandler: CakedCommandAsync {
 			throw ServiceError("malformed url: \(remoteContainerServer)")
 		}
 
-		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, asSystem: asSystem)
+		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 	}
 
-	static func listImage(remote: String, asSystem: Bool) async throws -> [ImageInfo] {
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let images = try await simpleStream.GetImages(asSystem: asSystem)
+	static func listImage(remote: String, runMode: Utils.RunMode) async throws -> [ImageInfo] {
+		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+		let images = try await simpleStream.GetImages(runMode: runMode)
 		var result: [ImageInfo] = []
 
 		images.forEach { product in
@@ -104,32 +104,32 @@ struct ImageHandler: CakedCommandAsync {
 		return result
 	}
 
-	static func info(name: String, asSystem: Bool) async throws -> ImageInfo {
+	static func info(name: String, runMode: Utils.RunMode) async throws -> ImageInfo {
 		let split = name.components(separatedBy: ":")
 		let remote = split.count > 1 ? split[0] : ""
 		let imageAlias = split.count > 1 ? split[1] : split[0]
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let product = try await simpleStream.GetImage(alias: imageAlias, asSystem: asSystem)
+		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+		let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
 
 		return try ImageInfo(product: product)
 	}
 
-	static func pull(name: String, asSystem: Bool) async throws -> LinuxContainerImage {
+	static func pull(name: String, runMode: Utils.RunMode) async throws -> LinuxContainerImage {
 		let split = name.components(separatedBy: ":")
 		let remote = split.count > 1 ? split[0] : ""
 		let imageAlias = split.count > 1 ? split[1] : split[0]
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, asSystem: asSystem)
-		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, asSystem: asSystem)
+		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
 
-		try await image.pullSimpleStreamImageAndConvert(asSystem: asSystem)
+		try await image.pullSimpleStreamImageAndConvert(runMode: runMode)
 
 		return image
 	}
 
-	static func execute(command: Caked_ImageCommand, name: String, asSystem: Bool) async throws -> Caked_Reply {
+	static func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
 		switch command {
 		case .info:
-			let result = try await ImageHandler.info(name: name, asSystem: asSystem)
+			let result = try await ImageHandler.info(name: name, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.images = Caked_ImageReply.with {
@@ -138,7 +138,7 @@ struct ImageHandler: CakedCommandAsync {
 			}
 
 		case .pull:
-			let result = try await ImageHandler.pull(name: name, asSystem: asSystem)
+			let result = try await ImageHandler.pull(name: name, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.images = Caked_ImageReply.with {
@@ -146,7 +146,7 @@ struct ImageHandler: CakedCommandAsync {
 				}
 			}
 		case .list:
-			let result = try await ImageHandler.listImage(remote: name, asSystem: asSystem)
+			let result = try await ImageHandler.listImage(remote: name, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.images = Caked_ImageReply.with {
@@ -162,9 +162,9 @@ struct ImageHandler: CakedCommandAsync {
 		}
 	}
 
-	func run(on: EventLoop, asSystem: Bool) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
-			try await Self.execute(command: request.command, name: request.name, asSystem: asSystem)
+			try await Self.execute(command: request.command, name: request.name, runMode: runMode)
 		}
 	}
 }

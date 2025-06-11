@@ -16,6 +16,6 @@ struct Purge: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try PurgeHandler.purge(direct: true, asSystem: self.common.asSystem, options: self.purge)))
+		Logger.appendNewLine(self.common.format.render(try PurgeHandler.purge(direct: true, runMode: self.common.runMode, options: self.purge)))
 	}
 }

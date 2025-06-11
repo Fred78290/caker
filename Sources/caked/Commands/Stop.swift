@@ -16,6 +16,6 @@ struct Stop: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, runMode: self.common.runMode)))
 	}
 }

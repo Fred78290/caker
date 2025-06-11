@@ -22,9 +22,9 @@ struct Start: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(asSystem: self.common.asSystem).find(name)
+		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(name)
 		let config = try vmLocation.config()
 
-		Logger.appendNewLine(self.common.format.render(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, asSystem: self.common.asSystem)))
+		Logger.appendNewLine(self.common.format.render(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
 	}
 }
