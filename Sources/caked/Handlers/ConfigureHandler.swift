@@ -60,7 +60,7 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		}
 
 		if let dynamicPortForwarding = options.dynamicPortForwarding {
-			config.dynamicPortFarwarding = dynamicPortForwarding
+			config.dynamicPortForwarding = dynamicPortForwarding
 		}
 
 		if let suspendable = options.suspendable {

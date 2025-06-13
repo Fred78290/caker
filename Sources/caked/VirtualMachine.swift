@@ -143,7 +143,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 		super.init()
 
-		if vmLocation.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortFarwarding) {
+		if vmLocation.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
 		}
 
@@ -558,7 +558,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 			do {
 				try PortForwardingServer.createPortForwardingServer(
-					group: Root.group.next(), remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortFarwarding: config.dynamicPortFarwarding, listeningAddress: self.vmLocation.agentURL, runMode: runMode)
+					group: Root.group.next(), remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.vmLocation.agentURL, runMode: runMode)
 			} catch {
 				Logger(self).error(error)
 			}

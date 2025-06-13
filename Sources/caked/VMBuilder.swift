@@ -58,7 +58,7 @@ struct VMBuilder {
 		config.sockets = options.sockets
 		config.console = options.consoleURL
 		config.forwardedPorts = options.forwardedPorts
-		config.dynamicPortFarwarding = options.dynamicPortForwarding
+		config.dynamicPortForwarding = options.dynamicPortForwarding
 		config.suspendable = options.suspendable
 		config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 

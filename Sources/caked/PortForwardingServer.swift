@@ -17,19 +17,19 @@ class PortForwardingServer {
 	let bindAddresses: [String]
 	let remoteAddress: String
 	let portForwarder: CakedPortForwarder
-	let dynamicPortFarwarding: Bool
+	let dynamicPortForwarding: Bool
 	var closeFuture: PortForwarderClosure? = nil
 
 	deinit {
 		try? portForwarder.close()
 	}
 
-	private init(group: EventLoopGroup, bindAddresses: [String] = ["0.0.0.0", "[::]"], remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, ttl: Int = 5, listeningAddress: URL, runMode: Utils.RunMode) throws {
+	private init(group: EventLoopGroup, bindAddresses: [String] = ["0.0.0.0", "[::]"], remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortForwarding: Bool, ttl: Int = 5, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		self.mainGroup = group
 		self.bindAddresses = bindAddresses
 		self.remoteAddress = remoteAddress
 		self.ttl = ttl
-		self.dynamicPortFarwarding = dynamicPortFarwarding
+		self.dynamicPortForwarding = dynamicPortForwarding
 		self.portForwarder = try CakedPortForwarder(
 			group: group,
 			remoteHost: remoteAddress,
@@ -42,7 +42,7 @@ class PortForwardingServer {
 
 	private func bind() throws {
 		self.closeFuture = try self.portForwarder.bind()
-		if self.dynamicPortFarwarding {
+		if self.dynamicPortForwarding {
 			try self.portForwarder.startDynamicPortForwarding()
 		}
 	}
@@ -81,9 +81,9 @@ class PortForwardingServer {
 		}
 	}
 
-	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortFarwarding: Bool, listeningAddress: URL, runMode: Utils.RunMode) throws {
+	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortForwarding: Bool, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		guard let server = portForwardingServer else {
-			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortFarwarding: dynamicPortFarwarding, listeningAddress: listeningAddress, runMode: runMode)
+			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortForwarding: dynamicPortForwarding, listeningAddress: listeningAddress, runMode: runMode)
 
 			try server.bind()
 
