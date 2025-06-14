@@ -19,7 +19,7 @@ struct EditableList<Element: Hashable, Content: View>: View {
 
 	var body: some View {
 		List(selection: $selectedItem) {
-			ForEach($data, id:\.self, content: content)
+			ForEach($data, id: \.self, content: content)
 				.onMove { indexSet, offset in
 					data.move(fromOffsets: indexSet, toOffset: offset)
 				}

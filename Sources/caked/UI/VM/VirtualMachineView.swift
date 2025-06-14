@@ -11,7 +11,7 @@ class CustomWindowDelegate: NSObject, NSWindowDelegate {
 	override init() {
 		super.init()
 	}
-	
+
 	func window(_ window: NSWindow, willUseFullScreenPresentationOptions proposedOptions: NSApplication.PresentationOptions = []) -> NSApplication.PresentationOptions {
 		return [.autoHideToolbar, .autoHideMenuBar, .fullScreen]
 	}
@@ -51,72 +51,72 @@ struct VirtualMachineView: View {
 				}
 			}
 		}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity).onAppear {
-				NSWindow.allowsAutomaticWindowTabbing = false
-				self.appState.currentDocument = self.document
-			}.onDisappear {
-				if self.appState.currentDocument == self.document {
-					self.appState.currentDocument = nil
+			NSWindow.allowsAutomaticWindowTabbing = false
+			self.appState.currentDocument = self.document
+		}.onDisappear {
+			if self.appState.currentDocument == self.document {
+				self.appState.currentDocument = nil
+			}
+		}.onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
+			if let window = notification.object as? NSWindow {
+				if window.windowNumber == windowNumber && document.status == .running {
+					document.requestStopFromUI()
 				}
-			}.onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
-				if let window = notification.object as? NSWindow {
-					if window.windowNumber == windowNumber && document.status == .running {
+			}
+		}.onChange(of: appearsActive) { active in
+			print("appearsActive: \(self.windowNumber) - \(active)")
+			if active {
+				self.appState.currentDocument = self.document
+				self.appState.isStopped = document.status == .stopped
+				self.appState.isRunning = document.status == .running
+				self.appState.isPaused = document.status == .suspended
+				self.appState.isSuspendable = document.status == .running && document.suspendable
+			} else if self.appState.currentDocument == self.document {
+				self.appState.currentDocument = nil
+			}
+		}.onChange(of: self.document.status) { newValue in
+			if self.appearsActive {
+				self.appState.isStopped = document.status == .stopped
+				self.appState.isRunning = document.status == .running
+				self.appState.isPaused = document.status == .suspended
+				self.appState.isSuspendable = document.status == .running && document.suspendable
+			}
+		}.toolbar {
+			ToolbarItemGroup(placement: .navigation) {
+				if document.status == .running {
+					Button("Stop", systemImage: "power") {
 						document.requestStopFromUI()
 					}
-				}
-			}.onChange(of: appearsActive) { active in
-				print("appearsActive: \(self.windowNumber) - \(active)")
-				if active {
-					self.appState.currentDocument = self.document
-					self.appState.isStopped = document.status == .stopped
-					self.appState.isRunning = document.status == .running
-					self.appState.isPaused = document.status == .suspended
-					self.appState.isSuspendable = document.status == .running && document.suspendable
-				} else if self.appState.currentDocument == self.document {
-					self.appState.currentDocument = nil
-				}
-			}.onChange(of: self.document.status) { newValue in
-				if self.appearsActive {
-					self.appState.isStopped = document.status == .stopped
-					self.appState.isRunning = document.status == .running
-					self.appState.isPaused = document.status == .suspended
-					self.appState.isSuspendable = document.status == .running && document.suspendable
-				}
-			}.toolbar {
-				ToolbarItemGroup(placement: .navigation) {
-					if document.status == .running {
-						Button("Stop", systemImage: "power") {
-							document.requestStopFromUI()
-						}
-					} else {
-						Button("Start", systemImage: "play.fill") {
-							document.startFromUI()
-						}
+				} else {
+					Button("Start", systemImage: "play.fill") {
+						document.startFromUI()
 					}
-					
-					Button("Pause", systemImage: "pause") {
-						document.suspendFromUI()
-					}.disabled(!isSuspendable)
-					
-					Button("Restart", systemImage: "restart") {
-						document.stopFromUI()
-					}.disabled(isStopped)
 				}
 
-				ToolbarItemGroup(placement: .primaryAction) {
-					Button("Settings", systemImage: "gear") {
-//						settings()
-						displaySettings = true
-					}.disabled(self.document.virtualMachine == nil)
-				}
-			}.sheet(isPresented: $displaySettings) {
-				VirtualMachineSettingsView(vmname: virtualMachine.vmLocation.name)
+				Button("Pause", systemImage: "pause") {
+					document.suspendFromUI()
+				}.disabled(!isSuspendable)
+
+				Button("Restart", systemImage: "restart") {
+					document.stopFromUI()
+				}.disabled(isStopped)
 			}
-			
+
+			ToolbarItemGroup(placement: .primaryAction) {
+				Button("Settings", systemImage: "gear") {
+					//						settings()
+					displaySettings = true
+				}.disabled(self.document.virtualMachine == nil)
+			}
+		}.sheet(isPresented: $displaySettings) {
+			VirtualMachineSettingsView(vmname: virtualMachine.vmLocation.name)
+		}
+
 		if #available(macOS 15.0, *) {
 			view.windowToolbarFullScreenVisibility(.onHover)
 		}
 	}
-	
+
 	func settings() {
 		self.openWindow(id: "settings", value: self.document.virtualMachine!.vmLocation.name)
 	}

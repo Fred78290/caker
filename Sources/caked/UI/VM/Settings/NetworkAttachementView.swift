@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 14/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct NetworkAttachementView: View {
 	@Binding var networks: [BridgeAttachement]
@@ -15,7 +15,7 @@ struct NetworkAttachementView: View {
 		EditableList($networks) { $item in
 			Text(item.description)
 		}
-    }
+	}
 }
 
 #Preview {

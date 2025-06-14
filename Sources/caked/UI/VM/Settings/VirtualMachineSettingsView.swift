@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 12/06/2025.
 //
 
-import SwiftUI
-import Virtualization
 import GRPCLib
 import NIO
+import SwiftUI
+import Virtualization
 
 struct VirtualMachineSettingsView: View {
 	var vmname: String?
@@ -17,11 +17,11 @@ struct VirtualMachineSettingsView: View {
 	@State var selectedImageSize: Int? = 0
 	@State var playSound: Bool = false
 	@State var readReceipt: Bool = false
-	
+
 	@State var cpuCount: Int
 	@State var memorySize: UInt64
 	@State var macAddress: String
-	
+
 	@State var autostart: Bool
 	@State var suspendable: Bool
 	@State var dynamicPortForwarding: Bool
@@ -35,20 +35,20 @@ struct VirtualMachineSettingsView: View {
 	@State var mounts: [DirectorySharingAttachment]
 	@State var configChanged = false
 	var config: CakeConfig? = nil
-	
+
 	struct ViewSize: Identifiable, Hashable {
 		var id: Int {
 			width * height
 		}
 		var width: Int
 		var height: Int
-		
+
 		init(width: Int, height: Int) {
 			self.width = width
 			self.height = height
 		}
 	}
-	
+
 	init(vmname: String? = nil) {
 		var cpuCount: Int = 0
 		var memorySize: UInt64 = 0
@@ -65,13 +65,13 @@ struct VirtualMachineSettingsView: View {
 		var attachedDisks: [DiskAttachement] = []
 		var mounts: [DirectorySharingAttachment] = []
 		self.vmname = vmname
-		
+
 		if let vmname = vmname, let vmLocation = try? StorageLocation(runMode: .app).find(vmname) {
 			self.config = try? vmLocation.config()
-			
+
 			if let config = self.config {
 				cpuCount = config.cpuCount
-				memorySize = config.memorySize/(1024*1024)
+				memorySize = config.memorySize / (1024 * 1024)
 				macAddress = config.macAddress?.string ?? ""
 				autostart = config.autostart
 				suspendable = config.suspendable
@@ -86,7 +86,7 @@ struct VirtualMachineSettingsView: View {
 				mounts = config.mounts
 			}
 		}
-		
+
 		self.cpuCount = cpuCount
 		self.memorySize = memorySize
 		self.macAddress = macAddress
@@ -102,7 +102,7 @@ struct VirtualMachineSettingsView: View {
 		self.attachedDisks = attachedDisks
 		self.mounts = mounts
 	}
-	
+
 	var body: some View {
 		if self.vmname != nil {
 			if self.config != nil {
@@ -111,21 +111,21 @@ struct VirtualMachineSettingsView: View {
 						generalSettings().tabItem {
 							Label("General", systemImage: "gearshape")
 						}
-						
+
 						networkSettings().tabItem {
 							Label("Network", systemImage: "network")
 						}
-						
+
 						mediaSettings().tabItem {
 							Label("Disk", systemImage: "externaldrive.badge.wifi")
 						}
 					}
 					.padding(.top)
 					.navigationTitle("Settings")
-					
+
 					Spacer()
 					Divider()
-					
+
 					HStack(alignment: .bottom) {
 						Spacer()
 						Button("Cancel") {
@@ -148,7 +148,7 @@ struct VirtualMachineSettingsView: View {
 			Text("No Virtual machine selected")
 		}
 	}
-	
+
 	func generalSettings() -> some View {
 		VStack {
 			Form {
@@ -180,11 +180,11 @@ struct VirtualMachineSettingsView: View {
 
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
-			let cpuRange  = 1...System.coreCount
-			let totalMemoryRange  = 1...ProcessInfo().physicalMemory / 1024 / 1024
-			
+			let cpuRange = 1...System.coreCount
+			let totalMemoryRange = 1...ProcessInfo().physicalMemory / 1024 / 1024
+
 			Picker("CPU count", selection: $cpuCount) {
-				ForEach(cpuRange, id:\.self) { cpu in
+				ForEach(cpuRange, id: \.self) { cpu in
 					if cpu == 1 {
 						Text("\(cpu) core").tag(cpu)
 					} else {
@@ -196,7 +196,7 @@ struct VirtualMachineSettingsView: View {
 				config?.cpuCount = newValue
 				configChanged = true
 			}
-			
+
 			HStack {
 				Text("Memory size")
 				Spacer().border(.black)
@@ -207,17 +207,17 @@ struct VirtualMachineSettingsView: View {
 						.textFieldStyle(SquareBorderTextFieldStyle())
 						.labelsHidden()
 					Stepper(value: $memorySize, in: totalMemoryRange, step: 1) {
-						
+
 					}.labelsHidden()
 				}
 			}
 			.onChange(of: memorySize) { newValue in
-				config?.memorySize = newValue * (1024*1024)
+				config?.memorySize = newValue * (1024 * 1024)
 				configChanged = true
 			}
 		}
 	}
-	
+
 	func optionsView() -> some View {
 		Section("Options") {
 			VStack(alignment: .leading) {
@@ -249,7 +249,7 @@ struct VirtualMachineSettingsView: View {
 			configChanged = true
 		}
 	}
-	
+
 	func displaySizeView() -> some View {
 		Section("Display size") {
 			VStack(alignment: .leading) {
@@ -262,7 +262,7 @@ struct VirtualMachineSettingsView: View {
 			configChanged = true
 		}
 	}
-	
+
 	func forwardPortsView() -> some View {
 		Section("Forwarded ports") {
 			ForwardedPortView(forwardPorts: $forwardPorts)
@@ -272,7 +272,7 @@ struct VirtualMachineSettingsView: View {
 				}
 		}
 	}
-	
+
 	func networksView() -> some View {
 		Section("Network attachements") {
 			NetworkAttachementView(networks: $networks)
@@ -282,7 +282,7 @@ struct VirtualMachineSettingsView: View {
 				}
 		}
 	}
-	
+
 	func mountsView() -> some View {
 		Section("Directory sharing") {
 			MountView(mounts: $mounts)
@@ -292,7 +292,7 @@ struct VirtualMachineSettingsView: View {
 				}
 		}
 	}
-	
+
 	func diskAttachementView() -> some View {
 		Section("Disks attachements") {
 			DiskAttachementView(attachedDisks: $attachedDisks)
@@ -302,7 +302,7 @@ struct VirtualMachineSettingsView: View {
 				}
 		}
 	}
-	
+
 	func socketsView() -> some View {
 		Section("Virtual sockets") {
 			SocketsView(sockets: $sockets)
@@ -315,5 +315,5 @@ struct VirtualMachineSettingsView: View {
 }
 
 #Preview {
-    VirtualMachineSettingsView(vmname: "linux")
+	VirtualMachineSettingsView(vmname: "linux")
 }

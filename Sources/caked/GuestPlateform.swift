@@ -12,42 +12,42 @@ protocol GuestPlateForm {
 struct LinuxPlateform: GuestPlateForm {
 	let nvramURL: URL
 	let needsNestedVirtualization: Bool
-	
+
 	func bootLoader() throws -> VZBootLoader {
 		let result = VZEFIBootLoader()
-		
+
 		result.variableStore = VZEFIVariableStore(url: nvramURL)
-		
+
 		return result
 	}
-	
+
 	func platform() throws -> VZPlatformConfiguration {
 		let config: VZGenericPlatformConfiguration = VZGenericPlatformConfiguration()
-		
+
 		if #available(macOS 15, *) {
 			config.isNestedVirtualizationEnabled = needsNestedVirtualization
 		}
-		
+
 		return config
 	}
-	
+
 	func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration {
 		let result: VZVirtioGraphicsDeviceConfiguration = VZVirtioGraphicsDeviceConfiguration()
-		
+
 		result.scanouts = [
 			VZVirtioGraphicsScanoutConfiguration(
 				widthInPixels: vmConfig.display.width,
 				heightInPixels: vmConfig.display.height
 			)
 		]
-		
+
 		return result
 	}
-	
+
 	func keyboards(_ suspendable: Bool) -> [VZKeyboardConfiguration] {
 		[VZUSBKeyboardConfiguration()]
 	}
-	
+
 	func pointingDevices(_ suspendable: Bool) -> [VZPointingDeviceConfiguration] {
 		[VZUSBScreenCoordinatePointingDeviceConfiguration()]
 	}

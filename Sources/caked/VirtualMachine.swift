@@ -40,7 +40,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		if self.runMode != .app {
 			return self.vmLocation.status
 		}
-		
+
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
 			return .running
@@ -277,9 +277,9 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 							}
 						} else {
 							Logger(self).info("VM \(self.vmLocation.name) paused")
-							
+
 							self.stopServices()
-							
+
 							self.virtualMachine.saveMachineStateTo(url: self.vmLocation.stateURL) { result in
 								if let error = result {
 									if let completionHandler = completionHandler {
@@ -299,7 +299,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 					}
 				} catch {
 					Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
-					
+
 					if let completionHandler = completionHandler {
 						completionHandler(.failure(error))
 					}
@@ -378,7 +378,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 				self.stopServices()
 				self.didChangedState()
-				
+
 				if self.runMode == .app {
 					try? self.vmLocation.deletePID()
 				}
@@ -401,7 +401,6 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	public func requestStopFromUI() throws {
 		try self._requestStopVM()
 	}
-
 
 	public func suspendFromUI() {
 		self._pauseVM()
@@ -462,7 +461,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 
 		sigcaught[SIGUSR1]!.setEventHandler {
-			self.pauseVM() { result in
+			self.pauseVM { result in
 				task.cancel()
 			}
 		}
@@ -480,7 +479,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
-		
+
 		if self.runMode == .app {
 			try self.vmLocation.writePID()
 		}
@@ -514,7 +513,7 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 			config.firstLaunch = false
 
 			try? config.save()
-			
+
 			self.didChangedState()
 		}
 

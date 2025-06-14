@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 14/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct SocketsView: View {
 	@Binding var sockets: [SocketDevice]
@@ -15,7 +15,7 @@ struct SocketsView: View {
 		EditableList($sockets) { $item in
 			Text(item.description)
 		}
-    }
+	}
 }
 
 #Preview {

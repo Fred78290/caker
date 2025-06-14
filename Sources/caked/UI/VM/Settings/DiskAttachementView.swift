@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 14/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct DiskAttachementView: View {
 	@Binding var attachedDisks: [DiskAttachement]
@@ -15,7 +15,7 @@ struct DiskAttachementView: View {
 		EditableList($attachedDisks) { $item in
 			Text(item.description)
 		}
-    }
+	}
 }
 
 #Preview {

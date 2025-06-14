@@ -5,12 +5,12 @@
 //
 // Copyright © 2023 Steven Barnett. All rights reserved.
 //
-   
+
 import SwiftUI
 
 struct HostingWindowFinder: NSViewRepresentable {
 	var callback: (NSWindow?) -> Void
-	
+
 	func makeNSView(context: Self.Context) -> NSView {
 		let view = NSView()
 		DispatchQueue.main.async { [weak view] in

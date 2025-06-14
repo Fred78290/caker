@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 14/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct ForwardedPortView: View {
 	@Binding var forwardPorts: [TunnelAttachement]
@@ -15,7 +15,7 @@ struct ForwardedPortView: View {
 		EditableList($forwardPorts) { $item in
 			Text(item.description)
 		}
-    }
+	}
 }
 
 #Preview {
