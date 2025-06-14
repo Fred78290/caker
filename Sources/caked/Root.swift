@@ -72,7 +72,7 @@ struct Root: ParsableCommand {
 				ImagesManagement.self,
 				Infos.self,
 				Launch.self,
-				List.self,
+				ListObjects.self,
 				Mount.self,
 				Networks.self,
 				Purge.self,

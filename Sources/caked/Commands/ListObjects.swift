@@ -5,8 +5,8 @@ import GRPCLib
 import Logging
 import TextTable
 
-struct List: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "List all VMs")
+struct ListObjects: AsyncParsableCommand {
+	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

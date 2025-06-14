@@ -56,7 +56,7 @@
 		9B464AF22D5A3E0300164BF5 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AA72D5A3E0300164BF5 /* ConfigureHandler.swift */; };
 		9B464AF42D5A3E0300164BF5 /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AC12D5A3E0300164BF5 /* Home.swift */; };
 		9B464AF62D5A3E0300164BF5 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A982D5A3E0300164BF5 /* Infos.swift */; };
-		9B464AF72D5A3E0300164BF5 /* List.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A9A2D5A3E0300164BF5 /* List.swift */; };
+		9B464AF72D5A3E0300164BF5 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A9A2D5A3E0300164BF5 /* ListObjects.swift */; };
 		9B464AF82D5A3E0300164BF5 /* WaitIPHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB32D5A3E0300164BF5 /* WaitIPHandler.swift */; };
 		9B464AF92D5A3E0300164BF5 /* StopHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AB12D5A3E0300164BF5 /* StopHandler.swift */; };
 		9B464AFA2D5A3E0300164BF5 /* VMRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464AA32D5A3E0300164BF5 /* VMRun.swift */; };
