@@ -4,7 +4,7 @@ import Virtualization
 
 public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
-public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable {
+public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable, Hashable {
 	public let readOnly: Bool
 
 	let _name: String?

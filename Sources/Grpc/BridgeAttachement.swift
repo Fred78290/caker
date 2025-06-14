@@ -26,10 +26,14 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 	}
 }
 
-public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
+public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable {
 	public let network: String
 	public let mode: NetworkMode?
 	public let macAddress: String?
+
+	public static func == (lhs: Self, rhs: Self) -> Bool {
+		return lhs.description == rhs.description
+	}
 
 	public var defaultValueDescription: String {
 		"name=<network|nat|shared|host>,[mode=<auto|manual>,[mac=<mac>]]"

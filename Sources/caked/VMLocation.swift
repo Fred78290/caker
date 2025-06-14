@@ -241,6 +241,10 @@ struct VMLocation {
 		}
 	}
 
+	func deletePID() throws {
+		try rootURL.appendingPathComponent("run.pid").delete()
+	}
+
 	func writePID() throws {
 		try rootURL.appendingPathComponent("run.pid").writePID()
 	}

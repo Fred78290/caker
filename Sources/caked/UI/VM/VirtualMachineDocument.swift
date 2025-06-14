@@ -14,7 +14,11 @@ extension UTType {
 }
 
 
-class VirtualMachineDocument: FileDocument, VirtualMachineDelegate {
+class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableObject, Equatable {
+	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
+		lhs.virtualMachine == rhs.virtualMachine
+	}
+	
 	static var readableContentTypes: [UTType] { [.VirtualMachine] }
 	
 	enum Status: String {
@@ -25,14 +29,16 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate {
 	}
 	
 	var virtualMachine: VirtualMachine? = nil
-	var status: Status = .none
-	var canStart: Bool = false
-	var canStop: Bool = false
-	var canPause: Bool = false
-	var canResume: Bool = false
-	var canRequestStop: Bool = false
-	var suspendable: Bool = false
-	
+	var name: String = ""
+
+	@Published var status: Status = .none
+	@Published var canStart: Bool = false
+	@Published var canStop: Bool = false
+	@Published var canPause: Bool = false
+	@Published var canResume: Bool = false
+	@Published var canRequestStop: Bool = false
+	@Published var suspendable: Bool = false	
+
 	init() {
 		self.virtualMachine = nil
 	}
@@ -65,6 +71,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate {
 			let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
 			
 			self.virtualMachine = virtualMachine
+			self.name = vmLocation.name
 			self.didChangedState(virtualMachine)
 
 			virtualMachine.delegate = self
@@ -101,11 +108,15 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate {
 	}
 	
 	func didChangedState(_ vm: VirtualMachine) {
-		guard let status = Status(rawValue: vm.vmLocation.status.rawValue) else {
+		let vmStatus = vm.status
+
+		print("didChangedState: \(vmStatus)")
+
+		guard let status = Status(rawValue: vmStatus.rawValue) else {
 			self.status = .none
 			return
 		}
-
+		
 		self.canStart = vm.virtualMachine.canStart
 		self.canStop = vm.virtualMachine.canStop
 		self.canPause = vm.virtualMachine.canPause

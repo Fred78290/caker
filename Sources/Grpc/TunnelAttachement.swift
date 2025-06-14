@@ -9,7 +9,7 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleByArgument, Codable, Equatable {
+public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringConvertible, Codable, Hashable {
 	public static func == (lhs: TunnelAttachement, rhs: TunnelAttachement) -> Bool {
 		switch (lhs.oneOf, rhs.oneOf) {
 		case (.none, .none):
@@ -63,7 +63,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		return value
 	}
 
-	public enum OneOf: Sendable, Equatable {
+	public enum OneOf: Sendable, Hashable {
 		case none
 		case forward(ForwardedPort)
 		case unixDomain(ForwardUnixDomainSocket)
@@ -82,7 +82,7 @@ public struct TunnelAttachement: Sendable, CustomStringConvertible, ExpressibleB
 		}
 	}
 
-	public struct ForwardUnixDomainSocket: Sendable, CustomStringConvertible, Codable, Equatable {
+	public struct ForwardUnixDomainSocket: Sendable, CustomStringConvertible, Codable, Hashable {
 		public var description: String {
 			"\(proto):\(host):\(guest)"
 		}

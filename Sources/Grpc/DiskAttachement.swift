@@ -108,9 +108,13 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 	}
 }
 
-public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable {
+public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable {
 	public let diskPath: String
 	private let diskOptions: DiskOptions
+
+	public static func == (lhs: Self, rhs: Self) -> Bool {
+		return lhs.description == rhs.description
+	}
 
 	public var defaultValueDescription: String {
 		"[local path|nbd://url|nbds://url|nbd+unix://url|nbds+unix://url][,ro][,sync=none|full][,caching=automatic|cached|uncached]"
@@ -127,7 +131,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		return value.joined(separator: ":")
 	}
 
-	private struct DiskOptions: CustomStringConvertible, Codable {
+	private struct DiskOptions: CustomStringConvertible, Codable, Hashable {
 		let readOnly: Bool
 		let syncMode: String
 		let cachingMode: String

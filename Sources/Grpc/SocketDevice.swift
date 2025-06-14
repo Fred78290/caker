@@ -41,7 +41,7 @@ public enum SocketMode: String, CustomStringConvertible, Codable {
 	}
 }
 
-public struct SocketDevice: Codable {
+public struct SocketDevice: Codable, Hashable {
 	public var mode: SocketMode = .bind
 	public var port: Int = -1
 	public var bind: String

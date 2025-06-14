@@ -10,6 +10,10 @@ protocol VirtualMachineDelegate {
 }
 
 final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject, VirtioSocketDeviceDelegate {
+	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
+		lhs.vmLocation.rootURL == rhs.vmLocation.rootURL
+	}
+
 	public typealias StartCompletionHandler = (Result<Void, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
 
@@ -30,6 +34,21 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 	public var suspendable: Bool {
 		return self.config.suspendable
+	}
+
+	public var status: VMLocation.Status {
+		if self.runMode != .app {
+			return self.vmLocation.status
+		}
+		
+		switch self.virtualMachine.state {
+		case .running, .starting, .resuming:
+			return .running
+		case .paused, .pausing:
+			return .suspended
+		default:
+			return .stopped
+		}
 	}
 
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
@@ -359,6 +378,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 
 				self.stopServices()
 				self.didChangedState()
+				
+				if self.runMode == .app {
+					try? self.vmLocation.deletePID()
+				}
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			Logger(self).error("VM \(self.vmLocation.name) can't be stopped")
@@ -400,6 +423,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 		}
 
 		self.requestStopFromUIPending = true
+
+		if self.runMode == .app {
+			try? self.vmLocation.deletePID()
+		}
 	}
 
 	private func stopForwaringPorts() {
@@ -453,6 +480,11 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+		
+		if self.runMode == .app {
+			try self.vmLocation.writePID()
+		}
+
 		let config = self.config
 		let response = try self.vmLocation.waitIP(on: on, config: config, wait: 120, runMode: runMode)
 
@@ -566,8 +598,10 @@ final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject
 	}
 
 	func didChangedState() {
-		if let delegate = self.delegate {
-			delegate.didChangedState(self)
+		DispatchQueue.main.async {
+			if let delegate = self.delegate {
+				delegate.didChangedState(self)
+			}
 		}
 	}
 }

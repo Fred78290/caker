@@ -24,8 +24,6 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		9B04883A2DEB1419009D31ED /* VMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0488392DEB1414009D31ED /* VMView.swift */; };
-		9B1752182DE9F7630067D5A8 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */; };
 		9B18FA202DAFF4D600603B92 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */; };
 		9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B18FA212DAFF4E500603B92 /* Clone.swift */; };
 		9B1BD2432D901EA700F78154 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */; };
@@ -205,6 +203,7 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
+		9B4E7B912DFD6DFF00A5508D /* EditableList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4E7B902DFD6DFC00A5508D /* EditableList.swift */; };
 		9B7C80782DA91131003E95FA /* Images.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80772DA91128003E95FA /* Images.swift */; };
 		9B7C807A2DAA67FF003E95FA /* VirtualMachineInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */; };
 		9B7C807C2DAA6C88003E95FA /* Mounts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C807B2DAA6C84003E95FA /* Mounts.swift */; };
@@ -269,7 +268,7 @@
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE47FD12DA68386000A759F /* MainUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE47FCE2DA68386000A759F /* MainUI.swift */; };
 		9BE47FD22DA68386000A759F /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE47FCF2DA68386000A759F /* MainView.swift */; };
-		9BF2A2422DEAF0B0005F1FCD /* VirtualMachineDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */; };
+		9BEBCA272DFB20DD0092B196 /* HostingViewFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBCA262DFB20D10092B196 /* HostingViewFinder.swift */; };
 		9BFCE6D12DD48E17005DDFBF /* TunnelAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFCE6D02DD48E0D005DDFBF /* TunnelAttachement.swift */; };
 /* End PBXBuildFile section */
 
@@ -324,8 +323,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9B0488392DEB1414009D31ED /* VMView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMView.swift; sourceTree = "<group>"; };
-		9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineView.swift; sourceTree = "<group>"; };
 		9B18FA1F2DAFF4D600603B92 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
 		9B18FA212DAFF4E500603B92 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9B1BD2422D901EA700F78154 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
@@ -388,7 +385,7 @@
 		9B464A972D5A3E0300164BF5 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
 		9B464A982D5A3E0300164BF5 /* Infos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Infos.swift; sourceTree = "<group>"; };
 		9B464A992D5A3E0300164BF5 /* Launch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launch.swift; sourceTree = "<group>"; };
-		9B464A9A2D5A3E0300164BF5 /* List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = List.swift; sourceTree = "<group>"; };
+		9B464A9A2D5A3E0300164BF5 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
 		9B464A9B2D5A3E0300164BF5 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		9B464A9C2D5A3E0300164BF5 /* Networks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Networks.swift; sourceTree = "<group>"; };
 		9B464A9D2D5A3E0300164BF5 /* Purge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Purge.swift; sourceTree = "<group>"; };
@@ -454,6 +451,7 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B4E7B902DFD6DFC00A5508D /* EditableList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableList.swift; sourceTree = "<group>"; };
 		9B7C80772DA91128003E95FA /* Images.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Images.swift; sourceTree = "<group>"; };
 		9B7C80792DAA67F0003E95FA /* VirtualMachineInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInfo.swift; sourceTree = "<group>"; };
 		9B7C807B2DAA6C84003E95FA /* Mounts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mounts.swift; sourceTree = "<group>"; };
@@ -516,7 +514,7 @@
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE47FCE2DA68386000A759F /* MainUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainUI.swift; sourceTree = "<group>"; };
 		9BE47FCF2DA68386000A759F /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineDocument.swift; sourceTree = "<group>"; };
+		9BEBCA262DFB20D10092B196 /* HostingViewFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingViewFinder.swift; sourceTree = "<group>"; };
 		9BFCE6D02DD48E0D005DDFBF /* TunnelAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelAttachement.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -537,6 +535,11 @@
 				9BDD95682DB8D6B600E46244 /* Exceptions for "Caker" folder in "Caker" target */,
 			);
 			path = Caker;
+			sourceTree = "<group>";
+		};
+		9B5939982DFD884900FD590A /* VM */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = VM;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -808,7 +811,7 @@
 				9B464A972D5A3E0300164BF5 /* ImagesManagement.swift */,
 				9B464A982D5A3E0300164BF5 /* Infos.swift */,
 				9B464A992D5A3E0300164BF5 /* Launch.swift */,
-				9B464A9A2D5A3E0300164BF5 /* List.swift */,
+				9B464A9A2D5A3E0300164BF5 /* ListObjects.swift */,
 				9B464A9B2D5A3E0300164BF5 /* Login.swift */,
 				9BE2E7BB2D5F85D8000CA07F /* Logout.swift */,
 				9BD32F7F2D75F9520066A01E /* Mount.swift */,
@@ -1012,9 +1015,9 @@
 		9BE47FD02DA68386000A759F /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				9B0488392DEB1414009D31ED /* VMView.swift */,
-				9BF2A2412DEAF0A5005F1FCD /* VirtualMachineDocument.swift */,
-				9B1752172DE9F7590067D5A8 /* VirtualMachineView.swift */,
+				9B4E7B902DFD6DFC00A5508D /* EditableList.swift */,
+				9BEBCA262DFB20D10092B196 /* HostingViewFinder.swift */,
+				9B5939982DFD884900FD590A /* VM */,
 				9BE47FCE2DA68386000A759F /* MainUI.swift */,
 				9BE47FCF2DA68386000A759F /* MainView.swift */,
 			);
@@ -1050,6 +1053,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
+				9B5939982DFD884900FD590A /* VM */,
 			);
 			name = Caker;
 			packageProductDependencies = (
@@ -1266,6 +1270,7 @@
 				9B464AE72D5A3E0300164BF5 /* Build.swift in Sources */,
 				9B464AE82D5A3E0300164BF5 /* Sh.swift in Sources */,
 				9B464AE92D5A3E0300164BF5 /* Login.swift in Sources */,
+				9B4E7B912DFD6DFF00A5508D /* EditableList.swift in Sources */,
 				9BE2E7AE2D5C9E2A000CA07F /* RenameHandler.swift in Sources */,
 				9B464AED2D5A3E0300164BF5 /* CommunicationDevices.swift in Sources */,
 				9B464AEE2D5A3E0300164BF5 /* Root.swift in Sources */,
@@ -1279,7 +1284,7 @@
 				9BD32F812D75F9520066A01E /* Mount.swift in Sources */,
 				9BD32F822D75F9520066A01E /* Unmount.swift in Sources */,
 				9B464AF62D5A3E0300164BF5 /* Infos.swift in Sources */,
-				9B464AF72D5A3E0300164BF5 /* List.swift in Sources */,
+				9B464AF72D5A3E0300164BF5 /* ListObjects.swift in Sources */,
 				9B464AF82D5A3E0300164BF5 /* WaitIPHandler.swift in Sources */,
 				9B464AF92D5A3E0300164BF5 /* StopHandler.swift in Sources */,
 				9B464AFA2D5A3E0300164BF5 /* VMRun.swift in Sources */,
@@ -1291,7 +1296,6 @@
 				9B464B002D5A3E0300164BF5 /* ListHandler.swift in Sources */,
 				9B464B012D5A3E0300164BF5 /* CakeAgentAsyncParsableCommand.swift in Sources */,
 				9B80276B2D997EAC002C680E /* VZVMNet.swift in Sources */,
-				9BF2A2422DEAF0B0005F1FCD /* VirtualMachineDocument.swift in Sources */,
 				9B80276C2D997EAC002C680E /* VZVMNetHandler.swift in Sources */,
 				9B80276D2D997EAC002C680E /* VZVMNetFileHandle.swift in Sources */,
 				9B80276E2D997EAC002C680E /* VZVMNetConfig.swift in Sources */,
@@ -1303,13 +1307,13 @@
 				9B464B052D5A3E0300164BF5 /* CakedProvider.swift in Sources */,
 				9B464B082D5A3E0300164BF5 /* Delete.swift in Sources */,
 				9B98B7772D897105003C26F3 /* CakeAgentClientInterceptorFactory.swift in Sources */,
-				9B04883A2DEB1419009D31ED /* VMView.swift in Sources */,
 				9B18FA222DAFF4E500603B92 /* Clone.swift in Sources */,
 				9B464B092D5A3E0300164BF5 /* WaitIP.swift in Sources */,
 				9B464B0A2D5A3E0300164BF5 /* CI.swift in Sources */,
 				9B464B0E2D5A3E0300164BF5 /* CloudInit.swift in Sources */,
 				9B464B0F2D5A3E0300164BF5 /* ImageHandler.swift in Sources */,
 				9BE2E7BD2D5F85D8000CA07F /* Template.swift in Sources */,
+				9BEBCA272DFB20DD0092B196 /* HostingViewFinder.swift in Sources */,
 				9BE2E7BE2D5F85D8000CA07F /* Logout.swift in Sources */,
 				9B464B122D5A3E0300164BF5 /* Purge.swift in Sources */,
 				9B464B142D5A3E0300164BF5 /* Launch.swift in Sources */,
@@ -1351,7 +1355,6 @@
 				9B464B362D5A3E0300164BF5 /* RemoteHandler.swift in Sources */,
 				9B464B372D5A3E0300164BF5 /* Config.swift in Sources */,
 				9B464B382D5A3E0300164BF5 /* LaunchHandler.swift in Sources */,
-				9B1752182DE9F7630067D5A8 /* VirtualMachineView.swift in Sources */,
 				9B464B392D5A3E0300164BF5 /* Service.swift in Sources */,
 				9B464B3A2D5A3E0300164BF5 /* NetworkAttachement.swift in Sources */,
 				9B464B3B2D5A3E0300164BF5 /* Exec.swift in Sources */,
@@ -2036,8 +2039,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/swift-nio-portforwarding.git";
 			requirement = {
-				kind = exactVersion;
-				version = 0.2.7;
+				kind = revision;
+				revision = be52cbd79902a3b74f5b13d69a13bc32953c2c69;
 			};
 		};
 		9B464BFE2D5A41FD00164BF5 /* XCRemoteSwiftPackageReference "GzipSwift" */ = {
