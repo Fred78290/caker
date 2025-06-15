@@ -6,7 +6,7 @@ import Logging
 import CakedLib
 
 struct ListObjects: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "List all VMs")
+	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

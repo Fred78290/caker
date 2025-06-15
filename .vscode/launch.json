@@ -4,7 +4,7 @@
 			"type": "lldb",
 			"request": "attach",
 			"name": "caked attach",
-			"pid": "${command:pickProcess}",
+			"pid": "${command:pickProcess}"
 		},
 		{
 			"type": "swift",
@@ -224,7 +224,7 @@
 			"args": [
 				"configure",
 				"linux",
-				"--dynamic-port-forwarding=true",
+				"--dynamic-port-forwarding=true"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked configure linux",
@@ -678,6 +678,24 @@
 			"name": "Release cakectl",
 			"program": "${workspaceFolder:caker}/.build/release/cakectl",
 			"preLaunchTask": "swift: Build Release cakectl"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Debug caker",
+			"program": "${workspaceFolder:caker}/.build/debug/caker",
+			"preLaunchTask": "swift: Build Debug caker"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "Release caker",
+			"program": "${workspaceFolder:caker}/.build/release/caker",
+			"preLaunchTask": "swift: Build Release caker"
 		}
 	]
 }

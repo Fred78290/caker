@@ -11,11 +11,6 @@ class AppState: ObservableObject {
 @main
 struct MainApp: App {
 	@StateObject var appState = AppState()
-	@AppStorage("vmstopped") var isStopped: Bool = true
-	@AppStorage("vmsuspendable") var isSuspendable: Bool = false
-	@AppStorage("vmrunning") var isRunning: Bool = false
-	@AppStorage("vmpaused") var isPaused: Bool = false
-
 	@NSApplicationDelegateAdaptor private var appDelegate: MainUIAppDelegate
 
 	var body: some Scene {
