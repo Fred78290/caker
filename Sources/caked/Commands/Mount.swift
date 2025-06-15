@@ -5,7 +5,7 @@ import Foundation
 import GRPCLib
 import Logging
 import NIO
-import TextTable
+import CakedLib
 
 struct Mount: ParsableCommand {
 	static let configuration = MountOptions.configuration
@@ -34,13 +34,13 @@ struct Mount: ParsableCommand {
 
 	func run() throws {
 		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
-		let response = try MountHandler.Mount(vmLocation: vmLocation, mounts: self.mount.mounts)
+		let response = try CakedLib.MountHandler.Mount(vmLocation: vmLocation, mounts: self.mount.mounts)
 
 		Logger.appendNewLine(self.common.format.render(response))
 
 		if case let .error(error) = response.response {
 			FileHandle.standardError.write("\(error)\n".data(using: .utf8)!)
-			throw ExitCode(EXIT_FAILURE)
+			throw CakedLib.ExitCode(EXIT_FAILURE)
 		}
 	}
 }

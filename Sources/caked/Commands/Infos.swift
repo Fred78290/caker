@@ -5,7 +5,7 @@ import GRPC
 import GRPCLib
 import Logging
 import NIO
-import TextTable
+import CakedLib
 
 struct Infos: CakeAgentAsyncParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
@@ -36,6 +36,6 @@ struct Infos: CakeAgentAsyncParsableCommand {
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
-		Logger.appendNewLine(self.common.format.render(try InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)))
 	}
 }

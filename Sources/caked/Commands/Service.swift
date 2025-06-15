@@ -11,41 +11,8 @@ import Security
 import SwiftASN1
 import Synchronization
 import X509
+import CakedLib
 
-protocol HasExitCode {
-	var exitCode: Int32 { get }
-}
-
-struct ExitCode: Error, HasExitCode {
-	let exitCode: Int32
-
-	init(_ code: Int32) {
-		self.exitCode = code
-	}
-}
-
-class ServiceError: Error, CustomStringConvertible, Equatable {
-	let description: String
-	let exitCode: Int32
-
-	init(_ errno: Int32) {
-		self.description = String(cString: strerror(errno))
-		self.exitCode = errno
-	}
-
-	init(_ what: String, _ code: Int32 = 1) {
-		self.description = what
-		self.exitCode = code
-	}
-
-	public static func != (lhs: ServiceError, rhs: ServiceError) -> Bool {
-		return lhs.description != rhs.description && lhs.exitCode != rhs.exitCode
-	}
-
-	public static func == (lhs: ServiceError, rhs: ServiceError) -> Bool {
-		return lhs.description == rhs.description && lhs.exitCode == rhs.exitCode
-	}
-}
 struct Certs {
 	let ca: String?
 	let key: String?
@@ -320,14 +287,14 @@ extension Service {
 		}
 
 		func run() async throws {
-			try StartHandler.autostart(on: Root.group.next(), runMode: self.asSystem ? .system : .user)
+			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: self.asSystem ? .system : .user)
 
 			let listenAddress = try self.getServerAddress()
 
 			let servers: [Server] = try listenAddress.map { address in
 				Logger(self).info("Start listening on \(address)")
 				return try Self.createServer(
-					eventLoopGroup: Root.group,
+					eventLoopGroup: Utilities.group,
 					runMode: self.asSystem ? .system : .user,
 					listeningAddress: URL(string: address),
 					caCert: self.caCert,

@@ -5,6 +5,7 @@ import GRPC
 import GRPCLib
 import Logging
 import NIO
+import CakedLib
 
 let delegatedCommand: [String] = [
 	"pull",
@@ -41,7 +42,7 @@ struct Root: ParsableCommand {
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
 
 		sigintSrc.setEventHandler {
-			Self.group.shutdownGracefully { error in
+			Utilities.group.shutdownGracefully { error in
 				if let error = error {
 					exit(withError: error)
 				}
@@ -55,7 +56,6 @@ struct Root: ParsableCommand {
 		return sigintSrc
 	}()
 
-	static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	nonisolated(unsafe)
 		static var configuration = CommandConfiguration(
 			commandName: "\(COMMAND_NAME)",
@@ -88,19 +88,6 @@ struct Root: ParsableCommand {
 				WaitIP.self,
 			])
 
-	static func environment(runMode: Utils.RunMode) throws -> [String: String] {
-		var environment = ProcessInfo.processInfo.environment
-		let home = try Utils.getHome(runMode: runMode)
-
-		environment["TART_HOME"] = home.path
-
-		if environment["CAKE_HOME"] == nil {
-			environment["CAKE_HOME"] = home.path
-		}
-
-		return environment
-	}
-
 	static func vmrunAvailable() -> Bool {
 		Self.configuration.subcommands.first { cmd in
 			cmd.configuration.commandName == "vmrun"
@@ -126,10 +113,6 @@ struct Root: ParsableCommand {
 		}
 
 		return true
-	}
-
-	func run() throws {
-		MainUI.main()
 	}
 
 	public static func main() async throws {
@@ -161,7 +144,7 @@ struct Root: ParsableCommand {
 				if let commandName = commandName {
 					if delegatedCommand.contains(commandName) {
 						try Shell.runTart(command: commandName, arguments: arguments, direct: true, runMode: geteuid() == 0 ? .system : .user)
-						try? await Self.group.shutdownGracefully()
+						try? await Utilities.group.shutdownGracefully()
 						return
 					}
 				}
@@ -175,9 +158,9 @@ struct Root: ParsableCommand {
 				try command.run()
 			}
 
-			try? await Self.group.shutdownGracefully()
+			try? await Utilities.group.shutdownGracefully()
 		} catch {
-			try? await Self.group.shutdownGracefully()
+			try? await Utilities.group.shutdownGracefully()
 
 			if let err = error as? GRPCStatus {
 				let description = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description

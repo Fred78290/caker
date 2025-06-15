@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPCLib
 import Logging
-import TextTable
+import CakedLib
 
 struct Remote: ParsableCommand {
 	static let configuration = CommandConfiguration(
@@ -26,7 +26,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -44,7 +44,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.deleteRemote(name: remote, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.deleteRemote(name: remote, runMode: self.common.runMode)))
 		}
 	}
 
@@ -59,7 +59,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try RemoteHandler.listRemote(runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.listRemote(runMode: self.common.runMode)))
 		}
 	}
 }

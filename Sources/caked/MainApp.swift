@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Virtualization
+import CakedLib
 
 struct MainApp: App {
 	static var _vm: VirtualMachine? = nil

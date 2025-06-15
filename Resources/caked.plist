@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Caked</string>
+	<string>Caker</string>
 	<key>CFBundleDisplayName</key>
-	<string>Caked</string>
+	<string>Caker</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.aldunelabs.caker</string>
 	<key>CFBundleExecutable</key>
-	<string>caked</string>
+	<string>Caker</string>
 	<key>BuildMachineOSBuild</key>
 	<string>24F74</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -77,7 +77,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Fred78290</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Caked need SSH access to running VM and create virtual network</string>
+	<string>Caker need SSH access to running VM and create virtual network</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

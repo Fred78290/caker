@@ -3,7 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import Logging
-import SwiftUI
+import CakedLib
 
 struct Logout: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")
@@ -19,6 +19,6 @@ struct Logout: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try LogoutHandler.logout(host: self.host, direct: true, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.LogoutHandler.logout(host: self.host, direct: true, runMode: self.common.runMode)))
 	}
 }

@@ -6,10 +6,9 @@ import Logging
 import NIOPortForwarding
 import System
 import Virtualization
+import CakedLib
 
 struct VMRun: AsyncParsableCommand {
-	static var launchedFromService = false
-
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
 	@OptionGroup(title: "Global options")
@@ -49,7 +48,7 @@ struct VMRun: AsyncParsableCommand {
 
 		let (_, vmLocation) = self.locations
 
-		Self.launchedFromService = self.launchedFromService
+		CakedLib.VMRunHandler.launchedFromService = self.launchedFromService
 
 		if vmLocation.inited == false {
 			throw ValidationError("VM at \(path) does not exist")
@@ -77,7 +76,7 @@ struct VMRun: AsyncParsableCommand {
 		let (storageLocation, vmLocation) = self.locations
 		let config = try vmLocation.config()
 
-		let handler = VMRunHandler(
+		let handler = CakedLib.VMRunHandler(
 			storageLocation: storageLocation,
 			vmLocation: vmLocation,
 			name: vmLocation.name,
@@ -85,6 +84,13 @@ struct VMRun: AsyncParsableCommand {
 			display: display,
 			config: config)
 
-		try handler.run()
+		try handler.run { vm in
+			if display {
+				MainApp.runUI(name: vmLocation.name, vm: vm, config: config)
+			} else {
+				NSApplication.shared.setActivationPolicy(.prohibited)
+				NSApplication.shared.run()
+			}
+		}
 	}
 }

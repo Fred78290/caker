@@ -1,6 +1,7 @@
 import ArgumentParser
 import GRPCLib
 import Logging
+import CakedLib
 
 struct Build: AsyncParsableCommand {
 	static let configuration = BuildOptions.configuration
@@ -24,6 +25,6 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		try await BuildHandler.build(name: self.options.name, options: self.options, runMode: self.common.runMode)
+		try await CakedLib.BuildHandler.build(name: self.options.name, options: self.options, runMode: self.common.runMode)
 	}
 }

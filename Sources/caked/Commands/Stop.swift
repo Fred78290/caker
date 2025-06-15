@@ -1,6 +1,7 @@
 import ArgumentParser
 import GRPCLib
 import Logging
+import CakedLib
 
 struct Stop: ParsableCommand {
 	static let configuration = StopOptions.configuration
@@ -16,6 +17,6 @@ struct Stop: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, runMode: self.common.runMode)))
 	}
 }

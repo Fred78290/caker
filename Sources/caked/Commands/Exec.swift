@@ -5,6 +5,8 @@ import GRPC
 import GRPCLib
 import Logging
 import NIO
+import CakedLib
+
 
 struct Exec: CakeAgentAsyncParsableCommand {
 	static let configuration = ExecOptions.configuration
@@ -57,7 +59,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
 
 		if exitCode != 0 {
-			throw ExitCode(exitCode)
+			throw CakedLib.ExitCode(exitCode)
 		}
 	}
 }

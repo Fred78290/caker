@@ -10,6 +10,7 @@ import Foundation
 import GRPCLib
 import Logging
 import TextTable
+import CakedLib
 
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")
@@ -25,6 +26,6 @@ struct Delete: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try DeleteHandler.delete(all: self.delete.all, names: self.delete.names, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.DeleteHandler.delete(all: self.delete.all, names: self.delete.names, runMode: self.common.runMode)))
 	}
 }

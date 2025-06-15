@@ -5,11 +5,13 @@ pushd "$(dirname $0)/.." >/dev/null
 PKGDIR=${PWD}/dist/Caker.app
 popd > /dev/null
 
+codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caker
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/cakectl
 
 rm -Rf ${PKGDIR}
 mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
+cp -c .build/debug/caker ${PKGDIR}/Contents/MacOS/caker
 cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
 cp -c .build/debug/cakectl ${PKGDIR}/Contents/Resources/cakectl
 cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile

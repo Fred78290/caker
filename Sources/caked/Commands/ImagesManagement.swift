@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPCLib
 import Logging
-import TextTable
+import CakedLib
 
 struct ImagesManagement: ParsableCommand {
 	static let configuration = CommandConfiguration(
@@ -23,7 +23,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.listImage(remote: self.name, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.listImage(remote: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -41,7 +41,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.info(name: self.name, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.info(name: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -59,7 +59,7 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await ImageHandler.pull(name: self.name, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.pull(name: self.name, runMode: self.common.runMode)))
 		}
 	}
 }

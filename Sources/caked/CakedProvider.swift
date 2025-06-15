@@ -6,17 +6,18 @@ import GRPCLib
 import NIOCore
 import NIOPortForwarding
 import NIOPosix
+import CakedLib
 
-protocol CakedCommand {
+public protocol CakedCommand {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply
 }
 
-protocol CakedCommandAsync: CakedCommand {
+public protocol CakedCommandAsync: CakedCommand {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply>
 }
 
 extension CakedCommand {
-	func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
+	public func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
 
@@ -40,36 +41,11 @@ protocol CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand
 }
 
-class Unimplemented: Error {
+public class Unimplemented: Error {
 	let description: String
 
 	init(_ what: String) {
 		self.description = what
-	}
-}
-
-extension Caked_RunReply {
-	private func print(_ out: Data, err: Bool) {
-		let output = String(data: out, encoding: .utf8) ?? ""
-		let lines = output.split(separator: "\n")
-
-		for line in lines {
-			if err {
-				Logger(self).error(String(line))
-			} else {
-				Logger(self).info(String(line))
-			}
-		}
-	}
-
-	func log() {
-		if self.stderr.isEmpty == false {
-			self.print(self.stderr, err: true)
-		}
-
-		if self.stdout.isEmpty == false {
-			self.print(self.stdout, err: false)
-		}
 	}
 }
 

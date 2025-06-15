@@ -7,7 +7,9 @@ let package = Package(
 	],
 	products: [
 		.executable(name: "caked", targets: ["caked"]),
+		.executable(name: "caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
+		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"])
 	],
 	dependencies: [
@@ -58,9 +60,8 @@ let package = Package(
 		exclude: [
 			"generate.sh",
 			"service.proto",
-		]
-		),
-		.executableTarget(name: "caked", dependencies: [
+		]),
+		.target(name: "CakedLib", dependencies: [
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -99,11 +100,25 @@ let package = Package(
 			.target(name: "GRPCLib"),
 			.target(name: "Qcow2convert"),
 		],
+		path: "Sources/cakedlib",
 		exclude: [
 			"MountService/GRPC/generate.sh",
 			"MountService/GRPC/mount.proto"
-		]
-		),
+		]),
+		.executableTarget(name: "caker", dependencies: [
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
+			.product(name: "GRPC", package: "grpc-swift"),
+			.target(name: "CakedLib"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
+		]),
+		.executableTarget(name: "caked", dependencies: [
+			.product(name: "ArgumentParser", package: "swift-argument-parser"),
+			.product(name: "GRPC", package: "grpc-swift"),
+			.target(name: "CakedLib"),
+			.product(name: "CakeAgentLib", package: "CakeAgent"),
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
+		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
@@ -147,8 +162,7 @@ let package = Package(
 		            	"cakectl"
 		            ],
 		            exclude: [
-		            	"echo.py",
-		            	"TestPlan.xctestplan"
+		            	"echo.py"
 		            ]
 		)
 	]

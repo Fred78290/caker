@@ -5,6 +5,7 @@ import Foundation
 import GRPCLib
 import Logging
 import NIO
+import CakedLib
 
 struct Sh: CakeAgentAsyncParsableCommand {
 	static let configuration = ShellOptions.configuration
@@ -58,7 +59,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		if self.createVM {
-			try await BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), runMode: self.common.runMode)
+			try await CakedLib.BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), runMode: self.common.runMode)
 		}
 
 		try startVM(on: on.next(), name: self.shell.name, waitIPTimeout: self.shell.waitIPTimeout, foreground: self.shell.foreground, runMode: self.common.runMode)

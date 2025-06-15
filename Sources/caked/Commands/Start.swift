@@ -1,6 +1,7 @@
 import ArgumentParser
 import Logging
 import NIOPortForwarding
+import CakedLib
 
 struct Start: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")
@@ -25,6 +26,6 @@ struct Start: ParsableCommand {
 		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(name)
 		let config = try vmLocation.config()
 
-		Logger.appendNewLine(self.common.format.render(try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
 	}
 }

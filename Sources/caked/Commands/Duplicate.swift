@@ -10,6 +10,7 @@ import Foundation
 import GRPCLib
 import Logging
 import TextTable
+import CakedLib
 
 struct Duplicate: ParsableCommand {
 	static let configuration = DuplicateOptions.configuration
@@ -39,7 +40,7 @@ struct Duplicate: ParsableCommand {
 	func run() throws {
 		Logger.appendNewLine(
 			self.common.format.render(
-				try DuplicateHandler.duplicate(
+				try CakedLib.DuplicateHandler.duplicate(
 					from: self.duplicate.from,
 					to: self.duplicate.to,
 					resetMacAddress: self.duplicate.resetMacAddress,

@@ -11,11 +11,13 @@ popd > /dev/null
 swift build -c release --arch x86_64
 swift build -c release --arch arm64
 
+codesign --sign - --entitlements Resources/dev.entitlements --force .build/release/caker
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/release/caked
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/release/cakectl
 
 rm -Rf ${PKGDIR}
 mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
+cp -c .build/release/caker ${PKGDIR}/Contents/MacOS/caker
 cp -c .build/release/caked ${PKGDIR}/Contents/MacOS/caked
 cp -c .build/release/cakectl ${PKGDIR}/Contents/Resources/cakectl
 cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile

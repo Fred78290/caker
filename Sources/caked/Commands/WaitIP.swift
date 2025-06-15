@@ -1,6 +1,7 @@
 import ArgumentParser
 import GRPCLib
 import Logging
+import CakedLib
 
 struct WaitIP: ParsableCommand {
 	static let configuration = WaitIPOptions.configuration
@@ -16,6 +17,6 @@ struct WaitIP: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try WaitIPHandler.waitIP(name: self.waitip.name, wait: self.waitip.wait, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.WaitIPHandler.waitIP(name: self.waitip.name, wait: self.waitip.wait, runMode: self.common.runMode)))
 	}
 }

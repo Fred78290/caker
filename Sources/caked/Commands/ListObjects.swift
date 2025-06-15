@@ -3,10 +3,10 @@ import Foundation
 import GRPC
 import GRPCLib
 import Logging
-import TextTable
+import CakedLib
 
 struct ListObjects: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs")
+	static let configuration = CommandConfiguration(abstract: "List all VMs")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions
@@ -19,6 +19,6 @@ struct ListObjects: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try ListHandler.list(vmonly: !all, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.ListHandler.list(vmonly: !all, runMode: self.common.runMode)))
 	}
 }
