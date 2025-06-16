@@ -1,12 +1,15 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import GRPCLib
+
+// /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
+// /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
 
 public struct ImportHandler {
 	public enum ImportSource: String, ExpressibleByArgument, CaseIterable, Codable, Sendable {
 		case multipass
 		case vmdk
-		
+
 		public static let allValueStrings: [String] = Self.allCases.map { "\($0)" }
 
 		public init?(argument: String) {
@@ -19,24 +22,19 @@ public struct ImportHandler {
 				return nil
 			}
 		}
-	}
 
-	private static func importFromMultipass(location: VMLocation, path: String) async throws {
-		// Logic to import from a multipass source
-		throw ServiceError("Unimplemented import logic for Multipass files.")
-	}
-
-	private static func importFromVMDK(location: VMLocation, path: String) async throws {
-		// Logic to import from a VMDK source
-		if URL.binary("qemu-img") == nil {
-			throw ServiceError("qemu-img binary not found. Please install qemu to import VMDK files.")
+		var importer: Importer {
+			switch self {
+			case .multipass:
+				return MultipassImporter()
+			case .vmdk:
+				return VMWareImporter()
+			}
 		}
-
-		throw ServiceError("Unimplemented import logic for VMDK files.")
 	}
 
-	public static func importVM(from: ImportSource, name: String, source: String, runMode: Utils.RunMode) async throws -> Caked_Reply {	
-		let storageLocation = StorageLocation(runMode: runMode)	
+	public static func importVM(from: ImportSource, name: String, source: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
+		let storageLocation = StorageLocation(runMode: runMode)
 
 		if storageLocation.exists(name) {
 			return Caked_Reply.with { reply in
@@ -50,13 +48,7 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			switch from {
-			case .multipass:
-				try await importFromMultipass(location: tempLocation, path: source)
-			case .vmdk:	
-				try await importFromVMDK(location: tempLocation, path: source)
-			}
-
+			try from.importer.importVM(location: tempLocation, source: source)
 			try storageLocation.relocate(name, from: tempLocation)
 
 			return Caked_Reply.with { reply in
