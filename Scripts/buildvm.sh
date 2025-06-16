@@ -42,6 +42,9 @@ case ${VMNAME} in
     ubuntu*)
         CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
         ;;
+    plucky*)
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img
+        ;;
     centos*)
         CLOUD_IMAGE=https://cloud.centos.org/centos/10-stream/aarch64/images/CentOS-Stream-GenericCloud-10-20250520.0.aarch64.qcow2
         ;;
