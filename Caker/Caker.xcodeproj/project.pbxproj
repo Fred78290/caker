@@ -103,6 +103,8 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
+		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
+		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
@@ -497,6 +499,8 @@
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
+		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
+		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
 		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
@@ -1063,6 +1067,7 @@
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
 				9BEBC69D2DF4400A0092B196 /* Exec.swift */,
 				9BEBC69E2DF4400A0092B196 /* ImagesManagement.swift */,
+				9B9711BF2DFF3284005B161B /* Import.swift */,
 				9BEBC69F2DF4400A0092B196 /* Infos.swift */,
 				9BEBC6A02DF4400A0092B196 /* Launch.swift */,
 				9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */,
@@ -1150,6 +1155,7 @@
 				9BEBC71A2DF440720092B196 /* DuplicateHandler.swift */,
 				9BEBC71B2DF440720092B196 /* ExecuteHandler.swift */,
 				9BEBC71C2DF440720092B196 /* ImageHandler.swift */,
+				9B9711C12DFF32A0005B161B /* ImportHandler.swift */,
 				9BEBC71D2DF440720092B196 /* InfosHandler.swift */,
 				9BEBC71E2DF440720092B196 /* LaunchHandler.swift */,
 				9BEBC71F2DF440720092B196 /* ListHandler.swift */,
@@ -1714,6 +1720,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
 				9BEBC6D02DF4400A0092B196 /* CloneHandler.swift in Sources */,
@@ -1795,6 +1802,7 @@
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
 				9BEBC7802DF440720092B196 /* Config.swift in Sources */,
 				9BEBC7812DF440720092B196 /* GRPCMountService.swift in Sources */,
+				9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */,
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,

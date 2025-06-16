@@ -3,6 +3,23 @@ import GRPCLib
 import Qcow2convert
 
 class CloudImageConverter {
+	static func convertVmdkToRawQemu(from: URL, to: URL) throws {
+		do {
+			let convertOuput = try Shell.execute(
+				to: "qemu-img",
+				arguments: [
+					"convert", "-p", "-f", "vmdk", "-O", "raw",
+					from.path,
+					to.path,
+				])
+			Logger(self).info(convertOuput)
+		} catch {
+			Logger(self).error(error)
+
+			throw error
+		}
+	}
+
 	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {
 		do {
 			let convertOuput = try Shell.execute(
