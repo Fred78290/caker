@@ -86,6 +86,7 @@ struct Root: ParsableCommand {
 				Umount.self,
 				VMRun.self,
 				WaitIP.self,
+				Import.self
 			])
 
 	static func vmrunAvailable() -> Bool {

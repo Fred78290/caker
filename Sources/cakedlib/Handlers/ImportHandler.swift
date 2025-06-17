@@ -33,7 +33,7 @@ public struct ImportHandler {
 		}
 	}
 
-	public static func importVM(from: ImportSource, name: String, source: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
+	public static func importVM(from: ImportSource, name: String, source: String, runMode: Utils.RunMode) throws -> Caked_Reply {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		if storageLocation.exists(name) {
@@ -48,7 +48,7 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			try from.importer.importVM(location: tempLocation, source: source)
+			try from.importer.importVM(location: tempLocation, source: source, runMode: runMode)
 			try storageLocation.relocate(name, from: tempLocation)
 
 			return Caked_Reply.with { reply in
@@ -61,7 +61,7 @@ public struct ImportHandler {
 
 			return Caked_Reply.with { reply in
 				reply.error = Caked_Error.with {
-					$0.code
+					$0.code = 1
 					$0.reason = "Failed to import VM from \(from) at \(source), \(error.localizedDescription)"
 				}
 			}

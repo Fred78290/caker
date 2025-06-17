@@ -25,6 +25,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
+		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
+		9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FF2E019FA400BEFB41 /* Multipass.swift */; };
+		9B20D6062E01A74000BEFB41 /* INI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6052E01A74000BEFB41 /* INI.swift */; };
 		9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
@@ -438,6 +442,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
+		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
+		9B20D6002E019FA400BEFB41 /* VMWare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMWare.swift; sourceTree = "<group>"; };
+		9B20D6052E01A74000BEFB41 /* INI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = INI.swift; sourceTree = "<group>"; };
 		9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementView.swift; sourceTree = "<group>"; };
 		9B2BFAAA2DFED25E000045C3 /* ForwardedPortView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortView.swift; sourceTree = "<group>"; };
 		9B2BFAAB2DFED25E000045C3 /* MountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountView.swift; sourceTree = "<group>"; };
@@ -835,6 +843,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9B20D6012E019FA400BEFB41 /* Importers */ = {
+			isa = PBXGroup;
+			children = (
+				9B20D5FE2E019FA400BEFB41 /* Importer.swift */,
+				9B20D5FF2E019FA400BEFB41 /* Multipass.swift */,
+				9B20D6002E019FA400BEFB41 /* VMWare.swift */,
+			);
+			path = Importers;
+			sourceTree = "<group>";
+		};
 		9B2BFAAF2DFED25E000045C3 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -1262,8 +1280,10 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9B20D6052E01A74000BEFB41 /* INI.swift */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
+				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
 				9BEBC73C2DF440720092B196 /* MountService */,
 				9BEBC7412DF440720092B196 /* Sockets */,
@@ -1825,6 +1845,9 @@
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
 				9BEBC7972DF440720092B196 /* Logger.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
+				9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */,
+				9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */,
+				9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */,
 				9BEBC7992DF440720092B196 /* Shell.swift in Sources */,
 				9BEBC79A2DF440720092B196 /* RenameHandler.swift in Sources */,
 				9BEBC79B2DF440720092B196 /* Certificate.swift in Sources */,
@@ -1848,6 +1871,7 @@
 				9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */,
 				9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */,
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,
+				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCMountService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,

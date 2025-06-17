@@ -1,17 +1,19 @@
 import Foundation
+import GRPCLib
 
 typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance] // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
 typealias MultipassInstances = [String: MultipassInstance] // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
 
 extension MultipassRegisteredInstances {
 	init(data: Data) throws {
-		self = try newJSONDecoder().decode(MultipassInstances.self, from: data)
+		self = try newJSONDecoder().decode(MultipassRegisteredInstances.self, from: data)
 	}
 
 	init(_ json: String, using encoding: String.Encoding = .utf8) throws {
 		guard let data = json.data(using: encoding) else {
 			throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
 		}
+
 		try self.init(data: data)
 	}
 
@@ -66,7 +68,7 @@ struct MultipassRegisteredInstance: Codable, Sendable {
 
 extension MultipassInstances {
 	init(data: Data) throws {
-		self = try newJSONDecoder().decode(Welcome.self, from: data)
+		self = try newJSONDecoder().decode(MultipassInstances.self, from: data)
 	}
 
 	init(_ json: String, using encoding: String.Encoding = .utf8) throws {
@@ -98,11 +100,11 @@ struct MultipassInstance: Codable, Sendable {
 		case stopped
 		case starting
 		case restarting
-		case  running,
+		case running
 		case delayed_shutdown
 		case suspending
-		case  suspended
-		case  unknown
+		case suspended
+		case unknown
 	}
 
 	enum CodingKeys: String, CodingKey {
@@ -133,12 +135,12 @@ struct MultipassInstance: Codable, Sendable {
 	struct Metadata: Codable, Sendable {
 		var arguments: [String]
 		var machineType: String
-		var mountData: MountData
+//		var mountData: MountData
 
 		enum CodingKeys: String, CodingKey {
 			case arguments
 			case machineType = "machine_type"
-			case mountData = "mount_data"
+//			case mountData = "mount_data"
 		}
 	}
 
@@ -196,7 +198,7 @@ func newJSONEncoder() -> JSONEncoder {
 }
 
 struct MultipassImporter: Importer {
-	func importVM(location: VMLocation, source: String) throws {
+	func importVM(location: VMLocation, source: String, runMode: Utils.RunMode) throws {
 		// Logic to import a VM from Multipass
 		throw ServiceError("Unimplemented import logic for Multipass files.")
 	}

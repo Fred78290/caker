@@ -4,23 +4,20 @@ import CakedLib
 import GRPCLib
 import Logging
 
-struct Import: AsyncParsableCommand {
-	static var configuration = CommandConfiguration(
-		commandName: "import",
-		abstract: "Import a Cakefile from a file or URL."
-	)
+struct Import: ParsableCommand {
+	static var configuration = CommandConfiguration(commandName: "convert",  abstract: "Import an external VM from a file or URL.")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions
 
-	@Argument(help: "The path to the Cakefile to import.")
-	var from: CakedLib.ImportHandler.ImportSource
+	@Option(help: "Kind of virtual machine to convert from.")
+	var from: CakedLib.ImportHandler.ImportSource = .vmdk
 	
-	@Argument(help: "The name of the VM to import.")
-	var name: String
-
-	@Argument(help: "The path to the source file or directory to import.")
+	@Argument(help: "The name virtual machine to convert from or abolsute path to the directory containing the VMs.")
 	var source: String
+
+	@Argument(help: "The name of the virtual machine to create.")
+	var name: String
 
 	var logLevel: Logging.Logger.Level {
 		self.common.logLevel
@@ -30,7 +27,13 @@ struct Import: AsyncParsableCommand {
 		self.common.runMode
 	}
 
-	func run() async throws {
-		let result = try await ImportHandler.importVM(from: from, name: name, source: source, runMode: .user)
+	func run() throws {
+		let result = try ImportHandler.importVM(from: from, name: name, source: source, runMode: .user)
+
+		if case let .error(err) = result.response {
+			throw ServiceError(err.reason, err.code)
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.vms.message))
+		}
 	}
 }
