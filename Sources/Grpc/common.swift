@@ -259,6 +259,10 @@ extension String {
 		return false
 	}
 
+	public var deletingPathExtension: String {
+		return (self as NSString).deletingPathExtension
+	}
+
 	public var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
 			return (self as NSString).expandingTildeInPath

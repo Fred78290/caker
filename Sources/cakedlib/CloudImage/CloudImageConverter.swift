@@ -97,7 +97,7 @@ class CloudImageConverter {
 
 	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode) async throws -> URL {
 		// Check if we already have this linux image in cache
-		let fileName = (remoteURL.lastPathComponent as NSString).deletingPathExtension
+		let fileName = remoteURL.lastPathComponent.deletingPathExtension
 		let imageCache = try CloudImageCache(name: remoteURL.host()!, runMode: runMode)
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
@@ -111,7 +111,7 @@ class CloudImageConverter {
 	}
 
 	static func retrieveCloudImageAndConvert(from: URL, to: URL, runMode: Utils.RunMode) async throws {
-		let fileName = (from.lastPathComponent as NSString).deletingPathExtension
+		let fileName = from.lastPathComponent.deletingPathExtension
 		let imageCache: CloudImageCache = try CloudImageCache(name: from.host()!, runMode: runMode)
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
