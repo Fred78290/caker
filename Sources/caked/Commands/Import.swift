@@ -13,11 +13,14 @@ struct Import: ParsableCommand {
 	@Option(help: "Kind of virtual machine to convert from.")
 	var from: CakedLib.ImportHandler.ImportSource = .vmdk
 	
-	@Option(name: [.long, .customShort("u")], help: "The user to use for the VM")
+	@Option(name: .shortAndLong, help: "The user to use for the VM")
 	public var user: String = "admin"
 
-	@Option(name: [.long, .customShort("w")], help: "The user password for login")
+	@Option(name: .shortAndLong, help: "The user password for login")
 	public var password: String = "admin"
+
+	@Option(name: [.customLong("ssh-key"), .customShort("i")], help: "Optional SSH private key to use for the VM")
+	public var sshPrivateKey: String? = nil
 
 	@Argument(help: "The name virtual machine to convert from or abolsute path to the directory containing the VMs.")
 	var source: String
@@ -34,7 +37,7 @@ struct Import: ParsableCommand {
 	}
 
 	func run() throws {
-		let result = try ImportHandler.importVM(from: from, name: name, source: source, userName: user, password: password, runMode: .user)
+		let result = try ImportHandler.importVM(from: from, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, runMode: .user)
 
 		if case let .error(err) = result.response {
 			throw ServiceError(err.reason, err.code)

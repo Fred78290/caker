@@ -538,7 +538,11 @@ public struct VMLocation {
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
-		try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			try ssh.authenticate(username: config.configuredUser, privateKey: sshPrivateKeyPath.expandingTildeInPath)
+		} else {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		}
 
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 

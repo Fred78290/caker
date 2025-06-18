@@ -33,7 +33,7 @@ public struct ImportHandler {
 		}
 	}
 
-	public static func importVM(from: ImportSource, name: String, source: String, runMode: Utils.RunMode) throws -> Caked_Reply {
+	public static func importVM(from: ImportSource, name: String, source: String, userName: String, password: String, sshPrivateKey: String?, runMode: Utils.RunMode) throws -> Caked_Reply {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		if storageLocation.exists(name) {
@@ -48,7 +48,7 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			try from.importer.importVM(location: tempLocation, source: source, runMode: runMode)
+			try from.importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, runMode: runMode)
 			try storageLocation.relocate(name, from: tempLocation)
 
 			return Caked_Reply.with { reply in

@@ -1003,7 +1003,6 @@
 		9B464ADB2D5A3E0300164BF5 /* grpc */ = {
 			isa = PBXGroup;
 			children = (
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
@@ -1013,6 +1012,7 @@
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
+				9B21ABD12DF4A2C5000B3B40 /* Model */,
 				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
 			path = grpc;

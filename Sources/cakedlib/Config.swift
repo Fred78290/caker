@@ -191,6 +191,11 @@ public final class CakeConfig {
 		get { self.cake["instance-id"] as? String ?? UUID().uuidString }
 	}
 
+	public var sshPrivateKeyPath: String? {
+		set { self.cake["sshPrivateKey"] = newValue }
+		get { self.cake["sshPrivateKey"] as? String }
+	}
+
 	public var configuredUser: String {
 		set { self.cake["configuredUser"] = newValue }
 		get { self.cake["configuredUser"] as? String ?? "admin" }

@@ -150,7 +150,9 @@
 			"args": [
 				"convert",
 				"ubuntu-desktop",
-				"ubuntu-desktop"
+				"ubuntu-desktop",
+				"--user=fboltz",
+				"--ssh-key=~/.ssh/id_rsa",
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked convert ubuntu-desktop",
@@ -269,6 +271,20 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun sequoia",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"vmrun",
+				"ubuntu-desktop",
+				"--display",
+				"--log-level=info"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vmrun ubuntu-desktop",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
