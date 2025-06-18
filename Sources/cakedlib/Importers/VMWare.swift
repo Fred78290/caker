@@ -228,8 +228,8 @@ struct VMXMap: Sendable {
 					}
 
 					if let present = Bool(present.lowercased()), present {
-						if let fileName = values["\(baseKey):fileName".lowercased()] {
-							let deviceType = VMXMap.DiskAttachement.DeviceType(argument: values["\(baseKey):deviceType".lowercased()])
+						if let fileName = values["\(baseKey).fileName".lowercased()] {
+							let deviceType = VMXMap.DiskAttachement.DeviceType(argument: values["\(baseKey).deviceType".lowercased()])
 
 							attachments.append(DiskAttachement(disk: fileName, deviceType: deviceType, controller: controller, controllerNumber: controllerNumber, unitNumber: diskNumber))
 						}
@@ -247,34 +247,35 @@ struct VMWareImporter: Importer {
 
 	struct VMNet {
 		var deviceNumber: Int
-		var dhcp: Bool
-		var uuid: String?
+		var dhcp: Bool = false
+		var uuid: String? = nil
 		var name: String
-		var netmask: String
-		var subnet: String
-		var virtual: Bool
-		var nat: Bool
+		var netmask: String = ""
+		var subnet: String = ""
+		var virtual: Bool = false
+		var nat: Bool = false
 		var natIp6Prefix: String? = nil
 	}
 
-	func importVM(location: VMLocation, source: String, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshKey: Data? = nil, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
 		if URL.binary("qemu-img") == nil {
 			throw ServiceError("qemu-img binary not found. Please install qemu to import VMWare files.")
 		}
 
 		let vmxMap = try locateVM(source: source)
+		let ethernetAttachements: [VMXMap.EthernetAttachment] = vmxMap.ethernetAttachements
 
-		try createMissingNetworks(networks: vmxMap.ethernetAttachements, runMode: runMode)
+		try createMissingNetworks(ethernetAttachements: ethernetAttachements, runMode: runMode)
 
+		let networkAttachments: (VZMACAddress?, [BridgeAttachement]) = try importNetworkAttachements(ethernetAttachements: ethernetAttachements)
 		let diskAttachements = try importDiskAttachements(from: vmxMap, to: location)
-		let networkAttachments = try importNetworkAttachements(from: vmxMap)
 		let config = CakeConfig(
 			location: location.rootURL,
 			os: .linux,
 			autostart: false,
-			configuredUser: "admin",
-			configuredPassword: "admin",
+			configuredUser: userName,
+			configuredPassword: password,
 			displayRefit: true,
 			cpuCountMin: vmxMap.cpuCount,
 			memorySizeMin: vmxMap.memorySize)
@@ -286,12 +287,14 @@ struct VMWareImporter: Importer {
 		config.networks = networkAttachments.1
 		config.macAddress = networkAttachments.0 ?? VZMACAddress.randomLocallyAdministered()
 
+		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+
 		try config.save()
 	}
 
-	func importNetworkAttachements(from vmxMap: VMXMap) throws -> (VZMACAddress?, [GRPCLib.BridgeAttachement]) {
+	func importNetworkAttachements(ethernetAttachements: [VMXMap.EthernetAttachment]) throws -> (VZMACAddress?, [GRPCLib.BridgeAttachement]) {
 		var macAddress: VZMACAddress? = nil
-		let networks: [GRPCLib.BridgeAttachement] = vmxMap.ethernetAttachements.compactMap { ethernet in
+		let networks: [GRPCLib.BridgeAttachement] = ethernetAttachements.compactMap { ethernet in
 			if ethernet.connectionType == .nat {
 				if let mac = ethernet.macAddress {
 					macAddress = VZMACAddress(string: mac)
@@ -313,9 +316,9 @@ struct VMWareImporter: Importer {
 
 	func importDiskAttachements(from vmxMap: VMXMap, to location: VMLocation) throws -> [GRPCLib.DiskAttachement]{
 		var diskCount = 0
-		var cdromCount = 0
 		var result: [GRPCLib.DiskAttachement] = []
-		let diskAttachments = vmxMap.diskAttachments.reduce(into: [VMXMap.DiskAttachement.ControllerType:[VMXMap.DiskAttachement]]()) { (attachements, attachment) in
+		let devices = vmxMap.diskAttachments
+		let diskAttachments = devices.reduce(into: [VMXMap.DiskAttachement.ControllerType:[VMXMap.DiskAttachement]]()) { (attachements, attachment) in
 			var controller = attachements[attachment.controller] ?? []
 
 			controller.append(attachment)
@@ -329,42 +332,47 @@ struct VMWareImporter: Importer {
 				for attachment in attachments {
 					var sourceURL = vmxMap.baseURL.deletingLastPathComponent().appendingPathComponent(attachment.disk)
 					var insideVM = true
-					
+
 					if try sourceURL.exists() == false {
 						// If the disk file does not exist at the expected location, try to find it in the same directory as the VMX file
 						sourceURL = URL(fileURLWithPath: attachment.disk)
 						insideVM = false
+
 						guard try sourceURL.exists() else {
+							logger.error("Disk file \(attachment.disk) not found in the VMX directory or the specified path.")
 							continue
 						}
 					}
-					
+
 					if attachment.deviceType == .disk {
 						let destinationURL: URL
-						
+
 						if diskCount == 0 {
 							destinationURL = location.diskURL
 						} else {
-							destinationURL = location.rootURL.appendingPathComponent("disk-\(diskCount).img")
+							destinationURL = location.rootURL.appendingPathComponent("\(attachment.disk.deletingPathExtension).img")
+							result.append(try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent))
 						}
-						
-						try CloudImageConverter.convertVmdkToRawQemu(from: sourceURL, to: destinationURL)
-						
-						result.append(try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent))
-						
+
+						logger.info("Converting VMDK disk \(attachment.disk) to raw format at \(destinationURL.path)")
+
+						try CloudImageConverter.convertVmdkToRawQemu(from: sourceURL, to: destinationURL, outputHandle: FileHandle.standardOutput, errorHandle: FileHandle.standardError)
+
 						diskCount += 1
 					} else if attachment.deviceType == .cdrom {
 						if insideVM {
-							let destinationURL = location.rootURL.appendingPathComponent("cdrom-\(cdromCount).iso")
-							
+							let destinationURL = location.rootURL.appendingPathComponent(attachment.disk)
+
+							logger.info("Copying CD-ROM disk \(attachment.disk) to \(destinationURL.path)")
+
 							try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-							
+
 							result.append(try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent))
 						} else {
+							logger.info("Add CD-ROM disk from outside the VM at \(sourceURL.path)")
 							result.append(try GRPCLib.DiskAttachement(parseFrom: sourceURL.absoluteURL.path))
 						}
-						
-						cdromCount += 1
+
 					} else if attachment.deviceType == .floppy {
 						// Handle floppy disks if needed
 						logger.warn("Floppy disk attachments are not supported in this importer.")
@@ -404,66 +412,48 @@ struct VMWareImporter: Importer {
 		for line in lines {
 			if line.starts(with: "answer") {
 				let input = line.split(separator: " ", maxSplits: 3)
-				
+
 				if input.count == 3 {
 					let key = String(input[1]).trimmingCharacters(in: whitespacesAndNewlines)
 					let value = String(input[2]).trimmingCharacters(in: whitespacesAndNewlines)
 					let vmnet = key.split(separator: "_")
 					let deviceNumber = Int(vmnet[1]) ?? 0
-					var dhcp = false
-					var uuid: String? = nil
-					var name = "vmnet\(deviceNumber)"
-					var netmask: String? = nil
-					var subnet: String? = nil
-					var virtual = false
-					var nat = false
-					let natIp6Prefix = natIp6Prefix(vmnet: name)
-					
+					let name = "vmnet\(deviceNumber)"
+					var config = vmnets[name] ?? VMNet(deviceNumber: deviceNumber, name: name, natIp6Prefix: natIp6Prefix(vmnet: name))
+
 					if vmnet[2] == "DHCP" {
 						if vmnet.count == 2 {
-							dhcp = value == "yes" || value == "1"
+							config.dhcp = value == "yes" || value == "1"
 						}
 					} else if vmnet[2] == "HOSTONLY" {
 						if vmnet.count == 4 {
 							if vmnet[3] == "UUID" {
-								uuid = value
+								config.uuid = value
 							} else if vmnet[3] == "NAME" {
-								name = value
+								config.name = value
 							} else if vmnet[3] == "NETMASK" {
-								netmask = value
+								config.netmask = value
 							} else if vmnet[3] == "SUBNET" {
-								subnet = value
+								config.subnet = value
 							}
 						} else if vmnet.count == 5 {
 							if vmnet[3] == "UUID" && vmnet[4] == "NAME" {
-								uuid = value
+								config.uuid = value
 							} else if vmnet[3] == "NETMASK" && vmnet[4] == "SUBNET" {
-								netmask = value
+								config.netmask = value
 							}
 						}
 					} else if vmnet[2] == "VIRTUAL" {
 						if vmnet.count == 3 {
-							virtual = value == "yes" || value == "1"
+							config.virtual = value == "yes" || value == "1"
 						}
-						virtual = value == "yes" || value == "1"
 					} else if vmnet[2] == "NAT" {
 						if vmnet.count == 3 {
-							nat = value == "yes" || value == "1"
+							config.nat = value == "yes" || value == "1"
 						}
 					}
 
-					if let netmask = netmask, let subnet = subnet {
-						// Create a new VMNet instance and add it to the dictionary
-						vmnets[name] = VMNet(deviceNumber: deviceNumber,
-											 dhcp: dhcp,
-											 uuid: uuid,
-											 name: name,
-											 netmask: netmask,
-											 subnet: subnet,
-											 virtual: virtual,
-											 nat: nat,
-											 natIp6Prefix: natIp6Prefix)
-					}
+					vmnets[name] = config
 				}
 			}
 		}
@@ -471,15 +461,15 @@ struct VMWareImporter: Importer {
 		return vmnets
 	}
 
-	func createMissingNetworks(networks: [VMXMap.EthernetAttachment], runMode: Utils.RunMode) throws {
+	func createMissingNetworks(ethernetAttachements: [VMXMap.EthernetAttachment], runMode: Utils.RunMode) throws {
 		struct CreateNetwork {
 			var name: String
 			var network: VZSharedNetwork
 		}
 
 		let networkConfig = try Home(runMode: runMode).sharedNetworks()
-		let vmnets = try self.vmnet()
-		let createIt: [CreateNetwork] = try networks.compactMap { ethernet in
+		let vmnets = try vmnet()
+		let createIt: [CreateNetwork] = try ethernetAttachements.compactMap { ethernet in
 			if ethernet.connectionType == .custom {
 				if let vmnet = vmnets[ethernet.name] {
 					if networkConfig.sharedNetworks[ethernet.name] == nil {
@@ -494,7 +484,7 @@ struct VMWareImporter: Importer {
 						                     	mode: vmnet.nat ? .shared : .host,
 						                     	netmask: vmnet.netmask,
 						                     	dhcpStart: dhcpStart.description,
-												dhcpEnd: dhcpEnd.description,
+						                     	dhcpEnd: dhcpEnd.description,
 						                     	dhcpLease: 300,
 						                     	interfaceID: vmnet.uuid ?? UUID().uuidString,
 						                     	nat66Prefix: vmnet.natIp6Prefix
