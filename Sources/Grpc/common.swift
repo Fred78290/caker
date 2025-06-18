@@ -261,7 +261,7 @@ extension String {
 
 	public var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
-			return NSString(string: self).expandingTildeInPath
+			return (self as NSString).expandingTildeInPath
 		}
 
 		return self

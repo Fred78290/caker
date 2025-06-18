@@ -96,7 +96,7 @@ public struct VMBuilder {
 		if starter.first(where: { start in return options.image.starts(with: start) }) != nil {
 			imageURL = URL(string: options.image)!
 		} else if options.image.contains(":") == false {
-			imageURL = URL(fileURLWithPath: NSString(string: options.image).expandingTildeInPath)
+			imageURL = URL(fileURLWithPath: options.image.expandingTildeInPath)
 		} else {
 			throw ServiceError("unsupported url: \(options.image)")
 		}
