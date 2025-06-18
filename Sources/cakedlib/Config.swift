@@ -540,7 +540,7 @@ extension CakeConfig {
 		let cloudInit = URL(fileURLWithPath: "cloud-init.iso", relativeTo: self.location).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
 
-		attachedDisks.append(contentsOf: self.attachedDisks.compactMap { try? $0.configuration() })
+		attachedDisks.append(contentsOf: self.attachedDisks.compactMap { try? $0.configuration(relativeTo: self.location) })
 
 		if try cloudInit.exists() {
 			let attachment = try VZDiskImageStorageDeviceAttachment(url: cloudInit, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)

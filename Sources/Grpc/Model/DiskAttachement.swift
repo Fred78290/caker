@@ -124,7 +124,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		var value: [String] = [diskPath]
 		let options = self.diskOptions.description
 
-		if !value.isEmpty {
+		if !options.isEmpty {
 			value.append(options)
 		}
 
@@ -190,12 +190,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		(self.diskPath, self.diskOptions) = try Self.parseOptions(parseFrom)
 	}
 
-	public func configuration() throws -> VZStorageDeviceConfiguration {
-		let diskURL = URL(string: diskPath)!
-		let diskPath = NSString(string: diskPath).expandingTildeInPath
-		let diskFileURL = URL(fileURLWithPath: diskPath)
-
+	public func configuration(relativeTo: URL) throws -> VZStorageDeviceConfiguration {
 		if #available(macOS 14, *) {
+			let diskURL = URL(string: diskPath)!
+			
 			if ["nbd", "nbds", "nbd+unix", "nbds+unix"].contains(diskURL.scheme) {
 				let nbdAttachment = try VZNetworkBlockDeviceStorageDeviceAttachment(
 					url: diskURL,
@@ -207,6 +205,9 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 				return VZVirtioBlockDeviceConfiguration(attachment: nbdAttachment)
 			}
 		}
+
+		let diskURL = URL(fileURLWithPath: self.diskPath.expandingTildeInPath, relativeTo: relativeTo).absoluteURL
+		let diskPath = diskURL.path
 
 		if FileManager.default.fileExists(atPath: diskPath) == false {
 			throw ValidationError("disk \(diskPath) does not exist")
@@ -224,11 +225,11 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 
 				switch details.rawValue {
 				case EBUSY:
-					throw ValidationError("\(diskFileURL.path) already in use, try umounting it")
+					throw ValidationError("\(diskPath) already in use, try umounting it")
 				case EACCES:
-					throw ValidationError("\(diskFileURL.path) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskFileURL.path)\" or run as a superuser")
+					throw ValidationError("\(diskPath) permission denied, consider changing the disk's owner using \"sudo chown $USER \(diskPath)\" or run as a superuser")
 				default:
-					throw ValidationError("\(details), \(diskFileURL.path)")
+					throw ValidationError("\(details), \(diskPath)")
 				}
 			}
 
@@ -240,12 +241,12 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 			return VZVirtioBlockDeviceConfiguration(attachment: blockAttachment)
 		}
 
-		if try self.diskOptions.readOnly == false && !FileLock(lockURL: diskFileURL).trylock() {
-			throw ValidationError("disk \(diskFileURL.path) seems to be already in use, unmount it first in Finder")
+		if try self.diskOptions.readOnly == false && !FileLock(lockURL: diskURL).trylock() {
+			throw ValidationError("disk \(diskURL.path) seems to be already in use, unmount it first in Finder")
 		}
 
 		let diskImageAttachment = try VZDiskImageStorageDeviceAttachment(
-			url: diskFileURL,
+			url: diskURL,
 			readOnly: self.diskOptions.readOnly,
 			cachingMode: try VZDiskImageCachingMode(description: self.diskOptions.cachingMode),
 			synchronizationMode: try VZDiskImageSynchronizationMode(description: self.diskOptions.syncMode)
@@ -271,19 +272,22 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 				throw ValidationError("Attaching Network Block Devices are not supported prior MacOS 14")
 			}
 		} else {
-			let diskPath = NSString(string: diskPath).expandingTildeInPath
+			let diskPath = diskPath.expandingTildeInPath
 
 			if diskPath.isEmpty {
 				throw ValidationError("Disk path is empty")
 			}
 
-			if FileManager.default.fileExists(atPath: diskPath) == false {
-				throw ValidationError("disk \(diskPath) does not exist")
-			}
+			// Check if the disk path is a valid local file path
+			if diskPath.contains("/") {
+				if FileManager.default.fileExists(atPath: diskPath) == false {
+					throw ValidationError("disk \(diskPath) does not exist")
+				}
 
-			if Self.isBlockingDevice(diskPath) {
-				guard #available(macOS 14, *) else {
-					throw ValidationError("Attaching block devices prior MacOS 14")
+				if Self.isBlockingDevice(diskPath) {
+					guard #available(macOS 14, *) else {
+						throw ValidationError("Attaching block devices prior MacOS 14")
+					}
 				}
 			}
 		}

@@ -15,12 +15,12 @@ public struct InfosHandler {
 		} else {
 			var diskInfos: [DiskInfo] = []
 
-			diskInfos.append(DiskInfo(device: "", mount: "/", fsType: "native", total: UInt64(try vmLocation.diskSize()), free: 0, used: 0))
+			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.location).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try vmLocation.diskSize()), free: 0, used: 0))
 
 			for disk in config.attachedDisks {
-				let diskURL = URL(fileURLWithPath: disk.diskPath)
+				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.location).absoluteURL
 
-				diskInfos.append(DiskInfo(device: "", mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
+				diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
 			}
 
 			infos = InfoReply.with {
