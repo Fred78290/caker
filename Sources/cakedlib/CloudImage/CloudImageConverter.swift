@@ -3,15 +3,17 @@ import GRPCLib
 import Qcow2convert
 
 class CloudImageConverter {
-	static func convertVmdkToRawQemu(from: URL, to: URL) throws {
+	static func convertVmdkToRawQemu(from: URL, to: URL, outputHandle: FileHandle? = nil, errorHandle: FileHandle? = nil) throws {
 		do {
 			let convertOuput = try Shell.execute(
 				to: "qemu-img",
 				arguments: [
 					"convert", "-p", "-f", "vmdk", "-O", "raw",
-					from.path,
-					to.path,
-				])
+					"'\(from.path)'",
+					"'\(to.path)'",
+				],
+				outputHandle: outputHandle,
+				errorHandle: errorHandle)
 			Logger(self).info(convertOuput)
 		} catch {
 			Logger(self).error(error)
@@ -20,15 +22,17 @@ class CloudImageConverter {
 		}
 	}
 
-	static func convertCloudImageToRawQemu(from: URL, to: URL) throws {
+	static func convertCloudImageToRawQemu(from: URL, to: URL, outputHandle: FileHandle? = nil, errorHandle: FileHandle? = nil) throws {
 		do {
 			let convertOuput = try Shell.execute(
 				to: "qemu-img",
 				arguments: [
 					"convert", "-p", "-f", "qcow2", "-O", "raw",
-					from.path,
-					to.path,
-				])
+					"'\(from.path)'",
+					"'\(to.path)'",
+				],
+				outputHandle: outputHandle,
+				errorHandle: errorHandle)
 			Logger(self).info(convertOuput)
 		} catch {
 			Logger(self).error(error)
