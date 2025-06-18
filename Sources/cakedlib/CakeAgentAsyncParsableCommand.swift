@@ -76,11 +76,11 @@ extension CakeAgentAsyncParsableCommand {
 		try self.options.validate(listeningAddress.absoluteString)
 	}
 
-	mutating func validate() throws {
+	public mutating func validate() throws {
 		try self.validateOptions(runMode: self.runMode)
 	}
 
-	mutating func run() async throws {
+	public mutating func run() async throws {
 		let eventLoop = Utilities.group.next()
 		let grpcClient = try self.options.createClient(on: eventLoop, retries: self.retries, interceptors: self.interceptors)
 
