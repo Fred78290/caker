@@ -148,6 +148,19 @@
 			"type": "swift",
 			"request": "launch",
 			"args": [
+				"convert",
+				"ubuntu-desktop",
+				"ubuntu-desktop"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked convert ubuntu-desktop",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
 				"waitip",
 				"ubuntu",
 				"--wait",

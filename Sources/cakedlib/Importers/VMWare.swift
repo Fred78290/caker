@@ -175,7 +175,7 @@ struct VMXMap: Sendable {
 				break
 			}
 
-			if let present = Bool(present), present {
+			if let present = Bool(present.lowercased()), present {
 				var connectionType = EthernetAttachment.ConnectionType(argument: values["\(baseKey).connectionType".lowercased()]) ?? .nat
 				let addressType = EthernetAttachment.AddressType(argument: values["\(baseKey).addressType".lowercased()])
 				let virtualDev = values["\(baseKey).virtualDev".lowercased()]
@@ -223,7 +223,11 @@ struct VMXMap: Sendable {
 					// The controllerNumber and diskNumber are used to differentiate between multiple disks on the same controller
 					let baseKey = "\(controller.rawValue)\(controllerNumber):\(diskNumber)"
 
-					if let present = Bool(values["\(baseKey).present"] ?? "false"), present {
+					guard let present = values["\(baseKey).present"] else {
+						continue
+					}
+
+					if let present = Bool(present.lowercased()), present {
 						if let fileName = values["\(baseKey):fileName".lowercased()] {
 							let deviceType = VMXMap.DiskAttachement.DeviceType(argument: values["\(baseKey):deviceType".lowercased()])
 
