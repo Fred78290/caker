@@ -27,6 +27,32 @@ struct MultipassRegisteredInstance: Codable, Sendable {
 	var lastAccessed: Int
 	var query: MultipassRegisteredInstanceQuery
 
+	struct DiskAttachement: Sendable {
+		enum DeviceType: String {
+			case disk = "disk"
+			case cdrom = "cdrom"
+
+			init(argument: String?) {
+				guard let argument = argument else {
+					self = .disk
+					return
+				}
+
+				switch argument.lowercased() {
+				case "disk":
+					self = .disk
+				case "cdrom-image":
+					self = .cdrom
+				default:
+					self = .disk
+				}
+			}
+		}
+
+		var diskURL: URL
+		var deviceType: DeviceType
+	}
+
 	struct MultipassRegisteredInstanceImage: Codable, Sendable {
 		var aliases: [String]?
 		var currentRelease: String
@@ -42,6 +68,18 @@ struct MultipassRegisteredInstance: Codable, Sendable {
 			case originalRelease = "original_release"
 			case path
 			case releaseDate = "release_date"
+		}
+	}
+
+	var diskAttachments: [MultipassRegisteredInstance.DiskAttachement] {
+		var location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
+
+		guard let disks = try FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter(where: { $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
+			throw ServiceError("No disk files found in the specified directory: \(url.path)")
+		}
+
+		return disks.compactMap { diskURL in
+			return MultipassRegisteredInstance.DiskAttachement(diskURL: diskURL, deviceType: diskURL.pathExtension.lowercased() == "iso" ? .cdrom : .disk)
 		}
 	}
 
@@ -88,7 +126,8 @@ struct MultipassInstance: Codable, Sendable {
 	var deleted: Bool
 	var diskSpace: String
 	var extraInterfaces: [ExtraInterface]
-	var macAddr, memSize: String
+	var macAddr: String
+	var memSize: String
 	var metadata: Metadata
 	var mounts: [Mount]
 	var numCores: Int
@@ -179,6 +218,17 @@ struct MultipassInstance: Codable, Sendable {
 			case uidMappings = "uid_mappings"
 		}
 	}
+
+	var ethernetAttachements: [BridgeAttachement] {
+		var attachements: [BridgeAttachement] = []
+
+		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddr)) // Default NAT network
+
+		for extraInterface in self.extraInterfaces {
+			attachements.append(BridgeAttachement(network: extraInterface.id, mode: extraInterface.autoMode ? .auto : .manual, macAddress: extraInterface.macAddress))
+		}
+	}
+
 }
 
 func newJSONDecoder() -> JSONDecoder {
@@ -207,6 +257,61 @@ struct MultipassImporter: Importer {
 	}
 
 	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, uid: uid_t, gid: gid_t, runMode: Utils.RunMode) throws {
+		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
+		
+		guard let registeredInstance = registeredInstances[source] else {
+			throw ServiceError("No registered instance found for source: \(source)")
+		}
+
+		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
+
+		guard let instance = instances[source] else {
+			throw ServiceError("No instance found: \(source)")
+		}
+
+		if instance.deleted {
+			throw ServiceError("Instance \(source) is deleted and cannot be imported.")
+		}
+
+		if instance.state != .off && instance.state != .stopped {
+			throw ServiceError("Instance \(source) is not in a stopped state, current state: \(instance.state)")
+		}
+
+		guard let cpuCount = instance.numCores, cpuCount > 0 else {
+			throw ServiceError("Invalid CPU count for instance \(source).")
+		}
+
+		guard let memorySize = UInt64(instance.memSize) else {
+			throw ServiceError("Invalid memory size for instance \(source).")
+		}s
+
+		let ethernetAttachements = instance.ethernetAttachements
+		let diskAttachments = try importDiskAttachements(diskAttachments: registeredInstance.diskAttachments, to: location)
+
+		let config = CakeConfig(
+			location: location.rootURL,
+			os: .linux,
+			autostart: false,
+			configuredUser: userName,
+			configuredPassword: password,
+			displayRefit: true,
+			cpuCountMin: cpuCount,
+			memorySizeMin: memorySize)
+
+		config.useCloudInit = true
+		config.agent = false
+		config.nested = true
+		config.attachedDisks = diskAttachments
+		config.networks = networkAttachments
+		config.mounts = vmxMap.sharedFolders
+		config.macAddress = networkAttachments.first { $0.name == "nat" }?.macAddress ?? VZMACAddress.randomLocallyAdministered()
+		config.sshPrivateKeyPath = sshPrivateKey
+		config.firstLaunch = true
+
+		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+
+		try config.save()
+
 		// Logic to import a VM from Multipass
 		throw ServiceError("Unimplemented import logic for Multipass files.")
 	}
