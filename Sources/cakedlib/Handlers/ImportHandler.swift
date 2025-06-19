@@ -68,10 +68,19 @@ public struct ImportHandler {
 		} catch {
 			try? tempLocation.delete()
 
+			if let serviceError = error as? ServiceError {
+				return Caked_Reply.with { reply in
+					reply.error = Caked_Error.with {
+						$0.code = serviceError.exitCode
+						$0.reason = "Failed to import VM from \(importer.name) at \(source), \(serviceError.description)"
+					}
+				}
+			}
+
 			return Caked_Reply.with { reply in
 				reply.error = Caked_Error.with {
 					$0.code = 1
-					$0.reason = "Failed to import VM from \(importer.name) at \(source), \(error.localizedDescription)"
+					$0.reason = "Failed to import VM from \(importer.name) at \(source), \(error)"
 				}
 			}
 		}

@@ -104,6 +104,7 @@ struct VMXMap: Sendable {
 		var controller: ControllerType
 		var controllerNumber: Int
 		var unitNumber: Int
+		var locked: Bool
 	}
 
 	init(baseURL: URL, data: Data) throws {
@@ -163,6 +164,36 @@ struct VMXMap: Sendable {
 		}
 
 		return 512 * 1024 * 1024 // Default to 512 MB
+	}
+
+	var sharedFolders: [DirectorySharingAttachment] {
+		var sharedFolders: [DirectorySharingAttachment] = []
+
+		guard let maxNum = Int(values["sharedFolder.maxNum".lowercased()] ?? "0") else {
+			return sharedFolders
+		}
+
+		for unitNumber in 0..<maxNum {
+			let baseKey = "sharedFolder\(unitNumber)"
+
+			guard let present = values["\(baseKey).present".lowercased()] else {
+				continue
+			}
+
+			guard let enabled = values["\(baseKey).enabled".lowercased()] else {
+				continue
+			}
+
+			if let present = Bool(present.lowercased()), let enabled = Bool(enabled.lowercased()), present, enabled {
+				let guestName = values["\(baseKey).guestName".lowercased()] ?? "shared\(unitNumber)"
+				let hostPath = values["\(baseKey).hostPath".lowercased()] ?? ""
+				let writeAccess = Bool(values["\(baseKey).writeAccess".lowercased()]?.lowercased() ?? "false") ?? false
+
+				sharedFolders.append(DirectorySharingAttachment(source: hostPath, readOnly: !writeAccess, name: guestName))
+			}
+		}
+
+		return sharedFolders
 	}
 
 	var ethernetAttachements: [EthernetAttachment] {
@@ -230,8 +261,16 @@ struct VMXMap: Sendable {
 					if let present = Bool(present.lowercased()), present {
 						if let fileName = values["\(baseKey).fileName".lowercased()] {
 							let deviceType = VMXMap.DiskAttachement.DeviceType(argument: values["\(baseKey).deviceType".lowercased()])
+							let diskURL = URL(fileURLWithPath: fileName, relativeTo: baseURL).absoluteURL
 
-							attachments.append(DiskAttachement(disk: fileName, deviceType: deviceType, controller: controller, controllerNumber: controllerNumber, unitNumber: diskNumber))
+							if diskURL.pathExtension.lowercased() == "vmdk" && !FileManager.default.fileExists(atPath: diskURL.path) {
+								Logger("VMXMap").warn("Disk file \(diskURL.path) does not exist, skipping attachment.")
+								continue
+							}
+
+							let locked = try! diskURL.appendingPathExtension("lck").exists()
+							
+							attachments.append(DiskAttachement(disk: fileName, deviceType: deviceType, controller: controller, controllerNumber: controllerNumber, unitNumber: diskNumber, locked: locked))
 						}
 					}
 				}
@@ -272,12 +311,17 @@ struct VMWareImporter: Importer {
 		}
 
 		let vmxMap = try locateVM(source: source)
-		let ethernetAttachements: [VMXMap.EthernetAttachment] = vmxMap.ethernetAttachements
+		let ethernetAttachements = vmxMap.ethernetAttachements
+		let diskAttachments = vmxMap.diskAttachments
+
+		if let locked = diskAttachments.first(where: { $0.locked }) {
+			throw ServiceError("VMX file contains locked disk attachment \(locked.disk). Please unlock the disk or stop virtual machine before importing.")
+		}
 
 		try createMissingNetworks(ethernetAttachements: ethernetAttachements, runMode: runMode)
 
 		let networkAttachments: (VZMACAddress?, [BridgeAttachement]) = try importNetworkAttachements(ethernetAttachements: ethernetAttachements)
-		let diskAttachements = try importDiskAttachements(from: vmxMap, to: location)
+		let diskAttachements = try importDiskAttachements(diskAttachments: diskAttachments, from: vmxMap.baseURL, to: location)
 		let config = CakeConfig(
 			location: location.rootURL,
 			os: .linux,
@@ -293,6 +337,7 @@ struct VMWareImporter: Importer {
 		config.nested = true
 		config.attachedDisks = diskAttachements
 		config.networks = networkAttachments.1
+		config.mounts = vmxMap.sharedFolders
 		config.macAddress = networkAttachments.0 ?? VZMACAddress.randomLocallyAdministered()
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.firstLaunch = true
@@ -324,11 +369,10 @@ struct VMWareImporter: Importer {
 		return (macAddress, networks)
 	}
 
-	func importDiskAttachements(from vmxMap: VMXMap, to location: VMLocation) throws -> [GRPCLib.DiskAttachement]{
+	func importDiskAttachements(diskAttachments: [VMXMap.DiskAttachement], from: URL, to location: VMLocation) throws -> [GRPCLib.DiskAttachement]{
 		var diskCount = 0
 		var result: [GRPCLib.DiskAttachement] = []
-		let devices = vmxMap.diskAttachments
-		let diskAttachments = devices.reduce(into: [VMXMap.DiskAttachement.ControllerType:[VMXMap.DiskAttachement]]()) { (attachements, attachment) in
+		let diskAttachments = diskAttachments.reduce(into: [VMXMap.DiskAttachement.ControllerType:[VMXMap.DiskAttachement]]()) { (attachements, attachment) in
 			var controller = attachements[attachment.controller] ?? []
 
 			controller.append(attachment)
@@ -340,7 +384,7 @@ struct VMWareImporter: Importer {
 		try VMXMap.DiskAttachement.ControllerType.allCases.forEach { controllerType in
 			if let attachments = diskAttachments[controllerType] {
 				for attachment in attachments {
-					var sourceURL = vmxMap.baseURL.deletingLastPathComponent().appendingPathComponent(attachment.disk)
+					var sourceURL = from.deletingLastPathComponent().appendingPathComponent(attachment.disk)
 					var insideVM = true
 
 					if try sourceURL.exists() == false {
