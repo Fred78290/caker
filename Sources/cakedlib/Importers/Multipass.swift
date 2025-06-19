@@ -1,10 +1,13 @@
 import Foundation
 import GRPCLib
+import Virtualization
 
-typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance] // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
-typealias MultipassInstances = [String: MultipassInstance] // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
+private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance] // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
+private typealias MultipassInstances = [String: MultipassInstance] // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
 
-extension MultipassRegisteredInstances {
+private let multipass_ssh_key_path: String = "/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa"
+
+private extension MultipassRegisteredInstances {
 	init(data: Data) throws {
 		self = try newJSONDecoder().decode(MultipassRegisteredInstances.self, from: data)
 	}
@@ -22,7 +25,7 @@ extension MultipassRegisteredInstances {
 	}
 }
 
-struct MultipassRegisteredInstance: Codable, Sendable {
+private struct MultipassRegisteredInstance: Codable, Sendable {
 	var image: MultipassRegisteredInstanceImage
 	var lastAccessed: Int
 	var query: MultipassRegisteredInstanceQuery
@@ -71,11 +74,11 @@ struct MultipassRegisteredInstance: Codable, Sendable {
 		}
 	}
 
-	var diskAttachments: [MultipassRegisteredInstance.DiskAttachement] {
-		var location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
+	func diskAttachments() throws -> [MultipassRegisteredInstance.DiskAttachement] {
+		let location = URL(fileURLWithPath: self.image.path).deletingLastPathComponent()
 
-		guard let disks = try FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter(where: { $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
-			throw ServiceError("No disk files found in the specified directory: \(url.path)")
+		guard let disks = try? FileManager.default.contentsOfDirectory(at: location, includingPropertiesForKeys: nil).filter({ $0.pathExtension.lowercased() == "img" || $0.pathExtension.lowercased() == "iso" }) else {
+			throw ServiceError("No disk files found in the specified directory: \(location.path)")
 		}
 
 		return disks.compactMap { diskURL in
@@ -104,7 +107,7 @@ struct MultipassRegisteredInstance: Codable, Sendable {
 	}
 }
 
-extension MultipassInstances {
+private extension MultipassInstances {
 	init(data: Data) throws {
 		self = try newJSONDecoder().decode(MultipassInstances.self, from: data)
 	}
@@ -129,9 +132,9 @@ struct MultipassInstance: Codable, Sendable {
 	var macAddr: String
 	var memSize: String
 	var metadata: Metadata
-	var mounts: [Mount]
+	var mounts: [Mount]?
 	var numCores: Int
-	var sshUsername: String
+	var sshUsername: String?
 	var state: State
 
 	enum State: Int, Codable, Sendable {
@@ -184,11 +187,11 @@ struct MultipassInstance: Codable, Sendable {
 	}
 
 	struct Mount: Codable, Sendable {
-		var gidMappings: [GidMapping]
+		var gidMappings: [GidMapping]?
 		var mountType: Int
 		var sourcePath: String
 		var targetPath: String
-		var uidMappings: [UidMapping]
+		var uidMappings: [UidMapping]?
 
 		struct GidMapping: Codable, Sendable {
 			var hostGid: Int
@@ -219,14 +222,26 @@ struct MultipassInstance: Codable, Sendable {
 		}
 	}
 
-	var ethernetAttachements: [BridgeAttachement] {
+	var sharedFolders: [DirectorySharingAttachment] {
+		guard let mounts = self.mounts else {
+			return []
+		}
+		
+		return mounts.compactMap {
+			return DirectorySharingAttachment(source: $0.sourcePath, destination: $0.targetPath)
+		}
+	}
+
+	var networkAttachments: (VZMACAddress?, [BridgeAttachement]) {
 		var attachements: [BridgeAttachement] = []
 
-		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddr)) // Default NAT network
+		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)) // Default NAT network
 
 		for extraInterface in self.extraInterfaces {
 			attachements.append(BridgeAttachement(network: extraInterface.id, mode: extraInterface.autoMode ? .auto : .manual, macAddress: extraInterface.macAddress))
 		}
+		
+		return (VZMACAddress(string: self.macAddr), attachements)
 	}
 
 }
@@ -251,43 +266,39 @@ struct MultipassImporter: Importer {
 	var needSudo: Bool {
 		return true // Multipass operations typically require elevated privileges
 	}
-
+	
 	var name: String {
 		return "Multipass Importer"
 	}
-
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, uid: uid_t, gid: gid_t, runMode: Utils.RunMode) throws {
+	
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, runMode: Utils.RunMode) throws {
 		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
 		
 		guard let registeredInstance = registeredInstances[source] else {
 			throw ServiceError("No registered instance found for source: \(source)")
 		}
-
+		
 		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
-
+		
 		guard let instance = instances[source] else {
 			throw ServiceError("No instance found: \(source)")
 		}
-
+		
 		if instance.deleted {
 			throw ServiceError("Instance \(source) is deleted and cannot be imported.")
 		}
-
+		
 		if instance.state != .off && instance.state != .stopped {
 			throw ServiceError("Instance \(source) is not in a stopped state, current state: \(instance.state)")
 		}
-
-		guard let cpuCount = instance.numCores, cpuCount > 0 else {
-			throw ServiceError("Invalid CPU count for instance \(source).")
-		}
-
+		
 		guard let memorySize = UInt64(instance.memSize) else {
 			throw ServiceError("Invalid memory size for instance \(source).")
-		}s
-
-		let ethernetAttachements = instance.ethernetAttachements
-		let diskAttachments = try importDiskAttachements(diskAttachments: registeredInstance.diskAttachments, to: location)
-
+		}
+		
+		let networkAttachments = instance.networkAttachments
+		let userName = instance.sshUsername ?? userName
+		
 		let config = CakeConfig(
 			location: location.rootURL,
 			os: .linux,
@@ -295,24 +306,56 @@ struct MultipassImporter: Importer {
 			configuredUser: userName,
 			configuredPassword: password,
 			displayRefit: true,
-			cpuCountMin: cpuCount,
+			cpuCountMin: instance.numCores,
 			memorySizeMin: memorySize)
+
+		if let sshPrivateKey = sshPrivateKey {
+			config.sshPrivateKeyPath = sshPrivateKey
+		} else {
+			config.sshPrivateKeyPath = "id_rsa"
+
+			try FileManager.default.copyItem(at: URL(fileURLWithPath: multipass_ssh_key_path), to: location.rootURL.appendingPathComponent("id_rsa"))
+		}
 
 		config.useCloudInit = true
 		config.agent = false
 		config.nested = true
-		config.attachedDisks = diskAttachments
-		config.networks = networkAttachments
-		config.mounts = vmxMap.sharedFolders
-		config.macAddress = networkAttachments.first { $0.name == "nat" }?.macAddress ?? VZMACAddress.randomLocallyAdministered()
-		config.sshPrivateKeyPath = sshPrivateKey
+		config.attachedDisks = try importDiskAttachements(diskAttachments: registeredInstance.diskAttachments(), to: location)
+		config.networks = networkAttachments.1
+		config.mounts = instance.sharedFolders
+		config.macAddress = networkAttachments.0
 		config.firstLaunch = true
-
+		
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
-
+		
 		try config.save()
+	}
+	
+	private func importDiskAttachements(diskAttachments: [MultipassRegisteredInstance.DiskAttachement], to location: VMLocation) throws -> [GRPCLib.DiskAttachement] {
+		var diskCount = 0
 
-		// Logic to import a VM from Multipass
-		throw ServiceError("Unimplemented import logic for Multipass files.")
+		return try diskAttachments.compactMap { disk in
+			let destinationURL: URL
+			var result: GRPCLib.DiskAttachement? = nil
+
+			if disk.deviceType == .disk {
+
+				if diskCount == 0 {
+					destinationURL = location.diskURL
+				} else {
+					destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent)
+					result = try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent)
+				}
+
+				diskCount += 1
+
+				try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL)
+			} else {
+				let destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent)
+				try FileManager.default.copyItem(at: disk.diskURL, to: destinationURL)
+			}
+
+			return result
+		}
 	}
 }

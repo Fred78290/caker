@@ -57,7 +57,8 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, uid: uid, gid: gid, runMode: runMode)
+			try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, runMode: runMode)
+			try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path)
 			try storageLocation.relocate(name, from: tempLocation)
 
 			return Caked_Reply.with { reply in

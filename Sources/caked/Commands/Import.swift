@@ -46,7 +46,7 @@ struct Import: ParsableCommand {
 		let importer = self.from.importer
 
 		if importer.needSudo && geteuid() != 0 {
-			var arguments = ["import",
+			var arguments = ["convert",
 							 self.name,
 							 self.source,
 							 "--from=\(self.from.rawValue)",

@@ -304,7 +304,7 @@ struct VMWareImporter: Importer {
 		var natIp6Prefix: String? = nil
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, uid: uid_t, gid: gid_t, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
 		if URL.binary("qemu-img") == nil {
 			throw ServiceError("qemu-img binary not found. Please install qemu to import VMWare files.")

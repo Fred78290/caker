@@ -347,3 +347,24 @@ extension URL {
 		}
 	}
 }
+
+extension FileManager {
+	// Applique récursivement les attributs à tous les fichiers et dossiers d'un chemin
+	public func setAttributesRecursively(_ attributes: [FileAttributeKey: Any], atPath path: String) throws {
+		var isDir: ObjCBool = false
+	
+		if self.fileExists(atPath: path, isDirectory: &isDir) {
+			try self.setAttributes(attributes, ofItemAtPath: path)
+	
+			if isDir.boolValue {
+				let contents = try self.contentsOfDirectory(atPath: path)
+	
+				for item in contents {
+					let fullPath = (path as NSString).appendingPathComponent(item)
+	
+					try self.setAttributesRecursively(attributes, atPath: fullPath)
+				}
+			}
+		}
+	}
+}	
