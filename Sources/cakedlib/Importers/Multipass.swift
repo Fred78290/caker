@@ -198,7 +198,15 @@ func newJSONEncoder() -> JSONEncoder {
 }
 
 struct MultipassImporter: Importer {
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, runMode: Utils.RunMode) throws {
+	var needSudo: Bool {
+		return true // Multipass operations typically require elevated privileges
+	}
+
+	var name: String {
+		return "Multipass Importer"
+	}
+
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, uid: uid_t, gid: gid_t, runMode: Utils.RunMode) throws {
 		// Logic to import a VM from Multipass
 		throw ServiceError("Unimplemented import logic for Multipass files.")
 	}

@@ -23,7 +23,7 @@ public struct ImportHandler {
 			}
 		}
 
-		var importer: Importer {
+		public var importer: Importer {
 			switch self {
 			case .multipass:
 				return MultipassImporter()
@@ -33,8 +33,17 @@ public struct ImportHandler {
 		}
 	}
 
-	public static func importVM(from: ImportSource, name: String, source: String, userName: String, password: String, sshPrivateKey: String?, runMode: Utils.RunMode) throws -> Caked_Reply {
+	public static func importVM(importer: Importer, name: String, source: String, userName: String, password: String, sshPrivateKey: String?, uid: UInt32, gid: UInt32, runMode: Utils.RunMode) throws -> Caked_Reply {
 		let storageLocation = StorageLocation(runMode: runMode)
+
+		if importer.needSudo && geteuid() != 0 {
+			return Caked_Reply.with { reply in
+				reply.error = Caked_Error.with {
+					$0.code = 1
+					$0.reason = "Importing from \(importer.name) requires root privileges."
+				}
+			}
+		}
 
 		if storageLocation.exists(name) {
 			return Caked_Reply.with { reply in
@@ -48,12 +57,12 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			try from.importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, runMode: runMode)
+			try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, uid: uid, gid: gid, runMode: runMode)
 			try storageLocation.relocate(name, from: tempLocation)
 
 			return Caked_Reply.with { reply in
 				reply.vms = Caked_VirtualMachineReply.with {
-					$0.message = "VM \(name) imported successfully from \(from) at \(source)"
+					$0.message = "VM \(name) imported successfully from \(importer.name) at \(source)"
 				}
 			}
 		} catch {
@@ -62,7 +71,7 @@ public struct ImportHandler {
 			return Caked_Reply.with { reply in
 				reply.error = Caked_Error.with {
 					$0.code = 1
-					$0.reason = "Failed to import VM from \(from) at \(source), \(error.localizedDescription)"
+					$0.reason = "Failed to import VM from \(importer.name) at \(source), \(error.localizedDescription)"
 				}
 			}
 		}

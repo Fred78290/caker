@@ -22,6 +22,12 @@ struct Import: ParsableCommand {
 	@Option(name: [.customLong("ssh-key"), .customShort("i")], help: "Optional SSH private key to use for the VM")
 	public var sshPrivateKey: String? = nil
 
+	@Option(help: .hidden)
+	public var uid: UInt32 = geteuid()
+
+	@Option(help: .hidden)
+	public var gid: UInt32 = getegid()
+
 	@Argument(help: "The name virtual machine to convert from or abolsute path to the directory containing the VMs.")
 	var source: String
 
@@ -37,12 +43,36 @@ struct Import: ParsableCommand {
 	}
 
 	func run() throws {
-		let result = try ImportHandler.importVM(from: from, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, runMode: .user)
+		let importer = self.from.importer
 
-		if case let .error(err) = result.response {
-			throw ServiceError(err.reason, err.code)
+		if importer.needSudo && geteuid() != 0 {
+			var arguments = ["import",
+							 self.name,
+							 self.source,
+							 "--from=\(self.from.rawValue)",
+							 "--user=\(self.user)",
+							 "--password=\(self.password)",
+							 "--uid=\(self.uid)",
+							 "--gid=\(self.gid)",
+			]
+			
+			if let sshPrivateKey = self.sshPrivateKey {
+				arguments.append("--ssh-key=\(sshPrivateKey)")
+			}
+			
+			let exitCode = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
+			
+			if exitCode != 0 {
+				Foundation.exit(Int32(exitCode))
+			}
 		} else {
-			Logger.appendNewLine(self.common.format.render(result.vms.message))
+			let result = try ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, uid: uid, gid: gid, runMode: .user)
+
+			if case let .error(err) = result.response {
+				throw ServiceError(err.reason, err.code)
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.vms.message))
+			}
 		}
 	}
 }

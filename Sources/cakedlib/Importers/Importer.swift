@@ -1,6 +1,9 @@
 import Foundation
 import GRPCLib
 
-protocol Importer {
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String?, runMode: Utils.RunMode) throws -> Void
+public protocol Importer {
+	var needSudo: Bool { get }
+	var name: String { get }
+
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String?, uid: UInt32, gid: UInt32, runMode: Utils.RunMode) throws -> Void
 }
