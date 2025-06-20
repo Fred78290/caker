@@ -61,7 +61,7 @@ struct Import: ParsableCommand {
 			}
 			
 			let exitCode = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
-			
+
 			if exitCode != 0 {
 				Foundation.exit(Int32(exitCode))
 			}
