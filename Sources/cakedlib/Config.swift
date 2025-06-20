@@ -191,6 +191,11 @@ public final class CakeConfig {
 		get { self.cake["instance-id"] as? String ?? UUID().uuidString }
 	}
 
+	public var dhcpClientID: String? {
+		set { self.cake["dhcpClientID"] = newValue }
+		get { self.cake["dhcpClientID"] as? String }
+	}
+
 	public var sshPrivateKeyPath: String? {
 		set { self.cake["sshPrivateKey"] = newValue }
 		get { self.cake["sshPrivateKey"] as? String }

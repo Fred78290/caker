@@ -14,19 +14,30 @@ extension String {
 }
 
 struct DHCPLease {
+	let hwAddressProto: UInt8
 	let ipAddress: String
-	let macAddress: String
+	let hwAddressAddress: String
 	let hostname: String
 	let expireAt: Date
 
-	init?(ipAddress: String, macAddress: String, hostname: String, expireAt: Date) {
-		if let mac = String(macAddress: macAddress) {
-			self.ipAddress = ipAddress
-			self.macAddress = mac
-			self.hostname = hostname
-			self.expireAt = expireAt
-		} else {
+	init?(hwAddressProto: UInt8, ipAddress: String, hwAddressAddress: String, hostname: String, expireAt: Date) {
+		guard hwAddressProto != ARPHRD_ETHER && hwAddressProto != 255 else {
 			return nil
+		}
+
+		self.hwAddressProto = hwAddressProto
+		self.ipAddress = ipAddress
+		self.hostname = hostname
+		self.expireAt = expireAt
+
+		if hwAddressProto == ARPHRD_ETHER {
+			if let mac = String(macAddress: hwAddressAddress) {
+				self.hwAddressAddress = mac
+			} else {
+				return nil
+			}
+		} else {
+			self.hwAddressAddress = hwAddressAddress.lowercased()
 		}
 	}
 }
@@ -82,8 +93,8 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 		}
 
 		return leases.reduce(into: [:]) { result, lease in
-			if result[lease.macAddress] == nil || result[lease.macAddress]!.expireAt < lease.expireAt {
-				result[lease.macAddress] = lease
+			if result[lease.hwAddressAddress] == nil || result[lease.hwAddressAddress]!.expireAt < lease.expireAt {
+				result[lease.hwAddressAddress] = lease
 			}
 		}
 	}
@@ -107,12 +118,12 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 			return nil
 		}
 
-		if let hwAddressProto = Int(hwAddressSplits[0]), hwAddressProto != ARPHRD_ETHER {
+		guard let hwAddressProto = UInt8(hwAddressSplits[0]), hwAddressProto == ARPHRD_ETHER || hwAddressProto == 255 else {
 			return nil
 		}
 
-		let macAddress = String(hwAddressSplits[1])
+		let hwAddressAddress = String(hwAddressSplits[1])
 
-		return DHCPLease(ipAddress: ipAddress, macAddress: macAddress, hostname: hostname, expireAt: Date(timeIntervalSince1970: TimeInterval(expiresAt)))
+		return DHCPLease(hwAddressProto: hwAddressProto, ipAddress: ipAddress, hwAddressAddress: hwAddressAddress, hostname: hostname, expireAt: Date(timeIntervalSince1970: TimeInterval(expiresAt)))
 	}
 }

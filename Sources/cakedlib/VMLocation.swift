@@ -343,9 +343,14 @@ public struct VMLocation {
 		let config = try self.config()
 		let start: Date = Date.now
 		let macAddress = config.macAddress?.string ?? ""
+		let clientID = config.dhcpClientID ?? macAddress
 		var leases: DHCPLeaseProvider
 		var count = 0
 		let useNat = config.networks.first { $0.network == "nat" } != nil
+
+		guard macAddress.isEmpty == false && clientID.isEmpty == false else {
+			throw ShellError(terminationStatus: -1, error: "Unable to get MAC address for VM \(self.name)", message: "Any mac address or client ID is not configured")
+		}
 
 		repeat {
 			if let startedProcess = startedProcess, startedProcess.isRunning == false {
@@ -355,18 +360,22 @@ public struct VMLocation {
 			// Try also arp if dhcp is disabled
 			if useNat == false || count & 1 == 1 {
 				leases = try ARPParser()
+
+				if let runningIP = leases[macAddress] {
+					return runningIP
+				}
 			} else {
 				leases = try DHCPLeaseParser()
-			}
 
-			if let runningIP = leases[macAddress] {
-				return runningIP
+				if let runningIP = leases[clientID] {
+					return runningIP
+				}
 			}
 
 			count += 1
 		} while Date.now.timeIntervalSince(start) < TimeInterval(wait)
 
-		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "")
+		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "Timeout")
 	}
 
 	public func waitIPWithAgent(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
@@ -539,7 +548,7 @@ public struct VMLocation {
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
 		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: sshPrivateKeyPath.expandingTildeInPath)
+			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path)
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
