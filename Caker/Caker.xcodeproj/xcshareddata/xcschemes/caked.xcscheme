@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-               BuildableName = "Caker.app"
-               BlueprintName = "Caker"
+               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
+               BuildableName = "caked"
+               BlueprintName = "caked"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -39,14 +39,15 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "YES"
+      viewDebuggingEnabled = "No">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
+            BuildableName = "caked"
+            BlueprintName = "caked"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -67,22 +68,14 @@
             argument = "--from=multipass"
             isEnabled = "YES">
          </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--user=ubuntu"
-            isEnabled = "YES">
-         </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "PATH"
-            value = "/Applications/Docker.app/Contents/Resources/bin:/bin:/Library/Apple/usr/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin:/sbin:/System/Cryptexes/App/usr/bin:/usr/bin:/usr/local/bin:/usr/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/Volumes/Manix/Users/fboltz/go/bin"
+            value = "/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/go/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/Applications/Docker.app/Contents/Resources/bin:/Applications/VMware Fusion.app/Contents/Public:/usr/local/share/dotnet:~/.dotnet/tools:/Users/fboltz/go/bin:/opt/bin:/Volumes/Manix/Users/fboltz/.vscode/extensions/ms-python.python-2025.8.0-darwin-arm64/python_files/deactivate/bash:/Volumes/Manix/Users/fboltz/Projects/GitHub/caker/.venv/bin:/Volumes/Manix/Users/fboltz/go/bin:/Applications/Docker.app/Contents/Resources/bin"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>
-      <LocationScenarioReference
-         identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
-         referenceType = "1">
-      </LocationScenarioReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -94,9 +87,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9B464A532D5A3DA000164BF5"
-            BuildableName = "Caker.app"
-            BlueprintName = "Caker"
+            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
+            BuildableName = "caked"
+            BlueprintName = "caked"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

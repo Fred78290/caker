@@ -149,6 +149,21 @@
 			"request": "launch",
 			"args": [
 				"convert",
+				"frank-eland",
+				"frank-eland",
+				"--from=multipass",
+				"--user=ubuntu"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked convert frank-eland",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"convert",
 				"ubuntu-desktop",
 				"ubuntu-desktop",
 				"--user=fboltz",
@@ -257,6 +272,20 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"vmrun",
+				"frank-eland",
+				"--display",
+				"--log-level=info"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vmrun frank-eland",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
