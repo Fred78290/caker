@@ -458,9 +458,9 @@ public struct VMLocation {
 
 		let home: Home = try Home(runMode: runMode)
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
-		let caCert = try Data(contentsOf: certificates.caCertURL).base64EncodedString(options: .lineLength64Characters)
-		let serverKey: String = try Data(contentsOf: certificates.serverKeyURL).base64EncodedString(options: .lineLength64Characters)
-		let serverPem = try Data(contentsOf: certificates.serverCertURL).base64EncodedString(options: .lineLength64Characters)
+		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii)
+		let serverKey: String = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii)
+		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii)
 		let sharedPublicKey = try home.getSharedPublicKey()
 		let ssh = try createSSH(host: runningIP, timeout: 120)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
@@ -488,7 +488,8 @@ public struct VMLocation {
 
 			AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
 
-			if [ "${OSDISTRO}" = "darwin" ]; then
+			if test "${OSDISTRO}" = "darwin"
+			then
 				CERTS="/Library/Application Support/CakeAgent/certs"
 				SSHDIR="/Users/\(config.configuredUser)/.ssh"
 			else
@@ -506,25 +507,29 @@ public struct VMLocation {
 
 			curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
-			echo "\(sharedPublicKey)" > "${SSHDIR}/authorized_keys"
+			echo "\(sharedPublicKey)" >> "${SSHDIR}/authorized_keys"
 			chown -R \(config.configuredUser) "${SSHDIR}"
 			chmod 600 "${SSHDIR}/authorized_keys"
 
-			cat <<EOF | base64 -d > "${CA}"
+			echo "Creating CA certificate file at ${CA}"
+			cat <<'EOF' > "${CA}"
 			\(caCert)
 			EOF
 
-			cat <<EOF | base64 -d > "${SERVER}"
+			echo "Creating server certificate file at ${SERVER}"
+			cat <<'EOF' > "${SERVER}"
 			\(serverPem)
 			EOF
 
-			cat <<EOF | base64 -d > "${KEY}"
+			echo "Creating server key file at ${KEY}"
+			cat <<'EOF' > "${KEY}"
 			\(serverKey)
 			EOF
 
 			chmod -R 600 "${CERTS}"
 
-			if [ "${OSDISTRO}" = "darwin" ]; then
+			if test "${OSDISTRO}" = "darwin"
+			then
 				chown root:wheel /usr/local/bin/cakeagent
 				chown -R root:wheel "${CERTS}"
 			else
@@ -532,7 +537,6 @@ public struct VMLocation {
 				chown -R root:adm "${CERTS}"
 				mkdir -p /mnt/shared
 				chmod 777 /mnt/shared
-				mount /mnt/shared
 			fi
 
 			chmod 755 /usr/local/bin/cakeagent
@@ -542,6 +546,11 @@ public struct VMLocation {
 				--ca-cert="${CA}" \\
 				--tls-cert="${SERVER}" \\
 				--tls-key="${KEY}" \(config.linuxMounts)
+
+			if test "${OSDISTRO}" = "linux"
+			then
+				mount /mnt/shared 2>/dev/null || true
+			fi
 
 			"""
 
