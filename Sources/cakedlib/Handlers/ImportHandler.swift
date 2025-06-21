@@ -33,7 +33,7 @@ public struct ImportHandler {
 		}
 	}
 
-	public static func importVM(importer: Importer, name: String, source: String, userName: String, password: String, sshPrivateKey: String?, uid: UInt32, gid: UInt32, runMode: Utils.RunMode) throws -> Caked_Reply {
+	public static func importVM(importer: Importer, name: String, source: String, userName: String, password: String, sshPrivateKey: String?, passphrase: String?, uid: UInt32, gid: UInt32, runMode: Utils.RunMode) throws -> Caked_Reply {
 		let storageLocation = StorageLocation(runMode: runMode)
 
 		if importer.needSudo && geteuid() != 0 {
@@ -57,7 +57,7 @@ public struct ImportHandler {
 		let tempLocation = try VMLocation.tempDirectory(runMode: runMode)
 
 		do {
-			try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, runMode: runMode)
+			try importer.importVM(location: tempLocation, source: source, userName: userName, password: password, sshPrivateKey: sshPrivateKey, passphrase: passphrase, runMode: runMode)
 			try FileManager.default.setAttributesRecursively([.ownerAccountID: uid, .groupOwnerAccountID: gid], atPath: tempLocation.rootURL.path)
 			try storageLocation.relocate(name, from: tempLocation)
 

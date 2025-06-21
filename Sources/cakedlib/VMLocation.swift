@@ -50,7 +50,7 @@ public struct VMLocation {
 	}
 
 	public var cdromISO: URL {
-		buildURL("cloud-init.iso").absoluteURL
+		buildURL(cloudInitIso).absoluteURL
 	}
 
 	public var agentURL: URL {
@@ -548,7 +548,7 @@ public struct VMLocation {
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
 		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path)
+			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}

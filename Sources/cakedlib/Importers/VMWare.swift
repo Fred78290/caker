@@ -304,7 +304,7 @@ struct VMWareImporter: Importer {
 		var natIp6Prefix: String? = nil
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		// Logic to import from a VMWare source
 		if URL.binary("qemu-img") == nil {
 			throw ServiceError("qemu-img binary not found. Please install qemu to import VMWare files.")
@@ -340,6 +340,7 @@ struct VMWareImporter: Importer {
 		config.mounts = vmxMap.sharedFolders
 		config.macAddress = networkAttachments.0 ?? VZMACAddress.randomLocallyAdministered()
 		config.sshPrivateKeyPath = sshPrivateKey
+		config.sshPrivateKeyPassphrase = passphrase
 		config.firstLaunch = true
 
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
@@ -421,10 +422,10 @@ struct VMWareImporter: Importer {
 
 							try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
 
-							result.append(try GRPCLib.DiskAttachement(parseFrom: destinationURL.lastPathComponent))
+							result.append(try GRPCLib.DiskAttachement(parseFrom: "\(destinationURL.lastPathComponent):ro"))
 						} else {
 							logger.info("Add CD-ROM disk from outside the VM at \(sourceURL.path)")
-							result.append(try GRPCLib.DiskAttachement(parseFrom: sourceURL.absoluteURL.path))
+							result.append(try GRPCLib.DiskAttachement(parseFrom: "\(sourceURL.absoluteURL.path):ro"))
 						}
 
 					} else if attachment.deviceType == .floppy {

@@ -259,16 +259,22 @@ extension URL: Purgeable {
 	}
 
 	public static func binary(_ name: String) -> URL? {
-		let path = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/bin:/usr/local/bin:/bin:/sbin:/usr/sbin:/opt/bin"
+		let pathd = [ProcessInfo.processInfo.environment["PATH"], "/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"]
 
-		return path.split(separator: ":").compactMap { dir in
-			let url: URL = URL(fileURLWithPath: String(dir)).appendingPathComponent(name, isDirectory: false).resolvingSymlinksInPath()
-
-			if FileManager.default.fileExists(atPath: url.path) {
-				return url.absoluteURL
+		return pathd.compactMap {
+			guard let path = $0 else {
+				return nil
 			}
 
-			return nil
+			return path.split(separator: ":").compactMap { dir in
+				let url: URL = URL(fileURLWithPath: String(dir)).appendingPathComponent(name, isDirectory: false).resolvingSymlinksInPath().absoluteURL
+
+				if FileManager.default.fileExists(atPath: url.path) {
+					return url.absoluteURL
+				}
+
+				return nil
+			}.first
 		}.first
 	}
 

@@ -22,6 +22,9 @@ struct Import: ParsableCommand {
 	@Option(name: [.customLong("ssh-key"), .customShort("i")], help: "Optional SSH private key to use for the VM")
 	public var sshPrivateKey: String? = nil
 
+	@Option(name: [.customLong("ssh-passphrase"), .customShort("l")], help: "Optional SSH private key passphrase to use for the VM")
+	public var sshPrivateKeyPassphrase: String? = nil
+
 	@Option(help: .hidden)
 	public var uid: UInt32 = geteuid()
 
@@ -60,13 +63,17 @@ struct Import: ParsableCommand {
 				arguments.append("--ssh-key=\(sshPrivateKey)")
 			}
 			
+			if let sshPrivateKeyPassphrase = self.sshPrivateKeyPassphrase {
+				arguments.append("--ssh-passphrase=\(sshPrivateKeyPassphrase)")
+			}
+
 			let exitCode = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
 
 			if exitCode != 0 {
 				Foundation.exit(Int32(exitCode))
 			}
 		} else {
-			let result = try ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, uid: uid, gid: gid, runMode: .user)
+			let result = try ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)
 
 			if case let .error(err) = result.response {
 				throw ServiceError(err.reason, err.code)

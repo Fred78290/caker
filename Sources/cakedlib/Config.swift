@@ -201,6 +201,11 @@ public final class CakeConfig {
 		get { self.cake["sshPrivateKey"] as? String }
 	}
 
+	public var sshPrivateKeyPassphrase: String? {
+		set { self.cake["sshPrivateKeyPassphrase"] = newValue }
+		get { self.cake["sshPrivateKeyPassphrase"] as? String }
+	}
+
 	public var configuredUser: String {
 		set { self.cake["configuredUser"] = newValue }
 		get { self.cake["configuredUser"] as? String ?? "admin" }
@@ -547,10 +552,12 @@ extension CakeConfig {
 	}
 
 	public func additionalDiskAttachments() throws -> [VZStorageDeviceConfiguration] {
-		let cloudInit = URL(fileURLWithPath: "cloud-init.iso", relativeTo: self.location).absoluteURL
+		let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: self.location).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
 
-		attachedDisks.append(contentsOf: self.attachedDisks.compactMap { try? $0.configuration(relativeTo: self.location) })
+		attachedDisks.append(contentsOf: self.attachedDisks.compactMap {
+			try? $0.configuration(relativeTo: self.location)
+		})
 
 		if try cloudInit.exists() {
 			let attachment = try VZDiskImageStorageDeviceAttachment(url: cloudInit, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)

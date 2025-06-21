@@ -271,7 +271,7 @@ struct MultipassImporter: Importer {
 		return "Multipass Importer"
 	}
 	
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
 		
 		guard let registeredInstance = registeredInstances[source] else {
@@ -314,9 +314,13 @@ struct MultipassImporter: Importer {
 		} else {
 			config.sshPrivateKeyPath = "id_rsa"
 
-			try FileManager.default.copyItem(at: URL(fileURLWithPath: multipass_ssh_key_path), to: location.rootURL.appendingPathComponent("id_rsa"))
+			let keyModel = try PrivateKeyModel(from: URL(fileURLWithPath: multipass_ssh_key_path))
+
+			try keyModel.save(privateURL: location.rootURL.appendingPathComponent("id_rsa"), publicURL: location.rootURL.appendingPathComponent("id_rsa.pub"))
+			//try FileManager.default.copyItem(at: URL(fileURLWithPath: multipass_ssh_key_path), to: location.rootURL.appendingPathComponent("id_rsa"))
 		}
 
+		config.sshPrivateKeyPassphrase = passphrase
 		config.useCloudInit = true
 		config.agent = false
 		config.nested = true
@@ -351,7 +355,13 @@ struct MultipassImporter: Importer {
 
 				try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL)
 			} else {
-				let destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent)
+				if disk.diskURL.lastPathComponent == "cloud-init-config.iso" {
+					destinationURL = location.rootURL.appendingPathComponent(cloudInitIso)
+				} else {
+					destinationURL = location.rootURL.appendingPathComponent(disk.diskURL.lastPathComponent)
+					result = try GRPCLib.DiskAttachement(parseFrom: "\(destinationURL.lastPathComponent):ro")
+				}
+
 				try FileManager.default.copyItem(at: disk.diskURL, to: destinationURL)
 			}
 

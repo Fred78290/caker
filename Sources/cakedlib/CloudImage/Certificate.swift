@@ -14,11 +14,127 @@ struct CypherKeyGeneratorError: Error {
 	}
 }
 
+private extension Data {
+	/// A partial PKCS8 DER prefix. This specifically is the version and private key algorithm identifier.
+	private static let partialPKCS8Prefix = Data(
+		[
+			0x02, 0x01, 0x00,  // Version, INTEGER 0
+			0x30, 0x0d,        // SEQUENCE, length 13
+			0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01,  // rsaEncryption OID
+			0x05, 0x00         // NULL
+		]
+	)
+
+	var pkcs8RSAKeyBytes: Data? {
+		// This is PKCS8. A bit awkward now. Rather than bring over the fully-fledged ASN.1 code from
+		// the main module and all its dependencies, we have a little hand-rolled verifier. To be a proper
+		// PKCS8 key, this should match:
+		//
+		// PrivateKeyInfo ::= SEQUENCE {
+		//   version                   Version,
+		//   privateKeyAlgorithm       PrivateKeyAlgorithmIdentifier,
+		//   privateKey                PrivateKey,
+		//   attributes           [0]  IMPLICIT Attributes OPTIONAL }
+		//
+		// Version ::= INTEGER
+		//
+		// PrivateKeyAlgorithmIdentifier ::= AlgorithmIdentifier
+		//
+		// PrivateKey ::= OCTET STRING
+		//
+		// Attributes ::= SET OF Attribute
+		//
+		// We know the version and algorithm identifier, so we can just strip the bytes we'd expect to see here. We do validate
+		// them though.
+		precondition(self.startIndex == 0)
+
+		guard self.count >= 4 + Data.partialPKCS8Prefix.count + 4 else {
+			return nil
+		}
+
+		// First byte will be the tag for sequence, 0x30.
+		guard self[0] == 0x30 else {
+			return nil
+		}
+
+		// The next few bytes will be a length. We'll expect it to be 3 bytes long, with the first byte telling us
+		// that it's 3 bytes long.
+		let lengthLength = Int(self[1])
+		guard lengthLength == 0x82 else {
+			return nil
+		}
+
+		let length = Int(self[2]) << 8 | Int(self[3])
+		guard length == self.count - 4 else {
+			return nil
+		}
+
+		// Now we can check the version through the algorithm identifier against the hardcoded values.
+		guard self.dropFirst(4).prefix(Data.partialPKCS8Prefix.count) == Data.partialPKCS8Prefix else {
+			return nil
+		}
+
+		// Ok, the last check are the next 4 bytes, which should now be the tag for OCTET STRING followed by another length.
+		guard self[4 + Data.partialPKCS8Prefix.count] == 0x04,
+		self[4 + Data.partialPKCS8Prefix.count + 1] == 0x82 else {
+			return nil
+		}
+
+		let octetStringLength = Int(self[4 + Data.partialPKCS8Prefix.count + 2]) << 8 |
+								Int(self[4 + Data.partialPKCS8Prefix.count + 3])
+		guard octetStringLength == self.count - 4 - Data.partialPKCS8Prefix.count - 4 else {
+			return nil
+		}
+
+		return self.dropFirst(4 + Data.partialPKCS8Prefix.count + 4)
+	}
+}
+
 public struct PrivateKeyModel {
 	var publicKey: SecKey
 	var privateKey: SecKey
 
-	init(publicKey: SecKey, privateKey: SecKey) {
+	static func base64String(pemEncoded pemString: String) throws -> Data? {
+		let lines = pemString.components(separatedBy: "\n").filter { line in
+			return !line.hasPrefix("-----BEGIN") && !line.hasPrefix("-----END")
+		}
+
+		if lines.isEmpty {
+			throw CypherKeyGeneratorError("Couldn't get data from PEM key: no data available after stripping headers")
+		}
+
+		return Data(base64Encoded: lines.joined(separator: ""))
+	}
+
+	public init(from fromPrivateKey: URL) throws {
+		guard let privateKeyPEM = try String(data: Data(contentsOf: fromPrivateKey), encoding: .ascii) else {
+			throw CypherKeyGeneratorError("Unable to read private key from file")
+		}
+
+		guard var privateKeyData = try Self.base64String(pemEncoded: privateKeyPEM) else {
+			throw ServiceError("Unable to convert PEM to data")
+		}
+
+		if let pkcs8Data = privateKeyData.pkcs8RSAKeyBytes {
+			privateKeyData = pkcs8Data
+		}
+
+		guard let privateKey = SecKeyCreateWithData(privateKeyData as CFData, [
+			kSecAttrKeyType: kSecAttrKeyTypeRSA,
+			kSecAttrKeyClass: kSecAttrKeyClassPrivate,
+		] as CFDictionary, nil) else {
+			throw CypherKeyGeneratorError("Unable to create private key from data")
+		}
+
+		guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
+			throw CypherKeyGeneratorError("Unable to get public key")
+		}
+
+		self.publicKey = publicKey
+		self.privateKey = privateKey
+	}
+
+	public init(publicKey: SecKey, privateKey: SecKey) {
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 	}

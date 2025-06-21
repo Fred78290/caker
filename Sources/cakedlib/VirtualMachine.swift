@@ -132,7 +132,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
 		if config.os == .linux {
-			let cdromURL = URL(fileURLWithPath: "cloud-init.iso", relativeTo: vmLocation.diskURL).absoluteURL
+			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL).absoluteURL
 
 			if FileManager.default.fileExists(atPath: cdromURL.path) {
 				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
