@@ -130,25 +130,29 @@ write_files:
     #!/bin/sh
     SUFFIX=${RANDOM}
 
-    if [ "\$(grep ^ID= /etc/os-release | cut -d= -f 2)" == "alpine" ]; then
+    if test "\$(grep ^ID= /etc/os-release | cut -d= -f 2)" = "alpine"
+    then
         hostname openstack-dev-k3s-worker-\$SUFFIX
         apk add docker
         rc-update add docker default
         service docker start
     else
-      if [ -n "\$(command -v hostnamectl)" ]; then
+      if test -n "\$(command -v hostnamectl)"
+      then
           hostnamectl set-hostname openstack-dev-k3s-worker-\$SUFFIX
       else
           echo "openstack-dev-k3s-worker-\$SUFFIX" > /etc/hostname
       fi
 
-      if [ -n "\$(command -v curl)" ]; then
+      if test -n "\$(command -v curl)"
+      then
           curl -fsSL https://get.docker.com | sh -
       else
           wget https://get.docker.com -O | sh -
       fi
 
-      if [ -n "\$(command -v systemctl)" ]; then
+      if test -n "\$(command -v systemctl)"
+      then
           systemctl enable docker
           systemctl start docker
       else
