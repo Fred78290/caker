@@ -1,0 +1,133 @@
+{
+    "frank-eland": {
+        "clone_count": 0,
+        "deleted": false,
+        "disk_space": "5368709120",
+        "extra_interfaces": [
+            {
+                "auto_mode": true,
+                "id": "en0",
+                "mac_address": "52:54:00:09:e8:b9"
+            }
+        ],
+        "mac_addr": "52:54:00:8e:3c:07",
+        "mem_size": "1073741824",
+        "metadata": {
+            "arguments": [
+                "-machine",
+                "virt,gic-version=3",
+                "-accel",
+                "hvf",
+                "-drive",
+                "file=/Library/Application Support/com.canonical.multipass/bin/../Resources/qemu/edk2-aarch64-code.fd,if=pflash,format=raw,readonly=on",
+                "-cpu",
+                "host",
+                "-nic",
+                "vmnet-shared,model=virtio-net-pci,mac=52:54:00:8e:3c:07",
+                "-nic",
+                "vmnet-bridged,ifname=en0,model=virtio-net-pci,mac=52:54:00:09:e8:b9",
+                "-device",
+                "virtio-scsi-pci,id=scsi0",
+                "-drive",
+                "file=/var/root/Library/Application Support/multipassd/qemu/vault/instances/frank-eland/ubuntu-24.04-server-cloudimg-arm64.img,if=none,format=qcow2,discard=unmap,id=hda",
+                "-device",
+                "scsi-hd,drive=hda,bus=scsi0.0",
+                "-smp",
+                "1",
+                "-m",
+                "1024M",
+                "-qmp",
+                "stdio",
+                "-chardev",
+                "null,id=char0",
+                "-serial",
+                "chardev:char0",
+                "-nographic",
+                "-cdrom",
+                "/var/root/Library/Application Support/multipassd/qemu/vault/instances/frank-eland/cloud-init-config.iso"
+            ],
+            "machine_type": "virt-8.2",
+            "mount_data": {
+            }
+        },
+        "mounts": [
+            {
+                "gid_mappings": [
+                    {
+                        "host_gid": 20,
+                        "instance_gid": -1
+                    }
+                ],
+                "mount_type": 0,
+                "source_path": "/Volumes/Manix/Users/fboltz/Projects",
+                "target_path": "/home/ubuntu/Projects",
+                "uid_mappings": [
+                    {
+                        "host_uid": 501,
+                        "instance_uid": -1
+                    }
+                ]
+            }
+        ],
+        "num_cores": 1,
+        "ssh_username": "ubuntu",
+        "state": 0
+    },
+    "leisurely-tuatara": {
+        "clone_count": 0,
+        "deleted": false,
+        "disk_space": "5368709120",
+        "extra_interfaces": [
+            {
+                "auto_mode": true,
+                "id": "en0",
+                "mac_address": "52:54:00:23:42:97"
+            }
+        ],
+        "mac_addr": "52:54:00:41:06:24",
+        "mem_size": "1073741824",
+        "metadata": {
+            "arguments": [
+                "-machine",
+                "virt,gic-version=3",
+                "-accel",
+                "hvf",
+                "-drive",
+                "file=/Library/Application Support/com.canonical.multipass/bin/../Resources/qemu/edk2-aarch64-code.fd,if=pflash,format=raw,readonly=on",
+                "-cpu",
+                "host",
+                "-nic",
+                "vmnet-shared,model=virtio-net-pci,mac=52:54:00:41:06:24",
+                "-nic",
+                "vmnet-bridged,ifname=en0,model=virtio-net-pci,mac=52:54:00:23:42:97",
+                "-device",
+                "virtio-scsi-pci,id=scsi0",
+                "-drive",
+                "file=/var/root/Library/Application Support/multipassd/qemu/vault/instances/leisurely-tuatara/ubuntu-24.04-server-cloudimg-arm64.img,if=none,format=qcow2,discard=unmap,id=hda",
+                "-device",
+                "scsi-hd,drive=hda,bus=scsi0.0",
+                "-smp",
+                "1",
+                "-m",
+                "1024M",
+                "-qmp",
+                "stdio",
+                "-chardev",
+                "null,id=char0",
+                "-serial",
+                "chardev:char0",
+                "-nographic",
+                "-cdrom",
+                "/var/root/Library/Application Support/multipassd/qemu/vault/instances/leisurely-tuatara/cloud-init-config.iso"
+            ],
+            "machine_type": "virt-8.2",
+            "mount_data": {
+            }
+        },
+        "mounts": [
+        ],
+        "num_cores": 1,
+        "ssh_username": "ubuntu",
+        "state": 0
+    }
+}
