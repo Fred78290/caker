@@ -505,6 +505,30 @@ public struct VMLocation {
 
 			mkdir -p /usr/local/bin ${SSHDIR}
 
+			if test -f /usr/local/bin/cakeagent
+			then
+				echo "CakeAgent already installed, skipping"
+				exit 0
+			fi
+
+			echo "Downloading CakeAgent from ${AGENT_URL}"
+			if test -n "$(command -v curl)"
+			then
+				curl -L "${AGENT_URL}" -o /usr/local/bin/cakeagent
+			elif test -n "$(command -v wget)"
+			then
+				wget "${AGENT_URL}" -O /usr/local/bin/cakeagent
+			else
+				echo "No curl or wget found, cannot download CakeAgent"
+				exit 1
+			fi
+
+			if test ! -f /usr/local/bin/cakeagent
+			then
+				echo "Failed to download CakeAgent, exiting"
+				exit 1
+			fi
+			echo "Downloaded CakeAgent, setting permissions"
 			curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
 			echo "\(sharedPublicKey)" >> "${SSHDIR}/authorized_keys"
