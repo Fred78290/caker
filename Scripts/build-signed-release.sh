@@ -19,7 +19,7 @@ rm -Rf ${PKGDIR}
 mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources
 cp -c .build/release/caker ${PKGDIR}/Contents/MacOS/caker
 cp -c .build/release/caked ${PKGDIR}/Contents/MacOS/caked
-cp -c .build/release/cakectl ${PKGDIR}/Contents/Resources/cakectl
+cp -c .build/release/cakectl ${PKGDIR}/Contents/MacOS/cakectl
 cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
