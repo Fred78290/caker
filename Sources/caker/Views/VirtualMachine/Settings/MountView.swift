@@ -14,6 +14,8 @@ struct MountView: View {
 	var body: some View {
 		EditableList($mounts) { $item in
 			Text(item.description)
+		}.onAddItem(systemName: "folder.badge.plus") {
+			print("MountView: Add mount")
 		}
 	}
 }

@@ -14,6 +14,8 @@ struct ForwardedPortView: View {
 	var body: some View {
 		EditableList($forwardPorts) { $item in
 			Text(item.description)
+		}.onAddItem(systemName: "link.badge.plus") {
+			print("ForwardedPortView: Add port")
 		}
 	}
 }

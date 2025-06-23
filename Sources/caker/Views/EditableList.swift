@@ -6,27 +6,76 @@
 //
 import SwiftUI
 
-struct EditableList<Element: Hashable, Content: View>: View {
-	@Binding var data: [Element]
-	@State var selectedItem: Element?
+typealias AddItemClosure = () -> Void
 
-	var content: (Binding<Element>) -> Content
+struct OnAddItemListViewModifier: ViewModifier {
+	private var addItemClosure: AddItemClosure
+	private var systemName: String
 
-	init(_ data: Binding<[Element]>, content: @escaping (Binding<Element>) -> Content) {
+	init(systemName: String, _ onAddItem: @escaping AddItemClosure) {
+		self.addItemClosure = onAddItem
+		self.systemName = systemName
+	}
+	
+	func body(content: Content) -> some View {
+		content
+		HStack {
+			Spacer()
+			Button(action: {
+				self.addItemClosure()
+			}) {
+				Image(systemName: "plus")
+			}.buttonStyle(.borderless).font(.title)
+			Spacer()
+		}
+	}
+}
+
+struct EditableList<Data: RandomAccessCollection & MutableCollection & RangeReplaceableCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
+	@Binding var data: Data
+	@State var selectedItem: Data.Element?
+
+	private var content: (Binding<Data.Element>) -> Content
+
+	init(_ data: Binding<Data>, content: @escaping (Binding<Data.Element>) -> Content) {
 		self._data = data
 		self.content = content
 	}
 
 	var body: some View {
-		List(selection: $selectedItem) {
-			ForEach($data, id: \.self, content: content)
-				.onMove { indexSet, offset in
-					data.move(fromOffsets: indexSet, toOffset: offset)
-				}
-				.onDelete { indexSet in
-					data.remove(atOffsets: indexSet)
-				}
+		VStack {
+			List(selection: $selectedItem) {
+				ForEach($data, content: listItem)
+					.onMove { indexSet, offset in
+						data.move(fromOffsets: indexSet, toOffset: offset)
+					}
+					.onDelete { indexSet in
+						data.remove(atOffsets: indexSet)
+					}
+			}
+			.frame(maxWidth: .infinity, maxHeight: .infinity)
 		}
-		.frame(maxWidth: .infinity, maxHeight: .infinity)
+	}
+
+	func listItem(item: Binding<Data.Element>) -> some View {
+		HStack {
+			self.content(item)
+			Spacer()
+			Button(action: {
+				self.deleteItem(item: item)
+			}) {
+				Image(systemName: "trash")
+			}.buttonStyle(.borderless)
+		}
+	}
+
+	@ViewBuilder func onAddItem(systemName: String,_ action: @escaping AddItemClosure) -> some View {
+		modifier(OnAddItemListViewModifier(systemName: systemName, action))
+	}
+
+	func deleteItem(item: Binding<Data.Element>) {
+		self.data.removeAll {
+			$0.id == item.wrappedValue.id
+		}
 	}
 }

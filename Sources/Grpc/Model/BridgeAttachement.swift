@@ -26,7 +26,7 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 	}
 }
 
-public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable {
+public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable {
 	public let network: String
 	public let mode: NetworkMode?
 	public let macAddress: String?
@@ -53,6 +53,10 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		return value.joined(separator: ",")
 	}
 
+	public var id: String {
+		self.description
+	}
+	
 	public init(network: String, mode: NetworkMode?, macAddress: String?) {
 		self.network = network
 		self.mode = mode

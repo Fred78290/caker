@@ -9,7 +9,7 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringConvertible, Codable, Hashable {
+public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringConvertible, Codable, Hashable, Identifiable {
 	public static func == (lhs: TunnelAttachement, rhs: TunnelAttachement) -> Bool {
 		switch (lhs.oneOf, rhs.oneOf) {
 		case (.none, .none):
@@ -43,6 +43,10 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 		case .unixDomain(let value):
 			value.description
 		}
+	}
+
+	public var id: String {
+		self.description
 	}
 
 	public let oneOf: OneOf

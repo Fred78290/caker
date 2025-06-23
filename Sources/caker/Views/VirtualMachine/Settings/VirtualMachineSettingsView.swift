@@ -10,6 +10,7 @@ import GRPCLib
 import NIO
 import SwiftUI
 import Virtualization
+import MultiplatformTabBar
 
 struct VirtualMachineSettingsView: View {
 	var vmname: String?
@@ -108,21 +109,16 @@ struct VirtualMachineSettingsView: View {
 		if self.vmname != nil {
 			if self.config != nil {
 				VStack {
-					TabView {
-						generalSettings().tabItem {
-							Label("General", systemImage: "gearshape")
-						}
-
-						networkSettings().tabItem {
-							Label("Network", systemImage: "network")
-						}
-
-						mediaSettings().tabItem {
-							Label("Disk", systemImage: "externaldrive.badge.wifi")
-						}
+					MultiplatformTabBar(tabPosition: .top, barHorizontalAlignment: .center)
+					.tab(title: "General", icon: Image(systemName: "gearshape")) {
+						generalSettings()
 					}
-					.padding(.top)
-					.navigationTitle("Settings")
+					.tab(title: "Network", icon: Image(systemName: "network")) {
+						networkSettings()
+					}
+					.tab(title: "Disk", icon: Image(systemName: "externaldrive.badge.wifi")) {
+						mediaSettings()
+					}
 
 					Spacer()
 					Divider()
@@ -173,8 +169,8 @@ struct VirtualMachineSettingsView: View {
 	func mediaSettings() -> some View {
 		VStack {
 			Form {
-				self.diskAttachementView()
 				self.mountsView()
+				self.diskAttachementView()
 			}.formStyle(.grouped)
 		}.frame(maxHeight: .infinity)
 	}
@@ -254,8 +250,24 @@ struct VirtualMachineSettingsView: View {
 	func displaySizeView() -> some View {
 		Section("Display size") {
 			VStack(alignment: .leading) {
-				TextField("Width", value: $display.width, format: .number)
-				TextField("Height", value: $display.height, format: .number)
+				HStack {
+					Text("Width")
+					Spacer().border(.black)
+					TextField("", value: $display.width, format: .number)
+						.frame(width: 50)
+						.multilineTextAlignment(.center)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+				}
+				HStack {
+					Text("Height")
+					Spacer().border(.black)
+					TextField("", value: $display.height, format: .number)
+						.frame(width: 50)
+						.multilineTextAlignment(.center)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+				}
 			}
 		}
 		.onChange(of: display) { newValue in

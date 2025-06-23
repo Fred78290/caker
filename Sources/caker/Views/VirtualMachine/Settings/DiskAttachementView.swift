@@ -14,6 +14,8 @@ struct DiskAttachementView: View {
 	var body: some View {
 		EditableList($attachedDisks) { $item in
 			Text(item.description)
+		}.onAddItem(systemName: "externaldrive.badge.plus") {
+			print("DiskAttachementView: Add disk")
 		}
 	}
 }

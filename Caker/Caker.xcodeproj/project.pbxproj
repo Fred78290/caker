@@ -112,6 +112,7 @@
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
 		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
+		9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA842D02E0961B2008ED964 /* MultiplatformTabBar */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
@@ -135,8 +136,8 @@
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
-		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; };
+		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
@@ -701,6 +702,7 @@
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
+				9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1356,6 +1358,7 @@
 			);
 			name = Caker;
 			packageProductDependencies = (
+				9BA842D02E0961B2008ED964 /* MultiplatformTabBar */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1617,6 +1620,7 @@
 				9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 				9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */,
 				9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */,
+				9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2070,6 +2074,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_DEBUG_DYLIB = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2104,14 +2109,14 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2140,11 +2145,19 @@
 		9B464B542D5A3E5C00164BF5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ../Resources/caked.plist;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -2152,12 +2165,15 @@
 		9B464B552D5A3E5C00164BF5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ../Resources/caked.plist;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2214,11 +2230,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ../Resources/caked.plist;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -2228,11 +2251,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Caker/Caker.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = LE7988HTRN;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = ../Resources/caked.plist;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2559,6 +2585,14 @@
 				kind = branch;
 			};
 		};
+		9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Appracatappra/MultiplatformTabBar.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.8;
+			};
+		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/Multipart";
@@ -2722,6 +2756,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
+		};
+		9BA842D02E0961B2008ED964 /* MultiplatformTabBar */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */;
+			productName = MultiplatformTabBar;
 		};
 		9BEBC7B82DF440BF0092B196 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;

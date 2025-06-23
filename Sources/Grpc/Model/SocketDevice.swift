@@ -41,7 +41,7 @@ public enum SocketMode: String, CustomStringConvertible, Codable {
 	}
 }
 
-public struct SocketDevice: Codable, Hashable {
+public struct SocketDevice: Codable, Hashable, Identifiable {
 	public var mode: SocketMode = .bind
 	public var port: Int = -1
 	public var bind: String
@@ -74,6 +74,10 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 		return "\(mode)://\(bind):\(port)"
 	}
 
+	public var id: String {
+		self.description
+	}
+	
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)
