@@ -16,9 +16,7 @@ struct MountView: View {
 		EditableList($mounts) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "folder.badge.plus") {
-			displaySheet = true
-		}.sheet(isPresented: $displaySheet) {
-			Text("MountView: Add mount")
+			MountNewItemView(mounts: $mounts)
 		}
 	}
 }

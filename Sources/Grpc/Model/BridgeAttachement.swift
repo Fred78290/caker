@@ -27,9 +27,9 @@ public enum NetworkMode: Int, CaseIterable, CustomStringConvertible, Expressible
 }
 
 public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable {
-	public let network: String
-	public let mode: NetworkMode?
-	public let macAddress: String?
+	public var network: String
+	public var mode: NetworkMode?
+	public var macAddress: String?
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.description == rhs.description
@@ -57,7 +57,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		self.description
 	}
 	
-	public init(network: String, mode: NetworkMode?, macAddress: String?) {
+	public init(network: String, mode: NetworkMode? = nil, macAddress: String? = nil) {
 		self.network = network
 		self.mode = mode
 		self.macAddress = macAddress

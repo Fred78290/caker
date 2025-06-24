@@ -9,28 +9,12 @@ import SwiftUI
 import GRPCLib
 
 struct ForwardedPortNewItemView: View {
-	@Environment(\.dismiss) var dismiss
 	@Binding var forwardPorts: [TunnelAttachement]
-	@State var configChanged = false
+	@State var newItem: TunnelAttachement = .init()
 
 	var body: some View {
-		VStack {
-			Text("ForwardedPortView: Add port")
-			Spacer()
-			Divider()
-
-			HStack(alignment: .bottom) {
-				Spacer()
-				Button("Cancel") {
-					// Cancel saving and dismiss.
-					dismiss()
-				}
-				Spacer()
-				Button("Save") {
-					dismiss()
-				}.disabled(self.configChanged == false)
-				Spacer()
-			}.frame(width: 200).padding(.bottom)
+		EditableListNewItem(newItem: $newItem, $forwardPorts) {
+			Text("")
 		}
     }
 }

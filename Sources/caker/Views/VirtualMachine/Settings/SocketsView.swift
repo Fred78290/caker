@@ -10,15 +10,12 @@ import SwiftUI
 
 struct SocketsView: View {
 	@Binding var sockets: [SocketDevice]
-	@State var displaySheet: Bool = false
 
 	var body: some View {
 		EditableList($sockets) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "rectangle.badge.plus") {
-			displaySheet = true
-		}.sheet(isPresented: $displaySheet) {
-			Text("SocketsView: Add socket")
+			SocketsNewItemView(sockets: $sockets)
 		}
 	}
 }

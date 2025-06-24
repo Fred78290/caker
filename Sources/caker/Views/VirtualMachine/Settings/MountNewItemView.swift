@@ -9,28 +9,12 @@ import SwiftUI
 import GRPCLib
 
 struct MountNewItemView: View {
-	@Environment(\.dismiss) var dismiss
 	@Binding var mounts: [DirectorySharingAttachment]
-	@State var configChanged = false
+	@State var newItem: DirectorySharingAttachment = .init(source: "~".expandingTildeInPath)
 
 	var body: some View {
-		VStack {
-			Text("MountView: Add mount")
-			Spacer()
-			Divider()
-
-			HStack(alignment: .bottom) {
-				Spacer()
-				Button("Cancel") {
-					// Cancel saving and dismiss.
-					dismiss()
-				}
-				Spacer()
-				Button("Save") {
-					dismiss()
-				}.disabled(self.configChanged == false)
-				Spacer()
-			}.frame(width: 200).padding(.bottom)
+		EditableListNewItem(newItem: $newItem, $mounts) {
+			Text("")
 		}
     }
 }

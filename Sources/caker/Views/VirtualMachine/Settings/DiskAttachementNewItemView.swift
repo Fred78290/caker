@@ -13,7 +13,7 @@ struct DiskAttachementNewItemView: View {
 	@State var newItem: DiskAttachement = .init()
 
 	var body: some View {
-		EditableListNewItem(newItem: newItem, $attachedDisks) {
+		EditableListNewItem(newItem: $newItem, $attachedDisks) {
 			Text("")
 		}
     }

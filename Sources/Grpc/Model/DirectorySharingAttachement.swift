@@ -5,24 +5,29 @@ import Virtualization
 public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 
 public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable, Hashable, Identifiable {
-	public let readOnly: Bool
+	public var readOnly: Bool
 
-	let _name: String?
-	let _source: String
-	let _destination: String?
-	let _uid: Int?
-	let _gid: Int?
+	var _name: String? = nil
+	var _source: String = ""
+	var _destination: String? = nil
+	var _uid: Int? = nil
+	var _gid: Int? = nil
 
 	public var defaultValueDescription: String {
 		"<source>[:<destination>][,ro][,name=<name>][,uid=<uid>][,gid=<gid>]"
 	}
 
 	public var name: String {
-		if let name = _name {
-			return name
-		}
+		get {
+			if let name = _name {
+				return name
+			}
 
-		return _source.dropFirst().replacingOccurrences(of: "/", with: "_")
+			return _source.dropFirst().replacingOccurrences(of: "/", with: "_")
+		}
+		set {
+			_name = newValue
+		}
 	}
 
 	public var human: String {
@@ -38,19 +43,39 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	}
 
 	public var source: String {
-		_source
+		get {
+			_source
+		}
+		set	{
+			_source = newValue
+		}
 	}
 
 	public var destination: String? {
-		_destination
+		get {
+			_destination
+		}
+		set {
+			_destination = newValue
+		}
 	}
 
 	public var uid: Int {
-		_uid ?? 0
+		get {
+			_uid ?? 0
+		}
+		set {
+			_uid = newValue
+		}
 	}
 
 	public var gid: Int {
-		_gid ?? 0
+		get {
+			_gid ?? 0
+		}
+		set {
+			_gid = newValue
+		}
 	}
 
 	public var options: [String] {
@@ -96,7 +121,7 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		self.description
 	}
 	
-	public init(source: String, destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
+	public init(source: String = "", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
 		self.readOnly = readOnly
 		self._name = name
 		self._source = source

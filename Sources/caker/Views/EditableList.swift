@@ -6,27 +6,34 @@
 //
 import SwiftUI
 
-typealias AddItemClosure = () -> Void
+struct OnAddItemListViewModifier<SomeView: View>: ViewModifier {
 
-struct OnAddItemListViewModifier: ViewModifier {
-	private var addItemClosure: AddItemClosure
+	private var addItemClosure: () -> SomeView
 	private var systemName: String
+	@Environment(\.dismiss) var dismiss
+	@State var displayAddItemView: Bool = false
 
-	init(systemName: String, _ onAddItem: @escaping AddItemClosure) {
+	init(systemName: String, _ onAddItem: @escaping () -> SomeView) {
 		self.addItemClosure = onAddItem
 		self.systemName = systemName
 	}
-	
+
 	func body(content: Content) -> some View {
-		content
-		HStack {
-			Spacer()
-			Button(action: {
+		VStack {
+			content
+			HStack {
+				Spacer()
+				Button(action: {
+					displayAddItemView = true
+				}) {
+					Image(systemName: "plus")
+				}.buttonStyle(.borderless).font(.title)
+				Spacer()
+			}
+		}.sheet(isPresented: $displayAddItemView, onDismiss: nil) {
+			HStack {
 				self.addItemClosure()
-			}) {
-				Image(systemName: "plus")
-			}.buttonStyle(.borderless).font(.title)
-			Spacer()
+			}.frame(maxWidth: 600).padding()
 		}
 	}
 }
@@ -69,13 +76,15 @@ struct EditableList<Data: RandomAccessCollection & MutableCollection & RangeRepl
 		}
 	}
 
-	@ViewBuilder func onAddItem(systemName: String,_ action: @escaping AddItemClosure) -> some View {
-		modifier(OnAddItemListViewModifier(systemName: systemName, action))
-	}
-
 	func deleteItem(item: Binding<Data.Element>) {
 		self.data.removeAll {
 			$0.id == item.wrappedValue.id
 		}
+	}
+}
+
+extension View {
+	func onAddItem(systemName: String,_ action: @escaping () -> some View) -> some View {
+		modifier(OnAddItemListViewModifier(systemName: systemName, action))
 	}
 }

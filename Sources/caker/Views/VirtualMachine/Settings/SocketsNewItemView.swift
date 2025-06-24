@@ -10,10 +10,11 @@ import GRPCLib
 
 struct SocketsNewItemView: View {
 	@Binding var sockets: [SocketDevice]
+	@State var newItem: SocketDevice = .init(mode: .bind, port: 0, bind: "")
 
 	var body: some View {
-		VStack {
-			Text("SocketsView: Add socket")
+		EditableListNewItem(newItem: $newItem, $sockets) {
+			Text("")
 		}
     }
 }

@@ -10,15 +10,12 @@ import SwiftUI
 
 struct NetworkAttachementView: View {
 	@Binding var networks: [BridgeAttachement]
-	@State var displaySheet: Bool = false
 
 	var body: some View {
 		EditableList($networks) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "badge.plus.radiowaves.right") {
-			displaySheet = true
-		}.sheet(isPresented: $displaySheet) {
-			Text("NetworkAttachementView: Add network")
+			NetworkAttachementNewItemView(networks: $networks)
 		}
 	}
 }

@@ -110,34 +110,51 @@ struct VirtualMachineSettingsView: View {
 			if self.config != nil {
 				VStack {
 					MultiplatformTabBar(tabPosition: .top, barHorizontalAlignment: .center)
-					.tab(title: "General", icon: Image(systemName: "gearshape")) {
-						generalSettings()
-					}
-					.tab(title: "Network", icon: Image(systemName: "network")) {
-						networkSettings()
-					}
-					.tab(title: "Disk", icon: Image(systemName: "externaldrive.badge.wifi")) {
-						mediaSettings()
-					}
-
+						.tab(title: "General", icon: Image(systemName: "gearshape")) {
+							generalSettings()
+						}
+						.tab(title: "Network", icon: Image(systemName: "network")) {
+							networkSettings()
+						}
+						.tab(title: "Disk", icon: Image(systemName: "externaldrive.badge.wifi")) {
+							mediaSettings()
+						}
+					
 					Spacer()
 					Divider()
-
+					
 					HStack(alignment: .bottom) {
 						Spacer()
-						Button("Cancel") {
+						
+						Button {
 							// Cancel saving and dismiss.
 							dismiss()
+						} label: {
+							Text("Cancel")
+								.frame(width: 60)
 						}
+						.buttonStyle(.borderedProminent)
+						
 						Spacer()
-						Button("Save") {
+						
+						Button {
 							// Save the article and dismiss.
 							try? self.config?.save()
 							dismiss()
-						}.disabled(self.configChanged == false)
+						} label: {
+							Text("Save")
+								.frame(width: 60)
+						}
+						.buttonStyle(.bordered)
+						.disabled(self.configChanged == false)
+						
 						Spacer()
-					}.frame(width: 200).padding(.bottom)
-				}.frame(height: 600)
+					}
+					.frame(width: 200)
+					.padding(.bottom)
+					
+				}
+				.frame(height: 600)
 			} else {
 				Text("Failed to load vm settings")
 			}
@@ -189,8 +206,8 @@ struct VirtualMachineSettingsView: View {
 					}
 				}
 			}
-			.onChange(of: cpuCount) { newValue in
-				config?.cpuCount = newValue
+			.onChange(of: cpuCount) {
+				config?.cpuCount = cpuCount
 				configChanged = true
 			}
 
@@ -208,8 +225,8 @@ struct VirtualMachineSettingsView: View {
 					}.labelsHidden()
 				}
 			}
-			.onChange(of: memorySize) { newValue in
-				config?.memorySize = newValue * (1024 * 1024)
+			.onChange(of: memorySize) {
+				config?.memorySize = memorySize * (1024 * 1024)
 				configChanged = true
 			}
 		}
@@ -225,24 +242,24 @@ struct VirtualMachineSettingsView: View {
 				Toggle("Nested virtualization", isOn: $nestedVirtualization)
 			}
 		}
-		.onChange(of: autostart) { newValue in
-			config?.autostart = newValue
+		.onChange(of: autostart) {
+			config?.autostart = autostart
 			configChanged = true
 		}
-		.onChange(of: suspendable) { newValue in
-			config?.suspendable = newValue
+		.onChange(of: suspendable) {
+			config?.suspendable = suspendable
 			configChanged = true
 		}
-		.onChange(of: dynamicPortForwarding) { newValue in
-			config?.dynamicPortForwarding = newValue
+		.onChange(of: dynamicPortForwarding) {
+			config?.dynamicPortForwarding = dynamicPortForwarding
 			configChanged = true
 		}
-		.onChange(of: displayRefit) { newValue in
-			config?.displayRefit = newValue
+		.onChange(of: displayRefit) {
+			config?.displayRefit = displayRefit
 			configChanged = true
 		}
-		.onChange(of: nestedVirtualization) { newValue in
-			config?.nested = newValue
+		.onChange(of: nestedVirtualization) {
+			config?.nested = nestedVirtualization
 			configChanged = true
 		}
 	}
@@ -270,8 +287,8 @@ struct VirtualMachineSettingsView: View {
 				}
 			}
 		}
-		.onChange(of: display) { newValue in
-			config?.display = DisplaySize(width: newValue.width, height: newValue.height)
+		.onChange(of: display) {
+			config?.display = DisplaySize(width: display.width, height: display.height)
 			configChanged = true
 		}
 	}
@@ -279,8 +296,8 @@ struct VirtualMachineSettingsView: View {
 	func forwardPortsView() -> some View {
 		Section("Forwarded ports") {
 			ForwardedPortView(forwardPorts: $forwardPorts)
-				.onChange(of: forwardPorts) { newValue in
-					config?.forwardedPorts = newValue
+				.onChange(of: forwardPorts) {
+					config?.forwardedPorts = forwardPorts
 					configChanged = true
 				}
 		}
@@ -289,8 +306,8 @@ struct VirtualMachineSettingsView: View {
 	func networksView() -> some View {
 		Section("Network attachements") {
 			NetworkAttachementView(networks: $networks)
-				.onChange(of: networks) { newValue in
-					config?.networks = newValue
+				.onChange(of: networks) {
+					config?.networks = networks
 					configChanged = true
 				}
 		}
@@ -299,8 +316,8 @@ struct VirtualMachineSettingsView: View {
 	func mountsView() -> some View {
 		Section("Directory sharing") {
 			MountView(mounts: $mounts)
-				.onChange(of: mounts) { newValue in
-					config?.mounts = newValue
+				.onChange(of: mounts) {
+					config?.mounts = mounts
 					configChanged = true
 				}
 		}
@@ -309,8 +326,8 @@ struct VirtualMachineSettingsView: View {
 	func diskAttachementView() -> some View {
 		Section("Disks attachements") {
 			DiskAttachementView(attachedDisks: $attachedDisks)
-				.onChange(of: attachedDisks) { newValue in
-					config?.attachedDisks = newValue
+				.onChange(of: attachedDisks) {
+					config?.attachedDisks = attachedDisks
 					configChanged = true
 				}
 		}
@@ -319,8 +336,8 @@ struct VirtualMachineSettingsView: View {
 	func socketsView() -> some View {
 		Section("Virtual sockets") {
 			SocketsView(sockets: $sockets)
-				.onChange(of: sockets) { newValue in
-					config?.sockets = newValue
+				.onChange(of: sockets) {
+					config?.sockets = sockets
 					configChanged = true
 				}
 		}

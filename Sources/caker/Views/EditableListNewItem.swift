@@ -10,36 +10,44 @@ import SwiftUI
 struct EditableListNewItem<Data: RandomAccessCollection & MutableCollection & RangeReplaceableCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
 	@Environment(\.dismiss) var dismiss
 	@Binding var data: Data
-	@State var newItem: Data.Element
+	@Binding var newItem: Data.Element
 	@State var configChanged: Bool = false
 
 	private var content: () -> Content
 
-	init(newItem: Data.Element, _ data: Binding<Data>, content: @escaping () -> Content) {
+	init(newItem: Binding<Data.Element>, _ data: Binding<Data>, content: @escaping () -> Content) {
+		self._newItem = newItem
 		self._data = data
 		self.content = content
-		self.newItem = newItem
 	}
 
 	var body: some View {
 		VStack {
-			content()
+			Form {
+				content()
+			}.formStyle(.grouped)
+
 			Spacer()
 			Divider()
 
 			HStack(alignment: .bottom) {
 				Spacer()
-				Button("Cancel") {
-					// Cancel saving and dismiss.
+				Button {
 					dismiss()
+				} label: {
+					Text("Cancel").frame(width: 60)
 				}
-				Spacer()
-				Button("Add") {
-					// Save the article and dismiss.
+				Button {
+					data.append(newItem)
 					dismiss()
+				} label: {
+					Text("Add").frame(width: 60)
 				}.disabled(self.configChanged == false)
-				Spacer()
-			}.frame(width: 200).padding(.bottom)
+			}
+		}.onChange(of: newItem) {
+			self.configChanged = self.data.first {
+				$0.id == self.newItem.id
+			} == nil
 		}
     }
 }

@@ -16,9 +16,7 @@ struct DiskAttachementView: View {
 		EditableList($attachedDisks) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "externaldrive.badge.plus") {
-			displaySheet = true
-		}.sheet(isPresented: $displaySheet) {
-			Text("DiskAttachementView: Add disk")
+			DiskAttachementNewItemView(attachedDisks: $attachedDisks)
 		}
 	}
 }

@@ -110,7 +110,7 @@ struct VirtualMachineView: View {
 				}.disabled(self.document.virtualMachine == nil)
 			}
 		}.sheet(isPresented: $displaySettings) {
-			VirtualMachineSettingsView(vmname: virtualMachine.vmLocation.name)
+			VirtualMachineSettingsView(vmname: virtualMachine.vmLocation.name).frame(width: 650)
 		}
 
 		if #available(macOS 15.0, *) {
