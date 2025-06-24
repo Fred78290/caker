@@ -106,6 +106,12 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
+		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
+		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
+		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
+		9B7C7AD92E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD82E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift */; };
+		9B7C7ADB2E09B81A009D0A26 /* SocketsNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7ADA2E09B81A009D0A26 /* SocketsNewItemView.swift */; };
+		9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
@@ -507,6 +513,12 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
+		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
+		9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountNewItemView.swift; sourceTree = "<group>"; };
+		9B7C7AD82E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachementNewItemView.swift; sourceTree = "<group>"; };
+		9B7C7ADA2E09B81A009D0A26 /* SocketsNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsNewItemView.swift; sourceTree = "<group>"; };
+		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
@@ -858,10 +870,15 @@
 		9B2BFAAF2DFED25E000045C3 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */,
 				9B2BFAA92DFED25E000045C3 /* DiskAttachementView.swift */,
+				9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */,
 				9B2BFAAA2DFED25E000045C3 /* ForwardedPortView.swift */,
+				9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */,
 				9B2BFAAB2DFED25E000045C3 /* MountView.swift */,
+				9B7C7AD82E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift */,
 				9B2BFAAC2DFED25E000045C3 /* NetworkAttachementView.swift */,
+				9B7C7ADA2E09B81A009D0A26 /* SocketsNewItemView.swift */,
 				9B2BFAAD2DFED25E000045C3 /* SocketsView.swift */,
 				9B2BFAAE2DFED25E000045C3 /* VirtualMachineSettingsView.swift */,
 			);
@@ -882,6 +899,7 @@
 			isa = PBXGroup;
 			children = (
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
+				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
@@ -1655,14 +1673,20 @@
 				9B2BFABA2DFED25E000045C3 /* MainView.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,
 				9B2BFABC2DFED25E000045C3 /* EditableList.swift in Sources */,
+				9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */,
 				9B2BFABD2DFED25E000045C3 /* ForwardedPortView.swift in Sources */,
 				9B2BFABE2DFED25E000045C3 /* VirtualMachineDocument.swift in Sources */,
 				9B2BFABF2DFED25E000045C3 /* VirtualMachineView.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B2BFAC12DFED25E000045C3 /* DiskAttachementView.swift in Sources */,
+				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
+				9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */,
+				9B7C7ADB2E09B81A009D0A26 /* SocketsNewItemView.swift in Sources */,
+				9B7C7AD92E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift in Sources */,
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
 				9B2BFAC32DFED25E000045C3 /* VirtualMachineSettingsView.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
+				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
 				9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

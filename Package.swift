@@ -47,6 +47,7 @@ let package = Package(
 		.package(url: "https://github.com/orchetect/SwiftRadix", from: "1.3.1"),
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", from: "1.8.0"),
+		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", from: "1.0.8"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -110,7 +111,8 @@ let package = Package(
 			.product(name: "GRPC", package: "grpc-swift"),
 			.target(name: "CakedLib"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
-			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
+			.product(name: "MultiplatformTabBar", package: "MultiplatformTabBar"),
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

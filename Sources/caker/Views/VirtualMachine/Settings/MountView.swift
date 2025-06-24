@@ -10,12 +10,15 @@ import SwiftUI
 
 struct MountView: View {
 	@Binding var mounts: [DirectorySharingAttachment]
+	@State var displaySheet: Bool = false
 
 	var body: some View {
 		EditableList($mounts) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "folder.badge.plus") {
-			print("MountView: Add mount")
+			displaySheet = true
+		}.sheet(isPresented: $displaySheet) {
+			Text("MountView: Add mount")
 		}
 	}
 }

@@ -109,8 +109,8 @@ extension VZDiskImageCachingMode: @retroactive CustomStringConvertible {
 }
 
 public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, Codable, Hashable, Identifiable {
-	public let diskPath: String
-	private let diskOptions: DiskOptions
+	public var diskPath: String
+	public var diskOptions: DiskOptions
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.description == rhs.description
@@ -135,12 +135,12 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		self.description
 	}
 	
-	private struct DiskOptions: CustomStringConvertible, Codable, Hashable {
+	public struct DiskOptions: CustomStringConvertible, Codable, Hashable {
 		let readOnly: Bool
 		let syncMode: String
 		let cachingMode: String
 
-		var description: String {
+		public var description: String {
 			var options: [String] = []
 
 			if readOnly {
@@ -182,6 +182,10 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 	}
 
+	public init() {
+		self.diskPath = ""
+		self.diskOptions = .init(readOnly: false, syncMode: "", cachingMode: "")
+	}
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)

@@ -10,12 +10,15 @@ import SwiftUI
 
 struct DiskAttachementView: View {
 	@Binding var attachedDisks: [DiskAttachement]
+	@State var displaySheet: Bool = false
 
 	var body: some View {
 		EditableList($attachedDisks) { $item in
 			Text(item.description)
 		}.onAddItem(systemName: "externaldrive.badge.plus") {
-			print("DiskAttachementView: Add disk")
+			displaySheet = true
+		}.sheet(isPresented: $displaySheet) {
+			Text("DiskAttachementView: Add disk")
 		}
 	}
 }
