@@ -3,7 +3,7 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
-public enum SocketMode: String, CustomStringConvertible, Codable {
+public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
 	case bind = "bind"  // Listen on unix socket
 	case connect = "connect"  // Connect to unix socket
 	case tcp = "tcp"  // Listen on tcp socket

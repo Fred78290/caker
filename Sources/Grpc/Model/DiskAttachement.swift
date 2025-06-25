@@ -136,9 +136,9 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 	
 	public struct DiskOptions: CustomStringConvertible, Codable, Hashable {
-		let readOnly: Bool
-		let syncMode: String
-		let cachingMode: String
+		public var readOnly: Bool
+		public var syncMode: String
+		public var cachingMode: String
 
 		public var description: String {
 			var options: [String] = []
@@ -186,6 +186,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		self.diskPath = ""
 		self.diskOptions = .init(readOnly: false, syncMode: "", cachingMode: "")
 	}
+
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)

@@ -110,16 +110,16 @@ struct NetworkAttachementNewItemView: View {
 					Spacer()
 					HStack {
 						Spacer()
-						TextField("", value: $macAddress, format: .macAddress)
-							.multilineTextAlignment(.center)
-							.textFieldStyle(SquareBorderTextFieldStyle())
-							.labelsHidden()
-							.frame(width: 150)
 						Button(action: {
 							macAddress = VZMACAddress.randomLocallyAdministered()
 						}) {
 							Image(systemName: "arrow.trianglehead.clockwise")
 						}.buttonStyle(.borderless)
+						TextField("", value: $macAddress, format: .macAddress)
+							.multilineTextAlignment(.center)
+							.textFieldStyle(SquareBorderTextFieldStyle())
+							.labelsHidden()
+							.frame(width: 150)
 					}
 				}
 				.onChange(of: macAddress) {

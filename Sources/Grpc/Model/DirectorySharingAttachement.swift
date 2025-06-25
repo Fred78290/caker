@@ -185,4 +185,12 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 
 		return nil
 	}
+	
+	public mutating func resetUID() {
+		_uid = nil
+	}
+	
+	public mutating func resetGID() {
+		_gid = nil
+	}
 }

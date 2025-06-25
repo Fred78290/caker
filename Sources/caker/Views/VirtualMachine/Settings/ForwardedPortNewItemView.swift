@@ -14,7 +14,9 @@ struct ForwardedPortNewItemView: View {
 
 	var body: some View {
 		EditableListNewItem(newItem: $newItem, $forwardPorts) {
-			Text("")
+			Section("New port forwarding") {
+				Text("")
+			}
 		}
     }
 }
