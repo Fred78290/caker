@@ -9,8 +9,16 @@ import UniformTypeIdentifiers
 import CakedLib
 
 extension UTType {
-	static var VirtualMachine: UTType {
+	static var virtualMachine: UTType {
 		UTType(importedAs: "com.aldunelabs.caker.caked-vm")
+	}
+
+	static var iso9660: UTType {
+		UTType(importedAs: "public.iso-image")
+	}
+	
+	static var unixSocketAddress: UTType {
+		UTType(importedAs: "public.socket-address")
 	}
 }
 
@@ -19,7 +27,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 		lhs.virtualMachine == rhs.virtualMachine
 	}
 
-	static var readableContentTypes: [UTType] { [.VirtualMachine] }
+	static var readableContentTypes: [UTType] { [.virtualMachine] }
 
 	enum Status: String {
 		case none
@@ -109,8 +117,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 
 	func didChangedState(_ vm: VirtualMachine) {
 		let vmStatus = vm.status
-
-		print("didChangedState: \(vmStatus)")
 
 		guard let status = Status(rawValue: vmStatus.rawValue) else {
 			self.status = .none

@@ -33,7 +33,7 @@ struct OnAddItemListViewModifier<SomeView: View>: ViewModifier {
 		}.sheet(isPresented: $displayAddItemView, onDismiss: nil) {
 			HStack {
 				self.addItemClosure()
-			}.frame(maxWidth: 600).padding()
+			}.frame(maxWidth: 800).padding()
 		}
 	}
 }

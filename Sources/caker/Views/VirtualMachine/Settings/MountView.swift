@@ -14,7 +14,9 @@ struct MountView: View {
 
 	var body: some View {
 		EditableList($mounts) { $item in
-			Text(item.description)
+			Section {
+				MountDetailView(currentItem: $item)
+			}
 		}.onAddItem(systemName: "folder.badge.plus") {
 			MountNewItemView(mounts: $mounts)
 		}

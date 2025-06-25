@@ -32,7 +32,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.29.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "abd3c6b008acba2c4f59dcd503ded2816d0e526d"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "a1bb40e95bcf1fa476d634be6ba5ce39977aae7e"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "be52cbd79902a3b74f5b13d69a13bc32953c2c69"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", from: "0.2.4"),
@@ -47,7 +47,8 @@ let package = Package(
 		.package(url: "https://github.com/orchetect/SwiftRadix", from: "1.3.1"),
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", from: "1.8.0"),
-		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", from: "1.0.8"),
+		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
+		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),

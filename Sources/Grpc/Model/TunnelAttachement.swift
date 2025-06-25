@@ -9,6 +9,16 @@ import CakeAgentLib
 import Foundation
 import NIOPortForwarding
 
+extension ForwardedPort: Validatable {
+	public func validate() -> Bool {
+		if proto == .none || host == -1 || guest == -1 {
+			return false
+		}
+
+		return true
+	}
+}
+
 public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringConvertible, Codable, Hashable, Identifiable {
 	public static func == (lhs: TunnelAttachement, rhs: TunnelAttachement) -> Bool {
 		switch (lhs.oneOf, rhs.oneOf) {
@@ -28,9 +38,9 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 		case .none:
 			return nil
 		case .forward(let value):
-			return .init(from: value)
+			return .init(forward: value)
 		case .unixDomain(let value):
-			return .init(from: TunnelInfo.UnixDomainSocket(proto: value.proto, host: value.host, guest: value.guest))
+			return .init(unixDomain: TunnelInfo.UnixDomainSocket(proto: value.proto, host: value.host, guest: value.guest))
 		}
 	}
 
@@ -49,7 +59,7 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 		self.description
 	}
 
-	public let oneOf: OneOf
+	public var oneOf: OneOf
 
 	public var mappedPort: MappedPort? {
 		guard case .forward(let value) = self.oneOf else {
@@ -97,6 +107,12 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 
 		public static func == (lhs: ForwardUnixDomainSocket, rhs: ForwardUnixDomainSocket) -> Bool {
 			return lhs.proto == rhs.proto && lhs.host == rhs.host && lhs.guest == rhs.guest
+		}
+		
+		public init(proto: MappedPort.Proto, host: String, guest: String) {
+			self.proto = proto
+			self.host = host
+			self.guest = guest
 		}
 	}
 
@@ -208,5 +224,28 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 	enum CodingKeys: String, CodingKey {
 		case forward
 		case unixDomain
+	}
+}
+
+extension TunnelAttachement: Validatable {
+	public func validate() -> Bool {
+		switch self.oneOf {
+		case .none:
+			return false
+		case .forward(let value):
+			return value.validate()
+		case .unixDomain(let value):
+			return value.validate()
+		}
+	}
+}
+
+extension TunnelAttachement.ForwardUnixDomainSocket: Validatable {
+	public func validate() -> Bool {
+		if proto == .none || host.isEmpty || guest.isEmpty {
+			return false
+		}
+		
+		return false
 	}
 }

@@ -13,7 +13,9 @@ struct SocketsView: View {
 
 	var body: some View {
 		EditableList($sockets) { $item in
-			Text(item.description)
+			Section {
+				SocketsDetailView(currentItem: $item)
+			}
 		}.onAddItem(systemName: "rectangle.badge.plus") {
 			SocketsNewItemView(sockets: $sockets)
 		}

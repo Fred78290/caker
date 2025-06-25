@@ -63,9 +63,9 @@ extension Caked_InfoReply.AttachedNetwork {
 extension CakeAgentLib.TunnelInfo {
 	init?(from: Caked_InfoReply.TunnelInfo) {
 		if case .forward(let value) = from.tunnel {
-			self.init(from: ForwardedPort(proto: value.protocol.mappedPort, host: Int(value.host), guest: Int(value.guest)))
+			self.init(forward: ForwardedPort(proto: value.protocol.mappedPort, host: Int(value.host), guest: Int(value.guest)))
 		} else if case .unixDomain(let value) = from.tunnel {
-			self.init(from: UnixDomainSocket(proto: value.protocol.mappedPort, host: value.host, guest: value.guest))
+			self.init(unixDomain: UnixDomainSocket(proto: value.protocol.mappedPort, host: value.host, guest: value.guest))
 		} else {
 			return nil
 		}

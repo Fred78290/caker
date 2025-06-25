@@ -42,6 +42,7 @@ public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
 }
 
 public struct SocketDevice: Codable, Hashable, Identifiable {
+	
 	public var mode: SocketMode = .bind
 	public var port: Int = -1
 	public var bind: String
@@ -180,5 +181,15 @@ extension SocketDevice: CustomStringConvertible, ExpressibleByArgument {
 		}
 
 		return nil
+	}
+}
+
+extension SocketDevice: Validatable {
+	public func validate() -> Bool {
+		if port == -1 || bind.isEmpty {
+			return false
+		}
+
+		return true
 	}
 }

@@ -13,7 +13,9 @@ struct NetworkAttachementView: View {
 
 	var body: some View {
 		EditableList($networks) { $item in
-			Text(item.description)
+			Section {
+				NetworkAttachementDetailView(currentItem: $item)
+			}
 		}.onAddItem(systemName: "badge.plus.radiowaves.right") {
 			NetworkAttachementNewItemView(networks: $networks)
 		}

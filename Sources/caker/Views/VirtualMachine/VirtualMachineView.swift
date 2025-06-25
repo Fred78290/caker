@@ -46,7 +46,7 @@ struct VirtualMachineView: View {
 		let view = VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: virtualMachine, virtualMachine: virtualMachine.virtualMachine) { window in
 			if let window = window {
 				windowNumber = window.windowNumber
-				print("Window: \(self.windowNumber)")
+
 				if #unavailable(macOS 15.0) {
 					window.delegate = self.delegate
 				}
@@ -64,9 +64,8 @@ struct VirtualMachineView: View {
 					document.requestStopFromUI()
 				}
 			}
-		}.onChange(of: appearsActive) { active in
-			print("appearsActive: \(self.windowNumber) - \(active)")
-			if active {
+		}.onChange(of: appearsActive) { newValue in
+			if newValue {
 				self.appState.currentDocument = self.document
 				self.appState.isStopped = document.status == .stopped
 				self.appState.isRunning = document.status == .running
@@ -77,10 +76,10 @@ struct VirtualMachineView: View {
 			}
 		}.onChange(of: self.document.status) { newValue in
 			if self.appearsActive {
-				self.appState.isStopped = document.status == .stopped
-				self.appState.isRunning = document.status == .running
-				self.appState.isPaused = document.status == .suspended
-				self.appState.isSuspendable = document.status == .running && document.suspendable
+				self.appState.isStopped = newValue == .stopped
+				self.appState.isRunning = newValue == .running
+				self.appState.isPaused = newValue == .suspended
+				self.appState.isSuspendable = newValue == .running && document.suspendable
 			}
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {

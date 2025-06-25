@@ -7,11 +7,11 @@ public typealias DirectorySharingAttachments = [DirectorySharingAttachment]
 public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleByArgument, Codable, Sendable, Hashable, Identifiable {
 	public var readOnly: Bool
 
-	var _name: String? = nil
-	var _source: String = ""
-	var _destination: String? = nil
-	var _uid: Int? = nil
-	var _gid: Int? = nil
+	public var _name: String? = nil
+	public var _source: String = ""
+	public var _destination: String? = nil
+	public var _uid: Int? = nil
+	public var _gid: Int? = nil
 
 	public var defaultValueDescription: String {
 		"<source>[:<destination>][,ro][,name=<name>][,uid=<uid>][,gid=<gid>]"
@@ -192,5 +192,15 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	
 	public mutating func resetGID() {
 		_gid = nil
+	}
+}
+
+extension DirectorySharingAttachment: Validatable {
+	public func validate() -> Bool {
+		if _source.isEmpty {
+			return false
+		}
+
+		return true
 	}
 }

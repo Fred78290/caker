@@ -136,9 +136,9 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 	}
 	
 	public struct DiskOptions: CustomStringConvertible, Codable, Hashable {
-		public var readOnly: Bool
-		public var syncMode: String
-		public var cachingMode: String
+		public var readOnly: Bool = false
+		public var syncMode: String = "none"
+		public var cachingMode: String = VZDiskImageCachingMode.automatic.description
 
 		public var description: String {
 			var options: [String] = []
@@ -312,5 +312,15 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 		}
 
 		return (st.st_mode & S_IFMT) == S_IFBLK
+	}
+}
+
+extension DiskAttachement: Validatable {
+	public func validate() -> Bool {
+		if diskPath.isEmpty || diskOptions.syncMode.isEmpty || diskOptions.cachingMode.isEmpty {
+			return false
+		}
+
+		return true
 	}
 }

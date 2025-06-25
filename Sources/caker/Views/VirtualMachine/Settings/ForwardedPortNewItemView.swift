@@ -7,6 +7,8 @@
 
 import SwiftUI
 import GRPCLib
+import CakeAgentLib
+import NIOPortForwarding
 
 struct ForwardedPortNewItemView: View {
 	@Binding var forwardPorts: [TunnelAttachement]
@@ -15,7 +17,7 @@ struct ForwardedPortNewItemView: View {
 	var body: some View {
 		EditableListNewItem(newItem: $newItem, $forwardPorts) {
 			Section("New port forwarding") {
-				Text("")
+				ForwardedPortDetailView(currentItem: $newItem)
 			}
 		}
     }

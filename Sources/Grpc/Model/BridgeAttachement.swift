@@ -108,3 +108,13 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		return self.network == "nat" || self.network == "NAT shared network"
 	}
 }
+
+extension BridgeAttachement: Validatable {
+	public func validate() -> Bool {
+		if network.isEmpty {
+			return false
+		}
+
+		return true
+	}
+}

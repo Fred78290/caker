@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
+import GRPCLib
 
-struct EditableListNewItem<Data: RandomAccessCollection & MutableCollection & RangeReplaceableCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
+struct EditableListNewItem<Data: RandomAccessCollection & MutableCollection & RangeReplaceableCollection, Content: View>: View where Data.Element: Hashable & Identifiable & GRPCLib.Validatable {
 	@Environment(\.dismiss) var dismiss
 	@Binding var data: Data
 	@Binding var newItem: Data.Element
@@ -44,10 +45,14 @@ struct EditableListNewItem<Data: RandomAccessCollection & MutableCollection & Ra
 					Text("Add").frame(width: 60)
 				}.disabled(self.configChanged == false)
 			}
-		}.onChange(of: newItem) {
-			self.configChanged = self.data.first {
-				$0.id == self.newItem.id
-			} == nil
+		}.onChange(of: newItem) { newValue in
+			if newValue.validate() {
+				self.configChanged = self.data.first {
+					$0.id == newValue.id
+				} == nil
+			} else {
+				self.configChanged = false
+			}
 		}
     }
 }

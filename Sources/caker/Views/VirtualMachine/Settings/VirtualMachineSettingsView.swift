@@ -206,8 +206,8 @@ struct VirtualMachineSettingsView: View {
 					}
 				}
 			}
-			.onChange(of: cpuCount) {
-				config?.cpuCount = cpuCount
+			.onChange(of: cpuCount) { newValue in
+				config?.cpuCount = newValue
 				configChanged = true
 			}
 
@@ -225,8 +225,8 @@ struct VirtualMachineSettingsView: View {
 					}.labelsHidden()
 				}
 			}
-			.onChange(of: memorySize) {
-				config?.memorySize = memorySize * (1024 * 1024)
+			.onChange(of: memorySize) { newValue in
+				config?.memorySize = newValue * (1024 * 1024)
 				configChanged = true
 			}
 		}
@@ -242,24 +242,24 @@ struct VirtualMachineSettingsView: View {
 				Toggle("Nested virtualization", isOn: $nestedVirtualization)
 			}
 		}
-		.onChange(of: autostart) {
-			config?.autostart = autostart
+		.onChange(of: autostart) { newValue in
+			config?.autostart = newValue
 			configChanged = true
 		}
-		.onChange(of: suspendable) {
-			config?.suspendable = suspendable
+		.onChange(of: suspendable) { newValue in
+			config?.suspendable = newValue
 			configChanged = true
 		}
-		.onChange(of: dynamicPortForwarding) {
-			config?.dynamicPortForwarding = dynamicPortForwarding
+		.onChange(of: dynamicPortForwarding) { newValue in
+			config?.dynamicPortForwarding = newValue
 			configChanged = true
 		}
-		.onChange(of: displayRefit) {
-			config?.displayRefit = displayRefit
+		.onChange(of: displayRefit) { newValue in
+			config?.displayRefit = newValue
 			configChanged = true
 		}
-		.onChange(of: nestedVirtualization) {
-			config?.nested = nestedVirtualization
+		.onChange(of: nestedVirtualization) { newValue in
+			config?.nested = newValue
 			configChanged = true
 		}
 	}
@@ -287,8 +287,8 @@ struct VirtualMachineSettingsView: View {
 				}
 			}
 		}
-		.onChange(of: display) {
-			config?.display = DisplaySize(width: display.width, height: display.height)
+		.onChange(of: display) { newValue in
+			config?.display = DisplaySize(width: newValue.width, height: newValue.height)
 			configChanged = true
 		}
 	}
@@ -296,8 +296,8 @@ struct VirtualMachineSettingsView: View {
 	func forwardPortsView() -> some View {
 		Section("Forwarded ports") {
 			ForwardedPortView(forwardPorts: $forwardPorts)
-				.onChange(of: forwardPorts) {
-					config?.forwardedPorts = forwardPorts
+				.onChange(of: forwardPorts) { newValue in
+					config?.forwardedPorts = newValue
 					configChanged = true
 				}
 		}
@@ -306,8 +306,8 @@ struct VirtualMachineSettingsView: View {
 	func networksView() -> some View {
 		Section("Network attachements") {
 			NetworkAttachementView(networks: $networks)
-				.onChange(of: networks) {
-					config?.networks = networks
+				.onChange(of: networks) { newValue in
+					config?.networks = newValue
 					configChanged = true
 				}
 		}
@@ -316,8 +316,8 @@ struct VirtualMachineSettingsView: View {
 	func mountsView() -> some View {
 		Section("Directory sharing") {
 			MountView(mounts: $mounts)
-				.onChange(of: mounts) {
-					config?.mounts = mounts
+				.onChange(of: mounts) { newValue in
+					config?.mounts = newValue
 					configChanged = true
 				}
 		}
@@ -326,8 +326,8 @@ struct VirtualMachineSettingsView: View {
 	func diskAttachementView() -> some View {
 		Section("Disks attachements") {
 			DiskAttachementView(attachedDisks: $attachedDisks)
-				.onChange(of: attachedDisks) {
-					config?.attachedDisks = attachedDisks
+				.onChange(of: attachedDisks) { newValue in
+					config?.attachedDisks = newValue
 					configChanged = true
 				}
 		}
@@ -336,8 +336,8 @@ struct VirtualMachineSettingsView: View {
 	func socketsView() -> some View {
 		Section("Virtual sockets") {
 			SocketsView(sockets: $sockets)
-				.onChange(of: sockets) {
-					config?.sockets = sockets
+				.onChange(of: sockets) { newValue in
+					config?.sockets = newValue
 					configChanged = true
 				}
 		}

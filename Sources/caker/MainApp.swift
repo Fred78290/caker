@@ -26,12 +26,12 @@ struct MainApp: App {
 			}
 		}
 		.commands {
-			CommandGroup(replacing: .help, addition: {})
+			/*CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
 			CommandGroup(replacing: .pasteboard, addition: {})
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
-			CommandGroup(replacing: .windowSize, addition: {})
+			CommandGroup(replacing: .windowSize, addition: {})*/
 			CommandMenu("Control") {
 				Button("Start") {
 					appState.currentDocument?.startFromUI()
