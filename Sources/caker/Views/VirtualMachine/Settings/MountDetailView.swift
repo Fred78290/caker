@@ -13,19 +13,13 @@ struct MountDetailView: View {
 
 	var body: some View {
 		VStack {
-			HStack {
-				Text("Name")
-				Spacer()
-				HStack {
-					TextField("", value: $currentItem._name, format: .optional)
-						.textFieldStyle(SquareBorderTextFieldStyle())
-						.labelsHidden()
-				}.frame(width: 300)
+			LabeledContent("Name") {
+				TextField("", value: $currentItem._name, format: .optional)
+					.textFieldStyle(SquareBorderTextFieldStyle())
+					.labelsHidden()
 			}
 
-			HStack {
-				Text("Host path")
-				Spacer()
+			LabeledContent("Host path") {
 				HStack {
 					TextField("Host path", text: $currentItem.source)
 						.multilineTextAlignment(.leading)
@@ -36,34 +30,23 @@ struct MountDetailView: View {
 					}) {
 						Image(systemName: "folder")
 					}.buttonStyle(.borderless)
-				}.frame(width: 300)
+				}
 			}
 
-			HStack {
-				Text("Guest path")
-				Spacer()
-				HStack {
-					TextField("Guest path", value: $currentItem._destination, format: .optional)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
-						.labelsHidden()
-				}.frame(width: 300)
+			LabeledContent("Guest path") {
+				TextField("Guest path", value: $currentItem._destination, format: .optional)
+					.multilineTextAlignment(.leading)
+					.textFieldStyle(SquareBorderTextFieldStyle())
+					.labelsHidden()
 			}
 
-			HStack {
-				Text("Read only")
-				Spacer()
-				HStack {
-					Spacer()
-					Toggle("Read only", isOn: $currentItem.readOnly)
-						.toggleStyle(.switch)
-						.labelsHidden()
-				}.frame(width: 300)
+			LabeledContent("Read only") {
+				Toggle("Read only", isOn: $currentItem.readOnly)
+					.toggleStyle(.switch)
+					.labelsHidden()
 			}
 
-			HStack {
-				Text("Guest user ID mount")
-				Spacer()
+			LabeledContent("Guest user ID mount") {
 				TextField("uid", value: $currentItem._uid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(SquareBorderTextFieldStyle())
@@ -71,9 +54,7 @@ struct MountDetailView: View {
 					.frame(width: 80)
 			}
 
-			HStack {
-				Text("Guest group ID mount")
-				Spacer()
+			LabeledContent("Guest group ID mount") {
 				TextField("gid", value: $currentItem._gid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(SquareBorderTextFieldStyle())

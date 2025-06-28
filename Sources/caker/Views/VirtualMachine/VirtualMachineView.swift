@@ -31,6 +31,7 @@ struct VirtualMachineView: View {
 	@AppStorage("vmpaused") var isPaused: Bool = false
 	@State var windowNumber: Int = 0
 	@State var displaySettings: Bool = false
+	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
@@ -109,7 +110,7 @@ struct VirtualMachineView: View {
 				}.disabled(self.document.virtualMachine == nil)
 			}
 		}.sheet(isPresented: $displaySettings) {
-			VirtualMachineSettingsView(vmname: virtualMachine.vmLocation.name).frame(width: 650)
+			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 650)
 		}
 
 		if #available(macOS 15.0, *) {

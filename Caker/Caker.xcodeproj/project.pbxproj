@@ -123,6 +123,9 @@
 		9B7C7AD92E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD82E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift */; };
 		9B7C7ADB2E09B81A009D0A26 /* SocketsNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7ADA2E09B81A009D0A26 /* SocketsNewItemView.swift */; };
 		9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */; };
+		9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
+		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
+		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
@@ -540,6 +543,8 @@
 		9B7C7AD82E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachementNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7ADA2E09B81A009D0A26 /* SocketsNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocketsNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
+		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
+		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
@@ -742,6 +747,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
@@ -940,6 +946,7 @@
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
+				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -950,6 +957,7 @@
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B2BFAB72DFED25E000045C3 /* Views */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
+				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
 			);
 			path = caker;
 			sourceTree = "<group>";
@@ -1428,6 +1436,7 @@
 			packageProductDependencies = (
 				9BA842D02E0961B2008ED964 /* MultiplatformTabBar */,
 				9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */,
+				9B7C7B6A2E0FC7DA009D0A26 /* Steps */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1691,6 +1700,7 @@
 				9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */,
 				9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */,
 				9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */,
+				9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -1722,6 +1732,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B2BFABA2DFED25E000045C3 /* MainView.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,
 				9B2BFABC2DFED25E000045C3 /* EditableList.swift in Sources */,
@@ -1735,6 +1746,7 @@
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B2BFAC12DFED25E000045C3 /* DiskAttachementView.swift in Sources */,
+				9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
 				9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */,
@@ -2679,6 +2691,14 @@
 				kind = branch;
 			};
 		};
+		9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/asam139/Steps";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.9;
+			};
+		};
 		9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Appracatappra/MultiplatformTabBar.git";
@@ -2855,6 +2875,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
+		};
+		9B7C7B6A2E0FC7DA009D0A26 /* Steps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */;
+			productName = Steps;
 		};
 		9BA842D02E0961B2008ED964 /* MultiplatformTabBar */ = {
 			isa = XCSwiftPackageProductDependency;

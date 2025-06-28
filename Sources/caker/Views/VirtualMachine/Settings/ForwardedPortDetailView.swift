@@ -81,102 +81,76 @@ struct ForwardedPortDetailView: View {
 
 	var body: some View {
 		VStack {
-			HStack {
-				Text("Mode")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Mode", selection: $mode) {
-						ForEach(ForwardMode.allCases, id: \.self) { selected in
-							Text(selected.rawValue).tag(selected)
-						}
-					}.labelsHidden().frame(width: 50)
-				}.frame(width: 300)
+			LabeledContent("Mode") {
+				Picker("Mode", selection: $mode) {
+					ForEach(ForwardMode.allCases, id: \.self) { selected in
+						Text(selected.rawValue).tag(selected).frame(width: 100)
+					}
+				}.labelsHidden()
 			}
 
-			HStack {
-				Text("Protocol")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Protocol", selection: $selectedProtocol) {
-						ForEach(Proto.allCases, id: \.self) { proto in
-							Text(proto.rawValue).tag(proto)
-						}
-					}.labelsHidden().frame(width: 50)
-				}.frame(width: 300)
+			LabeledContent("Protocol") {
+				Picker("Protocol", selection: $selectedProtocol) {
+					ForEach(Proto.allCases, id: \.self) { proto in
+						Text(proto.rawValue).tag(proto).frame(width: 100)
+					}
+				}.labelsHidden()
 			}
 
 			if mode == .portForwarding {
-				HStack {
-					Text("Host port")
-					Spacer()
-					HStack {
-						TextField("Host port", value: $hostPort, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
-							.multilineTextAlignment(.center)
-							.textFieldStyle(SquareBorderTextFieldStyle())
-							.labelsHidden()
-							.frame(width: 50)
-							.onChange(of: hostPort) { newValue in
-								if let forwardedPort = self.forwardedPort {
-									currentItem.oneOf = .forward(forwardedPort)
-								}
+				LabeledContent("Host port") {
+					TextField("Host port", value: $hostPort, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
+						.multilineTextAlignment(.center)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+						.frame(width: 50)
+						.onChange(of: hostPort) { newValue in
+							if let forwardedPort = self.forwardedPort {
+								currentItem.oneOf = .forward(forwardedPort)
 							}
-					}
+						}
 				}
 
-				HStack {
-					Text("Guest port")
-					Spacer()
-					HStack {
-						TextField("", value: $guestPort, format: .ranged(1...65535))
-							.multilineTextAlignment(.center)
-							.textFieldStyle(SquareBorderTextFieldStyle())
-							.labelsHidden()
-							.frame(width: 50)
-							.onChange(of: guestPort) { newValue in
-								if let forwardedPort = self.forwardedPort {
-									currentItem.oneOf = .forward(forwardedPort)
-								}
+				LabeledContent("Guest port") {
+					TextField("", value: $guestPort, format: .ranged(1...65535))
+						.multilineTextAlignment(.center)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+						.frame(width: 50)
+						.onChange(of: guestPort) { newValue in
+							if let forwardedPort = self.forwardedPort {
+								currentItem.oneOf = .forward(forwardedPort)
 							}
-					}
+						}
 				}
 			} else {
-				HStack {
-					Text("Host path")
-					Spacer()
-					HStack {
-						TextField("", value: $hostPath, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(SquareBorderTextFieldStyle())
-							.labelsHidden()
-							.onChange(of: hostPath) { newValue in
-								if let unixDomain = self.unixDomain {
-									currentItem.oneOf = .unixDomain(unixDomain)
-								}
+				LabeledContent("Host path") {
+					TextField("", value: $hostPath, format: .optional)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+						.onChange(of: hostPath) { newValue in
+							if let unixDomain = self.unixDomain {
+								currentItem.oneOf = .unixDomain(unixDomain)
 							}
-						Button(action: {
-							chooseSocketFile()
-						}) {
-							Image(systemName: "powerplug")
-						}.buttonStyle(.borderless)
-					}.frame(width: 300)
+						}
+					Button(action: {
+						chooseSocketFile()
+					}) {
+						Image(systemName: "powerplug")
+					}.buttonStyle(.borderless)
 				}
 
-				HStack {
-					Text("Guest path")
-					Spacer()
-					HStack {
-						TextField("Guest path", value: $guestPath, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(SquareBorderTextFieldStyle())
-							.labelsHidden()
-							.onChange(of: guestPath) { newValue in
-								if let unixDomain = self.unixDomain {
-									currentItem.oneOf = .unixDomain(unixDomain)
-								}
+				LabeledContent("Guest path") {
+					TextField("Guest path", value: $guestPath, format: .optional)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(SquareBorderTextFieldStyle())
+						.labelsHidden()
+						.onChange(of: guestPath) { newValue in
+							if let unixDomain = self.unixDomain {
+								currentItem.oneOf = .unixDomain(unixDomain)
 							}
-					}.frame(width: 300)
+						}
 				}
 			}
 		}

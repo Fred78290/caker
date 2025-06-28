@@ -10,10 +10,17 @@ class AppState: ObservableObject {
 
 @main
 struct MainApp: App {
+	@Environment(\.openWindow) var openWindow
+	@Environment(\.openDocument) private var openDocument
+	@Environment(\.newDocument) private var newDocument
 	@StateObject var appState = AppState()
-	@NSApplicationDelegateAdaptor private var appDelegate: MainUIAppDelegate
+	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	var body: some Scene {
+		/*DocumentGroup(newDocument: VirtualMachineDocument()) { file in
+			VirtualMachineView(appState: self.appState, document: file.document)
+		}*/
+
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
 				if file.document.loadVirtualMachine(from: fileURL) {
@@ -30,8 +37,19 @@ struct MainApp: App {
 			CommandGroup(replacing: .newItem, addition: {})
 			CommandGroup(replacing: .pasteboard, addition: {})
 			CommandGroup(replacing: .textEditing, addition: {})
-			CommandGroup(replacing: .undoRedo, addition: {})
-			CommandGroup(replacing: .windowSize, addition: {})*/
+			CommandGroup(replacing: .undoRedo, addition: {})*/
+			CommandGroup(replacing: .saveItem, addition: {})
+			CommandGroup(replacing: .newItem) {
+				Section {
+					Button("New") {
+						//openWindow(id: "wizard")
+						newDocumentWizard()
+					}.keyboardShortcut(KeyboardShortcut("N"))
+					Button("Open") {
+						open()
+					}.keyboardShortcut(KeyboardShortcut("o"))
+				}
+			}
 			CommandMenu("Control") {
 				Button("Start") {
 					appState.currentDocument?.startFromUI()
@@ -52,14 +70,52 @@ struct MainApp: App {
 				}
 			}
 		}
+		Window("Choose Template", id: "wizard") {
+			newDocWizard()
+		}
+		//WindowGroup("Configure VM", id: "settings", for: String.self) { $vmname in
+		//	VirtualMachineSettingsView(vmname: vmname)
+		//}
+	}
 
-		WindowGroup("Configure VM", id: "settings", for: String.self) { $vmname in
-			VirtualMachineSettingsView(vmname: vmname)
+	private func newDocumentWizard() {
+		newDocument(VirtualMachineDocument())
+	}
+
+	private func open() {
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine") {
+			Task {
+				try? await openDocument(at: documentURL)
+			}
+		}
+	}
+
+	func newDocWizard() -> some View {
+		VStack {
+			Text("Choose a template")
+			List {
+				ForEach(["Debian 11", "Ubuntu 20.04"], id: \.self) {
+					Text($0)
+				}
+			}
+			Button("Next") {
+				print("next")
+			}
 		}
 	}
 }
 
-class MainUIAppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+class MainUIAppDelegate: NSObject, NSApplicationDelegate {
+	override init() {
+		super.init()
+
+		print("delegate")
+	}
+
+	func applicationWillFinishLaunching(_ notification: Notification) {
+		print(#function)
+	}
+
 	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
 		return false
 	}

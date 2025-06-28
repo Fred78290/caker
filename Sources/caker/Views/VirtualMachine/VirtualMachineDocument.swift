@@ -39,6 +39,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	var virtualMachine: VirtualMachine? = nil
 	var name: String = ""
 
+	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
 	@Published var status: Status = .none
 	@Published var canStart: Bool = false
 	@Published var canStop: Bool = false
@@ -49,6 +50,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 
 	init() {
 		self.virtualMachine = nil
+		self.virtualMachineConfig = VirtualMachineConfig()
 	}
 
 	required init(configuration: ReadConfiguration) throws {
@@ -79,6 +81,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 			let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
 
 			self.virtualMachine = virtualMachine
+			self.virtualMachineConfig = VirtualMachineConfig(vmname: vmLocation.name, config: config)
 			self.name = vmLocation.name
 			self.didChangedState(virtualMachine)
 
@@ -116,9 +119,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	}
 
 	func didChangedState(_ vm: VirtualMachine) {
-		let vmStatus = vm.status
-
-		guard let status = Status(rawValue: vmStatus.rawValue) else {
+		guard let status = Status(rawValue: vm.status.rawValue) else {
 			self.status = .none
 			return
 		}

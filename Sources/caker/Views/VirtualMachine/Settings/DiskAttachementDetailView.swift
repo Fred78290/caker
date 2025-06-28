@@ -15,9 +15,7 @@ struct DiskAttachementDetailView: View {
 
 	var body: some View {
 		VStack {
-			HStack {
-				Text("Disk path")
-				Spacer()
+			LabeledContent("Disk path") {
 				HStack {
 					TextField("", text: $currentItem.diskPath)
 						.multilineTextAlignment(.leading)
@@ -31,48 +29,32 @@ struct DiskAttachementDetailView: View {
 				}.frame(width: 300)
 			}
 			
-			HStack {
-				Text("Syncing")
-				Spacer()
-				HStack {
-					Spacer()
-					Toggle("Syncing", isOn: $syncing)
-						.labelsHidden()
-						.toggleStyle(.switch)
-						.onChange(of: syncing) { newValue in
-							self.currentItem.diskOptions.syncMode = newValue ? "full" : "none"
-						}
-				}.frame(width: 300)
-			}
-
-			HStack {
-				Text("Read only")
-				Spacer()
-				HStack {
-					Spacer()
-					Toggle("Read only", isOn: $currentItem.diskOptions.readOnly)
-						.labelsHidden()
-						.toggleStyle(.switch)
-						.onChange(of: currentItem.diskOptions.readOnly) { newValue in
-							currentItem.diskOptions.readOnly = newValue
-						}
-				}.frame(width: 300)
-			}
-
-			HStack {
-				Text("Cache mode")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Cache mode", selection: $currentItem.diskOptions.cachingMode) {
-						ForEach(["automatic", "cached", "uncached"], id: \.self) { name in
-							Text(name).tag(name)
-						}
-					}
+			LabeledContent("Syncing") {
+				Toggle("Syncing", isOn: $syncing)
 					.labelsHidden()
-					.frame(width: 150)
-					.pickerStyle(.menu)
-				}.frame(width: 300)
+					.toggleStyle(.switch)
+					.onChange(of: syncing) { newValue in
+						self.currentItem.diskOptions.syncMode = newValue ? "full" : "none"
+					}
+			}
+
+			LabeledContent("Read only") {
+				Toggle("Read only", isOn: $currentItem.diskOptions.readOnly)
+					.labelsHidden()
+					.toggleStyle(.switch)
+					.onChange(of: currentItem.diskOptions.readOnly) { newValue in
+						currentItem.diskOptions.readOnly = newValue
+					}
+			}
+
+			LabeledContent("Cache mode") {
+				Picker("Cache mode", selection: $currentItem.diskOptions.cachingMode) {
+					ForEach(["automatic", "cached", "uncached"], id: \.self) { name in
+						Text(name).tag(name).frame(width: 100)
+					}
+				}
+				.labelsHidden()
+				.pickerStyle(.menu)
 			}
 		}
     }

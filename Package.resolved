@@ -1,5 +1,5 @@
 {
-  "originHash" : "2718788a530f5e8a16dd988cce0a38437f0df9c5639126fb2531a16f1af4dcce",
+  "originHash" : "ab25223603f030ca299cb52c6a27039c1bf48de0a9b877329a47443d3a93a15e",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -114,6 +114,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "7aa5090f3664963b21b5290791ef778b4ae0e0fb"
+      }
+    },
+    {
+      "identity" : "steps",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/asam139/Steps.git",
+      "state" : {
+        "revision" : "3f53afed09b67f51ee2c1d0d4908624c37230778",
+        "version" : "0.3.9"
       }
     },
     {
@@ -350,6 +359,15 @@
       }
     },
     {
+      "identity" : "swifterswiftui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/asam139/SwifterSwiftUI.git",
+      "state" : {
+        "revision" : "b88cc1269411ecfd0fd32218a064a3a046722853",
+        "version" : "0.5.3"
+      }
+    },
+    {
       "identity" : "swiftformat",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/nicklockwood/SwiftFormat",
@@ -383,6 +401,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "e03289289155b4e7aa565e32862f9cb42140596a"
+      }
+    },
+    {
+      "identity" : "viewinspector",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nalexn/ViewInspector",
+      "state" : {
+        "revision" : "a6fcac8485bc8f57b2d2b55bb6d97138e8659e4b",
+        "version" : "0.10.2"
       }
     },
     {

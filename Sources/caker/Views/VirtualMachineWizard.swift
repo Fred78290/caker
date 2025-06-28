@@ -1,78 +1,95 @@
 //
-//  VirtualMachineSettingsView.swift
+//  VirtualMachineWizard.swift
 //  Caker
 //
-//  Created by Frederic BOLTZ on 12/06/2025.
+//  Created by Frederic BOLTZ on 26/06/2025.
 //
 
-import CakedLib
-import GRPCLib
-import NIO
 import SwiftUI
-import Virtualization
-import MultiplatformTabBar
+import Steps
+import NIO
 
-struct VirtualMachineSettingsView: View {
-	@Environment(\.dismiss) var dismiss
+struct VirtualMachineWizard: View {
+	struct ItemView<Content: View> {
+		var title: String
+		var image: Image?
+		var content: () -> Content
 
-	@Binding var config: VirtualMachineConfig
-	@State var configChanged = false
-
-	init(config: Binding<VirtualMachineConfig>) {
-		_config = config
+		init(title: String, image: Image?, @ViewBuilder content: @escaping () -> Content) {
+			self.title = title
+			self.image = image
+			self.content = content
+		}
 	}
+
+	@State private var selectedIndex: Int = 1
+	@State private var config: VirtualMachineConfig = .init()
+	@State private var imageName: String? = nil
 
 	var body: some View {
-		VStack {
-			MultiplatformTabBar(tabPosition: .top, barHorizontalAlignment: .center)
-				.tab(title: "General", icon: Image(systemName: "gearshape")) {
-					generalSettings()
-				}
-				.tab(title: "Network", icon: Image(systemName: "network")) {
-					networkSettings()
-				}
-				.tab(title: "Disk", icon: Image(systemName: "externaldrive.badge.wifi")) {
-					mediaSettings()
-				}
-			
-			Spacer()
-			Divider()
-			
-			HStack(alignment: .bottom) {
-				Spacer()
-				
-				Button {
-					dismiss()
-				} label: {
-					Text("Cancel")
-						.frame(width: 60)
-				}
-				.buttonStyle(.borderedProminent)
-				
-				Spacer()
-				
-				Button {
-					try? self.config.save()
-					dismiss()
-				} label: {
-					Text("Save")
-						.frame(width: 60)
-				}
-				.buttonStyle(.bordered)
-				.disabled(self.configChanged == false)
-				
-				Spacer()
+		let items = [
+			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")) {
+				TextField("Virtual machine name", value: $config.vmname, format: .optional)
+			},
+			ItemView(title: "Choose OS", image: Image(systemName: "cloud")) {
+				TextField("OS Image", value: $imageName, format: .optional)
+			},
+			ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")) {
+				generalSettings()
+			},
+			ItemView(title: "Sharing directory", image: Image(systemName: "folder.badge.plus")) {
+				mountsView()
+			},
+			ItemView(title: "Additional disk", image: Image(systemName: "externaldrive.badge.plus")) {
+				diskAttachementView()
+			},
+			ItemView(title: "Network attachement", image: Image(systemName: "network")) {
+				networksView()
+			},
+			ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")) {
+				forwardPortsView()
+			},
+			ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug")) {
+				socketsView()
 			}
-			.frame(width: 200)
-			.padding(.bottom)
-			
-		}
-		.frame(height: 600)
-		.onChange(of: config) { newValue in
-			self.configChanged = true
-		}
-	}
+		]
 
+		let stepsState = StepsState(data: Array(0..<items.count))
+
+		VStack(spacing: 12) {
+			Steps(state: stepsState) {
+					return Step(title: items[$0].title, image: items[$0].image)
+				}
+				.onSelectStepAtIndex { index in
+					stepsState.setStep(index)
+					selectedIndex = index
+				}
+				.itemSpacing(10)
+				.font(.caption)
+				.padding()
+			Divider()
+			HStack {
+				items[selectedIndex].content()
+			}
+			.animation(.easeInOut)
+			Divider()
+			HStack(spacing: 120) {
+				Button(action: {
+					stepsState.nextStep()
+				}) {
+					Text("Next")
+				}
+				.disabled(!stepsState.hasNext)
+				Button(action: {
+					stepsState.previousStep()
+				}) {
+					Text("Previous")
+				}
+				.disabled(!stepsState.hasPrevious)
+			}
+		}.padding()
+	}
+	
 	func generalSettings() -> some View {
 		VStack {
 			Form {
@@ -82,31 +99,12 @@ struct VirtualMachineSettingsView: View {
 			}.formStyle(.grouped)
 		}.frame(maxHeight: .infinity)
 	}
-
-	func networkSettings() -> some View {
-		VStack {
-			Form {
-				self.networksView()
-				self.forwardPortsView()
-				self.socketsView()
-			}.formStyle(.grouped)
-		}.frame(maxHeight: .infinity)
-	}
-
-	func mediaSettings() -> some View {
-		VStack {
-			Form {
-				self.mountsView()
-				self.diskAttachementView()
-			}.formStyle(.grouped)
-		}.frame(maxHeight: .infinity)
-	}
-
+	
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
 			let cpuRange = 1...System.coreCount
 			let totalMemoryRange = 1...ProcessInfo().physicalMemory / 1024 / 1024
-
+			
 			Picker("CPU count", selection: $config.cpuCount) {
 				ForEach(cpuRange, id: \.self) { cpu in
 					if cpu == 1 {
@@ -116,7 +114,7 @@ struct VirtualMachineSettingsView: View {
 					}
 				}
 			}
-
+			
 			HStack {
 				Text("Memory size")
 				Spacer().border(.black)
@@ -127,13 +125,13 @@ struct VirtualMachineSettingsView: View {
 						.textFieldStyle(SquareBorderTextFieldStyle())
 						.labelsHidden()
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
-
+						
 					}.labelsHidden()
 				}
 			}
 		}
 	}
-
+	
 	func optionsView() -> some View {
 		Section("Options") {
 			VStack(alignment: .leading) {
@@ -145,7 +143,7 @@ struct VirtualMachineSettingsView: View {
 			}
 		}
 	}
-
+	
 	func displaySizeView() -> some View {
 		Section("Display size") {
 			VStack(alignment: .leading) {
@@ -170,7 +168,7 @@ struct VirtualMachineSettingsView: View {
 			}
 		}
 	}
-
+	
 	func forwardPortsView() -> some View {
 		Section("Forwarded ports") {
 			ForwardedPortView(forwardPorts: $config.forwardPorts)
@@ -203,5 +201,5 @@ struct VirtualMachineSettingsView: View {
 }
 
 #Preview {
-	VirtualMachineSettingsView(config: .constant(.init()))
+    VirtualMachineWizard()
 }

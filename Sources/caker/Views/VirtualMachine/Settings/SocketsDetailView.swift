@@ -13,22 +13,15 @@ struct SocketsDetailView: View {
 	
 	var body: some View {
 		VStack {
-			HStack {
-				Text("Socket mode")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Socket mode", selection: $currentItem.mode) {
-						ForEach(SocketMode.allCases, id: \.self) { mode in
-							Text(mode.description).tag(mode)
-						}
-					}.labelsHidden().frame(width: 80)
-				}.frame(width: 300)
+			LabeledContent("Socket mode") {
+				Picker("Socket mode", selection: $currentItem.mode) {
+					ForEach(SocketMode.allCases, id: \.self) { mode in
+						Text(mode.description).tag(mode).frame(width: 100)
+					}
+				}.labelsHidden()
 			}
 
-			HStack {
-				Text("Socket port")
-				Spacer()
+			LabeledContent("Socket port") {
 				TextField("", value: $currentItem.port, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
 					.multilineTextAlignment(.center)
 					.textFieldStyle(SquareBorderTextFieldStyle())
@@ -36,15 +29,12 @@ struct SocketsDetailView: View {
 					.frame(width: 50)
 			}
 			
-			HStack {
-				Text("Socket path")
-				Spacer()
+			LabeledContent("Socket path") {
 				HStack {
 					TextField("", text: $currentItem.bind)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(SquareBorderTextFieldStyle())
 						.labelsHidden()
-						.frame(width: 270)
 					Button(action: {
 						chooseSocketFile()
 					}) {

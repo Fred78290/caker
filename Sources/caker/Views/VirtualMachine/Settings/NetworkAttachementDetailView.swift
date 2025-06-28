@@ -17,48 +17,34 @@ struct NetworkAttachementDetailView: View {
 
 	var body: some View {
 		VStack {
-			HStack {
-				Text("Network name")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Network name", selection: $currentItem.network) {
-						ForEach(names, id: \.self) { name in
-							Text(name).tag(name)
-						}
-					}.labelsHidden().frame(width: 80)
-				}.frame(width: 300)
+			LabeledContent("Network name") {
+				Picker("Network name", selection: $currentItem.network) {
+					ForEach(names, id: \.self) { name in
+						Text(name).tag(name).frame(width: 100)
+					}
+				}.labelsHidden()
 			}
 			
-			HStack {
-				Text("Mode")
-				Spacer()
-				HStack {
-					Spacer()
-					Picker("Mode", selection: $currentItem.mode) {
-						ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
-							Text(mode.description).tag(mode).frame(width: 80)
-						}
-					}.labelsHidden().frame(width: 80)
-				}.frame(width: 300)
+			LabeledContent("Mode") {
+				Picker("Mode", selection: $currentItem.mode) {
+					Text("default").tag(nil as NetworkMode?).frame(width: 100)
+					ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
+						Text(mode.description).tag(mode as NetworkMode?).frame(width: 100)
+					}
+				}.labelsHidden()
 			}
 
-			HStack {
-				Text("Mac address")
-				Spacer()
-				HStack {
-					Spacer()
-					Button(action: {
-						currentItem.macAddress = VZMACAddress.randomLocallyAdministered().string
-					}) {
-						Image(systemName: "arrow.trianglehead.clockwise")
-					}.buttonStyle(.borderless)
-					TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
-						.labelsHidden()
-						.frame(width: 150)
-				}.frame(width: 300)
+			LabeledContent("Mac address") {
+				Button(action: {
+					currentItem.macAddress = VZMACAddress.randomLocallyAdministered().string
+				}) {
+					Image(systemName: "arrow.trianglehead.clockwise")
+				}.buttonStyle(.borderless)
+				TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
+					.multilineTextAlignment(.center)
+					.textFieldStyle(SquareBorderTextFieldStyle())
+					.labelsHidden()
+					.frame(width: 150)
 			}
 		}
     }
