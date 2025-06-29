@@ -42,8 +42,8 @@ struct MainApp: App {
 			CommandGroup(replacing: .newItem) {
 				Section {
 					Button("New") {
-						//openWindow(id: "wizard")
-						newDocumentWizard()
+						openWindow(id: "wizard")
+						//newDocumentWizard()
 					}.keyboardShortcut(KeyboardShortcut("N"))
 					Button("Open") {
 						open()
@@ -91,17 +91,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VStack {
-			Text("Choose a template")
-			List {
-				ForEach(["Debian 11", "Ubuntu 20.04"], id: \.self) {
-					Text($0)
-				}
-			}
-			Button("Next") {
-				print("next")
-			}
-		}
+		VirtualMachineWizard()
 	}
 }
 
