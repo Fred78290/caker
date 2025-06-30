@@ -51,17 +51,17 @@ struct VirtualMachineWizard: View {
 					stepsState.setStep(index)
 					selectedIndex = index
 				}
-				.itemSpacing(20)
-				.size(20)
+				.itemSpacing(25)
+				.size(16)
 				.font(.caption)
 				.padding()
 			Divider()
-			Form {
+			VStack {
 				switch selectedIndex {
 				case 0:
-					TextField("Virtual machine name", value: $config.vmname, format: .optional)
+					chooseVMName()
 				case 1:
-					TextField("OS Image", value: $imageName, format: .optional)
+					chooseOSImage()
 				case 2:
 					generalSettings()
 				case 3:
@@ -78,7 +78,7 @@ struct VirtualMachineWizard: View {
 					EmptyView()
 				}
 			}
-			.animation(.easeInOut)
+			.animation(.easeInOut, value: selectedIndex)
 			Spacer()
 			Divider()
 			HStack(alignment: .bottom) {
@@ -135,8 +135,10 @@ struct VirtualMachineWizard: View {
 					TextField("", value: $config.memorySize, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
 						
 					}.labelsHidden()
@@ -166,8 +168,10 @@ struct VirtualMachineWizard: View {
 					TextField("", value: $config.display.width, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 				HStack {
 					Text("Height")
@@ -175,41 +179,61 @@ struct VirtualMachineWizard: View {
 					TextField("", value: $config.display.height, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 			}
 		}
 	}
-	
+
+	func chooseVMName() -> some View {
+		TextField("Virtual machine name", value: $config.vmname, format: .optional)
+	}
+
+	func chooseOSImage() -> some View {
+		TextField("OS Image", value: $imageName, format: .optional)
+	}
+
 	func forwardPortsView() -> some View {
-		Section("Forwarded ports") {
-			ForwardedPortView(forwardPorts: $config.forwardPorts)
-		}
+		Form {
+			Section("Forwarded ports") {
+				ForwardedPortView(forwardPorts: $config.forwardPorts)
+			}
+		}.formStyle(.grouped)
 	}
 
 	func networksView() -> some View {
-		Section("Network attachements") {
-			NetworkAttachementView(networks: $config.networks)
-		}
+		Form {
+			Section("Network attachements") {
+				NetworkAttachementView(networks: $config.networks)
+			}
+		}.formStyle(.grouped)
 	}
 
 	func mountsView() -> some View {
-		Section("Directory sharing") {
-			MountView(mounts: $config.mounts)
-		}
+		Form {
+			Section("Directory sharing") {
+				MountView(mounts: $config.mounts)
+			}
+		}.formStyle(.grouped)
 	}
 
 	func diskAttachementView() -> some View {
-		Section("Disks attachements") {
-			DiskAttachementView(attachedDisks: $config.attachedDisks)
-		}
+		Form {
+			Section("Disks attachements") {
+				DiskAttachementView(attachedDisks: $config.attachedDisks)
+			}
+		}.formStyle(.grouped)
 	}
 
 	func socketsView() -> some View {
-		Section("Virtual sockets") {
-			SocketsView(sockets: $config.sockets)
-		}
+		Form {
+			Section("Virtual sockets") {
+				SocketsView(sockets: $config.sockets)
+			}
+		}.formStyle(.grouped)
 	}
 }
 

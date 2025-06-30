@@ -19,8 +19,10 @@ struct DiskAttachementDetailView: View {
 				HStack {
 					TextField("", text: $currentItem.diskPath)
 						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Button(action: {
 						chooseDiskImage()
 					}) {

@@ -10,15 +10,18 @@ import SwiftUI
 
 struct DiskAttachementView: View {
 	@Binding var attachedDisks: [DiskAttachement]
+	@State var selectedItem: DiskAttachement?
 	@State var displaySheet: Bool = false
 
 	var body: some View {
-		EditableList($attachedDisks) { $item in
-			Section {
-				DiskAttachementDetailView(currentItem: $item)
-			}
-		}.onAddItem(systemName: "externaldrive.badge.plus") {
+		EditableList($attachedDisks, selection: $selectedItem) { $item in
+			DiskAttachementDetailView(currentItem: $item)
+		}.onEditItem(selection: $selectedItem) {
 			DiskAttachementNewItemView(attachedDisks: $attachedDisks)
+		} deleteItem: {
+			self.attachedDisks.removeAll {
+				$0.id == selectedItem?.id
+			}
 		}
 	}
 }

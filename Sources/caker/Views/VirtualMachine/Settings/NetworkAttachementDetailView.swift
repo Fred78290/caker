@@ -42,9 +42,11 @@ struct NetworkAttachementDetailView: View {
 				}.buttonStyle(.borderless)
 				TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
 					.multilineTextAlignment(.center)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
 					.frame(width: 150)
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
 		}
     }

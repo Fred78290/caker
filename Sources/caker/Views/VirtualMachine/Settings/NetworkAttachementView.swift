@@ -10,14 +10,17 @@ import SwiftUI
 
 struct NetworkAttachementView: View {
 	@Binding var networks: [BridgeAttachement]
+	@State var selectedItem: BridgeAttachement? = nil
 
 	var body: some View {
-		EditableList($networks) { $item in
-			Section {
-				NetworkAttachementDetailView(currentItem: $item)
-			}
-		}.onAddItem(systemName: "badge.plus.radiowaves.right") {
+		EditableList($networks, selection: $selectedItem) { $item in
+			NetworkAttachementDetailView(currentItem: $item)
+		}.onEditItem(selection: $selectedItem) {
 			NetworkAttachementNewItemView(networks: $networks)
+		} deleteItem: {
+			self.networks.removeAll {
+				$0.id == selectedItem?.id
+			}
 		}
 	}
 }

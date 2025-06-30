@@ -21,26 +21,30 @@ struct SocketsDetailView: View {
 				}.labelsHidden()
 			}
 
-			LabeledContent("Socket port") {
+			LabeledContent("Guest port") {
 				TextField("", value: $currentItem.port, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
 					.multilineTextAlignment(.center)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
 					.frame(width: 50)
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-			
-			LabeledContent("Socket path") {
+
+			LabeledContent("Host path") {
 				HStack {
 					TextField("", text: $currentItem.bind)
 						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Button(action: {
 						chooseSocketFile()
 					}) {
 						Image(systemName: "powerplug")
 					}.buttonStyle(.borderless)
-				}.frame(width: 300)
+				}
 			}
 		}
 	}

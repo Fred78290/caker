@@ -15,51 +15,60 @@ struct MountDetailView: View {
 		VStack {
 			LabeledContent("Name") {
 				TextField("", value: $currentItem._name, format: .optional)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.multilineTextAlignment(.leading)
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-
+			
 			LabeledContent("Host path") {
-				HStack {
-					TextField("Host path", text: $currentItem.source)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
-						.labelsHidden()
-					Button(action: {
-						chooseFolder()
-					}) {
-						Image(systemName: "folder")
-					}.buttonStyle(.borderless)
-				}
+				Button(action: {
+					chooseFolder()
+				}) {
+					Image(systemName: "folder")
+				}.buttonStyle(.borderless)
+				TextField("Host path", text: $currentItem.source)
+					.multilineTextAlignment(.leading)
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
+					.labelsHidden()
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-
+			
 			LabeledContent("Guest path") {
 				TextField("Guest path", value: $currentItem._destination, format: .optional)
 					.multilineTextAlignment(.leading)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-
+			
 			LabeledContent("Read only") {
 				Toggle("Read only", isOn: $currentItem.readOnly)
 					.toggleStyle(.switch)
 					.labelsHidden()
 			}
-
+			
 			LabeledContent("Guest user ID mount") {
 				TextField("uid", value: $currentItem._uid, format: .number)
 					.multilineTextAlignment(.center)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-
+			
 			LabeledContent("Guest group ID mount") {
 				TextField("gid", value: $currentItem._gid, format: .number)
 					.multilineTextAlignment(.center)
-					.textFieldStyle(SquareBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
+					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
 		}
     }

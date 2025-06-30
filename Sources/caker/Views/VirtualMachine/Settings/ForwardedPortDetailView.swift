@@ -39,7 +39,6 @@ struct ForwardedPortDetailView: View {
 	}
 
 	@Binding var currentItem: TunnelAttachement
-
 	@State private var mode = ForwardMode.portForwarding
 	@State private var selectedProtocol = Proto.tcp
 	@State private var hostPath: String? = nil
@@ -101,9 +100,11 @@ struct ForwardedPortDetailView: View {
 				LabeledContent("Host port") {
 					TextField("Host port", value: $hostPort, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
 						.frame(width: 50)
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.onChange(of: hostPort) { newValue in
 							if let forwardedPort = self.forwardedPort {
 								currentItem.oneOf = .forward(forwardedPort)
@@ -114,9 +115,11 @@ struct ForwardedPortDetailView: View {
 				LabeledContent("Guest port") {
 					TextField("", value: $guestPort, format: .ranged(1...65535))
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
 						.frame(width: 50)
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.onChange(of: guestPort) { newValue in
 							if let forwardedPort = self.forwardedPort {
 								currentItem.oneOf = .forward(forwardedPort)
@@ -125,27 +128,33 @@ struct ForwardedPortDetailView: View {
 				}
 			} else {
 				LabeledContent("Host path") {
-					TextField("", value: $hostPath, format: .optional)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
-						.labelsHidden()
-						.onChange(of: hostPath) { newValue in
-							if let unixDomain = self.unixDomain {
-								currentItem.oneOf = .unixDomain(unixDomain)
+					HStack {
+						TextField("", value: $hostPath, format: .optional)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.onChange(of: hostPath) { newValue in
+								if let unixDomain = self.unixDomain {
+									currentItem.oneOf = .unixDomain(unixDomain)
+								}
 							}
-						}
-					Button(action: {
-						chooseSocketFile()
-					}) {
-						Image(systemName: "powerplug")
-					}.buttonStyle(.borderless)
+						Button(action: {
+							chooseSocketFile()
+						}) {
+							Image(systemName: "powerplug")
+						}.buttonStyle(.borderless)
+					}
 				}
 
 				LabeledContent("Guest path") {
 					TextField("Guest path", value: $guestPath, format: .optional)
 						.multilineTextAlignment(.leading)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.onChange(of: guestPath) { newValue in
 							if let unixDomain = self.unixDomain {
 								currentItem.oneOf = .unixDomain(unixDomain)

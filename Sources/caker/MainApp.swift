@@ -70,7 +70,7 @@ struct MainApp: App {
 				}
 			}
 		}
-		Window("Choose Template", id: "wizard") {
+		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
 		//WindowGroup("Configure VM", id: "settings", for: String.self) { $vmname in

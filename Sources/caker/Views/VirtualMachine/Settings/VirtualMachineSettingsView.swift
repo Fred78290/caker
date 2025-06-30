@@ -124,8 +124,10 @@ struct VirtualMachineSettingsView: View {
 					TextField("", value: $config.memorySize, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
 
 					}.labelsHidden()
@@ -155,8 +157,10 @@ struct VirtualMachineSettingsView: View {
 					TextField("", value: $config.display.width, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 				HStack {
 					Text("Height")
@@ -164,8 +168,10 @@ struct VirtualMachineSettingsView: View {
 					TextField("", value: $config.display.height, format: .number)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
-						.textFieldStyle(SquareBorderTextFieldStyle())
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
 						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 			}
 		}

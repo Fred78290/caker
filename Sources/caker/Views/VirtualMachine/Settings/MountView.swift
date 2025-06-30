@@ -10,15 +10,18 @@ import SwiftUI
 
 struct MountView: View {
 	@Binding var mounts: [DirectorySharingAttachment]
+	@State var selectedItem: DirectorySharingAttachment? = nil
 	@State var displaySheet: Bool = false
 
 	var body: some View {
-		EditableList($mounts) { $item in
-			Section {
-				MountDetailView(currentItem: $item)
-			}
-		}.onAddItem(systemName: "folder.badge.plus") {
+		EditableList($mounts, selection: $selectedItem) { $item in
+			MountDetailView(currentItem: $item)
+		}.onEditItem(selection: $selectedItem) {
 			MountNewItemView(mounts: $mounts)
+		} deleteItem: {
+			self.mounts.removeAll {
+				$0.id == selectedItem?.id
+			}
 		}
 	}
 }
