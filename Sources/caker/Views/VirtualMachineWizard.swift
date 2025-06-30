@@ -52,6 +52,7 @@ struct VirtualMachineWizard: View {
 					selectedIndex = index
 				}
 				.itemSpacing(20)
+				.size(20)
 				.font(.caption)
 				.padding()
 			Divider()
