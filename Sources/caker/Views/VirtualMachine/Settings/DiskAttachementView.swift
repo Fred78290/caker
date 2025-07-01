@@ -10,17 +10,19 @@ import SwiftUI
 
 struct DiskAttachementView: View {
 	@Binding var attachedDisks: [DiskAttachement]
-	@State var selectedItem: DiskAttachement?
-	@State var displaySheet: Bool = false
+	@State private var selectedItems: Set<DiskAttachement.ID> = []
+	@State private var displaySheet: Bool = false
 
 	var body: some View {
-		EditableList($attachedDisks, selection: $selectedItem) { $item in
+		EditableList($attachedDisks, selection: $selectedItems) { $item in
 			DiskAttachementDetailView(currentItem: $item)
-		}.onEditItem(selection: $selectedItem) {
+		}.onEditItem(selection: $selectedItems) {
 			DiskAttachementNewItemView(attachedDisks: $attachedDisks)
 		} deleteItem: {
-			self.attachedDisks.removeAll {
-				$0.id == selectedItem?.id
+			selectedItems.forEach { selectedItem in
+				self.attachedDisks.removeAll {
+					$0.id == selectedItem
+				}
 			}
 		}
 	}
