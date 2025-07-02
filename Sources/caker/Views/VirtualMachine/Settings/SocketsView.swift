@@ -10,16 +10,18 @@ import SwiftUI
 
 struct SocketsView: View {
 	@Binding var sockets: [SocketDevice]
-	@State var selectedItem: SocketDevice? = nil
+	@State private var selectedItems: Set<SocketDevice.ID> = []
 
 	var body: some View {
-		EditableList($sockets, selection: $selectedItem) { $item in
+		EditableList($sockets, selection: $selectedItems) { $item in
 			SocketsDetailView(currentItem: $item)
-		}.onEditItem(selection: $selectedItem) {
+		}.onEditItem(selection: $selectedItems) {
 			SocketsNewItemView(sockets: $sockets)
 		} deleteItem: {
-			self.sockets.removeAll {
-				$0.id == selectedItem?.id
+			selectedItems.forEach { selectedItem in
+				self.sockets.removeAll {
+					$0.id == selectedItem
+				}
 			}
 		}
 	}

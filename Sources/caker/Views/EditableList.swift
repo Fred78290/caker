@@ -6,13 +6,15 @@
 //
 import SwiftUI
 
-struct OnEditItemListViewModifier<Element: Identifiable, SomeView: View>: ViewModifier {
+typealias TotalCollection = RandomAccessCollection & MutableCollection & RangeReplaceableCollection & Hashable
 
+struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifier {
 	private var addItemClosure: () -> SomeView
 	private var deleteItem: EditableListDeleteItemAction?
+
 	@Environment(\.dismiss) private var dismiss
 	@State private var displayAddItemView: Bool = false
-	@Binding private var selectedItems: Set<Element.ID>
+	@Binding private var selectedItems: Set<Element>
 
 	init(onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
 		self.addItemClosure = onAddItem
@@ -20,7 +22,7 @@ struct OnEditItemListViewModifier<Element: Identifiable, SomeView: View>: ViewMo
 		self._selectedItems = .constant([])
 	}
 
-	init(selection: Binding<Set<Element.ID>>, onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
+	init(selection: Binding<Set<Element>>, onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
 		self.addItemClosure = onAddItem
 		self.deleteItem = onDeleteItem
 		self._selectedItems = selection
@@ -54,7 +56,38 @@ struct OnEditItemListViewModifier<Element: Identifiable, SomeView: View>: ViewMo
 	}
 }
 
-struct EditableList<Data: RandomAccessCollection & MutableCollection & RangeReplaceableCollection & Hashable, Content: View>: View where Data.Element: Hashable & Identifiable {
+struct EditableListCell<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
+	@State private var isSelected: Bool = false
+	@Binding private var selectedItems: Set<Data.Element.ID>
+	@Binding private var item: Data.Element
+
+	private var content: (Binding<Data.Element>) -> Content
+
+	init(item: Binding<Data.Element>, selection: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
+		_selectedItems = selection
+		_item = item
+		self.content = content
+	}
+
+	var body : some View {
+		HStack(alignment: .center) {
+			Toggle("Select", isOn: $isSelected)
+				.toggleStyle(.checkbox)
+				.labelsHidden()
+				.onChange(of: isSelected) { newValue in
+					if newValue {
+						selectedItems.insert(item.id)
+					} else {
+						selectedItems.remove(item.id)
+					}
+				}
+			
+			self.content($item)
+		}
+	}
+}
+
+struct EditableList<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
 	@Binding var data: Data
 	@Binding private var selectedItems: Set<Data.Element.ID>
 	private var content: (Binding<Data.Element>) -> Content
@@ -98,17 +131,20 @@ struct EditableList<Data: RandomAccessCollection & MutableCollection & RangeRepl
 	}
 
 	func listItem(item: Binding<Data.Element>) -> some View {
+		EditableListCell(item: <#T##Hashable & Identifiable#>, selection: <#T##Binding<Set<Hashable>>#>, content: <#T##(Binding<Hashable & Identifiable>) -> View#>)
 		HStack(alignment: .center) {
-			@State var isSelected: Bool = false
+			@Bindable var isSelected: Bool = false
 
-			Toggle("Select", isOn: $isSelected).toggleStyle(.checkbox).labelsHidden().onChange(of: isSelected) { newValue in
+			Toggle("Select", isOn: $isSelected)
+				.toggleStyle(.checkbox)
+				.labelsHidden()
+				.onChange(of: isSelected) { newValue in
 				if newValue {
 					selectedItems.insert(item.id)
 				} else {
 					selectedItems.remove(item.id)
 				}
 			}
-
 			self.content(item)
 		}
 	}
@@ -123,7 +159,7 @@ struct EditableList<Data: RandomAccessCollection & MutableCollection & RangeRepl
 typealias EditableListDeleteItemAction = () -> Void
 
 extension View {
-	func onEditItem<Element: Identifiable>(selection: Binding<Set<Element.ID>>, _ action: @escaping () -> some View, deleteItem: EditableListDeleteItemAction? = nil) -> some View {
+	func onEditItem<Element: Hashable>(selection: Binding<Set<Element>>, _ action: @escaping () -> some View, deleteItem: EditableListDeleteItemAction? = nil) -> some View {
 		modifier(OnEditItemListViewModifier(selection: selection, onAddItem: action, onDeleteItem: deleteItem))
 	}
 }

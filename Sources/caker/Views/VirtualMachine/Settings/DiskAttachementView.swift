@@ -11,7 +11,6 @@ import SwiftUI
 struct DiskAttachementView: View {
 	@Binding var attachedDisks: [DiskAttachement]
 	@State private var selectedItems: Set<DiskAttachement.ID> = []
-	@State private var displaySheet: Bool = false
 
 	var body: some View {
 		EditableList($attachedDisks, selection: $selectedItems) { $item in
