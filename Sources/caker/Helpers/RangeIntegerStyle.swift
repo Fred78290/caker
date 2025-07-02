@@ -57,7 +57,9 @@ extension FormatStyle where Self == RangeIntegerStyle {
 	static func ranged(_ range: ClosedRange<Int>) -> RangeIntegerStyle {
 		return RangeIntegerStyle(range: range)
 	}
-	
+}
+
+extension FormatStyle where Self == OptionalRangeIntegerStyle {
 	static func optional(_ range: ClosedRange<Int>) -> OptionalRangeIntegerStyle {
 		return OptionalRangeIntegerStyle(range: range)
 	}
