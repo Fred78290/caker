@@ -93,7 +93,7 @@ struct VirtualMachineConfig: Hashable {
 
 	func save(config: CakeConfig) throws {
 		config.cpuCount = self.cpuCount
-		config.memorySize = self.memorySize / (1024 * 1024)
+		config.memorySize = self.memorySize * (1024 * 1024)
 		config.macAddress = self.macAddress.isEmpty ? nil : VZMACAddress(string: self.macAddress)
 		config.autostart = self.autostart
 		config.suspendable = self.suspendable
