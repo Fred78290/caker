@@ -18,35 +18,40 @@ struct NetworkAttachementDetailView: View {
 	var body: some View {
 		VStack {
 			LabeledContent("Network name") {
-				Picker("Network name", selection: $currentItem.network) {
-					ForEach(names, id: \.self) { name in
-						Text(name).tag(name).frame(width: 100)
-					}
-				}.labelsHidden()
+				HStack {
+					Picker("Network name", selection: $currentItem.network) {
+						ForEach(names, id: \.self) { name in
+							Text(name).tag(name)
+						}
+					}.labelsHidden()
+				}.frame(width: 100)
 			}
 			
 			LabeledContent("Mode") {
-				Picker("Mode", selection: $currentItem.mode) {
-					Text("default").tag(nil as NetworkMode?).frame(width: 100)
-					ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
-						Text(mode.description).tag(mode as NetworkMode?).frame(width: 100)
-					}
-				}.labelsHidden()
+				HStack {
+					Picker("Mode", selection: $currentItem.mode) {
+						Text("default").tag(nil as NetworkMode?)
+						ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
+							Text(mode.description).tag(mode as NetworkMode?)
+						}
+					}.labelsHidden()
+				}.frame(width: 100)
 			}
 
 			LabeledContent("Mac address") {
-				Button(action: {
-					currentItem.macAddress = VZMACAddress.randomLocallyAdministered().string
-				}) {
-					Image(systemName: "arrow.trianglehead.clockwise")
-				}.buttonStyle(.borderless)
-				TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
-					.multilineTextAlignment(.center)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.frame(width: 150)
-					.clipShape(RoundedRectangle(cornerRadius: 6))
+				HStack {
+					Button(action: {
+						currentItem.macAddress = VZMACAddress.randomLocallyAdministered().string
+					}) {
+						Image(systemName: "arrow.trianglehead.clockwise")
+					}.buttonStyle(.borderless)
+					TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
+						.multilineTextAlignment(.center)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+				}.frame(width: 200)
 			}
 		}
     }

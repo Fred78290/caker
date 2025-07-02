@@ -121,7 +121,7 @@ struct VirtualMachineSettingsView: View {
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.memorySize, format: .number)
+					TextField("", value: $config.memorySize, format: .number /*.memory(.useGB)*/)
 						.frame(width: 50)
 						.multilineTextAlignment(.center)
 						.textFieldStyle(.roundedBorder)

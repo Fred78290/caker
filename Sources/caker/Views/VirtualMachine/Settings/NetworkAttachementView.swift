@@ -11,11 +11,12 @@ import SwiftUI
 struct NetworkAttachementView: View {
 	@Binding var networks: [BridgeAttachement]
 	@State private var selectedItems: Set<BridgeAttachement.ID> = []
+	@State private var selection: BridgeAttachement.ID? = nil
 
 	var body: some View {
-		EditableList($networks, selection: $selectedItems) { $item in
+		EditableList($networks, selection: $selection, selectedItems: $selectedItems) { $item in
 			NetworkAttachementDetailView(currentItem: $item)
-		}.onEditItem(selection: $selectedItems) {
+		}.onEditItem(selection: $selection, selectedItems: $selectedItems) {
 			NetworkAttachementNewItemView(networks: $networks)
 		} deleteItem: {
 			selectedItems.forEach { selectedItem in

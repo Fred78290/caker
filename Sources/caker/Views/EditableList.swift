@@ -15,17 +15,20 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 	@Environment(\.dismiss) private var dismiss
 	@State private var displayAddItemView: Bool = false
 	@Binding private var selectedItems: Set<Element>
+	@State private var selection: Element? = nil
 
 	init(onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
 		self.addItemClosure = onAddItem
 		self.deleteItem = onDeleteItem
 		self._selectedItems = .constant([])
+		//self._selection = .constant(nil)
 	}
 
-	init(selection: Binding<Set<Element>>, onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
+	init(selection: Binding<Element?>, selectedItems: Binding<Set<Element>>, onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
 		self.addItemClosure = onAddItem
 		self.deleteItem = onDeleteItem
-		self._selectedItems = selection
+		//self._selection = selection
+		self._selectedItems = selectedItems
 	}
 
 	func body(content: Content) -> some View {
@@ -56,45 +59,47 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 	}
 }
 
-struct EditableListCell<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
-	@State private var isSelected: Bool = false
-	@Binding private var selectedItems: Set<Data.Element.ID>
-	@Binding private var item: Data.Element
-
-	private var content: (Binding<Data.Element>) -> Content
-
-	init(item: Binding<Data.Element>, selection: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
-		_selectedItems = selection
-		_item = item
-		self.content = content
-	}
-
-	var body : some View {
-		HStack(alignment: .center) {
-			Toggle("Select", isOn: $isSelected)
-				.toggleStyle(.checkbox)
-				.labelsHidden()
-				.onChange(of: isSelected) { newValue in
-					if newValue {
-						selectedItems.insert(item.id)
-					} else {
-						selectedItems.remove(item.id)
-					}
-				}
-			
-			self.content($item)
-		}
-	}
-}
-
 struct EditableList<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
 	@Binding var data: Data
 	@Binding private var selectedItems: Set<Data.Element.ID>
 	private var content: (Binding<Data.Element>) -> Content
+	@Binding private var selection: Data.Element.ID?
 
-	init(_ data: Binding<Data>, selection: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
+	struct EditableListCell: View {
+		@State private var isSelected: Bool = false
+		@Binding private var selectedItems: Set<Data.Element.ID>
+		@Binding private var item: Data.Element
+
+		private var content: (Binding<Data.Element>) -> Content
+
+		init(item: Binding<Data.Element>, selectedItems: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
+			_selectedItems = selectedItems
+			_item = item
+			self.content = content
+		}
+
+		var body : some View {
+			HStack(alignment: .center) {
+				Toggle("Select", isOn: $isSelected)
+					.toggleStyle(.checkbox)
+					.labelsHidden()
+					.onChange(of: isSelected) { newValue in
+						if newValue {
+							selectedItems.insert(item.id)
+						} else {
+							selectedItems.remove(item.id)
+						}
+					}
+				
+				self.content($item)
+			}
+		}
+	}
+
+	init(_ data: Binding<Data>, selection: Binding<Data.Element.ID?>, selectedItems: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
 		self._data = data
-		self._selectedItems = selection
+		self._selectedItems = selectedItems
+		self._selection = selection
 		self.content = content
 	}
 
@@ -113,7 +118,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 					}
 				}
 			} else {
-				List {
+				List/*(selection: $selection)*/ {
 					ForEach($data, content: listItem)
 						.onMove { indexSet, offset in
 							data.move(fromOffsets: indexSet, toOffset: offset)
@@ -131,22 +136,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 	}
 
 	func listItem(item: Binding<Data.Element>) -> some View {
-		EditableListCell(item: <#T##Hashable & Identifiable#>, selection: <#T##Binding<Set<Hashable>>#>, content: <#T##(Binding<Hashable & Identifiable>) -> View#>)
-		HStack(alignment: .center) {
-			@Bindable var isSelected: Bool = false
-
-			Toggle("Select", isOn: $isSelected)
-				.toggleStyle(.checkbox)
-				.labelsHidden()
-				.onChange(of: isSelected) { newValue in
-				if newValue {
-					selectedItems.insert(item.id)
-				} else {
-					selectedItems.remove(item.id)
-				}
-			}
-			self.content(item)
-		}
+		EditableListCell(item: item, selectedItems: $selectedItems, content: self.content)
 	}
 
 	func deleteItem(item: Binding<Data.Element>) {
@@ -159,7 +149,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 typealias EditableListDeleteItemAction = () -> Void
 
 extension View {
-	func onEditItem<Element: Hashable>(selection: Binding<Set<Element>>, _ action: @escaping () -> some View, deleteItem: EditableListDeleteItemAction? = nil) -> some View {
-		modifier(OnEditItemListViewModifier(selection: selection, onAddItem: action, onDeleteItem: deleteItem))
+	func onEditItem<Element: Hashable>(selection: Binding<Element?>, selectedItems: Binding<Set<Element>>, _ action: @escaping () -> some View, deleteItem: EditableListDeleteItemAction? = nil) -> some View {
+		modifier(OnEditItemListViewModifier(selection: selection, selectedItems: selectedItems, onAddItem: action, onDeleteItem: deleteItem))
 	}
 }

@@ -11,11 +11,12 @@ import SwiftUI
 struct ForwardedPortView: View {
 	@Binding var forwardPorts: [TunnelAttachement]
 	@State private var selectedItems: Set<TunnelAttachement.ID> = []
+	@State private var selection: TunnelAttachement.ID? = nil
 
 	var body: some View {
-		EditableList($forwardPorts, selection: $selectedItems) { $item in
+		EditableList($forwardPorts, selection: $selection, selectedItems: $selectedItems) { $item in
 			ForwardedPortDetailView(currentItem: $item)
-		}.onEditItem(selection: $selectedItems) {
+		}.onEditItem(selection: $selection, selectedItems: $selectedItems) {
 			ForwardedPortNewItemView(forwardPorts: $forwardPorts)
 		} deleteItem: {
 			selectedItems.forEach { selectedItem in
