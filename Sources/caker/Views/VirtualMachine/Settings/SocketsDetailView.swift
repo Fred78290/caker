@@ -9,24 +9,48 @@ import SwiftUI
 import GRPCLib
 
 struct SocketsDetailView: View {
-	@Binding private var currentItem: SocketDevice
-	@State private var model: SocketDeviceModel
+	@StateObject private var model: SocketDeviceModel
 
 	private class SocketDeviceModel: ObservableObject {
-		@Published var mode: SocketMode
-		@Published var port: NumberStore<Int, RangeIntegerStyle>
-		@Published var bind: String
+		@Binding private var currentItem: SocketDevice
+
+		@Published var mode: SocketMode {
+			didSet {
+				self.currentItem.mode = self.mode
+			}
+		}
+
+		@Published var port: NumberStore<Int, RangeIntegerStyle> {
+			didSet {
+				if let value = self.port.getValue() {
+					self.currentItem.port = value
+				}
+			}
+		}
+
+		@Published var bind: String {
+			didSet {
+				self.currentItem.bind = self.bind
+			}
+		}
+
+		init(item: Binding<SocketDevice>) {
+			let wrappedValue = item.wrappedValue
+			self._currentItem = item
+			self.mode = wrappedValue.mode
+			self.port = NumberStore(text: "\(wrappedValue.port)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged((geteuid() == 0 ? 1 : 1024)...65535))
+			self.bind = wrappedValue.bind
+		}
 		
-		init(item: SocketDevice) {
-			self.mode = item.mode
-			self.port = NumberStore(text: "\(item.port)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged((geteuid() == 0 ? 1 : 1024)...65535))
-			self.bind = item.bind
+		func update() {
+			self.currentItem.mode = self.mode
+			self.currentItem.port = self.port.getValue() ?? 0
+			self.currentItem.bind = self.bind
 		}
 	}
 
 	init(currentItem: Binding<SocketDevice>) {
-		_currentItem = currentItem
-		self.model = .init(item: currentItem.wrappedValue)
+		self._model = StateObject(wrappedValue: SocketDeviceModel(item: currentItem))
 	}
 
 	var body: some View {
@@ -38,9 +62,6 @@ struct SocketsDetailView: View {
 					}
 				}
 				.labelsHidden()
-				.onChange(of: model.mode) { newValue in
-					currentItem.mode = newValue
-				}
 			}
 
 			LabeledContent("Guest port") {
@@ -54,11 +75,6 @@ struct SocketsDetailView: View {
 					.formatAndValidate(model.port) {
 						((geteuid() == 0 ? 1 : 1024)...65535).contains($0)
 					}
-					.onChange(of: model.port.text) { newValue in
-						if let newValue = model.port.getValue() {
-							currentItem.port = newValue
-						}
-					}
 			}
 
 			LabeledContent("Host path") {
@@ -69,9 +85,6 @@ struct SocketsDetailView: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.onChange(of: model.bind) { newValue in
-							currentItem.bind = newValue
-						}
 					Button(action: {
 						chooseSocketFile()
 					}) {
