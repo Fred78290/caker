@@ -24,11 +24,6 @@ struct VirtualMachineView: View {
 	@Environment(\.openWindow) private var openWindow
 	@ObservedObject var appState: AppState
 	@StateObject var document: VirtualMachineDocument
-
-	@AppStorage("vmstopped") var isStopped: Bool = true
-	@AppStorage("vmsuspendable") var isSuspendable: Bool = false
-	@AppStorage("vmrunning") var isRunning: Bool = false
-	@AppStorage("vmpaused") var isPaused: Bool = false
 	@State var windowNumber: Int = 0
 	@State var displaySettings: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
@@ -96,11 +91,11 @@ struct VirtualMachineView: View {
 
 				Button("Pause", systemImage: "pause") {
 					document.suspendFromUI()
-				}.disabled(!isSuspendable)
+				}.disabled(document.suspendable == false)
 
 				Button("Restart", systemImage: "restart") {
 					document.stopFromUI()
-				}.disabled(isStopped)
+				}.disabled(self.appState.isStopped)
 			}
 
 			ToolbarItemGroup(placement: .primaryAction) {

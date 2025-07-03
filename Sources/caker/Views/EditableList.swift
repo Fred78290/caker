@@ -13,8 +13,8 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 	private var deleteItem: EditableListDeleteItemAction?
 
 	@Environment(\.dismiss) private var dismiss
-	@State private var displayAddItemView: Bool = false
 	@Binding private var selectedItems: Set<Element>
+	@State private var displayAddItemView: Bool = false
 	@State private var selection: Element? = nil
 
 	init(onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
@@ -60,10 +60,12 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 }
 
 struct EditableList<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
-	@Binding var data: Data
+	@Binding private var data: Data
 	@Binding private var selectedItems: Set<Data.Element.ID>
-	private var content: (Binding<Data.Element>) -> Content
 	@Binding private var selection: Data.Element.ID?
+	@Binding private var moveable: Bool
+
+	private var content: (Binding<Data.Element>) -> Content
 
 	struct EditableListCell: View {
 		@State private var isSelected: Bool = false
@@ -96,10 +98,11 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 		}
 	}
 
-	init(_ data: Binding<Data>, selection: Binding<Data.Element.ID?>, selectedItems: Binding<Set<Data.Element.ID>>, content: @escaping (Binding<Data.Element>) -> Content) {
+	init(_ data: Binding<Data>, selection: Binding<Data.Element.ID?>, selectedItems: Binding<Set<Data.Element.ID>>, moveable: Binding<Bool> = .constant(true), content: @escaping (Binding<Data.Element>) -> Content) {
 		self._data = data
 		self._selectedItems = selectedItems
 		self._selection = selection
+		self._moveable = moveable
 		self.content = content
 	}
 
@@ -118,7 +121,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 					}
 				}
 			} else {
-				List/*(selection: $selection)*/ {
+				List(selection: $selection) {
 					ForEach($data, content: listItem)
 						.onMove { indexSet, offset in
 							data.move(fromOffsets: indexSet, toOffset: offset)

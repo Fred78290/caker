@@ -9,17 +9,44 @@ import SwiftUI
 import GRPCLib
 
 struct MountDetailView: View {
-	@Binding var currentItem: DirectorySharingAttachment
+	@Binding private var currentItem: DirectorySharingAttachment
+	@State private var model: DirectorySharingAttachmentModel
+
+	private class DirectorySharingAttachmentModel: ObservableObject {
+		@Published var readOnly: Bool
+		@Published var name: String? = nil
+		@Published var source: String = ""
+		@Published var destination: String? = nil
+		@Published var uid: Int? = nil
+		@Published var gid: Int? = nil
+		
+		init(item: DirectorySharingAttachment) {
+			self.readOnly = item.readOnly
+			self.name = item._name
+			self.source = item.source
+			self.destination = item._destination
+			self.uid = item._uid
+			self.gid = item._gid
+		}
+	}
+
+	init(currentItem: Binding<DirectorySharingAttachment>) {
+		_currentItem = currentItem
+		self.model = .init(item: currentItem.wrappedValue)
+	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Name") {
-				TextField("", value: $currentItem._name, format: .optional)
+				TextField("Name", value: $model.name, format: .optional)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onSubmit {
+						currentItem._name = model.name
+					}
 			}
 			
 			LabeledContent("Host path") {
@@ -28,47 +55,62 @@ struct MountDetailView: View {
 				}) {
 					Image(systemName: "folder")
 				}.buttonStyle(.borderless)
-				TextField("Host path", text: $currentItem.source)
+				TextField("Host path", text: $model.source)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onSubmit {
+						currentItem.source = model.source
+					}
 			}
 			
 			LabeledContent("Guest path") {
-				TextField("Guest path", value: $currentItem._destination, format: .optional)
+				TextField("Guest path", value: $model.destination, format: .optional)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onSubmit {
+						currentItem._destination = model.destination
+					}
 			}
 			
 			LabeledContent("Read only") {
-				Toggle("Read only", isOn: $currentItem.readOnly)
+				Toggle("Read only", isOn: $model.readOnly)
 					.toggleStyle(.switch)
 					.labelsHidden()
+					.onChange(of: model.readOnly) { newValue in
+						currentItem.readOnly = newValue
+					}
 			}
 			
 			LabeledContent("Guest user ID mount") {
-				TextField("uid", value: $currentItem._uid, format: .number)
+				TextField("uid", value: $model.uid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onSubmit {
+						currentItem._uid = model.uid
+					}
 			}
 			
 			LabeledContent("Guest group ID mount") {
-				TextField("gid", value: $currentItem._gid, format: .number)
+				TextField("gid", value: $model.gid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onSubmit {
+						currentItem._gid = model.gid
+					}
 			}
 		}
     }

@@ -9,36 +9,69 @@ import SwiftUI
 import GRPCLib
 
 struct SocketsDetailView: View {
-	@Binding var currentItem: SocketDevice
-	
+	@Binding private var currentItem: SocketDevice
+	@State private var model: SocketDeviceModel
+
+	private class SocketDeviceModel: ObservableObject {
+		@Published var mode: SocketMode
+		@Published var port: NumberStore<Int, RangeIntegerStyle>
+		@Published var bind: String
+		
+		init(item: SocketDevice) {
+			self.mode = item.mode
+			self.port = NumberStore(text: "\(item.port)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged((geteuid() == 0 ? 1 : 1024)...65535))
+			self.bind = item.bind
+		}
+	}
+
+	init(currentItem: Binding<SocketDevice>) {
+		_currentItem = currentItem
+		self.model = .init(item: currentItem.wrappedValue)
+	}
+
 	var body: some View {
 		VStack {
 			LabeledContent("Socket mode") {
-				Picker("Socket mode", selection: $currentItem.mode) {
+				Picker("Socket mode", selection: $model.mode) {
 					ForEach(SocketMode.allCases, id: \.self) { mode in
 						Text(mode.description).tag(mode).frame(width: 100)
 					}
-				}.labelsHidden()
+				}
+				.labelsHidden()
+				.onChange(of: model.mode) { newValue in
+					currentItem.mode = newValue
+				}
 			}
 
 			LabeledContent("Guest port") {
-				TextField("", value: $currentItem.port, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
+				TextField("Guest port", text: $model.port.text)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 50)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.formatAndValidate(model.port) {
+						((geteuid() == 0 ? 1 : 1024)...65535).contains($0)
+					}
+					.onChange(of: model.port.text) { newValue in
+						if let newValue = model.port.getValue() {
+							currentItem.port = newValue
+						}
+					}
 			}
 
 			LabeledContent("Host path") {
 				HStack {
-					TextField("", text: $currentItem.bind)
+					TextField("Host path", text: $model.bind)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.onChange(of: model.bind) { newValue in
+							currentItem.bind = newValue
+						}
 					Button(action: {
 						chooseSocketFile()
 					}) {
@@ -51,7 +84,7 @@ struct SocketsDetailView: View {
 	
 	func chooseSocketFile() {
 		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
-			self.currentItem.bind = hostPath.absoluteURL.path
+			self.model.bind = hostPath.absoluteURL.path
 		}
 	}
 }

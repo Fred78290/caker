@@ -53,60 +53,38 @@ struct ForwardedPortDetailView: View {
 		@Published var selectedProtocol: Proto
 		@Published var hostPath: String?
 		@Published var guestPath: String?
-		@Published var hostPort: Int?
-		@Published var guestPort: Int?
+		@Published var hostPort: NumberStore<Int, RangeIntegerStyle>
+		@Published var guestPort: NumberStore<Int, RangeIntegerStyle>
 
-		init(mode: ForwardMode, selectedProtocol: Proto, hostPath: String? = nil, guestPath: String? = nil, hostPort: Int? = nil, guestPort: Int? = nil) {
-			self.mode = mode
-			self.selectedProtocol = selectedProtocol
-			self.hostPath = hostPath
-			self.guestPath = guestPath
-			self.hostPort = hostPort
-			self.guestPort = guestPort
+		init(item: Binding<TunnelAttachement>) {
+
+			if case let .forward(forward) = item.wrappedValue.oneOf {
+				self.mode = ForwardMode.portForwarding
+				self.selectedProtocol = .init(forward.proto)
+				self.hostPort = NumberStore(text: "\(forward.host)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
+				self.guestPort =  NumberStore(text: "\(forward.guest)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+			} else if case let .unixDomain(unixDomain) = item.wrappedValue.oneOf {
+				self.mode = ForwardMode.unixDomainSocket
+				self.selectedProtocol = .init(unixDomain.proto)
+				self.hostPath = unixDomain.host
+				self.guestPath = unixDomain.guest
+				self.hostPort = NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
+				self.guestPort =  NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+			} else {
+				self.mode = .portForwarding
+				self.selectedProtocol = .both
+				self.hostPort = NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
+				self.guestPort =  NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+			}
 		}
 	}
 
-	@Binding var currentItem: TunnelAttachement
-	@State var model: TunnelAttachementModel
-	/*
-	@State private var mode: ForwardMode
-	@State private var selectedProtocol: Proto
-	@State private var hostPath: String?
-	@State private var guestPath: String?
-	@State private var hostPort: Int?
-	@State private var guestPort: Int?*/
+	@Binding private var currentItem: TunnelAttachement
+	@State private var model: TunnelAttachementModel
 
 	init(currentItem: Binding<TunnelAttachement>) {
 		_currentItem = currentItem
-		
-		var mode: ForwardMode = ForwardMode.portForwarding
-		var selectedProtocol: Proto = .both
-		var hostPath: String? = nil
-		var guestPath: String? = nil
-		var hostPort: Int? = nil
-		var guestPort: Int? = nil
-
-		if case let .forward(forward) = currentItem.wrappedValue.oneOf {
-			mode = ForwardMode.portForwarding
-			selectedProtocol = .init(forward.proto)
-			hostPort = forward.host
-			guestPort = forward.guest
-		} else if case let .unixDomain(unixDomain) = currentItem.wrappedValue.oneOf {
-			mode = ForwardMode.unixDomainSocket
-			selectedProtocol = .init(unixDomain.proto)
-			hostPath = unixDomain.host
-			guestPath = unixDomain.guest
-		}
-		
-		self.model = .init(mode: mode, selectedProtocol: selectedProtocol, hostPath: hostPath, guestPath: guestPath, hostPort: hostPort, guestPort: guestPort)
-/*		self.mode = mode
-		self.selectedProtocol = selectedProtocol
-		self.hostPath = hostPath
-		self.guestPath = guestPath
-		self.hostPort = hostPort
-		self.guestPort = guestPort*/
-		
-		print(self.model)
+		self.model = .init(item: currentItem)
 	}
 
 	var unixDomain: TunnelAttachement.ForwardUnixDomainSocket? {
@@ -118,7 +96,11 @@ struct ForwardedPortDetailView: View {
 	}
 
 	var forwardedPort: ForwardedPort? {
-		guard let hostPort = model.hostPort, let guestPort = model.guestPort else {
+		guard model.mode == .portForwarding else {
+			return nil
+		}
+
+		guard let hostPort = model.hostPort.getValue(), let guestPort = model.guestPort.getValue() else {
 			return nil
 		}
 
@@ -159,31 +141,37 @@ struct ForwardedPortDetailView: View {
 
 			if model.mode == .portForwarding {
 				LabeledContent("Host port") {
-					TextField("Host port", value: $model.hostPort, format: .ranged((geteuid() == 0 ? 0 : 1024)...65535))
+					TextField("Host port", text: $model.hostPort.text)
 						.multilineTextAlignment(.center)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
 						.frame(width: 80)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.onChange(of: model.hostPort) { newValue in
-							if let forwardedPort = self.forwardedPort {
-								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: newValue ?? -1, guest: forwardedPort.guest))
+						.formatAndValidate(model.hostPort) {
+							((geteuid() == 0 ? 1 : 1024)...65535).contains($0)
+						}
+						.onChange(of: model.hostPort.text) { _ in
+							if let forwardedPort = self.forwardedPort, let newValue = model.hostPort.getValue() {
+								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: newValue, guest: forwardedPort.guest))
 							}
 						}
 				}
 
 				LabeledContent("Guest port") {
-					TextField("Guest port", value: $model.guestPort, format: .ranged(1...65535))
+					TextField("Guest port", text: $model.guestPort.text)
 						.multilineTextAlignment(.center)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
 						.frame(width: 80)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.onChange(of: model.guestPort) { newValue in
-							if let forwardedPort = self.forwardedPort {
-								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: forwardedPort.host, guest: newValue ?? -1))
+						.formatAndValidate(model.hostPort) {
+							(1...65535).contains($0)
+						}
+						.onChange(of: model.guestPort.text) { _ in
+							if let forwardedPort = self.forwardedPort, let newValue = model.guestPort.getValue()  {
+								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: forwardedPort.host, guest: newValue))
 							}
 						}
 				}
