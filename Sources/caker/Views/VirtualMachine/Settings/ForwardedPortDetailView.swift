@@ -48,43 +48,60 @@ struct ForwardedPortDetailView: View {
 		}
 	}
 
-	class TunnelAttachementModel: ObservableObject {
-		@Published var mode: ForwardMode
-		@Published var selectedProtocol: Proto
-		@Published var hostPath: String?
-		@Published var guestPath: String?
-		@Published var hostPort: NumberStore<Int, RangeIntegerStyle>
-		@Published var guestPort: NumberStore<Int, RangeIntegerStyle>
+	struct TunnelAttachementModel: Equatable {
+		static func == (lhs: ForwardedPortDetailView.TunnelAttachementModel, rhs: ForwardedPortDetailView.TunnelAttachementModel) -> Bool {
+			lhs.tunnelAttachement == rhs.tunnelAttachement
+		}
+		
+		var mode: ForwardMode
+		var selectedProtocol: Proto
+		var hostPath: String?
+		var guestPath: String?
+		var hostPort: NumberStore<Int, IntegerFormatStyle<Int>>
+		var guestPort: NumberStore<Int, IntegerFormatStyle<Int>>
+
+		var tunnelAttachement: TunnelAttachement {
+			switch mode {
+			case .portForwarding:
+				return .init(host: hostPort.value, guest: guestPort.value, proto: selectedProtocol.proto)
+			case .unixDomainSocket:
+				return .init(host: hostPath ?? "", guest: guestPath ?? "", proto: selectedProtocol.proto)
+			}
+		}
 
 		init(item: Binding<TunnelAttachement>) {
+			let hostStyle = IntegerFormatStyle<Int>.number //RangeIntegerStyle.ranged(((geteuid() == 0 ? 1 : 1024)...65535))
+			let guestStyle = IntegerFormatStyle<Int>.number //RangeIntegerStyle.ranged(1...65535)
 
 			if case let .forward(forward) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.portForwarding
 				self.selectedProtocol = .init(forward.proto)
-				self.hostPort = NumberStore(text: "\(forward.host)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
-				self.guestPort =  NumberStore(text: "\(forward.guest)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+				self.hostPort = NumberStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  NumberStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else if case let .unixDomain(unixDomain) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.unixDomainSocket
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
-				self.hostPort = NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
-				self.guestPort =  NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+				self.hostPort = NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
-				self.hostPort = NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
-				self.guestPort =  NumberStore(text: "", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(1...65535))
+				self.hostPort = NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 		}
 	}
 
 	@Binding private var currentItem: TunnelAttachement
 	@State private var model: TunnelAttachementModel
+	private var readOnly: Bool
 
-	init(currentItem: Binding<TunnelAttachement>) {
+	init(currentItem: Binding<TunnelAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem
 		self.model = .init(item: currentItem)
+		self.readOnly = readOnly
 	}
 
 	var unixDomain: TunnelAttachement.ForwardUnixDomainSocket? {
@@ -115,7 +132,9 @@ struct ForwardedPortDetailView: View {
 						ForEach(ForwardMode.allCases, id: \.self) { selected in
 							Text(selected.description).tag(selected).frame(width: 100)
 						}
-					}.labelsHidden()
+					}
+					.allowsHitTesting(readOnly == false)
+					.labelsHidden()
 				}.frame(width: 150)
 			}
 
@@ -125,18 +144,10 @@ struct ForwardedPortDetailView: View {
 						ForEach(Proto.allCases, id: \.self) { proto in
 							Text(proto.rawValue).tag(proto).frame(width: 100)
 						}
-					}.labelsHidden()
+					}
+					.allowsHitTesting(readOnly == false)
+					.labelsHidden()
 				}.frame(width: 150)
-			}.onChange(of: model.selectedProtocol) { newValue in
-				if model.mode == .portForwarding {
-					if let forwardedPort = self.forwardedPort {
-						currentItem.oneOf = .forward(ForwardedPort(proto: newValue.proto, host: forwardedPort.host, guest: forwardedPort.guest))
-					}
-				} else {
-					if let unixDomain = self.unixDomain {
-						currentItem.oneOf = .unixDomain(TunnelAttachement.ForwardUnixDomainSocket(proto: newValue.proto, host: unixDomain.host, guest: unixDomain.guest))
-					}
-				}
 			}
 
 			if model.mode == .portForwarding {
@@ -148,13 +159,12 @@ struct ForwardedPortDetailView: View {
 						.labelsHidden()
 						.frame(width: 80)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.allowsHitTesting(readOnly == false)
 						.formatAndValidate(model.hostPort) {
-							((geteuid() == 0 ? 1 : 1024)...65535).contains($0)
+							RangeIntegerStyle.hostPortRange.inRange($0)
 						}
-						.onChange(of: model.hostPort.text) { _ in
-							if let forwardedPort = self.forwardedPort, let newValue = model.hostPort.getValue() {
-								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: newValue, guest: forwardedPort.guest))
-							}
+						.onChange(of: model.hostPort.value) { newValue in
+							self.currentItem.oneOf = model.tunnelAttachement.oneOf
 						}
 				}
 
@@ -166,13 +176,12 @@ struct ForwardedPortDetailView: View {
 						.labelsHidden()
 						.frame(width: 80)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.formatAndValidate(model.hostPort) {
-							(1...65535).contains($0)
+						.allowsHitTesting(readOnly == false)
+						.formatAndValidate(model.guestPort) {
+							RangeIntegerStyle.guestPortRange.inRange($0)
 						}
-						.onChange(of: model.guestPort.text) { _ in
-							if let forwardedPort = self.forwardedPort, let newValue = model.guestPort.getValue()  {
-								currentItem.oneOf = .forward(ForwardedPort(proto: forwardedPort.proto, host: forwardedPort.host, guest: newValue))
-							}
+						.onChange(of: model.guestPort.value) { newValue in
+							self.currentItem.oneOf = model.tunnelAttachement.oneOf
 						}
 				}
 			} else {
@@ -184,16 +193,15 @@ struct ForwardedPortDetailView: View {
 							.background(.white)
 							.labelsHidden()
 							.clipShape(RoundedRectangle(cornerRadius: 6))
-							.onChange(of: model.hostPath) { newValue in
-								if let unixDomain = self.unixDomain {
-									currentItem.oneOf = .unixDomain(TunnelAttachement.ForwardUnixDomainSocket(proto: unixDomain.proto, host: newValue ?? "", guest: unixDomain.guest))
-								}
-							}
-						Button(action: {
-							chooseSocketFile()
-						}) {
-							Image(systemName: "powerplug")
-						}.buttonStyle(.borderless)
+							.allowsHitTesting(readOnly == false)
+
+						if readOnly == false {
+							Button(action: {
+								chooseSocketFile()
+							}) {
+								Image(systemName: "powerplug")
+							}.buttonStyle(.borderless)
+						}
 					}.frame(maxWidth: 600)
 				}
 
@@ -205,14 +213,12 @@ struct ForwardedPortDetailView: View {
 							.background(.white)
 							.labelsHidden()
 							.clipShape(RoundedRectangle(cornerRadius: 6))
-							.onChange(of: model.guestPath) { newValue in
-								if let unixDomain = self.unixDomain {
-									currentItem.oneOf = .unixDomain(TunnelAttachement.ForwardUnixDomainSocket(proto: unixDomain.proto, host: unixDomain.host, guest: newValue ?? ""))
-								}
-							}
+							.allowsHitTesting(readOnly == false)
 					}.frame(maxWidth: 600)
 				}
 			}
+		}.onChange(of: model) { newValue in
+			self.currentItem.oneOf = newValue.tunnelAttachement.oneOf
 		}
     }
 	

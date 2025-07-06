@@ -10,19 +10,36 @@ import GRPCLib
 import CakeAgentLib
 import NIOPortForwarding
 
+extension [TunnelAttachement] {
+	func editItem(_ editItem: TunnelAttachement.ID?) -> TunnelAttachement {
+		if let editItem = editItem {
+			return self.first(where: { $0.id == editItem }) ?? .init()
+		} else {
+			return .init()
+		}
+	}
+}
+
 struct ForwardedPortNewItemView: View {
-	@Binding var forwardPorts: [TunnelAttachement]
-	@State var newItem: TunnelAttachement = .init()
+	@Binding private var forwardPorts: [TunnelAttachement]
+	@State private var newItem: TunnelAttachement
+	private let editItem: TunnelAttachement.ID?
+
+	init(_ forwardPorts: Binding<[TunnelAttachement]>, editItem: TunnelAttachement.ID? = nil) {
+		self._forwardPorts = forwardPorts
+		self.editItem = editItem
+		self.newItem = forwardPorts.wrappedValue.editItem(editItem)
+	}
 
 	var body: some View {
-		EditableListNewItem(newItem: $newItem, $forwardPorts) {
+		EditableListNewItem($forwardPorts, currentItem: $newItem, editItem: editItem) {
 			Section("New port forwarding") {
-				ForwardedPortDetailView(currentItem: $newItem)
+				ForwardedPortDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
     }
 }
 
 #Preview {
-	ForwardedPortNewItemView(forwardPorts: .constant([]))
+	ForwardedPortNewItemView(.constant([]))
 }

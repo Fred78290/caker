@@ -10,114 +10,87 @@ import GRPCLib
 
 struct MountDetailView: View {
 	@Binding private var currentItem: DirectorySharingAttachment
-	@State private var model: DirectorySharingAttachmentModel
+	private var readOnly: Bool
 
-	private class DirectorySharingAttachmentModel: ObservableObject {
-		@Published var readOnly: Bool
-		@Published var name: String? = nil
-		@Published var source: String = ""
-		@Published var destination: String? = nil
-		@Published var uid: Int? = nil
-		@Published var gid: Int? = nil
-		
-		init(item: DirectorySharingAttachment) {
-			self.readOnly = item.readOnly
-			self.name = item._name
-			self.source = item.source
-			self.destination = item._destination
-			self.uid = item._uid
-			self.gid = item._gid
-		}
-	}
-
-	init(currentItem: Binding<DirectorySharingAttachment>) {
+	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
 		_currentItem = currentItem
-		self.model = .init(item: currentItem.wrappedValue)
+		self.readOnly = readOnly
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Name") {
-				TextField("Name", value: $model.name, format: .optional)
+				TextField("Name", text: $currentItem.name)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.onSubmit {
-						currentItem._name = model.name
-					}
+					.allowsHitTesting(readOnly == false)
 			}
 			
 			LabeledContent("Host path") {
-				Button(action: {
-					chooseFolder()
-				}) {
-					Image(systemName: "folder")
-				}.buttonStyle(.borderless)
-				TextField("Host path", text: $model.source)
+				if readOnly == false {
+					Button(action: {
+						chooseFolder()
+					}) {
+						Image(systemName: "folder")
+					}.buttonStyle(.borderless)
+				}
+
+				TextField("Host path", text: $currentItem.source)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.onSubmit {
-						currentItem.source = model.source
-					}
+					.allowsHitTesting(readOnly == false)
 			}
 			
 			LabeledContent("Guest path") {
-				TextField("Guest path", value: $model.destination, format: .optional)
+				TextField("Guest path", value: $currentItem.destination, format: .optional)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
+					.allowsHitTesting(readOnly == false)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.onSubmit {
-						currentItem._destination = model.destination
-					}
 			}
 			
 			LabeledContent("Read only") {
-				Toggle("Read only", isOn: $model.readOnly)
+				Toggle("Read only", isOn: $currentItem.readOnly)
 					.toggleStyle(.switch)
 					.labelsHidden()
-					.onChange(of: model.readOnly) { newValue in
-						currentItem.readOnly = newValue
-					}
+					.allowsHitTesting(readOnly == false)
 			}
 			
 			LabeledContent("Guest user ID mount") {
-				TextField("uid", value: $model.uid, format: .number)
+				TextField("uid", value: $currentItem.uid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
+					.allowsHitTesting(readOnly == false)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.onSubmit {
-						currentItem._uid = model.uid
-					}
 			}
 			
 			LabeledContent("Guest group ID mount") {
-				TextField("gid", value: $model.gid, format: .number)
+				TextField("gid", value: $currentItem.gid, format: .number)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 80)
+					.allowsHitTesting(readOnly == false)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.onSubmit {
-						currentItem._gid = model.gid
-					}
 			}
 		}
     }
 	
 	func chooseFolder() {
 		if let folder = FileHelpers.selectFolder(withTitle: "Choose folder to mount inside VM") {
-			currentItem._source = folder.absoluteURL.path
+			currentItem.source = folder.absoluteURL.path
 		}
 	}
 }

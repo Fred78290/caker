@@ -10,17 +10,24 @@ import Foundation
 struct RangeIntegerStyle: ParseableFormatStyle {
 	var parseStrategy: RangeIntegerStrategy
 	let range: ClosedRange<Int>
-
+	
 	init(range: ClosedRange<Int>) {
 		self.range = range
 		self.parseStrategy = .init(range: range)
 	}
-
+	
 	func format(_ value: Int) -> String {
 		let constrainedValue = min(max(value, range.lowerBound), range.upperBound)
-
+		
 		return "\(constrainedValue)"
 	}
+
+	func inRange(_ value: Int) -> Bool {
+		return range.contains(value)
+	}
+
+	static var hostPortRange = RangeIntegerStyle.ranged(((geteuid() == 0 ? 1 : 1024)...65535))
+	static var guestPortRange = RangeIntegerStyle.ranged(1...65535)
 }
 
 struct OptionalRangeIntegerStyle: ParseableFormatStyle {

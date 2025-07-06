@@ -8,19 +8,36 @@
 import SwiftUI
 import GRPCLib
 
+extension [DirectorySharingAttachment] {
+	func editItem(_ editItem: DirectorySharingAttachment.ID?) -> DirectorySharingAttachment {
+		if let editItem = editItem {
+			return self.first(where: { $0.id == editItem }) ?? .init()
+		} else {
+			return .init()
+		}
+	}
+}
+
 struct MountNewItemView: View {
-	@Binding var mounts: [DirectorySharingAttachment]
-	@State var newItem: DirectorySharingAttachment = .init(source: "~".expandingTildeInPath)
+	@Binding private var mounts: [DirectorySharingAttachment]
+	@State private var newItem: DirectorySharingAttachment
+	private let editItem: SocketDevice.ID?
+
+	init(_ mounts: Binding<[DirectorySharingAttachment]>, editItem: DirectorySharingAttachment.ID? = nil) {
+		self._mounts = mounts
+		self.editItem = editItem
+		self.newItem = mounts.wrappedValue.editItem(editItem)
+	}
 
 	var body: some View {
-		EditableListNewItem(newItem: $newItem, $mounts) {
+		EditableListNewItem($mounts, currentItem: $newItem, editItem: editItem) {
 			Section("New mount point") {
-				MountDetailView(currentItem: $newItem)
+				MountDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
     }
 }
 
 #Preview {
-	MountNewItemView(mounts: .constant([]))
+	MountNewItemView(.constant([]))
 }

@@ -11,75 +11,62 @@ import CakedLib
 
 struct DiskAttachementDetailView: View {
 	@Binding private var currentItem: DiskAttachement
-	@State private var model: DiskAttachementModel
+	@State private var syncing: Bool
 
-	private class DiskAttachementModel: ObservableObject {
-		@Published var syncing: Bool
-		@Published var readOnly: Bool
-		@Published var diskPath: String
-		@Published var cachingMode: String
+	private var readOnly: Bool
 
-		init(item: DiskAttachement) {
-			self.cachingMode = item.diskOptions.cachingMode
-			self.diskPath = item.diskPath
-			self.readOnly = item.diskOptions.readOnly
-			self.syncing = item.diskOptions.syncMode == "full"
-		}
-	}
-
-	init(currentItem: Binding<DiskAttachement>) {
-		self.model = .init(item: currentItem.wrappedValue)
+	init(currentItem: Binding<DiskAttachement>, readOnly: Bool = true) {
 		self._currentItem = currentItem
+		self.readOnly = readOnly
+		self.syncing = currentItem.wrappedValue.diskOptions.syncMode == "full"
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Disk path") {
 				HStack {
-					TextField("Disk image path", text: $model.diskPath)
+					TextField("Disk image path", text: $currentItem.diskPath)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.onSubmit {
-							currentItem.diskPath = model.diskPath
-						}
-					Button(action: {
-						chooseDiskImage()
-					}) {
-						Image(systemName: "opticaldiscdrive")
-					}.buttonStyle(.borderless)
+						.allowsHitTesting(readOnly == false)
+
+					if readOnly == false {
+						Button(action: {
+							chooseDiskImage()
+						}) {
+							Image(systemName: "opticaldiscdrive")
+						}.buttonStyle(.borderless)
+					}
 				}.frame(width: 300)
 			}
 			
 			LabeledContent("Syncing") {
-				Toggle("Syncing", isOn: $model.syncing)
+				Toggle("Syncing", isOn: $syncing)
 					.labelsHidden()
 					.toggleStyle(.switch)
-					.onChange(of: model.syncing) { newValue in
+					.allowsHitTesting(readOnly == false)
+					.onChange(of: syncing) { newValue in
 						self.currentItem.diskOptions.syncMode = newValue ? "full" : "none"
 					}
 			}
 
 			LabeledContent("Read only") {
-				Toggle("Read only", isOn: $model.readOnly)
+				Toggle("Read only", isOn: $currentItem.diskOptions.readOnly)
 					.labelsHidden()
 					.toggleStyle(.switch)
-					.onChange(of: model.readOnly) { newValue in
-						currentItem.diskOptions.readOnly = newValue
-					}
+					.allowsHitTesting(readOnly == false)
 			}
 
 			LabeledContent("Cache mode") {
-				Picker("Cache mode", selection: $model.cachingMode) {
+				Picker("Cache mode", selection: $currentItem.diskOptions.cachingMode) {
 					ForEach(["automatic", "cached", "uncached"], id: \.self) { name in
 						Text(name).tag(name).frame(width: 100)
 					}
 				}
-				.onChange(of: model.cachingMode) { newValue in
-					currentItem.diskOptions.cachingMode = newValue
-				}
+				.allowsHitTesting(readOnly == false)
 				.labelsHidden()
 				.pickerStyle(.menu)
 			}

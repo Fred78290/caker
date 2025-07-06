@@ -10,19 +10,16 @@ import SwiftUI
 
 struct MountView: View {
 	@Binding var mounts: [DirectorySharingAttachment]
-	@State private var selectedItems: Set<DirectorySharingAttachment.ID> = []
 	@State private var selection: DirectorySharingAttachment.ID? = nil
 
 	var body: some View {
-		EditableList($mounts, selection: $selection, selectedItems: $selectedItems) { $item in
+		EditableList($mounts, selection: $selection) { $item in
 			MountDetailView(currentItem: $item)
-		}.onEditItem(selection: $selection, selectedItems: $selectedItems) {
-			MountNewItemView(mounts: $mounts)
+		}.onEditItem(selection: $selection) { editItem in
+			MountNewItemView($mounts, editItem: editItem)
 		} deleteItem: {
-			selectedItems.forEach { selectedItem in
-				self.mounts.removeAll {
-					$0.id == selectedItem
-				}
+			self.mounts.removeAll {
+				$0.id == selection
 			}
 		}
 	}

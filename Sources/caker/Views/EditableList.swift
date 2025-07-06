@@ -7,28 +7,21 @@
 import SwiftUI
 
 typealias TotalCollection = RandomAccessCollection & MutableCollection & RangeReplaceableCollection & Hashable
+typealias DeleteItemAction = () -> Void
 
 struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifier {
-	private var addItemClosure: () -> SomeView
-	private var deleteItem: EditableListDeleteItemAction?
+	private var editItemClosure: (Element?) -> SomeView
+	private var deleteItem: DeleteItemAction?
 
 	@Environment(\.dismiss) private var dismiss
-	@Binding private var selectedItems: Set<Element>
 	@State private var displayAddItemView: Bool = false
-	@State private var selection: Element? = nil
+	@State private var displayEditItemView: Bool = false
+	@Binding private var selection: Element?
 
-	init(onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
-		self.addItemClosure = onAddItem
+	init(selection: Binding<Element?>, onEditItem: @escaping (Element?) -> SomeView, onDeleteItem: DeleteItemAction?) {
+		self.editItemClosure = onEditItem
 		self.deleteItem = onDeleteItem
-		self._selectedItems = .constant([])
-		//self._selection = .constant(nil)
-	}
-
-	init(selection: Binding<Element?>, selectedItems: Binding<Set<Element>>, onAddItem: @escaping () -> SomeView, onDeleteItem: EditableListDeleteItemAction?) {
-		self.addItemClosure = onAddItem
-		self.deleteItem = onDeleteItem
-		//self._selection = selection
-		self._selectedItems = selectedItems
+		self._selection = selection
 	}
 
 	func body(content: Content) -> some View {
@@ -47,13 +40,24 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 						deleteItem()
 					}) {
 						Image(systemName: "minus")
-					}.buttonStyle(.borderless).font(.headline).disabled(selectedItems.isEmpty)
+					}.buttonStyle(.borderless).font(.headline).disabled(self.selection == nil)
 				}
+
+				Button(action: {
+					displayEditItemView = true
+				}) {
+					Image(systemName: "pencil")
+				}.buttonStyle(.borderless).font(.headline).disabled(self.selection == nil)
+
 				Spacer()
 			}
-		}.sheet(isPresented: $displayAddItemView, onDismiss: nil) {
+		}.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
 			HStack {
-				self.addItemClosure()
+				self.editItemClosure(nil)
+			}.frame(maxWidth: 800).padding()
+		}.sheet(isPresented: $displayEditItemView, onDismiss: { displayEditItemView = false }) {
+			HStack {
+				self.editItemClosure(selection)
 			}.frame(maxWidth: 800).padding()
 		}
 	}
@@ -61,7 +65,6 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 
 struct EditableList<Data: TotalCollection, Content: View>: View where Data.Element: Hashable & Identifiable {
 	@Binding private var data: Data
-	@Binding private var selectedItems: Set<Data.Element.ID>
 	@Binding private var selection: Data.Element.ID?
 	@Binding private var moveable: Bool
 
@@ -98,9 +101,8 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 		}
 	}
 
-	init(_ data: Binding<Data>, selection: Binding<Data.Element.ID?>, selectedItems: Binding<Set<Data.Element.ID>>, moveable: Binding<Bool> = .constant(true), content: @escaping (Binding<Data.Element>) -> Content) {
+	init(_ data: Binding<Data>, selection: Binding<Data.Element.ID?>, moveable: Binding<Bool> = .constant(true), content: @escaping (Binding<Data.Element>) -> Content) {
 		self._data = data
-		self._selectedItems = selectedItems
 		self._selection = selection
 		self._moveable = moveable
 		self.content = content
@@ -139,7 +141,8 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 	}
 
 	func listItem(item: Binding<Data.Element>) -> some View {
-		EditableListCell(item: item, selectedItems: $selectedItems, content: self.content)
+		self.content(item)
+		// EditableListCell(item: item, content: self.content)
 	}
 
 	func deleteItem(item: Binding<Data.Element>) {
@@ -149,10 +152,8 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 	}
 }
 
-typealias EditableListDeleteItemAction = () -> Void
-
 extension View {
-	func onEditItem<Element: Hashable>(selection: Binding<Element?>, selectedItems: Binding<Set<Element>>, _ action: @escaping () -> some View, deleteItem: EditableListDeleteItemAction? = nil) -> some View {
-		modifier(OnEditItemListViewModifier(selection: selection, selectedItems: selectedItems, onAddItem: action, onDeleteItem: deleteItem))
+	func onEditItem<Element: Hashable>(selection: Binding<Element?>, _ action: @escaping (Element?) -> some View, deleteItem: DeleteItemAction? = nil) -> some View {
+		modifier(OnEditItemListViewModifier(selection: selection, onEditItem: action, onDeleteItem: deleteItem))
 	}
 }

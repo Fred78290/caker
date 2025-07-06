@@ -11,7 +11,7 @@ import NIOPortForwarding
 
 extension ForwardedPort: Validatable {
 	public func validate() -> Bool {
-		if proto == .none || host == -1 || guest == -1 {
+		if proto == .none || host < 0 || guest <= 0 {
 			return false
 		}
 
@@ -246,6 +246,6 @@ extension TunnelAttachement.ForwardUnixDomainSocket: Validatable {
 			return false
 		}
 		
-		return false
+		return true
 	}
 }

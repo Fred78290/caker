@@ -184,7 +184,7 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 
 	public init() {
 		self.diskPath = ""
-		self.diskOptions = .init(readOnly: false, syncMode: "", cachingMode: "")
+		self.diskOptions = .init(readOnly: false, syncMode: "full", cachingMode: VZDiskImageCachingMode.automatic.description)
 	}
 
 	public init?(argument: String) {

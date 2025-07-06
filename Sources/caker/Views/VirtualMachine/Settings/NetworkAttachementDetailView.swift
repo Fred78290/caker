@@ -14,72 +14,57 @@ struct NetworkAttachementDetailView: View {
 	private let names: [String] = try! NetworksHandler.networks(runMode: .app).map { $0.name }
 
 	@Binding private var currentItem: BridgeAttachement
-	@State private var model: BridgeAttachementModel
+	private var readOnly: Bool
 
-	private class BridgeAttachementModel: ObservableObject {
-		@Published var network: String
-		@Published var mode: NetworkMode?
-		@Published var macAddress: String?
-		
-		init(item: BridgeAttachement) {
-			self.network = item.network
-			self.mode = item.mode
-			self.macAddress = item.macAddress
-		}
-	}
-
-	init(currentItem: Binding<BridgeAttachement>) {
+	init(currentItem: Binding<BridgeAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem
-		self.model = .init(item: currentItem.wrappedValue)
+		self.readOnly = readOnly
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Network name") {
 				HStack {
-					Picker("Network name", selection: $model.network) {
+					Picker("Network name", selection: $currentItem.network) {
 						ForEach(names, id: \.self) { name in
 							Text(name).tag(name)
 						}
 					}
+					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-					.onChange(of: model.network) { newValue in
-						currentItem.network = newValue
-					}
 				}.frame(width: 100)
 			}
 			
 			LabeledContent("Mode") {
 				HStack {
-					Picker("Mode", selection: $model.mode) {
+					Picker("Mode", selection: $currentItem.mode) {
 						Text("default").tag(nil as NetworkMode?)
 						ForEach([NetworkMode.auto, NetworkMode.manual], id: \.self) { mode in
 							Text(mode.description).tag(mode as NetworkMode?)
 						}
 					}
+					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
-					.onChange(of: model.mode) { newValue in
-						currentItem.mode = newValue
-					}
 				}.frame(width: 100)
 			}
 
 			LabeledContent("Mac address") {
 				HStack {
-					Button(action: {
-						model.macAddress = VZMACAddress.randomLocallyAdministered().string
-					}) {
-						Image(systemName: "arrow.trianglehead.clockwise")
-					}.buttonStyle(.borderless)
-					TextField("", value: $model.macAddress, format: .optionalMacAddress)
+					if readOnly == false {
+						Button(action: {
+							currentItem.macAddress = VZMACAddress.randomLocallyAdministered().string
+						}) {
+							Image(systemName: "arrow.trianglehead.clockwise")
+						}.buttonStyle(.borderless)
+					}
+
+					TextField("", value: $currentItem.macAddress, format: .optionalMacAddress)
 						.multilineTextAlignment(.center)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
+						.allowsHitTesting(readOnly == false)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.onSubmit {
-							currentItem.macAddress = model.macAddress
-						}
 				}.frame(width: 200)
 			}
 		}

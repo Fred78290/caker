@@ -4,6 +4,10 @@ import Foundation
 public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument, Codable {
 	let consoleURL: String
 
+	enum CodingKeys: String, CodingKey {
+		case consoleURL = "console"
+	}
+
 	public var defaultValueDescription: String {
 		"[file|unix|fd]://[path|fd[,fd]]"
 	}

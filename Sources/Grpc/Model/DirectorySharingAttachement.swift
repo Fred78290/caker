@@ -120,8 +120,8 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public var id: String {
 		self.description
 	}
-	
-	public init(source: String = "", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
+
+	public init(source: String = "~".expandingTildeInPath, destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
 		self.readOnly = readOnly
 		self._name = name
 		self._source = source

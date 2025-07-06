@@ -9,87 +9,63 @@ import SwiftUI
 import GRPCLib
 
 struct SocketsDetailView: View {
-	@StateObject private var model: SocketDeviceModel
+	@Binding private var currentItem: SocketDevice
+	@State var port: NumberStore<Int, RangeIntegerStyle>
 
-	private class SocketDeviceModel: ObservableObject {
-		@Binding private var currentItem: SocketDevice
+	private var readOnly: Bool
 
-		@Published var mode: SocketMode {
-			didSet {
-				self.currentItem.mode = self.mode
-			}
-		}
-
-		@Published var port: NumberStore<Int, RangeIntegerStyle> {
-			didSet {
-				if let value = self.port.getValue() {
-					self.currentItem.port = value
-				}
-			}
-		}
-
-		@Published var bind: String {
-			didSet {
-				self.currentItem.bind = self.bind
-			}
-		}
-
-		init(item: Binding<SocketDevice>) {
-			let wrappedValue = item.wrappedValue
-			self._currentItem = item
-			self.mode = wrappedValue.mode
-			self.port = NumberStore(text: "\(wrappedValue.port)", type: .int, maxLength: 5, allowNegative: false, formatter: .ranged((geteuid() == 0 ? 1 : 1024)...65535))
-			self.bind = wrappedValue.bind
-		}
-		
-		func update() {
-			self.currentItem.mode = self.mode
-			self.currentItem.port = self.port.getValue() ?? 0
-			self.currentItem.bind = self.bind
-		}
-	}
-
-	init(currentItem: Binding<SocketDevice>) {
-		self._model = StateObject(wrappedValue: SocketDeviceModel(item: currentItem))
+	init(currentItem: Binding<SocketDevice>, readOnly: Bool = true) {
+		self._currentItem = currentItem
+		self.readOnly = readOnly
+		self.port = NumberStore(value: currentItem.wrappedValue.port, type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Socket mode") {
-				Picker("Socket mode", selection: $model.mode) {
+				Picker("Socket mode", selection: $currentItem.mode) {
 					ForEach(SocketMode.allCases, id: \.self) { mode in
 						Text(mode.description).tag(mode).frame(width: 100)
 					}
 				}
+				.allowsHitTesting(readOnly == false)
 				.labelsHidden()
 			}
 
 			LabeledContent("Guest port") {
-				TextField("Guest port", text: $model.port.text)
+				TextField("Guest port", text: $port.text)
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
 					.labelsHidden()
 					.frame(width: 50)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.formatAndValidate(model.port) {
-						((geteuid() == 0 ? 1 : 1024)...65535).contains($0)
+					.allowsHitTesting(readOnly == false)
+					.formatAndValidate(port) {
+						RangeIntegerStyle.guestPortRange.inRange($0)
+					}
+					.onChange(of: port.value) { newValue in
+						self.currentItem.port = newValue
 					}
 			}
 
 			LabeledContent("Host path") {
 				HStack {
-					TextField("Host path", text: $model.bind)
+					TextField("Host path", text: $currentItem.bind)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
 						.labelsHidden()
+						.allowsHitTesting(readOnly == false)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-					Button(action: {
-						chooseSocketFile()
-					}) {
-						Image(systemName: "powerplug")
-					}.buttonStyle(.borderless)
+
+					if readOnly == false {
+						Button(action: {
+							chooseSocketFile()
+						}) {
+							Image(systemName: "powerplug")
+						}.buttonStyle(.borderless)
+					}
 				}
 			}
 		}
@@ -97,7 +73,7 @@ struct SocketsDetailView: View {
 	
 	func chooseSocketFile() {
 		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
-			self.model.bind = hostPath.absoluteURL.path
+			self.currentItem.bind = hostPath.absoluteURL.path
 		}
 	}
 }

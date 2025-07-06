@@ -12,14 +12,17 @@ extension View {
 	@ViewBuilder
 	func formatAndValidate<T: Numeric, F: ParseableFormatStyle>(_ numberStore: NumberStore<T, F>, errorCondition: @escaping (T) -> Bool) -> some View {
 		onChange(of: numberStore.text) { text in
-			numberStore.error = false
+			var error = false
+
 			if let value = numberStore.getValue(),!errorCondition(value) {
-				numberStore.error = false
-			} else if text.isEmpty || text == numberStore.minusCharacter {
-				numberStore.error = false
+				numberStore.value = value
+			} else if text.isEmpty || (text == numberStore.minusCharacter && numberStore.allowNegative) {
+				error = false
 			} else {
-				numberStore.error = true
+				error = true
 			}
+
+			numberStore.error = error
 		}
 		.foregroundColor(numberStore.error ? .red : .primary)
 		.disableAutocorrection(true)
@@ -34,27 +37,32 @@ extension View {
 
 class NumberStore<T: Numeric, F: ParseableFormatStyle>: ObservableObject where F.FormatOutput == String, F.FormatInput == T {
 	@Published var text: String
+	@Published var error: Bool = false
+	@Published var value: T
 	let type: ValidationType
 	let maxLength: Int
 	let allowNegative: Bool
 	private var backupText: String
-	@Published var error: Bool = false
 	private let locale: Locale
 	let formatter: F
 
-	init(text: String = "",
+	init(value: T,
+		 text: String? = nil,
 		 type: ValidationType,
 		 maxLength: Int = 18,
 		 allowNegative: Bool = false,
 		 formatter: F,
 		 locale: Locale = .current)
 	{
-		self.text = text
+		let input = text ?? "\(value)"
+
+		self.value = value
+		self.text = input
+		self.backupText = input
 		self.type = type
 		self.allowNegative = allowNegative
 		self.formatter = formatter
 		self.locale = locale
-		backupText = text
 		self.maxLength = maxLength == .max ? .max - 1 : maxLength
 	}
 

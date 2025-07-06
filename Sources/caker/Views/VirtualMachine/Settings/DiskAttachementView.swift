@@ -14,15 +14,13 @@ struct DiskAttachementView: View {
 	@State private var selection: DiskAttachement.ID? = nil
 
 	var body: some View {
-		EditableList($attachedDisks, selection: $selection, selectedItems: $selectedItems) { $item in
+		EditableList($attachedDisks, selection: $selection) { $item in
 			DiskAttachementDetailView(currentItem: $item)
-		}.onEditItem(selection: $selection, selectedItems: $selectedItems) {
-			DiskAttachementNewItemView(attachedDisks: $attachedDisks)
+		}.onEditItem(selection: $selection) { editItem in
+			DiskAttachementNewItemView($attachedDisks, editItem: editItem)
 		} deleteItem: {
-			selectedItems.forEach { selectedItem in
-				self.attachedDisks.removeAll {
-					$0.id == selectedItem
-				}
+			self.attachedDisks.removeAll {
+				$0.id == selection
 			}
 		}
 	}
