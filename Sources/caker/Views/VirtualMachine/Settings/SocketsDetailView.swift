@@ -42,7 +42,7 @@ struct SocketsDetailView: View {
 					.clipShape(RoundedRectangle(cornerRadius: 6))
 					.allowsHitTesting(readOnly == false)
 					.formatAndValidate(port) {
-						RangeIntegerStyle.guestPortRange.inRange($0)
+						RangeIntegerStyle.guestPortRange.outside($0)
 					}
 					.onChange(of: port.value) { newValue in
 						self.currentItem.port = newValue

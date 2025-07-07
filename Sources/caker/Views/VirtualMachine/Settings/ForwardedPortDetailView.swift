@@ -48,17 +48,17 @@ struct ForwardedPortDetailView: View {
 		}
 	}
 
-	struct TunnelAttachementModel: Equatable {
+	class TunnelAttachementModel: ObservableObject, Observable, Equatable {
 		static func == (lhs: ForwardedPortDetailView.TunnelAttachementModel, rhs: ForwardedPortDetailView.TunnelAttachementModel) -> Bool {
 			lhs.tunnelAttachement == rhs.tunnelAttachement
 		}
 		
-		var mode: ForwardMode
-		var selectedProtocol: Proto
-		var hostPath: String?
-		var guestPath: String?
-		var hostPort: NumberStore<Int, IntegerFormatStyle<Int>>
-		var guestPort: NumberStore<Int, IntegerFormatStyle<Int>>
+		@Published var mode: ForwardMode
+		@Published var selectedProtocol: Proto
+		@Published var hostPath: String?
+		@Published var guestPath: String?
+		@Published var hostPort: NumberStore<Int, IntegerFormatStyle<Int>>
+		@Published var guestPort: NumberStore<Int, IntegerFormatStyle<Int>>
 
 		var tunnelAttachement: TunnelAttachement {
 			switch mode {
@@ -95,12 +95,12 @@ struct ForwardedPortDetailView: View {
 	}
 
 	@Binding private var currentItem: TunnelAttachement
-	@State private var model: TunnelAttachementModel
+	@StateObject private var model: TunnelAttachementModel
 	private var readOnly: Bool
 
 	init(currentItem: Binding<TunnelAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem
-		self.model = .init(item: currentItem)
+		self._model = StateObject(wrappedValue: TunnelAttachementModel(item: currentItem))
 		self.readOnly = readOnly
 	}
 
@@ -128,26 +128,30 @@ struct ForwardedPortDetailView: View {
 		VStack {
 			LabeledContent("Mode") {
 				HStack {
+					Spacer()
 					Picker("Mode", selection: $model.mode) {
 						ForEach(ForwardMode.allCases, id: \.self) { selected in
-							Text(selected.description).tag(selected).frame(width: 100)
+							Text(selected.description).tag(selected)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
+					.frame(width: 150)
 					.labelsHidden()
-				}.frame(width: 150)
+				}
 			}
 
 			LabeledContent("Protocol") {
 				HStack {
+					Spacer()3
 					Picker("Protocol", selection: $model.selectedProtocol) {
 						ForEach(Proto.allCases, id: \.self) { proto in
-							Text(proto.rawValue).tag(proto).frame(width: 100)
+							Text(proto.rawValue).tag(proto)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
+					.frame(width: 150)
 					.labelsHidden()
-				}.frame(width: 150)
+				}
 			}
 
 			if model.mode == .portForwarding {
@@ -161,7 +165,7 @@ struct ForwardedPortDetailView: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.allowsHitTesting(readOnly == false)
 						.formatAndValidate(model.hostPort) {
-							RangeIntegerStyle.hostPortRange.inRange($0)
+							RangeIntegerStyle.hostPortRange.outside($0)
 						}
 						.onChange(of: model.hostPort.value) { newValue in
 							self.currentItem.oneOf = model.tunnelAttachement.oneOf
@@ -178,7 +182,7 @@ struct ForwardedPortDetailView: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.allowsHitTesting(readOnly == false)
 						.formatAndValidate(model.guestPort) {
-							RangeIntegerStyle.guestPortRange.inRange($0)
+							RangeIntegerStyle.guestPortRange.outside($0)
 						}
 						.onChange(of: model.guestPort.value) { newValue in
 							self.currentItem.oneOf = model.tunnelAttachement.oneOf

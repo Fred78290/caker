@@ -12,14 +12,19 @@ extension View {
 	@ViewBuilder
 	func formatAndValidate<T: Numeric, F: ParseableFormatStyle>(_ numberStore: NumberStore<T, F>, errorCondition: @escaping (T) -> Bool) -> some View {
 		onChange(of: numberStore.text) { text in
-			var error = false
+			guard let value = numberStore.getValue() else {
+				if text.isEmpty || (text == numberStore.minusCharacter && numberStore.allowNegative) {
+					numberStore.error = false
+				} else {
+					numberStore.error = true
+				}
+ 				return
+			}
 
-			if let value = numberStore.getValue(),!errorCondition(value) {
+			let error = errorCondition(value)
+
+			if error == false {
 				numberStore.value = value
-			} else if text.isEmpty || (text == numberStore.minusCharacter && numberStore.allowNegative) {
-				error = false
-			} else {
-				error = true
 			}
 
 			numberStore.error = error

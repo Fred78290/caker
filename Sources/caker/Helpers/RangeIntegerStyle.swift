@@ -26,6 +26,10 @@ struct RangeIntegerStyle: ParseableFormatStyle {
 		return range.contains(value)
 	}
 
+	func outside(_ value: Int) -> Bool {
+		return range.contains(value) == false
+	}
+
 	static var hostPortRange = RangeIntegerStyle.ranged(((geteuid() == 0 ? 1 : 1024)...65535))
 	static var guestPortRange = RangeIntegerStyle.ranged(1...65535)
 }
