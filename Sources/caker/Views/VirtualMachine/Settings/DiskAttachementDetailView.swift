@@ -40,7 +40,7 @@ struct DiskAttachementDetailView: View {
 							Image(systemName: "opticaldiscdrive")
 						}.buttonStyle(.borderless)
 					}
-				}.frame(width: 300)
+				}.frame(width: readOnly ? 500 : 350)
 			}
 			
 			LabeledContent("Syncing") {

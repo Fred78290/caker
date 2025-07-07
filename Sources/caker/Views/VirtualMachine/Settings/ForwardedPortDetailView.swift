@@ -57,8 +57,8 @@ struct ForwardedPortDetailView: View {
 		@Published var selectedProtocol: Proto
 		@Published var hostPath: String?
 		@Published var guestPath: String?
-		@Published var hostPort: NumberStore<Int, IntegerFormatStyle<Int>>
-		@Published var guestPort: NumberStore<Int, IntegerFormatStyle<Int>>
+		@Published var hostPort: TextFieldStore<Int, RangeIntegerStyle>
+		@Published var guestPort: TextFieldStore<Int, RangeIntegerStyle>
 
 		var tunnelAttachement: TunnelAttachement {
 			switch mode {
@@ -70,26 +70,26 @@ struct ForwardedPortDetailView: View {
 		}
 
 		init(item: Binding<TunnelAttachement>) {
-			let hostStyle = IntegerFormatStyle<Int>.number //RangeIntegerStyle.ranged(((geteuid() == 0 ? 1 : 1024)...65535))
-			let guestStyle = IntegerFormatStyle<Int>.number //RangeIntegerStyle.ranged(1...65535)
+			let hostStyle = RangeIntegerStyle.guestPortRange
+			let guestStyle = RangeIntegerStyle.guestPortRange
 
 			if case let .forward(forward) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.portForwarding
 				self.selectedProtocol = .init(forward.proto)
-				self.hostPort = NumberStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  NumberStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else if case let .unixDomain(unixDomain) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.unixDomainSocket
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
-				self.hostPort = NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
-				self.hostPort = NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  NumberStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
+				self.guestPort =  TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 		}
 	}
@@ -125,7 +125,7 @@ struct ForwardedPortDetailView: View {
 	}
 
 	var body: some View {
-		VStack {
+		return VStack {
 			LabeledContent("Mode") {
 				HStack {
 					Spacer()
@@ -135,58 +135,63 @@ struct ForwardedPortDetailView: View {
 						}
 					}
 					.allowsHitTesting(readOnly == false)
-					.frame(width: 150)
 					.labelsHidden()
-				}
+				}.frame(width: 150)
 			}
 
 			LabeledContent("Protocol") {
 				HStack {
-					Spacer()3
+					Spacer()
 					Picker("Protocol", selection: $model.selectedProtocol) {
 						ForEach(Proto.allCases, id: \.self) { proto in
 							Text(proto.rawValue).tag(proto)
 						}
 					}
 					.allowsHitTesting(readOnly == false)
-					.frame(width: 150)
 					.labelsHidden()
-				}
+				}.frame(width: 150)
 			}
 
 			if model.mode == .portForwarding {
 				LabeledContent("Host port") {
-					TextField("Host port", text: $model.hostPort.text)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.frame(width: 80)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.allowsHitTesting(readOnly == false)
-						.formatAndValidate(model.hostPort) {
-							RangeIntegerStyle.hostPortRange.outside($0)
-						}
-						.onChange(of: model.hostPort.value) { newValue in
-							self.currentItem.oneOf = model.tunnelAttachement.oneOf
-						}
+					HStack {
+						Spacer()
+						TextField("Host port", text: $model.hostPort.text)
+							.multilineTextAlignment(.center)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.frame(width: 80)
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.allowsHitTesting(readOnly == false)
+							.formatAndValidate($model.hostPort) {
+								RangeIntegerStyle.hostPortRange.outside($0)
+							}
+							.onChange(of: model.hostPort.value) { newValue in
+								print("onchange: newValue=\(newValue)")
+								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							}
+					}
 				}
 
 				LabeledContent("Guest port") {
-					TextField("Guest port", text: $model.guestPort.text)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.frame(width: 80)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
-						.allowsHitTesting(readOnly == false)
-						.formatAndValidate(model.guestPort) {
-							RangeIntegerStyle.guestPortRange.outside($0)
-						}
-						.onChange(of: model.guestPort.value) { newValue in
-							self.currentItem.oneOf = model.tunnelAttachement.oneOf
-						}
+					HStack {
+						Spacer()
+						TextField("Guest port", text: $model.guestPort.text)
+							.multilineTextAlignment(.center)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.frame(width: 80)
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.allowsHitTesting(readOnly == false)
+							.formatAndValidate($model.guestPort) {
+								RangeIntegerStyle.guestPortRange.outside($0)
+							}
+							.onChange(of: model.guestPort.value) { newValue in
+								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							}
+					}
 				}
 			} else {
 				LabeledContent("Host path") {
@@ -206,7 +211,7 @@ struct ForwardedPortDetailView: View {
 								Image(systemName: "powerplug")
 							}.buttonStyle(.borderless)
 						}
-					}.frame(maxWidth: 600)
+					}.frame(width: readOnly ? 450 : 350)
 				}
 
 				LabeledContent("Guest path") {
@@ -218,7 +223,7 @@ struct ForwardedPortDetailView: View {
 							.labelsHidden()
 							.clipShape(RoundedRectangle(cornerRadius: 6))
 							.allowsHitTesting(readOnly == false)
-					}.frame(maxWidth: 600)
+					}.frame(width: readOnly ? 450 : 350)
 				}
 			}
 		}.onChange(of: model) { newValue in

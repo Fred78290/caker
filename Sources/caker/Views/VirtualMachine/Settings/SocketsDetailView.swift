@@ -10,26 +10,48 @@ import GRPCLib
 
 struct SocketsDetailView: View {
 	@Binding private var currentItem: SocketDevice
-	@State var port: NumberStore<Int, RangeIntegerStyle>
+	@State var port: TextFieldStore<Int, RangeIntegerStyle>
 
 	private var readOnly: Bool
 
 	init(currentItem: Binding<SocketDevice>, readOnly: Bool = true) {
 		self._currentItem = currentItem
 		self.readOnly = readOnly
-		self.port = NumberStore(value: currentItem.wrappedValue.port, type: .int, maxLength: 5, allowNegative: false, formatter: .ranged(((geteuid() == 0 ? 1 : 1024)...65535)))
+		self.port = TextFieldStore(value: currentItem.wrappedValue.port, type: .int, maxLength: 5, allowNegative: false, formatter: RangeIntegerStyle.guestPortRange)
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Socket mode") {
-				Picker("Socket mode", selection: $currentItem.mode) {
-					ForEach(SocketMode.allCases, id: \.self) { mode in
-						Text(mode.description).tag(mode).frame(width: 100)
+				HStack {
+					Spacer()
+					Picker("Socket mode", selection: $currentItem.mode) {
+						ForEach(SocketMode.allCases, id: \.self) { mode in
+							Text(mode.description).tag(mode)
+						}
 					}
-				}
-				.allowsHitTesting(readOnly == false)
-				.labelsHidden()
+					.allowsHitTesting(readOnly == false)
+					.labelsHidden()
+				}.frame(width: 100)
+			}
+
+			LabeledContent("Host path") {
+				HStack {
+					if readOnly == false {
+						Button(action: {
+							chooseSocketFile()
+						}) {
+							Image(systemName: "powerplug")
+						}.buttonStyle(.borderless)
+					}
+					TextField("Host path", text: $currentItem.bind)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.allowsHitTesting(readOnly == false)
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+				}.frame(width: readOnly ? 450 : 350)
 			}
 
 			LabeledContent("Guest port") {
@@ -41,7 +63,7 @@ struct SocketsDetailView: View {
 					.frame(width: 50)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
 					.allowsHitTesting(readOnly == false)
-					.formatAndValidate(port) {
+					.formatAndValidate($port) {
 						RangeIntegerStyle.guestPortRange.outside($0)
 					}
 					.onChange(of: port.value) { newValue in
@@ -49,25 +71,6 @@ struct SocketsDetailView: View {
 					}
 			}
 
-			LabeledContent("Host path") {
-				HStack {
-					TextField("Host path", text: $currentItem.bind)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.allowsHitTesting(readOnly == false)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
-
-					if readOnly == false {
-						Button(action: {
-							chooseSocketFile()
-						}) {
-							Image(systemName: "powerplug")
-						}.buttonStyle(.borderless)
-					}
-				}
-			}
 		}
 	}
 	

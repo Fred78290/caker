@@ -52,13 +52,13 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 				Spacer()
 			}
 		}.sheet(isPresented: $displayAddItemView, onDismiss: { displayAddItemView = false }) {
-			HStack {
+			Group {
 				self.editItemClosure(nil)
-			}.frame(maxWidth: 800).padding()
+			}.frame(width: 500).padding()
 		}.sheet(isPresented: $displayEditItemView, onDismiss: { displayEditItemView = false }) {
-			HStack {
+			Group {
 				self.editItemClosure(selection)
-			}.frame(maxWidth: 800).padding()
+			}.frame(width: 500).padding()
 		}
 	}
 }

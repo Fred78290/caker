@@ -126,7 +126,7 @@
 		9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
-		9B88A8972E16AF2F00E3A97E /* NumberStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* NumberStore.swift */; };
+		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
@@ -547,7 +547,7 @@
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
-		9B88A8962E16AF2B00E3A97E /* NumberStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberStore.swift; sourceTree = "<group>"; };
+		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
@@ -969,13 +969,13 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				9B88A8962E16AF2B00E3A97E /* NumberStore.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
+				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
+				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
 				9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */,
 				9B30BA4D2E0BF37300256A9D /* RegexParseableFormatStyle.swift */,
+				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
-				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
-				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -1751,7 +1751,7 @@
 				9B2BFABF2DFED25E000045C3 /* VirtualMachineView.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
-				9B88A8972E16AF2F00E3A97E /* NumberStore.swift in Sources */,
+				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
 				9B2BFAC12DFED25E000045C3 /* DiskAttachementView.swift in Sources */,
 				9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,

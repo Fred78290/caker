@@ -47,14 +47,14 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 				}.disabled(self.configChanged == false)
 			}
 		}.onChange(of: currentItem) { newValue in
+			self.configChanged = false
+
 			if newValue.validate() {
 				if editItem != nil {
 					self.configChanged = true
-				} else {
-					self.configChanged = self.elements.first(where: {$0.id == newValue.id}) == nil
+				} else if self.elements.first(where: {$0.id == newValue.id}) == nil {
+					self.configChanged = true
 				}
-			} else {
-				self.configChanged = false
 			}
 		}
     }

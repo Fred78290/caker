@@ -11,50 +11,61 @@ import GRPCLib
 struct MountDetailView: View {
 	@Binding private var currentItem: DirectorySharingAttachment
 	private var readOnly: Bool
+	@State private var name: String
 
 	init(currentItem: Binding<DirectorySharingAttachment>, readOnly: Bool = true) {
 		_currentItem = currentItem
 		self.readOnly = readOnly
+		self.name = currentItem.wrappedValue._name ?? ""
 	}
 
 	var body: some View {
 		VStack {
 			LabeledContent("Name") {
-				TextField("Name", text: $currentItem.name)
-					.multilineTextAlignment(.leading)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.allowsHitTesting(readOnly == false)
+				HStack {
+					TextField("Name", text: $name, prompt: Text(currentItem.name))
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.allowsHitTesting(readOnly == false)
+						.onChange(of: name) { newValue in
+							currentItem.name = newValue
+						}
+				}.frame(width: readOnly ? 500 : 350)
 			}
 			
 			LabeledContent("Host path") {
-				if readOnly == false {
-					Button(action: {
-						chooseFolder()
-					}) {
-						Image(systemName: "folder")
-					}.buttonStyle(.borderless)
-				}
-
-				TextField("Host path", text: $currentItem.source)
-					.multilineTextAlignment(.leading)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.clipShape(RoundedRectangle(cornerRadius: 6))
-					.allowsHitTesting(readOnly == false)
+				HStack {
+					if readOnly == false {
+						Button(action: {
+							chooseFolder()
+						}) {
+							Image(systemName: "folder")
+						}.buttonStyle(.borderless)
+					}
+					
+					TextField("Host path", text: $currentItem.source)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.allowsHitTesting(readOnly == false)
+				}.frame(width: readOnly ? 500 : 350)
 			}
 			
 			LabeledContent("Guest path") {
-				TextField("Guest path", value: $currentItem.destination, format: .optional)
-					.multilineTextAlignment(.leading)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.allowsHitTesting(readOnly == false)
-					.clipShape(RoundedRectangle(cornerRadius: 6))
+				HStack {
+					TextField("Guest path", value: $currentItem.destination, format: .optional)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.allowsHitTesting(readOnly == false)
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+				}.frame(width: readOnly ? 500 : 350)
 			}
 			
 			LabeledContent("Read only") {
@@ -65,7 +76,7 @@ struct MountDetailView: View {
 			}
 			
 			LabeledContent("Guest user ID mount") {
-				TextField("uid", value: $currentItem.uid, format: .number)
+				TextField("uid", value: $currentItem.uid, format: .ranged(0...65535))
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
@@ -76,7 +87,7 @@ struct MountDetailView: View {
 			}
 			
 			LabeledContent("Guest group ID mount") {
-				TextField("gid", value: $currentItem.gid, format: .number)
+				TextField("gid", value: $currentItem.gid, format: .ranged(0...65535))
 					.multilineTextAlignment(.center)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
