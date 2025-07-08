@@ -5,12 +5,16 @@ import Virtualization
 let cloudInitIso = "cloud-init.iso"
 
 public struct VMBuilder {
-	public enum ImageSource: Int {
+	public enum ImageSource: Int, Hashable, CaseIterable {
 		case raw
 		case cloud
 		case oci
 		case template
 		case stream
+		
+		static var allCases: [String] {
+			["raw", "cloud", "oci", "template", "stream"]
+		}
 	}
 
 	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode) throws {

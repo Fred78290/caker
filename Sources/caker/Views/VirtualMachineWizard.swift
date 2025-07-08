@@ -8,6 +8,70 @@
 import SwiftUI
 import Steps
 import NIO
+import CakedLib
+
+typealias OptionalVMLocation = VMLocation?
+
+let groups: [String] = [
+	"root",
+	"daemon",
+	"bin",
+	"sys",
+	"adm",
+	"tty",
+	"disk",
+	"lp",
+	"mail",
+	"news",
+	"uucp",
+	"man",
+	"proxy",
+	"kmem",
+	"dialout",
+	"fax",
+	"voice",
+	"cdrom",
+	"floppy",
+	"tape",
+	"sudo",
+	"audio",
+	"dip",
+	"www-data",
+	"backup",
+	"operator",
+	"list",
+	"irc",
+	"src",
+	"shadow",
+	"utmp",
+	"video",
+	"sasl",
+	"plugdev",
+	"staff",
+	"games",
+	"users",
+	"nogroup",
+	"systemd-journal",
+	"systemd-network",
+	"crontab",
+	"systemd-timesync",
+	"input",
+	"sgx",
+	"kvm",
+	"render",
+	"messagebus",
+	"syslog",
+	"systemd-resolve",
+	"uuidd",
+	"_ssh",
+	"rdma",
+	"tcpdump",
+	"landscape",
+	"fwupd-refresh",
+	"polkitd",
+	"admin",
+	"netdev"
+]
 
 struct VirtualMachineWizard: View {
 	struct ItemView {
@@ -20,14 +84,20 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
+	@Environment(\.dismiss) private var dismiss
+	@Environment(\.openURL) private var openURL
+
 	@State private var selectedIndex: Int = 0
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var imageName: String? = nil
 	@State private var configValid: Bool = false
+	@State private var vmLocation: OptionalVMLocation = nil
+	@State private var password: String = ""
+	@State private var showPassword: Bool = false
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
-
+	
 	init() {
 		self.items = [
 			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
@@ -83,32 +153,50 @@ struct VirtualMachineWizard: View {
 			Spacer()
 			Divider()
 			HStack(alignment: .bottom) {
-				Button {
-					stepsState.nextStep()
-					selectedIndex = stepsState.currentIndex
-				} label: {
-					Text("Next").frame(width: 80)
-				}
-				.disabled(!stepsState.hasNext)
-				Button {
-					stepsState.previousStep()
-					selectedIndex = stepsState.currentIndex
-				} label: {
-					Text("Previous").frame(width: 80)
-				}
-				.disabled(!stepsState.hasPrevious)
+				HStack{
+				}.frame(maxWidth: .infinity)
+
 				Spacer()
-				Button {
-					createVirtualMachine()
-				} label: {
-					Text("Create").frame(width: 80)
+				HStack {
+					Button {
+						stepsState.previousStep()
+						selectedIndex = stepsState.currentIndex
+					} label: {
+						Text("Previous").frame(width: 80)
+					}
+					.disabled(!stepsState.hasPrevious)
+					Button {
+						stepsState.nextStep()
+						selectedIndex = stepsState.currentIndex
+					} label: {
+						Text("Next").frame(width: 80)
+					}
+					.disabled(!stepsState.hasNext)
 				}
-				.disabled(configValid == false)
+
+				Spacer()
+				HStack{
+					Spacer()
+
+					AsyncButton($vmLocation) {
+						try await createVirtualMachine()
+					} label: {
+						Text("Create").frame(width: 80)
+					}
+					.disabled(configValid == false)
+				}.frame(maxWidth: .infinity)
 			}
 		}
 		.padding()
 		.frame(height: 800)
 		.onChange(of: config) { newValue in
+			self.validateConfig(config: newValue)
+		}
+		.onChange(of: vmLocation) { newValue in
+			if let location = vmLocation {
+				self.openURL(location.rootURL)
+				self.dismiss()
+			}
 		}
 	}
 	
@@ -123,8 +211,9 @@ struct VirtualMachineWizard: View {
 	}
 	
 	func cpuCountAndMemoryView() -> some View {
-		Section("CPU & Memory") {
+		Section("CPU & Memory & Disk") {
 			let cpuRange = 1...System.coreCount
+			let diskRange = 5...UInt16.max
 			let totalMemoryRange = 1...ProcessInfo().physicalMemory / 1024 / 1024
 			
 			Picker("CPU count", selection: $config.cpuCount) {
@@ -149,6 +238,23 @@ struct VirtualMachineWizard: View {
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
+						
+					}.labelsHidden()
+				}
+			}
+
+			HStack {
+				Text("Disk size")
+				Spacer().border(.black)
+				HStack {
+					TextField("", value: $config.diskSize, format: .number)
+						.frame(width: 50)
+						.multilineTextAlignment(.center)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+					Stepper(value: $config.diskSize, in: diskRange, step: 1) {
 						
 					}.labelsHidden()
 				}
@@ -206,7 +312,88 @@ struct VirtualMachineWizard: View {
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.onChange(of: config.vmname) { newValue in
+						self.validateConfig(config: self.config)
+					}
 			}
+
+			Section("Administrator settings") {
+				LabeledContent("Administator name") {
+					TextField("User name", text: $config.configuredUser)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+				}
+
+				LabeledContent("Administator password") {
+					HStack {
+						if showPassword {
+							TextField("Password", text: $password)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+						} else {
+							SecureField("Password", text: $password)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+						}
+					}.overlay(alignment: .trailing) {
+						Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+						.padding()
+						.onTapGesture {
+							showPassword.toggle()
+						}
+					}
+				}
+
+				LabeledContent("Administator password") {
+					HStack {
+						if showPassword {
+							TextField("Password", text: $password)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+						} else {
+							SecureField("Password", text: $password)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+						}
+					}.overlay(alignment: .trailing) {
+						Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+						.padding()
+						.onTapGesture {
+							showPassword.toggle()
+						}
+					}
+				}
+
+				Toggle("SSH with password", isOn: $config.clearPassword)
+
+				LabeledContent("Administator group") {
+					HStack {
+						Spacer()
+						Picker("Main group", selection: $config.mainGroup) {
+							ForEach(groups, id: \.self) { name in
+								Text(name).tag(name)
+							}
+						}
+						.labelsHidden()
+					}.frame(width: 100)
+				}
+			}
+
 		}.formStyle(.grouped)
 	}
 
@@ -265,14 +452,27 @@ struct VirtualMachineWizard: View {
 
 	func validateConfig(config: VirtualMachineConfig) {
 		if let vmname = config.vmname {
-			self.configValid = vmname.count > 0
+			if vmname.isEmpty || StorageLocation(runMode: .app, template: false).exists(vmname) {
+				self.configValid = false
+			} else {
+				self.configValid = true
+			}
 		} else {
 			self.configValid = false
 		}
 	}
 
-	func createVirtualMachine() {
+	func createVirtualMachine() async throws -> VMLocation? {
+		guard let vmname = config.vmname, let imageName = self.imageName else {
+			return nil
+		}
+
+		let location = StorageLocation(runMode: .app, template: false).location(vmname)
+		let options = config.buildOptions(image: imageName)
 		
+		_ = try await VMBuilder.buildVM(vmName: vmname, vmLocation: location, options: options, runMode: .app)
+		
+		return location
 	}
 }
 

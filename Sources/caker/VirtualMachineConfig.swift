@@ -40,6 +40,12 @@ struct VirtualMachineConfig: Hashable {
 	var attachedDisks: [DiskAttachement] = []
 	var mounts: [DirectorySharingAttachment] = []
 	var vmname: String? = nil
+	
+	var configuredUser: String
+	var configuredPassword: String?
+	var mainGroup: String
+	var clearPassword: Bool
+	var diskSize: UInt16
 
 	init() {
 		cpuCount = 1
@@ -56,8 +62,13 @@ struct VirtualMachineConfig: Hashable {
 		networks = []
 		attachedDisks = []
 		mounts = []
+		configuredUser = "admin"
+		configuredPassword = nil
+		mainGroup = "adm"
+		clearPassword = true
+		diskSize = 20
 	}
-
+	
 	init(vmname: String, config: CakeConfig) {
 		self.cpuCount = config.cpuCount
 		self.memorySize = config.memorySize / (1024 * 1024)
@@ -74,8 +85,13 @@ struct VirtualMachineConfig: Hashable {
 		self.attachedDisks = config.attachedDisks
 		self.mounts = config.mounts
 		self.vmname = vmname
+		self.configuredUser = config.configuredUser
+		self.configuredPassword = config.configuredPassword
+		self.mainGroup = "adm"
+		self.clearPassword = true
+		self.diskSize = 20
 	}
-
+	
 	func save() throws {
 		guard let vmname = self.vmname else {
 			throw ServiceError("Virtual machine name is required to save configuration")
@@ -83,14 +99,14 @@ struct VirtualMachineConfig: Hashable {
 		
 		try self.save(name: vmname)
 	}
-
+	
 	func save(name: String) throws {
 		let vmLocation = try StorageLocation(runMode: .app).find(name)
 		let config = try vmLocation.config()
-
+		
 		try self.save(config: config)
 	}
-
+	
 	func save(config: CakeConfig) throws {
 		config.cpuCount = self.cpuCount
 		config.memorySize = self.memorySize * (1024 * 1024)
@@ -108,5 +124,27 @@ struct VirtualMachineConfig: Hashable {
 		config.mounts = self.mounts
 		
 		try config.save()
+	}
+
+	func buildOptions(image: String) ->BuildOptions {
+		.init(
+			name: self.vmname!,
+			cpu: UInt16(self.cpuCount),
+			memory: self.memorySize,
+			diskSize: self.diskSize,
+			attachedDisks: self.attachedDisks,
+			user: self.configuredUser,
+			password: self.configuredPassword,
+			mainGroup: self.mainGroup,
+			clearPassword: self.clearPassword,
+			autostart: self.autostart,
+			nested: self.nestedVirtualization,
+			image: image,
+			displayRefit: self.displayRefit,
+			forwardedPorts: self.forwardPorts,
+			mounts: self.mounts,
+			networks: self.networks,
+			sockets: self.sockets
+		)
 	}
 }

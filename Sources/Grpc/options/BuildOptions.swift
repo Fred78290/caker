@@ -89,7 +89,10 @@ public struct BuildOptions: ParsableArguments {
 	}
 
 	public init(
-		name: String, cpu: UInt16 = 2, memory: UInt64 = 2048, diskSize: UInt16 = 10,
+		name: String,
+		cpu: UInt16 = 2,
+		memory: UInt64 = 2048,
+		diskSize: UInt16 = 10,
 		attachedDisks: [DiskAttachement] = [],
 		user: String = "admin",
 		password: String? = "nil",
