@@ -23,6 +23,7 @@ struct VirtualMachineWizard: View {
 	@State private var selectedIndex: Int = 0
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var imageName: String? = nil
+	@State private var configValid: Bool = false
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
@@ -82,7 +83,6 @@ struct VirtualMachineWizard: View {
 			Spacer()
 			Divider()
 			HStack(alignment: .bottom) {
-				Spacer()
 				Button {
 					stepsState.nextStep()
 					selectedIndex = stepsState.currentIndex
@@ -90,7 +90,6 @@ struct VirtualMachineWizard: View {
 					Text("Next").frame(width: 80)
 				}
 				.disabled(!stepsState.hasNext)
-				Spacer()
 				Button {
 					stepsState.previousStep()
 					selectedIndex = stepsState.currentIndex
@@ -99,8 +98,18 @@ struct VirtualMachineWizard: View {
 				}
 				.disabled(!stepsState.hasPrevious)
 				Spacer()
+				Button {
+					createVirtualMachine()
+				} label: {
+					Text("Create").frame(width: 80)
+				}
+				.disabled(configValid == false)
 			}
-		}.padding().frame(height: 800)
+		}
+		.padding()
+		.frame(height: 800)
+		.onChange(of: config) { newValue in
+		}
 	}
 	
 	func generalSettings() -> some View {
@@ -189,11 +198,29 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseVMName() -> some View {
-		TextField("Virtual machine name", value: $config.vmname, format: .optional)
+		Form {
+			Section("Virtual machine name") {
+				TextField("Virtual machine name", value: $config.vmname, format: .optional)
+					.multilineTextAlignment(.leading)
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
+					.labelsHidden()
+					.clipShape(RoundedRectangle(cornerRadius: 6))
+			}
+		}.formStyle(.grouped)
 	}
 
 	func chooseOSImage() -> some View {
-		TextField("OS Image", value: $imageName, format: .optional)
+		Form {
+			Section("Choose OS image") {
+				TextField("OS Image", value: $imageName, format: .optional)
+					.multilineTextAlignment(.leading)
+					.textFieldStyle(.roundedBorder)
+					.background(.white)
+					.labelsHidden()
+					.clipShape(RoundedRectangle(cornerRadius: 6))
+			}
+		}.formStyle(.grouped)
 	}
 
 	func forwardPortsView() -> some View {
@@ -234,6 +261,18 @@ struct VirtualMachineWizard: View {
 				SocketsView(sockets: $config.sockets)
 			}
 		}.formStyle(.grouped)
+	}
+
+	func validateConfig(config: VirtualMachineConfig) {
+		if let vmname = config.vmname {
+			self.configValid = vmname.count > 0
+		} else {
+			self.configValid = false
+		}
+	}
+
+	func createVirtualMachine() {
+		
 	}
 }
 
