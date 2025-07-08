@@ -126,7 +126,7 @@ struct VirtualMachineConfig: Hashable {
 		try config.save()
 	}
 
-	func buildOptions(image: String) ->BuildOptions {
+	func buildOptions(image: String) -> BuildOptions {
 		.init(
 			name: self.vmname!,
 			cpu: UInt16(self.cpuCount),

@@ -9,6 +9,7 @@ import SwiftUI
 import Steps
 import NIO
 import CakedLib
+import GRPCLib
 
 typealias OptionalVMLocation = VMLocation?
 
@@ -89,7 +90,7 @@ struct VirtualMachineWizard: View {
 
 	@State private var selectedIndex: Int = 0
 	@State private var config: VirtualMachineConfig = .init()
-	@State private var imageName: String? = nil
+	@State private var imageName: String = defaultUbuntuImage
 	@State private var configValid: Bool = false
 	@State private var vmLocation: OptionalVMLocation = nil
 	@State private var password: String = ""
@@ -400,7 +401,7 @@ struct VirtualMachineWizard: View {
 	func chooseOSImage() -> some View {
 		Form {
 			Section("Choose OS image") {
-				TextField("OS Image", value: $imageName, format: .optional)
+				TextField("OS Image", text: $imageName)
 					.multilineTextAlignment(.leading)
 					.textFieldStyle(.roundedBorder)
 					.background(.white)
@@ -463,7 +464,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func createVirtualMachine() async throws -> VMLocation? {
-		guard let vmname = config.vmname, let imageName = self.imageName else {
+		guard let vmname = config.vmname else {
 			return nil
 		}
 
