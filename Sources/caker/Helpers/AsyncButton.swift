@@ -6,26 +6,24 @@
 //
 import SwiftUI
 
-struct AsyncButton<Success, Label: View>: View where Success : Sendable {
+struct AsyncButton<Label: View>: View {
 	enum ActionOption: CaseIterable {
 		case disableButton
 		case showProgressView
 	}
 
-	var action: () async throws -> Success
+	var action: () async throws -> Void
 	var actionOptions: Set<ActionOption>
 
 	@ViewBuilder var label: () -> Label
 
 	@State private var isDisabled = false
 	@State private var showProgressView = false
-	@Binding var result: Success
 
-	init(_ result: Binding<Success>, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async throws -> Success, @ViewBuilder label: @escaping () -> Label) {
+	init(options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label) {
 		self.action = action
 		self.label = label
 		self.actionOptions = options
-		_result = result
 	}
 
 	var body: some View {
@@ -72,16 +70,16 @@ struct AsyncButton<Success, Label: View>: View where Success : Sendable {
 }
 
 extension AsyncButton where Label == Text {
-	init(_ label: String, _ result: Binding<Success>, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Success) {
-		self.init(result, options: options, action: action) {
+	init(_ label: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Void) {
+		self.init(options: options, action: action) {
 			Text(label)
 		}
 	}
 }
 
 extension AsyncButton where Label == Image {
-	init(systemImageName: String, _ result: Binding<Success>, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Success) {
-		self.init(result, options: options, action: action) {
+	init(systemImageName: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Void) {
+		self.init(options: options, action: action) {
 			Image(systemName: systemImageName)
 		}
 	}

@@ -5,7 +5,17 @@ import Virtualization
 let cloudInitIso = "cloud-init.iso"
 
 public struct VMBuilder {
-	public enum ImageSource: Int, Hashable, CaseIterable {
+	public enum ImageSource: Int, Hashable, CaseIterable, CustomStringConvertible {
+		public var description: String {
+			switch self {
+				case .raw: return "local"
+				case .cloud: return "cloud"
+				case .oci: return "oci"
+				case .template: return "template"
+				case .stream: return "stream"
+			}
+		}
+		
 		case raw
 		case cloud
 		case oci

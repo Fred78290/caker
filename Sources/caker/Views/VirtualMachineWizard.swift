@@ -84,17 +84,18 @@ struct VirtualMachineWizard: View {
 			self.image = image
 		}
 	}
-
+	
 	@Environment(\.dismiss) private var dismiss
-	@Environment(\.openURL) private var openURL
-
+	@Environment(\.openDocument) private var openDocument
+	
 	@State private var selectedIndex: Int = 0
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var imageName: String = defaultUbuntuImage
 	@State private var configValid: Bool = false
-	@State private var vmLocation: OptionalVMLocation = nil
 	@State private var password: String = ""
 	@State private var showPassword: Bool = false
+	@State private var imageSource: VMBuilder.ImageSource = .cloud
+	@State private var remoteImage: String = defaultRemotes["ubuntu"]!
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
@@ -110,23 +111,23 @@ struct VirtualMachineWizard: View {
 			ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
 			ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
 		]
-
+		
 		self.stepsState = StepsState(data: items)
 	}
-
+	
 	var body: some View {
 		VStack(spacing: 12) {
 			Steps(state: stepsState) {
-					return Step(title: $0.title, image: $0.image)
-				}
-				.onSelectStepAtIndex { index in
-					stepsState.setStep(index)
-					selectedIndex = index
-				}
-				.itemSpacing(25)
-				.size(16)
-				.font(.caption)
-				.padding()
+				return Step(title: $0.title, image: $0.image)
+			}
+			.onSelectStepAtIndex { index in
+				stepsState.setStep(index)
+				selectedIndex = index
+			}
+			.itemSpacing(25)
+			.size(16)
+			.font(.caption)
+			.padding()
 			Divider()
 			VStack {
 				switch selectedIndex {
@@ -156,7 +157,7 @@ struct VirtualMachineWizard: View {
 			HStack(alignment: .bottom) {
 				HStack{
 				}.frame(maxWidth: .infinity)
-
+				
 				Spacer()
 				HStack {
 					Button {
@@ -174,13 +175,13 @@ struct VirtualMachineWizard: View {
 					}
 					.disabled(!stepsState.hasNext)
 				}
-
+				
 				Spacer()
 				HStack{
 					Spacer()
-
-					AsyncButton($vmLocation) {
-						try await createVirtualMachine()
+					
+					AsyncButton {
+						try await openVirtualMachine()
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -192,12 +193,6 @@ struct VirtualMachineWizard: View {
 		.frame(height: 800)
 		.onChange(of: config) { newValue in
 			self.validateConfig(config: newValue)
-		}
-		.onChange(of: vmLocation) { newValue in
-			if let location = vmLocation {
-				self.openURL(location.rootURL)
-				self.dismiss()
-			}
 		}
 	}
 	
@@ -243,7 +238,7 @@ struct VirtualMachineWizard: View {
 					}.labelsHidden()
 				}
 			}
-
+			
 			HStack {
 				Text("Disk size")
 				Spacer().border(.black)
@@ -304,7 +299,7 @@ struct VirtualMachineWizard: View {
 			}
 		}
 	}
-
+	
 	func chooseVMName() -> some View {
 		Form {
 			Section("Virtual machine name") {
@@ -318,7 +313,7 @@ struct VirtualMachineWizard: View {
 						self.validateConfig(config: self.config)
 					}
 			}
-
+			
 			Section("Administrator settings") {
 				LabeledContent("Administator name") {
 					TextField("User name", text: $config.configuredUser)
@@ -328,7 +323,7 @@ struct VirtualMachineWizard: View {
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
-
+				
 				LabeledContent("Administator password") {
 					HStack {
 						if showPassword {
@@ -348,15 +343,15 @@ struct VirtualMachineWizard: View {
 						}
 					}.overlay(alignment: .trailing) {
 						Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-						.padding()
-						.onTapGesture {
-							showPassword.toggle()
-						}
+							.padding()
+							.onTapGesture {
+								showPassword.toggle()
+							}
 					}
 				}
-
+				
 				Toggle("SSH with password", isOn: $config.clearPassword)
-
+				
 				LabeledContent("Administator group") {
 					HStack {
 						Spacer()
@@ -369,23 +364,117 @@ struct VirtualMachineWizard: View {
 					}.frame(width: 100)
 				}
 			}
-
+			
 		}.formStyle(.grouped)
 	}
-
+	
 	func chooseOSImage() -> some View {
 		Form {
-			Section("Choose OS image") {
-				TextField("OS Image", text: $imageName)
-					.multilineTextAlignment(.leading)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.clipShape(RoundedRectangle(cornerRadius: 6))
+			Section {
+				switch imageSource {
+				case .raw:
+					LabeledContent("Choose a local image disk.") {
+						HStack {
+							TextField("OS Image", text: $imageName)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+
+							Button(action: {
+								if let imageName = chooseDiskImage() {
+									self.imageName = imageName
+								}
+							}) {
+								Image(systemName: "document.badge.gearshape")
+							}.buttonStyle(.borderless)
+						}
+					}
+				case .cloud:
+					TextField("Cloud Image", text: $imageName)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+				case .oci:
+					TextField("OCI Image", text: $imageName)
+						.multilineTextAlignment(.leading)
+						.textFieldStyle(.roundedBorder)
+						.background(.white)
+						.labelsHidden()
+						.clipShape(RoundedRectangle(cornerRadius: 6))
+
+				case .template:
+					Picker("Select a template", selection: $imageName) {
+						ForEach(templates(), id: \.self) { template in
+							Text(template.name).tag(template.fqn)
+						}
+					}
+				case .stream:
+					VStack {
+						Picker("Select remote sources", selection: $remoteImage) {
+							ForEach(remotes(), id: \.self) { remote in
+								Text(remote.name).tag(remote.url)
+							}
+						}
+
+						TextField("Remote Image", text: $imageName)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+					}
+				}
+			} header: {
+				LabeledContent("Image source") {
+					HStack {
+						Picker("Image source", selection: $imageSource) {
+							ForEach(VMBuilder.ImageSource.allCases, id: \.self) { source in
+								Text(source.description).tag(source)
+							}
+						}.labelsHidden()
+					}.frame(width: 100)
+				}
+			}
+
+			Section("Cloud init") {
+				LabeledContent("Optional user data") {
+					HStack {
+						TextField("User data", value: $config.userData, format: .optional)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+						Button(action: {
+							config.userData = chooseYAML()
+						}) {
+							Image(systemName: "document.badge.gearshape")
+						}.buttonStyle(.borderless)
+					}
+				}
+				LabeledContent("Optional network configuration") {
+					HStack {
+						TextField("network configuration", value: $config.networkConfig, format: .optional)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+						Button(action: {
+							config.networkConfig = chooseYAML()
+						}) {
+							Image(systemName: "document.badge.gearshape")
+						}.buttonStyle(.borderless)
+					}
+				}
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
@@ -393,7 +482,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
@@ -401,7 +490,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
@@ -409,7 +498,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
@@ -417,7 +506,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
@@ -425,7 +514,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-
+	
 	func validateConfig(config: VirtualMachineConfig) {
 		if let vmname = config.vmname {
 			if vmname.isEmpty || StorageLocation(runMode: .app, template: false).exists(vmname) {
@@ -437,17 +526,58 @@ struct VirtualMachineWizard: View {
 			self.configValid = false
 		}
 	}
-
+	
 	func createVirtualMachine() async throws -> VMLocation? {
 		guard let vmname = config.vmname else {
 			return nil
 		}
-
+		
 		let options = config.buildOptions(image: imageName)
 		
 		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app)
 		
 		return try StorageLocation(runMode: .app).find(vmname)
+	}
+	
+	func openVirtualMachine() async throws {
+		guard let location = try await createVirtualMachine() else {
+			return
+		}
+		
+		try? await self.openDocument(at: location.rootURL)
+		self.dismiss()
+	}
+
+	func chooseDiskImage() -> String? {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: "Select disk image", allowsOtherFileTypes: true) {
+			return diskImg.absoluteURL.path
+		}
+		
+		return nil
+	}
+
+	func chooseYAML() -> String? {
+		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: "Select data file", allowsOtherFileTypes: true) {
+			return choosenFile.absoluteURL.path
+		}
+		
+		return nil
+	}
+	
+	func templates() -> [TemplateEntry] {
+		if let result = try? TemplateHandler.listTemplate(runMode: .app) {
+			return result
+		}
+		
+		return []
+	}
+	
+	func remotes() -> [RemoteEntry] {
+		if let result = try? RemoteHandler.listRemote(runMode: .app) {
+			return result
+		}
+		
+		return []
 	}
 }
 

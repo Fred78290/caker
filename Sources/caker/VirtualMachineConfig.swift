@@ -45,8 +45,10 @@ struct VirtualMachineConfig: Hashable {
 	var configuredPassword: String?
 	var mainGroup: String
 	var clearPassword: Bool
-	var diskSize: UInt16
+	var diskSize: UInt16 = 20
 	var netIfnames: Bool = false
+	var userData: String? = nil
+	var networkConfig: String? = nil
 
 	init() {
 		cpuCount = 1
@@ -144,6 +146,8 @@ struct VirtualMachineConfig: Hashable {
 			suspendable: self.suspendable,
 			netIfnames: self.netIfnames,
 			image: image,
+			userData: self.userData,
+			networkConfig: self.networkConfig,
 			displayRefit: self.displayRefit,
 			forwardedPorts: self.forwardPorts,
 			mounts: self.mounts,
