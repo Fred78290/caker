@@ -29,9 +29,7 @@ public struct StorageLocation {
 	}
 
 	public init(runMode: Utils.RunMode, template: Bool) {
-		self.template = template
-		self.rootURL = try! Utils.getHome(runMode: runMode).appendingPathComponent("templates", isDirectory: true)
-		try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
+		self.init(runMode: runMode, name: template ? "templates" : "vms")
 	}
 
 	private func vmURL(_ name: String) -> URL {

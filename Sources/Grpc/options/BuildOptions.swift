@@ -100,6 +100,8 @@ public struct BuildOptions: ParsableArguments {
 		clearPassword: Bool = false,
 		autostart: Bool = true,
 		nested: Bool = true,
+		suspendable: Bool = false,
+		netIfnames: Bool = false,
 		image: String = defaultUbuntuImage,
 		sshAuthorizedKey: String? = nil,
 		vendorData: String? = nil,
@@ -123,6 +125,8 @@ public struct BuildOptions: ParsableArguments {
 		self.clearPassword = clearPassword
 		self.autostart = autostart
 		self.nested = nested
+		self.suspendable = suspendable
+		self.netIfnames = netIfnames
 		self.image = image
 		self.sshAuthorizedKey = sshAuthorizedKey
 		self.vendorData = vendorData

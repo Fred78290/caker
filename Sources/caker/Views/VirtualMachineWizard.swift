@@ -271,6 +271,7 @@ struct VirtualMachineWizard: View {
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding)
 				Toggle("Refit display", isOn: $config.displayRefit)
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization)
+				Toggle("Use network ifnames", isOn: $config.netIfnames)
 			}
 		}
 	}
@@ -326,32 +327,6 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-				}
-
-				LabeledContent("Administator password") {
-					HStack {
-						if showPassword {
-							TextField("Password", text: $password)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
-						} else {
-							SecureField("Password", text: $password)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
-						}
-					}.overlay(alignment: .trailing) {
-						Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-						.padding()
-						.onTapGesture {
-							showPassword.toggle()
-						}
-					}
 				}
 
 				LabeledContent("Administator password") {
@@ -468,12 +443,11 @@ struct VirtualMachineWizard: View {
 			return nil
 		}
 
-		let location = StorageLocation(runMode: .app, template: false).location(vmname)
 		let options = config.buildOptions(image: imageName)
 		
-		_ = try await VMBuilder.buildVM(vmName: vmname, vmLocation: location, options: options, runMode: .app)
+		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app)
 		
-		return location
+		return try StorageLocation(runMode: .app).find(vmname)
 	}
 }
 

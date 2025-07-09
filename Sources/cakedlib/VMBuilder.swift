@@ -166,7 +166,7 @@ public struct VMBuilder {
 		return sourceImage
 	}
 
-	public static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
+	static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
 		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options, runMode: runMode)
 
 		if sourceImage == .oci {

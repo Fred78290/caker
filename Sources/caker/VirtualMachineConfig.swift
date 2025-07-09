@@ -46,6 +46,7 @@ struct VirtualMachineConfig: Hashable {
 	var mainGroup: String
 	var clearPassword: Bool
 	var diskSize: UInt16
+	var netIfnames: Bool = false
 
 	init() {
 		cpuCount = 1
@@ -53,6 +54,7 @@ struct VirtualMachineConfig: Hashable {
 		macAddress = ""
 		autostart = false
 		suspendable = false
+		netIfnames = false
 		dynamicPortForwarding = false
 		displayRefit = true
 		nestedVirtualization = true
@@ -139,6 +141,8 @@ struct VirtualMachineConfig: Hashable {
 			clearPassword: self.clearPassword,
 			autostart: self.autostart,
 			nested: self.nestedVirtualization,
+			suspendable: self.suspendable,
+			netIfnames: self.netIfnames,
 			image: image,
 			displayRefit: self.displayRefit,
 			forwardedPorts: self.forwardPorts,
