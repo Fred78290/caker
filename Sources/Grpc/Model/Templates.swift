@@ -66,7 +66,7 @@ public struct ShortTemplateEntry: Codable {
 	}
 }
 
-public struct CreateTemplateReply: Codable {
+public struct CreateTemplateReply: Codable, Hashable {
 	public let name: String
 	public let created: Bool
 	public var reason: String? = nil

@@ -58,9 +58,8 @@ struct AsyncButton<Label: View>: View {
 					// to zero, since we don't want the button's
 					// size to change while its task is performed:
 					label().opacity(showProgressView ? 0 : 1)
-
 					if showProgressView {
-						ProgressView()
+						ProgressView().frame(width: 18, height: 18)
 					}
 				}
 			}
@@ -79,7 +78,7 @@ extension AsyncButton where Label == Text {
 
 extension AsyncButton where Label == Image {
 	init(systemImageName: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Void) {
-		self.init(options: options, action: action) {
+		self.init( options: options, action: action) {
 			Image(systemName: systemImageName)
 		}
 	}

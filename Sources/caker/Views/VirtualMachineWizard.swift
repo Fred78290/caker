@@ -74,6 +74,22 @@ let groups: [String] = [
 	"netdev"
 ]
 
+struct ShortImageInfoComparator : SortComparator {
+	var order: SortOrder
+	
+	func compare(_ lhs: ShortImageInfo, _ rhs: ShortImageInfo) -> ComparisonResult {
+		if lhs.description == rhs.description {
+			return .orderedSame
+		}
+
+		if order == .forward {
+			return lhs.description < rhs.description ? .orderedAscending : .orderedDescending
+		}
+
+		return lhs.description > rhs.description ? .orderedAscending : .orderedDescending
+	}
+}
+
 struct VirtualMachineWizard: View {
 	struct ItemView {
 		var title: String
@@ -95,7 +111,9 @@ struct VirtualMachineWizard: View {
 	@State private var password: String = ""
 	@State private var showPassword: Bool = false
 	@State private var imageSource: VMBuilder.ImageSource = .cloud
-	@State private var remoteImage: String = defaultRemotes["ubuntu"]!
+	@State private var remoteImage: String = "ubuntu"
+	@State private var remoteImages: [ShortImageInfo] = []
+	@State private var selectedRemoteImage: String = ""
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
@@ -391,6 +409,7 @@ struct VirtualMachineWizard: View {
 							}.buttonStyle(.borderless)
 						}
 					}
+
 				case .cloud:
 					TextField("Cloud Image", text: $imageName)
 						.multilineTextAlignment(.leading)
@@ -398,6 +417,7 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+
 				case .oci:
 					TextField("OCI Image", text: $imageName)
 						.multilineTextAlignment(.leading)
@@ -412,20 +432,26 @@ struct VirtualMachineWizard: View {
 							Text(template.name).tag(template.fqn)
 						}
 					}
+
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $remoteImage) {
 							ForEach(remotes(), id: \.self) { remote in
-								Text(remote.name).tag(remote.url)
+								Text(remote.name).tag(remote.name)
+							}
+						}.task {
+							remoteImages = await images(remote: remoteImage)
+						}.onChange(of: remoteImage) { newValue in
+							Task {
+								remoteImages = await images(remote: newValue)
 							}
 						}
 
-						TextField("Remote Image", text: $imageName)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+						List(remoteImages, selection: $selectedRemoteImage) { remoteImage in
+							Text(remoteImage.description).tag(remoteImage.fingerprint)
+						}
+					}.onChange(of: selectedRemoteImage) { newValue in
+						imageName = "\(remoteImage)://\(newValue)"
 					}
 				}
 			} header: {
@@ -578,6 +604,18 @@ struct VirtualMachineWizard: View {
 		}
 		
 		return []
+	}
+	
+	func images(remote: String) async -> [ShortImageInfo] {
+		guard let result = try? await ImageHandler.listImage(remote: remote, runMode: .app) else {
+			return []
+		}
+		
+		return result.compactMap {
+			ShortImageInfo(imageInfo: $0)
+		}.sorted(using: [ShortImageInfoComparator(order: .forward)]) /*{
+			$0.description == $1.description
+		}*/
 	}
 }
 

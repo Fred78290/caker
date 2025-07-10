@@ -19,7 +19,12 @@ public struct StartHandler {
 		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try vmLocation.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
-			var arguments: [String] = ["exec", "caked", "vmrun", vmLocation.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			
+			guard let caked = URL.binary("caked") else {
+				throw ServiceError("caked not found")
+			}
+
+			var arguments: [String] = ["exec", caked.path(), "vmrun", vmLocation.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)

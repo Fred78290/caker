@@ -7,6 +7,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import CakedLib
+import GRPCLib
 
 extension UTType {
 	static var virtualMachine: UTType {
@@ -115,6 +116,18 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	func suspendFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			virtualMachine.suspendFromUI()
+		}
+	}
+
+	func createTemplateFromUI(name: String) -> CreateTemplateReply {
+		do {
+			return try TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.vmLocation.name, templateName: name, runMode: .app)
+		} catch {
+			guard let error = error as? ServiceError else {
+				return .init(name: name, created: false, reason: error.localizedDescription)
+			}
+
+			return .init(name: name, created: false, reason: error.description)
 		}
 	}
 

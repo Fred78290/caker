@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CakedLib
+import GRPCLib
 
 class CustomWindowDelegate: NSObject, NSWindowDelegate {
 	override init() {
@@ -22,10 +23,13 @@ struct VirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
-	@ObservedObject var appState: AppState
+
+	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
+
 	@State var windowNumber: Int = 0
 	@State var displaySettings: Bool = false
+	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -96,6 +100,12 @@ struct VirtualMachineView: View {
 				Button("Restart", systemImage: "restart") {
 					document.stopFromUI()
 				}.disabled(self.appState.isStopped)
+
+				Spacer()
+
+				Button("Create template", systemImage: "archivebox") {
+					createTemplate = true
+				}.disabled(self.appState.isRunning)
 			}
 
 			ToolbarItemGroup(placement: .primaryAction) {
@@ -106,6 +116,10 @@ struct VirtualMachineView: View {
 			}
 		}.sheet(isPresented: $displaySettings) {
 			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
+		}.alert("Create template", isPresented: $createTemplate) {
+			AppState.createTemplatePrompt(appState: $appState)
+		}.onChange(of: appState.templateResult) { newValue in
+			AppState.createTemplatFailed(templateResult: newValue)
 		}
 
 		if #available(macOS 15.0, *) {
@@ -116,8 +130,12 @@ struct VirtualMachineView: View {
 	func settings() {
 		self.openWindow(id: "settings", value: self.document.virtualMachine!.vmLocation.name)
 	}
+	
+	func promptToSave() {
+		
+	}
 }
 
 #Preview {
-	VirtualMachineView(appState: AppState(), document: VirtualMachineDocument())
+	VirtualMachineView(appState: .constant(AppState()), document: VirtualMachineDocument())
 }

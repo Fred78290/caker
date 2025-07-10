@@ -158,7 +158,7 @@ public struct VMBuilder {
 			try Shell.runTart(command: "clone", arguments: arguments, runMode: runMode)
 
 			sourceImage = .oci
-		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), maxSplits: 1, omittingEmptySubsequences: true).last {
+		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
 			}

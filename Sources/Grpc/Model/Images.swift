@@ -191,7 +191,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 }
 
-public struct ShortImageInfo: Codable {
+public struct ShortImageInfo: Codable, Hashable, Identifiable {
 	public let alias: String
 	public let fingerprint: String
 	public let pub: String
@@ -200,6 +200,10 @@ public struct ShortImageInfo: Codable {
 	public let type: String
 	public let size: String
 	public let uploaded: String
+
+	public var id: String {
+		fingerprint
+	}
 
 	public enum CodingKeys: String, CodingKey {
 		case alias = "ALIAS"

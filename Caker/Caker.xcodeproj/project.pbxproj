@@ -58,7 +58,8 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
-		9B3600612E1D12B900889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600602E1D12B500889BFD /* AsyncButton.swift */; };
+		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
+		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
 		9B464B612D5A3E8900164BF5 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A782D5A3E0300164BF5 /* Login.swift */; };
@@ -500,7 +501,8 @@
 		9B345C112DB4EB700047D00B /* NetworkTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkTest.swift; sourceTree = "<group>"; };
 		9B345C122DB4EB700047D00B /* ProcessWithSharedFileHandleTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandleTest.swift; sourceTree = "<group>"; };
 		9B345C132DB4EB700047D00B /* RemoteTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTest.swift; sourceTree = "<group>"; };
-		9B3600602E1D12B500889BFD /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
+		9B3600862E1FB1AC00889BFD /* DynamicList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicList.swift; sourceTree = "<group>"; };
+		9B3600882E1FC48D00889BFD /* AsyncButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncButton.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -947,6 +949,8 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
+				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
@@ -971,7 +975,6 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				9B3600602E1D12B500889BFD /* AsyncButton.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
 				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
@@ -1742,8 +1745,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
+				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
 				9B2BFABA2DFED25E000045C3 /* MainView.swift in Sources */,
-				9B3600612E1D12B900889BFD /* AsyncButton.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,
 				9B2BFABC2DFED25E000045C3 /* EditableList.swift in Sources */,
 				9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */,
@@ -1769,6 +1772,7 @@
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
 				9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */,
 				9B2BFAC32DFED25E000045C3 /* VirtualMachineSettingsView.swift in Sources */,
+				9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */,
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,

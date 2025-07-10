@@ -58,15 +58,26 @@ public struct TemplateHandler {
 				try? lock.unlock()
 			}
 
-			try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
+			Logger(self).info("Creating template \(templateName) from \(sourceName)")
+			
+			do {
+				if config.os == .linux && config.useCloudInit {
+					source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+				}
+				
+				try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
+				try source.templateTo(templateLocation)
+				
+				return CreateTemplateReply(name: templateName, created: true, reason: "template created")
+			} catch {
+				Logger(self).error(error)
 
-			if config.os == .linux && config.useCloudInit {
-				source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+				if let exists = try? templateLocation.rootURL.exists(), exists {
+					try? FileManager.default.removeItem(at: templateLocation.rootURL)
+				}
+
+				throw error
 			}
-
-			try source.templateTo(templateLocation)
-
-			return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 		} else {
 			return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(sourceName) is running")
 		}
@@ -101,6 +112,12 @@ public struct TemplateHandler {
 		return .init(name: templateName, deleted: false)
 	}
 
+	public static func exists(name: String, runMode: Utils.RunMode) -> Bool {
+		let storage = StorageLocation(runMode: runMode, template: true)
+
+		return storage.exists(name)
+	}
+	
 	public static func listTemplate(runMode: Utils.RunMode) throws -> [TemplateEntry] {
 		let storage = StorageLocation(runMode: runMode, template: true)
 

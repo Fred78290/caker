@@ -1,11 +1,35 @@
 import SwiftUI
+import CakedLib
+import GRPCLib
 
-class AppState: ObservableObject {
-	@Published var currentDocument: VirtualMachineDocument?
-	@Published var isStopped: Bool = true
-	@Published var isSuspendable: Bool = false
-	@Published var isRunning: Bool = false
-	@Published var isPaused: Bool = false
+struct AppState {
+	var currentDocument: VirtualMachineDocument?
+	var isStopped: Bool = true
+	var isSuspendable: Bool = false
+	var isRunning: Bool = false
+	var isPaused: Bool = false
+	var templateName: String = ""
+	var templateResult: CreateTemplateReply?
+
+	@ViewBuilder
+	static func createTemplatePrompt(appState: Binding<AppState>) -> some View {
+		TextField("Name", text: appState.templateName)
+		AsyncButton("Create", action: {
+			appState.wrappedValue.templateResult = appState.wrappedValue.currentDocument?.createTemplateFromUI(name: appState.wrappedValue.templateName)
+		}).disabled(appState.wrappedValue.templateName.isEmpty || TemplateHandler.exists(name: appState.wrappedValue.templateName, runMode: .app))
+
+		Button("Cancel", role: .cancel, action: {})
+	}
+
+	static func createTemplatFailed(templateResult: CreateTemplateReply?) {
+		if let templateResult = templateResult, templateResult.created == false {
+			let alert = NSAlert()
+			
+			alert.messageText = "Failed to create template"
+			alert.informativeText = templateResult.reason ?? "Internal error"
+			alert.runModal()
+		}
+	}
 }
 
 @main
@@ -13,7 +37,9 @@ struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
 	@Environment(\.newDocument) private var newDocument
-	@StateObject var appState = AppState()
+	@State var appState = AppState()
+	@State var createTemplate = false
+
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	var body: some Scene {
@@ -24,7 +50,7 @@ struct MainApp: App {
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
 				if file.document.loadVirtualMachine(from: fileURL) {
-					VirtualMachineView(appState: self.appState, document: file.document)
+					VirtualMachineView(appState: $appState, document: file.document)
 				} else {
 					Color.black
 				}
@@ -41,11 +67,11 @@ struct MainApp: App {
 			CommandGroup(replacing: .saveItem, addition: {})
 			CommandGroup(replacing: .newItem) {
 				Section {
-					Button("New") {
+					Button("New virtual machine") {
 						openWindow(id: "wizard")
 						//newDocumentWizard()
 					}.keyboardShortcut(KeyboardShortcut("N"))
-					Button("Open") {
+					Button("Open virtual machine") {
 						open()
 					}.keyboardShortcut(KeyboardShortcut("o"))
 				}
@@ -67,6 +93,16 @@ struct MainApp: App {
 					Button("Suspend") {
 						appState.currentDocument?.suspendFromUI()
 					}.disabled(!appState.isSuspendable || appState.currentDocument == nil)
+				}
+
+				Button("Create template") {
+					createTemplate = true
+				}
+				.disabled(appState.isRunning || appState.currentDocument == nil)
+				.alert("Create template", isPresented: $createTemplate) {
+					AppState.createTemplatePrompt(appState: $appState)
+				}.onChange(of: appState.templateResult) { newValue in
+					AppState.createTemplatFailed(templateResult: newValue)
 				}
 			}
 		}
