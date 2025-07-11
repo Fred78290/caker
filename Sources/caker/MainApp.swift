@@ -132,14 +132,70 @@ struct MainApp: App {
 }
 
 class MainUIAppDelegate: NSObject, NSApplicationDelegate {
+	var statusBarItem: NSStatusItem?
+
 	override init() {
 		super.init()
 
 		print("delegate")
 	}
 
+	@objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
+		print("Menu item clicked")
+		// We'll implement the window handling logic here
+	}
+
 	func applicationWillFinishLaunching(_ notification: Notification) {
-		print(#function)
+		let statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+
+		self.statusBarItem = statusBarItem
+
+		if let button = statusBarItem.button {
+			//button.action = #selector(statusBarButtonClicked(_:))
+			//button.target = self
+			button.image = NSImage(named: NSImage.Name("SmallAppIcon"))
+			
+			setupMenus(statusBarItem)
+		}
+	}
+
+	@objc func showAbout() {
+		
+	}
+
+	@objc func newVirtualMachine(_ sender: NSMenuItem) {
+		
+	}
+
+	@objc func startVirtualMachine(_ sender: NSMenuItem) {
+		
+	}
+
+	func setupMenus(_ statusBarItem: NSStatusItem) {
+		let menu = NSMenu()
+		let aboutMenu = NSMenuItem(title: "About", action: #selector(showAbout) , keyEquivalent: "")
+		menu.addItem(aboutMenu)
+		menu.addItem(NSMenuItem.separator())
+
+		let newMenu = NSMenuItem(title: "New virtual machine", action: #selector(newVirtualMachine) , keyEquivalent: "")
+		menu.addItem(newMenu)
+		
+		let vmsMenu = NSMenuItem(title: "Virtual machines", action: nil, keyEquivalent: "3")
+		let subMenus = NSMenu()
+		
+		vmsMenu.submenu = subMenus
+
+		try? ListHandler.list(vmonly: true, runMode: .app).forEach {
+			let vmMenu = NSMenuItem(title: $0.name, action: #selector(startVirtualMachine(_:)), keyEquivalent: "")
+
+			subMenus.addItem(vmMenu)
+		}
+
+		menu.addItem(vmsMenu)
+		menu.addItem(NSMenuItem.separator())
+		menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
+
+		statusBarItem.menu = menu
 	}
 
 	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
