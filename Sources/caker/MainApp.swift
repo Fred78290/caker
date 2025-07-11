@@ -2,32 +2,38 @@ import SwiftUI
 import CakedLib
 import GRPCLib
 
-struct AppState {
-	var currentDocument: VirtualMachineDocument?
-	var isStopped: Bool = true
-	var isSuspendable: Bool = false
-	var isRunning: Bool = false
-	var isPaused: Bool = false
-	var templateName: String = ""
-	var templateResult: CreateTemplateReply?
+struct PairedVirtualMachineDocument: Identifiable {
+	let id: URL
+	let document: VirtualMachineDocument
+}
 
-	@ViewBuilder
-	static func createTemplatePrompt(appState: Binding<AppState>) -> some View {
-		TextField("Name", text: appState.templateName)
-		AsyncButton("Create", action: {
-			appState.wrappedValue.templateResult = appState.wrappedValue.currentDocument?.createTemplateFromUI(name: appState.wrappedValue.templateName)
-		}).disabled(appState.wrappedValue.templateName.isEmpty || TemplateHandler.exists(name: appState.wrappedValue.templateName, runMode: .app))
+class AppState: ObservableObject, Observable {
+	@Published var currentDocument: VirtualMachineDocument?
+	@Published var isStopped: Bool = true
+	@Published var isSuspendable: Bool = false
+	@Published var isRunning: Bool = false
+	@Published var isPaused: Bool = false
+	@Published var virtualMachines: [URL:VirtualMachineDocument] = [:]
 
-		Button("Cancel", role: .cancel, action: {})
+	var vms: [PairedVirtualMachineDocument] {
+		self.virtualMachines.compactMap {
+			PairedVirtualMachineDocument(id: $0.key, document: $0.value)
+		}
 	}
 
-	static func createTemplatFailed(templateResult: CreateTemplateReply?) {
-		if let templateResult = templateResult, templateResult.created == false {
-			let alert = NSAlert()
+	init() {
+		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
+			let storage = StorageLocation(runMode: .app)
 			
-			alert.messageText = "Failed to create template"
-			alert.informativeText = templateResult.reason ?? "Internal error"
-			alert.runModal()
+			vms.compactMap {
+				if let location = try? storage.find($0.name) {
+					return location
+				}
+				
+				return nil
+			}.forEach {
+				self.virtualMachines[$0.rootURL] = VirtualMachineDocument(name: $0.name)
+			}
 		}
 	}
 }
@@ -42,18 +48,34 @@ struct MainApp: App {
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
+	func documentView(fileURL: URL, document: VirtualMachineDocument) -> some View {
+		var document = document
+
+		if let found = appState.virtualMachines[fileURL] {
+			document = found
+		} else {
+			appState.virtualMachines[fileURL] = document
+		}
+
+		let loaded = document.loadVirtualMachine(from: fileURL)
+
+		return HStack {
+			if loaded {
+				VirtualMachineView(appState: $appState, document: document)
+			} else {
+				Text("Unable to load virtual machine \(document.name)")
+			}
+		}
+	}
+
 	var body: some Scene {
 		/*DocumentGroup(newDocument: VirtualMachineDocument()) { file in
 			VirtualMachineView(appState: self.appState, document: file.document)
 		}*/
-
+		CakerMenuBarExtraScene(appState: appState)
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
-				if file.document.loadVirtualMachine(from: fileURL) {
-					VirtualMachineView(appState: $appState, document: file.document)
-				} else {
-					Color.black
-				}
+				documentView(fileURL: fileURL, document: file.document)
 			} else {
 				Color.red
 			}
@@ -100,18 +122,25 @@ struct MainApp: App {
 				}
 				.disabled(appState.isRunning || appState.currentDocument == nil)
 				.alert("Create template", isPresented: $createTemplate) {
-					AppState.createTemplatePrompt(appState: $appState)
-				}.onChange(of: appState.templateResult) { newValue in
-					AppState.createTemplatFailed(templateResult: newValue)
+					CreateTemplateView(currentDocument: appState.currentDocument)
 				}
 			}
 		}
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
-		//WindowGroup("Configure VM", id: "settings", for: String.self) { $vmname in
-		//	VirtualMachineSettingsView(vmname: vmname)
-		//}
+		WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
+			if let fileURL = url, let document = appState.virtualMachines[fileURL] {
+				documentView(fileURL: fileURL, document: document).onAppear{
+					document.startFromUI()
+				}
+			} else {
+				newDocWizard()
+			}
+		}
+		Settings {
+			SettingsView()
+		}
 	}
 
 	private func newDocumentWizard() {
@@ -131,73 +160,15 @@ struct MainApp: App {
 	}
 }
 
-class MainUIAppDelegate: NSObject, NSApplicationDelegate {
-	var statusBarItem: NSStatusItem?
+@MainActor class MainUIAppDelegate: NSObject, NSApplicationDelegate {
+	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
 
-	override init() {
-		super.init()
-
-		print("delegate")
-	}
-
-	@objc func statusBarButtonClicked(_ sender: NSStatusBarButton) {
-		print("Menu item clicked")
-		// We'll implement the window handling logic here
-	}
-
-	func applicationWillFinishLaunching(_ notification: Notification) {
-		let statusBarItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-
-		self.statusBarItem = statusBarItem
-
-		if let button = statusBarItem.button {
-			//button.action = #selector(statusBarButtonClicked(_:))
-			//button.target = self
-			button.image = NSImage(named: NSImage.Name("SmallAppIcon"))
-			
-			setupMenus(statusBarItem)
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		if isDockIconHidden {
+			NSApp.setActivationPolicy(.accessory)
 		}
 	}
-
-	@objc func showAbout() {
-		
-	}
-
-	@objc func newVirtualMachine(_ sender: NSMenuItem) {
-		
-	}
-
-	@objc func startVirtualMachine(_ sender: NSMenuItem) {
-		
-	}
-
-	func setupMenus(_ statusBarItem: NSStatusItem) {
-		let menu = NSMenu()
-		let aboutMenu = NSMenuItem(title: "About", action: #selector(showAbout) , keyEquivalent: "")
-		menu.addItem(aboutMenu)
-		menu.addItem(NSMenuItem.separator())
-
-		let newMenu = NSMenuItem(title: "New virtual machine", action: #selector(newVirtualMachine) , keyEquivalent: "")
-		menu.addItem(newMenu)
-		
-		let vmsMenu = NSMenuItem(title: "Virtual machines", action: nil, keyEquivalent: "3")
-		let subMenus = NSMenu()
-		
-		vmsMenu.submenu = subMenus
-
-		try? ListHandler.list(vmonly: true, runMode: .app).forEach {
-			let vmMenu = NSMenuItem(title: $0.name, action: #selector(startVirtualMachine(_:)), keyEquivalent: "")
-
-			subMenus.addItem(vmMenu)
-		}
-
-		menu.addItem(vmsMenu)
-		menu.addItem(NSMenuItem.separator())
-		menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
-
-		statusBarItem.menu = menu
-	}
-
+	
 	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
 		return false
 	}

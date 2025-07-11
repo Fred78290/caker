@@ -23,7 +23,7 @@ extension UTType {
 	}
 }
 
-class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableObject, Equatable {
+class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableObject, Equatable, Identifiable {
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.virtualMachine == rhs.virtualMachine
 	}
@@ -39,6 +39,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 
 	var virtualMachine: VirtualMachine? = nil
 	var name: String = ""
+	var description: String {
+		name
+	}
 
 	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
 	@Published var status: Status = .none
@@ -54,11 +57,31 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 		self.virtualMachineConfig = VirtualMachineConfig()
 	}
 
+	init(name: String) {
+		self.virtualMachine = nil
+		self.name = name
+	}
+
 	required init(configuration: ReadConfiguration) throws {
 		self.virtualMachine = nil
 
 		guard configuration.file.isDirectory else {
 			throw ServiceError("Internal error")
+		}
+	}
+
+	func alertError(_ error: Error) {
+		if let error = error as? ServiceError {
+			let alert = NSAlert()
+			
+			alert.messageText = "Failed to start VM"
+			alert.informativeText = error.description
+			alert.runModal()
+		} else {
+			let alert = NSAlert(error: error)
+			
+			alert.messageText = "Failed to start VM"
+			alert.runModal()
 		}
 	}
 
@@ -87,12 +110,36 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 			self.didChangedState(virtualMachine)
 
 			virtualMachine.delegate = self
+			return true
 		} catch {
-			print("Error loading \(fileURL): \(error)")
-			return false
+			alertError(error)
 		}
 
-		return true
+		return false
+	}
+
+	func loadVirtualMachine() -> URL? {
+		guard let virtualMachine = self.virtualMachine else {
+			do {
+				let storage = StorageLocation(runMode: .app)
+				let location = try storage.find(name)
+				let config = try location.config()
+				let virtualMachine = try VirtualMachine(vmLocation: location, config: config, runMode: .app)
+
+				self.virtualMachine = virtualMachine
+				self.virtualMachineConfig = VirtualMachineConfig(vmname: name, config: config)
+				self.didChangedState(virtualMachine)
+				virtualMachine.delegate = self
+
+				return location.rootURL
+			} catch {
+				alertError(error)
+			}
+
+			return nil
+		}
+		
+		return virtualMachine.vmLocation.rootURL
 	}
 
 	func startFromUI() {

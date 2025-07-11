@@ -117,9 +117,7 @@ struct VirtualMachineView: View {
 		}.sheet(isPresented: $displaySettings) {
 			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 		}.alert("Create template", isPresented: $createTemplate) {
-			AppState.createTemplatePrompt(appState: $appState)
-		}.onChange(of: appState.templateResult) { newValue in
-			AppState.createTemplatFailed(templateResult: newValue)
+			CreateTemplateView(currentDocument: document)
 		}
 
 		if #available(macOS 15.0, *) {
