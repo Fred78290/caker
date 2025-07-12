@@ -65,7 +65,7 @@ struct MainApp: App {
 			} else {
 				Text("Unable to load virtual machine \(document.name)")
 			}
-		}
+		}.restorationState(.disabled)
 	}
 
 	var body: some Scene {
@@ -138,6 +138,7 @@ struct MainApp: App {
 				newDocWizard()
 			}
 		}
+		.restorationState(.disabled)
 		Settings {
 			SettingsView()
 		}
@@ -156,7 +157,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard()
+		VirtualMachineWizard().restorationState(.disabled)
 	}
 }
 
