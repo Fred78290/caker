@@ -128,6 +128,8 @@ struct MainApp: App {
 		}
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
+		}.commands {
+			CommandGroup(replacing: .saveItem, addition: {})
 		}
 		WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
 			if let fileURL = url, let document = appState.virtualMachines[fileURL] {
@@ -137,6 +139,8 @@ struct MainApp: App {
 			} else {
 				newDocWizard()
 			}
+		}.commands {
+			CommandGroup(replacing: .saveItem, addition: {})
 		}
 		.restorationState(.disabled)
 		Settings {
