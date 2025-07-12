@@ -59,7 +59,7 @@ struct AsyncButton<Label: View>: View {
 					// size to change while its task is performed:
 					label().opacity(showProgressView ? 0 : 1)
 					if showProgressView {
-						ProgressView().frame(width: 18, height: 18)
+						ProgressView().frame(maxWidth: 18, maxHeight: 18)
 					}
 				}
 			}
