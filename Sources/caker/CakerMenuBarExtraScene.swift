@@ -60,7 +60,9 @@ private struct VMMenuItem: View {
 					openWindow(id: "opendocument", value: url)
 				}
 				Button("Create template") {
-					createTemplate = true
+					DispatchQueue.main.async {
+						createTemplate()
+					}
 				}
 			} else {
 				Button("Request stop") {

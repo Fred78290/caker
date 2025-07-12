@@ -54,7 +54,9 @@ struct MainApp: App {
 		if let found = appState.virtualMachines[fileURL] {
 			document = found
 		} else {
-			appState.virtualMachines[fileURL] = document
+			DispatchQueue.main.async {
+				appState.virtualMachines[fileURL] = document
+			}
 		}
 
 		let loaded = document.loadVirtualMachine(from: fileURL)

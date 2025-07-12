@@ -112,7 +112,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 			virtualMachine.delegate = self
 			return true
 		} catch {
-			alertError(error)
+            DispatchQueue.main.async {
+                self.alertError(error)
+            }
 		}
 
 		return false
@@ -133,7 +135,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 
 				return location.rootURL
 			} catch {
-				alertError(error)
+                DispatchQueue.main.async {
+                    self.alertError(error)
+                }
 			}
 
 			return nil
