@@ -133,18 +133,18 @@ struct MainApp: App {
 		}.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
-		WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
-			if let fileURL = url, let document = appState.virtualMachines[fileURL] {
-				documentView(fileURL: fileURL, document: document).onAppear{
-					document.startFromUI()
-				}
-			} else {
-				newDocWizard()
-			}
-		}.commands {
-			CommandGroup(replacing: .saveItem, addition: {})
-		}
-		.restorationState(.disabled)
+		//WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
+		//	if let fileURL = url, let document = appState.virtualMachines[fileURL] {
+		//		documentView(fileURL: fileURL, document: document).onAppear{
+		//			document.startFromUI()
+		//		}
+		//	} else {
+		//		newDocWizard()
+		//	}
+		//}.commands {
+		//	CommandGroup(replacing: .saveItem, addition: {})
+		//}
+		//.restorationState(.disabled)
 		Settings {
 			SettingsView()
 		}

@@ -65,6 +65,7 @@
 		9B3601A32E2116E600889BFD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A22E2116E600889BFD /* SettingsView.swift */; };
 		9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
+		9B3602452E2273C700889BFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3602442E2273C200889BFD /* Extensions.swift */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
 		9B464B612D5A3E8900164BF5 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A782D5A3E0300164BF5 /* Login.swift */; };
@@ -125,6 +126,7 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
+		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
 		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
@@ -514,6 +516,7 @@
 		9B3601A22E2116E600889BFD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
+		9B3602442E2273C200889BFD /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -816,6 +819,7 @@
 				9B464C712D5A464B00164BF5 /* GRPC in Frameworks */,
 				9B464C732D5A468A00164BF5 /* NIOPortForwarding in Frameworks */,
 				9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */,
+				9B6ECD942E22B5400003ACED /* TextTable in Frameworks */,
 				9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -962,6 +966,7 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9B3602442E2273C200889BFD /* Extensions.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
@@ -1538,6 +1543,7 @@
 				9B464C722D5A468A00164BF5 /* NIOPortForwarding */,
 				9B28BFA12DDB259E00B5A0AF /* ArgumentParser */,
 				9B30992A2DE4DC0C00231C1E /* CakeAgentLib */,
+				9B6ECD932E22B5400003ACED /* TextTable */,
 			);
 			productName = GRPCLib;
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
@@ -1775,6 +1781,7 @@
 				9B30BA4E2E0BF37300256A9D /* RegexParseableFormatStyle.swift in Sources */,
 				9B215B732E0C388F00AFC89D /* MountDetailView.swift in Sources */,
 				9B2BFABF2DFED25E000045C3 /* VirtualMachineView.swift in Sources */,
+				9B3602452E2273C700889BFD /* Extensions.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
@@ -2915,6 +2922,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
+		};
+		9B6ECD932E22B5400003ACED /* TextTable */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464B982D5A3FCD00164BF5 /* XCRemoteSwiftPackageReference "TextTable" */;
+			productName = TextTable;
 		};
 		9B7C7B6A2E0FC7DA009D0A26 /* Steps */ = {
 			isa = XCSwiftPackageProductDependency;

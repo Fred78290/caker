@@ -18,12 +18,11 @@ struct RestorationState: ViewModifier {
 		if #available(macOS 15.0, *) {
 			return content
 		} else {
-			return content
-				.onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification), perform: { output in
-					let window = output.object as! NSWindow
-					
-					window.isRestorable = behavior == .automatic
-				})
+			return content .onReceive(NSWindow.didBecomeKeyNotification) { output in
+				let window = output.object as! NSWindow
+				
+				window.isRestorable = behavior == .automatic
+			}
 		}
 	}
 }

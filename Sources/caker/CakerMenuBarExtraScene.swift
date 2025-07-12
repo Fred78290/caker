@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import CakedLib
+import GRPCLib
 
 struct CakerMenuBarExtraScene: Scene {
 	@ObservedObject var appState: AppState
@@ -43,25 +45,36 @@ struct CakerMenuBarExtraScene: Scene {
 		} label: {
 			Image("MenuBarExtra")
 		}
-    }
+	}
 }
 
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
+	@Environment(\.openDocument) private var openDocument
 	let url: URL
 	@ObservedObject var vm: VirtualMachineDocument
 	@ObservedObject var appState: AppState
-	@State var createTemplate = false
 
 	var body: some View {
 		Menu(vm.name) {
 			if vm.status == .stopped || vm.status == .none {
 				Button("Start") {
-					openWindow(id: "opendocument", value: url)
+					Task {
+						await openVirtualMachine()
+					}
 				}
+
 				Button("Create template") {
 					DispatchQueue.main.async {
 						createTemplate()
+					}
+				}
+
+				Divider()
+
+				Button("Delete") {
+					DispatchQueue.main.async {
+						deleteVirtualMachine()
 					}
 				}
 			} else {
@@ -87,8 +100,75 @@ private struct VMMenuItem: View {
 				}
 			}
 		}
-		.alert("Create template", isPresented: $createTemplate) {
-			CreateTemplateView(currentDocument: vm)
+	}
+
+	func openVirtualMachine() async {
+		do {
+			try await openDocument(at: url)
+			NotificationCenter.default.post(name: NSNotification.StartVirtualMachine, object: vm.name)
+		} catch {
+			DispatchQueue.main.async {
+				vm.alertError(error)
+			}
+		}
+	}
+
+	func createTemplate() {
+		let alert = NSAlert()
+		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+
+		alert.messageText = "Create template"
+		alert.informativeText = "Name of the new template"
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: "Delete")
+		alert.addButton(withTitle: "Cancel")
+		
+		alert.accessoryView = txt
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			let templateResult = vm.createTemplateFromUI(name: txt.stringValue)
+			
+			if templateResult.created == false {
+				let alert = NSAlert()
+				
+				alert.messageText = "Failed to create template"
+				alert.informativeText = templateResult.reason ?? "Internal error"
+				alert.runModal()
+			}
+		}
+	}
+
+	func deleteVirtualMachine() {
+		let alert = NSAlert()
+
+		alert.messageText = "Delete virtual machine"
+		alert.informativeText = "Are you sure you want to delete \(vm.name)? This action cannot be undone."
+		alert.alertStyle = .critical
+		alert.addButton(withTitle: "Delete")
+		alert.addButton(withTitle: "Cancel")
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			do {
+				NotificationCenter.default.post(name: NSNotification.DeleteVirtualMachine, object: vm.name)
+
+				let result = try DeleteHandler.delete(names: [vm.name], runMode: .app)
+				
+				if let first = result.first {
+					if first.deleted {
+						let location = StorageLocation(runMode: .app).location(vm.name)
+						
+						appState.virtualMachines.removeValue(forKey: location.rootURL)
+					} else {
+                        DispatchQueue.main.async {
+                            vm.alertError(ServiceError("VM Not deleted \(first.name): \(first.reason)"))
+                        }
+					}
+				}
+			} catch {
+                DispatchQueue.main.async {
+                    vm.alertError(error)
+                }
+			}
 		}
 	}
 }

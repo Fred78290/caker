@@ -198,3 +198,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	}
 
 }
+
+extension NSNotification {
+	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
+	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
+	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
+	static let DeleteVirtualMachine = NSNotification.Name("DeleteVirtualMachine")
+}

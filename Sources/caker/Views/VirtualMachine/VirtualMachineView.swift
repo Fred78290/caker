@@ -23,6 +23,7 @@ struct VirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
+	@Environment(\.dismiss) var dismiss
 
 	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
@@ -58,11 +59,27 @@ struct VirtualMachineView: View {
 			if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
 			}
-		}.onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
+		}.onReceive(NSWindow.willCloseNotification) { notification in
 			if let window = notification.object as? NSWindow {
 				if window.windowNumber == windowNumber && document.status == .running {
 					document.requestStopFromUI()
 				}
+			}
+		}.onReceive(NSNotification.StartVirtualMachine) { notification in
+			if let name = notification.object as? String, name == document.name, document.status != .running {
+				document.startFromUI()
+			}
+		}.onReceive(NSNotification.DeleteVirtualMachine) { notification in
+			if let name = notification.object as? String, name == document.name {
+				if self.appState.currentDocument == self.document {
+					self.appState.currentDocument = nil
+				}
+
+				if document.status == .running {
+					document.stopFromUI()
+				}
+
+				dismiss()
 			}
 		}.onChange(of: appearsActive) { newValue in
 			if newValue {
