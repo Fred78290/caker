@@ -128,6 +128,9 @@ struct MainApp: App {
 				}
 			}
 		}
+		Window("Home", id: "home") {
+			SidebarView()
+		}
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
 		}.commands {

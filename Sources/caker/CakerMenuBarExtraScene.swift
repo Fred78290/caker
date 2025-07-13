@@ -17,7 +17,10 @@ struct CakerMenuBarExtraScene: Scene {
 
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
-			Divider()
+			Button("Show Caker") {
+				openWindow(id: "home")
+			}.keyboardShortcut("0")
+			.help("Show the main window.")
 			Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
 			.help("Requires restarting Caker to take affect.")
 			
