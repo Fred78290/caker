@@ -2,42 +2,6 @@ import SwiftUI
 import CakedLib
 import GRPCLib
 
-struct PairedVirtualMachineDocument: Identifiable {
-	let id: URL
-	let document: VirtualMachineDocument
-}
-
-class AppState: ObservableObject, Observable {
-	@Published var currentDocument: VirtualMachineDocument?
-	@Published var isStopped: Bool = true
-	@Published var isSuspendable: Bool = false
-	@Published var isRunning: Bool = false
-	@Published var isPaused: Bool = false
-	@Published var virtualMachines: [URL:VirtualMachineDocument] = [:]
-
-	var vms: [PairedVirtualMachineDocument] {
-		self.virtualMachines.compactMap {
-			PairedVirtualMachineDocument(id: $0.key, document: $0.value)
-		}
-	}
-
-	init() {
-		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
-			let storage = StorageLocation(runMode: .app)
-			
-			vms.compactMap {
-				if let location = try? storage.find($0.name) {
-					return location
-				}
-				
-				return nil
-			}.forEach {
-				self.virtualMachines[$0.rootURL] = VirtualMachineDocument(name: $0.name)
-			}
-		}
-	}
-}
-
 @main
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
@@ -63,7 +27,7 @@ struct MainApp: App {
 
 		return HStack {
 			if loaded {
-				VirtualMachineView(appState: $appState, document: document)
+				HostVirtualMachineView(appState: $appState, document: document)
 			} else {
 				Text("Unable to load virtual machine \(document.name)")
 			}
@@ -72,7 +36,7 @@ struct MainApp: App {
 
 	var body: some Scene {
 		/*DocumentGroup(newDocument: VirtualMachineDocument()) { file in
-			VirtualMachineView(appState: self.appState, document: file.document)
+		 HostVirtualMachineView(appState: self.appState, document: file.document)
 		}*/
 		CakerMenuBarExtraScene(appState: appState)
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
@@ -129,7 +93,7 @@ struct MainApp: App {
 			}
 		}
 		Window("Home", id: "home") {
-			SidebarView()
+			HomeView(appState: $appState)
 		}
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()

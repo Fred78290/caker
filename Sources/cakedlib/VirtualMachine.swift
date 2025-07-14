@@ -509,6 +509,13 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 				}
 			}
 
+			if config.agent {
+				if let infos = try? self.vmLocation.vmInfos(runMode: runMode) {
+					config.osName = infos.osname
+					config.osRelease = infos.release
+				}
+			}
+
 			config.runningIP = runningIP
 			config.firstLaunch = false
 

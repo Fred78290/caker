@@ -176,6 +176,16 @@ public final class CakeConfig {
 		}
 	}
 
+	public var osName: String? {
+		set { self.cake["osName"] = newValue }
+		get { self.cake["osName"] as? String }
+	}
+
+	public var osRelease: String? {
+		set { self.cake["osRelease"] = newValue }
+		get { self.cake["osRelease"] as? String }
+	}
+
 	public var dynamicPortForwarding: Bool {
 		set { self.cake["dynamicPortForwarding"] = newValue }
 		get { self.cake["dynamicPortForwarding"] as? Bool ?? false }

@@ -378,6 +378,12 @@ public struct VMLocation: Hashable, Equatable {
 		throw ShellError(terminationStatus: -1, error: "Unable to get IP for VM \(self.name)", message: "Timeout")
 	}
 
+	func vmInfos(wait: Int = 5, runMode: Utils.RunMode) throws -> Caked_InfoReply {
+		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: wait, runMode: runMode, retries: .none)
+
+		return try conn.info().wait().get()
+	}
+
 	public func waitIPWithAgent(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 5, runMode: runMode, retries: .none)
 		let start: Date = Date.now

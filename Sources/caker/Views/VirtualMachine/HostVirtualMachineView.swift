@@ -1,5 +1,5 @@
 //
-//  VirtualMachineView.swift
+//  HostVirtualMachineView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 30/05/2025.
@@ -19,7 +19,7 @@ class CustomWindowDelegate: NSObject, NSWindowDelegate {
 	}
 }
 
-struct VirtualMachineView: View {
+struct HostVirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
@@ -152,5 +152,5 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	VirtualMachineView(appState: .constant(AppState()), document: VirtualMachineDocument())
+	HostVirtualMachineView(appState: .constant(AppState()), document: VirtualMachineDocument())
 }

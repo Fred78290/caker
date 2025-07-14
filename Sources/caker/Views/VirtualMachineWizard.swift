@@ -613,9 +613,7 @@ struct VirtualMachineWizard: View {
 		
 		return result.compactMap {
 			ShortImageInfo(imageInfo: $0)
-		}.sorted(using: [ShortImageInfoComparator(order: .forward)]) /*{
-			$0.description == $1.description
-		}*/
+		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
 	}
 }
 
