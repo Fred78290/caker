@@ -50,6 +50,7 @@ let package = Package(
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
 		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
+		.package(url :"https://github.com/utmapp/CocoaSpice.git", branch: "main")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -116,6 +117,7 @@ let package = Package(
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
 			.product(name: "MultiplatformTabBar", package: "MultiplatformTabBar"),
 			.product(name: "Steps", package: "Steps"),
+			.product(name: "CocoaSpice", package: "CocoaSpiceNoUsb"),
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

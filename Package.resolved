@@ -1,5 +1,5 @@
 {
-  "originHash" : "ab25223603f030ca299cb52c6a27039c1bf48de0a9b877329a47443d3a93a15e",
+  "originHash" : "098008cdbe02cec2b470cb9abf0a41fbb4554831b42bb5fd87ecb69a69feead2",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -25,6 +25,15 @@
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
         "revision" : "a1bb40e95bcf1fa476d634be6ba5ce39977aae7e"
+      }
+    },
+    {
+      "identity" : "cocoaspice",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/utmapp/CocoaSpice.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "ac641bd7b88e14b4107dcdb508d9779c49b69617"
       }
     },
     {

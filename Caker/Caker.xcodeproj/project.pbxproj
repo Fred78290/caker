@@ -126,6 +126,7 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
+		9B6CE6392E2561E2001BFAA4 /* CocoaSpiceNoUsb in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
@@ -862,6 +863,7 @@
 				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
+				9B6CE6392E2561E2001BFAA4 /* CocoaSpiceNoUsb in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */,
@@ -1588,6 +1590,7 @@
 				9BA842D02E0961B2008ED964 /* MultiplatformTabBar */,
 				9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */,
 				9B7C7B6A2E0FC7DA009D0A26 /* Steps */,
+				9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1816,6 +1819,7 @@
 			knownRegions = (
 				en,
 				Base,
+				fr,
 			);
 			mainGroup = 9B464A4B2D5A3DA000164BF5;
 			minimizedProjectReferenceProxies = 1;
@@ -1853,6 +1857,7 @@
 				9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */,
 				9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */,
 				9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */,
+				9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2864,6 +2869,14 @@
 				kind = branch;
 			};
 		};
+		9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/utmapp/CocoaSpice.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/asam139/Steps";
@@ -3048,6 +3061,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
+		};
+		9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */;
+			productName = CocoaSpiceNoUsb;
 		};
 		9B6ECD932E22B5400003ACED /* TextTable */ = {
 			isa = XCSwiftPackageProductDependency;
