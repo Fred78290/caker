@@ -3,13 +3,46 @@ import SwiftUI
 import Virtualization
 import CakedLib
 
-struct MainApp: App {
+struct AppState {
+	var status: VMLocation.Status
+	var isStopped: Bool
+	var isSuspendable: Bool
+	var isRunning: Bool
+	var isPaused: Bool
+	
+	init(_ vm: VirtualMachine) {
+		self.status = vm.status
+
+		self.isStopped = status == .stopped
+		self.isRunning = status == .running
+		self.isPaused = status == .suspended
+		self.isSuspendable = status == .running && vm.suspendable
+	}
+	
+	mutating func update(vm: VirtualMachine) {
+		self.status = vm.status
+		
+		self.isStopped = status == .stopped
+		self.isRunning = status == .running
+		self.isPaused = status == .suspended
+		self.isSuspendable = status == .running && vm.suspendable
+	}
+}
+
+struct MainApp: App, VirtualMachineDelegate {
 	static var _vm: VirtualMachine? = nil
 	static var _config: CakeConfig? = nil
 	static var _name: String? = nil
 	static var _virtualMachine: VZVirtualMachine? = nil
 
+	@State var appState: AppState
+
 	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
+
+	init() {
+		self.appState = AppState(Self._vm!)
+		Self._vm?.delegate = self
+	}
 
 	static var virtualMachine: VZVirtualMachine {
 		get {
@@ -63,6 +96,36 @@ struct MainApp: App {
 						NSApplication.shared.terminate(self)
 					}
 				}
+			}.toolbar {
+				ToolbarItemGroup(placement: .navigation) {
+					if self.appState.status == .running {
+						Button("Stop", systemImage: "stop.circle") {
+							self.requestStopFromUI()
+						}.help("Stop virtual machine")
+					} else if self.appState.status == .suspended {
+						Button("Resume", systemImage: "playpause.circle") {
+							self.startFromUI()
+						}.help("Resumes virtual machine")
+					} else {
+						Button("Start", systemImage: "power.circle") {
+							self.startFromUI()
+						}.help("Start virtual machine")
+					}
+					
+					Button("Pause", systemImage: "pause.circle") {
+						self.suspendFromUI()
+					}
+					.help("Suspends virtual machine")
+					.disabled(self.appState.isSuspendable == false)
+					
+					Button("Restart", systemImage: "restart.circle") {
+						self.stopFromUI()
+					}
+					.help("Restarts virtual machine")
+					.disabled(self.appState.isStopped)
+				}
+			}.onChange(of: self.appState.status) { newValue in
+				Logger(self).info("New status: \(newValue)")
 			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 		}.commands {
 			CommandGroup(replacing: .help, addition: {})
@@ -75,13 +138,19 @@ struct MainApp: App {
 			CommandMenu("Control") {
 				Button("Start") {
 					Task { self.startFromUI() }
-				}
+				}.disabled(self.appState.isRunning)
+
 				Button("Stop") {
 					Task { self.stopFromUI() }
-				}
+				}.disabled(self.appState.isStopped)
+
+				Button("Suspend") {
+					Task { self.suspendFromUI() }
+				}.disabled(self.appState.isSuspendable == false)
+
 				Button("Request Stop") {
-					Task { try self.requestStopFromUI() }
-				}
+					Task { self.requestStopFromUI() }
+				}.disabled(self.appState.isStopped)
 			}
 		}
 	}
@@ -94,8 +163,16 @@ struct MainApp: App {
 		MainApp._vm?.stopFromUI()
 	}
 
-	func requestStopFromUI() throws {
-		try MainApp._vm?.requestStopFromUI()
+	func requestStopFromUI() {
+		try? MainApp._vm?.requestStopFromUI()
+	}
+
+	func suspendFromUI() {
+		MainApp._vm?.suspendFromUI()
+	}
+
+	func didChangedState(_ vm: VirtualMachine) {
+		self.appState.update(vm: vm)
 	}
 
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
@@ -108,6 +185,10 @@ struct MainApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		NSApp.setActivationPolicy(.regular)
+	}
+
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
 		if kill(getpid(), SIGINT) == 0 {
 			return .terminateLater
