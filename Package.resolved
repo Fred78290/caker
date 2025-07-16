@@ -1,5 +1,5 @@
 {
-  "originHash" : "098008cdbe02cec2b470cb9abf0a41fbb4554831b42bb5fd87ecb69a69feead2",
+  "originHash" : "6f1518822226a65cc3c5ffb4476957a4518bf4528dd9751837c3a568a8f8887c",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -32,7 +32,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/utmapp/CocoaSpice.git",
       "state" : {
-        "branch" : "main",
         "revision" : "ac641bd7b88e14b4107dcdb508d9779c49b69617"
       }
     },

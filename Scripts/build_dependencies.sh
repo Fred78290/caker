@@ -15,6 +15,8 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 set -e
 
+export PATH="/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin:/usr/bin:/usr/sbin:/bin:/Library/Apple/usr/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin:/sbin:/System/Cryptexes/App/usr/bin:/Users/fboltz/go/bin:/usr/local/bin"
+
 # Printing coloured lines
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -128,11 +130,6 @@ clone () {
 download_all () {
 	[ -d "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
 	download $PKG_CONFIG_SRC
-	download $FFI_SRC
-	download $ICONV_SRC
-	download $GETTEXT_SRC
-	download $PNG_SRC
-	download $JPEG_TURBO_SRC
 	download $GLIB_SRC
 	download $GPG_ERROR_SRC
 	download $GCRYPT_SRC
@@ -160,7 +157,6 @@ download_all () {
 	clone $WEBKIT_REPO $WEBKIT_COMMIT "$WEBKIT_SUBDIRS"
 	clone $EPOXY_REPO $EPOXY_COMMIT
 	clone $VIRGLRENDERER_REPO $VIRGLRENDERER_COMMIT
-	clone $HYPERVISOR_REPO $HYPERVISOR_COMMIT
 	clone $LIBUCONTEXT_REPO $LIBUCONTEXT_COMMIT
 }
 
@@ -383,11 +379,6 @@ build_angle () {
 }
 
 build_qemu_dependencies () {
-	build $FFI_SRC
-	build $ICONV_SRC
-	gl_cv_onwards_func_strchrnul=future build $GETTEXT_SRC --disable-java
-	build $PNG_SRC
-	build $JPEG_TURBO_SRC
 	meson_build $GLIB_SRC -Dtests=false -Ddtrace=disabled
 	build $GPG_ERROR_SRC
 	build $GCRYPT_SRC

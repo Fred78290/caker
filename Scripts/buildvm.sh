@@ -166,8 +166,6 @@ write_files:
   owner: root:root
   path: /tmp/setup.sh
   permissions: '0755'
-runcmd:
-- /tmp/setup.sh
 users:
 - name: local
   plain_text_passwd: admin
@@ -177,10 +175,13 @@ users:
   shell: ${USER_SHELL}
   ssh_authorized_keys:
   - ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDhniyEBZs0t7aQZhn8gWfYrFacYJKQQx9x6pckZvMJIceLsQPB/J9CbqARtcCKZkK47yDzlH/zZNwt/AJvOawKZp6LDIWMOMF6TGicVhA+0RD3dOuqKRT0uJmaSo3Cz0GAaanTJXkhsEDZzaPkyLWXYaf6LxGAuMKCxv69j4H9ffGhRxNZ+62bs7DY+SH12hlcObZaz9GRydvEI/PUDghKJ4h1QKgvCKM1Mre1vQ2DHOuSifQC0Qbh0zK/JiJpHyBgFWRvKz72e2ya6+RW0ZuDGa6Qc3Zt8FIfH6eoiX+WOG7BUsXRN3n5gcWSXyYA9kxzBlNdMyYtD0fRlyb3+HgL
+runcmd:
+- /tmp/setup.sh
 EOF
 
 if [ ${DESKTOP} != NO ]; then
 cat >> /tmp/user-data.yaml <<EOF
+- systemctl disable systemd-networkd-wait-online.service
 packages:
 - ubuntu-desktop-minimal
 - xrdp
