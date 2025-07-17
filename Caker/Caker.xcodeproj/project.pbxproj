@@ -126,7 +126,6 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
-		9B6CE6B12E28040B001BFAA4 /* CocoaSpiceNoUsb in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
@@ -139,6 +138,9 @@
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
+		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
+		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
+		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
@@ -588,6 +590,8 @@
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
+		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
@@ -863,12 +867,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9B6CE6B12E28040B001BFAA4 /* CocoaSpiceNoUsb in Frameworks */,
 				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
+				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
 				9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1050,8 +1054,10 @@
 			isa = PBXGroup;
 			children = (
 				9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */,
-				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
+				9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */,
 				9B2BFAB12DFED25E000045C3 /* HostVirtualMachineView.swift */,
+				9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */,
+				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
 				9B2BFAAF2DFED25E000045C3 /* Settings */,
 			);
 			path = VirtualMachine;
@@ -1596,7 +1602,7 @@
 				9BA842D02E0961B2008ED964 /* MultiplatformTabBar */,
 				9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */,
 				9B7C7B6A2E0FC7DA009D0A26 /* Steps */,
-				9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */,
+				9B9123802E29253A006DD682 /* SwiftTerm */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1863,7 +1869,7 @@
 				9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */,
 				9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */,
 				9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */,
-				9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */,
+				9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -1910,11 +1916,13 @@
 				9B2BFABF2DFED25E000045C3 /* HostVirtualMachineView.swift in Sources */,
 				9B3602452E2273C700889BFD /* Extensions.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
+				9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
 				9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */,
 				9B9C4E632E23BDAA00C13D23 /* NavigationModel.swift in Sources */,
 				9B2BFAC12DFED25E000045C3 /* DiskAttachementView.swift in Sources */,
+				9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */,
 				9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */,
 				9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */,
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
@@ -2875,20 +2883,20 @@
 				kind = branch;
 			};
 		};
-		9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/utmapp/CocoaSpice.git";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
 		9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/asam139/Steps";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 0.3.9;
+			};
+		};
+		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.5;
 			};
 		};
 		9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */ = {
@@ -3068,11 +3076,6 @@
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
 		};
-		9B6CE6382E2561E2001BFAA4 /* CocoaSpiceNoUsb */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B6CE6372E2561E2001BFAA4 /* XCRemoteSwiftPackageReference "CocoaSpice" */;
-			productName = CocoaSpiceNoUsb;
-		};
 		9B6ECD932E22B5400003ACED /* TextTable */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464B982D5A3FCD00164BF5 /* XCRemoteSwiftPackageReference "TextTable" */;
@@ -3082,6 +3085,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */;
 			productName = Steps;
+		};
+		9B9123802E29253A006DD682 /* SwiftTerm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTerm;
 		};
 		9BA842D02E0961B2008ED964 /* MultiplatformTabBar */ = {
 			isa = XCSwiftPackageProductDependency;

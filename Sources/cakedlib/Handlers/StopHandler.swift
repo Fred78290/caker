@@ -6,6 +6,17 @@ import Shout
 import SystemConfiguration
 
 public struct StopHandler {
+	public static func restart(name: String, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
+		let vmLocation = try StorageLocation(runMode: runMode).find(name)
+
+		if vmLocation.status == .running {
+			try vmLocation.restartVirtualMachine(force: force, runMode: runMode)
+			return StopReply(name: name, status: "VM \(name) stopped", stopped: true, reason: "")
+		}
+
+		return StopReply(name: name, status: "VM \(name) is not running", stopped: false, reason: "VM is not running")
+	}
+
 	public static func stopVM(name: String, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
 		let vmLocation = try StorageLocation(runMode: runMode).find(name)
 

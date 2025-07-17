@@ -113,6 +113,10 @@ public struct VMLocation: Hashable, Equatable {
 		return nil
 	}
 
+	public var pidFile: URL {
+		rootURL.appendingPathComponent("run.pid")
+	}
+
 	public func diskSize() throws -> Int {
 		try self.diskURL.sizeBytes()
 	}
@@ -183,7 +187,7 @@ public struct VMLocation: Hashable, Equatable {
 		return VMLocation(rootURL: tmpDir, template: false)
 	}
 
-	public func validatate(userFriendlyName: String) throws {
+	public func validatate(userFriendlyName: String) throws -> VMLocation {
 		if !FileManager.default.fileExists(atPath: rootURL.path) {
 			throw ServiceError("VM not found \(userFriendlyName)")
 		}
@@ -191,6 +195,8 @@ public struct VMLocation: Hashable, Equatable {
 		if self.inited == false {
 			throw ServiceError("VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))")
 		}
+		
+		return self
 	}
 
 	public func expandDisk(_ sizeGB: UInt16) throws {
@@ -246,24 +252,20 @@ public struct VMLocation: Hashable, Equatable {
 		}
 	}
 
-	public func pidFile() -> URL {
-		rootURL.appendingPathComponent("run.pid")
-	}
-
 	public func deletePID() throws {
-		try pidFile().delete()
+		try pidFile.delete()
 	}
 
 	public func writePID() throws {
-		try pidFile().writePID()
+		try pidFile.writePID()
 	}
 
 	public func readPID() -> Int32? {
-		pidFile().readPID()
+		pidFile.readPID()
 	}
 
 	public func isPIDRunning() -> Bool {
-		pidFile().isPIDRunning().0
+		pidFile.isPIDRunning().0
 	}
 
 	public func removePID() {
@@ -278,9 +280,51 @@ public struct VMLocation: Hashable, Equatable {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
+	public func restartVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
+		let config = try self.config()
+		let home = try Home(runMode: runMode)
+		let killVMRun: () -> Void = {
+			let pid = pidFile.isPIDRunning()
+			
+			if pid.0 {
+				if pid.1 == "caked" {
+					if let pid = pid.2 {
+						kill(pid, SIGINT)
+						removePID()
+						_ = try? StartHandler.startVM(vmLocation: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
+					}
+				}
+			}
+		}
+
+		if self.status != .running {
+			throw ServiceError("vm \(name) is not running")
+		}
+
+		if force || config.agent == false {
+			killVMRun()
+		} else if try self.agentURL.exists() {
+			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
+
+			_ = try client.run(request: Caked_RunCommand.with {
+				$0.command = "reboot"
+				$0.vmname = self.name
+			})
+		} else {
+			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
+				let ssh = try SSH(host: ip)
+				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
+				try ssh.execute("sudo reboot")
+			} else {
+				killVMRun()
+			}
+		}
+
+	}
+
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
-			let pid = pidFile().isPIDRunning()
+			let pid = pidFile.isPIDRunning()
 			
 			if pid.0 {
 				if pid.1 == "caked" {

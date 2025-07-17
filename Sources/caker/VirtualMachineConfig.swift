@@ -24,7 +24,8 @@ struct VirtualMachineConfig: Hashable {
 			self.height = height
 		}
 	}
-	
+
+	var os: VirtualizedOS = .linux
 	var cpuCount: Int = 1
 	var memorySize: UInt64 = 512
 	var macAddress: String = ""
@@ -51,6 +52,7 @@ struct VirtualMachineConfig: Hashable {
 	var networkConfig: String? = nil
 
 	init() {
+		os = .linux
 		cpuCount = 1
 		memorySize = 512
 		macAddress = ""
@@ -74,6 +76,7 @@ struct VirtualMachineConfig: Hashable {
 	}
 	
 	init(vmname: String, config: CakeConfig) {
+		self.os = config.os
 		self.cpuCount = config.cpuCount
 		self.memorySize = config.memorySize / (1024 * 1024)
 		self.macAddress = config.macAddress?.string ?? ""

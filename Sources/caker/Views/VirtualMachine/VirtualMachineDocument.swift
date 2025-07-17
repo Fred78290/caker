@@ -33,6 +33,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	enum Status: String {
 		case none
 		case running
+		case external
 		case suspended
 		case stopped
 	}
@@ -95,21 +96,34 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 		}
 
 		do {
-			let vmLocation = VMLocation(rootURL: fileURL, template: false)
-
-			try vmLocation.validatate(userFriendlyName: vmLocation.name)
-			try fileURL.updateAccessDate()
-
+			let vmLocation = try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)
 			let config = try vmLocation.config()
 
-			let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
+			try fileURL.updateAccessDate()
 
-			self.virtualMachine = virtualMachine
 			self.virtualMachineConfig = VirtualMachineConfig(vmname: vmLocation.name, config: config)
 			self.name = vmLocation.name
-			self.didChangedState(virtualMachine)
 
-			virtualMachine.delegate = self
+			if vmLocation.pidFile.isPIDRunning("caked") {
+				self.status = .external
+
+				self.canStart = false
+				self.canStop = true
+				self.canPause = true
+				self.canResume = false
+				self.canRequestStop = true
+				self.suspendable = config.suspendable
+			}
+			else
+			{
+				let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
+
+				self.virtualMachine = virtualMachine
+				self.didChangedState(virtualMachine)
+
+				virtualMachine.delegate = self
+			}
+
 			return true
 		} catch {
             DispatchQueue.main.async {
@@ -123,15 +137,27 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	func loadVirtualMachine() -> URL? {
 		guard let virtualMachine = self.virtualMachine else {
 			do {
-				let storage = StorageLocation(runMode: .app)
-				let location = try storage.find(name)
+				let location = try StorageLocation(runMode: .app).find(name)
 				let config = try location.config()
-				let virtualMachine = try VirtualMachine(vmLocation: location, config: config, runMode: .app)
 
-				self.virtualMachine = virtualMachine
 				self.virtualMachineConfig = VirtualMachineConfig(vmname: name, config: config)
-				self.didChangedState(virtualMachine)
-				virtualMachine.delegate = self
+
+				if location.pidFile.isPIDRunning("caked") {
+					self.status = .external
+
+					self.canStart = false
+					self.canStop = true
+					self.canPause = true
+					self.canResume = false
+					self.canRequestStop = true
+					self.suspendable = config.suspendable
+				} else {
+					let virtualMachine = try VirtualMachine(vmLocation: location, config: config, runMode: .app)
+
+					self.virtualMachine = virtualMachine
+					self.didChangedState(virtualMachine)
+					virtualMachine.delegate = self
+				}
 
 				return location.rootURL
 			} catch {
@@ -155,18 +181,48 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	func restartFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			virtualMachine.restartFromUI()
+		} else if self.status == .external {
+			do {
+				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
+				
+				if result.stopped == false {
+					self.alertError(ServiceError(result.reason))
+				}
+			} catch {
+				self.alertError(error)
+			}
 		}
 	}
 
 	func stopFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			virtualMachine.stopFromUI()
+		} else if self.status == .external {
+			do {
+				let result = try StopHandler.stopVM(name: self.name, force: true, runMode: .app)
+				
+				if result.stopped == false {
+					self.alertError(ServiceError(result.reason))
+				}
+			} catch {
+				self.alertError(error)
+			}
 		}
 	}
 
 	func requestStopFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			try? virtualMachine.requestStopFromUI()
+		} else if self.status == .external {
+			do {
+				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
+				
+				if result.stopped == false {
+					self.alertError(ServiceError(result.reason))
+				}
+			} catch {
+				self.alertError(error)
+			}
 		}
 	}
 

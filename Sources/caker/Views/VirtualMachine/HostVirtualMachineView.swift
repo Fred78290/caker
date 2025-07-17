@@ -36,15 +36,7 @@ struct HostVirtualMachineView: View {
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
 	var body: some View {
-		let virtualMachine = document.virtualMachine!
-		let config = virtualMachine.config
-		let display = config.display
-		let minWidth = CGFloat(display.width)
-		let idealWidth = CGFloat(display.width)
-		let minHeight = CGFloat(display.height)
-		let idealHeight = CGFloat(display.height)
-		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
-		let view = VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: virtualMachine, virtualMachine: virtualMachine.virtualMachine) { window in
+		let view = vmView() { window in
 			if let window = window {
 				windowNumber = window.windowNumber
 
@@ -52,7 +44,8 @@ struct HostVirtualMachineView: View {
 					window.delegate = self.delegate
 				}
 			}
-		}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity).onAppear {
+		}
+		.onAppear {
 			NSWindow.allowsAutomaticWindowTabbing = false
 			self.appState.currentDocument = self.document
 		}.onDisappear {
@@ -85,7 +78,7 @@ struct HostVirtualMachineView: View {
 			if newValue {
 				self.appState.currentDocument = self.document
 				self.appState.isStopped = document.status == .stopped
-				self.appState.isRunning = document.status == .running
+				self.appState.isRunning = document.status == .running || document.status == .external
 				self.appState.isPaused = document.status == .suspended
 				self.appState.isSuspendable = document.status == .running && document.suspendable
 			} else if self.appState.currentDocument == self.document {
@@ -94,13 +87,13 @@ struct HostVirtualMachineView: View {
 		}.onChange(of: self.document.status) { newValue in
 			if self.appearsActive {
 				self.appState.isStopped = newValue == .stopped
-				self.appState.isRunning = newValue == .running
+				self.appState.isRunning = newValue == .running || newValue == .external
 				self.appState.isPaused = newValue == .suspended
 				self.appState.isSuspendable = newValue == .running && document.suspendable
 			}
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
-				if document.status == .running {
+				if document.status == .running || document.status == .external {
 					Button("Stop", systemImage: "stop.circle") {
 						document.requestStopFromUI()
 					}.help("Stop virtual machine")
@@ -133,7 +126,6 @@ struct HostVirtualMachineView: View {
 
 			ToolbarItemGroup(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
-					//						settings()
 					displaySettings = true
 				}.disabled(self.document.virtualMachine == nil)
 			}
@@ -145,6 +137,23 @@ struct HostVirtualMachineView: View {
 
 		if #available(macOS 15.0, *) {
 			view.windowToolbarFullScreenVisibility(.onHover)
+		}
+	}
+
+	@ViewBuilder
+	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
+		let config = document.virtualMachineConfig
+		let display = config.display
+		let minWidth = CGFloat(display.width)
+		let minHeight = CGFloat(display.height)
+		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
+
+		if self.document.status == .external {
+			ExternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
+				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+		} else {
+			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
+				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		}
 	}
 
