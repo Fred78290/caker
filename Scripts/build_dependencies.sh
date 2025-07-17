@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Based off of https://github.com/szanni/ios-autotools/blob/master/iconfigure
 # Copyright (c) 2014, Angelo Haller
 # 
@@ -17,7 +17,7 @@ set -e
 
 export PATH="/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin:/usr/bin:/usr/sbin:/bin:/Library/Apple/usr/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin:/sbin:/System/Cryptexes/App/usr/bin:/Users/fboltz/go/bin:/usr/local/bin"
 
-pip3 install --user six pyparsing tomli
+pip3 install --user six pyparsing tomli || :
 
 # Printing coloured lines
 GREEN='\033[0;32m'
@@ -33,12 +33,20 @@ CHOST=
 SDK=
 SDKMINVER=
 
+echo_green() {
+	echo -e "${GREEN}$1${NC}"
+}
+
+echo_red() {
+	echo -e "${RED}$1${NC}"
+}
+
 command -v realpath >/dev/null 2>&1 || realpath() {
 	[[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 
 version_check() {
-	[ "$1" = "$(echo "$1\n$2" | sort -V | head -n1)" ]
+	[ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
 }
 
 usage () {
@@ -63,19 +71,19 @@ python_module_test () {
 }
 
 check_env () {
-	command -v python3 >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'python3' on your host machine.${NC}"; exit 1; }
-	python_module_test six >/dev/null 2>&1 || { echo >&2 "${RED}'six' not found in your Python 3 installation.${NC}"; exit 1; }
-	python_module_test pyparsing >/dev/null 2>&1 || { echo >&2 "${RED}'pyparsing' not found in your Python 3 installation.${NC}"; exit 1; }
-	python_module_test distutils >/dev/null 2>&1 || { echo >&2 "${RED}'distutils' not found in your Python 3 installation.${NC}"; exit 1; }
-	command -v meson >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'meson' on your host machine.${NC}"; exit 1; }
-	command -v msgfmt >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'gettext' on your host machine.\n\t'msgfmt' needs to be in your \$PATH as well.${NC}"; exit 1; }
-	command -v glib-mkenums >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'glib-utils' on your host machine.\n\t'glib-mkenums' needs to be in your \$PATH as well.${NC}"; exit 1; }
-	command -v glib-compile-resources >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'glib-utils' on your host machine.\n\t'glib-compile-resources' needs to be in your \$PATH as well.${NC}"; exit 1; }
-	command -v gpg-error-config >/dev/null 2>&1 || { echo >&2 "${RED}You must install 'libgpg-error' on your host machine.\n\t'gpg-error-config' needs to be in your \$PATH as well.${NC}"; exit 1; }
-	command -v xcrun >/dev/null 2>&1 || { echo >&2 "${RED}'xcrun' is not found. Make sure you are running on OSX."; exit 1; }
-	command -v otool >/dev/null 2>&1 || { echo >&2 "${RED}'otool' is not found. Make sure you are running on OSX."; exit 1; }
-	command -v install_name_tool >/dev/null 2>&1 || { echo >&2 "${RED}'install_name_tool' is not found. Make sure you are running on OSX."; exit 1; }
-	version_check "2.4" "$(bison -V | head -1 | awk '{ print $NF }')" || { echo >&2 "${RED}'bison' >= 2.4 is required. Did you install from Homebrew and updated your \$PATH variable?"; exit 1; }
+	command -v python3 >/dev/null 2>&1 || { echo_red"You must install 'python3' on your host machine." >&2 ; exit 1; }
+	python_module_test six >/dev/null 2>&1 || { echo_red "'six' not found in your Python 3 installation." >&2 ; exit 1; }
+	python_module_test pyparsing >/dev/null 2>&1 || { echo_red "'pyparsing' not found in your Python 3 installation." >&2 ; exit 1; }
+	python_module_test distutils >/dev/null 2>&1 || { echo_red "'distutils' not found in your Python 3 installation." >&2 ; exit 1; }
+	command -v meson >/dev/null 2>&1 || { echo_red "You must install 'meson' on your host machine." >&2 ; exit 1; }
+	command -v msgfmt >/dev/null 2>&1 || { echo_red "You must install 'gettext' on your host machine.\n\t'msgfmt' needs to be in your \$PATH as well." >&2 ; exit 1; }
+	command -v glib-mkenums >/dev/null 2>&1 || { echo_red "You must install 'glib-utils' on your host machine.\n\t'glib-mkenums' needs to be in your \$PATH as well." >&2 ; exit 1; }
+	command -v glib-compile-resources >/dev/null 2>&1 || { echo_red "You must install 'glib-utils' on your host machine.\n\t'glib-compile-resources' needs to be in your \$PATH as well." >&2 ; exit 1; }
+	command -v gpg-error-config >/dev/null 2>&1 || { echo_red "You must install 'libgpg-error' on your host machine.\n\t'gpg-error-config' needs to be in your \$PATH as well." >&2 ; exit 1; }
+	command -v xcrun >/dev/null 2>&1 || { echo_red "'xcrun' is not found. Make sure you are running on OSX." >&2 ; exit 1; }
+	command -v otool >/dev/null 2>&1 || { echo_red "'otool' is not found. Make sure you are running on OSX." >&2 ; exit 1; }
+	command -v install_name_tool >/dev/null 2>&1 || { echo_red "'install_name_tool' is not found. Make sure you are running on OSX." >&2 ; exit 1; }
+	version_check "2.4" "$(bison -V | head -1 | awk '{ print $NF }')" || { echo_red "'bison' >= 2.4 is required. Did you install from Homebrew and updated your \$PATH variable?" >&2 ; exit 1; }
 }
 
 download () {
@@ -86,25 +94,33 @@ download () {
 	DIR="$BUILD_DIR/$NAME"
 	PATCH="$PATCHES_DIR/${NAME}.patch"
 	DATA="$PATCHES_DIR/data/${NAME}"
+
 	if [ -f "$TARGET" -a -z "$REDOWNLOAD" ]; then
-		echo "${GREEN}$TARGET already downloaded! Run with -d to force re-download.${NC}"
+		echo_green "$TARGET already downloaded! Run with -d to force re-download."
 	else
-		echo "${GREEN}Downloading ${URL}${NC}"
+		echo_green "Downloading ${URL}"
 		curl -L -O "$URL"
 		mv "$FILE" "$TARGET"
 	fi
+
 	if [ -d "$DIR" ]; then
-		echo "${GREEN}Deleting existing build directory ${DIR}...${NC}"
-		rm -rf "$DIR"
+		if [ -z $REBUILD ]; then
+			echo_green "Deleting existing build directory ${DIR}..."
+			rm -rf "$DIR"
+		else
+			echo_green "Using existing build directory ${DIR}..."
+			return
+		fi
 	fi
-	echo "${GREEN}Unpacking ${NAME}...${NC}"
+
+	echo_green "Unpacking ${NAME}..."
 	tar -xf "$TARGET" -C "$BUILD_DIR"
 	if [ -f "$PATCH" ]; then
-		echo "${GREEN}Patching ${NAME}...${NC}"
+		echo_green "Patching ${NAME}..."
 		patch -d "$DIR" -p1 < "$PATCH"
 	fi
 	if [ -d "$DATA" ]; then
-		echo "${GREEN}Patching data ${NAME}...${NC}"
+		echo_green "Patching data ${NAME}..."
 		cp -r "$DATA/" "$DIR"
 	fi
 }
@@ -116,10 +132,10 @@ clone () {
 	NAME="$(basename $REPO)"
 	DIR="$BUILD_DIR/$NAME"
 	if [ -d "$DIR" -a -z "$REDOWNLOAD" ]; then
-		echo "${GREEN}$DIR already downloaded! Run with -d to force re-download.${NC}"
+		echo_green "$DIR already downloaded! Run with -d to force re-download."
 	else
 		rm -rf "$DIR"
-		echo "${GREEN}Cloning ${REPO}...${NC}"
+		echo_green "Cloning ${REPO}..."
 		git clone --filter=tree:0 --no-checkout "$REPO" "$DIR"
 		if [ ! -z "$SUBDIRS" ]; then
 			git -C "$DIR" sparse-checkout init
@@ -132,6 +148,8 @@ clone () {
 download_all () {
 	[ -d "$BUILD_DIR" ] || mkdir -p "$BUILD_DIR"
 	download $PKG_CONFIG_SRC
+    download $PNG_SRC
+    download $JPEG_TURBO_SRC
 	download $GLIB_SRC
 	download $GPG_ERROR_SRC
 	download $GCRYPT_SRC
@@ -168,14 +186,14 @@ copy_private_headers() {
 	OSTYPES_HEADERS_PATH="$MACOS_SDK_PATH/usr/include/libkern"
 	OUTPUT_INCLUDES="$PREFIX/include"
 	if [ ! -d "$IOKIT_HEADERS_PATH" ]; then
-		echo "${RED}Failed to find IOKit headers in: $IOKIT_HEADERS_PATH${NC}"
+		echo_red "Failed to find IOKit headers in: $IOKIT_HEADERS_PATH"
 		exit 1
 	fi
 	if [ ! -d "$OSTYPES_HEADERS_PATH" ]; then
-		echo "${RED}Failed to find libkern headers in: $OSTYPES_HEADERS_PATH${NC}"
+		echo_red "Failed to find libkern headers in: $OSTYPES_HEADERS_PATH"
 		exit 1
 	fi
-	echo "${GREEN}Copying private headers...${NC}"
+	echo_green "Copying private headers..."
 	mkdir -p "$OUTPUT_INCLUDES"
 	cp -r "$IOKIT_HEADERS_PATH" "$OUTPUT_INCLUDES/IOKit"
 	rm "$OUTPUT_INCLUDES/IOKit/storage/IOMedia.h" # needed to pass QEMU check
@@ -244,14 +262,17 @@ build_pkg_config() {
 	pwd="$(pwd)"
 
 	cd "$DIR"
-	if [ -z "$REBUILD" ]; then
-		echo "${GREEN}Configuring ${NAME}...${NC}"
+
+	if [ -z "$REBUILD" ] || [ ! -f BUILD_SUCCESS ]; then
+		echo_green "Configuring ${NAME}..."
 		env -i CFLAGS="-Wno-error=int-conversion" ./configure --prefix="$PREFIX" --bindir="$PREFIX/host/bin" --with-internal-glib $@
 	fi
-	echo "${GREEN}Building ${NAME}...${NC}"
+
+	echo_green "Building ${NAME}..."
 	make -j$NCPU
-	echo "${GREEN}Installing ${NAME}...${NC}"
+	echo_green "Installing ${NAME}..."
 	make install
+	touch BUILD_SUCCESS
 	cd "$pwd"
 
 	export PATH="$PREFIX/host/bin:$PATH"
@@ -284,19 +305,20 @@ build_openssl() {
 	esac
 
 	if [ -z "$OPENSSL_CROSS" ]; then
-		echo "${RED}Unsupported configuration for OpenSSL $PLATFORM, $ARCH${NC}"
+		echo_red "Unsupported configuration for OpenSSL $PLATFORM, $ARCH"
 		exit 1
 	fi
 
 	cd "$DIR"
-	if [ -z "$REBUILD" ]; then
-		echo "${GREEN}Configuring ${NAME}...${NC}"
+	if [ -z "$REBUILD" ] || [ ! -f BUILD_SUCCESS ]; then
+		echo_green "Configuring ${NAME}..."
 		./Configure $OPENSSL_CROSS no-dso no-hw no-engine --prefix="$PREFIX" $@
 	fi
-	echo "${GREEN}Building ${NAME}...${NC}"
+	echo_green "Building ${NAME}..."
 	make -j$NCPU
-	echo "${GREEN}Installing ${NAME}...${NC}"
+	echo_green "Installing ${NAME}..."
 	make install
+	touch BUILD_SUCCESS
 	cd "$pwd"
 }
 
@@ -314,14 +336,15 @@ build () {
 	pwd="$(pwd)"
 
 	cd "$DIR"
-	if [ -z "$REBUILD" ]; then
-		echo "${GREEN}Configuring ${NAME}...${NC}"
+	if [ -z "$REBUILD" ] || [ ! -f BUILD_SUCCESS ]; then
+		echo_green "Configuring ${NAME}..."
 		./configure --prefix="$PREFIX" --host="$CHOST" $@
 	fi
-	echo "${GREEN}Building ${NAME}...${NC}"
+	echo_green "Building ${NAME}..."
 	make -j$NCPU
-	echo "${GREEN}Installing ${NAME}...${NC}"
+	echo_green "Installing ${NAME}..."
 	make install
+	touch BUILD_SUCCESS
 	cd "$pwd"
 }
 
@@ -342,21 +365,22 @@ meson_build () {
 	pwd="$(pwd)"
 
 	cd "$SRCDIR"
-	if [ -z "$REBUILD" ]; then
+	if [ -z "$REBUILD" ] || [ ! -e BUILD_SUCCESS ]; then
 		rm -rf caker_build
-		echo "${GREEN}Configuring ${NAME}...${NC}"
+		echo_green "Configuring ${NAME}..."
 		meson caker_build --prefix="$PREFIX" --buildtype=plain --cross-file "$MESON_CROSS" "$@"
 	fi
-	echo "${GREEN}Building ${NAME}...${NC}"
+	echo_green "Building ${NAME}..."
 	meson compile -C caker_build -j $NCPU
-	echo "${GREEN}Installing ${NAME}...${NC}"
+	echo_green "Installing ${NAME}..."
 	meson install -C caker_build
+	touch BUILD_SUCCESS
 	cd "$pwd"
 }
 
 build_angle () {
-	OLD_PATH=$PATH
-	PATH="$(realpath "$BUILD_DIR/depot_tools.git"):$OLD_PATH"
+	#OLD_PATH=$PATH
+	#PATH="$(realpath "$BUILD_DIR/depot_tools.git"):$OLD_PATH"
 	pwd="$(pwd)"
 	cd "$BUILD_DIR/WebKit.git/Source/ThirdParty/ANGLE"
 	env -i PATH="$PATH" xcodebuild archive -archivePath "ANGLE" \
@@ -377,10 +401,12 @@ build_angle () {
 	rsync -a "ANGLE.xcarchive/Products/usr/local/lib/" "$PREFIX/lib"
 	rsync -a "include/" "$PREFIX/include"
 	cd "$pwd"
-	export PATH="$OLD_PATH"
+	#export PATH="$OLD_PATH"
 }
 
 build_qemu_dependencies () {
+    build $PNG_SRC
+    build $JPEG_TURBO_SRC
 	meson_build $GLIB_SRC -Dtests=false -Ddtrace=disabled
 	build $GPG_ERROR_SRC
 	build $GCRYPT_SRC
@@ -403,7 +429,7 @@ build_qemu_dependencies () {
 		meson_build $USBREDIR_SRC
 	fi
 	# GPU support
-	#build_angle
+	build_angle
 	meson_build $EPOXY_REPO -Dtests=false -Dglx=no -Degl=yes
 	meson_build $VIRGLRENDERER_REPO -Dtests=false -Dcheck-gl-errors=false
 }
@@ -431,7 +457,7 @@ fixup () {
 	LIST=$(otool -L "$FILE" | tail -n +2 | cut -d ' ' -f 1 | awk '{$1=$1};1')
 	OLDIFS=$IFS
 	IFS=$'\n'
-	echo "${GREEN}Fixing up $FILE...${NC}"
+	echo_green "Fixing up $FILE..."
 	mkdir -p "$FRAMEWORKPATH"
 	mkdir -p "$INFOPATH"
 	cp -a "$FILE" "$NEWFILE"
@@ -484,6 +510,10 @@ PLATFORM_FAMILY_NAME=
 
 while [ "x$1" != "x" ]; do
 	case $1 in
+	-a )
+		ARCH=$(echo "$2" | tr '[:upper:]' '[:lower:]')
+		shift
+		;;
 	-d | --download )
 		REDOWNLOAD=y
 		;;
@@ -596,19 +626,18 @@ export OBJCFLAGS
 export LDFLAGS
 
 check_env
-echo "${GREEN}Starting build for ${PLATFORM_FAMILY_NAME} ${ARCH} [${NCPU} jobs]${NC}"
+echo_green "Starting build for ${PLATFORM_FAMILY_NAME} ${ARCH} [${NCPU} jobs]"
 
-if [ ! -f "$BUILD_DIR/BUILD_SUCCESS" ]; then
-	if [ ! -z "$REBUILD" ]; then
-		echo "${RED}Error, no previous successful build found.${NC}"
-		exit 1
-	fi
-fi
+#if [ ! -f "$BUILD_DIR/BUILD_SUCCESS" ]; then
+#	if [ ! -z "$REBUILD" ]; then
+#		echo_red "Error, no previous successful build found."
+#		exit 1
+#	fi
+#fi
 
-if [ -z "$REBUILD" ]; then
-	download_all
-fi
-echo "${GREEN}Deleting old sysroot!${NC}"
+download_all
+
+echo_green "Deleting old sysroot!"
 rm -rf "$PREFIX/"*
 rm -f "$BUILD_DIR/BUILD_SUCCESS"
 rm -f "$BUILD_DIR/meson.cross"
@@ -619,5 +648,5 @@ build_qemu_dependencies
 build_spice_client
 fixup_all
 remove_shared_gst_plugins # another hack...
-echo "${GREEN}All done!${NC}"
+echo_green "All done!"
 touch "$BUILD_DIR/BUILD_SUCCESS"
