@@ -101,21 +101,27 @@ struct HostVirtualMachineView: View {
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
 				if document.status == .running {
-					Button("Stop", systemImage: "power") {
+					Button("Stop", systemImage: "stop.circle") {
 						document.requestStopFromUI()
-					}
-				} else {
-					Button("Start", systemImage: "play.fill") {
+					}.help("Stop virtual machine")
+				} else if document.status == .suspended {
+					Button("Start", systemImage: "play.playpause.circle") {
 						document.startFromUI()
-					}
+					}.help("Resumes virtual machine")
+				} else {
+					Button("Start", systemImage: "play.playpause.circle") {
+						document.startFromUI()
+					}.help("Start virtual machine")
 				}
 
-				Button("Pause", systemImage: "pause") {
+				Button("Pause", systemImage: "pause.circle") {
 					document.suspendFromUI()
-				}.disabled(document.suspendable == false)
+				}
+				.help("Suspends virtual machine")
+				.disabled(document.suspendable == false)
 
-				Button("Restart", systemImage: "restart") {
-					document.stopFromUI()
+				Button("Restart", systemImage: "restart.circle") {
+					document.restartFromUI()
 				}.disabled(self.appState.isStopped)
 
 				Spacer()

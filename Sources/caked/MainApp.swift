@@ -3,23 +3,24 @@ import SwiftUI
 import Virtualization
 import CakedLib
 
-struct AppState {
-	var status: VMLocation.Status
-	var isStopped: Bool
-	var isSuspendable: Bool
-	var isRunning: Bool
-	var isPaused: Bool
+class AppState: ObservableObject, Observable {
+	@Published var status: VMLocation.Status
+	@Published var isStopped: Bool
+	@Published var isSuspendable: Bool
+	@Published var isRunning: Bool
+	@Published var isPaused: Bool
 	
 	init(_ vm: VirtualMachine) {
-		self.status = vm.status
+		let status = vm.status
 
+		self.status = status
 		self.isStopped = status == .stopped
 		self.isRunning = status == .running
 		self.isPaused = status == .suspended
 		self.isSuspendable = status == .running && vm.suspendable
 	}
 	
-	mutating func update(vm: VirtualMachine) {
+	func update(vm: VirtualMachine) {
 		self.status = vm.status
 		
 		self.isStopped = status == .stopped
@@ -119,7 +120,7 @@ struct MainApp: App, VirtualMachineDelegate {
 					.disabled(self.appState.isSuspendable == false)
 					
 					Button("Restart", systemImage: "restart.circle") {
-						self.stopFromUI()
+						self.restartFromUI()
 					}
 					.help("Restarts virtual machine")
 					.disabled(self.appState.isStopped)
@@ -144,19 +145,23 @@ struct MainApp: App, VirtualMachineDelegate {
 					Task { self.stopFromUI() }
 				}.disabled(self.appState.isStopped)
 
-				Button("Suspend") {
-					Task { self.suspendFromUI() }
-				}.disabled(self.appState.isSuspendable == false)
-
 				Button("Request Stop") {
 					Task { self.requestStopFromUI() }
 				}.disabled(self.appState.isStopped)
+
+				Button("Suspend") {
+					Task { self.suspendFromUI() }
+				}.disabled(self.appState.isSuspendable == false)
 			}
 		}
 	}
 
 	func startFromUI() {
 		MainApp._vm?.startFromUI()
+	}
+
+	func restartFromUI() {
+		MainApp._vm?.restartFromUI()
 	}
 
 	func stopFromUI() {

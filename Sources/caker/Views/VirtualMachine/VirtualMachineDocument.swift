@@ -152,6 +152,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 		}
 	}
 
+	func restartFromUI() {
+		if let virtualMachine = self.virtualMachine {
+			virtualMachine.restartFromUI()
+		}
+	}
+
 	func stopFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			virtualMachine.stopFromUI()

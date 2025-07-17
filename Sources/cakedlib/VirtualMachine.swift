@@ -253,6 +253,12 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		}
 	}
 
+	public func restartFromUI() {
+		self._stopVM { result in
+			self.startFromUI()
+		}
+	}
+
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		DispatchQueue.main.sync {
 			if self.virtualMachine.canStart {
