@@ -149,7 +149,7 @@ struct HostVirtualMachineView: View {
 		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 
 		if self.document.status == .external {
-			ExternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
+			ExternalVirtualMachineView(document: _document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
 				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
