@@ -607,11 +607,9 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 
 	func connectionInitiatedByHost(socket: SocketDevice) {
 		if socket.bind == self.vmLocation.agentURL.path {
-			Logger(self).info("Configure forwarding ports for VM \(self.vmLocation.name)")
-
 			do {
 				try PortForwardingServer.createPortForwardingServer(
-					group: Utilities.group.next(), remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.vmLocation.agentURL, runMode: runMode)
+					group: Utilities.group.next(), name: self.vmLocation.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.vmLocation.agentURL, runMode: runMode)
 			} catch {
 				Logger(self).error(error)
 			}

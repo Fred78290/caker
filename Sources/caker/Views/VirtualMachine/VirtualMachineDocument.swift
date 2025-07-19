@@ -8,6 +8,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 import CakedLib
 import GRPCLib
+import FileMonitor
+import FileMonitorShared
 
 extension UTType {
 	static var virtualMachine: UTType {
@@ -23,7 +25,7 @@ extension UTType {
 	}
 }
 
-class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableObject, Equatable, Identifiable {
+class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChangeDelegate, ObservableObject, Equatable, Identifiable {
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.virtualMachine == rhs.virtualMachine
 	}
@@ -39,6 +41,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	}
 
 	var virtualMachine: VirtualMachine? = nil
+	var location: VMLocation?
+	var monitor: FileMonitor?
+	var inited = false
 	var name: String = ""
 	var description: String {
 		name
@@ -59,15 +64,39 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	}
 
 	init(name: String) {
-		self.virtualMachine = nil
 		self.name = name
 	}
 
 	required init(configuration: ReadConfiguration) throws {
-		self.virtualMachine = nil
+		let file = configuration.file
 
-		guard configuration.file.isDirectory else {
+		guard file.isDirectory else {
 			throw ServiceError("Internal error")
+		}
+
+		if let fileName = file.filename {
+			let vmName = fileName.deletingPathExtension
+			let location = StorageLocation(runMode: .app).location(vmName)
+
+			if file.matchesContents(of: location.rootURL) {
+				AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
+				
+				try DispatchQueue.main.sync {
+					if loadVirtualMachine(from: location.rootURL) == false {
+						throw ServiceError("Unable to load virtual machine")
+					}
+				}
+			}
+		}
+	}
+
+	func disappears() {
+		self.virtualMachine = nil
+		self.inited = false
+		self.status = .none
+		
+		if let monitor = self.monitor {
+			monitor.stop()
 		}
 	}
 
@@ -91,8 +120,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 	}
 
 	func loadVirtualMachine(from fileURL: URL) -> Bool {
-		if self.virtualMachine != nil {
+		if inited {
 			return true
+		}
+
+		defer {
+			inited = true
 		}
 
 		do {
@@ -103,17 +136,18 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 
 			self.virtualMachineConfig = VirtualMachineConfig(vmname: vmLocation.name, config: config)
 			self.name = vmLocation.name
+			self.location = vmLocation
 
 			if vmLocation.pidFile.isPIDRunning("caked") {
 				self.status = .external
-
+				
 				self.canStart = false
 				self.canStop = true
 				self.canPause = true
 				self.canResume = false
 				self.canRequestStop = true
 				self.suspendable = config.suspendable
-			}
+							}
 			else
 			{
 				let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
@@ -122,6 +156,13 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 				self.didChangedState(virtualMachine)
 
 				virtualMachine.delegate = self
+			}
+
+			if monitor == nil {
+				let monitor = try FileMonitor(directory: fileURL, delegate: self )
+				try monitor.start()
+				
+				self.monitor = monitor
 			}
 
 			return true
@@ -141,6 +182,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 				let config = try location.config()
 
 				self.virtualMachineConfig = VirtualMachineConfig(vmname: name, config: config)
+				self.location = location
 
 				if location.pidFile.isPIDRunning("caked") {
 					self.status = .external
@@ -258,6 +300,46 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, ObservableOb
 		self.suspendable = vm.suspendable
 		self.status = status
 	}
+
+	func fileDidChanged(event: FileChangeEvent) {
+		guard let location = self.location, self.virtualMachine == nil else {
+			return
+		}
+
+		let check: (URL) -> Void = { file in
+			if file == location.pidFile {
+				if file.isPIDRunning("caked") {
+					self.status = .external
+
+					self.canStart = false
+					self.canStop = true
+					self.canPause = true
+					self.canResume = false
+					self.canRequestStop = true
+					self.suspendable = self.virtualMachineConfig.suspendable
+				} else {
+					self.status = .stopped
+
+					self.canStart = true
+					self.canStop = false
+					self.canPause = false
+					self.canResume = false
+					self.canRequestStop = false
+					self.suspendable = false
+				}
+			}
+		}
+
+		switch event {
+			case .added(let file):
+				check(file)
+			case .deleted(let file):
+				check(file)
+			case .changed(let file):
+				check(file)
+		}
+	}
+	
 
 }
 

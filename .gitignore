@@ -21,6 +21,8 @@ Caker/Caker.xcodeproj/xcuserdata
 .ci/pkg/Caker.app/
 actions-runner/
 .bin/
+.deps/
 Sources/WebUI/node_modules/
 sysroot-*
 build-*
+Library/

@@ -81,8 +81,10 @@ class PortForwardingServer {
 		}
 	}
 
-	static func createPortForwardingServer(group: EventLoopGroup, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortForwarding: Bool, listeningAddress: URL, runMode: Utils.RunMode) throws {
+	static func createPortForwardingServer(group: EventLoopGroup, name: String, remoteAddress: String, forwardedPorts: [TunnelAttachement], dynamicPortForwarding: Bool, listeningAddress: URL, runMode: Utils.RunMode) throws {
 		guard let server = portForwardingServer else {
+			Logger(self).info("Configure forwarding ports for VM \(name)")
+
 			let server = try PortForwardingServer(group: group, remoteAddress: remoteAddress, forwardedPorts: forwardedPorts, dynamicPortForwarding: dynamicPortForwarding, listeningAddress: listeningAddress, runMode: runMode)
 
 			try server.bind()

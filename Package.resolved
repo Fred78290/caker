@@ -1,5 +1,5 @@
 {
-  "originHash" : "e9e93d146dff8acbe00d17b146708ea9062860a7b0eef9224b4fdf40371de851",
+  "originHash" : "5f1b4c028bf8de541a38be0ba099cdcd321bd323f2c8d0984062cc543f48a598",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -24,7 +24,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
-        "revision" : "a1bb40e95bcf1fa476d634be6ba5ce39977aae7e"
+        "revision" : "dc3e771bd2351b8773bc874cf9892dc127e4d294"
       }
     },
     {
@@ -32,7 +32,6 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/utmapp/CocoaSpice.git",
       "state" : {
-        "branch" : "main",
         "revision" : "ac641bd7b88e14b4107dcdb508d9779c49b69617"
       }
     },
@@ -43,6 +42,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "772883073d044bc754d401cabb6574624eb3778f"
+      }
+    },
+    {
+      "identity" : "filemonitor",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/aus-der-Technik/FileMonitor.git",
+      "state" : {
+        "revision" : "ef22f1487d07fbff0a7a5f743d42611bfd03b5e8",
+        "version" : "1.2.0"
       }
     },
     {
@@ -401,6 +409,15 @@
       "state" : {
         "revision" : "20cefdba8304e0ccf2effc9965cdfa48b09ef9b4",
         "version" : "1.3.2"
+      }
+    },
+    {
+      "identity" : "swiftterm",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/migueldeicaza/SwiftTerm.git",
+      "state" : {
+        "revision" : "e2b431dbf73f775fb4807a33e4572ffd3dc6933a",
+        "version" : "1.2.5"
       }
     },
     {

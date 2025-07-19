@@ -30,7 +30,7 @@ struct CakerMenuBarExtraScene: Scene {
 			}.keyboardShortcut("N")
 			.help("Create a new virtual machine.")
 
-			if appState.virtualMachines.isEmpty {
+			if appState.names.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
@@ -164,7 +164,7 @@ private struct VMMenuItem: View {
 					if first.deleted {
 						let location = StorageLocation(runMode: .app).location(vm.name)
 						
-						appState.virtualMachines.removeValue(forKey: location.rootURL)
+						appState.removeVirtualMachineDocument(location.rootURL)
 					} else {
                         DispatchQueue.main.async {
                             vm.alertError(ServiceError("VM Not deleted \(first.name): \(first.reason)"))

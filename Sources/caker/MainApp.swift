@@ -7,22 +7,12 @@ struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
 	@Environment(\.newDocument) private var newDocument
-	@State var appState = AppState()
+	@State var appState = AppState.shared
 	@State var createTemplate = false
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	func documentView(fileURL: URL, document: VirtualMachineDocument) -> some View {
-		var document = document
-
-		if let found = appState.virtualMachines[fileURL] {
-			document = found
-		} else {
-			DispatchQueue.main.async {
-				appState.virtualMachines[fileURL] = document
-			}
-		}
-
 		let loaded = document.loadVirtualMachine(from: fileURL)
 
 		return HStack {

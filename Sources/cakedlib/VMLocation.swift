@@ -187,6 +187,7 @@ public struct VMLocation: Hashable, Equatable {
 		return VMLocation(rootURL: tmpDir, template: false)
 	}
 
+	@discardableResult
 	public func validatate(userFriendlyName: String) throws -> VMLocation {
 		if !FileManager.default.fileExists(atPath: rootURL.path) {
 			throw ServiceError("VM not found \(userFriendlyName)")

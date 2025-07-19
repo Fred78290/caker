@@ -32,7 +32,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.29.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "a1bb40e95bcf1fa476d634be6ba5ce39977aae7e"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "dc3e771bd2351b8773bc874cf9892dc127e4d294"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "be52cbd79902a3b74f5b13d69a13bc32953c2c69"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", from: "0.2.4"),
@@ -50,7 +50,9 @@ let package = Package(
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
 		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
-		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617")
+		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
+		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", from: "1.2.5"),
+		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -117,7 +119,8 @@ let package = Package(
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
 			.product(name: "MultiplatformTabBar", package: "MultiplatformTabBar"),
 			.product(name: "Steps", package: "Steps"),
-			//.product(name: "CocoaSpice", package: "CocoaSpice"),
+			.product(name: "SwiftTerm", package: "SwiftTerm"),
+			.product(name: "FileMonitor", package: "FileMonitor"),
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

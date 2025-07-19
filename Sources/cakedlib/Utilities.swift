@@ -3,6 +3,7 @@ import GRPCLib
 import System
 import Virtualization
 import NIO
+import CakeAgentLib
 
 public enum Architecture: String, Codable, CustomStringConvertible {
 	public var description: String {
@@ -377,6 +378,19 @@ extension DirectorySharingAttachments {
 
 public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
+
+		return try CakeAgentHelper.createClient(
+			on: on,
+			listeningAddress: listeningAddress,
+			connectionTimeout: 30,
+			caCert: certificates.caCertURL.path,
+			tlsCert: certificates.clientCertURL.path,
+			tlsKey: certificates.clientKeyURL.path)
+	}
 
 	public static func environment(runMode: Utils.RunMode) throws -> [String: String] {
 		var environment = ProcessInfo.processInfo.environment

@@ -81,18 +81,22 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
+	static var shared = AppState()
+
 	@Published var currentDocument: VirtualMachineDocument?
 	@Published var isStopped: Bool = true
 	@Published var isSuspendable: Bool = false
 	@Published var isRunning: Bool = false
 	@Published var isPaused: Bool = false
-	@Published var virtualMachines: [URL:VirtualMachineDocument] = [:]
+	@Published var names: [String] = []
 	@Published var remotes: [RemoteEntry] = []
 	@Published var templates: [TemplateEntry] = []
 	@Published var networks: [BridgedNetwork] = []
 	@Published var selectedRemote: RemoteEntry? = nil
 	@Published var selectedTemplate: TemplateEntry? = nil
 	@Published var selectedNetwork: BridgedNetwork? = nil
+
+	private var virtualMachines: [URL:VirtualMachineDocument] = [:]
 
 	var vms: [PairedVirtualMachineDocument] {
 		self.virtualMachines.compactMap {
@@ -101,7 +105,10 @@ class AppState: ObservableObject, Observable {
 	}
 
 	init() {
-		self.virtualMachines = Self.loadVirtualMachines()
+		let machines = Self.loadVirtualMachines()
+
+		self.virtualMachines = machines.0
+		self.names = machines.1
 		self.networks = Self.loadNetworks()
 		self.remotes = Self.loadRemotes()
 		self.templates = Self.loadTemplates()
@@ -130,8 +137,9 @@ class AppState: ObservableObject, Observable {
 		return []
 	}
 
-	static func loadVirtualMachines() -> [URL:VirtualMachineDocument] {
+	static func loadVirtualMachines() -> ([URL:VirtualMachineDocument], [String]) {
 		var result: [URL:VirtualMachineDocument] = [:]
+		var names: [String] = []
 
 		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
 			let storage = StorageLocation(runMode: .app)
@@ -143,11 +151,12 @@ class AppState: ObservableObject, Observable {
 				
 				return nil
 			}.forEach {
+				names.append($0.name)
 				result[$0.rootURL] = VirtualMachineDocument(name: $0.name)
 			}
 		}
 		
-		return result
+		return (result, names)
 	}
 
 	func reloadNetworks() throws {
@@ -160,5 +169,20 @@ class AppState: ObservableObject, Observable {
 	
 	func reloadTemplates() throws {
 		self.templates = try TemplateHandler.listTemplate(runMode: .app)
+	}
+
+	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
+		self.virtualMachines[url]
+	}
+
+	func removeVirtualMachineDocument(_ url: URL) {
+		if let vm = self.virtualMachines[url] {
+			self.names.removeAll { $0 == vm.name }
+			self.virtualMachines.removeValue(forKey: url)
+		}
+	}
+
+	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
+		self.virtualMachines[url] = document
 	}
 }

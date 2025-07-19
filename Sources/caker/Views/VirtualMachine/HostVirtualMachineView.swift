@@ -54,8 +54,14 @@ struct HostVirtualMachineView: View {
 			}
 		}.onReceive(NSWindow.willCloseNotification) { notification in
 			if let window = notification.object as? NSWindow {
-				if window.windowNumber == windowNumber && document.status == .running {
-					document.requestStopFromUI()
+				if window.windowNumber == windowNumber {
+					if document.status == .running {
+						document.requestStopFromUI()
+					}
+
+					DispatchQueue.main.async {
+						self.document.disappears()
+					}
 				}
 			}
 		}.onReceive(NSNotification.StartVirtualMachine) { notification in
@@ -98,11 +104,11 @@ struct HostVirtualMachineView: View {
 						document.requestStopFromUI()
 					}.help("Stop virtual machine")
 				} else if document.status == .suspended {
-					Button("Start", systemImage: "play.playpause.circle") {
+					Button("Start", systemImage: "playpause.circle") {
 						document.startFromUI()
 					}.help("Resumes virtual machine")
 				} else {
-					Button("Start", systemImage: "play.playpause.circle") {
+					Button("Start", systemImage: "play.circle") {
 						document.startFromUI()
 					}.help("Start virtual machine")
 				}
@@ -140,6 +146,16 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
+	@ViewBuilder public func tryIt(
+		@ViewBuilder try success: () throws -> some View,
+		@ViewBuilder catch failure: (any Error) -> some View
+	) -> some View {
+		switch Result(catching: success) {
+			case .success(let success): success
+			case .failure(let error): failure(error)
+		}
+	}
+
 	@ViewBuilder
 	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
 		let config = document.virtualMachineConfig
@@ -147,14 +163,24 @@ struct HostVirtualMachineView: View {
 		let minWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
-
-		if self.document.status == .external {
-			ExternalVirtualMachineView(document: _document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
-		} else {
-			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
-		}
+	
+		HStack {
+			if self.document.status == .external {
+				tryIt {
+					try ExternalVirtualMachineView(document: _document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, dismiss: dismiss, callback: callback)
+				} catch: { error in
+					if let error = error as? ServiceError {
+						Text(error.description)
+							.foregroundStyle(.red)
+					} else {
+						Text(error.localizedDescription)
+							.foregroundStyle(.red)
+					}
+				}
+			} else {
+				InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
+			}
+		}.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 	}
 
 	func settings() {
