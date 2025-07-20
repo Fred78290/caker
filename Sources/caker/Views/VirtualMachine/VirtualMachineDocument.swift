@@ -404,9 +404,18 @@ extension VirtualMachineDocument: TerminalViewDelegate {
 	
 	func display(_ datas: Data) {
 		if let terminalView = self.terminalView {
+			var converted: [UInt8] = []
+			
+			datas.forEach {
+				if $0 == 0x0a {
+					converted.append(0x0d)
+				}
+
+				converted.append( $0)
+			}
+			
 			DispatchQueue.main.async {
-				let input = [UInt8](datas)
-				terminalView.feed(byteArray: input[...])
+				terminalView.feed(byteArray: converted[...])
 			}
 		}
 	}
