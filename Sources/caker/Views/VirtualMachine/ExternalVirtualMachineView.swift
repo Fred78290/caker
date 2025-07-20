@@ -76,8 +76,10 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		
 		func display(_ datas: Data) {
 			if let terminalView = self.terminalView {
-				let input = [UInt8](datas)
-				terminalView.feed(byteArray: input[...])
+				DispatchQueue.main.async {
+					let input = [UInt8](datas)
+					terminalView.feed(byteArray: input[...])
+				}
 			}
 		}
 
