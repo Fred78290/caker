@@ -31,6 +31,7 @@ class AppState: ObservableObject, Observable {
 }
 
 struct MainApp: App, VirtualMachineDelegate {
+	static var _display = false
 	static var _vm: VirtualMachine? = nil
 	static var _config: CakeConfig? = nil
 	static var _name: String? = nil
@@ -191,7 +192,9 @@ struct MainApp: App, VirtualMachineDelegate {
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		NSApp.setActivationPolicy(.regular)
+		if MainApp._display {
+			NSApp.setActivationPolicy(.regular)
+		}
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

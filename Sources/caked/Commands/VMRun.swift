@@ -59,6 +59,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
+		MainApp._display = display
 
 		let config = try vmLocation.config()
 
