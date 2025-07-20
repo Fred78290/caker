@@ -2911,8 +2911,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.5;
+				kind = revision;
+				revision = e142840b3d291f4fcd7adedc5d687ab98fc323fd;
 			};
 		};
 		9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */ = {

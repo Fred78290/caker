@@ -18,7 +18,7 @@ set -e
 export PATH="/usr/local/opt/bison/bin:/opt/homebrew/opt/bison/bin:/usr/bin:/usr/sbin:/bin:/Library/Apple/usr/bin:/opt/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/opt/X11/bin:/sbin:/System/Cryptexes/App/usr/bin:/Users/fboltz/go/bin:/usr/local/bin"
 
 pip3 install --user six pyparsing tomli || :
-${TOTO3}
+
 # Printing coloured lines
 GREEN='\033[0;32m'
 RED='\033[0;31m'

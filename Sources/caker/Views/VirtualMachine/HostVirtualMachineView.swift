@@ -32,6 +32,7 @@ struct HostVirtualMachineView: View {
 	@State var displaySettings: Bool = false
 	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
+	@State var displayFontPanel: Bool = false
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
@@ -60,7 +61,7 @@ struct HostVirtualMachineView: View {
 					}
 
 					DispatchQueue.main.async {
-						self.document.disappears()
+						self.document.close()
 					}
 				}
 			}
@@ -163,24 +164,31 @@ struct HostVirtualMachineView: View {
 		let minWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
-	
-		HStack {
-			if self.document.status == .external {
-				tryIt {
-					try ExternalVirtualMachineView(document: _document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, dismiss: dismiss, callback: callback)
-				} catch: { error in
-					if let error = error as? ServiceError {
-						Text(error.description)
-							.foregroundStyle(.red)
-					} else {
-						Text(error.localizedDescription)
-							.foregroundStyle(.red)
-					}
+
+		if self.document.status == .external {
+			tryIt {
+				try ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+					.fontPanel(isPresented: $displayFontPanel)
+					.toolbar {
+						ToolbarItemGroup(placement: .secondaryAction) {
+							Button("Font", systemImage: "character.circle") {
+								displayFontPanel.toggle()
+							}
+							.help("Change font terminal")
+						}
+				}.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+			} catch: { error in
+				if let error = error as? ServiceError {
+					Text(error.description)
+						.foregroundStyle(.red)
+				} else {
+					Text(error.localizedDescription)
+						.foregroundStyle(.red)
 				}
-			} else {
-				InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
 			}
-		}.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+		} else {
+			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+		}
 	}
 
 	func settings() {

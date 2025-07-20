@@ -3,6 +3,7 @@ import GRPCLib
 import NIOCore
 import NIOPosix
 import Virtualization
+import Semaphore
 
 extension Error {
 	var isLoggable: Bool {
@@ -36,8 +37,9 @@ class EstablishedConnection {
 }
 
 class SocketState {
+	private let semaphore = DispatchSemaphore(value: 1)
 	let socket: SocketDevice
-	var connections: [EstablishedConnection]
+	private var connections: [EstablishedConnection]
 
 	var mode: SocketMode {
 		self.socket.mode
@@ -64,13 +66,48 @@ class SocketState {
 		self.connections = []
 	}
 
+	func forEachConnection(_ body: (EstablishedConnection) throws -> Void) rethrows {
+		self.semaphore.wait()
+		
+		defer {
+			self.semaphore.signal()
+		}
+		
+		for connection in self.connections {
+			try body(connection)
+		}
+	}
+
+	func haveConnections() -> Bool {
+		self.connections.count > 0
+	}
+
+	func addNewConnection(_ conn: EstablishedConnection) {
+		self.semaphore.wait()
+
+		defer {
+			self.semaphore.signal()
+		}
+		
+		self.connections.append(conn)
+		
+	}
+
 	// Called when the guest vsock is closed by remote or host socket is closed
 	func closedByRemote(_ fd: Int32) -> Channel? {
+		self.semaphore.wait()
+
+		defer {
+			self.semaphore.signal()
+		}
+
 		guard let connection = self.connections.first(where: { $0.connection.fileDescriptor == fd }) else {
 			return nil
 		}
 
-		self.connections.removeAll { $0.connection.fileDescriptor == fd }
+		self.connections.removeAll {
+			$0.connection.fileDescriptor == fd
+		}
 
 		Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
 
@@ -79,7 +116,13 @@ class SocketState {
 
 	// Check broken connections
 	func haveBeenDisconnected() -> [Channel] {
-		self.connections.compactMap { connection in
+		self.semaphore.wait()
+
+		defer {
+			self.semaphore.signal()
+		}
+
+		return self.connections.compactMap { connection in
 			if connection.haveBeenDisconnected() {
 				Logger(self).info("Socket connection on \(self.description) was closed by remote")
 
@@ -129,7 +172,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		let futures = self.sockets.reduce(
 			into: [EventLoopFuture<Void>](),
 			{ futures, socket in
-				socket.value.connections.forEach { connection in
+				socket.value.forEachConnection { connection in
 					self.channels.removeAll { $0 === connection.channel }
 					let futureResult: EventLoopFuture<Void> = connection.channel.close()
 
@@ -155,7 +198,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				self.queue.sync {
 					self.channels.removeAll { $0 === channel }
 
-					if socket.connections.isEmpty {
+					if socket.haveConnections() == false {
 						if let delegate = self.delegate {
 							// Notify the delegate that the socket is closed
 							delegate.closedByRemote(socket: socket.socket)
@@ -218,7 +261,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				}
 
 				// Keep the connection for the socket
-				socket.connections.append(EstablishedConnection(connection: connection, channel: inboundChannel))
+				socket.addNewConnection(EstablishedConnection(connection: connection, channel: inboundChannel))
 
 				Logger(self).debug("Host connected on \(socket.description) via fd:\(connection.fileDescriptor)")
 
@@ -389,7 +432,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 					// Ok to accept the connection
 					self.channels.append(channel)
-					socket.connections.append(EstablishedConnection(connection: connection, channel: channel))
+					socket.addNewConnection(EstablishedConnection(connection: connection, channel: channel))
 
 					return true
 				}
@@ -415,7 +458,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 					// Ok to accept the connection
 					self.channels.append(channel)
-					socket.connections.append(EstablishedConnection(connection: connection, channel: channel))
+					socket.addNewConnection(EstablishedConnection(connection: connection, channel: channel))
 
 					return true
 				}

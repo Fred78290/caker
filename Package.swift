@@ -51,7 +51,7 @@ let package = Package(
 		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
-		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", from: "1.2.5"),
+		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "e142840b3d291f4fcd7adedc5d687ab98fc323fd"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0")
 	],
 	targets: [
