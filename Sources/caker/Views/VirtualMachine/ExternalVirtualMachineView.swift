@@ -22,15 +22,15 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = TerminalView
 	
 	@StateObject var document: VirtualMachineDocument
-	@State var fontPickerDelegate:FontPickerDelegate? = nil
 	
+	@State private var fontPickerDelegate:FontPickerDelegate!
 	private let dismiss: DismissAction
 	private var callback: VMView.CallbackWindow? = nil
 	private let fontManager = NSFontManager.shared
 	private let fontPanel = NSFontPanel.shared
 	private let terminalView: TerminalView
 	
-	class FontPickerDelegate: NSObject, NSWindowDelegate {
+	class FontPickerDelegate: NSObject, NSWindowDelegate, NSFontChanging {
 		@Binding var visible: Bool
 
 		var terminalView: TerminalView
@@ -40,10 +40,8 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			self._visible = visible
 		}
 		
-		@objc
-		func changeFont(_ sender: Any ) {
-			// the sender is a font manager
-			guard let fontManager = sender as? NSFontManager else {
+		@objc func changeFont(_ sender: NSFontManager?) {
+			guard let fontManager = sender else {
 				return
 			}
 
@@ -52,7 +50,20 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			
 			Defaults.saveCurrentFont(self.terminalView.font)
 		}
-		
+
+		@objc func selectFont() {
+			let fontManager = NSFontManager.shared
+
+			guard let newFont = fontManager.selectedFont else {
+				return
+			}
+
+			self.terminalView.font = fontManager.convert(newFont)
+			self.visible = false
+			
+			Defaults.saveCurrentFont(self.terminalView.font)
+		}
+
 		func windowWillClose(_ notification: Notification) {
 			self.visible = false
 		}
@@ -75,23 +86,6 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		return terminalView
 	}
 
-	func sizeThatFits(_ proposal: ProposedViewSize, nsView: TerminalView, context: Context) -> CGSize? {
-		if let width = proposal.width, let height = proposal.height {
-			let newSize = CGSize(width: width, height: height)
-
-			print("\(newSize)")
-
-			document.changingSize = true
-			nsView.frame = CGRect(origin: .zero, size: newSize)
-			nsView.needsLayout = true
-			document.changingSize = false
-
-			return newSize
-		}
-
-		return nil
-	}
-
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		nsView.getTerminal().options.convertEol = true
 		
@@ -100,15 +94,17 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	
 	func displayFontPanel(_ visible: Binding<Bool>) {
 		if visible.wrappedValue {
-			self.fontPickerDelegate = FontPickerDelegate(visible: visible, terminalView: self.terminalView)
-			
-			NSFontManager.shared.target = self.fontPickerDelegate
-			NSFontManager.shared.action = #selector(FontPickerDelegate.changeFont(_:))
+			if self.fontPickerDelegate == nil {
+				self.fontPickerDelegate = FontPickerDelegate(visible: visible, terminalView: self.terminalView)
+				NSFontManager.shared.target = self.fontPickerDelegate
+			}
+			//NSFontManager.shared.action = #selector(FontPickerDelegate.changeFont(_:))
 
-			NSFontPanel.shared.setPanelFont(self.terminalView.font, isMultiple: false)
-			NSFontPanel.shared.orderBack(nil)
+			NSFontManager.shared.setSelectedFont(self.terminalView.font, isMultiple: false)
 			NSFontPanel.shared.delegate = self.fontPickerDelegate
 			NSFontPanel.shared.worksWhenModal = true
+			NSFontManager.shared.orderFrontFontPanel(self.fontPickerDelegate)
+			//NSFontPanel.shared.orderBack(self.fontPickerDelegate)
 		} else {
 			NSFontPanel.shared.orderOut(nil)
 		}
