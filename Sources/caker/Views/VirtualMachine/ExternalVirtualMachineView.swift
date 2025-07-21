@@ -86,9 +86,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		return terminalView
 	}
 
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.getTerminal().options.convertEol = true
-		
+	func updateNSView(_ nsView: NSViewType, context: Context) {		
 		try? self.document.startShell(terminalView: nsView, dismiss: dismiss)
 	}
 	
