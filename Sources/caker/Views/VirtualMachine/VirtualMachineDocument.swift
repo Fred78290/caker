@@ -30,6 +30,8 @@ extension UTType {
 }
 
 class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChangeDelegate, ObservableObject, Equatable, Identifiable {
+	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
+
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.virtualMachine == rhs.virtualMachine
 	}
@@ -46,11 +48,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	private var client: CakeAgentClient!
 	private var stream: CakeAgentExecuteStream!
+	private var shellHandlerResponse: ShellHandlerResponse!
 	private var monitor: FileMonitor?
 	private var inited = false
-	private var terminalView: TerminalView!
 
-	var changingSize = false
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation?
 	var name: String = ""
@@ -355,25 +356,16 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				check(file)
 		}
 	}
-	
-
 }
 
-extension VirtualMachineDocument: TerminalViewDelegate {
-
-	func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
-		if let stream = self.stream,  self.changingSize == false {
-			stream.sendTerminalSize(rows: Int32(newRows), cols: Int32(newCols))
+extension VirtualMachineDocument {
+	func sendTerminalSize(rows: Int, cols: Int) {
+		if let stream = self.stream {
+			stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
 		}
 	}
-	
-	func setTerminalTitle(source: TerminalView, title: String) {
-	}
-	
-	func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {
-	}
-	
-	func send(source: TerminalView, data: ArraySlice<UInt8>) {
+
+	func sendDatas(data: ArraySlice<UInt8>) {
 		if let stream = self.stream {
 			data.withUnsafeBytes { ptr in
 				let message = CakeAgent.ExecuteRequest.with {
@@ -384,47 +376,25 @@ extension VirtualMachineDocument: TerminalViewDelegate {
 			}
 		}
 	}
-	
-	func scrolled(source: TerminalView, position: Double) {
-	}
-	
-	func clipboardCopy(source: SwiftTerm.TerminalView, content: Data) {
-		if let str = String (bytes: content, encoding: .utf8) {
-			let pasteBoard = NSPasteboard.general
-			pasteBoard.clearContents()
-			pasteBoard.writeObjects([str as NSString])
-		}
-	}
-	
-	func rangeChanged(source: SwiftTerm.TerminalView, startY: Int, endY: Int) {
-	}
-	
-	func terminalViewDidChangeSize(_ terminalView: TerminalView) {
-	}
-	
-	func display(_ datas: Data) {
-		if let terminalView = self.terminalView {
-			var converted: [UInt8] = []
-			
-			datas.forEach {
-				if $0 == 0x0a {
-					converted.append(0x0d)
-				}
 
-				converted.append( $0)
-			}
-			
+	func closeShell(_ completionHandler: (() -> Void)? = nil) {
+		if self.stream == nil {
+			return
+		}
+
+		self.client.close().whenComplete { _ in
 			DispatchQueue.main.async {
-				terminalView.feed(byteArray: converted[...])
+				completionHandler?()
 			}
 		}
+		self.client = nil
+		self.stream = nil
 	}
 
-	func startShell(terminalView: TerminalView, dismiss: DismissAction) throws {
-		self.terminalView = terminalView
+	func startShell(rows: Int, cols: Int, handler: @escaping (Cakeagent_CakeAgent.ExecuteResponse) -> Void) throws {
+		self.shellHandlerResponse = handler
 
 		guard self.stream == nil else {
-			self.terminalView.terminalDelegate = self
 			return
 		}
 
@@ -433,27 +403,10 @@ extension VirtualMachineDocument: TerminalViewDelegate {
 		}
 
 		self.stream = client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-			if case let .exitCode(code) = response.response {
-				Logger(self).debug("Shell exited with code \(code) for \(self.name)")
-
-				self.client.close().whenComplete { _ in
-					DispatchQueue.main.async {
-						dismiss()
-					}
-				}
-				self.client = nil
-				self.stream = nil
-
-			} else if case let .stdout(datas) = response.response {
-				self.display(datas)
-			} else if case let .stderr(datas) = response.response {
-				self.display(datas)
-			} else if case .established = response.response {
-				self.terminalView.terminalDelegate = self
-			}
+			self.shellHandlerResponse(response)
 		}
 		
-		stream.sendTerminalSize(rows: Int32(terminalView.getTerminal().rows), cols: Int32(terminalView.getTerminal().cols))
+		stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
 		stream.sendShell()
 	}
 }

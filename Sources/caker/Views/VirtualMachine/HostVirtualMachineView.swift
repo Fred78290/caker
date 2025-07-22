@@ -33,6 +33,7 @@ struct HostVirtualMachineView: View {
 	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 	@State var displayFontPanel: Bool = false
+	@State var terminalColor: Color = .blue
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
@@ -101,8 +102,14 @@ struct HostVirtualMachineView: View {
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
 				if document.status == .running || document.status == .external {
-					Button("Stop", systemImage: "stop.circle") {
+					/*Button("Stop", systemImage: "stop.circle") {
 						document.requestStopFromUI()
+					}.help("Stop virtual machine")*/
+
+					Button(action: {
+						document.requestStopFromUI()
+					}) {
+						Image(systemName: "stop.circle").imageScale(.large)
 					}.help("Stop virtual machine")
 				} else if document.status == .suspended {
 					Button("Start", systemImage: "playpause.circle") {
@@ -131,7 +138,7 @@ struct HostVirtualMachineView: View {
 				}.disabled(self.appState.isRunning)
 			}
 
-			ToolbarItemGroup(placement: .primaryAction) {
+			ToolbarItem(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
 					displaySettings = true
 				}.disabled(self.document.virtualMachine == nil)
@@ -166,26 +173,10 @@ struct HostVirtualMachineView: View {
 		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 
 		if self.document.status == .external {
-			tryIt {
-				try ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
-					.fontPanel(isPresented: $displayFontPanel)
-					.toolbar {
-						ToolbarItemGroup(placement: .secondaryAction) {
-							Button("Font", systemImage: "character.circle") {
-								displayFontPanel.toggle()
-							}
-							.help("Change font terminal")
-						}
-				}.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
-			} catch: { error in
-				if let error = error as? ServiceError {
-					Text(error.description)
-						.foregroundStyle(.red)
-				} else {
-					Text(error.localizedDescription)
-						.foregroundStyle(.red)
-				}
-			}
+			ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+				.colorPicker(placement: .secondaryAction)
+				.fontPicker(placement: .secondaryAction)
+				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		}
