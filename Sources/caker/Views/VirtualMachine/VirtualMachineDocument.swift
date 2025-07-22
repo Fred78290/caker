@@ -24,6 +24,10 @@ extension UTType {
 		UTType(importedAs: "public.iso-image")
 	}
 	
+	static var ipsw: UTType {
+		UTType(filenameExtension: "ipsw")!
+	}
+
 	static var unixSocketAddress: UTType {
 		UTType(importedAs: "public.socket-address")
 	}

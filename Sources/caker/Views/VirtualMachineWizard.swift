@@ -10,6 +10,7 @@ import Steps
 import NIO
 import CakedLib
 import GRPCLib
+import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
 
@@ -401,8 +402,48 @@ struct VirtualMachineWizard: View {
 								.clipShape(RoundedRectangle(cornerRadius: 6))
 
 							Button(action: {
-								if let imageName = chooseDiskImage() {
-									self.imageName = imageName
+								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
+									self.imageName = "img://\(imageName)"
+								}
+							}) {
+								Image(systemName: "document.badge.gearshape")
+							}.buttonStyle(.borderless)
+						}
+					}
+
+				case .iso:
+					LabeledContent("Choose an ISO image disk.") {
+						HStack {
+							TextField("ISO Image", text: $imageName)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+
+							Button(action: {
+								if let imageName = chooseDiskImage(ofType: UTType.iso9660) {
+									self.imageName = "iso://\(imageName)"
+								}
+							}) {
+								Image(systemName: "document.badge.gearshape")
+							}.buttonStyle(.borderless)
+						}
+					}
+
+				case .ipsw:
+					LabeledContent("Choose an IPSW image.") {
+						HStack {
+							TextField("IPSW Image", text: $imageName)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+
+							Button(action: {
+								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+									self.imageName = "ipsw://\(imageName)"
 								}
 							}) {
 								Image(systemName: "document.badge.gearshape")
@@ -461,40 +502,44 @@ struct VirtualMachineWizard: View {
 							ForEach(VMBuilder.ImageSource.allCases, id: \.self) { source in
 								Text(source.description).tag(source)
 							}
+						}.onChange(of: imageSource) { _ in
+							self.imageName = ""
 						}.labelsHidden()
 					}.frame(width: 100)
 				}
 			}
 
-			Section("Cloud init") {
-				LabeledContent("Optional user data") {
-					HStack {
-						TextField("User data", value: $config.userData, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
-						Button(action: {
-							config.userData = chooseYAML()
-						}) {
-							Image(systemName: "document.badge.gearshape")
-						}.buttonStyle(.borderless)
+			if imageSource != .iso && imageSource != .ipsw {
+				Section("Cloud init") {
+					LabeledContent("Optional user data") {
+						HStack {
+							TextField("User data", value: $config.userData, format: .optional)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+							Button(action: {
+								config.userData = chooseYAML()
+							}) {
+								Image(systemName: "document.badge.gearshape")
+							}.buttonStyle(.borderless)
+						}
 					}
-				}
-				LabeledContent("Optional network configuration") {
-					HStack {
-						TextField("network configuration", value: $config.networkConfig, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
-						Button(action: {
-							config.networkConfig = chooseYAML()
-						}) {
-							Image(systemName: "document.badge.gearshape")
-						}.buttonStyle(.borderless)
+					LabeledContent("Optional network configuration") {
+						HStack {
+							TextField("network configuration", value: $config.networkConfig, format: .optional)
+								.multilineTextAlignment(.leading)
+								.textFieldStyle(.roundedBorder)
+								.background(.white)
+								.labelsHidden()
+								.clipShape(RoundedRectangle(cornerRadius: 6))
+							Button(action: {
+								config.networkConfig = chooseYAML()
+							}) {
+								Image(systemName: "document.badge.gearshape")
+							}.buttonStyle(.borderless)
+						}
 					}
 				}
 			}
@@ -574,8 +619,8 @@ struct VirtualMachineWizard: View {
 		self.dismiss()
 	}
 
-	func chooseDiskImage() -> String? {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: "Select disk image", allowsOtherFileTypes: true) {
+	func chooseDiskImage(ofType: UTType = .diskImage) -> String? {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: "Select image", allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
 		

@@ -13,6 +13,8 @@ public struct VMBuilder {
 				case .oci: return "oci"
 				case .template: return "template"
 				case .stream: return "stream"
+				case .iso: return "iso"
+				case .ipsw: return "ipsw"
 			}
 		}
 		
@@ -21,17 +23,36 @@ public struct VMBuilder {
 		case oci
 		case template
 		case stream
-		
+		case iso
+		case ipsw
+
 		static var allCases: [String] {
-			["raw", "cloud", "oci", "template", "stream"]
+			["iso", "ipsw", "raw", "cloud", "oci", "template", "stream"]
 		}
 	}
 
 	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode) throws {
 		let config: CakeConfig
+		var attachedDisks = options.attachedDisks
 
 		// Create config
-		if source == .oci {
+		if source == .ipsw {
+			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
+			config = CakeConfig(
+				location: vmLocation.rootURL,
+				os: .darwin,
+				autostart: options.autostart,
+				configuredUser: options.user,
+				configuredPassword: options.password,
+				displayRefit: options.displayRefit,
+				cpuCountMin: Int(options.cpu),
+				memorySizeMin: options.memory * 1024 * 1024)
+
+			config.useCloudInit = true
+			config.agent = true
+			config.nested = options.nested
+			config.attachedDisks = attachedDisks
+		} else if source == .oci {
 			config = try CakeConfig(location: vmLocation.rootURL, options: options)
 		} else if try vmLocation.configURL.exists() {
 			config = try vmLocation.config()
@@ -44,6 +65,11 @@ public struct VMBuilder {
 		} else {
 			// Create NVRAM
 			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
+
+			if source == .iso {
+				attachedDisks.append(DiskAttachement(diskPath: URL(string: options.image)!))
+			}
+
 			config = CakeConfig(
 				location: vmLocation.rootURL,
 				os: .linux,
@@ -54,10 +80,10 @@ public struct VMBuilder {
 				cpuCountMin: Int(options.cpu),
 				memorySizeMin: options.memory * 1024 * 1024)
 
-			config.useCloudInit = true
-			config.agent = true
+			config.useCloudInit = source != .iso
+			config.agent = source != .iso
 			config.nested = options.nested
-			config.attachedDisks = options.attachedDisks
+			config.attachedDisks = attachedDisks
 		}
 
 		// Create or resize disk
@@ -101,7 +127,7 @@ public struct VMBuilder {
 		}
 		var sourceImage: ImageSource = .cloud
 		let remoteDb = try Home(runMode: runMode).remoteDatabase()
-		var starter = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://"]
+		var starter = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://", "ipsw://"]
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
@@ -145,19 +171,21 @@ public struct VMBuilder {
 			if Utilities.checkIfTartPresent() == false {
 				throw ServiceError("tart is not installed")
 			}
-
+			
 			let ociImage = options.image.stringAfter(after: "//")
 			let arguments: [String]
-
+			
 			if scheme == "oci" {
 				arguments = [ociImage, vmName, "--insecure"]
 			} else {
 				arguments = [ociImage, vmName]
 			}
-
+			
 			try Shell.runTart(command: "clone", arguments: arguments, runMode: runMode)
-
+			
 			sourceImage = .oci
+		} else if scheme == "iso" {
+		} else if scheme == "ipsw" {
 		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
