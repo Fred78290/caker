@@ -1,28 +1,51 @@
 import SwiftUI
 import CakedLib
 import GRPCLib
+import SwiftTerm
 
 struct Defaults {
-	static func currentFont() -> NSFont {
-		guard let name = UserDefaults.standard.object(forKey: "fontName") as? String else {
-			return NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+	static func currentTerminalFont(defaultValue: NSFont = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)) -> NSFont {
+		guard let name = UserDefaults.standard.object(forKey: "TerminalFontName") as? String else {
+			return defaultValue
 		}
-		
-		let size = CGFloat(UserDefaults.standard.float(forKey: "fontSize"))
+
+		let size = CGFloat(UserDefaults.standard.float(forKey: "TerminalFontSize"))
 		guard let font = NSFont(name: name, size: size) else {
-			return NSFont.systemFont(ofSize: NSFont.systemFontSize)
+			return defaultValue
 		}
 		
 		return font
 	}
 	
-	static func saveCurrentFont(name: String, size: Float) {
-		UserDefaults.standard.set(name, forKey: "fontName")
-		UserDefaults.standard.set(size, forKey: "fontSize")
+	static func saveTerminalFont(name: String, size: Float) {
+		UserDefaults.standard.set(name, forKey: "TerminalFontName")
+		UserDefaults.standard.set(size, forKey: "TerminalFontSize")
 	}
 	
-	static func saveCurrentFont(_ font: NSFont) {
-		saveCurrentFont(name: font.fontName, size: Float(font.pointSize))
+	static func saveTerminalFont(_ font: NSFont) {
+		saveTerminalFont(name: font.fontName, size: Float(font.pointSize))
+	}
+	
+	static func saveTerminalFontColor(color: SwiftTerm.Color) {
+		let value = String(format: "%04x.%04x.%04x", color.red, color.green, color.blue)
+
+		UserDefaults.standard.set(value, forKey: "TerminalFontColor")
+	}
+
+	static func currentTerminalFontColor(defaultValue: SwiftTerm.Color = SwiftTerm.Color(red: 35389, green: 35389, blue: 35389)) -> SwiftTerm.Color {
+		guard let color = UserDefaults.standard.object(forKey: "TerminalFontColor") as? String else {
+			return defaultValue
+		}
+		
+		let rgbValues = color.split(separator: ".")
+
+		if rgbValues.count == 3 {
+			if let red = UInt16(rgbValues[0], radix: 16), let green = UInt16(rgbValues[1], radix: 16), let blue = UInt16(rgbValues[2], radix: 16) {
+				return .init(red: red, green: green, blue: blue)
+			}
+		}
+
+		return defaultValue
 	}
 }
 
@@ -60,6 +83,7 @@ struct MainApp: App {
 				Color.red
 			}
 		}
+		.windowResizability(.contentSize)
 		.commands {
 			/*CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
