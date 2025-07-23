@@ -136,6 +136,12 @@ struct HostVirtualMachineView: View {
 				Button("Create template", systemImage: "archivebox") {
 					createTemplate = true
 				}.disabled(self.appState.isRunning)
+
+				Spacer()
+
+				Button("Delete", systemImage: "trash.circle") {
+					self.appState.deleteVirtualMachine(document: self.document)
+				}.disabled(document.status == .running || document.status == .suspended || document.status == .external)
 			}
 
 			ToolbarItem(placement: .primaryAction) {
@@ -146,7 +152,7 @@ struct HostVirtualMachineView: View {
 		}.sheet(isPresented: $displaySettings) {
 			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 		}.alert("Create template", isPresented: $createTemplate) {
-			CreateTemplateView(currentDocument: document)
+			CreateTemplateView(appState: $appState)
 		}
 
 		if #available(macOS 15.0, *) {

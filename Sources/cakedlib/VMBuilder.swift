@@ -94,8 +94,8 @@ public struct VMBuilder {
 				cpuCountMin: Int(options.cpu),
 				memorySizeMin: options.memory * 1024 * 1024)
 
-			config.useCloudInit = source != .iso
-			config.agent = source != .iso
+			config.useCloudInit = source != .iso || options.autoinstall
+			config.agent = source != .iso || options.autoinstall
 			config.nested = options.nested
 			config.attachedDisks = attachedDisks
 		}

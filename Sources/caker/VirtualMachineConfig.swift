@@ -50,6 +50,7 @@ struct VirtualMachineConfig: Hashable {
 	var netIfnames: Bool = false
 	var userData: String? = nil
 	var networkConfig: String? = nil
+	var autoinstall: Bool = false
 
 	init() {
 		os = .linux
@@ -73,6 +74,7 @@ struct VirtualMachineConfig: Hashable {
 		mainGroup = "adm"
 		clearPassword = true
 		diskSize = 20
+		autoinstall = false
 	}
 	
 	init(vmname: String, config: CakeConfig) {
@@ -155,7 +157,8 @@ struct VirtualMachineConfig: Hashable {
 			forwardedPorts: self.forwardPorts,
 			mounts: self.mounts,
 			networks: self.networks,
-			sockets: self.sockets
+			sockets: self.sockets,
+			autoinstall: self.autoinstall
 		)
 	}
 }

@@ -126,7 +126,7 @@ struct MainApp: App {
 				}
 				.disabled(appState.isRunning || appState.currentDocument == nil)
 				.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView(currentDocument: appState.currentDocument)
+					CreateTemplateView(appState: $appState)
 				}
 			}
 		}

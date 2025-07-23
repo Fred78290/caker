@@ -38,7 +38,10 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool = false
 
-	#if arch(arm64)
+	@Flag(help: ArgumentHelp("Support autoinstall mecanism from iso image"))
+	public var autoinstall: Bool = false
+
+#if arch(arm64)
 	@Flag(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
 	#endif
 	public var suspendable: Bool = false
@@ -112,7 +115,8 @@ public struct BuildOptions: ParsableArguments {
 		mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0) },
 		networks: [BridgeAttachement] = [],
 		sockets: [SocketDevice] = [],
-		consoleURL: ConsoleAttachment? = nil
+		consoleURL: ConsoleAttachment? = nil,
+		autoinstall: Bool = false
 	) {
 		self.name = name
 		self.cpu = cpu
@@ -139,11 +143,13 @@ public struct BuildOptions: ParsableArguments {
 		self.sockets = sockets
 		self.consoleURL = consoleURL
 		self.dynamicPortForwarding = false
+		self.autoinstall = autoinstall
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
 		self.name = request.name
 		self.displayRefit = false
+		self.autoinstall = false
 
 		if request.hasCpu {
 			self.cpu = UInt16(request.cpu)

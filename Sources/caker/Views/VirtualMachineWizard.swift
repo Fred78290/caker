@@ -412,25 +412,28 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .iso:
-					LabeledContent("Choose an ISO image disk.") {
-						HStack {
-							TextField("ISO Image", text: $imageName)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
-
-							Button(action: {
-								if let imageName = chooseDiskImage(ofType: UTType.iso9660) {
-									self.imageName = "iso://\(imageName)"
-								}
-							}) {
-								Image(systemName: "document.badge.gearshape")
-							}.buttonStyle(.borderless)
+					VStack {
+						LabeledContent("Choose an ISO image disk.") {
+							HStack {
+								TextField("ISO Image", text: $imageName)
+									.multilineTextAlignment(.leading)
+									.textFieldStyle(.roundedBorder)
+									.background(.white)
+									.labelsHidden()
+									.clipShape(RoundedRectangle(cornerRadius: 6))
+								
+								Button(action: {
+									if let imageName = chooseDiskImage(ofType: UTType.iso9660) {
+										self.imageName = "iso://\(imageName)"
+									}
+								}) {
+									Image(systemName: "document.badge.gearshape")
+								}.buttonStyle(.borderless)
+							}
 						}
+						Toggle("Autoinstall config", isOn: $config.autoinstall)
 					}
-
+					
 				case .ipsw:
 					LabeledContent("Choose an IPSW image.") {
 						HStack {

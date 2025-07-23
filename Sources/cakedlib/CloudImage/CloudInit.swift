@@ -129,6 +129,11 @@ func newYAMLEncoder() -> YAMLEncoder {
 	return encoder
 }
 
+func newYAMLDecoder() -> YAMLDecoder {
+	let encoder: YAMLDecoder = YAMLDecoder()
+	return encoder
+}
+
 struct NetworkConfig: Codable {
 	var network: CloudInitNetwork = CloudInitNetwork()
 
@@ -240,6 +245,194 @@ struct Match: Codable {
 struct Merging: Codable {
 	var name: String
 	var settings: [String]
+}
+
+struct AutoInstall: Codable {
+	struct Identity: Codable {
+		var realName: String?
+		var userName: String
+		var password: String
+		var hostname: String
+		
+		enum CodingKeys: String, CodingKey {
+			case realName = "realname"
+			case userName = "username"
+			case password = "password"
+			case hostname = "hostname"
+		}
+		
+		init(from decoder: Decoder) throws {
+			let container: KeyedDecodingContainer<Identity.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+			
+			self.realName = try container.decodeIfPresent(String.self, forKey: .realName)
+			self.userName = try container.decode(String.self, forKey: .userName)
+			self.password = try container.decode(String.self, forKey: .password)
+			self.hostname = try container.decode(String.self, forKey: .hostname)
+		}
+		
+		func encode(to encoder: Encoder) throws {
+			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+			
+			try container.encodeIfPresent(realName, forKey: .realName)
+			try container.encode(userName, forKey: .userName)
+			try container.encode(password, forKey: .password)
+			try container.encode(hostname, forKey: .hostname)
+		}
+	}
+	
+	struct Ssh: Codable {
+		var enabled: Bool
+		var authorizedKeys: [String]
+		var allowPassword: Bool
+		
+		enum CodingKeys: String, CodingKey {
+			case enabled = "install-server"
+			case authorizedKeys = "authorized-keys"
+			case allowPassword = "allow-pw"
+		}
+		
+		init(enabled: Bool, authorizedKeys: [String], allowPassword: Bool) {
+			self.enabled = enabled
+			self.authorizedKeys = authorizedKeys
+			self.allowPassword = allowPassword
+		}
+
+		init(from decoder: Decoder) throws {
+			let container: KeyedDecodingContainer<Ssh.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+			
+			self.enabled = try container.decode(Bool.self, forKey: .enabled)
+			self.authorizedKeys = try container.decode([String].self, forKey: .authorizedKeys)
+			self.allowPassword = try container.decode(Bool.self, forKey: .allowPassword)
+		}
+		
+		func encode(to encoder: Encoder) throws {
+			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+			
+			try container.encode(enabled, forKey: .enabled)
+			try container.encode(authorizedKeys, forKey: .authorizedKeys)
+			try container.encode(allowPassword, forKey: .allowPassword)
+		}
+	}
+	
+	struct RefreshInstaller: Codable {
+		var update: Bool
+		var channel: String?
+		
+		enum CodingKeys: String, CodingKey {
+			case update = "update"
+			case channel = "channel"
+		}
+		
+		init(from decoder: Decoder) throws {
+			let container: KeyedDecodingContainer<RefreshInstaller.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+			
+			self.update = try container.decode(Bool.self, forKey: .update)
+			self.channel = try container.decodeIfPresent(String.self, forKey: .channel)
+		}
+		
+		func encode(to encoder: Encoder) throws {
+			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+			
+			try container.encode(update, forKey: .update)
+			try container.encodeIfPresent(channel, forKey: .channel)
+		}
+	}
+	
+	enum InstallUpdate: String, Codable {
+		case security
+		case all
+	}
+	
+	enum CodingKeys: String, CodingKey {
+		case version = "version"
+		case identity = "identity"
+		case ssh = "ssh"
+		case timezone = "timezone"
+		case update = "update"
+		case packages = "packages"
+		case earlyCommands = "early-commands"
+		case lateCommands = "late-commands"
+		case refreshInstaller = "refresh-installer"
+		case userData = "user-data"
+		case network = "network"
+	}
+
+	var version: Int = 1
+	var identity: Identity?
+	var ssh: Ssh?
+	var timezone: String?
+	var update: InstallUpdate?
+	var packages: [String]?
+	var earlyCommands: [String]?
+	var lateCommands: [String]?
+	var refreshInstaller: RefreshInstaller?
+	var userData: CloudConfigData?
+	var network: NetworkConfig?
+	
+	init(identity: Identity? = nil,
+		 ssh: Ssh? = nil,
+		 timezone: String? = nil,
+		 update: InstallUpdate? = nil,
+		 packages: [String]? = nil,
+		 earlyCommands: [String]? = nil,
+		 lateCommands: [String]? = nil,
+		 refreshInstaller: RefreshInstaller? = nil,
+		 userData: CloudConfigData? = nil,
+		 network: NetworkConfig? = nil) {
+		
+		self.identity = identity
+		self.ssh = ssh
+		self.timezone = timezone
+		self.update = update
+		self.packages = packages
+		self.earlyCommands = earlyCommands
+		self.lateCommands = lateCommands
+		self.refreshInstaller = refreshInstaller
+		self.userData = userData
+		self.network = network
+	}
+	
+	init(from decoder: Decoder) throws {
+		let container: KeyedDecodingContainer<AutoInstall.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+		
+		self.version = try container.decode(Int.self, forKey: .version)
+		self.identity = try container.decodeIfPresent(Identity.self, forKey: .identity)
+		self.ssh = try container.decodeIfPresent(Ssh.self, forKey: .ssh)
+		self.timezone = try container.decodeIfPresent(String.self, forKey: .timezone)
+		self.update = try container.decodeIfPresent(InstallUpdate.self, forKey: .update)
+		self.packages = try container.decodeIfPresent([String].self, forKey: .packages)
+		self.earlyCommands = try container.decodeIfPresent([String].self, forKey: .earlyCommands)
+		self.lateCommands = try container.decodeIfPresent([String].self, forKey: .lateCommands)
+		self.refreshInstaller = try container.decodeIfPresent(RefreshInstaller.self, forKey: .refreshInstaller)
+		self.userData = try container.decodeIfPresent(CloudConfigData.self, forKey: .userData)
+		self.network = try container.decodeIfPresent(NetworkConfig.self, forKey: .network)
+	}
+	
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+		
+		try container.encode(version, forKey: .version)
+		try container.encodeIfPresent(identity, forKey: .identity)
+		try container.encodeIfPresent(ssh, forKey: .ssh)
+		try container.encodeIfPresent(timezone, forKey: .timezone)
+		try container.encodeIfPresent(packages, forKey: .packages)
+		try container.encodeIfPresent(earlyCommands, forKey: .earlyCommands)
+		try container.encodeIfPresent(lateCommands, forKey: .lateCommands)
+		try container.encodeIfPresent(refreshInstaller, forKey: .refreshInstaller)
+		try container.encodeIfPresent(userData, forKey: .userData)
+		try container.encodeIfPresent(network, forKey: .network)
+	}
+	
+	func toCloudInit() throws -> Data {
+		let encoder: YAMLEncoder = newYAMLEncoder()
+		let encoded = "#cloud-config\n\(try encoder.encode(self))"
+
+		guard let result = encoded.data(using: .ascii) else {
+			throw CloudInitGenerateError("Failed to encode vendorData")
+		}
+
+		return result
+	}
 }
 
 struct CloudConfigData: Codable {
@@ -733,6 +926,45 @@ class CloudInit {
 		return vendorData
 	}
 
+	private func loadNetworkConfig(config: CakeConfig) throws -> NetworkConfig {
+		if let networkConfig = self.networkConfig {
+			return try YAMLDecoder().decode(NetworkConfig.self, from: networkConfig)
+		} else {
+			return NetworkConfig(netIfnames: self.netIfnames, config: config)
+		}
+	}
+
+	private func createAutoInstallData(config: CakeConfig) throws -> Data {
+		let installCakeagent = installCakeAgentScript(config: config)
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
+		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
+		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
+		let serverPem = try Compression.compressEncoded(contentOf: certificates.serverCertURL)
+		let runCommand = config.mounts.isEmpty ? ["/usr/local/bin/install-cakeagent.sh"] : ["/usr/local/bin/install-cakeagent.sh"]
+		let userData = CloudConfigData(
+			defaultUser: self.userName,
+			password: self.password,
+			mainGroup: self.mainGroup,
+			clearPassword: self.clearPassword,
+			sshAuthorizedKeys: sshAuthorizedKeys,
+			tz: TimeZone.current.identifier,
+			packages: nil,
+			writeFiles: [
+				WriteFile(path: "/usr/local/bin/install-cakeagent.sh", content: installCakeagent, encoding: "base64", permissions: "0755", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cloud/cloud.cfg.d/100_datasources.cfg", content: "datasource_list: [ NoCloud, None ]", permissions: "0644", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.key", content: serverKey, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
+			],
+			growPart: true)
+
+		let ssh = AutoInstall.Ssh(enabled: true, authorizedKeys: self.sshAuthorizedKeys ?? [], allowPassword: self.clearPassword)
+		let network = try loadNetworkConfig(config: config)
+		let autoInstall = AutoInstall(ssh: ssh, timezone: TimeZone.current.identifier, lateCommands: runCommand, userData: userData, network: network)
+		
+		return try autoInstall.toCloudInit()
+	}
+
 	private func createUserData(config: CakeConfig) throws -> Data {
 		if let userData = self.userData {
 			return try buildVendorData(config: config, runMode: self.runMode).toCloudInit(userData)
@@ -813,10 +1045,15 @@ class CloudInit {
 				return InputStream(data: emptyCloudInit)
 			})
 
-		seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
-		seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
+		if config.source == .iso {
+			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config))
+		} else {
+			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
+			seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
+			seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
+		}
+
 		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name, instanceID: config.instanceID))
-		seed["/network-config"] = try createSeed(config: config, writer: writer, path: "network-config", configData: createNetworkConfig(config: config))
 		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config, runMode: self.runMode))
 
 		// write

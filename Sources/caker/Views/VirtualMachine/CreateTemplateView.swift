@@ -10,8 +10,7 @@ import CakedLib
 import GRPCLib
 
 struct CreateTemplateView: View {
-	var currentDocument: VirtualMachineDocument?
-
+	@Binding var appState: AppState
 	@State private var templateName: String = ""
 	@State private var templateResult: CreateTemplateReply?
 	
@@ -19,7 +18,7 @@ struct CreateTemplateView: View {
 		TextField("Name", text: $templateName)
 		
 		AsyncButton("Create", action: {
-			self.templateResult = self.currentDocument?.createTemplateFromUI(name: self.templateName)
+			self.templateResult = self.appState.currentDocument?.createTemplateFromUI(name: self.templateName)
 		})
 		.disabled(templateName.isEmpty || TemplateHandler.exists(name: templateName, runMode: .app))
 		.onChange(of: templateResult) { newValue in
@@ -36,6 +35,8 @@ struct CreateTemplateView: View {
 			alert.messageText = "Failed to create template"
 			alert.informativeText = templateResult.reason ?? "Internal error"
 			alert.runModal()
+		} else {
+			self.appState.reloadRemotes()
 		}
 	}
 }
