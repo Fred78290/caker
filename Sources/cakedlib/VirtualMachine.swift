@@ -507,11 +507,22 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 
 			self.runningIP = runningIP
 
-			if config.firstLaunch && config.agent == false {
-				do {
-					config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP, runMode: runMode)
-				} catch {
-					Logger(self).error("VM \(self.vmLocation.name) failed to install agent: \(error)")
+			if  config.agent == false {
+				let source = config.source
+				var installAgent = false
+
+				if config.firstLaunch && source != .iso && source != .ipsw {
+					installAgent = true
+				} else if source == .iso || source == .ipsw {
+					installAgent = true
+				}
+				
+				if installAgent {
+					do {
+						config.agent = try self.vmLocation.installAgent(config: config, runningIP: runningIP, runMode: runMode)
+					} catch {
+						Logger(self).error("VM \(self.vmLocation.name) failed to install agent: \(error)")
+					}
 				}
 			}
 

@@ -26,6 +26,20 @@ public struct VMBuilder {
 		case iso
 		case ipsw
 
+		init(stringValue: String) {
+			switch stringValue.lowercased() {
+				case "iso": self = .iso
+				case "ipsw": self = .ipsw
+				case "raw": self = .raw
+				case "cloud": self = .cloud
+				case "oci": self = .oci
+				case "template": self = .template
+				case "stream": self = .stream
+				default:
+					self = .iso
+			}
+		}
+
 		static var allCases: [String] {
 			["iso", "ipsw", "raw", "cloud", "oci", "template", "stream"]
 		}
@@ -101,6 +115,7 @@ public struct VMBuilder {
 		config.dynamicPortForwarding = options.dynamicPortForwarding
 		config.suspendable = options.suspendable
 		config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+		config.source = source
 
 		try config.save()
 
@@ -185,7 +200,9 @@ public struct VMBuilder {
 			
 			sourceImage = .oci
 		} else if scheme == "iso" {
+			sourceImage = .iso
 		} else if scheme == "ipsw" {
+			sourceImage = .ipsw
 		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")

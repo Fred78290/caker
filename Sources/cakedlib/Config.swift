@@ -176,6 +176,17 @@ public final class CakeConfig {
 		}
 	}
 
+	public var source: VMBuilder.ImageSource {
+		set { self.cake["source"] = newValue.description }
+		get {
+			if let source = self.cake["source"] as? String {
+				return VMBuilder.ImageSource(stringValue: source)
+			}
+			
+			return VMBuilder.ImageSource.cloud
+		}
+	}
+
 	public var osName: String? {
 		set { self.cake["osName"] = newValue }
 		get { self.cake["osName"] as? String }
