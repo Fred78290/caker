@@ -135,7 +135,7 @@ struct VirtualMachineConfig: Hashable {
 		try config.save()
 	}
 
-	func buildOptions(image: String) -> BuildOptions {
+	func buildOptions(image: String, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
 			cpu: UInt16(self.cpuCount),
@@ -151,6 +151,7 @@ struct VirtualMachineConfig: Hashable {
 			suspendable: self.suspendable,
 			netIfnames: self.netIfnames,
 			image: image,
+			sshAuthorizedKey: sshAuthorizedKey,
 			userData: self.userData,
 			networkConfig: self.networkConfig,
 			displayRefit: self.displayRefit,
