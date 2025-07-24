@@ -143,7 +143,7 @@ struct NetworkConfig: Codable {
 		var index: Int = 1
 
 		networks.forEach { network in
-			let name = netIfnames ? "enp0s\(index)" : "eth\(index - 1)"
+			let name = netIfnames ? "eth\(index - 1)" : "enp0s\(index)"
 
 			index += 1
 
