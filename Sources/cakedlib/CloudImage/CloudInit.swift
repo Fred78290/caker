@@ -422,6 +422,40 @@ struct AutoInstall: Codable {
 		try container.encodeIfPresent(userData, forKey: .userData)
 		try container.encodeIfPresent(network, forKey: .network)
 	}
+}
+
+struct AutoInstallConfig: Codable {
+	var autoInstall: AutoInstall
+	
+	enum CodingKeys: String, CodingKey {
+		case autoInstall = "autoinstall"
+	}
+	
+	init(identity: AutoInstall.Identity? = nil,
+		 ssh: AutoInstall.Ssh? = nil,
+		 timezone: String? = nil,
+		 update: AutoInstall.InstallUpdate? = nil,
+		 packages: [String]? = nil,
+		 earlyCommands: [String]? = nil,
+		 lateCommands: [String]? = nil,
+		 refreshInstaller: AutoInstall.RefreshInstaller? = nil,
+		 userData: CloudConfigData? = nil,
+		 network: NetworkConfig? = nil) {
+		
+		self.autoInstall = .init(identity: identity, ssh: ssh, timezone: timezone, update: update, packages: packages, earlyCommands: earlyCommands, lateCommands: lateCommands, refreshInstaller: refreshInstaller, userData: userData, network: network)
+	}
+
+	init(from decoder: Decoder) throws {
+		let container: KeyedDecodingContainer<AutoInstallConfig.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+		
+		self.autoInstall = try container.decode(AutoInstall.self, forKey: .autoInstall)
+	}
+	
+	func encode(to encoder: Encoder) throws {
+		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
+		
+		try container.encode(autoInstall, forKey: .autoInstall)
+	}
 	
 	func toCloudInit() throws -> Data {
 		let encoder: YAMLEncoder = newYAMLEncoder()
@@ -434,6 +468,7 @@ struct AutoInstall: Codable {
 		return result
 	}
 }
+
 
 struct CloudConfigData: Codable {
 	var merge: [Merging]? = nil
@@ -956,11 +991,12 @@ class CloudInit {
 				WriteFile(path: "/etc/cakeagent/ssl/server.pem", content: serverPem, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 				WriteFile(path: "/etc/cakeagent/ssl/ca.pem", content: caCert, encoding: "gzip+base64", permissions: "0600", owner: "root:\(self.mainGroup)"),
 			],
+			runcmd: runCommand,
 			growPart: true)
 
 		let ssh = AutoInstall.Ssh(enabled: true, authorizedKeys: self.sshAuthorizedKeys ?? [], allowPassword: self.clearPassword)
 		let network = try loadNetworkConfig(config: config)
-		let autoInstall = AutoInstall(ssh: ssh, timezone: TimeZone.current.identifier, lateCommands: runCommand, userData: userData, network: network)
+		let autoInstall = AutoInstallConfig(ssh: ssh, timezone: TimeZone.current.identifier, userData: userData, network: network)
 		
 		return try autoInstall.toCloudInit()
 	}
