@@ -28,6 +28,10 @@ extension UTType {
 		UTType(filenameExtension: "ipsw")!
 	}
 
+	static var sshPublicKey: UTType {
+		UTType(filenameExtension: "pub")!
+	}
+
 	static var unixSocketAddress: UTType {
 		UTType(importedAs: "public.socket-address")
 	}
