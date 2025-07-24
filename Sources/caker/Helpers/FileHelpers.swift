@@ -18,12 +18,13 @@ struct FileHelpers {
 		return selectSingleInputFile(ofType: imageTypes, withTitle: windowTitle)
 	}
 
-	public static func selectSingleInputFile(ofType fileTypes: [UTType], withTitle windowTitle: String?, allowsOtherFileTypes: Bool = false, canCreateDirectories: Bool = false) -> URL? {
+	public static func selectSingleInputFile(ofType fileTypes: [UTType], withTitle windowTitle: String?, allowsOtherFileTypes: Bool = false, canCreateDirectories: Bool = false, showsHiddenFiles: Bool = false) -> URL? {
 
 		let openPrompt = FileHelpers().createOpenPanel(ofType: fileTypes, withTitle: windowTitle)
 
 		openPrompt.allowsOtherFileTypes = allowsOtherFileTypes
 		openPrompt.canCreateDirectories = canCreateDirectories
+		openPrompt.showsHiddenFiles = showsHiddenFiles
 
 		let result = openPrompt.runModal()
 
