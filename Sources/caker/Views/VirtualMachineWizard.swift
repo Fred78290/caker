@@ -14,6 +14,134 @@ import UniformTypeIdentifiers
 
 typealias OptionalVMLocation = VMLocation?
 
+enum OSCloudImage: Int, CaseIterable {
+	/*static var allCases: [String] = [
+		"Ubuntu 25.04",
+		"Ubuntu 24.04",
+		"Ubuntu 22.04",
+		"Ubuntu 20.04",
+		
+		"CentOS 10",
+		"CentOS 9",
+		
+		"Fedora 42",
+		"Fedora 41",
+		"Fedora 40",
+		
+		"Debian 12",
+		"Debian 11",
+		"Debian 10",
+		
+		"OpenSUSE 156",
+		"OpenSUSE 155",
+		"OpenSUSE 154",
+
+		"Alpine 3.22",
+		"Alpine 3.21",
+		"Alpine 3.20",
+	]*/
+	
+	case ubuntu2504LTS
+	case ubuntu2404LTS
+	case ubuntu2204LTS
+	case ubuntu2004LTS
+
+	case centos10
+	case centos9
+
+	case fedora42
+	case fedora41
+	case fedora40
+
+	case debian12
+	case debian11
+	case debian10
+	
+	case openSUSE156
+	case openSUSE155
+	case openSUSE154
+
+	case alpine322
+	case alpine321
+	case alpine320
+	
+	var stringValue: String {
+		switch self {
+			case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
+			case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
+			case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
+			case .ubuntu2004LTS: return "Ubuntu 20.04 LTS"
+				
+			case .centos10: return "CentOS 10"
+			case .centos9: return "CentOS 9"
+				
+			case .fedora42: return "Fedora 42"
+			case .fedora41: return "Fedora 41"
+			case .fedora40: return "Fedora 40"
+				
+			case .debian12: return "Debian 12"
+			case .debian11: return "Debian 11"
+			case .debian10: return "Debian 10"
+					
+			case .openSUSE156: return "OpenSUSE Leap 15.6"
+			case .openSUSE155: return "OpenSUSE Leap 15.6"
+			case .openSUSE154: return "OpenSUSE Leap 15.4"
+
+			case .alpine322: return "Alpine 3.22"
+			case .alpine321: return "Alpine 3.21"
+			case .alpine320: return "Alpine 3.20"
+		}
+	}
+
+	var arch: String {
+#if arch(arm64)
+		switch self {
+		case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS,.debian12, .debian11, .debian10:
+			return "arm64"
+
+		case .centos10, .centos9,.fedora42, .fedora41, .fedora40,.openSUSE156, .openSUSE155, .openSUSE154,.alpine322, .alpine321, .alpine320:
+			return "aarch64"
+		}
+#elseif arch(x86_64)
+		switch self {
+		case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS,.debian12, .debian11, .debian10:
+			return "amd64"
+
+		case .centos10, .centos9,.fedora42, .fedora41, .fedora40,.openSUSE156, .openSUSE155, .openSUSE154,.alpine322, .alpine321, .alpine320:
+			return "x86_64"
+		}
+#endif
+	}
+
+	var url: URL {
+		switch self {
+		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")! // amd64|arm64
+		case .ubuntu2404LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-\(self.arch).img")!
+		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
+		case .ubuntu2004LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-\(self.arch).img")!
+			
+		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-\(self.arch)-10-latest.\(self.arch).qcow2")!
+		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-\(self.arch)-9-latest.\(self.arch).qcow2")!
+			
+		case .fedora42: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
+		case .fedora41: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
+		case .fedora40: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(self.arch)/images/Fedora-Server-KVM-40-1.14.\(self.arch).qcow2")!
+			
+		case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
+		case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
+		case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
+			
+		case .openSUSE156: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.\(self.arch)-NoCloud.qcow2")!
+		case .openSUSE155: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.\(self.arch)-NoCloud.qcow2")!
+		case .openSUSE154: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.\(self.arch)-NoCloud.qcow2")!
+			
+		case .alpine322: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-\(self.arch)-uefi-cloudinit-r0.qcow2")!
+		case .alpine321: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-\(self.arch)-uefi-cloudinit-r0.qcow2")!
+		case .alpine320: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-\(self.arch)-uefi-cloudinit-r0.qcow2")!
+		}
+	}
+}
+
 let groups: [String] = [
 	"root",
 	"daemon",
@@ -107,7 +235,7 @@ struct VirtualMachineWizard: View {
 	
 	@State private var selectedIndex: Int = 0
 	@State private var config: VirtualMachineConfig = .init()
-	@State private var imageName: String = defaultUbuntuImage
+	@State private var imageName: String = OSCloudImage.ubuntu2404LTS.url.absoluteString
 	@State private var configValid: Bool = false
 	@State private var password: String = ""
 	@State private var showPassword: Bool = false
@@ -115,6 +243,8 @@ struct VirtualMachineWizard: View {
 	@State private var remoteImage: String = "ubuntu"
 	@State private var remoteImages: [ShortImageInfo] = []
 	@State private var selectedRemoteImage: String = ""
+	@State private var cloudImageRelease: OSCloudImage = .ubuntu2404LTS
+	@State private var sshAuthorizedKey: String?
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
@@ -132,6 +262,10 @@ struct VirtualMachineWizard: View {
 		]
 		
 		self.stepsState = StepsState(data: items)
+		
+		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
+			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
+		}
 	}
 	
 	var body: some View {
@@ -346,7 +480,7 @@ struct VirtualMachineWizard: View {
 				LabeledContent("Administator password") {
 					HStack {
 						if showPassword {
-							TextField("Password", text: $password)
+							TextField("Password", value: $config.configuredPassword, format: .optional)
 								.multilineTextAlignment(.leading)
 								.textFieldStyle(.roundedBorder)
 								.background(.white)
@@ -359,6 +493,13 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.onChange(of: password) { newValue in
+									if newValue.isEmpty {
+										config.configuredPassword = nil
+									} else {
+										config.configuredPassword = newValue
+									}
+								}
 						}
 					}.overlay(alignment: .trailing) {
 						Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
@@ -369,6 +510,24 @@ struct VirtualMachineWizard: View {
 					}
 				}
 				
+				LabeledContent("SSH Public key") {
+					HStack {
+						TextField("SSH Public key", value: $sshAuthorizedKey, format: .optional)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+						Button(action: {
+							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
+								self.sshAuthorizedKey = sshPublicKey
+							}
+						}) {
+							Image(systemName: "key")
+						}.buttonStyle(.borderless)
+					}
+				}
+
 				Toggle("SSH with password", isOn: $config.clearPassword)
 				
 				LabeledContent("Administator group") {
@@ -455,12 +614,24 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .cloud:
-					TextField("Cloud Image", text: $imageName)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
+					LabeledContent {
+						TextField("Cloud Image", text: $imageName)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+					} label: {
+						Picker("Preconfigured image", selection: $cloudImageRelease) {
+							ForEach(OSCloudImage.allCases, id: \.self) { os in
+								Text(os.stringValue).tag(os)
+							}
+						}
+						.onChange(of: cloudImageRelease) { newValue in
+							self.imageName = newValue.url.absoluteString
+						}
 						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+					}
 
 				case .oci:
 					TextField("OCI Image", text: $imageName)
@@ -606,7 +777,7 @@ struct VirtualMachineWizard: View {
 			return nil
 		}
 		
-		let options = config.buildOptions(image: imageName)
+		let options = config.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
 		
 		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app)
 		
@@ -624,6 +795,14 @@ struct VirtualMachineWizard: View {
 
 	func chooseDiskImage(ofType: UTType = .diskImage) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: "Select image", allowsOtherFileTypes: true) {
+			return diskImg.absoluteURL.path
+		}
+		
+		return nil
+	}
+
+	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> String? {
+		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: title, allowsOtherFileTypes: true, showsHiddenFiles: showsHiddenFiles) {
 			return diskImg.absoluteURL.path
 		}
 		
