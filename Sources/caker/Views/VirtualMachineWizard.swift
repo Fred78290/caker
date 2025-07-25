@@ -233,23 +233,35 @@ struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
 	
-	@State private var selectedIndex: Int = 0
-	@State private var config: VirtualMachineConfig = .init()
-	@State private var imageName: String = OSCloudImage.ubuntu2404LTS.url.absoluteString
-	@State private var configValid: Bool = false
-	@State private var password: String = ""
-	@State private var showPassword: Bool = false
-	@State private var imageSource: VMBuilder.ImageSource = .cloud
-	@State private var remoteImage: String = "ubuntu"
-	@State private var remoteImages: [ShortImageInfo] = []
-	@State private var selectedRemoteImage: String = ""
-	@State private var cloudImageRelease: OSCloudImage = .ubuntu2404LTS
+	@State private var selectedIndex: Int
+	@State private var config: VirtualMachineConfig
+	@State private var imageName: String
+	@State private var configValid: Bool
+	@State private var password: String
+	@State private var showPassword: Bool
+	@State private var imageSource: VMBuilder.ImageSource
+	@State private var remoteImage: String
+	@State private var remoteImages: [ShortImageInfo]
+	@State private var selectedRemoteImage: String
+	@State private var cloudImageRelease: OSCloudImage
 	@State private var sshAuthorizedKey: String?
 
 	private let items: [ItemView]
 	private let stepsState: StepsState<ItemView>
 	
 	init() {
+		self.selectedIndex = 0
+		self.config = .init()
+		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
+		self.configValid = false
+		self.password = ""
+		self.showPassword = false
+		self.imageSource = .cloud
+		self.remoteImage = "ubuntu"
+		self.remoteImages = []
+		self.selectedRemoteImage = ""
+		self.cloudImageRelease = .ubuntu2404LTS
+
 		self.items = [
 			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
 			ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
