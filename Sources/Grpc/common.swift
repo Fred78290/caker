@@ -334,6 +334,9 @@ extension String {
 		return String(self[startIndex..<endIndex])
 	}
 
+	public func base64EncodedString() -> String {
+		self.data(using: .ascii)?.base64EncodedString() ?? ""
+	}
 }
 
 extension URL {
