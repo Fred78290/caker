@@ -121,6 +121,7 @@ public struct VMBuilder {
 
 		if config.os == .linux && config.useCloudInit {
 			let cloudInit = try CloudInit(
+				plateform: SupportedPlatform(rawValue: options.image),
 				userName: options.user,
 				password: options.password,
 				mainGroup: options.mainGroup,

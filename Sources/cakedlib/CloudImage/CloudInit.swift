@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-let CAKEAGENT_SNAPSHOT = "d4147385"
+let CAKEAGENT_SNAPSHOT = "1eb9e35e"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
@@ -193,23 +193,52 @@ struct DHCPOverides: Codable {
 	}
 }
 
+struct NameServer: Codable {
+	var search: [String]? = nil
+	var addresses: [String]? = nil
+}
+
+struct NetworkRoute: Codable {
+	var to: String
+	var via: String
+	var metric: Int? = nil
+	var onLink: Bool? = nil
+	
+	enum CodingKeys: String, CodingKey {
+		case to
+		case via
+		case metric
+		case onLink = "on-link"
+	}
+}
+
 struct Interface: Codable {
 	var match: Match? = nil
 	var setName: String? = nil
+	var addresses: [String]? = nil
+	var nameservers: NameServer? = nil
+	var gateway4: String? = nil
+	var gateway6: String? = nil
 	var dhcp4: Bool? = nil
 	var dhcp6: Bool? = nil
 	var dhcpIdentifier: String? = nil
 	var dhcp4Overrides: DHCPOverides? = nil
 	var dhcp6Overrides: DHCPOverides? = nil
+	var routes: [NetworkRoute]? = nil
 
 	enum CodingKeys: String, CodingKey {
 		case match = "match"
 		case setName = "set-name"
+		case addresses = "addresses"
+		case nameservers = "nameservers"
+		case gateway4 = "gateway4"
+		case gateway6 = "gateway6"
 		case dhcp4 = "dhcp4"
 		case dhcp6 = "dhcp6"
 		case dhcpIdentifier = "dhcp-identifier"
 		case dhcp4Overrides = "dhcp4-overrides"
 		case dhcp6Overrides = "dhcp6-overrides"
+		case routes = "routes"
 	}
 
 	func encode(to encoder: Encoder) throws {
@@ -217,11 +246,16 @@ struct Interface: Codable {
 
 		try container.encodeIfPresent(match, forKey: .match)
 		try container.encodeIfPresent(setName, forKey: .setName)
+		try container.encodeIfPresent(addresses, forKey: .addresses)
+		try container.encodeIfPresent(nameservers, forKey: .nameservers)
+		try container.encodeIfPresent(gateway4, forKey: .gateway4)
+		try container.encodeIfPresent(gateway6, forKey: .gateway6)
 		try container.encodeIfPresent(dhcp4, forKey: .dhcp4)
 		try container.encodeIfPresent(dhcp6, forKey: .dhcp6)
 		try container.encodeIfPresent(dhcpIdentifier, forKey: .dhcpIdentifier)
 		try container.encodeIfPresent(dhcp4Overrides, forKey: .dhcp4Overrides)
 		try container.encodeIfPresent(dhcp6Overrides, forKey: .dhcp6Overrides)
+		try container.encodeIfPresent(routes, forKey: .routes)
 	}
 }
 
@@ -815,6 +849,31 @@ enum Sudo: Codable {
 	}
 }
 
+public enum SupportedPlatform: String, CaseIterable {
+	case ubuntu
+	case centos
+	case macos
+	case windows
+	case debian
+	case fedora
+	case openSUSE
+	case alpine
+	case unknown
+
+	public init(rawValue: String) {
+		let rawValue = rawValue.lowercased()
+		let value = Self.allCases.first {
+			rawValue.contains($0.rawValue)
+		}
+		
+		if let value = value {
+			self = value
+		} else {
+			self = .unknown
+		}
+	}
+}
+
 class CloudInit {
 	var userData: Data?
 	var vendorData: Data?
@@ -826,9 +885,10 @@ class CloudInit {
 	var clearPassword: Bool = false
 	var runMode: Utils.RunMode = .user
 	var netIfnames: Bool = true
+	var platform: SupportedPlatform = .ubuntu
 
 	private static func loadPublicKey(sshAuthorizedKey: String) throws -> String {
-		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey))
+		let datas: Data = try Data(contentsOf: URL(fileURLWithPath: sshAuthorizedKey.expandingTildeInPath))
 
 		if let publicKey = String(data: datas, encoding: .ascii) {
 			return publicKey.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -849,7 +909,8 @@ class CloudInit {
 		}
 	}
 
-	init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode) throws {
+	init(plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode) throws {
+		self.platform = plateform
 		self.userName = userName
 		self.password = password
 		self.mainGroup = mainGroup
@@ -862,10 +923,11 @@ class CloudInit {
 		self.runMode = runMode
 	}
 
-	convenience init(userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, runMode: Utils.RunMode)
+	convenience init(plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, runMode: Utils.RunMode)
 		throws
 	{
 		try self.init(
+			plateform: plateform,
 			userName: userName,
 			password: password,
 			mainGroup: mainGroup,
@@ -885,10 +947,10 @@ class CloudInit {
 		return metadata
 	}
 
-	private func cakeagentBinary(config: CakeConfig, runMode: Utils.RunMode) throws -> URL {
+	private func cakeagentBinary(config: CakeConfig) throws -> URL {
 		let arch = Architecture.current().rawValue
 		let os = config.os.rawValue
-		let home: Home = try Home(runMode: runMode)
+		let home: Home = try Home(runMode: self.runMode)
 		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
 
 		if FileManager.default.fileExists(atPath: localAgent.path) == false {
@@ -925,11 +987,11 @@ class CloudInit {
 			fi
 			"""
 
-		return install_cakeagent.data(using: .ascii)?.base64EncodedString() ?? ""
+		return install_cakeagent
 	}
 
 	private func buildVendorData(config: CakeConfig, runMode: Utils.RunMode) throws -> CloudConfigData {
-		let installCakeagent = installCakeAgentScript(config: config)
+		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
@@ -969,8 +1031,182 @@ class CloudInit {
 		}
 	}
 
+	private func createPreseedData(config: CakeConfig) throws -> Data {
+		let networks = try loadNetworkConfig(config: config).network
+		var scripts: [String] = [
+		]
+
+		if let network = networks.ethernets.first {
+			let inf = network.key
+			let ethernet = network.value
+
+			scripts.append("#d-i netcfg/choose_interface select \(inf)")
+
+			if let dhcp4 = ethernet.dhcp4, dhcp4 == false {
+				if let cidr = ethernet.addresses?.first {
+					let addr = cidr.stringBefore(before: "/")
+					let netmask = cidr.stringAfter(after: "/").cidrToNetmask()
+
+					scripts.append("d-i netcfg/get_ipaddress string \(addr)")
+					scripts.append("d-i netcfg/get_netmask string \(netmask)")
+
+					if let gateway4 = ethernet.gateway4 {
+						scripts.append("d-i netcfg/get_netmask string \(gateway4)")
+					} else if let routes = ethernet.routes, let defaultRoute = routes.first(where: { $0.to.lowercased() == "default" }) {
+						scripts.append("d-i netcfg/get_netmask string \(defaultRoute.via)")
+					} else {
+						let network = IP.Block<IP.V4>(base: IP.V4(addr)!, bits: UInt8(netmask.netmaskToCidr())).network
+						let gateway = network.range.lowerBound
+
+						scripts.append("d-i netcfg/get_netmask string \(gateway.value)")
+					}
+
+					if let dns = ethernet.nameservers, let addresses = dns.addresses {
+						addresses.forEach {
+							scripts.append("d-i netcfg/get_nameservers string \($0)")
+						}
+					}
+
+					scripts.append("d-i netcfg/confirm_static boolean true")
+				}
+			}
+		}
+
+		scripts.append("d-i partman-auto/method string regular")
+
+		scripts.append("d-i passwd/user-fullname string \(self.userName)")
+		scripts.append("d-i passwd/username string \(self.userName)")
+		scripts.append("d-i passwd/user-default-groups string \(self.mainGroup)")
+
+		if let password = self.password {
+			scripts.append("d-i passwd/user-password password \(password)")
+			scripts.append("d-i passwd/user-password-again password \(password)")
+		}
+
+		scripts.append("d-i preseed/late_command string mkdir -p /target/etc/cakeagent/ssl /target/usr/local/bin")
+
+		scripts.append("d-i preseed/late_command string cp /cdrom/install-cakeagent.sh /target/usr/local/bin")
+		scripts.append("d-i preseed/late_command string cp /cdrom/server.key /target/etc/cakeagent/ssl")
+		scripts.append("d-i preseed/late_command string cp /cdrom/server.pem /target/etc/cakeagent/ssl")
+		scripts.append("d-i preseed/late_command string cp /cdrom/ca.pem /target/etc/cakeagent/ssl")
+
+		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/usr/local/bin/install-cakeagent.sh")
+		scripts.append("d-i preseed/late_command string chown root:\(self.mainGroup) /target/etc/cakeagent/ssl/*")
+
+		scripts.append("d-i preseed/late_command string chmod 755 /target/usr/local/bin/install-cakeagent.sh")
+		scripts.append("d-i preseed/late_command string chmod 600 /target/etc/cakeagent/ssl/*")
+
+		scripts.append("d-i preseed/late_command string sh -c \"echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)\"")
+		scripts.append("d-i preseed/late_command string sh -c \"echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg\"")
+		scripts.append("d-i preseed/late_command string cloud-init clean")
+
+		scripts.append("d-i preseed/late_command string sh -c \"echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)\"")
+
+		return String(scripts.joined(by: "\n")).data(using: .ascii)!
+	}
+
+	private func createKickStartData(config: CakeConfig) throws -> Data {
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
+		let caCert = try String(contentsOf: certificates.caCertURL)
+		let serverKey = try String(contentsOf: certificates.serverKeyURL)
+		let serverPem = try String(contentsOf: certificates.serverCertURL)
+		let networks = try loadNetworkConfig(config: config).network
+		var scripts: [String] = [
+			"bootloader --location=none"
+		]
+
+		if let password = self.password {
+			scripts.append("user --name=\(self.userName) --password=\(password) --plaintext --groups=\(self.mainGroup)")
+		} else {
+			scripts.append("user --name=\(self.userName) --groups=\(self.mainGroup)")
+		}
+
+		self.sshAuthorizedKeys?.forEach {
+			scripts.append("sshkey --username=\(self.userName) '\($0)'")
+		}
+
+		networks.ethernets.forEach {
+			let inf = $0.key
+			let ethernet = $0.value
+			var network = [
+				"network"
+			]
+
+			if let match = ethernet.match {
+				if let macAddress = match.macAddress {
+					network.append("--device=\(macAddress)")
+				} else if let name = match.name {
+					network.append("--device=\(name)")
+				}
+			} else {
+				network.append("--device=\(inf)")
+			}
+
+			if let dns = ethernet.nameservers, let addresses = dns.addresses {
+				addresses.forEach {
+					network.append("--nameserver=\($0)")
+				}
+			}
+
+			if let gateway4 = ethernet.gateway4 {
+				network.append("--gateway=\(gateway4)")
+			} else if let routes = ethernet.routes, let defaultRoute = routes.first(where: { $0.to.lowercased() == "default" }) {
+				network.append("--gateway=\(defaultRoute.via)")
+			} else if let cidr = ethernet.addresses?.first {
+				let addr = cidr.stringBefore(before: "/")
+				let netmask = cidr.stringAfter(after: "/").cidrToNetmask()
+				let gateway = IP.Block<IP.V4>(base: IP.V4(addr)!, bits: UInt8(netmask.netmaskToCidr())).network.range.lowerBound
+
+				network.append("--gateway=\(gateway.value)")
+			}
+
+			if let gateway6 = ethernet.gateway6 {
+				network.append("--ipv6gateway=\(gateway6)")
+			}
+
+			if let dhcp4 = ethernet.dhcp4, dhcp4 {
+				scripts.append("--bootproto=dhcp")
+			} else if let cidr = ethernet.addresses?.first {
+				let addr = cidr.stringBefore(before: "/")
+				let netmask = cidr.stringAfter(after: "/").cidrToNetmask()
+				
+				scripts.append("--bootproto=static")
+				scripts.append("--ip=\(addr)")
+				scripts.append("--netmask=\(netmask)")
+			}
+		}
+
+		scripts.append("%post --interpreter=/bin/bash")
+
+		scripts.append("echo '\(self.userName) ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/\(self.userName)")
+
+		scripts.append("echo 'datasource_list: [ NoCloud, None ]' > /etc/cloud/cloud.cfg.d/100_datasources.cfg")
+
+		scripts.append("cat > /usr/local/bin/install-cakeagent.sh <<EOF\n\(self.installCakeAgentScript(config:config))\nEOF\n")
+		scripts.append("chown root:\(self.mainGroup) /usr/local/bin/install-cakeagent.sh")
+		scripts.append("chmod 755 /usr/local/bin/install-cakeagent.sh")
+
+		scripts.append("cat > /etc/cakeagent/ssl/server.key <<EOF\n\(serverKey)\nEOF\n")
+		scripts.append("chown root:\(self.mainGroup) /etc/cakeagent/ssl/server.key")
+		scripts.append("chmod 600 /etc/cakeagent/ssl/server.key")
+
+		scripts.append("cat > /etc/cakeagent/ssl/server.pem <<EOF\n\(serverPem)\nEOF\n")
+		scripts.append("chown root:\(self.mainGroup) /etc/cakeagent/ssl/server.pem")
+		scripts.append("chmod 600 /etc/cakeagent/ssl/server.pem")
+
+		scripts.append("cat > /etc/cakeagent/ssl/ca.pem <<EOF\n\(caCert)\nEOF\n")
+		scripts.append("chown root:\(self.mainGroup) /etc/cakeagent/ssl/ca.pem")
+		scripts.append("chmod 600 /etc/cakeagent/ssl/ca.pem")
+
+		scripts.append("%end")
+
+		scripts.append("%addon reboot")
+
+		return String(scripts.joined(by: "\n")).data(using: .ascii)!
+	}
+
 	private func createAutoInstallData(config: CakeConfig) throws -> Data {
-		let installCakeagent = installCakeAgentScript(config: config)
+		let installCakeagent = installCakeAgentScript(config: config).base64EncodedString()
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 		let caCert = try Compression.compressEncoded(contentOf: certificates.caCertURL)
 		let serverKey = try Compression.compressEncoded(contentOf: certificates.serverKeyURL)
@@ -1043,8 +1279,15 @@ class CloudInit {
 	}
 
 	private func createSeed(config: CakeConfig, writer: ISOWriter, path: String, configData: Data) throws -> Data {
-		try writer.addFile(path: path, size: UInt64(configData.count), metadata: nil)
+		let configData = try self.createSeed(writer: writer, path: path, configData: configData)
+
 		try configData.write(to: config.location.appendingPathComponent(path))
+
+		return configData
+	}
+
+	private func createSeed(writer: ISOWriter, path: String, configData: Data) throws -> Data {
+		try writer.addFile(path: path, size: UInt64(configData.count), metadata: nil)
 
 		return configData
 	}
@@ -1081,8 +1324,23 @@ class CloudInit {
 				return InputStream(data: emptyCloudInit)
 			})
 
-		if config.source == .iso {
-			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config))
+		if config.source == .iso && (self.platform == .ubuntu || self.platform == .fedora || self.platform == .debian) {
+			let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
+
+			if self.platform != .ubuntu {
+				seed["/server.key"] = try createSeed(writer: writer, path: "server.key", configUrl: certificates.serverKeyURL)
+				seed["/server.pem"] = try createSeed(writer: writer, path: "server.pem", configUrl: certificates.serverCertURL)
+				seed["/ca.pem"] = try createSeed(writer: writer, path: "ca.pem", configUrl: certificates.caCertURL)
+				seed["/install-cakeagent.sh"] = try createSeed(writer: writer, path: "install-cakeagent.sh", configData: installCakeAgentScript(config: config).data(using: .utf8)!)
+			}
+
+			if self.platform == .ubuntu {
+				seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config))
+			} else if self.platform == .fedora {
+				seed["/ks.cfg"] = try createSeed(config: config, writer: writer, path: "ks.cfg", configData: self.createKickStartData(config: config))
+			} else if self.platform == .debian {
+				seed["/preseed.cfg"] = try createSeed(config: config, writer: writer, path: "preseed.cfg", configData: self.createPreseedData(config: config))
+			}
 		} else {
 			seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createUserData(config: config))
 			seed["/vendor-data"] = try createSeed(config: config, writer: writer, path: "vendor-data", configData: createVendorData(config: config))
@@ -1090,7 +1348,7 @@ class CloudInit {
 		}
 
 		seed["/meta-data"] = try createSeed(config: config, writer: writer, path: "meta-data", configData: self.createMetaData(hostname: name, instanceID: config.instanceID))
-		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config, runMode: self.runMode))
+		seed["/cakeagent"] = try createSeed(writer: writer, path: "cakeagent", configUrl: try cakeagentBinary(config: config))
 
 		// write
 		try writer.writeAndClose()

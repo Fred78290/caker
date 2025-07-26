@@ -584,6 +584,8 @@ struct VirtualMachineWizard: View {
 
 				case .iso:
 					VStack {
+						let platform = SupportedPlatform(rawValue: imageName)
+
 						LabeledContent("Choose an ISO image disk.") {
 							HStack {
 								TextField("ISO Image", text: $imageName)
@@ -602,7 +604,14 @@ struct VirtualMachineWizard: View {
 								}.buttonStyle(.borderless)
 							}
 						}
-						Toggle("Autoinstall config", isOn: $config.autoinstall)
+
+						if platform == .ubuntu {
+							Toggle("Create autoinstall config", isOn: $config.autoinstall)
+						} else if platform == .fedora {
+							Toggle("Create kickstart config", isOn: $config.autoinstall)
+						} else if platform == .debian {
+							Toggle("Create preseed config", isOn: $config.autoinstall)
+						}
 					}
 					
 				case .ipsw:
