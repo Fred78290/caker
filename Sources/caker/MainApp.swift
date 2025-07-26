@@ -68,7 +68,7 @@ struct MainApp: App {
 			} else {
 				Text("Unable to load virtual machine \(document.name)")
 			}
-		}.restorationState(.disabled)
+		}
 	}
 
 	var body: some Scene {
@@ -76,6 +76,7 @@ struct MainApp: App {
 		 HostVirtualMachineView(appState: self.appState, document: file.document)
 		}*/
 		CakerMenuBarExtraScene(appState: appState)
+
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
 				documentView(fileURL: fileURL, document: file.document)
@@ -129,15 +130,20 @@ struct MainApp: App {
 					CreateTemplateView(appState: $appState)
 				}
 			}
-		}
+		}.restorationState(.disabled)
+
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
-		}
+		}.restorationState(.disabled)
+
 		Window("Create new virtual machine", id: "wizard") {
-			newDocWizard()
-		}.commands {
+			newDocWizard().restorationState(.disabled)
+		}
+		.restorationState(.disabled)
+		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
+
 		//WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
 		//	if let fileURL = url, let document = appState.virtualMachines[fileURL] {
 		//		documentView(fileURL: fileURL, document: document).onAppear{
@@ -150,9 +156,10 @@ struct MainApp: App {
 		//	CommandGroup(replacing: .saveItem, addition: {})
 		//}
 		//.restorationState(.disabled)
+
 		Settings {
 			SettingsView()
-		}
+		}.restorationState(.disabled)
 	}
 
 	private func newDocumentWizard() {
