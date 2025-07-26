@@ -39,27 +39,35 @@ MAINGROUP=adm
 NETIFNAMES=true
 USER_SHELL=/bin/bash
 
+if [ $(uname -m) == "arm64" ]; then
+   ARCH1=arm64
+   ARCH2=aarch64
+else
+  ARCH1=x86_64
+  ARCH2=amd64
+fi
+
 case ${VMNAME} in
     ubuntu*)
-        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-${ARCH1}.img
         ;;
     plucky*)
-        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-arm64.img
+        CLOUD_IMAGE=https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-${ARCH1}.img
         ;;
     centos*)
-        CLOUD_IMAGE=https://cloud.centos.org/centos/10-stream/aarch64/images/CentOS-Stream-GenericCloud-10-20250520.0.aarch64.qcow2
+        CLOUD_IMAGE=https://cloud.centos.org/centos/10-stream/${ARCH2}/images/CentOS-Stream-GenericCloud-10-20250506.2.${ARCH2}.qcow2
         ;;
     alpine*)
-        CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-aarch64-uefi-cloudinit-r0.qcow2
+        CLOUD_IMAGE=https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-${ARCH2}-uefi-cloudinit-r0.qcow2
         USER_SHELL=/bin/sh
         ;;
     opensuse*)
-        CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.aarch64-NoCloud.qcow2
+        CLOUD_IMAGE=https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.${ARCH2}-NoCloud.qcow2
         MAINGROUP=root
         NETIFNAMES=false
         ;;
     fedora*)
-        CLOUD_IMAGE=https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/aarch64/images/Fedora-Cloud-Base-Generic-42-1.1.aarch64.qcow2
+        CLOUD_IMAGE=https://download.fedoraproject.org/pub/fedora/linux/releases/42/Cloud/${ARCH2}/images/Fedora-Cloud-Base-Generic-42-1.1.${ARCH2}.qcow2
         ;;
     *)
         CLOUD_IMAGE=
