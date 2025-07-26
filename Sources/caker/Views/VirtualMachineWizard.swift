@@ -233,7 +233,6 @@ struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
 	
-	@State private var selectedIndex: Int
 	@State private var config: VirtualMachineConfig
 	@State private var imageName: String
 	@State private var configValid: Bool
@@ -244,13 +243,11 @@ struct VirtualMachineWizard: View {
 	@State private var remoteImages: [ShortImageInfo]
 	@State private var selectedRemoteImage: String
 	@State private var cloudImageRelease: OSCloudImage
-	@State private var sshAuthorizedKey: String?
+	@State private var sshAuthorizedKey: String
 
-	private let items: [ItemView]
-	private let stepsState: StepsState<ItemView>
+	@StateObject private var stepsState: StepsState<ItemView>
 	
 	init() {
-		self.selectedIndex = 0
 		self.config = .init()
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.configValid = false
@@ -262,7 +259,13 @@ struct VirtualMachineWizard: View {
 		self.selectedRemoteImage = ""
 		self.cloudImageRelease = .ubuntu2404LTS
 
-		self.items = [
+		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
+			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
+		} else {
+			self.sshAuthorizedKey = ""
+		}
+
+		let stepsState: StepsState<ItemView> = StepsState(data: [
 			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
 			ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
 			ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")),
@@ -271,13 +274,9 @@ struct VirtualMachineWizard: View {
 			ItemView(title: "Network attachement", image: Image(systemName: "network")),
 			ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
 			ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
-		]
-		
-		self.stepsState = StepsState(data: items)
-		
-		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
-			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
-		}
+		], initialStep: 0)
+
+		self._stepsState = StateObject(wrappedValue: stepsState)
 	}
 	
 	var body: some View {
@@ -287,7 +286,6 @@ struct VirtualMachineWizard: View {
 			}
 			.onSelectStepAtIndex { index in
 				stepsState.setStep(index)
-				selectedIndex = index
 			}
 			.itemSpacing(25)
 			.size(16)
@@ -295,7 +293,7 @@ struct VirtualMachineWizard: View {
 			.padding()
 			Divider()
 			VStack {
-				switch selectedIndex {
+				switch stepsState.currentIndex {
 				case 0:
 					chooseVMName()
 				case 1:
@@ -524,7 +522,7 @@ struct VirtualMachineWizard: View {
 				
 				LabeledContent("SSH Public key") {
 					HStack {
-						TextField("SSH Public key", value: $sshAuthorizedKey, format: .optional)
+						TextField("SSH Public key", text: $sshAuthorizedKey)
 							.multilineTextAlignment(.leading)
 							.textFieldStyle(.roundedBorder)
 							.background(.white)
@@ -798,7 +796,7 @@ struct VirtualMachineWizard: View {
 			return nil
 		}
 		
-		let options = config.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
+		let options = config.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey.isEmpty ? nil : sshAuthorizedKey)
 		
 		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app)
 		
