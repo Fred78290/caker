@@ -102,54 +102,59 @@ struct HostVirtualMachineView: View {
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
 				if document.status == .running || document.status == .external {
-					/*Button("Stop", systemImage: "stop.circle") {
-						document.requestStopFromUI()
-					}.help("Stop virtual machine")*/
-
 					Button(action: {
 						document.requestStopFromUI()
 					}) {
-						Image(systemName: "stop.circle").imageScale(.large)
+						Image(systemName: "stop").imageScale(.large)
 					}.help("Stop virtual machine")
 				} else if document.status == .suspended {
-					Button("Start", systemImage: "playpause.circle") {
+					Button("Start", systemImage: "playpause") {
 						document.startFromUI()
 					}.help("Resumes virtual machine")
 				} else {
-					Button("Start", systemImage: "play.circle") {
+					Button("Start", systemImage: "play") {
 						document.startFromUI()
 					}.help("Start virtual machine")
 				}
 
-				Button("Pause", systemImage: "pause.circle") {
+				Button("Pause", systemImage: "pause") {
 					document.suspendFromUI()
 				}
 				.help("Suspends virtual machine")
 				.disabled(document.suspendable == false)
 
-				Button("Restart", systemImage: "restart.circle") {
+				Button("Restart", systemImage: "restart") {
 					document.restartFromUI()
-				}.disabled(self.appState.isStopped)
+				}
+				.help("Restart virtual machine")
+				.disabled(self.appState.isStopped)
 
 				Spacer()
 
 				Button("Create template", systemImage: "archivebox") {
 					createTemplate = true
-				}.disabled(self.appState.isRunning)
+				}
+				.help("Create template from virtual machine")
+				.disabled(self.appState.isRunning)
 
 				Spacer()
 
-				Button("Delete", systemImage: "trash.circle") {
+				Button("Delete", systemImage: "trash") {
 					self.appState.deleteVirtualMachine(document: self.document)
-				}.disabled(document.status == .running || document.status == .suspended || document.status == .external)
+				}
+				.help("Delete virtual machine")
+				.disabled(document.status == .running || document.status == .suspended || document.status == .external)
 			}
 
 			ToolbarItem(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
 					displaySettings = true
-				}.disabled(self.document.virtualMachine == nil)
+				}
+				.help("Configure virtual machine")
+				.disabled(self.document.virtualMachine == nil)
 			}
-		}.sheet(isPresented: $displaySettings) {
+		}
+		.sheet(isPresented: $displaySettings) {
 			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 		}.alert("Create template", isPresented: $createTemplate) {
 			CreateTemplateView(appState: $appState)
