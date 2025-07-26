@@ -120,8 +120,8 @@ enum OSCloudImage: Int, CaseIterable {
 		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
 		case .ubuntu2004LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-\(self.arch).img")!
 			
-		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-\(self.arch)-10-latest.\(self.arch).qcow2")!
-		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-\(self.arch)-9-latest.\(self.arch).qcow2")!
+		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-10-20250506.2.\(self.arch).qcow2")!
+		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-9-20250526.1.\(self.arch).qcow2")!
 			
 		case .fedora42: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
 		case .fedora41: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
