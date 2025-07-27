@@ -85,18 +85,18 @@ struct HostVirtualMachineView: View {
 		}.onChange(of: appearsActive) { newValue in
 			if newValue {
 				self.appState.currentDocument = self.document
-				self.appState.isStopped = document.status == .stopped
-				self.appState.isRunning = document.status == .running || document.status == .external
-				self.appState.isPaused = document.status == .suspended
+				self.appState.isStopped = document.status == .stopped || document.status == .stopping
+				self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
+				self.appState.isPaused = document.status == .paused || document.status == .pausing
 				self.appState.isSuspendable = document.status == .running && document.suspendable
 			} else if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
 			}
 		}.onChange(of: self.document.status) { newValue in
 			if self.appearsActive {
-				self.appState.isStopped = newValue == .stopped
-				self.appState.isRunning = newValue == .running || newValue == .external
-				self.appState.isPaused = newValue == .suspended
+				self.appState.isStopped = newValue == .stopped || newValue == .stopping
+				self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
+				self.appState.isPaused = newValue == .paused || newValue == .pausing
 				self.appState.isSuspendable = newValue == .running && document.suspendable
 			}
 		}.toolbar {
@@ -107,45 +107,47 @@ struct HostVirtualMachineView: View {
 					}) {
 						Image(systemName: "stop").imageScale(.large)
 					}.help("Stop virtual machine")
-				} else if document.status == .suspended {
+				} else if document.status == .paused {
 					Button("Start", systemImage: "playpause") {
 						document.startFromUI()
 					}.help("Resumes virtual machine")
 				} else {
 					Button("Start", systemImage: "play") {
 						document.startFromUI()
-					}.help("Start virtual machine")
+					}
+					.help("Start virtual machine")
+					.disabled(document.status == .starting || document.status == .stopping)
 				}
-
+				
 				Button("Pause", systemImage: "pause") {
 					document.suspendFromUI()
 				}
 				.help("Suspends virtual machine")
 				.disabled(document.suspendable == false)
-
+				
 				Button("Restart", systemImage: "restart") {
 					document.restartFromUI()
 				}
 				.help("Restart virtual machine")
 				.disabled(self.appState.isStopped)
-
+				
 				Spacer()
-
+				
 				Button("Create template", systemImage: "archivebox") {
 					createTemplate = true
 				}
 				.help("Create template from virtual machine")
 				.disabled(self.appState.isRunning)
-
+				
 				Spacer()
-
+				
 				Button("Delete", systemImage: "trash") {
 					self.appState.deleteVirtualMachine(document: self.document)
 				}
 				.help("Delete virtual machine")
-				.disabled(document.status == .running || document.status == .suspended || document.status == .external)
+				.disabled(self.appState.isRunning || self.appState.isPaused)
 			}
-
+			
 			ToolbarItem(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
 					displaySettings = true

@@ -94,7 +94,7 @@ private struct VMMenuItem: View {
 				}.disabled(vm.canStop == false)
 
 				if vm.suspendable {
-					if vm.status == .suspended {
+					if vm.status == .paused {
 						Button("Resume") {
 							vm.startFromUI()
 						}

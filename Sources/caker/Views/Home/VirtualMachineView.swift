@@ -35,11 +35,11 @@ struct VirtualMachineView: View {
 
 	func imageName() -> String {
 		switch vm.status {
-		case .running:
+		case .running, .starting:
 			return "stop.fill"
-		case .stopped:
+		case .stopped, .stopping:
 			return "play.fill"
-		case .suspended:
+		case .paused, .pausing:
 			return "pause.fill"
 		default:
 			return "questionmark.circle.fill"
@@ -48,11 +48,11 @@ struct VirtualMachineView: View {
 
 	func lightColor() -> Color {
 		switch vm.status {
-			case .running:
+			case .running, .starting:
 				return Color.green
-			case .stopped:
+			case .stopped, .stopping:
 				return Color.red
-			case .suspended:
+			case .paused, .pausing:
 				return Color.yellow
 			default:
 				return Color(red: 192, green: 192, blue: 192)

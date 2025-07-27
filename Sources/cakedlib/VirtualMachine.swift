@@ -45,7 +45,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		case .running, .starting, .resuming:
 			return .running
 		case .paused, .pausing:
-			return .suspended
+			return .paused
 		default:
 			return .stopped
 		}

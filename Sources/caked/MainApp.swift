@@ -16,7 +16,7 @@ class AppState: ObservableObject, Observable {
 		self.status = status
 		self.isStopped = status == .stopped
 		self.isRunning = status == .running
-		self.isPaused = status == .suspended
+		self.isPaused = status == .paused
 		self.isSuspendable = status == .running && vm.suspendable
 	}
 	
@@ -25,7 +25,7 @@ class AppState: ObservableObject, Observable {
 		
 		self.isStopped = status == .stopped
 		self.isRunning = status == .running
-		self.isPaused = status == .suspended
+		self.isPaused = status == .paused
 		self.isSuspendable = status == .running && vm.suspendable
 	}
 }
@@ -101,26 +101,26 @@ struct MainApp: App, VirtualMachineDelegate {
 			}.toolbar {
 				ToolbarItemGroup(placement: .navigation) {
 					if self.appState.status == .running {
-						Button("Stop", systemImage: "stop.circle") {
+						Button("Stop", systemImage: "stop") {
 							self.requestStopFromUI()
 						}.help("Stop virtual machine")
-					} else if self.appState.status == .suspended {
-						Button("Resume", systemImage: "playpause.circle") {
+					} else if self.appState.status == .paused {
+						Button("Resume", systemImage: "playpause") {
 							self.startFromUI()
 						}.help("Resumes virtual machine")
 					} else {
-						Button("Start", systemImage: "power.circle") {
+						Button("Start", systemImage: "power") {
 							self.startFromUI()
 						}.help("Start virtual machine")
 					}
 					
-					Button("Pause", systemImage: "pause.circle") {
+					Button("Pause", systemImage: "pause") {
 						self.suspendFromUI()
 					}
 					.help("Suspends virtual machine")
 					.disabled(self.appState.isSuspendable == false)
 					
-					Button("Restart", systemImage: "restart.circle") {
+					Button("Restart", systemImage: "restart") {
 						self.restartFromUI()
 					}
 					.help("Restarts virtual machine")

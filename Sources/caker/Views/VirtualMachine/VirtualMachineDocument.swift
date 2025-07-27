@@ -21,9 +21,13 @@ extension UTType {
 	}
 
 	static var iso9660: UTType {
-		UTType(importedAs: "public.iso-image")
+		UTType(filenameExtension: "iso")!
 	}
 	
+	static var cdr: UTType {
+		UTType(filenameExtension: "cdr")!
+	}
+
 	static var ipsw: UTType {
 		UTType(filenameExtension: "ipsw")!
 	}
@@ -46,12 +50,19 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	static var readableContentTypes: [UTType] { [.virtualMachine] }
 
-	enum Status: String {
-		case none
-		case running
-		case external
-		case suspended
-		case stopped
+	enum Status: Int {
+		case none = -2
+		case external = -1
+		case stopped = 0
+		case running = 1
+		case paused = 2
+		case error = 3
+		case starting = 4
+		case pausing = 5
+		case resuming = 6
+		case stopping = 7
+		case saving = 8
+		case restoring = 9
 	}
 
 	private var client: CakeAgentClient!
@@ -312,17 +323,19 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func didChangedState(_ vm: VirtualMachine) {
-		guard let status = Status(rawValue: vm.status.rawValue) else {
+		let virtualMachine = vm.virtualMachine
+
+		guard let status = Status(rawValue: virtualMachine.state.rawValue) else {
 			self.status = .none
 			return
 		}
 
-		self.canStart = vm.virtualMachine.canStart
-		self.canStop = vm.virtualMachine.canStop
-		self.canPause = vm.virtualMachine.canPause
-		self.canResume = vm.virtualMachine.canResume
-		self.canRequestStop = vm.virtualMachine.canRequestStop
-		self.suspendable = vm.suspendable
+		self.canStart = virtualMachine.canStart
+		self.canStop = virtualMachine.canStop
+		self.canPause = virtualMachine.canPause
+		self.canResume = virtualMachine.canResume
+		self.canRequestStop = virtualMachine.canRequestStop
+		self.suspendable = suspendable
 		self.status = status
 	}
 

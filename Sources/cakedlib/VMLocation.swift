@@ -9,7 +9,7 @@ public struct VMLocation: Hashable, Equatable {
 
 	public enum Status: String {
 		case running
-		case suspended
+		case paused
 		case stopped
 	}
 
@@ -94,12 +94,10 @@ public struct VMLocation: Hashable, Equatable {
 	}
 
 	public var status: Status {
-		if isPIDRunning() {
-			return .running
-		} else if tartRunning() {
+		if isPIDRunning() || tartRunning() {
 			return .running
 		} else if FileManager.default.fileExists(atPath: stateURL.path) {
-			return .suspended
+			return .paused
 		} else {
 			return .stopped
 		}
