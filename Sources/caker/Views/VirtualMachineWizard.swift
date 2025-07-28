@@ -11,6 +11,7 @@ import NIO
 import CakedLib
 import GRPCLib
 import UniformTypeIdentifiers
+import MultiplatformTabBar
 
 typealias OptionalVMLocation = VMLocation?
 
@@ -232,6 +233,27 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var cloudImageRelease: OSCloudImage
 	@Published var sshAuthorizedKey: String
 	
+	var items: [ItemView]  = [
+		ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
+		ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
+		ItemView(title: "CPU & Ram", image: Image(systemName: "cpu")),
+		ItemView(title: "Sharing", image: Image(systemName: "folder.badge.plus")),
+		ItemView(title: "Disk", image: Image(systemName: "externaldrive.badge.plus")),
+		ItemView(title: "Network", image: Image(systemName: "network")),
+		ItemView(title: "Ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
+		ItemView(title: "Sockets", image: Image(systemName: "powerplug"))
+	]
+
+	struct ItemView {
+		var title: String
+		var image: Image
+		
+		init(title: String, image: Image?) {
+			self.title = title
+			self.image = image ?? Image(systemName: "questionmark")
+		}
+	}
+	
 	init() {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.configValid = false
@@ -248,6 +270,8 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		} else {
 			self.sshAuthorizedKey = ""
 		}
+
+		self.stepsState = StepsState(data: items, initialStep: 0)
 	}
 }
 
@@ -279,66 +303,104 @@ struct VirtualMachineWizard: View {
 
 	var body: some View {
 		VStack(spacing: 12) {
-			VStack {
-				Steps(state: self.stepsState) {
-					return Step(title: $0.title, image: $0.image)
-				}
-				.onSelectStepAtIndex { index in
-					self.stepsState.setStep(index)
-				}
-				.itemSpacing(25)
-				.size(16)
-				.font(.caption)
-				.padding()
-				.frame(height: 80)
-				Divider()
+			Toolbar()
+			Footer()
+		}
+	}
+	
+	func Toolbar() -> some View {
+		MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
+			.tab(title: self.model.items[0].title, icon: self.model.items[0].image) {
+				chooseVMName()
 			}
-
-			Spacer(minLength: 0)
-
-			VStack {
-				switch self.model.currentStep {
-				case 0:
-					chooseVMName()
-				case 1:
-					chooseOSImage()
-				case 2:
-					generalSettings()
-				case 3:
-					mountsView()
-				case 4:
-					diskAttachementView()
-				case 5:
-					networksView()
-				case 6:
-					forwardPortsView()
-				case 7:
-					socketsView()
-				default:
-					EmptyView()
-				}
+			.tab(title: self.model.items[1].title, icon: self.model.items[1].image) {
+				chooseOSImage()
 			}
-			.animation(.easeInOut, value: self.model.currentStep)
-			Spacer().background(.red)
-
+			.tab(title: self.model.items[2].title, icon: self.model.items[2].image) {
+				generalSettings()
+			}
+			.tab(title: self.model.items[3].title, icon: self.model.items[3].image) {
+				mountsView()
+			}
+			.tab(title: self.model.items[4].title, icon: self.model.items[4].image) {
+				diskAttachementView()
+			}
+			.tab(title: self.model.items[5].title, icon: self.model.items[5].image) {
+				networksView()
+			}
+			.tab(title: self.model.items[6].title, icon: self.model.items[6].image) {
+				forwardPortsView()
+			}
+			.tab(title: self.model.items[7].title, icon: self.model.items[7].image) {
+				socketsView()
+			}
+	}
+	
+	func Head() -> some View {
+		VStack {
+			Steps(state: self.model.stepsState) {
+				return Step(title: $0.title, image: $0.image)
+			}
+			.onSelectStepAtIndex { index in
+				self.model.stepsState.setStep(index)
+				self.model.currentStep = index
+			}
+			.itemSpacing(20)
+			.size(14)
+			.font(.caption)
+			.padding(EdgeInsets(top: 5, leading: 15, bottom: 0, trailing: 15))
+			
 			Divider()
-
-			HStack(alignment: .bottom) {
+		}
+	}
+	
+	func Middle() -> some View {
+		VStack {
+			switch self.model.currentStep {
+			case 0:
+				chooseVMName()
+			case 1:
+				chooseOSImage()
+			case 2:
+				generalSettings()
+			case 3:
+				mountsView()
+			case 4:
+				diskAttachementView()
+			case 5:
+				networksView()
+			case 6:
+				forwardPortsView()
+			case 7:
+				socketsView()
+			default:
+				EmptyView()
+			}
+		}
+		.animation(.easeInOut, value: self.model.currentStep)
+		.padding()
+	}
+	
+	func Footer() -> some View {
+		VStack {
+			Divider()
+			
+			HStack {
 				HStack{
 				}.frame(maxWidth: .infinity)
 				
 				Spacer()
+				
 				HStack {
 					Button {
-						self.stepsState.previousStep()
-						self.model.currentStep = self.stepsState.currentIndex
+						self.previousStep()
 					} label: {
 						Text("Previous").frame(width: 80)
 					}
-					.disabled(!self.stepsState.hasPrevious)
+					.disabled(!self.hasPrevious)
 					Button {
-						self.stepsState.nextStep()
-						self.model.currentStep = self.stepsState.currentIndex
+						self.nextStep()
+						self.model.currentStep = self.model.stepsState.currentIndex
 					} label: {
 						Text("Next").frame(width: 80)
 					}
@@ -346,6 +408,7 @@ struct VirtualMachineWizard: View {
 				}
 				
 				Spacer()
+				
 				HStack{
 					Spacer()
 					
@@ -356,12 +419,7 @@ struct VirtualMachineWizard: View {
 					}
 					.disabled(self.model.configValid == false)
 				}.frame(maxWidth: .infinity)
-			}
-		}
-		.padding()
-		.onChange(of: self.stepsState.currentIndex) { newValue in
-			print("current step changed to \(newValue)")
-			self.model.currentStep = self.stepsState.currentIndex
+			}.padding(EdgeInsets(top: 1, leading: 15, bottom: 15, trailing: 15))
 		}
 		.onChange(of: config) { newValue in
 			self.validateConfig(config: newValue)
@@ -546,7 +604,7 @@ struct VirtualMachineWizard: View {
 						}.buttonStyle(.borderless)
 					}
 				}
-
+				
 				Toggle("SSH with password", isOn: $config.clearPassword)
 				
 				LabeledContent("Administator group") {
@@ -578,7 +636,7 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
-
+							
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 									self.model.imageName = "img://\(imageName)"
@@ -588,11 +646,11 @@ struct VirtualMachineWizard: View {
 							}.buttonStyle(.borderless)
 						}
 					}
-
+					
 				case .iso:
 					VStack {
 						let platform = SupportedPlatform(rawValue: self.model.imageName)
-
+						
 						LabeledContent("Choose an ISO image disk.") {
 							HStack {
 								TextField("ISO Image", text: $model.imageName)
@@ -611,7 +669,7 @@ struct VirtualMachineWizard: View {
 								}.buttonStyle(.borderless)
 							}
 						}
-
+						
 						if platform == .ubuntu {
 							Toggle("Create autoinstall config", isOn: $config.autoinstall)
 						} else if platform == .fedora {
@@ -630,7 +688,7 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
-
+							
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
 									self.model.imageName = "ipsw://\(imageName)"
@@ -640,7 +698,7 @@ struct VirtualMachineWizard: View {
 							}.buttonStyle(.borderless)
 						}
 					}
-
+					
 				case .cloud:
 					LabeledContent {
 						TextField("Cloud Image", text: $model.imageName)
@@ -660,7 +718,7 @@ struct VirtualMachineWizard: View {
 						}
 						.labelsHidden()
 					}
-
+					
 				case .oci:
 					TextField("OCI Image", text: $model.imageName)
 						.multilineTextAlignment(.leading)
@@ -668,14 +726,14 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
-
+					
 				case .template:
 					Picker("Select a template", selection: $model.imageName) {
 						ForEach(templates(), id: \.self) { template in
 							Text(template.name).tag(template.fqn)
 						}
 					}
-
+					
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $model.remoteImage) {
@@ -689,9 +747,14 @@ struct VirtualMachineWizard: View {
 								self.model.remoteImages = await images(remote: newValue)
 							}
 						}
-
-						List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
-							Text(remoteImage.description).tag(remoteImage.fingerprint)
+						ScrollView {
+							VStack {
+								GeometryReader { geom in
+									List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
+										Text(remoteImage.description).tag(remoteImage.fingerprint)
+									}.frame(height: geom.size.height)
+								}
+							}.frame(minHeight: 250, maxHeight: .infinity)
 						}
 					}.onChange(of: model.selectedRemoteImage) { newValue in
 						self.model.imageName = "\(self.model.remoteImage)://\(newValue)"
@@ -710,7 +773,7 @@ struct VirtualMachineWizard: View {
 					}.frame(width: 100)
 				}
 			}
-
+			
 			if model.imageSource != .iso && model.imageSource != .ipsw {
 				Section("Cloud init") {
 					LabeledContent("Optional user data") {
@@ -820,7 +883,7 @@ struct VirtualMachineWizard: View {
 		try? await self.openDocument(at: location.rootURL)
 		self.dismiss()
 	}
-
+	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: "Select image", allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
@@ -828,7 +891,7 @@ struct VirtualMachineWizard: View {
 		
 		return nil
 	}
-
+	
 	func chooseDiskImage(ofType: UTType = .diskImage) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: "Select image", allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
@@ -836,7 +899,7 @@ struct VirtualMachineWizard: View {
 		
 		return nil
 	}
-
+	
 	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: title, allowsOtherFileTypes: true, showsHiddenFiles: showsHiddenFiles) {
 			return diskImg.absoluteURL.path
@@ -844,7 +907,7 @@ struct VirtualMachineWizard: View {
 		
 		return nil
 	}
-
+	
 	func chooseYAML() -> String? {
 		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: "Select data file", allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
@@ -877,6 +940,32 @@ struct VirtualMachineWizard: View {
 		return result.compactMap {
 			ShortImageInfo(imageInfo: $0)
 		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
+	}
+	
+	var hasPrevious: Bool {
+		self.model.currentStep > 0
+	}
+
+	var hasNext: Bool {
+		self.model.currentStep < self.model.items.count - 1
+	}
+
+	func previousStep() {
+		guard self.model.currentStep > 0 else {
+			return
+		}
+
+		self.model.currentStep -= 1
+		self.model.stepsState.setStep(self.model.currentStep)
+	}
+	
+	func nextStep() {
+		guard self.model.currentStep < self.model.items.count - 1 else {
+			return
+		}
+
+		self.model.currentStep += 1
+		self.model.stepsState.setStep(self.model.currentStep)
 	}
 }
 

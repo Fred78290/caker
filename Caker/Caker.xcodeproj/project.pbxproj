@@ -158,7 +158,6 @@
 		9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
-		9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */ = {isa = PBXBuildFile; productRef = 9BA842D02E0961B2008ED964 /* MultiplatformTabBar */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
@@ -389,6 +388,8 @@
 		9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BF51EC92E37A018004CEEAB /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9BF51EC82E37A018004CEEAB /* SwiftletUtilities */; };
+		9BF51ECA2E37A093004CEEAB /* libMultiplatformTabBar.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BF51E072E379B46004CEEAB /* libMultiplatformTabBar.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -454,6 +455,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 9BEBC68D2DF43FEE0092B196;
 			remoteInfo = caked;
+		};
+		9BF51ECB2E37A093004CEEAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BF51E062E379B46004CEEAB;
+			remoteInfo = MultiplatformTabBar;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -576,7 +584,6 @@
 		9B464AD72D5A3E0300164BF5 /* service.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = service.proto; sourceTree = "<group>"; };
 		9B464AD82D5A3E0300164BF5 /* service.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = service.grpc.swift; sourceTree = "<group>"; };
 		9B464AD92D5A3E0300164BF5 /* service.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = service.pb.swift; sourceTree = "<group>"; };
-		9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */ = {isa = PBXFileReference; lastKnownFileType = text; path = "caker.code-workspace"; sourceTree = "<group>"; };
 		9B464B4F2D5A3E5C00164BF5 /* cakectl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cakectl; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
@@ -767,6 +774,7 @@
 		9BEBC7662DF440720092B196 /* VirtualMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachine.swift; sourceTree = "<group>"; };
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
+		9BF51E072E379B46004CEEAB /* libMultiplatformTabBar.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libMultiplatformTabBar.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -863,6 +871,11 @@
 			path = Caker;
 			sourceTree = "<group>";
 		};
+		9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MultiplatformTabBar;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -872,12 +885,12 @@
 			files = (
 				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
+				9BF51ECA2E37A093004CEEAB /* libMultiplatformTabBar.a in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
-				9BA842D12E0961B2008ED964 /* MultiplatformTabBar in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1015,6 +1028,14 @@
 				9BEBC7DD2DF440BF0092B196 /* GRPC in Frameworks */,
 				9BEBC7E32DF440BF0092B196 /* NIOCore in Frameworks */,
 				9BEBC7BD2DF440BF0092B196 /* AsyncAlgorithms in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BF51E052E379B46004CEEAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9BF51EC92E37A018004CEEAB /* SwiftletUtilities in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1160,6 +1181,7 @@
 				9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */,
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
+				9BF51E072E379B46004CEEAB /* libMultiplatformTabBar.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1241,11 +1263,11 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
-				9B464ADC2D5A3E0300164BF5 /* caker.code-workspace */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
 			);
 			name = Sources;
@@ -1580,6 +1602,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9BF51E032E379B46004CEEAB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -1598,13 +1627,13 @@
 			dependencies = (
 				9B2BFA822DFED1D6000045C3 /* PBXTargetDependency */,
 				9B2BFA842DFED1D6000045C3 /* PBXTargetDependency */,
+				9BF51ECC2E37A093004CEEAB /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
 			);
 			name = Caker;
 			packageProductDependencies = (
-				9BA842D02E0961B2008ED964 /* MultiplatformTabBar */,
 				9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */,
 				9B7C7B6A2E0FC7DA009D0A26 /* Steps */,
 				9B9123802E29253A006DD682 /* SwiftTerm */,
@@ -1800,6 +1829,29 @@
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		9BF51E062E379B46004CEEAB /* MultiplatformTabBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BF51E0D2E379B46004CEEAB /* Build configuration list for PBXNativeTarget "MultiplatformTabBar" */;
+			buildPhases = (
+				9BF51E032E379B46004CEEAB /* Headers */,
+				9BF51E042E379B46004CEEAB /* Sources */,
+				9BF51E052E379B46004CEEAB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */,
+			);
+			name = MultiplatformTabBar;
+			packageProductDependencies = (
+				9BF51EC82E37A018004CEEAB /* SwiftletUtilities */,
+			);
+			productName = MultiplatformTabBar;
+			productReference = 9BF51E072E379B46004CEEAB /* libMultiplatformTabBar.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1827,6 +1879,9 @@
 						CreatedOnToolsVersion = 16.4;
 					};
 					9BEBC7062DF440560092B196 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					9BF51E062E379B46004CEEAB = {
 						CreatedOnToolsVersion = 16.4;
 					};
 				};
@@ -1872,7 +1927,6 @@
 				9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 				9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */,
 				9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */,
-				9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */,
 				9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */,
 				9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */,
 				9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
@@ -1889,6 +1943,7 @@
 				9BEBC68D2DF43FEE0092B196 /* caked */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
+				9BF51E062E379B46004CEEAB /* MultiplatformTabBar */,
 			);
 		};
 /* End PBXProject section */
@@ -2184,6 +2239,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9BF51E042E379B46004CEEAB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -2231,6 +2293,11 @@
 			isa = PBXTargetDependency;
 			target = 9BEBC68D2DF43FEE0092B196 /* caked */;
 			targetProxy = 9BEBC8112DF440FD0092B196 /* PBXContainerItemProxy */;
+		};
+		9BF51ECC2E37A093004CEEAB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BF51E062E379B46004CEEAB /* MultiplatformTabBar */;
+			targetProxy = 9BF51ECB2E37A093004CEEAB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2590,6 +2657,32 @@
 			};
 			name = Release;
 		};
+		9BF51E0E2E379B46004CEEAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9BF51E0F2E379B46004CEEAB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2652,6 +2745,15 @@
 			buildConfigurations = (
 				9BEBC70E2DF440560092B196 /* Debug */,
 				9BEBC70F2DF440560092B196 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9BF51E0D2E379B46004CEEAB /* Build configuration list for PBXNativeTarget "MultiplatformTabBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BF51E0E2E379B46004CEEAB /* Debug */,
+				9BF51E0F2E379B46004CEEAB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -2915,14 +3017,6 @@
 				revision = e142840b3d291f4fcd7adedc5d687ab98fc323fd;
 			};
 		};
-		9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/Appracatappra/MultiplatformTabBar.git";
-			requirement = {
-				kind = exactVersion;
-				version = 1.0.6;
-			};
-		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/Multipart";
@@ -3111,11 +3205,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
 			productName = SwiftTerm;
-		};
-		9BA842D02E0961B2008ED964 /* MultiplatformTabBar */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9BA842CF2E0961B2008ED964 /* XCRemoteSwiftPackageReference "MultiplatformTabBar" */;
-			productName = MultiplatformTabBar;
 		};
 		9BEBC7B82DF440BF0092B196 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -3481,6 +3570,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;
+		};
+		9BF51EC82E37A018004CEEAB /* SwiftletUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */;
+			productName = SwiftletUtilities;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

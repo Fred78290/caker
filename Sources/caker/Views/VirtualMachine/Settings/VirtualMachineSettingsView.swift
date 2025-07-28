@@ -17,6 +17,7 @@ struct VirtualMachineSettingsView: View {
 
 	@Binding var config: VirtualMachineConfig
 	@State var configChanged = false
+	@State var selectedTab = 0
 
 	init(config: Binding<VirtualMachineConfig>) {
 		_config = config
@@ -24,7 +25,7 @@ struct VirtualMachineSettingsView: View {
 
 	var body: some View {
 		VStack {
-			MultiplatformTabBar(tabPosition: .top, barHorizontalAlignment: .center)
+			MultiplatformTabBar(selection: $selectedTab, tabPosition: .top, barHorizontalAlignment: .center)
 				.tab(title: "General", icon: Image(systemName: "gearshape")) {
 					generalSettings()
 				}

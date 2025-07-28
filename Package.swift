@@ -10,7 +10,8 @@ let package = Package(
 		.executable(name: "caker", targets: ["caker"]),
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
-		.library(name: "GRPCLib", targets: ["GRPCLib"])
+		.library(name: "GRPCLib", targets: ["GRPCLib"]),
+		.library(name: "MultiplatformTabBar", targets: ["MultiplatformTabBar"])
 	],
 	dependencies: [
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
@@ -48,7 +49,7 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", from: "1.8.0"),
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
-		.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
+		//.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "e142840b3d291f4fcd7adedc5d687ab98fc323fd"),
@@ -67,6 +68,10 @@ let package = Package(
 			"generate.sh",
 			"service.proto",
 		]),
+		.target(
+			name: "MultiplatformTabBar",
+			dependencies: ["SwiftletUtilities"],
+		),
 		.target(name: "CakedLib", dependencies: [
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
