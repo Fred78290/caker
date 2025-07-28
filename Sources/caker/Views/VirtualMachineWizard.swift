@@ -231,17 +231,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var selectedRemoteImage: String
 	@Published var cloudImageRelease: OSCloudImage
 	@Published var sshAuthorizedKey: String
-	@Published var stepsState: StepsState<ItemView>
-	
-	struct ItemView {
-		var title: String
-		var image: Image?
-		
-		init(title: String, image: Image?) {
-			self.title = title
-			self.image = image
-		}
-	}
 	
 	init() {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
@@ -259,17 +248,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		} else {
 			self.sshAuthorizedKey = ""
 		}
-
-		self.stepsState = StepsState(data: [
-			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
-			ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
-			ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")),
-			ItemView(title: "Sharing directory", image: Image(systemName: "folder.badge.plus")),
-			ItemView(title: "Additional disk", image: Image(systemName: "externaldrive.badge.plus")),
-			ItemView(title: "Network attachement", image: Image(systemName: "network")),
-			ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
-			ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
-		], initialStep: 0)
 	}
 }
 
@@ -288,20 +266,36 @@ struct VirtualMachineWizard: View {
 	@Environment(\.openDocument) private var openDocument
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
-	
+	@StateObject var stepsState = StepsState(data: [
+		ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
+		   ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
+		   ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")),
+		   ItemView(title: "Sharing directory", image: Image(systemName: "folder.badge.plus")),
+		   ItemView(title: "Additional disk", image: Image(systemName: "externaldrive.badge.plus")),
+		   ItemView(title: "Network attachement", image: Image(systemName: "network")),
+		   ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
+		   ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
+	   ], initialStep: 0)
+
 	var body: some View {
 		VStack(spacing: 12) {
-			Steps(state: self.model.stepsState) {
-				return Step(title: $0.title, image: $0.image)
+			VStack {
+				Steps(state: self.stepsState) {
+					return Step(title: $0.title, image: $0.image)
+				}
+				.onSelectStepAtIndex { index in
+					self.stepsState.setStep(index)
+				}
+				.itemSpacing(25)
+				.size(16)
+				.font(.caption)
+				.padding()
+				.frame(height: 80)
+				Divider()
 			}
-			.onSelectStepAtIndex { index in
-				self.model.stepsState.setStep(index)
-			}
-			.itemSpacing(25)
-			.size(16)
-			.font(.caption)
-			.padding()
-			Divider()
+
+			Spacer(minLength: 0)
+
 			VStack {
 				switch self.model.currentStep {
 				case 0:
@@ -325,8 +319,10 @@ struct VirtualMachineWizard: View {
 				}
 			}
 			.animation(.easeInOut, value: self.model.currentStep)
-			Spacer()
+			Spacer().background(.red)
+
 			Divider()
+
 			HStack(alignment: .bottom) {
 				HStack{
 				}.frame(maxWidth: .infinity)
@@ -334,19 +330,19 @@ struct VirtualMachineWizard: View {
 				Spacer()
 				HStack {
 					Button {
-						self.model.stepsState.previousStep()
-						self.model.currentStep = self.model.stepsState.currentIndex
+						self.stepsState.previousStep()
+						self.model.currentStep = self.stepsState.currentIndex
 					} label: {
 						Text("Previous").frame(width: 80)
 					}
-					.disabled(!self.model.stepsState.hasPrevious)
+					.disabled(!self.stepsState.hasPrevious)
 					Button {
-						self.model.stepsState.nextStep()
-						self.model.currentStep = self.model.stepsState.currentIndex
+						self.stepsState.nextStep()
+						self.model.currentStep = self.stepsState.currentIndex
 					} label: {
 						Text("Next").frame(width: 80)
 					}
-					.disabled(!self.model.stepsState.hasNext)
+					.disabled(!self.stepsState.hasNext)
 				}
 				
 				Spacer()
@@ -363,10 +359,9 @@ struct VirtualMachineWizard: View {
 			}
 		}
 		.padding()
-		.frame(height: 800)
-		.onChange(of: self.model.stepsState.currentIndex) { newValue in
+		.onChange(of: self.stepsState.currentIndex) { newValue in
 			print("current step changed to \(newValue)")
-			self.model.currentStep = self.model.stepsState.currentIndex
+			self.model.currentStep = self.stepsState.currentIndex
 		}
 		.onChange(of: config) { newValue in
 			self.validateConfig(config: newValue)
