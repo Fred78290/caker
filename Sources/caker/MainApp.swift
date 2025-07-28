@@ -72,25 +72,17 @@ struct MainApp: App {
 	}
 
 	var body: some Scene {
-		/*DocumentGroup(newDocument: VirtualMachineDocument()) { file in
-		 HostVirtualMachineView(appState: self.appState, document: file.document)
-		}*/
 		CakerMenuBarExtraScene(appState: appState)
 
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
-				documentView(fileURL: fileURL, document: file.document)
+				documentView(fileURL: fileURL, document: file.document).restorationState(.disabled)
 			} else {
-				Color.red
+				Color.red.restorationState(.disabled)
 			}
 		}
 		.windowResizability(.contentSize)
 		.commands {
-			/*CommandGroup(replacing: .help, addition: {})
-			CommandGroup(replacing: .newItem, addition: {})
-			CommandGroup(replacing: .pasteboard, addition: {})
-			CommandGroup(replacing: .textEditing, addition: {})
-			CommandGroup(replacing: .undoRedo, addition: {})*/
 			CommandGroup(replacing: .saveItem, addition: {})
 			CommandGroup(replacing: .newItem) {
 				Section {
@@ -134,10 +126,12 @@ struct MainApp: App {
 
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
+				.restorationState(.disabled)
 		}.restorationState(.disabled)
 
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
+				.restorationState(.disabled)
 		}
 		.windowResizability(.contentSize)
 		.restorationState(.disabled)
@@ -178,7 +172,6 @@ struct MainApp: App {
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 800, maxHeight: 800)
-			.restorationState(.disabled)
 	}
 }
 
