@@ -270,8 +270,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		} else {
 			self.sshAuthorizedKey = ""
 		}
-
-		self.stepsState = StepsState(data: items, initialStep: 0)
 	}
 }
 
@@ -342,7 +340,7 @@ struct VirtualMachineWizard: View {
 				return Step(title: $0.title, image: $0.image)
 			}
 			.onSelectStepAtIndex { index in
-				self.model.stepsState.setStep(index)
+				self.stepsState.setStep(index)
 				self.model.currentStep = index
 			}
 			.itemSpacing(20)
@@ -400,7 +398,7 @@ struct VirtualMachineWizard: View {
 					.disabled(!self.hasPrevious)
 					Button {
 						self.nextStep()
-						self.model.currentStep = self.model.stepsState.currentIndex
+						self.model.currentStep = self.stepsState.currentIndex
 					} label: {
 						Text("Next").frame(width: 80)
 					}
@@ -956,7 +954,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.model.currentStep -= 1
-		self.model.stepsState.setStep(self.model.currentStep)
+		self.stepsState.setStep(self.model.currentStep)
 	}
 	
 	func nextStep() {
@@ -965,10 +963,10 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.model.currentStep += 1
-		self.model.stepsState.setStep(self.model.currentStep)
+		self.stepsState.setStep(self.model.currentStep)
 	}
 }
 
 #Preview {
-    VirtualMachineWizard()
+	VirtualMachineWizard()
 }
