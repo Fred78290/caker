@@ -264,11 +264,11 @@ class VirtualMachineWizardStateObject: ObservableObject {
 			ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
 			ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
 			ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")),
-			ItemView(title: "Sharing directory", image: Image(systemName: "folder.badge.plus")),
-			ItemView(title: "Additional disk", image: Image(systemName: "externaldrive.badge.plus")),
-			ItemView(title: "Network attachement", image: Image(systemName: "network")),
-			ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
-			ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
+			ItemView(title: "Sharing", image: Image(systemName: "folder.badge.plus")),
+			ItemView(title: "Disk", image: Image(systemName: "externaldrive.badge.plus")),
+			ItemView(title: "Network", image: Image(systemName: "network")),
+			ItemView(title: "Ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
+			ItemView(title: "Sockets", image: Image(systemName: "powerplug"))
 		], initialStep: 0)
 	}
 }
@@ -291,47 +291,75 @@ struct VirtualMachineWizard: View {
 	
 	var body: some View {
 		VStack(spacing: 12) {
+			Head()
+			Middle()
+			Footer()
+		}
+		//.padding()
+		.onChange(of: self.model.stepsState.currentIndex) { newValue in
+			print("current step changed to \(newValue)")
+			self.model.currentStep = self.model.stepsState.currentIndex
+		}
+		.onChange(of: config) { newValue in
+			self.validateConfig(config: newValue)
+		}
+	}
+	
+	func Head() -> some View {
+		VStack {
 			Steps(state: self.model.stepsState) {
 				return Step(title: $0.title, image: $0.image)
 			}
 			.onSelectStepAtIndex { index in
 				self.model.stepsState.setStep(index)
+				self.model.currentStep = index
 			}
-			.itemSpacing(25)
-			.size(16)
+			.itemSpacing(20)
+			.size(14)
 			.font(.caption)
-			.padding()
+			.padding(EdgeInsets(top: 5, leading: 15, bottom: 0, trailing: 15))
+
 			Divider()
-			VStack {
-				switch self.model.currentStep {
-				case 0:
-					chooseVMName()
-				case 1:
-					chooseOSImage()
-				case 2:
-					generalSettings()
-				case 3:
-					mountsView()
-				case 4:
-					diskAttachementView()
-				case 5:
-					networksView()
-				case 6:
-					forwardPortsView()
-				case 7:
-					socketsView()
-				default:
-					EmptyView()
-				}
+		}
+	}
+
+	func Middle() -> some View {
+		VStack {
+			switch self.model.currentStep {
+			case 0:
+				chooseVMName()
+			case 1:
+				chooseOSImage()
+			case 2:
+				generalSettings()
+			case 3:
+				mountsView()
+			case 4:
+				diskAttachementView()
+			case 5:
+				networksView()
+			case 6:
+				forwardPortsView()
+			case 7:
+				socketsView()
+			default:
+				EmptyView()
 			}
-			.animation(.easeInOut, value: self.model.currentStep)
-			Spacer()
+		}
+		.animation(.easeInOut, value: self.model.currentStep)
+		.padding()
+	}
+
+	func Footer() -> some View {
+		VStack {
 			Divider()
-			HStack(alignment: .bottom) {
+			
+			HStack {
 				HStack{
 				}.frame(maxWidth: .infinity)
 				
 				Spacer()
+
 				HStack {
 					Button {
 						self.model.stepsState.previousStep()
@@ -350,6 +378,7 @@ struct VirtualMachineWizard: View {
 				}
 				
 				Spacer()
+
 				HStack{
 					Spacer()
 					
@@ -360,19 +389,10 @@ struct VirtualMachineWizard: View {
 					}
 					.disabled(self.model.configValid == false)
 				}.frame(maxWidth: .infinity)
-			}
-		}
-		.padding()
-		.frame(height: 800)
-		.onChange(of: self.model.stepsState.currentIndex) { newValue in
-			print("current step changed to \(newValue)")
-			self.model.currentStep = self.model.stepsState.currentIndex
-		}
-		.onChange(of: config) { newValue in
-			self.validateConfig(config: newValue)
+			}.padding(EdgeInsets(top: 1, leading: 15, bottom: 15, trailing: 15))
 		}
 	}
-	
+
 	func generalSettings() -> some View {
 		VStack {
 			Form {
@@ -694,9 +714,14 @@ struct VirtualMachineWizard: View {
 								self.model.remoteImages = await images(remote: newValue)
 							}
 						}
-
-						List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
-							Text(remoteImage.description).tag(remoteImage.fingerprint)
+						ScrollView {
+							VStack {
+								GeometryReader { geom in
+									List(self.model.remoteImages, selection: $model.selectedRemoteImage) { remoteImage in
+										Text(remoteImage.description).tag(remoteImage.fingerprint)
+									}.frame(height: geom.size.height)
+								}
+							}.frame(minHeight: 250, maxHeight: .infinity)
 						}
 					}.onChange(of: model.selectedRemoteImage) { newValue in
 						self.model.imageName = "\(self.model.remoteImage)://\(newValue)"

@@ -137,8 +137,9 @@ struct MainApp: App {
 		}.restorationState(.disabled)
 
 		Window("Create new virtual machine", id: "wizard") {
-			newDocWizard().restorationState(.disabled)
+			newDocWizard()
 		}
+		.windowResizability(.contentSize)
 		.restorationState(.disabled)
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
@@ -175,7 +176,9 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard().restorationState(.disabled)
+		VirtualMachineWizard()
+			.frame(minWidth: 700, maxWidth: 700, minHeight: 800, maxHeight: 800)
+			.restorationState(.disabled)
 	}
 }
 
