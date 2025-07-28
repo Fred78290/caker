@@ -129,6 +129,12 @@
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B75A6D22E2A2C45000AA773 /* Pty.swift */; };
+		9B7895EE2E37D9C2004D07EB /* MultiplatformTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895E72E37D9C2004D07EB /* MultiplatformTab.swift */; };
+		9B7895EF2E37D9C2004D07EB /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895E82E37D9C2004D07EB /* MultiplatformTabBar.swift */; };
+		9B7895F02E37D9C2004D07EB /* MultiplatformTabBarHorizontalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895E92E37D9C2004D07EB /* MultiplatformTabBarHorizontalAlignment.swift */; };
+		9B7895F12E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */; };
+		9B7895F22E37D9C2004D07EB /* MultiplatformTabCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */; };
+		9B7895F32E37D9C2004D07EB /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
 		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
@@ -590,6 +596,12 @@
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
+		9B7895E72E37D9C2004D07EB /* MultiplatformTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTab.swift; sourceTree = "<group>"; };
+		9B7895E82E37D9C2004D07EB /* MultiplatformTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBar.swift; sourceTree = "<group>"; };
+		9B7895E92E37D9C2004D07EB /* MultiplatformTabBarHorizontalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarHorizontalAlignment.swift; sourceTree = "<group>"; };
+		9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarVerticalAlignment.swift; sourceTree = "<group>"; };
+		9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
+		9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountNewItemView.swift; sourceTree = "<group>"; };
@@ -869,11 +881,6 @@
 				9BA22F0E2E2505EA00172D25 /* Exceptions for "Caker" folder in "Copy Files" phase from "Caker" target */,
 			);
 			path = Caker;
-			sourceTree = "<group>";
-		};
-		9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MultiplatformTabBar;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -1263,7 +1270,7 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */,
+				9B7895ED2E37D9C2004D07EB /* MultiplatformTabBar */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
@@ -1283,6 +1290,19 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B7895ED2E37D9C2004D07EB /* MultiplatformTabBar */ = {
+			isa = PBXGroup;
+			children = (
+				9B7895E72E37D9C2004D07EB /* MultiplatformTab.swift */,
+				9B7895E82E37D9C2004D07EB /* MultiplatformTabBar.swift */,
+				9B7895E92E37D9C2004D07EB /* MultiplatformTabBarHorizontalAlignment.swift */,
+				9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */,
+				9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */,
+				9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */,
+			);
+			path = MultiplatformTabBar;
 			sourceTree = "<group>";
 		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
@@ -1841,9 +1861,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				9BF51EC12E379C5E004CEEAB /* MultiplatformTabBar */,
-			);
 			name = MultiplatformTabBar;
 			packageProductDependencies = (
 				9BF51EC82E37A018004CEEAB /* SwiftletUtilities */,
@@ -2243,6 +2260,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B7895EE2E37D9C2004D07EB /* MultiplatformTab.swift in Sources */,
+				9B7895EF2E37D9C2004D07EB /* MultiplatformTabBar.swift in Sources */,
+				9B7895F02E37D9C2004D07EB /* MultiplatformTabBarHorizontalAlignment.swift in Sources */,
+				9B7895F12E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift in Sources */,
+				9B7895F22E37D9C2004D07EB /* MultiplatformTabCollection.swift in Sources */,
+				9B7895F32E37D9C2004D07EB /* MultiplatformTabViewPosition.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
