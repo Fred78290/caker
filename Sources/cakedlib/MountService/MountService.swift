@@ -31,7 +31,7 @@ class MountService: NSObject {
 	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
 		return try CakeAgentHelper(
 			on: self.group.next(),
-			listeningAddress: self.vm.vmLocation.agentURL,
+			listeningAddress: self.vm.location.agentURL,
 			connectionTimeout: 30,
 			caCert: self.certLocation.caCertURL.path,
 			tlsCert: self.certLocation.clientCertURL.path,
@@ -47,7 +47,7 @@ class MountService: NSObject {
 		}
 
 		do {
-			let config: CakeConfig = try vm.vmLocation.config()
+			let config: CakeConfig = try vm.location.config()
 
 			if config.os == .darwin {
 				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
@@ -87,8 +87,8 @@ class MountService: NSObject {
 	}
 }
 
-func createMountServiceClient(vmLocation: VMLocation) -> MountServiceClient {
-	return XPCMountServiceClient(vmLocation: vmLocation)
+func createMountServiceClient(location: VMLocation) -> MountServiceClient {
+	return XPCMountServiceClient(location: location)
 }
 
 func createMountServiceServer(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {

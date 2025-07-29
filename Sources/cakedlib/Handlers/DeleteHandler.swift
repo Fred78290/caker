@@ -10,21 +10,19 @@ import NIO
 
 public struct DeleteHandler {
 	static func tryDeleteLocal(name: String, runMode: Utils.RunMode) -> DeleteReply? {
-		var vmLocation: VMLocation? = nil
-
-		if let location = try? StorageLocation(runMode: runMode).find(name) {
-			vmLocation = location
-		} else if let u = URL(string: name), u.scheme == "vm" {
-			vmLocation = try? StorageLocation(runMode: runMode).find(u.host()!)
-		}
-
-		if let location = vmLocation {
+		let doIt: (VMLocation) -> DeleteReply = { location in
 			if location.status != .running {
 				try? FileManager.default.removeItem(at: location.rootURL)
 				return DeleteReply(source: "vm", name: location.name, deleted: true, reason: "")
 			} else {
 				return DeleteReply(source: "vm", name: location.name, deleted: false, reason: "VM is running")
 			}
+		}
+
+		if let location = try? StorageLocation(runMode: runMode).find(name) {
+			return doIt(location)
+		} else if let u = URL(string: name), u.scheme == "vm", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
+			return doIt(location)
 		}
 
 		return nil

@@ -46,22 +46,22 @@ struct VMRun: AsyncParsableCommand {
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		let (_, vmLocation) = self.locations
+		let (_, location) = self.locations
 
 		CakedLib.VMRunHandler.launchedFromService = self.launchedFromService
 
-		if vmLocation.inited == false {
+		if location.inited == false {
 			throw ValidationError("VM at \(path) does not exist")
 		}
 
-		if vmLocation.status == .running {
+		if location.status == .running {
 			throw ValidationError("VM at \(path) is already running")
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
 		MainApp._display = display
 
-		let config = try vmLocation.config()
+		let config = try location.config()
 
 		try config.sockets.forEach {
 			try $0.validate()
@@ -74,20 +74,20 @@ struct VMRun: AsyncParsableCommand {
 
 	@MainActor
 	func run() async throws {
-		let (storageLocation, vmLocation) = self.locations
-		let config = try vmLocation.config()
+		let (storageLocation, location) = self.locations
+		let config = try location.config()
 
 		let handler = CakedLib.VMRunHandler(
 			storageLocation: storageLocation,
-			vmLocation: vmLocation,
-			name: vmLocation.name,
+			location: location,
+			name: location.name,
 			runMode: self.common.runMode,
 			display: display,
 			config: config)
 
 		try handler.run { vm in
 			if display {
-				MainApp.runUI(name: vmLocation.name, vm: vm, config: config)
+				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()

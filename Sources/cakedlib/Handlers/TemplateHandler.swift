@@ -28,7 +28,7 @@ private let cloudInitCleanup = [
 public struct TemplateHandler {
 	static func cleanCloudInit(source: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws -> VMLocation {
 		let location = try source.duplicateTemporary(runMode: runMode)
-		let runningIP = try StartHandler.internalStartVM(vmLocation: location, config: config, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
+		let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
 		let conn = try CakeAgentConnection(eventLoop: Utilities.group.next(), listeningAddress: location.agentURL, runMode: runMode)
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")
@@ -86,7 +86,14 @@ public struct TemplateHandler {
 	public static func deleteTemplate(templateName: String, runMode: Utils.RunMode) throws -> DeleteTemplateReply {
 		let storage = StorageLocation(runMode: runMode, template: true)
 		let lock = try FileLock(lockURL: storage.rootURL)
-		var vmLocation: VMLocation? = nil
+		let doIt: (VMLocation) -> DeleteTemplateReply = { location in
+			if location.status != .running {
+				try? FileManager.default.removeItem(at: location.rootURL)
+				return .init(name: location.name, deleted: true)
+			} else {
+				return .init(name: location.name, deleted: false)
+			}
+		}
 
 		try lock.lock()
 
@@ -95,18 +102,9 @@ public struct TemplateHandler {
 		}
 
 		if let location: VMLocation = try? storage.find(templateName) {
-			vmLocation = location
-		} else if let u = URL(string: templateName), u.scheme == "template" {
-			vmLocation = try? StorageLocation(runMode: runMode).find(u.host()!)
-		}
-
-		if let location = vmLocation, location.status != .running {
-			if location.status != .running {
-				try? FileManager.default.removeItem(at: location.rootURL)
-				return .init(name: location.name, deleted: true)
-			} else {
-				return .init(name: location.name, deleted: false)
-			}
+			return doIt(location)
+		} else if let u = URL(string: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
+			return doIt(location)
 		}
 
 		return .init(name: templateName, deleted: false)

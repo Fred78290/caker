@@ -33,13 +33,13 @@ extension CakeAgentAsyncParsableCommand {
 	}
 
 	public func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, runMode: Utils.RunMode) throws {
-		let vmLocation = try StorageLocation(runMode: runMode).find(name)
+		let location = try StorageLocation(runMode: runMode).find(name)
 
-		if vmLocation.status != .running {
+		if location.status != .running {
 			Logger(self).info("Starting VM \(name)")
-			let config = try vmLocation.config()
+			let config = try location.config()
 
-			let _ = try StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, runMode: runMode)
+			let _ = try StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, runMode: runMode)
 		}
 	}
 

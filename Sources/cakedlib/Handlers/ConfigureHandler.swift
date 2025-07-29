@@ -6,8 +6,8 @@ import Virtualization
 
 public struct ConfigureHandler {
 	public static func configure(name: String, options: ConfigureOptions, runMode: Utils.RunMode) throws -> String {
-		let vmLocation = try StorageLocation(runMode: runMode).find(name)
-		let config = try vmLocation.config()
+		let location = try StorageLocation(runMode: runMode).find(name)
+		let config = try location.config()
 
 		if let cpu = options.cpu {
 			config.cpuCount = Int(cpu)
@@ -68,14 +68,14 @@ public struct ConfigureHandler {
 		try config.save()
 
 		if let diskSize = options.diskSize {
-			if vmLocation.status == .running {
+			if location.status == .running {
 				throw ServiceError("VM is running, please stop it before resizing the disk")
 			}
 
 			if config.os == .linux {
-				try vmLocation.resizeDisk(diskSize)
+				try location.resizeDisk(diskSize)
 			} else {
-				try vmLocation.expandDisk(diskSize)
+				try location.expandDisk(diskSize)
 			}
 		}
 

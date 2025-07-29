@@ -6,7 +6,7 @@ import Virtualization
 public var phUseLimaVMNet = false
 
 public protocol NetworkAttachement {
-	func attachment(vmLocation: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
+	func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment)
 	func stop(runMode: Utils.RunMode)
 }
 
@@ -18,7 +18,7 @@ public class NATNetworkInterface: NetworkAttachement {
 		self.macAddress = macAddress
 	}
 
-	public func attachment(vmLocation: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZNATNetworkDeviceAttachment())
 	}
 
@@ -36,7 +36,7 @@ public class BridgedNetworkInterface: NetworkAttachement {
 		self.macAddress = macAddress
 	}
 
-	public func attachment(vmLocation: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
 		return (macAddress, VZBridgedNetworkDeviceAttachment(interface: interface))
 	}
 
@@ -69,8 +69,8 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		self.networkConfig = networkConfig
 	}
 
-	public func attachment(vmLocation: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
-		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(vmLocation: vmLocation, runMode: runMode)))
+	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
 	}
 
 	public func closed(side: VZVMNetHandlerClient.HandlerSide) {
@@ -118,7 +118,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		}
 	}
 
-	internal func open(vmLocation: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
+	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
 		if try socketURL.0.exists() == false && (VMRunHandler.launchedFromService || runMode == .app) {
@@ -177,7 +177,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		} else {
 			Logger(self).info("Use standalone VZVMNet with fd: \(vmfd)")
 
-			let pidURL = vmLocation.rootURL.appending(path: "\(self.networkName).pid")
+			let pidURL = location.rootURL.appending(path: "\(self.networkName).pid")
 			self.process = try NetworksHandler.run(fileDescriptor: hostfd, networkConfig: .init(name: networkName, config: networkConfig), pidFile: pidURL, runMode: runMode)
 			self.pidURL = pidURL
 		}

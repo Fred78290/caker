@@ -290,7 +290,7 @@ public struct VMLocation: Hashable, Equatable {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
-						_ = try? StartHandler.startVM(vmLocation: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
+						_ = try? StartHandler.startVM(location: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
 					}
 				}
 			}
@@ -364,7 +364,7 @@ public struct VMLocation: Hashable, Equatable {
 	}
 
 	public func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
-		let vm = try VirtualMachine(vmLocation: self, config: config, runMode: runMode)
+		let vm = try VirtualMachine(location: self, config: config, runMode: runMode)
 
 		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall) {
 			if let handler = completionHandler {

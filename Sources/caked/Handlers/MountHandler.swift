@@ -12,7 +12,7 @@ struct MountHandler: CakedCommandAsync {
 	var request: Caked_MountRequest
 
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
-		let vmLocation = try StorageLocation(runMode: runMode).find(self.request.name)
+		let location = try StorageLocation(runMode: runMode).find(self.request.name)
 		let directorySharingAttachment = self.request.directorySharingAttachment()
 		let command = self.request.command
 
@@ -20,9 +20,9 @@ struct MountHandler: CakedCommandAsync {
 			let response: MountInfos
 
 			if command == .mount {
-				response = try CakedLib.MountHandler.Mount(vmLocation: vmLocation, mounts: directorySharingAttachment)
+				response = try CakedLib.MountHandler.Mount(location: location, mounts: directorySharingAttachment)
 			} else {
-				response = try CakedLib.MountHandler.Umount(vmLocation: vmLocation, mounts: directorySharingAttachment)
+				response = try CakedLib.MountHandler.Umount(location: location, mounts: directorySharingAttachment)
 			}
 
 			if case let .error(v) = response.response {

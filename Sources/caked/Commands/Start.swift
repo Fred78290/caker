@@ -23,9 +23,9 @@ struct Start: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(name)
-		let config = try vmLocation.config()
+		let location = try StorageLocation(runMode: self.common.runMode).find(name)
+		let config = try location.config()
 
-		Logger.appendNewLine(self.common.format.render(try CakedLib.StartHandler.startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(try CakedLib.StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
 	}
 }

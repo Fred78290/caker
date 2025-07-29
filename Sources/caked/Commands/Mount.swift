@@ -19,8 +19,8 @@ struct Mount: ParsableCommand {
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
-		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
-		let config: CakeConfig = try vmLocation.config()
+		let location = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
+		let config: CakeConfig = try location.config()
 		let directorySharingAttachments = config.mounts
 
 		try self.mount.mounts.forEach { attachment in
@@ -33,8 +33,8 @@ struct Mount: ParsableCommand {
 	}
 
 	func run() throws {
-		let vmLocation = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
-		let response = try CakedLib.MountHandler.Mount(vmLocation: vmLocation, mounts: self.mount.mounts)
+		let location = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
+		let response = try CakedLib.MountHandler.Mount(location: location, mounts: self.mount.mounts)
 
 		Logger.appendNewLine(self.common.format.render(response))
 

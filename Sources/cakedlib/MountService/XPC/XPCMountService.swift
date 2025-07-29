@@ -286,7 +286,7 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 	private let vm: VirtualMachine
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
-		let name = vm.vmLocation.name
+		let name = vm.location.name
 
 		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.MountService.\(name)")
 		self.group = group
@@ -332,14 +332,14 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 }
 
 class XPCMountServiceClient: MountServiceClient {
-	let vmLocation: VMLocation
+	let location: VMLocation
 
-	init(vmLocation: VMLocation) {
-		self.vmLocation = vmLocation
+	init(location: VMLocation) {
+		self.location = location
 	}
 
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
-		let config: CakeConfig = try vmLocation.config()
+		let config: CakeConfig = try location.config()
 		let valided = config.newAttachements(mounts)
 
 		if valided.isEmpty == false {
@@ -353,8 +353,8 @@ class XPCMountServiceClient: MountServiceClient {
 			config.mounts = directorySharingAttachments
 			try config.save()
 
-			if vmLocation.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(vmLocation.name)")
+			if location.status == .running {
+				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
 				let replier = ReplyMountService()
 
 				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
@@ -394,7 +394,7 @@ class XPCMountServiceClient: MountServiceClient {
 	}
 
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
-		let config: CakeConfig = try vmLocation.config()
+		let config: CakeConfig = try location.config()
 		let valided = config.validAttachements(mounts)
 
 		if valided.isEmpty == false {
@@ -407,8 +407,8 @@ class XPCMountServiceClient: MountServiceClient {
 			config.mounts = directorySharingAttachments
 			try config.save()
 
-			if vmLocation.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(vmLocation.name)")
+			if location.status == .running {
+				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
 				let replier = ReplyMountService()
 
 				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)

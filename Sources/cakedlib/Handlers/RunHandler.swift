@@ -17,12 +17,12 @@ public struct RunHandler {
 			}
 		}
 
-		let vmLocation: VMLocation = try StorageLocation(runMode: runMode).find(vmname)
+		let location: VMLocation = try StorageLocation(runMode: runMode).find(vmname)
 
-		if vmLocation.status != .running {
+		if location.status != .running {
 			Logger(self).info("Starting \(vmname)")
 
-			_ = try CakedLib.StartHandler.startVM(on: Utilities.group.next(), vmLocation: vmLocation, config: try vmLocation.config(), waitIPTimeout: 180, startMode: .background, runMode: runMode)
+			_ = try CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, config: try location.config(), waitIPTimeout: 180, startMode: .background, runMode: runMode)
 		}
 
 		return try client.run(command: command, arguments: arguments, input: input)

@@ -4,10 +4,10 @@ import NIOCore
 
 public struct LaunchHandler {
 	private static func launch(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> String {
-		let vmLocation = try StorageLocation(runMode: runMode).find(options.name)
-		let config = try vmLocation.config()
+		let location = try StorageLocation(runMode: runMode).find(options.name)
+		let config = try location.config()
 
-		return try StartHandler.startVM(on: Utilities.group.next(), vmLocation: vmLocation, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)
+		return try StartHandler.startVM(on: Utilities.group.next(), location: location, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)
 	}
 
 	public  static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {

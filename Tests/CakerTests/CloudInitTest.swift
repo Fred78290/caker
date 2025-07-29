@@ -97,8 +97,8 @@ final class CloudInitTests: XCTestCase {
 
 		for name in names {
 			if storageLocation.exists(name) {
-				if let vmLocation: VMLocation = try? storageLocation.find(name) {
-					try? vmLocation.delete()
+				if let location: VMLocation = try? storageLocation.find(name) {
+					try? location.delete()
 				}
 			}
 		}
@@ -187,7 +187,7 @@ final class CloudInitTests: XCTestCase {
 		//options.netSoftnetAllow = nil
 		//options.netHost = false
 
-		_ = try await VMBuilder.buildVM(vmName: options.name, vmLocation: tempVMLocation, options: options, asSystem: false)
+		_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, asSystem: false)
 
 		XCTAssertNoThrow(try StorageLocation(asSystem: false).relocate(options.name, from: tempVMLocation))
 	}
@@ -230,7 +230,7 @@ final class CloudInitTests: XCTestCase {
 
 	func testLaunchVMWithCloudImage() async throws {
 		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
-		let vmLocation: VMLocation = try StorageLocation(asSystem: false).find(noble_cloud_image)
+		let location: VMLocation = try StorageLocation(asSystem: false).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
 
@@ -245,11 +245,11 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let runningIP = try StartHandler.startVM(vmLocation: vmLocation, config: vmLocation.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)
+		let runningIP = try StartHandler.startVM(location: location, config: location.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)
 
 		print("startVM got running ip: \(runningIP)")
 
-		try vmLocation.stopVirtualMachine(force: false, asSystem: false)
+		try location.stopVirtualMachine(force: false, asSystem: false)
 
 		// Wait VM die
 		XCTAssertNoThrow(try promise.futureResult.wait())
@@ -261,8 +261,8 @@ final class CloudInitTests: XCTestCase {
 
 		for name in names {
 			if storageLocation.exists(name) {
-				let vmLocation: VMLocation = try storageLocation.find(name)
-				XCTAssertNoThrow(try vmLocation.delete())
+				let location: VMLocation = try storageLocation.find(name)
+				XCTAssertNoThrow(try location.delete())
 				XCTAssertFalse(storageLocation.exists(name), "VM \(name) should be deleted")
 			}
 		}

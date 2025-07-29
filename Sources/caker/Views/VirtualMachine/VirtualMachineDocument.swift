@@ -165,16 +165,16 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		do {
-			let vmLocation = try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)
-			let config = try vmLocation.config()
+			let location = try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)
+			let config = try location.config()
 
 			try fileURL.updateAccessDate()
 
-			self.virtualMachineConfig = VirtualMachineConfig(vmname: vmLocation.name, config: config)
-			self.name = vmLocation.name
-			self.location = vmLocation
+			self.virtualMachineConfig = VirtualMachineConfig(vmname: location.name, config: config)
+			self.name = location.name
+			self.location = location
 
-			if vmLocation.pidFile.isPIDRunning("caked") {
+			if location.pidFile.isPIDRunning("caked") {
 				self.status = .external
 				
 				self.canStart = false
@@ -186,7 +186,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 							}
 			else
 			{
-				let virtualMachine = try VirtualMachine(vmLocation: vmLocation, config: config, runMode: .app)
+				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
 				self.virtualMachine = virtualMachine
 				self.didChangedState(virtualMachine)
@@ -230,7 +230,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					self.canRequestStop = true
 					self.suspendable = config.suspendable
 				} else {
-					let virtualMachine = try VirtualMachine(vmLocation: location, config: config, runMode: .app)
+					let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
 					self.virtualMachine = virtualMachine
 					self.didChangedState(virtualMachine)
@@ -247,7 +247,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			return nil
 		}
 		
-		return virtualMachine.vmLocation.rootURL
+		return virtualMachine.location.rootURL
 	}
 
 	func startFromUI() {
@@ -312,7 +312,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	func createTemplateFromUI(name: String) -> CreateTemplateReply {
 		do {
-			return try TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.vmLocation.name, templateName: name, runMode: .app)
+			return try TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.location.name, templateName: name, runMode: .app)
 		} catch {
 			guard let error = error as? ServiceError else {
 				return .init(name: name, created: false, reason: error.localizedDescription)

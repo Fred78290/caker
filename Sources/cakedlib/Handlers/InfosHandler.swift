@@ -6,16 +6,16 @@ import NIO
 
 public struct InfosHandler {
 	public  static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
-		let vmLocation = try StorageLocation(runMode: runMode).find(name)
-		let config: CakeConfig = try vmLocation.config()
+		let location = try StorageLocation(runMode: runMode).find(name)
+		let config: CakeConfig = try location.config()
 		var infos: InfoReply
 
-		if vmLocation.status == .running {
+		if location.status == .running {
 			infos = try client.info(callOptions: callOptions)
 		} else {
 			var diskInfos: [DiskInfo] = []
 
-			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.location).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try vmLocation.diskSize()), free: 0, used: 0))
+			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.location).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try location.diskSize()), free: 0, used: 0))
 
 			for disk in config.attachedDisks {
 				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.location).absoluteURL

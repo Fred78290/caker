@@ -9,15 +9,15 @@ public struct VMRunHandler {
 	public static var launchedFromService = false
 
 	let storageLocation: StorageLocation
-	let vmLocation: VMLocation
+	let location: VMLocation
 	let name: String
 	let runMode: Utils.RunMode
 	let display: Bool
 	let config: CakeConfig
 
-	public init(storageLocation: StorageLocation, vmLocation: VMLocation, name: String, runMode: Utils.RunMode, display: Bool, config: CakeConfig) {
+	public init(storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: Bool, config: CakeConfig) {
 		self.storageLocation = storageLocation
-		self.vmLocation = vmLocation
+		self.location = location
 		self.name = name
 		self.runMode = runMode
 		self.display = display
@@ -26,7 +26,7 @@ public struct VMRunHandler {
 
 	public func run(_ completionHandler: @escaping (VirtualMachine) -> Void) throws {
 		defer {
-			vmLocation.removePID()
+			location.removePID()
 		}
 
 		if let macAddress = config.macAddress {
@@ -47,7 +47,7 @@ public struct VMRunHandler {
 			}
 		}
 
-		let (_, vm) = try vmLocation.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
+		let (_, vm) = try location.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
 
 		completionHandler(vm)
 /*		if display {

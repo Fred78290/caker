@@ -16,15 +16,15 @@ public struct StartHandler {
 	}
 
 	private final class StartHandlerVMRun: Sendable {
-		internal func start(vmLocation: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-			let config: CakeConfig = try vmLocation.config()
-			let log: String = URL(fileURLWithPath: "output.log", relativeTo: vmLocation.rootURL).absoluteURL.path
+		internal func start(location: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+			let config: CakeConfig = try location.config()
+			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
 			
 			guard let caked = URL.binary("caked") else {
 				throw ServiceError("caked not found")
 			}
 
-			var arguments: [String] = ["exec", caked.path(), "vmrun", vmLocation.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			var arguments: [String] = ["exec", caked.path(), "vmrun", location.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)
@@ -46,19 +46,19 @@ public struct StartHandler {
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
-				Logger(self).debug("VM \(vmLocation.name) exited with code \(process.terminationStatus)")
+				Logger(self).debug("VM \(location.name) exited with code \(process.terminationStatus)")
 
 				if let promise = promise {
 					if process.terminationStatus == 0 {
-						promise.succeed(vmLocation.name)
+						promise.succeed(location.name)
 					} else {
-						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: vmLocation.name))
+						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: location.name))
 					}
 				}
 			}
 
 			do {
-				let runningIP = try vmLocation.waitIPWithAgent(wait: 180, runMode: runMode, startedProcess: process)
+				let runningIP = try location.waitIPWithAgent(wait: 180, runMode: runMode, startedProcess: process)
 
 				return runningIP
 			} catch {
@@ -69,7 +69,7 @@ public struct StartHandler {
 						promise.fail(error)
 					}
 
-					throw ServiceError("VM \"\(vmLocation.name)\" exited with code \(process.terminationStatus)")
+					throw ServiceError("VM \"\(location.name)\" exited with code \(process.terminationStatus)")
 				} else {
 					process.terminationHandler = { (p: ProcessWithSharedFileHandle) in
 						if let promise: EventLoopPromise<String> = promise {
@@ -88,16 +88,16 @@ public struct StartHandler {
 	public static func autostart(on: EventLoop, runMode: Utils.RunMode) throws {
 		let storageLocation = StorageLocation(runMode: runMode)
 
-		_ = try storageLocation.list().map { (name: String, vmLocation: VMLocation) in
+		_ = try storageLocation.list().map { (name: String, location: VMLocation) in
 			do {
-				let config = try vmLocation.config()
+				let config = try location.config()
 
-				if config.autostart && vmLocation.status != .running {
+				if config.autostart && location.status != .running {
 					Task {
 						Logger(self).info("VM \(name) starting")
 
 						do {
-							let runningIP = try StartHandler.startVM(on: on, vmLocation: vmLocation, config: config, waitIPTimeout: 120, startMode: .service, runMode: runMode)
+							let runningIP = try StartHandler.startVM(on: on, location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: runMode)
 
 							Logger(self).info("VM \(name) started with IP \(runningIP)")
 						} catch {
@@ -109,7 +109,7 @@ public struct StartHandler {
 				Logger(self).error(error)
 			}
 
-			return vmLocation
+			return location
 		}
 	}
 
@@ -154,11 +154,11 @@ public struct StartHandler {
 		return process
 	}
 
-	public static func internalStartVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-		return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+	public static func internalStartVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
-	public static func startVM(on: EventLoop, vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) throws -> String {
+	public static func startVM(on: EventLoop, location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) throws -> String {
 		let promise: EventLoopPromise<String> = on.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
@@ -166,23 +166,23 @@ public struct StartHandler {
 			case let .success(name):
 				Logger(self).info("VM \(name) terminated")
 			case let .failure(err):
-				Logger(self).error(ServiceError("Failed to start VM \(vmLocation.name), \(err.localizedDescription)"))
+				Logger(self).error(ServiceError("Failed to start VM \(location.name), \(err.localizedDescription)"))
 			}
 		}
 
-		return try startVM(vmLocation: vmLocation, config: config, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+		return try startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
-	public static func startVM(vmLocation: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path) == false {
+	public static func startVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+		if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
 			throw ServiceError("VM does not exist")
 		}
 
-		if vmLocation.status == .running {
-			return try vmLocation.waitIP(wait: 180, runMode: runMode)
+		if location.status == .running {
+			return try location.waitIP(wait: 180, runMode: runMode)
 		}
 
-		return try StartHandlerVMRun().start(vmLocation: vmLocation, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
 }

@@ -29,16 +29,16 @@ struct StartHandler: CakedCommand {
 	}
 
 	init(name: String, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode, runMode: Utils.RunMode) throws {
-		let vmLocation: VMLocation = try StorageLocation(runMode: runMode).find(name)
+		let location: VMLocation = try StorageLocation(runMode: runMode).find(name)
 
-		self.location = vmLocation
-		self.config = try vmLocation.config()
+		self.location = location
+		self.config = try location.config()
 		self.waitIPTimeout = waitIPTimeout
 		self.startMode = startMode
 	}
 
 	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		let message = try CakedLib.StartHandler.startVM(on: on, vmLocation: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode)
+		let message = try CakedLib.StartHandler.startVM(on: on, location: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode)
 
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {

@@ -76,7 +76,7 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	var server: Server? = nil
 
 	func createServer() throws -> EventLoopFuture<Server> {
-		let listeningAddress = self.vm.vmLocation.mountServiceURL
+		let listeningAddress = self.vm.location.mountServiceURL
 		let target: ConnectionTarget
 
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {

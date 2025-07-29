@@ -110,8 +110,8 @@ struct VirtualMachineConfig: Hashable {
 	}
 	
 	func save(name: String) throws {
-		let vmLocation = try StorageLocation(runMode: .app).find(name)
-		let config = try vmLocation.config()
+		let location = try StorageLocation(runMode: .app).find(name)
+		let config = try location.config()
 		
 		try self.save(config: config)
 	}
