@@ -336,7 +336,7 @@ struct VirtualMachineWizard: View {
 	
 	func Head() -> some View {
 		VStack {
-			Steps(state: self.model.stepsState) {
+			Steps(state: self.stepsState) {
 				return Step(title: $0.title, image: $0.image)
 			}
 			.onSelectStepAtIndex { index in
