@@ -20,7 +20,7 @@ public struct BuildHandler {
 		try await withTaskCancellationHandler(
 			operation: {
 				do {
-					if try await VMBuilder.buildVM(vmName: name, vmLocation: tempVMLocation, options: options, runMode: runMode) == .oci {
+					if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode) == .oci {
 						try tempVMLocation.delete()
 					} else {
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)

@@ -45,31 +45,45 @@ public struct VMBuilder {
 		}
 	}
 
-	private static func build(vmName: String, vmLocation: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode) throws {
+	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode) async throws {
 		let config: CakeConfig
 		var attachedDisks = options.attachedDisks
 
 		// Create config
 		if source == .ipsw {
-			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
+			let image = try await withCheckedThrowingContinuation { continuation in
+				VZMacOSRestoreImage.load(from: URL(string: options.image)!) { result in
+					continuation.resume(with: result)
+				}
+			}
+
+			guard let requirements = image.mostFeaturefulSupportedConfiguration else {
+				throw ServiceError("Unsupported restore image")
+			}
+
+			_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
+
 			config = CakeConfig(
-				location: vmLocation.rootURL,
+				location: location.rootURL,
 				os: .darwin,
 				autostart: options.autostart,
 				configuredUser: options.user,
 				configuredPassword: options.password,
 				displayRefit: options.displayRefit,
-				cpuCountMin: Int(options.cpu),
-				memorySizeMin: options.memory * 1024 * 1024)
+				cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
+				memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024))
 
+			config.hardwareModel = requirements.hardwareModel
+			config.ecid = VZMacMachineIdentifier()
 			config.useCloudInit = true
 			config.agent = true
 			config.nested = options.nested
 			config.attachedDisks = attachedDisks
+
 		} else if source == .oci {
-			config = try CakeConfig(location: vmLocation.rootURL, options: options)
-		} else if try vmLocation.configURL.exists() {
-			config = try vmLocation.config()
+			config = try CakeConfig(location: location.rootURL, options: options)
+		} else if try location.configURL.exists() {
+			config = try location.config()
 
 			config.macAddress = VZMACAddress.randomLocallyAdministered()
 
@@ -78,14 +92,14 @@ public struct VMBuilder {
 			}
 		} else {
 			// Create NVRAM
-			_ = try VZEFIVariableStore(creatingVariableStoreAt: vmLocation.nvramURL)
+			_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
 			if source == .iso {
 				attachedDisks.append(DiskAttachement(diskPath: URL(string: options.image)!))
 			}
 
 			config = CakeConfig(
-				location: vmLocation.rootURL,
+				location: location.rootURL,
 				os: .linux,
 				autostart: options.autostart,
 				configuredUser: options.user,
@@ -102,9 +116,9 @@ public struct VMBuilder {
 
 		// Create or resize disk
 		if config.os == .darwin {
-			try? vmLocation.expandDisk(options.diskSize)
+			try? location.expandDisk(options.diskSize)
 		} else {
-			try? vmLocation.resizeDisk(options.diskSize)
+			try? location.resizeDisk(options.diskSize)
 		}
 
 		config.networks = options.networks
@@ -133,12 +147,12 @@ public struct VMBuilder {
 				netIfnames: options.netIfnames,
 				runMode: runMode)
 
-			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: vmLocation.diskURL))
+			try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL))
 		}
 	}
 
-	public static func cloneImage(vmName: String, vmLocation: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
-		if FileManager.default.fileExists(atPath: vmLocation.diskURL.path) {
+	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
+		if FileManager.default.fileExists(atPath: location.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
 		var sourceImage: ImageSource = .cloud
@@ -167,7 +181,7 @@ public struct VMBuilder {
 			let temporaryDiskURL: URL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
 			try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
-			_ = try FileManager.default.replaceItemAt(vmLocation.diskURL, withItemAt: temporaryDiskURL)
+			_ = try FileManager.default.replaceItemAt(location.diskURL, withItemAt: temporaryDiskURL)
 			try? FileManager.default.removeItem(at: temporaryDiskURL)
 
 			sourceImage = .raw
@@ -175,14 +189,14 @@ public struct VMBuilder {
 			let templateName = imageURL.host()!
 			let templateLocation = try StorageLocation(runMode: runMode, template: true).find(templateName)
 
-			try templateLocation.copyTo(vmLocation)
+			try templateLocation.copyTo(location)
 			sourceImage = .template
 		} else if scheme == "qcow2" {
-			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: vmLocation.diskURL)
+			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL)
 		} else if scheme == "http" || scheme == "https" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: vmLocation.diskURL, runMode: runMode)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode)
 		} else if scheme == "cloud" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: vmLocation.diskURL, runMode: runMode)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode)
 		} else if scheme == "oci" || scheme == "ocis" {
 			if Utilities.checkIfTartPresent() == false {
 				throw ServiceError("tart is not installed")
@@ -212,7 +226,7 @@ public struct VMBuilder {
 			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), runMode: runMode)
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: vmLocation.diskURL, runMode: runMode)
+			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode)
 
 			sourceImage = .stream
 		} else {
@@ -222,20 +236,20 @@ public struct VMBuilder {
 		return sourceImage
 	}
 
-	static func buildVM(vmName: String, vmLocation: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
-		let sourceImage = try await self.cloneImage(vmName: vmName, vmLocation: vmLocation, options: options, runMode: runMode)
+	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
+		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode)
 
 		if sourceImage == .oci {
-			let vmLocation = try StorageLocation(runMode: runMode).find(vmName)
+			let location = try StorageLocation(runMode: runMode).find(vmName)
 
 			do {
-				try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage, runMode: runMode)
+				try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode)
 			} catch {
-				try? vmLocation.delete()
+				try? location.delete()
 				throw error
 			}
 		} else {
-			try self.build(vmName: vmName, vmLocation: vmLocation, options: options, source: sourceImage, runMode: runMode)
+			try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode)
 		}
 
 		return sourceImage
