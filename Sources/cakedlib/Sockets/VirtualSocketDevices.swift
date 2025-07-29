@@ -134,7 +134,7 @@ class SocketState {
 	}
 }
 
-protocol VirtioSocketDeviceDelegate: AnyObject {
+protocol VirtioSocketDeviceDelegate {
 	func closedByRemote(socket: SocketDevice)
 	func connectionInitiatedByGuest(socket: SocketDevice)
 	func connectionInitiatedByHost(socket: SocketDevice)

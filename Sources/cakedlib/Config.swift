@@ -385,6 +385,22 @@ public final class CakeConfig {
 		}.joined(separator: " ")
 	}
 
+	public var installAgent: Bool {
+		let source = self.source
+
+#if arch(arm64)
+		if self.firstLaunch && source != .iso && source != .ipsw {
+			return true
+		} else if source == .iso || source == .ipsw {
+			return true
+		}
+
+		return false
+#else
+		return config.firstLaunch && source != .iso
+#endif
+	}
+
 	public init(
 		location: URL,
 		os: VirtualizedOS,

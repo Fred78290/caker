@@ -34,17 +34,20 @@ public struct MultiplatformTab: View {
     /// The SwiftUI content for the page body displayed when this tab is selected.
     public var contents: AnyView
     
-    
+	/// Tab is disabled.
+	public var disabled:Bool = false
+
     /// Creates a new instance of the object.
     /// - Parameters:
     ///   - title: The title for the tab.
     ///   - icon: The icon for the tab.
     ///   - tag: An optional tag for the tab.
     ///   - contents: The SwiftUI content for the page body displayed when this tab is selected.
-    public init(title:String, icon:Image, tag:String = "", contents:AnyView) {
+	public init(title:String, icon:Image, tag:String = "", disabled: Bool = false, contents:AnyView) {
         self.title = title
         self.icon = icon
-        self.tag = tag
+		self.tag = tag
+		self.disabled = disabled
         self.contents = contents
     }
     
@@ -57,10 +60,12 @@ public struct MultiplatformTab: View {
             icon
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 24, height: 24, alignment: .center)
+			.foregroundColor(disabled ? .gray : .black)
+			.frame(width: 24, height: 24, alignment: .center)
             
             Text(title)
-                .font(.footnote)
+				.font(.footnote)
+				.foregroundColor(disabled ? .gray : .black)
         }
         .background(Color.red.opacity(0.0))
     }

@@ -1270,12 +1270,12 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				9B7895ED2E37D9C2004D07EB /* MultiplatformTabBar */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
+				9B7895ED2E37D9C2004D07EB /* MultiplatformTabBar */,
 			);
 			name = Sources;
 			path = ../Sources;

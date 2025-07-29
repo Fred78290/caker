@@ -235,13 +235,13 @@ class AppState: ObservableObject, Observable {
 						self.removeVirtualMachineDocument(location.rootURL)
 					} else {
 						DispatchQueue.main.async {
-							vm.alertError(ServiceError("VM Not deleted \(first.name): \(first.reason)"))
+							alertError(ServiceError("VM Not deleted \(first.name): \(first.reason)"))
 						}
 					}
 				}
 			} catch {
 				DispatchQueue.main.async {
-					vm.alertError(error)
+					alertError(error)
 				}
 			}
 		}

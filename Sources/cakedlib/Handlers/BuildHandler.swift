@@ -6,7 +6,21 @@ import SwiftUI
 import Virtualization
 
 public struct BuildHandler {
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode) async throws {
+	public static func progressHandler(_ fractionCompleted: Double) {
+		let completed = Int(fractionCompleted * 100)
+		
+		if completed % 10 == 0 {
+			if completed == 0 {
+				print(String(format: "%0.2d", completed), terminator: "")
+			} else if completed < 100 {
+				print(String(format: "...%0.2d", completed), terminator: "")
+			} else {
+				print(String(format: "...%0.3d", completed), terminator: " complete\n")
+			}
+		}
+	}
+
+	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
 		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
@@ -20,7 +34,7 @@ public struct BuildHandler {
 		try await withTaskCancellationHandler(
 			operation: {
 				do {
-					if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode) == .oci {
+					if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, progressHandler: progressHandler) == .oci {
 						try tempVMLocation.delete()
 					} else {
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)

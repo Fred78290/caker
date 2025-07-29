@@ -136,21 +136,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
-	func alertError(_ error: Error) {
-		if let error = error as? ServiceError {
-			let alert = NSAlert()
-			
-			alert.messageText = "Failed to start VM"
-			alert.informativeText = error.description
-			alert.runModal()
-		} else {
-			let alert = NSAlert(error: error)
-			
-			alert.messageText = "Failed to start VM"
-			alert.runModal()
-		}
-	}
-
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
 		throw ServiceError("Unimplemented")
 	}
@@ -204,7 +189,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			return true
 		} catch {
             DispatchQueue.main.async {
-                self.alertError(error)
+                alertError(error)
             }
 		}
 
@@ -240,7 +225,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				return location.rootURL
 			} catch {
                 DispatchQueue.main.async {
-                    self.alertError(error)
+                    alertError(error)
                 }
 			}
 
@@ -264,10 +249,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
 				
 				if result.stopped == false {
-					self.alertError(ServiceError(result.reason))
+					alertError(ServiceError(result.reason))
 				}
 			} catch {
-				self.alertError(error)
+				alertError(error)
 			}
 		}
 	}
@@ -280,10 +265,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.stopVM(name: self.name, force: true, runMode: .app)
 				
 				if result.stopped == false {
-					self.alertError(ServiceError(result.reason))
+					alertError(ServiceError(result.reason))
 				}
 			} catch {
-				self.alertError(error)
+				alertError(error)
 			}
 		}
 	}
@@ -296,10 +281,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
 				
 				if result.stopped == false {
-					self.alertError(ServiceError(result.reason))
+					alertError(ServiceError(result.reason))
 				}
 			} catch {
-				self.alertError(error)
+				alertError(error)
 			}
 		}
 	}
@@ -437,4 +422,6 @@ extension NSNotification {
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
 	static let DeleteVirtualMachine = NSNotification.Name("DeleteVirtualMachine")
+	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
+	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 }

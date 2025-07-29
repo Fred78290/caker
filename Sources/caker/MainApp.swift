@@ -3,6 +3,21 @@ import CakedLib
 import GRPCLib
 import SwiftTerm
 
+func alertError(_ error: Error) {
+	if let error = error as? ServiceError {
+		let alert = NSAlert()
+		
+		alert.messageText = "Failed to start VM"
+		alert.informativeText = error.description
+		alert.runModal()
+	} else {
+		let alert = NSAlert(error: error)
+		
+		alert.messageText = "Failed to start VM"
+		alert.runModal()
+	}
+}
+
 struct Defaults {
 	static func currentTerminalFont(defaultValue: NSFont = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)) -> NSFont {
 		guard let name = UserDefaults.standard.object(forKey: "TerminalFontName") as? String else {

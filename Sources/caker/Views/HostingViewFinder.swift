@@ -9,7 +9,11 @@
 import SwiftUI
 
 struct HostingWindowFinder: NSViewRepresentable {
-	var callback: (NSWindow?) -> Void
+	private var callback: (NSWindow?) -> Void
+
+	init(_ callback: @escaping (NSWindow?) -> Void) {
+		self.callback = callback
+	}
 
 	func makeNSView(context: Self.Context) -> NSView {
 		let view = NSView()

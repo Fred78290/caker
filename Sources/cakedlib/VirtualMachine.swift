@@ -9,7 +9,212 @@ public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
 }
 
-public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject, VirtioSocketDeviceDelegate {
+class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
+	let location: VMLocation
+	let config: CakeConfig
+	let communicationDevices: CommunicationDevices?
+	let configuration: VZVirtualMachineConfiguration
+	let networks: [NetworkAttachement]
+	let sigcaught: [Int32: DispatchSourceSignal]
+	var semaphore = AsyncSemaphore(value: 0)
+	var mountService: MountServiceServerProtocol! = nil
+	var requestStopFromUIPending = false
+	var runningIP: String = ""
+	let runMode: Utils.RunMode
+	
+	init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws {
+		let suspendable = config.suspendable
+		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
+		let additionalDiskAttachments = try config.additionalDiskAttachments()
+		let directorySharingAttachments = try config.directorySharingAttachments()
+		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
+		let consoleURL = try config.consoleAttachment()
+		
+		let configuration = VZVirtualMachineConfiguration()
+		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
+		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
+		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
+		
+		var sigcaught: [Int32: DispatchSourceSignal] = [:]
+		var devices: [VZStorageDeviceConfiguration] = [
+			VZVirtioBlockDeviceConfiguration(
+				attachment: try VZDiskImageStorageDeviceAttachment(
+					url: location.diskURL,
+					readOnly: false,
+					cachingMode: config.os == .linux ? .cached : .automatic,
+					synchronizationMode: .full
+				))
+		]
+		
+		let networkDevices = try networks.map {
+			let vio = VZVirtioNetworkDeviceConfiguration()
+			
+			(vio.macAddress, vio.attachment) = try $0.attachment(location: location, runMode: runMode)
+			
+			return vio
+		}
+		
+		devices.append(contentsOf: additionalDiskAttachments)
+		
+		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
+		
+		configuration.bootLoader = try plateform.bootLoader()
+		configuration.cpuCount = config.cpuCount
+		configuration.memorySize = config.memorySize
+		configuration.platform = try plateform.platform()
+		configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
+		configuration.audioDevices = [soundDeviceConfiguration]
+		configuration.keyboards = plateform.keyboards(suspendable)
+		configuration.pointingDevices = plateform.pointingDevices(suspendable)
+		configuration.networkDevices = networkDevices
+		configuration.storageDevices = devices
+		configuration.directorySharingDevices = directorySharingAttachments
+		configuration.serialPorts = []
+		configuration.memoryBalloonDevices = [memoryBallons]
+		
+		let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
+		let spiceAgentPort = VZVirtioConsolePortConfiguration()
+		let spiceAgentPortAttachment = VZSpiceAgentPortAttachment()
+		
+		spiceAgentPortAttachment.sharesClipboard = true
+		
+		spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
+		spiceAgentPort.attachment = spiceAgentPortAttachment
+		spiceAgentConsoleDevice.ports[0] = spiceAgentPort
+		configuration.consoleDevices.append(spiceAgentConsoleDevice)
+		
+		if config.os == .linux {
+			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
+			
+			if FileManager.default.fileExists(atPath: cdromURL.path) {
+				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
+			}
+		}
+		
+		let communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
+		
+		try configuration.validate()
+
+		if runMode != .app {
+			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: [Int32: DispatchSourceSignal]()) { partialResult, sig in
+				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
+			}
+		}
+
+		self.location = location
+		self.config = config
+		self.runMode = runMode
+		self.configuration = configuration
+		self.communicationDevices = communicationDevices
+		self.networks = networks
+		self.sigcaught = sigcaught
+
+		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
+			communicationDevices.delegate = self
+		}
+	}
+	
+	func closedByRemote(socket: SocketDevice) {
+	}
+
+	func connectionInitiatedByGuest(socket: SocketDevice) {
+	}
+
+	func connectionInitiatedByHost(socket: SocketDevice) {
+		if socket.bind == self.location.agentURL.path {
+			do {
+				try PortForwardingServer.createPortForwardingServer(
+					group: Utilities.group.next(), name: self.location.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.location.agentURL, runMode: runMode)
+			} catch {
+				Logger(self).error(error)
+			}
+		}
+	}
+
+	func startCommunicationDevices(_ virtualMachine: VZVirtualMachine) {
+		if let communicationDevices = self.communicationDevices {
+			communicationDevices.connect(virtualMachine: virtualMachine)
+			Logger(self).info("Communication devices \(self.location.name) connected")
+		}
+	}
+
+	func stopCommunicationDevices() {
+		if let communicationDevices = self.communicationDevices {
+			Logger(self).info("Close communication devices for VM \(self.location.name)")
+			communicationDevices.close()
+		}
+	}
+
+	func stopForwaringPorts() {
+		try? PortForwardingServer.closeForwardedPort()
+	}
+
+	func stopMountService() {
+		if let mountService = self.mountService {
+			Logger(self).info("Stopping mount service for VM \(self.location.name)...")
+			mountService.stop()
+		}
+	}
+
+	func startMountService(_ vm: VirtualMachine) throws {
+		self.mountService = createMountServiceServer(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
+	}
+
+	func serveMountService() async throws {
+		defer {
+			self.stopMountService()
+			self.stopNetworkDevices()
+		}
+
+		do {
+			self.mountService.serve()
+			try await self.semaphore.waitUnlessCancelled()
+		} catch is CancellationError {
+		}
+	}
+
+	func stopNetworkDevices() {
+		self.networks.forEach { $0.stop(runMode: runMode) }
+	}
+
+	func stopServices() {
+		stopCommunicationDevices()
+		stopForwaringPorts()
+	}
+
+	func signalStop() {
+		Logger(self).info("Signal VM \(self.location.name) stopped...")
+		stopServices()
+
+		if self.requestStopFromUIPending == false {
+			self.semaphore.signal()
+		}
+
+		self.requestStopFromUIPending = true
+
+		if self.runMode == .app {
+			try? self.location.deletePID()
+		}
+	}
+
+	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
+		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
+			url: cdromURL,
+			readOnly: true,
+			cachingMode: .cached,
+			synchronizationMode: VZDiskImageSynchronizationMode.none)
+
+		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
+
+		cdrom.blockDeviceIdentifier = "CIDATA"
+
+		return cdrom
+	}
+}
+
+public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
+	public typealias IPSWProgressHandler = (Double) -> Void
+
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
@@ -21,23 +226,15 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	public let config: CakeConfig
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
-
-	private let communicationDevices: CommunicationDevices?
-	private let configuration: VZVirtualMachineConfiguration
-	private let networks: [NetworkAttachement]
-	private let sigcaught: [Int32: DispatchSourceSignal]
-	private var semaphore = AsyncSemaphore(value: 0)
-	private var mountService: MountServiceServerProtocol? = nil
-	private var requestStopFromUIPending = false
-	private var runningIP: String = ""
-	private let runMode: Utils.RunMode
+	
+	private var env: VirtualMachineEnvironment
 
 	public var suspendable: Bool {
 		return self.config.suspendable
 	}
 
 	public var status: VMLocation.Status {
-		if self.runMode != .app {
+		if self.env.runMode != .app {
 			return self.location.status
 		}
 
@@ -65,106 +262,23 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		return cdrom
 	}
 
-	public init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws {
+	public init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError("Unsupported architecture")
 		}
 
-		let suspendable = config.suspendable
-		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
-		let additionalDiskAttachments = try config.additionalDiskAttachments()
-		let directorySharingAttachments = try config.directorySharingAttachments()
-		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
-		let consoleURL = try config.consoleAttachment()
-
-		let configuration = VZVirtualMachineConfiguration()
-		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
-		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
-		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
-
-		var sigcaught: [Int32: DispatchSourceSignal] = [:]
-		var devices: [VZStorageDeviceConfiguration] = [
-			VZVirtioBlockDeviceConfiguration(
-				attachment: try VZDiskImageStorageDeviceAttachment(
-					url: location.diskURL,
-					readOnly: false,
-					cachingMode: config.os == .linux ? .cached : .automatic,
-					synchronizationMode: .full
-				))
-		]
-
-		let networkDevices = try networks.map {
-			let vio = VZVirtioNetworkDeviceConfiguration()
-
-			(vio.macAddress, vio.attachment) = try $0.attachment(location: location, runMode: runMode)
-
-			return vio
-		}
-
-		devices.append(contentsOf: additionalDiskAttachments)
-
-		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
-
-		configuration.bootLoader = try plateform.bootLoader()
-		configuration.cpuCount = config.cpuCount
-		configuration.memorySize = config.memorySize
-		configuration.platform = try plateform.platform()
-		configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
-		configuration.audioDevices = [soundDeviceConfiguration]
-		configuration.keyboards = plateform.keyboards(suspendable)
-		configuration.pointingDevices = plateform.pointingDevices(suspendable)
-		configuration.networkDevices = networkDevices
-		configuration.storageDevices = devices
-		configuration.directorySharingDevices = directorySharingAttachments
-		configuration.serialPorts = []
-		configuration.memoryBalloonDevices = [memoryBallons]
-
-		let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
-		let spiceAgentPort = VZVirtioConsolePortConfiguration()
-		let spiceAgentPortAttachment = VZSpiceAgentPortAttachment()
-
-		spiceAgentPortAttachment.sharesClipboard = true
-
-		spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
-		spiceAgentPort.attachment = spiceAgentPortAttachment
-		spiceAgentConsoleDevice.ports[0] = spiceAgentPort
-		configuration.consoleDevices.append(spiceAgentConsoleDevice)
-
-		if config.os == .linux {
-			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
-
-			if FileManager.default.fileExists(atPath: cdromURL.path) {
-				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
-			}
-		}
-
-		let communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
-
-		try configuration.validate()
-
-		let virtualMachine = VZVirtualMachine(configuration: configuration)
-
-		if runMode != .app {
-			sigcaught = [SIGINT, SIGUSR1, SIGUSR2].reduce(into: [Int32: DispatchSourceSignal]()) { partialResult, sig in
-				partialResult[sig] = DispatchSource.makeSignalSource(signal: sig)
-			}
-		}
-
-		self.runMode = runMode
 		self.config = config
 		self.location = location
-		self.configuration = configuration
-		self.communicationDevices = communicationDevices
-		self.virtualMachine = virtualMachine
-		self.networks = networks
-		self.sigcaught = sigcaught
+		self.env = try VirtualMachineEnvironment(location: location, config: config, runMode: runMode)
+		
+		if let queue = queue {
+			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration, queue: queue)
+		} else {
+			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration)
+		}
 
 		super.init()
-
-		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
-			communicationDevices.delegate = self
-		}
 
 		virtualMachine.delegate = self
 	}
@@ -176,7 +290,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 
-		self.mountService = createMountServiceServer(group: Utilities.group.next(), runMode: runMode, vm: self, certLocation: try CertificatesLocation.createAgentCertificats(runMode: runMode))
+		try self.env.startMountService(self)
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -202,16 +316,8 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
-		defer {
-			stopMountService()
-			stopNetworkDevices()
-		}
-
-		do {
-			mountService!.serve()
-			try await self.semaphore.waitUnlessCancelled()
-		} catch is CancellationError {
-		}
+		
+		try await self.env.serveMountService()
 
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {
@@ -224,12 +330,12 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
-		self.requestStopFromUIPending = false
+		self.env.requestStopFromUIPending = false
 
 		switch result {
 		case .success:
 			Logger(self).info("VM \(self.location.name) started")
-			self.startCommunicationDevices()
+			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
 			Logger(self).error("VM \(self.location.name) failed to start: \(error)")
@@ -244,7 +350,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		self.virtualMachine.start { result in
 			self.startCompletionHandler(result: result) { result in
 				if case .success = result {
-					guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.runMode)) != nil else {
+					guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
 						Logger(self).error("VM \(self.location.name) failed to get primary IP")
 						return
 					}
@@ -273,7 +379,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		if self.virtualMachine.canPause {
 			if #available(macOS 14, *) {
 				do {
-					try self.configuration.validateSaveRestoreSupport()
+					try self.env.configuration.validateSaveRestoreSupport()
 
 					self.virtualMachine.pause { result in
 						if case let .failure(err) = result {
@@ -284,7 +390,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 						} else {
 							Logger(self).info("VM \(self.location.name) paused")
 
-							self.stopServices()
+							self.env.stopServices()
 
 							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
 								if let error = result {
@@ -317,7 +423,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 					} else {
 						Logger(self).info("VM \(self.location.name) paused")
 
-						self.stopServices()
+						self.env.stopServices()
 					}
 
 					if let completionHandler = completionHandler {
@@ -352,7 +458,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		self.virtualMachine.stop { result in
 			Logger(self).info("VM \(self.location.name) stopped")
 
-			self.stopServices()
+			self.env.stopServices()
 
 			if let completionHandler = completionHandler {
 				completionHandler(result)
@@ -373,7 +479,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	private func _requestStopVM() throws {
-		self.requestStopFromUIPending = true
+		self.env.requestStopFromUIPending = true
 
 		if self.virtualMachine.canRequestStop {
 			Logger(self).info("Requesting stop VM \(self.location.name)...")
@@ -382,17 +488,17 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 			self.virtualMachine.stop { result in
 				Logger(self).info("VM \(self.location.name) stopped")
 
-				self.stopServices()
+				self.env.stopServices()
 				self.didChangedState()
 
-				if self.runMode == .app {
+				if self.env.runMode == .app {
 					try? self.location.deletePID()
 				}
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
 			Logger(self).error("VM \(self.location.name) can't be stopped")
 
-			if self.runMode != .app {
+			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
 			}
 		}
@@ -412,81 +518,74 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		self._pauseVM()
 	}
 
-	private func startCommunicationDevices() {
-		if let communicationDevices = self.communicationDevices {
-			communicationDevices.connect(virtualMachine: self.virtualMachine)
-			Logger(self).info("Communication devices \(self.location.name) connected")
-		}
-	}
-
-	private func signalStop() {
-		Logger(self).info("Signal VM \(self.location.name) stopped...")
-		stopServices()
-
-		if self.requestStopFromUIPending == false {
-			self.semaphore.signal()
-		}
-
-		self.requestStopFromUIPending = true
-
-		if self.runMode == .app {
-			try? self.location.deletePID()
-		}
-	}
-
-	private func stopForwaringPorts() {
-		try? PortForwardingServer.closeForwardedPort()
-	}
-
-	private func stopMountService() {
-		if let mountService = self.mountService {
-			Logger(self).info("Stopping mount service for VM \(self.location.name)...")
-			mountService.stop()
-		}
-	}
-
-	private func stopCommunicationDevices() {
-		if let communicationDevices = self.communicationDevices {
-			Logger(self).info("Close communication devices for VM \(self.location.name)")
-			communicationDevices.close()
-		}
-	}
-
-	private func stopNetworkDevices() {
-		self.networks.forEach { $0.stop(runMode: runMode) }
-	}
-
-	private func stopServices() {
-		stopCommunicationDevices()
-		stopForwaringPorts()
-	}
-
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		sigcaught[SIGINT]!.setEventHandler {
+		self.env.sigcaught[SIGINT]!.setEventHandler {
 			task.cancel()
 		}
 
-		sigcaught[SIGUSR1]!.setEventHandler {
+		self.env.sigcaught[SIGUSR1]!.setEventHandler {
 			self.pauseVM { result in
 				task.cancel()
 			}
 		}
 
-		sigcaught[SIGUSR2]!.setEventHandler {
-			if self.requestStopFromUIPending == false {
+		self.env.sigcaught[SIGUSR2]!.setEventHandler {
+			if self.env.requestStopFromUIPending == false {
 				try? self.requestStopVM()
 			}
 		}
 
-		sigcaught.forEach { (key: Int32, value: any DispatchSourceSignal) in
+		self.env.sigcaught.forEach { (key: Int32, value: any DispatchSourceSignal) in
 			signal(key, SIG_IGN)
 			value.activate()
 		}
 	}
 
+#if arch(arm64)
+	@MainActor
+	func installIPSW(_ url: URL, progressHandler: IPSWProgressHandler? = nil) {
+		let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
+		
+		let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
+			if let progressHandler = progressHandler {
+				progressHandler(progress.fractionCompleted)
+			}
+		}
+		
+		defer {
+			progressObserver.invalidate()
+		}
+		
+		installer.install { result in
+		}
+	}
+
+	func installIPSW(_ url: URL, queue: DispatchQueue, progressHandler: IPSWProgressHandler? = nil) async throws {
+		try await withCheckedThrowingContinuation { continuation in
+			queue.async {
+				let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
+				
+				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
+					if let progressHandler = progressHandler {
+						progressHandler(progress.fractionCompleted)
+					}
+				}
+				
+				defer {
+					progressObserver.invalidate()
+				}
+				
+				installer.install { result in
+					continuation.resume(with: result)
+				}
+			}
+		}
+	}
+#endif
+
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 
-		if self.runMode == .app {
+		if self.env.runMode == .app {
 			try self.location.writePID()
 		}
 
@@ -505,19 +604,10 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 
 			Logger(self).info("VM \(self.location.name) started with primary IP: \(runningIP)")
 
-			self.runningIP = runningIP
+			self.env.runningIP = runningIP
 
 			if  config.agent == false {
-				let source = config.source
-				var installAgent = false
-
-				if config.firstLaunch && source != .iso && source != .ipsw {
-					installAgent = true
-				} else if source == .iso || source == .ipsw {
-					installAgent = true
-				}
-				
-				if installAgent {
+				if config.installAgent {
 					do {
 						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, runMode: runMode)
 					} catch {
@@ -582,49 +672,31 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 			return status
 		}
 
-		if self.location.template == false && self.runMode != .app {
+		if self.location.template == false && self.env.runMode != .app {
 			self.catchUserSignals(task)
 		}
 
-		return try self.startedVM(on: on, promise: promise, runMode: runMode)
+		return try self.startedVM(on: on, promise: promise, runMode: self.env.runMode)
 	}
 
 	public func guestDidStop(_ virtualMachine: VZVirtualMachine) {
 		Logger(self).info("VM \(self.location.name) stopped")
-
-		self.signalStop()
-		self.didChangedState()
+		self.didChangedStateOnStop()
 	}
 
 	public func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
 		Logger(self).error(error)
-
-		self.signalStop()
-		self.didChangedState()
+		self.didChangedStateOnStop()
 	}
 
 	public func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
 		Logger(self).error(error)
+		self.didChangedStateOnStop()
+	}
 
-		self.signalStop()
+	func didChangedStateOnStop() {
+		self.env.signalStop()
 		self.didChangedState()
-	}
-
-	func closedByRemote(socket: SocketDevice) {
-	}
-
-	func connectionInitiatedByGuest(socket: SocketDevice) {
-	}
-
-	func connectionInitiatedByHost(socket: SocketDevice) {
-		if socket.bind == self.location.agentURL.path {
-			do {
-				try PortForwardingServer.createPortForwardingServer(
-					group: Utilities.group.next(), name: self.location.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.location.agentURL, runMode: runMode)
-			} catch {
-				Logger(self).error(error)
-			}
-		}
 	}
 
 	func didChangedState() {

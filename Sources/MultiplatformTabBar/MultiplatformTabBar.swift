@@ -111,7 +111,9 @@ public struct MultiplatformTabBar: View {
                     .padding(0)
                     .foregroundColor(self.selection == index ? Color.accentColor : Color.primary)
                     .onTapGesture {
-                        self.selection = index
+						if tabSet.tabs[index].disabled == false {
+							self.selection = index
+						}
                     }
                 }
                 if barHorizontalAlignment == .center || barHorizontalAlignment == .left {
@@ -139,7 +141,9 @@ public struct MultiplatformTabBar: View {
                     .padding(0)
                     .foregroundColor(self.selection == index ? Color.accentColor : Color.primary)
                     .onTapGesture {
-                        self.selection = index
+						if tabSet.tabs[index].disabled == false {
+							self.selection = index
+						}
                     }
                 }
                 Spacer()
@@ -225,10 +229,10 @@ public struct MultiplatformTabBar: View {
     ///   - tag: An optional tag for the tab.
     ///   - content: The body of the page that will be displayed when the tab is selected in SwiftUI.
     /// - Returns: The parent `MultiplatformTabBar`.
-    @discardableResult public func tab<Content: View>(title:String, icon:Image, tag:String = "", @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
+	@discardableResult public func tab<Content: View>(title:String, icon:Image, tag:String = "", disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
         
         // Add tab to collection
-        tabSet.tabs.append(MultiplatformTab(title: title, icon: icon, tag: tag, contents: AnyView(content())))
+		tabSet.tabs.append(MultiplatformTab(title: title, icon: icon, tag: tag, disabled: disabled, contents: AnyView(content())))
         
         // Return self so the definitions can be chained.
         return self

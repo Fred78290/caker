@@ -59,7 +59,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
 		if self.createVM {
-			try await CakedLib.BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), runMode: self.common.runMode)
+			try await CakedLib.BuildHandler.build(name: self.shell.name, options: .init(name: self.shell.name), runMode: self.common.runMode, progressHandler: CakedLib.BuildHandler.progressHandler)
 		}
 
 		try startVM(on: on.next(), name: self.shell.name, waitIPTimeout: self.shell.waitIPTimeout, foreground: self.shell.foreground, runMode: self.common.runMode)

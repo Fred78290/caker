@@ -115,7 +115,7 @@ private struct VMMenuItem: View {
 			NotificationCenter.default.post(name: NSNotification.StartVirtualMachine, object: vm.name)
 		} catch {
 			DispatchQueue.main.async {
-				vm.alertError(error)
+				alertError(error)
 			}
 		}
 	}

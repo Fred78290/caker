@@ -13,7 +13,7 @@ public struct RunHandler {
 
 			if StorageLocation(runMode: runMode).exists(vmname) == false {
 				Logger(self).info("Creating primary VM")
-				try await BuildHandler.build(name: vmname, options: .init(name: vmname), runMode: runMode)
+				try await BuildHandler.build(name: vmname, options: .init(name: vmname), runMode: runMode, progressHandler: CakedLib.BuildHandler.progressHandler)
 			}
 		}
 

@@ -232,7 +232,9 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var selectedRemoteImage: String
 	@Published var cloudImageRelease: OSCloudImage
 	@Published var sshAuthorizedKey: String
-	
+	@Published var createVM: Bool
+	@Published var fractionCompleted: Double
+
 	var items: [ItemView]  = [
 		ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
 		ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
@@ -264,6 +266,8 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.remoteImages = []
 		self.selectedRemoteImage = ""
 		self.cloudImageRelease = .ubuntu2404LTS
+		self.createVM = false
+		self.fractionCompleted = 0
 
 		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
 			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
@@ -299,37 +303,70 @@ struct VirtualMachineWizard: View {
 		   ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
 	   ], initialStep: 0)
 
+	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+
 	var body: some View {
-		VStack(spacing: 12) {
+		let view = VStack(spacing: 12) {
 			Toolbar()
 			Footer()
+
+			if #unavailable(macOS 15.0) {
+				HostingWindowFinder() { window in
+					if let window = window {
+						window.standardWindowButton(.zoomButton)?.isEnabled = self.model.createVM == false
+						window.standardWindowButton(.closeButton)?.isEnabled = self.model.createVM == false
+						window.standardWindowButton(.miniaturizeButton)?.isEnabled = self.model.createVM == false
+					}
+				}
+			}
+		}.onReceive(NSNotification.CreatedVirtualMachine) { notification in
+			if let location = notification.object as? VMLocation {
+				Task {
+					try? await self.openDocument(at: location.rootURL)
+					self.dismiss()
+				}
+			}
+		}.onReceive(NSNotification.FailCreateVirtualMachine) { notification in
+			self.model.createVM = false
+
+			if let error = notification.object as? Error {
+				alertError(error)
+			}
 		}
+		
+		if #available(macOS 15.0, *) {
+			return view.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
+				.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
+			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+		}
+		
+		return view
 	}
 	
 	func Toolbar() -> some View {
 		MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
-			.tab(title: self.model.items[0].title, icon: self.model.items[0].image) {
+			.tab(title: self.model.items[0].title, icon: self.model.items[0].image, disabled: self.model.createVM) {
 				chooseVMName()
 			}
-			.tab(title: self.model.items[1].title, icon: self.model.items[1].image) {
+			.tab(title: self.model.items[1].title, icon: self.model.items[1].image, disabled: self.model.createVM) {
 				chooseOSImage()
 			}
-			.tab(title: self.model.items[2].title, icon: self.model.items[2].image) {
+			.tab(title: self.model.items[2].title, icon: self.model.items[2].image, disabled: self.model.createVM) {
 				generalSettings()
 			}
-			.tab(title: self.model.items[3].title, icon: self.model.items[3].image) {
+			.tab(title: self.model.items[3].title, icon: self.model.items[3].image, disabled: self.model.createVM) {
 				mountsView()
 			}
-			.tab(title: self.model.items[4].title, icon: self.model.items[4].image) {
+			.tab(title: self.model.items[4].title, icon: self.model.items[4].image, disabled: self.model.createVM) {
 				diskAttachementView()
 			}
-			.tab(title: self.model.items[5].title, icon: self.model.items[5].image) {
+			.tab(title: self.model.items[5].title, icon: self.model.items[5].image, disabled: self.model.createVM) {
 				networksView()
 			}
-			.tab(title: self.model.items[6].title, icon: self.model.items[6].image) {
+			.tab(title: self.model.items[6].title, icon: self.model.items[6].image, disabled: self.model.createVM) {
 				forwardPortsView()
 			}
-			.tab(title: self.model.items[7].title, icon: self.model.items[7].image) {
+			.tab(title: self.model.items[7].title, icon: self.model.items[7].image, disabled: self.model.createVM) {
 				socketsView()
 			}
 	}
@@ -381,6 +418,14 @@ struct VirtualMachineWizard: View {
 	
 	func Footer() -> some View {
 		VStack {
+			if self.model.createVM {
+				HStack {
+					ProgressView(value: self.model.fractionCompleted) {
+						Text("Installation in progress...")
+					}
+				}.frame(width: 150, height: 30)
+			}
+
 			Divider()
 			
 			HStack {
@@ -395,14 +440,14 @@ struct VirtualMachineWizard: View {
 					} label: {
 						Text("Previous").frame(width: 80)
 					}
-					.disabled(!self.hasPrevious)
+					.disabled(self.hasPrevious == false || self.model.createVM)
 					Button {
 						self.nextStep()
 						self.model.currentStep = self.stepsState.currentIndex
 					} label: {
 						Text("Next").frame(width: 80)
 					}
-					.disabled(!self.stepsState.hasNext)
+					.disabled(self.stepsState.hasNext == false || self.model.createVM)
 				}
 				
 				Spacer()
@@ -411,7 +456,7 @@ struct VirtualMachineWizard: View {
 					Spacer()
 					
 					AsyncButton {
-						try await openVirtualMachine()
+						await openVirtualMachine()
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -677,6 +722,7 @@ struct VirtualMachineWizard: View {
 						}
 					}
 					
+#if arch(arm64)
 				case .ipsw:
 					LabeledContent("Choose an IPSW image.") {
 						HStack {
@@ -696,7 +742,8 @@ struct VirtualMachineWizard: View {
 							}.buttonStyle(.borderless)
 						}
 					}
-					
+#endif
+
 				case .cloud:
 					LabeledContent {
 						TextField("Cloud Image", text: $model.imageName)
@@ -772,7 +819,7 @@ struct VirtualMachineWizard: View {
 				}
 			}
 			
-			if model.imageSource != .iso && model.imageSource != .ipsw {
+			if model.imageSource.supportCloudInit {
 				Section("Cloud init") {
 					LabeledContent("Optional user data") {
 						HStack {
@@ -865,21 +912,35 @@ struct VirtualMachineWizard: View {
 		guard let vmname = config.vmname else {
 			return nil
 		}
-		
+
 		let options = config.buildOptions(image: self.model.imageName, sshAuthorizedKey: self.model.sshAuthorizedKey.isEmpty ? nil : self.model.sshAuthorizedKey)
 		
-		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app)
+		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app) { fractionCompleted in
+				DispatchQueue.main.async {
+					print("fractionCompleted=\(fractionCompleted)")
+					self.model.fractionCompleted = fractionCompleted
+				}
+		}
 		
 		return try StorageLocation(runMode: .app).find(vmname)
 	}
 	
-	func openVirtualMachine() async throws {
-		guard let location = try await createVirtualMachine() else {
-			return
+	func openVirtualMachine() async {
+		self.model.createVM = true
+
+		let vmQueue = DispatchQueue(label: "VirtualMachineWizard", qos: .background)
+
+		vmQueue.async {
+			Task {
+				do {
+					let location = try await createVirtualMachine()
+
+					NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+				} catch {
+					NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
+				}				
+			}
 		}
-		
-		try? await self.openDocument(at: location.rootURL)
-		self.dismiss()
 	}
 	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
