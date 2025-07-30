@@ -222,7 +222,7 @@ struct ShortImageInfoComparator : SortComparator {
 
 class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var currentStep: Int = 0
-	@Published var imageName: String
+	//@Published var imageName: String
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -231,7 +231,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var remoteImages: [ShortImageInfo]
 	@Published var selectedRemoteImage: String
 	@Published var cloudImageRelease: OSCloudImage
-	@Published var sshAuthorizedKey: String
 	@Published var createVM: Bool
 	@Published var fractionCompleted: Double
 
@@ -257,7 +256,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	}
 	
 	init() {
-		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
@@ -268,12 +266,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.createVM = false
 		self.fractionCompleted = 0
-
-		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
-			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
-		} else {
-			self.sshAuthorizedKey = ""
-		}
 	}
 }
 
@@ -456,7 +448,7 @@ struct VirtualMachineWizard: View {
 					Spacer()
 					
 					AsyncButton {
-						await openVirtualMachine()
+						openVirtualMachine()
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -632,7 +624,7 @@ struct VirtualMachineWizard: View {
 				
 				LabeledContent("SSH Public key") {
 					HStack {
-						TextField("SSH Public key", text: $model.sshAuthorizedKey)
+						TextField("SSH Public key", value: $config.sshAuthorizedKey, format: .optional)
 							.multilineTextAlignment(.leading)
 							.textFieldStyle(.roundedBorder)
 							.background(.white)
@@ -640,7 +632,7 @@ struct VirtualMachineWizard: View {
 							.clipShape(RoundedRectangle(cornerRadius: 6))
 						Button(action: {
 							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
-								self.model.sshAuthorizedKey = sshPublicKey
+								self.config.sshAuthorizedKey = sshPublicKey
 							}
 						}) {
 							Image(systemName: "key")
@@ -673,7 +665,7 @@ struct VirtualMachineWizard: View {
 				case .raw:
 					LabeledContent("Choose a local image disk.") {
 						HStack {
-							TextField("OS Image", text: $model.imageName)
+							TextField("OS Image", text: $config.imageName)
 								.multilineTextAlignment(.leading)
 								.textFieldStyle(.roundedBorder)
 								.background(.white)
@@ -682,7 +674,7 @@ struct VirtualMachineWizard: View {
 							
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
-									self.model.imageName = "img://\(imageName)"
+									self.config.imageName = "img://\(imageName)"
 								}
 							}) {
 								Image(systemName: "document.badge.gearshape")
@@ -692,11 +684,11 @@ struct VirtualMachineWizard: View {
 					
 				case .iso:
 					VStack {
-						let platform = SupportedPlatform(rawValue: self.model.imageName)
+						let platform = SupportedPlatform(rawValue: self.config.imageName)
 						
 						LabeledContent("Choose an ISO image disk.") {
 							HStack {
-								TextField("ISO Image", text: $model.imageName)
+								TextField("ISO Image", text: $config.imageName)
 									.multilineTextAlignment(.leading)
 									.textFieldStyle(.roundedBorder)
 									.background(.white)
@@ -705,7 +697,7 @@ struct VirtualMachineWizard: View {
 								
 								Button(action: {
 									if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
-										self.model.imageName = "iso://\(imageName)"
+										self.config.imageName = "iso://\(imageName)"
 									}
 								}) {
 									Image(systemName: "document.badge.gearshape")
@@ -726,7 +718,7 @@ struct VirtualMachineWizard: View {
 				case .ipsw:
 					LabeledContent("Choose an IPSW image.") {
 						HStack {
-							TextField("IPSW Image", text: $model.imageName)
+							TextField("IPSW Image", text: $config.imageName)
 								.multilineTextAlignment(.leading)
 								.textFieldStyle(.roundedBorder)
 								.background(.white)
@@ -735,7 +727,7 @@ struct VirtualMachineWizard: View {
 							
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-									self.model.imageName = "ipsw://\(imageName)"
+									self.config.imageName = "ipsw://\(imageName)"
 								}
 							}) {
 								Image(systemName: "document.badge.gearshape")
@@ -746,7 +738,7 @@ struct VirtualMachineWizard: View {
 
 				case .cloud:
 					LabeledContent {
-						TextField("Cloud Image", text: $model.imageName)
+						TextField("Cloud Image", text: $config.imageName)
 							.multilineTextAlignment(.leading)
 							.textFieldStyle(.roundedBorder)
 							.background(.white)
@@ -759,13 +751,13 @@ struct VirtualMachineWizard: View {
 							}
 						}
 						.onChange(of: model.cloudImageRelease) { newValue in
-							self.model.imageName = newValue.url.absoluteString
+							self.config.imageName = newValue.url.absoluteString
 						}
 						.labelsHidden()
 					}
 					
 				case .oci:
-					TextField("OCI Image", text: $model.imageName)
+					TextField("OCI Image", text: $config.imageName)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(.roundedBorder)
 						.background(.white)
@@ -773,7 +765,7 @@ struct VirtualMachineWizard: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 					
 				case .template:
-					Picker("Select a template", selection: $model.imageName) {
+					Picker("Select a template", selection: $config.imageName) {
 						ForEach(templates(), id: \.self) { template in
 							Text(template.name).tag(template.fqn)
 						}
@@ -802,7 +794,7 @@ struct VirtualMachineWizard: View {
 							}.frame(minHeight: 250, maxHeight: .infinity)
 						}
 					}.onChange(of: model.selectedRemoteImage) { newValue in
-						self.model.imageName = "\(self.model.remoteImage)://\(newValue)"
+						self.config.imageName = "\(self.model.remoteImage)://\(newValue)"
 					}
 				}
 			} header: {
@@ -813,7 +805,7 @@ struct VirtualMachineWizard: View {
 								Text(source.description).tag(source)
 							}
 						}.onChange(of: self.model.imageSource) { _ in
-							self.model.imageName = ""
+							self.config.imageName = ""
 						}.labelsHidden()
 					}.frame(width: 100)
 				}
@@ -908,39 +900,21 @@ struct VirtualMachineWizard: View {
 		}
 	}
 	
-	func createVirtualMachine() async throws -> VMLocation? {
-		guard let vmname = config.vmname else {
-			return nil
+	func openVirtualMachine() {
+		if config.vmname == nil {
+			return
 		}
 
-		let options = config.buildOptions(image: self.model.imageName, sshAuthorizedKey: self.model.sshAuthorizedKey.isEmpty ? nil : self.model.sshAuthorizedKey)
-		
-		_ = try await BuildHandler.build(name: vmname, options: options, runMode: .app) { fractionCompleted in
-				DispatchQueue.main.async {
-					print("fractionCompleted=\(fractionCompleted)")
-					self.model.fractionCompleted = fractionCompleted
-				}
-		}
-		
-		return try StorageLocation(runMode: .app).find(vmname)
-	}
-	
-	func openVirtualMachine() async {
 		self.model.createVM = true
-
-		let vmQueue = DispatchQueue(label: "VirtualMachineWizard", qos: .background)
-
-		vmQueue.async {
-			Task {
-				do {
-					let location = try await createVirtualMachine()
-
-					NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
-				} catch {
-					NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
-				}				
+		self.config.createVirtualMachine() { fractionCompleted in
+			DispatchQueue.main.async {
+				print("fractionCompleted=\(fractionCompleted)")
+				self.model.fractionCompleted = fractionCompleted
+				print("exeit=\(fractionCompleted)")
 			}
 		}
+		
+		print("leave openVirtualMachine")
 	}
 	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {

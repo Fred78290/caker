@@ -24,7 +24,7 @@ struct VirtualMachineConfig: Hashable {
 			self.height = height
 		}
 	}
-
+	
 	var os: VirtualizedOS = .linux
 	var cpuCount: Int = 1
 	var memorySize: UInt64 = 512
@@ -40,8 +40,10 @@ struct VirtualMachineConfig: Hashable {
 	var networks: [BridgeAttachement] = []
 	var attachedDisks: [DiskAttachement] = []
 	var mounts: [DirectorySharingAttachment] = []
-	var vmname: String? = nil
+	var vmname: String! = nil
 	
+	var imageName: String
+	var sshAuthorizedKey: String?
 	var configuredUser: String
 	var configuredPassword: String?
 	var mainGroup: String
@@ -51,8 +53,9 @@ struct VirtualMachineConfig: Hashable {
 	var userData: String? = nil
 	var networkConfig: String? = nil
 	var autoinstall: Bool = false
-
+	
 	init() {
+		imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		os = .linux
 		cpuCount = 1
 		memorySize = 512
@@ -75,9 +78,14 @@ struct VirtualMachineConfig: Hashable {
 		clearPassword = true
 		diskSize = 20
 		autoinstall = false
+
+		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
+			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
+		}
 	}
 	
 	init(vmname: String, config: CakeConfig) {
+		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
 		self.cpuCount = config.cpuCount
 		self.memorySize = config.memorySize / (1024 * 1024)
@@ -134,7 +142,7 @@ struct VirtualMachineConfig: Hashable {
 		
 		try config.save()
 	}
-
+	
 	func buildOptions(image: String, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
@@ -161,5 +169,30 @@ struct VirtualMachineConfig: Hashable {
 			sockets: self.sockets,
 			autoinstall: self.autoinstall
 		)
+	}
+
+	@MainActor
+	func notify(name: NSNotification.Name, object: Any?) {
+		NotificationCenter.default.post(name: name, object: object)
+	}
+
+	func createVirtualMachine(progressHandler: VirtualMachine.IPSWProgressHandler? = nil) {
+		let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
+		let queue = DispatchQueue(label: "CreateVirtualMachineQueue")
+		//let vmQueue = DispatchQueue(label: "VirtualMachineQueue")
+
+		queue.async {
+			Task {
+				do {
+					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: queue, progressHandler: progressHandler)
+					
+					let location = try StorageLocation(runMode: .app).find(vmname)
+
+					await self.notify(name: NSNotification.CreatedVirtualMachine, object: location)
+				} catch {
+					await self.notify(name: NSNotification.FailCreateVirtualMachine, object: error)
+				}
+			}
+		}
 	}
 }

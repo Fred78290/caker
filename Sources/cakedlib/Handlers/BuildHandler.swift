@@ -20,7 +20,7 @@ public struct BuildHandler {
 		}
 	}
 
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
+	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
 		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
@@ -34,7 +34,7 @@ public struct BuildHandler {
 		try await withTaskCancellationHandler(
 			operation: {
 				do {
-					if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, progressHandler: progressHandler) == .oci {
+					if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler) == .oci {
 						try tempVMLocation.delete()
 					} else {
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)

@@ -542,7 +542,6 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 #if arch(arm64)
-	@MainActor
 	func installIPSW(_ url: URL, progressHandler: IPSWProgressHandler? = nil) {
 		let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
 		
@@ -551,12 +550,10 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 				progressHandler(progress.fractionCompleted)
 			}
 		}
-		
-		defer {
-			progressObserver.invalidate()
-		}
-		
+
 		installer.install { result in
+			print("does not work")
+			progressObserver.invalidate()
 		}
 	}
 
@@ -564,19 +561,15 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		try await withCheckedThrowingContinuation { continuation in
 			queue.async {
 				let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
-				
 				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
 					if let progressHandler = progressHandler {
 						progressHandler(progress.fractionCompleted)
 					}
 				}
-				
-				defer {
-					progressObserver.invalidate()
-				}
-				
+
 				installer.install { result in
 					continuation.resume(with: result)
+					progressObserver.invalidate()
 				}
 			}
 		}
@@ -606,7 +599,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 
 			self.env.runningIP = runningIP
 
-			if  config.agent == false {
+			if config.agent == false {
 				if config.installAgent {
 					do {
 						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, runMode: runMode)

@@ -66,7 +66,7 @@ public struct VMBuilder {
 				return false
 			}
 			#else
-			if self == .iso{
+			if self == .iso {
 				return false
 			}
 			#endif
@@ -76,16 +76,21 @@ public struct VMBuilder {
 	}
 
 #if arch(arm64)
-	private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
-		let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
+	private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
 
-		if let vm = try? VirtualMachine(location: location, config: config, runMode: runMode, queue: vmQueue) {
-			try await vm.installIPSW(ipsw, queue: vmQueue, progressHandler: progressHandler)
+		if let queue = queue {
+			if let vm = try? VirtualMachine(location: location, config: config, runMode: runMode, queue: queue) {
+				try await vm.installIPSW(ipsw, queue: queue, progressHandler: progressHandler)
+			}
+		} else {
+			if let vm = try? VirtualMachine(location: location, config: config, runMode: runMode) {
+				vm.installIPSW(ipsw, progressHandler: progressHandler)
+			}
 		}
 	}
 #endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
+	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 
@@ -200,7 +205,7 @@ public struct VMBuilder {
 
 #if arch(arm64)
 			if source == .ipsw {
-				try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, progressHandler: progressHandler)
+				try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 			}
 #endif
 		}
@@ -296,20 +301,20 @@ public struct VMBuilder {
 		return sourceImage
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws -> ImageSource {
+	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws -> ImageSource {
 		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode)
 
 		if sourceImage == .oci {
 			let location = try StorageLocation(runMode: runMode).find(vmName)
 
 			do {
-				try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, progressHandler: progressHandler)
+				try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
 			} catch {
 				try? location.delete()
 				throw error
 			}
 		} else {
-			try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, progressHandler: progressHandler)
+			try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
 		}
 
 		return sourceImage
