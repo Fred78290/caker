@@ -906,15 +906,26 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.model.createVM = true
-		self.config.createVirtualMachine() { fractionCompleted in
-			DispatchQueue.main.async {
-				print("fractionCompleted=\(fractionCompleted)")
-				self.model.fractionCompleted = fractionCompleted
-				print("exeit=\(fractionCompleted)")
+		self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
+			switch result {
+			case .progress(let fractionCompleted):
+				print("[\(Thread.current.description)] fractionCompleted=\(fractionCompleted)")
+				//self.model.fractionCompleted = fractionCompleted
+				print("[\(Thread.current.description)] exit=\(fractionCompleted)")
+
+			case .terminated(let result):
+				print("[\(Thread.current.description)] terminated openVirtualMachine")
+				self.model.createVM = false
+
+				if case let .failure(error) = result {
+					NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
+				} else if let location = try? StorageLocation(runMode: .app).find(config.vmname) {
+					NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+				}
 			}
 		}
 		
-		print("leave openVirtualMachine")
+		print("[\(Thread.current.description)] leave openVirtualMachine")
 	}
 	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {

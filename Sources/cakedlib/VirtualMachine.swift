@@ -213,7 +213,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 }
 
 public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
-	public typealias IPSWProgressHandler = (Double) -> Void
+	public enum IPSWProgressValue: Sendable {
+		case progress(Double)
+		case terminated(Result<Void, any Error>)
+	}
+
+	public typealias IPSWProgressHandler = (IPSWProgressValue) -> Void
 
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
@@ -547,32 +552,46 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		
 		let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
 			if let progressHandler = progressHandler {
-				progressHandler(progress.fractionCompleted)
+				progressHandler(.progress(progress.fractionCompleted))
 			}
 		}
 
 		installer.install { result in
-			print("does not work")
+			if let progressHandler = progressHandler {
+				progressHandler(.terminated(result))
+			}
 			progressObserver.invalidate()
 		}
 	}
 
 	func installIPSW(_ url: URL, queue: DispatchQueue, progressHandler: IPSWProgressHandler? = nil) async throws {
+		let vm: () -> VZVirtualMachine = { self.virtualMachine }
+
 		try await withCheckedThrowingContinuation { continuation in
 			queue.async {
-				let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
+				let installer = VZMacOSInstaller(virtualMachine: vm(), restoringFromImageAt: url)
 				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
+					print("[\(Thread.current.description)] install progress \(progress.fractionCompleted)")
 					if let progressHandler = progressHandler {
-						progressHandler(progress.fractionCompleted)
+						progressHandler(.progress(progress.fractionCompleted))
 					}
+					print("[\(Thread.current.description)] leave progress \(progress.fractionCompleted)")
 				}
 
+				print("[\(Thread.current.description)] start install")
 				installer.install { result in
+					print("[\(Thread.current.description)] install terminated")
+					if let progressHandler = progressHandler {
+						progressHandler(.terminated(result))
+					}
 					continuation.resume(with: result)
 					progressObserver.invalidate()
 				}
+				print("[\(Thread.current.description)] exiting install")
 			}
 		}
+		
+		print("[\(Thread.current.description)] exiting installIPSW")
 	}
 #endif
 

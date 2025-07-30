@@ -207,6 +207,11 @@ public struct VMBuilder {
 			if source == .ipsw {
 				try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 			}
+			else if let progressHandler = progressHandler {
+				progressHandler(.terminated(.success(())))
+			}
+#else
+			progressHandler(.terminated(.success(())))
 #endif
 		}
 	}

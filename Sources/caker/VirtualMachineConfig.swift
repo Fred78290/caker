@@ -176,20 +176,39 @@ struct VirtualMachineConfig: Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 
-	func createVirtualMachine(progressHandler: VirtualMachine.IPSWProgressHandler? = nil) {
+	public typealias IPSWProgressHandlerMainActor = @MainActor (VirtualMachine.IPSWProgressValue) -> Void
+
+	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: IPSWProgressHandlerMainActor? = nil) {
 		let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
 		let queue = DispatchQueue(label: "CreateVirtualMachineQueue")
-		//let vmQueue = DispatchQueue(label: "VirtualMachineQueue")
 
 		queue.async {
 			Task {
-				do {
-					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: queue, progressHandler: progressHandler)
-					
-					let location = try StorageLocation(runMode: .app).find(vmname)
+				print("[\(Thread.current.description)] Start building virtual machine...")
 
-					await self.notify(name: NSNotification.CreatedVirtualMachine, object: location)
+				do {
+					if imageSource == .ipsw {
+						let ipswQueue = DispatchQueue(label: "IPSW")
+
+						try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+							if let progressHandler = progressHandler {
+								Task {
+									await progressHandler(result)
+								}
+							}
+						}
+					} else {
+						try await BuildHandler.build(name: vmname, options: options, runMode: .app) { result in
+							if let progressHandler = progressHandler {
+								Task {
+									await progressHandler(result)
+								}
+							}
+						}
+					}
+
 				} catch {
+					print("[\(Thread.current.description)] Error: \(error)")
 					await self.notify(name: NSNotification.FailCreateVirtualMachine, object: error)
 				}
 			}

@@ -4,18 +4,29 @@ import GRPCLib
 import NIOCore
 import SwiftUI
 import Virtualization
+import Logging
 
 public struct BuildHandler {
-	public static func progressHandler(_ fractionCompleted: Double) {
-		let completed = Int(fractionCompleted * 100)
-		
-		if completed % 10 == 0 {
-			if completed == 0 {
-				print(String(format: "%0.2d", completed), terminator: "")
-			} else if completed < 100 {
-				print(String(format: "...%0.2d", completed), terminator: "")
+	public static func progressHandler(_ result: VirtualMachine.IPSWProgressValue) {
+		if case let .progress(fractionCompleted) = result {
+			let completed = Int(fractionCompleted * 100)
+			
+			if completed % 10 == 0 {
+				if completed == 0 {
+					print(String(format: "%0.2d", completed), terminator: "")
+				} else if completed < 100 {
+					print(String(format: "...%0.2d", completed), terminator: "")
+				} else {
+					print(String(format: "...%0.3d", completed), terminator: " complete\n")
+				}
+			}
+		} else if case let .terminated(result) = result {
+			let logger = Logger("BuildHandler")
+
+			if case let .failure(error) = result {
+				logger.error("IPSW installation failed: \(error)")
 			} else {
-				print(String(format: "...%0.3d", completed), terminator: " complete\n")
+				logger.error("IPSW installation succeeded")
 			}
 		}
 	}
@@ -41,6 +52,11 @@ public struct BuildHandler {
 					}
 				} catch {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
+
+					if let progressHandler = progressHandler {
+						progressHandler(.terminated(.failure(error)))
+					}
+
 					throw error
 				}
 			},
