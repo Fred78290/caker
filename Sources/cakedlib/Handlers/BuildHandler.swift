@@ -7,7 +7,7 @@ import Virtualization
 import Logging
 
 public struct BuildHandler {
-	public static func progressHandler(_ result: VirtualMachine.IPSWProgressValue) {
+	public static func progressHandler(_ result: IPSWProgressValue) {
 		if case let .progress(fractionCompleted) = result {
 			let completed = Int(fractionCompleted * 100)
 			
@@ -19,6 +19,7 @@ public struct BuildHandler {
 				} else {
 					print(String(format: "...%0.3d", completed), terminator: " complete\n")
 				}
+				fflush(stdout)
 			}
 		} else if case let .terminated(result) = result {
 			let logger = Logger("BuildHandler")
@@ -31,7 +32,7 @@ public struct BuildHandler {
 		}
 	}
 
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: VirtualMachine.IPSWProgressHandler? = nil) async throws {
+	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: IPSWProgressHandler? = nil) async throws {
 		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}

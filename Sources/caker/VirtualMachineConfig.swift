@@ -176,42 +176,53 @@ struct VirtualMachineConfig: Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 
-	public typealias IPSWProgressHandlerMainActor = @MainActor (VirtualMachine.IPSWProgressValue) -> Void
+	public typealias IPSWProgressHandlerMainActor = @MainActor (IPSWProgressValue) -> Void
 
-	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: IPSWProgressHandlerMainActor? = nil) {
-		let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
-		let queue = DispatchQueue(label: "CreateVirtualMachineQueue")
+	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: IPSWProgressHandlerMainActor? = nil) async {
+		let doInstall: () async -> Void = {
+			let thread = Thread.current
+			let logger = Logger("VirtualMachineConfig")
 
-		queue.async {
-			Task {
-				print("[\(Thread.current.description)] Start building virtual machine...")
+			logger.info("[\(thread.description)] Start building virtual machine...")
 
-				do {
-					if imageSource == .ipsw {
-						let ipswQueue = DispatchQueue(label: "IPSW")
+			do {
+				let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
+				var ipswQueue: DispatchQueue!
+				
+				if imageSource == .ipsw {
+					ipswQueue = DispatchQueue(label: "IPSWQueue")
+				}
 
-						try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-							if let progressHandler = progressHandler {
-								Task {
-									await progressHandler(result)
-								}
-							}
-						}
-					} else {
-						try await BuildHandler.build(name: vmname, options: options, runMode: .app) { result in
-							if let progressHandler = progressHandler {
-								Task {
-									await progressHandler(result)
-								}
-							}
+				try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+					if let progressHandler = progressHandler {
+						Task {
+							await progressHandler(result)
 						}
 					}
-
-				} catch {
-					print("[\(Thread.current.description)] Error: \(error)")
-					await self.notify(name: NSNotification.FailCreateVirtualMachine, object: error)
 				}
+
+			} catch {
+				logger.info("[\(thread.description)] Error: \(error)")
+				await self.notify(name: NSNotification.FailCreateVirtualMachine, object: error)
 			}
 		}
+
+		/*await withTaskCancellationHandler(operation: {
+			await doInstall()
+		}, onCancel: {
+		})*/
+
+		_ = Utilities.group.next().makeFutureWithTask {
+			await doInstall()
+		}
+
+		/*
+		let queue = DispatchQueue(label: "CreateVirtualMachineQueue")
+
+		queue.sync {
+			Task {
+				await doInstall()
+			}
+		}*/
 	}
 }

@@ -447,8 +447,8 @@ struct VirtualMachineWizard: View {
 				HStack{
 					Spacer()
 					
-					AsyncButton {
-						openVirtualMachine()
+					AsyncButton { done in
+						await openVirtualMachine(done)
 					} label: {
 						Text("Create").frame(width: 80)
 					}
@@ -900,21 +900,25 @@ struct VirtualMachineWizard: View {
 		}
 	}
 	
-	func openVirtualMachine() {
+	static var currentThread: Thread { Thread.current }
+
+	func openVirtualMachine(_ done: @escaping () -> Void) async {
 		if config.vmname == nil {
 			return
 		}
 
 		self.model.createVM = true
-		self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
+
+		let logger = Logger("VirtualMachineWizard")
+		
+		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
 			switch result {
 			case .progress(let fractionCompleted):
-				print("[\(Thread.current.description)] fractionCompleted=\(fractionCompleted)")
-				//self.model.fractionCompleted = fractionCompleted
-				print("[\(Thread.current.description)] exit=\(fractionCompleted)")
+				logger.info("[\(Self.currentThread.description)] fractionCompleted=\(fractionCompleted)")
+				self.model.fractionCompleted = fractionCompleted
 
 			case .terminated(let result):
-				print("[\(Thread.current.description)] terminated openVirtualMachine")
+				logger.info("[\(Self.currentThread.description)] terminated")
 				self.model.createVM = false
 
 				if case let .failure(error) = result {
@@ -922,10 +926,14 @@ struct VirtualMachineWizard: View {
 				} else if let location = try? StorageLocation(runMode: .app).find(config.vmname) {
 					NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
 				}
+				
+				done()
 			}
+
+			logger.info("[\(Self.currentThread.description)] leave progressHandler")
 		}
 		
-		print("[\(Thread.current.description)] leave openVirtualMachine")
+		logger.info("[\(Self.currentThread.description)] leave openVirtualMachine")
 	}
 	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {

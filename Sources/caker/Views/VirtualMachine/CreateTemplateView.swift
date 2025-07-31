@@ -17,8 +17,8 @@ struct CreateTemplateView: View {
 	var body: some View {
 		TextField("Name", text: $templateName)
 		
-		AsyncButton("Create", action: {
-			self.templateResult = self.appState.currentDocument?.createTemplateFromUI(name: self.templateName)
+		AsyncButton("Create", action: { done in
+			await createTemplate(done)
 		})
 		.disabled(templateName.isEmpty || TemplateHandler.exists(name: templateName, runMode: .app))
 		.onChange(of: templateResult) { newValue in
@@ -37,6 +37,13 @@ struct CreateTemplateView: View {
 			alert.runModal()
 		} else {
 			self.appState.reloadRemotes()
+		}
+	}
+	
+	private func createTemplate(_ done: @escaping () -> Void) async {
+		DispatchQueue.main.async {
+			self.templateResult = self.appState.currentDocument?.createTemplateFromUI(name: self.templateName)
+			done()
 		}
 	}
 }

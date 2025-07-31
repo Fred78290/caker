@@ -12,7 +12,7 @@ struct AsyncButton<Label: View>: View {
 		case showProgressView
 	}
 
-	var action: () async throws -> Void
+	var action: (_ done: @escaping () -> Void) async throws -> Void
 	var actionOptions: Set<ActionOption>
 
 	@ViewBuilder var label: () -> Label
@@ -20,7 +20,7 @@ struct AsyncButton<Label: View>: View {
 	@State private var isDisabled = false
 	@State private var showProgressView = false
 
-	init(options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async throws -> Void, @ViewBuilder label: @escaping () -> Label) {
+	init(options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping (@escaping () -> Void) async throws -> Void, @ViewBuilder label: @escaping () -> Label) {
 		self.action = action
 		self.label = label
 		self.actionOptions = options
@@ -43,13 +43,11 @@ struct AsyncButton<Label: View>: View {
 				}
 
 				Task {
-					defer {
+					return try await action {
 						isDisabled = false
 						showProgressView = false
 						progressViewTask?.cancel()
 					}
-
-					return try await action()
 				}
 			},
 			label: {
@@ -69,7 +67,7 @@ struct AsyncButton<Label: View>: View {
 }
 
 extension AsyncButton where Label == Text {
-	init(_ label: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Void) {
+	init(_ label: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping (@escaping () -> Void) async -> Void) {
 		self.init(options: options, action: action) {
 			Text(label)
 		}
@@ -77,7 +75,7 @@ extension AsyncButton where Label == Text {
 }
 
 extension AsyncButton where Label == Image {
-	init(systemImageName: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping () async -> Void) {
+	init(systemImageName: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping (@escaping () -> Void) async -> Void) {
 		self.init( options: options, action: action) {
 			Image(systemName: systemImageName)
 		}

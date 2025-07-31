@@ -197,7 +197,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
+	static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: cdromURL,
 			readOnly: true,
@@ -212,14 +212,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 }
 
-public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, ObservableObject {
-	public enum IPSWProgressValue: Sendable {
-		case progress(Double)
-		case terminated(Result<Void, any Error>)
-	}
-
-	public typealias IPSWProgressHandler = (IPSWProgressValue) -> Void
-
+public final class VirtualMachine: NSObject, Sendable, VZVirtualMachineDelegate, ObservableObject {
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
@@ -233,6 +226,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	public var delegate: VirtualMachineDelegate? = nil
 	
 	private var env: VirtualMachineEnvironment
+	private var vmQueue: DispatchQueue
 
 	public var suspendable: Bool {
 		return self.config.suspendable
@@ -278,8 +272,10 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 		self.env = try VirtualMachineEnvironment(location: location, config: config, runMode: runMode)
 		
 		if let queue = queue {
+			self.vmQueue = queue
 			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration, queue: queue)
 		} else {
+			self.vmQueue = DispatchQueue.main
 			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration)
 		}
 
@@ -352,12 +348,14 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	public func startFromUI() {
-		self.virtualMachine.start { result in
-			self.startCompletionHandler(result: result) { result in
-				if case .success = result {
-					guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
-						Logger(self).error("VM \(self.location.name) failed to get primary IP")
-						return
+		self.vmQueue.async {
+			self.virtualMachine.start { result in
+				self.startCompletionHandler(result: result) { result in
+					if case .success = result {
+						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
+							Logger(self).error("VM \(self.location.name) failed to get primary IP")
+							return
+						}
 					}
 				}
 			}
@@ -365,13 +363,15 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	public func restartFromUI() {
-		self._stopVM { result in
-			self.startFromUI()
+		self.vmQueue.async {
+			self._stopVM { result in
+				self.startFromUI()
+			}
 		}
 	}
 
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
-		DispatchQueue.main.sync {
+		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
 				self.virtualMachine.start { result in
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
@@ -442,13 +442,13 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	public func pauseVM(completionHandler: StartCompletionHandler? = nil) {
-		DispatchQueue.main.sync {
+		self.vmQueue.sync {
 			self._pauseVM(completionHandler: completionHandler)
 		}
 	}
 
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) {
-		DispatchQueue.main.sync {
+		self.vmQueue.sync {
 			if self.virtualMachine.canResume {
 				Logger(self).info("VM \(self.location.name) can resume")
 
@@ -474,13 +474,15 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	public func stopVM(completionHandler: StopCompletionHandler? = nil) {
-		DispatchQueue.main.sync {
+		self.vmQueue.sync {
 			self._stopVM(completionHandler: completionHandler)
 		}
 	}
 
 	public func stopFromUI() {
-		self._stopVM()
+		self.vmQueue.async {
+			self._stopVM()
+		}
 	}
 
 	private func _requestStopVM() throws {
@@ -510,17 +512,21 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	public func requestStopVM() throws {
-		try DispatchQueue.main.sync {
+		try self.vmQueue.sync {
 			try self._requestStopVM()
 		}
 	}
 
-	public func requestStopFromUI() throws {
-		try self._requestStopVM()
+	public func requestStopFromUI() {
+		self.vmQueue.async {
+			try? self._requestStopVM()
+		}
 	}
 
 	public func suspendFromUI() {
-		self._pauseVM()
+		self.vmQueue.async {
+			self._pauseVM()
+		}
 	}
 
 	private func catchUserSignals(_ task: Task<Int32, Never>) {
@@ -545,55 +551,6 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 			value.activate()
 		}
 	}
-
-#if arch(arm64)
-	func installIPSW(_ url: URL, progressHandler: IPSWProgressHandler? = nil) {
-		let installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
-		
-		let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
-			if let progressHandler = progressHandler {
-				progressHandler(.progress(progress.fractionCompleted))
-			}
-		}
-
-		installer.install { result in
-			if let progressHandler = progressHandler {
-				progressHandler(.terminated(result))
-			}
-			progressObserver.invalidate()
-		}
-	}
-
-	func installIPSW(_ url: URL, queue: DispatchQueue, progressHandler: IPSWProgressHandler? = nil) async throws {
-		let vm: () -> VZVirtualMachine = { self.virtualMachine }
-
-		try await withCheckedThrowingContinuation { continuation in
-			queue.async {
-				let installer = VZMacOSInstaller(virtualMachine: vm(), restoringFromImageAt: url)
-				let progressObserver = installer.progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, change in
-					print("[\(Thread.current.description)] install progress \(progress.fractionCompleted)")
-					if let progressHandler = progressHandler {
-						progressHandler(.progress(progress.fractionCompleted))
-					}
-					print("[\(Thread.current.description)] leave progress \(progress.fractionCompleted)")
-				}
-
-				print("[\(Thread.current.description)] start install")
-				installer.install { result in
-					print("[\(Thread.current.description)] install terminated")
-					if let progressHandler = progressHandler {
-						progressHandler(.terminated(result))
-					}
-					continuation.resume(with: result)
-					progressObserver.invalidate()
-				}
-				print("[\(Thread.current.description)] exiting install")
-			}
-		}
-		
-		print("[\(Thread.current.description)] exiting installIPSW")
-	}
-#endif
 
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 
@@ -712,7 +669,7 @@ public final class VirtualMachine: NSObject, VZVirtualMachineDelegate, Observabl
 	}
 
 	func didChangedState() {
-		DispatchQueue.main.async {
+		self.vmQueue.async {
 			if let delegate = self.delegate {
 				delegate.didChangedState(self)
 			}
