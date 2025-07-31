@@ -1,5 +1,5 @@
 {
-  "originHash" : "48bbabf6d5cfc36eb4b3221e1eaab77a5c5d6246744f401630ed966d388b39b7",
+  "originHash" : "52d4aefc2992776826985a0cc4b4648173ae85125e7114ed10712aed4886464f",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -95,15 +95,6 @@
       "location" : "https://github.com/Fred78290/Multipart.git",
       "state" : {
         "revision" : "9901ef8f452ed13e176c49e4b079f2daada76bde"
-      }
-    },
-    {
-      "identity" : "multiplatformtabbar",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Appracatappra/MultiplatformTabBar.git",
-      "state" : {
-        "revision" : "093219856b787216024c81675e27a807bc8634c4",
-        "version" : "1.0.6"
       }
     },
     {

@@ -25,6 +25,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
@@ -513,6 +514,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
 		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
 		9B20D6002E019FA400BEFB41 /* VMWare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMWare.swift; sourceTree = "<group>"; };
@@ -1569,6 +1571,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -2219,6 +2222,7 @@
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
 				9BEBC7972DF440720092B196 /* Logger.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
+				9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */,
 				9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */,
 				9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */,
 				9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */,

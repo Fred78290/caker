@@ -73,6 +73,8 @@ let package = Package(
 			dependencies: ["SwiftletUtilities"],
 		),
 		.target(name: "CakedLib", dependencies: [
+			.target(name: "GRPCLib"),
+			.target(name: "Qcow2convert"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -108,8 +110,6 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
 			.product(name: "Multipart", package: "multipart"),
-			.target(name: "GRPCLib"),
-			.target(name: "Qcow2convert"),
 		],
 		path: "Sources/cakedlib",
 		exclude: [
@@ -117,24 +117,25 @@ let package = Package(
 			"MountService/GRPC/mount.proto"
 		]),
 		.executableTarget(name: "caker", dependencies: [
+			.target(name: "CakedLib"),
+			.target(name: "MultiplatformTabBar"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
-			.target(name: "CakedLib"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
-			.product(name: "MultiplatformTabBar", package: "MultiplatformTabBar"),
 			.product(name: "Steps", package: "Steps"),
 			.product(name: "SwiftTerm", package: "SwiftTerm"),
 			.product(name: "FileMonitor", package: "FileMonitor"),
 		]),
 		.executableTarget(name: "caked", dependencies: [
+			.target(name: "CakedLib"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
-			.target(name: "CakedLib"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
 			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
+			.target(name: "GRPCLib"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
@@ -165,11 +166,7 @@ let package = Package(
 			.product(name: "X509", package: "swift-certificates"),
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
-			.target(name: "GRPCLib"),
-		],
-		exclude: [
-		]
-		),
+		]),
 		.testTarget(name: "CakerTests",
 		            dependencies: [
 		            	"GRPCLib",
