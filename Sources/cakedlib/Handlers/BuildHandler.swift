@@ -13,11 +13,11 @@ public struct BuildHandler {
 			
 			if completed % 10 == 0 {
 				if completed == 0 {
-					print(String(format: "%0.2d", completed), terminator: "")
+					print(String(format: "%0.2d%%", completed), terminator: "")
 				} else if completed < 100 {
-					print(String(format: "...%0.2d", completed), terminator: "")
+					print(String(format: "...%0.2d%%", completed), terminator: "")
 				} else {
-					print(String(format: "...%0.3d", completed), terminator: " complete\n")
+					print(String(format: "...%0.3d%%", completed), terminator: " complete\n")
 				}
 				fflush(stdout)
 			}
@@ -25,9 +25,9 @@ public struct BuildHandler {
 			let logger = Logger("BuildHandler")
 
 			if case let .failure(error) = result {
-				logger.error("IPSW installation failed: \(error)")
+				logger.error("Installation failed: \(error)")
 			} else {
-				logger.error("IPSW installation succeeded")
+				logger.info("Installation succeeded")
 			}
 		}
 	}
