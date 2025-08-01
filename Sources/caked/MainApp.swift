@@ -170,7 +170,7 @@ struct MainApp: App, VirtualMachineDelegate {
 	}
 
 	func requestStopFromUI() {
-		try? MainApp._vm?.requestStopFromUI()
+		MainApp._vm?.requestStopFromUI()
 	}
 
 	func suspendFromUI() {
