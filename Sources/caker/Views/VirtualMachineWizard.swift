@@ -4,7 +4,6 @@
 //
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
-
 import SwiftUI
 import Steps
 import NIO
@@ -220,9 +219,29 @@ struct ShortImageInfoComparator : SortComparator {
 	}
 }
 
+struct ItemView {
+	var title: String
+	var systemName: String
+	
+	init(title: String, systemName: String) {
+		self.title = title
+		self.systemName = systemName
+	}
+}
+
+private var items: [ItemView]  = [
+	ItemView(title: "Name", systemName: "character.cursor.ibeam"),
+	ItemView(title: "Choose OS", systemName: "cloud"),
+	ItemView(title: "CPU & Ram", systemName: "cpu"),
+	ItemView(title: "Sharing", systemName: "folder.badge.plus"),
+	ItemView(title: "Disk", systemName: "externaldrive.badge.plus"),
+	ItemView(title: "Network", systemName: "network"),
+	ItemView(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
+	ItemView(title: "Sockets", systemName: "powerplug")
+]
+
 class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var currentStep: Int = 0
-	//@Published var imageName: String
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -234,27 +253,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var createVM: Bool
 	@Published var fractionCompleted: Double
 
-	var items: [ItemView]  = [
-		ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
-		ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
-		ItemView(title: "CPU & Ram", image: Image(systemName: "cpu")),
-		ItemView(title: "Sharing", image: Image(systemName: "folder.badge.plus")),
-		ItemView(title: "Disk", image: Image(systemName: "externaldrive.badge.plus")),
-		ItemView(title: "Network", image: Image(systemName: "network")),
-		ItemView(title: "Ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
-		ItemView(title: "Sockets", image: Image(systemName: "powerplug"))
-	]
-
-	struct ItemView {
-		var title: String
-		var image: Image
-		
-		init(title: String, image: Image?) {
-			self.title = title
-			self.image = image ?? Image(systemName: "questionmark")
-		}
-	}
-	
 	init() {
 		self.configValid = false
 		self.password = ""
@@ -284,16 +282,6 @@ struct VirtualMachineWizard: View {
 	@Environment(\.openDocument) private var openDocument
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
-	@StateObject var stepsState = StepsState(data: [
-		ItemView(title: "Name", image: Image(systemName: "character.cursor.ibeam")),
-		   ItemView(title: "Choose OS", image: Image(systemName: "cloud")),
-		   ItemView(title: "CPU & Memory", image: Image(systemName: "cpu")),
-		   ItemView(title: "Sharing directory", image: Image(systemName: "folder.badge.plus")),
-		   ItemView(title: "Additional disk", image: Image(systemName: "externaldrive.badge.plus")),
-		   ItemView(title: "Network attachement", image: Image(systemName: "network")),
-		   ItemView(title: "Forwarded ports", image: Image(systemName: "point.bottomleft.forward.to.point.topright.scurvepath")),
-		   ItemView(title: "Sockets endpoint", image: Image(systemName: "powerplug"))
-	   ], initialStep: 0)
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
@@ -311,7 +299,13 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
+		}.onReceive(NSNotification.ProgressCreateVirtualMachine) { notification in
+			if let fractionCompleted = notification.object as? Double {
+				self.model.fractionCompleted = fractionCompleted
+			}
 		}.onReceive(NSNotification.CreatedVirtualMachine) { notification in
+			self.model.createVM = false
+
 			if let location = notification.object as? VMLocation {
 				Task {
 					try? await self.openDocument(at: location.rootURL)
@@ -337,49 +331,32 @@ struct VirtualMachineWizard: View {
 	
 	func Toolbar() -> some View {
 		MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
-			.tab(title: self.model.items[0].title, icon: self.model.items[0].image, disabled: self.model.createVM) {
+			.tab(title: items[0].title, systemName: items[0].systemName, disabled: self.model.createVM) {
 				chooseVMName()
 			}
-			.tab(title: self.model.items[1].title, icon: self.model.items[1].image, disabled: self.model.createVM) {
+			.tab(title: items[1].title, systemName: items[1].systemName, disabled: self.model.createVM) {
 				chooseOSImage()
 			}
-			.tab(title: self.model.items[2].title, icon: self.model.items[2].image, disabled: self.model.createVM) {
+			.tab(title: items[2].title, systemName: items[2].systemName, disabled: self.model.createVM) {
 				generalSettings()
 			}
-			.tab(title: self.model.items[3].title, icon: self.model.items[3].image, disabled: self.model.createVM) {
+			.tab(title: items[3].title, systemName: items[3].systemName, disabled: self.model.createVM) {
 				mountsView()
 			}
-			.tab(title: self.model.items[4].title, icon: self.model.items[4].image, disabled: self.model.createVM) {
+			.tab(title: items[4].title, systemName: items[4].systemName, disabled: self.model.createVM) {
 				diskAttachementView()
 			}
-			.tab(title: self.model.items[5].title, icon: self.model.items[5].image, disabled: self.model.createVM) {
+			.tab(title: items[5].title, systemName: items[5].systemName, disabled: self.model.createVM) {
 				networksView()
 			}
-			.tab(title: self.model.items[6].title, icon: self.model.items[6].image, disabled: self.model.createVM) {
+			.tab(title: items[6].title, systemName: items[6].systemName, disabled: self.model.createVM) {
 				forwardPortsView()
 			}
-			.tab(title: self.model.items[7].title, icon: self.model.items[7].image, disabled: self.model.createVM) {
+			.tab(title: items[7].title, systemName: items[7].systemName, disabled: self.model.createVM) {
 				socketsView()
 			}
 	}
 	
-	func Head() -> some View {
-		VStack {
-			Steps(state: self.stepsState) {
-				return Step(title: $0.title, image: $0.image)
-			}
-			.onSelectStepAtIndex { index in
-				self.stepsState.setStep(index)
-				self.model.currentStep = index
-			}
-			.itemSpacing(20)
-			.size(14)
-			.font(.caption)
-			.padding(EdgeInsets(top: 5, leading: 15, bottom: 0, trailing: 15))
-			
-			Divider()
-		}
-	}
 	
 	func Middle() -> some View {
 		VStack {
@@ -413,9 +390,11 @@ struct VirtualMachineWizard: View {
 			if self.model.createVM {
 				HStack {
 					ProgressView(value: self.model.fractionCompleted) {
-						Text("Installation in progress...")
+						VStack(alignment: .center) {
+							Text("Installation in progress...")
+						}.frame(width: 200)
 					}
-				}.frame(width: 150, height: 30)
+				}.frame(width: 200, height: 30)
 			}
 
 			Divider()
@@ -435,11 +414,10 @@ struct VirtualMachineWizard: View {
 					.disabled(self.hasPrevious == false || self.model.createVM)
 					Button {
 						self.nextStep()
-						self.model.currentStep = self.stepsState.currentIndex
 					} label: {
 						Text("Next").frame(width: 80)
 					}
-					.disabled(self.stepsState.hasNext == false || self.model.createVM)
+					.disabled(self.hasNext == false || self.model.createVM)
 				}
 				
 				Spacer()
@@ -486,7 +464,9 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
-			
+			.pickerStyle(.menu)
+			.disabled(self.model.createVM)
+
 			HStack {
 				Text("Memory size")
 				Spacer().border(.black)
@@ -498,9 +478,12 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
 						
-					}.labelsHidden()
+					}
+					.labelsHidden()
+					.disabled(self.model.createVM)
 				}
 			}
 			
@@ -515,9 +498,12 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 					Stepper(value: $config.diskSize, in: diskRange, step: 1) {
 						
-					}.labelsHidden()
+					}
+					.labelsHidden()
+					.disabled(self.model.createVM)
 				}
 			}
 		}
@@ -526,12 +512,12 @@ struct VirtualMachineWizard: View {
 	func optionsView() -> some View {
 		Section("Options") {
 			VStack(alignment: .leading) {
-				Toggle("Autostart", isOn: $config.autostart)
-				Toggle("Suspendable", isOn: $config.suspendable)
-				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding)
-				Toggle("Refit display", isOn: $config.displayRefit)
-				Toggle("Nested virtualization", isOn: $config.nestedVirtualization)
-				Toggle("Use network ifnames", isOn: $config.netIfnames)
+				Toggle("Autostart", isOn: $config.autostart).disabled(self.model.createVM)
+				Toggle("Suspendable", isOn: $config.suspendable).disabled(self.model.createVM)
+				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding).disabled(self.model.createVM)
+				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM)
+				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
+				Toggle("Use network ifnames", isOn: $config.netIfnames).disabled(self.model.createVM)
 			}
 		}
 	}
@@ -549,6 +535,7 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 				}
 				HStack {
 					Text("Height")
@@ -560,6 +547,7 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 				}
 			}
 		}
@@ -574,6 +562,7 @@ struct VirtualMachineWizard: View {
 					.background(.white)
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.disabled(self.model.createVM)
 					.onChange(of: config.vmname) { newValue in
 						self.validateConfig(config: self.config)
 					}
@@ -587,6 +576,7 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 				}
 				
 				LabeledContent("Administator password") {
@@ -598,6 +588,7 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.disabled(self.model.createVM)
 						} else {
 							SecureField("Password", text: $model.password)
 								.multilineTextAlignment(.leading)
@@ -605,6 +596,7 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.disabled(self.model.createVM)
 								.onChange(of: self.model.password) { newValue in
 									if newValue.isEmpty {
 										config.configuredPassword = nil
@@ -630,17 +622,20 @@ struct VirtualMachineWizard: View {
 							.background(.white)
 							.labelsHidden()
 							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.disabled(self.model.createVM)
 						Button(action: {
 							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
 								self.config.sshAuthorizedKey = sshPublicKey
 							}
 						}) {
 							Image(systemName: "key")
-						}.buttonStyle(.borderless)
+						}
+						.buttonStyle(.borderless)
+						.disabled(self.model.createVM)
 					}
 				}
 				
-				Toggle("SSH with password", isOn: $config.clearPassword)
+				Toggle("SSH with password", isOn: $config.clearPassword).disabled(self.model.createVM)
 				
 				LabeledContent("Administator group") {
 					HStack {
@@ -650,6 +645,8 @@ struct VirtualMachineWizard: View {
 								Text(name).tag(name)
 							}
 						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
 						.labelsHidden()
 					}.frame(width: 100)
 				}
@@ -671,6 +668,7 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.disabled(self.model.createVM)
 							
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
@@ -678,7 +676,9 @@ struct VirtualMachineWizard: View {
 								}
 							}) {
 								Image(systemName: "document.badge.gearshape")
-							}.buttonStyle(.borderless)
+							}
+							.buttonStyle(.borderless)
+							.disabled(self.model.createVM)
 						}
 					}
 					
@@ -694,6 +694,7 @@ struct VirtualMachineWizard: View {
 									.background(.white)
 									.labelsHidden()
 									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.disabled(self.model.createVM)
 								
 								Button(action: {
 									if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
@@ -701,16 +702,18 @@ struct VirtualMachineWizard: View {
 									}
 								}) {
 									Image(systemName: "document.badge.gearshape")
-								}.buttonStyle(.borderless)
+								}
+								.disabled(self.model.createVM)
+								.buttonStyle(.borderless)
 							}
 						}
 						
 						if platform == .ubuntu {
-							Toggle("Create autoinstall config", isOn: $config.autoinstall)
+							Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						} else if platform == .fedora {
-							Toggle("Create kickstart config", isOn: $config.autoinstall)
+							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						} else if platform == .debian {
-							Toggle("Create preseed config", isOn: $config.autoinstall)
+							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
 					}
 					
@@ -724,14 +727,16 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
-							
+								.disabled(self.model.createVM)
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
 									self.config.imageName = "ipsw://\(imageName)"
 								}
 							}) {
 								Image(systemName: "document.badge.gearshape")
-							}.buttonStyle(.borderless)
+							}
+							.disabled(self.model.createVM)
+							.buttonStyle(.borderless)
 						}
 					}
 #endif
@@ -744,16 +749,19 @@ struct VirtualMachineWizard: View {
 							.background(.white)
 							.labelsHidden()
 							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.disabled(self.model.createVM)
 					} label: {
 						Picker("Preconfigured image", selection: $model.cloudImageRelease) {
 							ForEach(OSCloudImage.allCases, id: \.self) { os in
 								Text(os.stringValue).tag(os)
 							}
 						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
+						.labelsHidden()
 						.onChange(of: model.cloudImageRelease) { newValue in
 							self.config.imageName = newValue.url.absoluteString
 						}
-						.labelsHidden()
 					}
 					
 				case .oci:
@@ -763,6 +771,7 @@ struct VirtualMachineWizard: View {
 						.background(.white)
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.disabled(self.model.createVM)
 					
 				case .template:
 					Picker("Select a template", selection: $config.imageName) {
@@ -770,6 +779,8 @@ struct VirtualMachineWizard: View {
 							Text(template.name).tag(template.fqn)
 						}
 					}
+					.pickerStyle(.menu)
+					.disabled(self.model.createVM)
 					
 				case .stream:
 					VStack {
@@ -777,7 +788,10 @@ struct VirtualMachineWizard: View {
 							ForEach(remotes(), id: \.self) { remote in
 								Text(remote.name).tag(remote.name)
 							}
-						}.task {
+						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
+						.task {
 							self.model.remoteImages = await images(remote: self.model.remoteImage)
 						}.onChange(of: self.model.remoteImage) { newValue in
 							Task {
@@ -804,9 +818,19 @@ struct VirtualMachineWizard: View {
 							ForEach(VMBuilder.ImageSource.allCases, id: \.self) { source in
 								Text(source.description).tag(source)
 							}
-						}.onChange(of: self.model.imageSource) { _ in
+						}.onChange(of: self.model.imageSource) { newValue in
 							self.config.imageName = ""
-						}.labelsHidden()
+#if arch(arm64)
+							if newValue == .ipsw {
+								self.config.cpuCount = max(self.config.cpuCount, 4)
+								self.config.memorySize = max(self.config.memorySize, 4096)
+								self.config.diskSize = max(self.config.diskSize, 40)
+							}
+#endif
+						}
+						.pickerStyle(.menu)
+						.disabled(self.model.createVM)
+						.labelsHidden()
 					}.frame(width: 100)
 				}
 			}
@@ -821,11 +845,14 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.disabled(self.model.createVM)
 							Button(action: {
 								config.userData = chooseYAML()
 							}) {
 								Image(systemName: "document.badge.gearshape")
-							}.buttonStyle(.borderless)
+							}
+							.disabled(self.model.createVM)
+							.buttonStyle(.borderless)
 						}
 					}
 					LabeledContent("Optional network configuration") {
@@ -836,22 +863,25 @@ struct VirtualMachineWizard: View {
 								.background(.white)
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.disabled(self.model.createVM)
 							Button(action: {
 								config.networkConfig = chooseYAML()
 							}) {
 								Image(systemName: "document.badge.gearshape")
-							}.buttonStyle(.borderless)
+							}
+							.disabled(self.model.createVM)
+							.buttonStyle(.borderless)
 						}
 					}
 				}
 			}
-		}.formStyle(.grouped)
+		}.formStyle(.grouped).disabled(self.model.createVM)
 	}
 	
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardPorts)
+				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: $model.createVM)
 			}
 		}.formStyle(.grouped)
 	}
@@ -859,7 +889,7 @@ struct VirtualMachineWizard: View {
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
-				NetworkAttachementView(networks: $config.networks)
+				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM)
 			}
 		}.formStyle(.grouped)
 	}
@@ -867,7 +897,7 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts)
+				MountView(mounts: $config.mounts, disabled: $model.createVM)
 			}
 		}.formStyle(.grouped)
 	}
@@ -875,7 +905,7 @@ struct VirtualMachineWizard: View {
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
-				DiskAttachementView(attachedDisks: $config.attachedDisks)
+				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM)
 			}
 		}.formStyle(.grouped)
 	}
@@ -883,24 +913,22 @@ struct VirtualMachineWizard: View {
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
-				SocketsView(sockets: $config.sockets)
+				SocketsView(sockets: $config.sockets, disabled: $model.createVM)
 			}
 		}.formStyle(.grouped)
 	}
 	
 	func validateConfig(config: VirtualMachineConfig) {
-		if let vmname = config.vmname {
-			if vmname.isEmpty || StorageLocation(runMode: .app, template: false).exists(vmname) {
-				self.model.configValid = false
-			} else {
-				self.model.configValid = true
+		var valid = false
+
+		if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
+			if StorageLocation(runMode: .app, template: false).exists(vmname) == false {
+				valid = true
 			}
-		} else {
-			self.model.configValid = false
 		}
+
+		self.model.configValid = valid
 	}
-	
-	static var currentThread: Thread { Thread.current }
 
 	func openVirtualMachine(_ done: @escaping () -> Void) async {
 		if config.vmname == nil {
@@ -909,31 +937,23 @@ struct VirtualMachineWizard: View {
 
 		self.model.createVM = true
 
-		let logger = Logger("VirtualMachineWizard")
-		
 		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
-			switch result {
-			case .progress(let fractionCompleted):
-				logger.info("[\(Self.currentThread.description)] fractionCompleted=\(fractionCompleted)")
-				self.model.fractionCompleted = fractionCompleted
+			DispatchQueue.main.async {
+				switch result {
+				case .progress(let fractionCompleted):
+					NotificationCenter.default.post(name: NSNotification.ProgressCreateVirtualMachine, object: fractionCompleted)
+					
+				case .terminated(let result):
+					if case let .failure(error) = result {
+						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
+					} else if let location = try? StorageLocation(runMode: .app).find(config.vmname) {
+						NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+					}
 
-			case .terminated(let result):
-				logger.info("[\(Self.currentThread.description)] terminated")
-				self.model.createVM = false
-
-				if case let .failure(error) = result {
-					NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
-				} else if let location = try? StorageLocation(runMode: .app).find(config.vmname) {
-					NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+					done()
 				}
-				
-				done()
 			}
-
-			logger.info("[\(Self.currentThread.description)] leave progressHandler")
 		}
-		
-		logger.info("[\(Self.currentThread.description)] leave openVirtualMachine")
 	}
 	
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
@@ -999,7 +1019,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	var hasNext: Bool {
-		self.model.currentStep < self.model.items.count - 1
+		self.model.currentStep < items.count - 1
 	}
 
 	func previousStep() {
@@ -1008,16 +1028,14 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.model.currentStep -= 1
-		self.stepsState.setStep(self.model.currentStep)
 	}
 	
 	func nextStep() {
-		guard self.model.currentStep < self.model.items.count - 1 else {
+		guard self.model.currentStep < items.count - 1 else {
 			return
 		}
 
 		self.model.currentStep += 1
-		self.stepsState.setStep(self.model.currentStep)
 	}
 }
 
