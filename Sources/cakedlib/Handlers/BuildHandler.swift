@@ -7,7 +7,7 @@ import Virtualization
 import Logging
 
 public struct BuildHandler {
-	public static func progressHandler(_ result: IPSWProgressValue) {
+	public static func progressHandler(_ result: VMBuilder.ProgressValue) {
 		if case let .progress(fractionCompleted) = result {
 			let completed = Int(fractionCompleted * 100)
 			
@@ -32,7 +32,7 @@ public struct BuildHandler {
 		}
 	}
 
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: IPSWProgressHandler? = nil) async throws {
+	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping VMBuilder.BuildProgressHandler) async throws {
 		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
@@ -54,9 +54,7 @@ public struct BuildHandler {
 				} catch {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 
-					if let progressHandler = progressHandler {
-						progressHandler(.terminated(.failure(error)))
-					}
+					progressHandler(.terminated(.failure(error)))
 
 					throw error
 				}

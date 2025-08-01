@@ -68,33 +68,14 @@ class CloudImageConverter {
 		// Download the cloud-image
 		Logger(self).debug("Fetching \(fromURL.lastPathComponent)...")
 
-		let channel = try await Curl(fromURL: fromURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
 		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
-		FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
-
-		let lock = try FileLock(lockURL: temporaryLocation)
-		try lock.lock()
-
-		let fileHandle: FileHandle = try FileHandle(forWritingTo: temporaryLocation)
-
-		for try await chunk in channel.0 {
-			let chunkAsData = Data(chunk)
-			fileHandle.write(chunkAsData)
-		}
-
-		try fileHandle.close()
-		try lock.unlock()
-
 		defer {
-			do {
-				if try temporaryLocation.exists() {
-					try FileManager.default.removeItem(at: temporaryLocation)
-				}
-			} catch {
-				Logger(self).error(error)
-			}
+			try? FileManager.default.removeItem(at: temporaryLocation)
 		}
+
+		try await Curl(fromURL: fromURL).get(store: temporaryLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
+
 
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
@@ -142,22 +123,7 @@ class CloudImageConverter {
 			// Download the cloud-image
 			Logger(self).info("Fetching \(from.lastPathComponent)...")
 
-			let channel = try await Curl(fromURL: from).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(from.lastPathComponent)"))
-
-			FileManager.default.createFile(atPath: temporaryLocation.path, contents: nil)
-
-			let lock = try FileLock(lockURL: temporaryLocation)
-			try lock.lock()
-
-			let fileHandle: FileHandle = try FileHandle(forWritingTo: temporaryLocation)
-
-			for try await chunk in channel.0 {
-				let chunkAsData = Data(chunk)
-				fileHandle.write(chunkAsData)
-			}
-
-			try fileHandle.close()
-			try lock.unlock()
+			try await Curl(fromURL: from).get(store: temporaryLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(from.lastPathComponent)"))
 
 			try convertCloudImageToRaw(from: temporaryLocation, to: cacheLocation)
 			try FileManager.default.removeItem(at: temporaryLocation)

@@ -1,6 +1,7 @@
 import Algorithms
 import AsyncAlgorithms
 import Foundation
+import GRPCLib
 
 extension URLRequest {
 	init(url: URL, method: String, cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60.0) {
@@ -14,19 +15,8 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate {
 	var response: CheckedContinuation<URLResponse, Error>?
 	var stream: AsyncThrowingStream<Data, Error>.Continuation?
 
-	private let progressObserver: ProgressObserver?
 	private var buffer: Data = Data()
 	private let inputBufferSize = 16 * 1024 * 1024
-	
-	init(_ progressObserver: ProgressObserver? = nil) {
-		self.progressObserver = progressObserver
-	}
-	
-	func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
-		if let progressObserver = self.progressObserver {
-			progressObserver.progress.addChild(task.progress, withPendingUnitCount: progressObserver.progress.totalUnitCount)
-		}
-	}
 	
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 		let capacity = min(response.expectedContentLength, Int64(inputBufferSize))
@@ -45,6 +35,7 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate {
 			self.stream?.yield(buffer)
 			self.buffer.removeAll(keepingCapacity: true)
 		}
+
 	}
 	
 	func urlSession( _ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
@@ -79,10 +70,14 @@ class Curl {
 	}
 
 	func fetch(request: URLRequest, progressObserver: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {
-		let delegate = DownloadDelegate(progressObserver)
+		let delegate = DownloadDelegate()
 		let task = self.urlSession.dataTask(with: request)
 
 		task.delegate = delegate
+
+		if let progressObserver = progressObserver {
+			progressObserver.progress.addChild(task.progress, withPendingUnitCount: progressObserver.progress.totalUnitCount)
+		}
 
 		let channel = AsyncThrowingStream<Data, Error> { continuation in
 			delegate.stream = continuation
@@ -101,7 +96,21 @@ class Curl {
 		return try await self.fetch(request: URLRequest(url: self.fromURL, method: "HEAD"), progressObserver: observer)
 	}
 
-	func get(observer: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {
-		return try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
+	func get(store: URL, observer: ProgressObserver? = nil) async throws {
+		let channel = try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
+
+		FileManager.default.createFile(atPath: store.path, contents: nil)
+
+		let lock = try FileLock(lockURL: store)
+		try lock.lock()
+
+		let fileHandle = try FileHandle(forWritingTo: store)
+
+		for try await chunk in channel.0 {
+			let chunkAsData = Data(chunk)
+			fileHandle.write(chunkAsData)
+		}
+
+		try fileHandle.close()
 	}
 }

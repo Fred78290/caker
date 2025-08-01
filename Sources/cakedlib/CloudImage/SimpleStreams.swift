@@ -41,21 +41,7 @@ class Streamable {
 		// Download the index
 		Logger(self).debug("Fetching \(remoteURL.lastPathComponent)...")
 
-		let channel = try await Curl(fromURL: remoteURL).get(observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(remoteURL.lastPathComponent)"))
-
-		FileManager.default.createFile(atPath: indexLocation.path, contents: nil)
-
-		let lock = try FileLock(lockURL: indexLocation)
-		try lock.lock()
-
-		let fileHandle = try FileHandle(forWritingTo: indexLocation)
-
-		for try await chunk in channel.0 {
-			let chunkAsData = Data(chunk)
-			fileHandle.write(chunkAsData)
-		}
-
-		try fileHandle.close()
+		try await Curl(fromURL: remoteURL).get(store: indexLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(remoteURL.lastPathComponent)"))
 
 		return try T(fromURL: indexLocation)
 	}
