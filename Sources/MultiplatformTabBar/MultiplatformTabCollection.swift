@@ -13,6 +13,6 @@ import SwiftUI
  */
 public class MultiplatformTabCollection:ObservableObject {
 
-    /// The tab collection.
+	/// The tab collection.
    @Published public var tabs:[MultiplatformTab] = []
 }
