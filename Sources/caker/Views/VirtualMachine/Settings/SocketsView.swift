@@ -10,21 +10,24 @@ import SwiftUI
 
 struct SocketsView: View {
 	@Binding var sockets: [SocketDevice]
+	@Binding var disabled: Bool
 	@State private var selection: SocketDevice.ID? = nil
 
 	var body: some View {
-		EditableList($sockets, selection: $selection) { $item in
-			SocketsDetailView(currentItem: $item)
-		}.onEditItem(selection: $selection) { editItem in
-			SocketsNewItemView($sockets, editItem: editItem)
-		} deleteItem: {
-			self.sockets.removeAll {
-				$0.id == selection
-			}
+		GeometryReader { geometry in
+			EditableList($sockets, selection: $selection) { $item in
+				SocketsDetailView(currentItem: $item)
+			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
+				SocketsNewItemView($sockets, editItem: editItem)
+			} deleteItem: {
+				self.sockets.removeAll {
+					$0.id == selection
+				}
+			}.frame(height: geometry.size.height)
 		}
 	}
 }
 
 #Preview {
-	SocketsView(sockets: .constant([]))
+	SocketsView(sockets: .constant([]), disabled: .constant(false))
 }

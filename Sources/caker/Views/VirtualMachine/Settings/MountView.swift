@@ -10,21 +10,24 @@ import SwiftUI
 
 struct MountView: View {
 	@Binding var mounts: [DirectorySharingAttachment]
+	@Binding var disabled: Bool
 	@State private var selection: DirectorySharingAttachment.ID? = nil
 
 	var body: some View {
-		EditableList($mounts, selection: $selection) { $item in
-			MountDetailView(currentItem: $item)
-		}.onEditItem(selection: $selection) { editItem in
-			MountNewItemView($mounts, editItem: editItem)
-		} deleteItem: {
-			self.mounts.removeAll {
-				$0.id == selection
-			}
+		GeometryReader { geometry in
+			EditableList($mounts, selection: $selection) { $item in
+				MountDetailView(currentItem: $item)
+			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
+				MountNewItemView($mounts, editItem: editItem)
+			} deleteItem: {
+				self.mounts.removeAll {
+					$0.id == selection
+				}
+			}.frame(height: geometry.size.height)
 		}
 	}
 }
 
 #Preview {
-	MountView(mounts: .constant([]))
+	MountView(mounts: .constant([]), disabled: .constant(false))
 }

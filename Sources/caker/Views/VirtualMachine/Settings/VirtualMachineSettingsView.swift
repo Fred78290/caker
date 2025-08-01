@@ -13,6 +13,7 @@ import Virtualization
 import MultiplatformTabBar
 
 struct VirtualMachineSettingsView: View {
+
 	@Environment(\.dismiss) var dismiss
 
 	@Binding var config: VirtualMachineConfig
@@ -20,22 +21,31 @@ struct VirtualMachineSettingsView: View {
 	@State var selectedTab = 0
 
 	init(config: Binding<VirtualMachineConfig>) {
-		_config = config
+		self._config = config
 	}
 
 	var body: some View {
 		VStack {
 			MultiplatformTabBar(selection: $selectedTab, tabPosition: .top, barHorizontalAlignment: .center)
-				.tab(title: "General", icon: Image(systemName: "gearshape")) {
-					generalSettings()
+				.tab(title: "General", systemName: "cpu") {
+					self.generalSettings()
 				}
-				.tab(title: "Network", icon: Image(systemName: "network")) {
-					networkSettings()
+				.tab(title: "Network", systemName: "network") {
+					self.networksView()
 				}
-				.tab(title: "Disk", icon: Image(systemName: "externaldrive.badge.wifi")) {
-					mediaSettings()
+				.tab(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath") {
+					self.forwardPortsView()
 				}
-			
+				.tab(title: "Sockets", systemName: "powerplug") {
+					self.socketsView()
+				}
+				.tab(title: "Sharing", systemName: "folder.badge.plus") {
+					self.mountsView()
+				}
+				.tab(title: "Disk", systemName: "externaldrive.badge.plus") {
+					self.diskAttachementView()
+				}
+
 			Spacer()
 			Divider()
 			
@@ -179,33 +189,43 @@ struct VirtualMachineSettingsView: View {
 	}
 
 	func forwardPortsView() -> some View {
-		Section("Forwarded ports") {
-			ForwardedPortView(forwardPorts: $config.forwardPorts)
-		}
+		Form {
+			Section("Forwarded ports") {
+				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: .constant(false)).frame(height: 380)
+			}
+		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
 
 	func networksView() -> some View {
-		Section("Network attachements") {
-			NetworkAttachementView(networks: $config.networks)
-		}
+		Form {
+			Section("Network attachements") {
+				NetworkAttachementView(networks: $config.networks, disabled: .constant(false)).frame(height: 380)
+			}
+		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
 
 	func mountsView() -> some View {
-		Section("Directory sharing") {
-			MountView(mounts: $config.mounts)
-		}
+		Form {
+			Section("Directory sharing") {
+				MountView(mounts: $config.mounts, disabled: .constant(false)).frame(height: 380)
+			}
+		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
 
 	func diskAttachementView() -> some View {
-		Section("Disks attachements") {
-			DiskAttachementView(attachedDisks: $config.attachedDisks)
-		}
+		Form {
+			Section("Disks attachements") {
+				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: .constant(false)).frame(height: 380)
+			}
+		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
 
 	func socketsView() -> some View {
-		Section("Virtual sockets") {
-			SocketsView(sockets: $config.sockets)
-		}
+		Form {
+			Section("Virtual sockets") {
+				SocketsView(sockets: $config.sockets, disabled: .constant(false)).frame(height: 380)
+			}
+		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
 }
 

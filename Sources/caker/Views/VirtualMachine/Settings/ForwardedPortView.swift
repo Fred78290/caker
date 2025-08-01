@@ -10,21 +10,24 @@ import SwiftUI
 
 struct ForwardedPortView: View {
 	@Binding var forwardPorts: [TunnelAttachement]
+	@Binding var disabled: Bool
 	@State private var selection: TunnelAttachement.ID? = nil
 
 	var body: some View {
-		EditableList($forwardPorts, selection: $selection) { $item in
-			ForwardedPortDetailView(currentItem: $item)
-		}.onEditItem(selection: $selection) {
-			ForwardedPortNewItemView($forwardPorts, editItem: $0)
-		} deleteItem: {
-			self.forwardPorts.removeAll {
-				$0.id == selection
-			}
+		GeometryReader { geometry in
+			EditableList($forwardPorts, selection: $selection) { $item in
+				ForwardedPortDetailView(currentItem: $item)
+			}.onEditItem(selection: $selection, disabled: $disabled) {
+				ForwardedPortNewItemView($forwardPorts, editItem: $0)
+			} deleteItem: {
+				self.forwardPorts.removeAll {
+					$0.id == selection
+				}
+			}.frame(height: geometry.size.height)
 		}
 	}
 }
 
 #Preview {
-	ForwardedPortView(forwardPorts: .constant([]))
+	ForwardedPortView(forwardPorts: .constant([]), disabled: .constant(false))
 }

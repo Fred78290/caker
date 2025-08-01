@@ -333,6 +333,8 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
 		self.env.requestStopFromUIPending = false
 
+		self.didChangedState()
+
 		switch result {
 		case .success:
 			Logger(self).info("VM \(self.location.name) started")
@@ -387,6 +389,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 					try self.env.configuration.validateSaveRestoreSupport()
 
 					self.virtualMachine.pause { result in
+
 						if case let .failure(err) = result {
 							Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
 							if let completionHandler = completionHandler {
@@ -491,6 +494,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		if self.virtualMachine.canRequestStop {
 			Logger(self).info("Requesting stop VM \(self.location.name)...")
 			try self.virtualMachine.requestStop()
+			self.didChangedState()
 		} else if self.virtualMachine.canStop {
 			self.virtualMachine.stop { result in
 				Logger(self).info("VM \(self.location.name) stopped")

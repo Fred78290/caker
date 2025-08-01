@@ -176,15 +176,8 @@ struct VirtualMachineConfig: Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 
-	public typealias IPSWProgressHandlerMainActor = @MainActor (IPSWProgressValue) -> Void
-
-	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: IPSWProgressHandlerMainActor? = nil) async {
-		let doInstall: () async -> Void = {
-			let thread = Thread.current
-			let logger = Logger("VirtualMachineConfig")
-
-			logger.info("[\(thread.description)] Start building virtual machine...")
-
+	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping VMBuilder.BuildProgressHandler) async {
+		await withTaskCancellationHandler(operation: {
 			do {
 				let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
 				var ipswQueue: DispatchQueue!
@@ -194,35 +187,14 @@ struct VirtualMachineConfig: Hashable {
 				}
 
 				try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-					if let progressHandler = progressHandler {
-						Task {
-							await progressHandler(result)
-						}
-					}
+					progressHandler(result)
 				}
 
 			} catch {
-				logger.info("[\(thread.description)] Error: \(error)")
-				await self.notify(name: NSNotification.FailCreateVirtualMachine, object: error)
+				progressHandler(.terminated(.failure(error)))
 			}
-		}
-
-		/*await withTaskCancellationHandler(operation: {
-			await doInstall()
 		}, onCancel: {
-		})*/
-
-		_ = Utilities.group.next().makeFutureWithTask {
-			await doInstall()
-		}
-
-		/*
-		let queue = DispatchQueue(label: "CreateVirtualMachineQueue")
-
-		queue.sync {
-			Task {
-				await doInstall()
-			}
-		}*/
+			progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
+		})
 	}
 }
