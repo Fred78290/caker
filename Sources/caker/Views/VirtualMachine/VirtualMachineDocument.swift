@@ -275,7 +275,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	func requestStopFromUI() {
 		if let virtualMachine = self.virtualMachine {
-			try? virtualMachine.requestStopFromUI()
+			virtualMachine.requestStopFromUI()
 		} else if self.status == .external {
 			do {
 				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
@@ -424,4 +424,5 @@ extension NSNotification {
 	static let DeleteVirtualMachine = NSNotification.Name("DeleteVirtualMachine")
 	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
+	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 }
