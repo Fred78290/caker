@@ -125,7 +125,7 @@ struct HostVirtualMachineView: View {
 				.help("Suspends virtual machine")
 				.disabled(document.suspendable == false)
 				
-				Button("Restart", systemImage: "restart") {
+				Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 					document.restartFromUI()
 				}
 				.help("Restart virtual machine")
