@@ -212,7 +212,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 }
 
-public final class VirtualMachine: NSObject, Sendable, VZVirtualMachineDelegate, ObservableObject {
+public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachineDelegate, ObservableObject {
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
