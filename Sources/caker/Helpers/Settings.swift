@@ -10,7 +10,7 @@ import Foundation
 struct Setting<T> {
 	private(set) var keyName: String
 	private var defaultValue: T
-	
+
 	var wrappedValue: T {
 		get {
 			let defaults = UserDefaults.standard
@@ -19,13 +19,13 @@ struct Setting<T> {
 			}
 			return value as! T
 		}
-		
+
 		set {
 			let defaults = UserDefaults.standard
 			defaults.set(newValue, forKey: keyName)
 		}
 	}
-	
+
 	init(wrappedValue: T, _ keyName: String) {
 		self.defaultValue = wrappedValue
 		self.keyName = keyName

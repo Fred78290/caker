@@ -1,9 +1,8 @@
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
 import NIOCore
-import CakedLib
-
 
 struct RenameHandler: CakedCommand {
 	let request: Caked_RenameRequest

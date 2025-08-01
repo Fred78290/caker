@@ -1,7 +1,7 @@
+import CakedLib
 import Foundation
 import GRPCLib
 import NIOCore
-import CakedLib
 
 struct ImageHandler: CakedCommandAsync {
 	var request: Caked_ImageRequest

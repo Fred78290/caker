@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
-import GRPCLib
 import CakedLib
+import GRPCLib
+import SwiftUI
 
 struct DiskAttachementDetailView: View {
 	@Binding private var currentItem: DiskAttachement
@@ -42,7 +42,7 @@ struct DiskAttachementDetailView: View {
 					}
 				}.frame(width: readOnly ? 500 : 350)
 			}
-			
+
 			LabeledContent("Syncing") {
 				Toggle("Syncing", isOn: $syncing)
 					.labelsHidden()
@@ -71,8 +71,8 @@ struct DiskAttachementDetailView: View {
 				.pickerStyle(.menu)
 			}
 		}
-    }
-	
+	}
+
 	func chooseDiskImage() {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [.diskImage, .iso9660], withTitle: "Select disk image", allowsOtherFileTypes: true) {
 			currentItem.diskPath = diskImg.absoluteURL.path

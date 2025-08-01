@@ -23,7 +23,7 @@ struct SideBarView: View {
 			.navigationTitle("Explore")
 			.frame(width: 180)
 		}
-    }
+	}
 }
 
 #Preview {

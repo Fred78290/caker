@@ -15,7 +15,7 @@ struct SettingsView: View {
 					Label("Application", systemImage: "app.badge")
 				}
 		}.frame(minWidth: 450, minHeight: 350, alignment: .topLeading)
-    }
+	}
 }
 
 extension UserDefaults {
@@ -24,5 +24,5 @@ extension UserDefaults {
 }
 
 #Preview {
-    SettingsView()
+	SettingsView()
 }

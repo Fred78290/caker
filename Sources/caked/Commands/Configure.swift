@@ -1,8 +1,8 @@
 import ArgumentParser
+import CakedLib
 import GRPCLib
 import Logging
 import Virtualization
-import CakedLib
 
 struct Configure: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Reconfigure VM")

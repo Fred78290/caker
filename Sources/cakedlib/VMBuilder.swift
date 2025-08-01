@@ -5,9 +5,9 @@ import Virtualization
 let cloudInitIso = "cloud-init.iso"
 
 #if arch(arm64)
-let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://", "ipsw://"]
+	let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://", "ipsw://"]
 #else
-let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://"]
+	let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://"]
 #endif
 
 public struct VMBuilder {
@@ -27,128 +27,128 @@ public struct VMBuilder {
 			case .template: return "template"
 			case .stream: return "stream"
 			case .iso: return "iso"
-#if arch(arm64)
-			case .ipsw: return "ipsw"
-#endif
+			#if arch(arm64)
+				case .ipsw: return "ipsw"
+			#endif
 			}
 		}
-		
+
 		case raw
 		case cloud
 		case oci
 		case template
 		case stream
 		case iso
-#if arch(arm64)
-		case ipsw
-#endif
+		#if arch(arm64)
+			case ipsw
+		#endif
 
 		public init(stringValue: String) {
 			switch stringValue.lowercased() {
-				case "iso": self = .iso
-				case "raw": self = .raw
-				case "cloud": self = .cloud
-				case "oci": self = .oci
-				case "template": self = .template
-				case "stream": self = .stream
-#if arch(arm64)
+			case "iso": self = .iso
+			case "raw": self = .raw
+			case "cloud": self = .cloud
+			case "oci": self = .oci
+			case "template": self = .template
+			case "stream": self = .stream
+			#if arch(arm64)
 				case "ipsw": self = .ipsw
-#endif
-				default:
-					self = .iso
+			#endif
+			default:
+				self = .iso
 			}
 		}
 
 		static var allCases: [String] {
-#if arch(arm64)
-			[ "iso", "ipsw", "raw", "cloud", "oci", "template", "stream" ]
-#else
-			[ "iso", "raw", "cloud", "oci", "template", "stream" ]
-#endif
-		}
-		
-		public var supportCloudInit: Bool {
-#if arch(arm64)
-			if self == .ipsw || self == .iso {
-				return false
-			}
+			#if arch(arm64)
+				["iso", "ipsw", "raw", "cloud", "oci", "template", "stream"]
 			#else
-			if self == .iso {
-				return false
-			}
+				["iso", "raw", "cloud", "oci", "template", "stream"]
 			#endif
-			
+		}
+
+		public var supportCloudInit: Bool {
+			#if arch(arm64)
+				if self == .ipsw || self == .iso {
+					return false
+				}
+			#else
+				if self == .iso {
+					return false
+				}
+			#endif
+
 			return true
 		}
 	}
 
-#if arch(arm64)
-	private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping BuildProgressHandler) async throws {
-		let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
+	#if arch(arm64)
+		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping BuildProgressHandler) async throws {
+			let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
 
-		try await vm.installIPSW(ipsw, progressHandler: progressHandler)
-	}
-#endif
+			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
+		}
+	#endif
 
 	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping BuildProgressHandler) async throws {
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 
 		// Create config
-#if arch(arm64)
-		let imageURL = URL(fileURLWithPath: options.image.expandingTildeInPath.stringAfter(after: "ipsw://"))
+		#if arch(arm64)
+			let imageURL = URL(fileURLWithPath: options.image.expandingTildeInPath.stringAfter(after: "ipsw://"))
 
-		if source == .ipsw {
-			let image = try await withCheckedThrowingContinuation { continuation in
-				VZMacOSRestoreImage.load(from: imageURL) { result in
-					continuation.resume(with: result)
+			if source == .ipsw {
+				let image = try await withCheckedThrowingContinuation { continuation in
+					VZMacOSRestoreImage.load(from: imageURL) { result in
+						continuation.resume(with: result)
+					}
 				}
+
+				guard let requirements = image.mostFeaturefulSupportedConfiguration else {
+					throw ServiceError("Unsupported restore image")
+				}
+
+				_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
+
+				config = CakeConfig(
+					location: location.rootURL,
+					os: .darwin,
+					autostart: options.autostart,
+					configuredUser: options.user,
+					configuredPassword: options.password,
+					displayRefit: options.displayRefit,
+					cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
+					memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024))
+
+				config.hardwareModel = requirements.hardwareModel
+				config.ecid = VZMacMachineIdentifier()
+				config.useCloudInit = true
+				config.agent = true
+				config.nested = options.nested
+				config.attachedDisks = attachedDisks
 			}
-			
-			guard let requirements = image.mostFeaturefulSupportedConfiguration else {
-				throw ServiceError("Unsupported restore image")
-			}
-			
-			_ = try VZMacAuxiliaryStorage(creatingStorageAt: location.nvramURL, hardwareModel: requirements.hardwareModel)
-			
-			config = CakeConfig(
-				location: location.rootURL,
-				os: .darwin,
-				autostart: options.autostart,
-				configuredUser: options.user,
-				configuredPassword: options.password,
-				displayRefit: options.displayRefit,
-				cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
-				memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024))
-			
-			config.hardwareModel = requirements.hardwareModel
-			config.ecid = VZMacMachineIdentifier()
-			config.useCloudInit = true
-			config.agent = true
-			config.nested = options.nested
-			config.attachedDisks = attachedDisks
-		}
-#endif
+		#endif
 
 		if config == nil {
 			if source == .oci {
 				config = try CakeConfig(location: location.rootURL, options: options)
 			} else if try location.configURL.exists() {
 				config = try location.config()
-				
+
 				config.macAddress = VZMACAddress.randomLocallyAdministered()
-				
+
 				if config.os == .darwin {
 					config.ecid = VZMacMachineIdentifier()
 				}
 			} else {
 				// Create NVRAM
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
-				
+
 				if source == .iso {
 					attachedDisks.append(DiskAttachement(diskPath: URL(string: options.image)!))
 				}
-				
+
 				config = CakeConfig(
 					location: location.rootURL,
 					os: .linux,
@@ -158,7 +158,7 @@ public struct VMBuilder {
 					displayRefit: options.displayRefit,
 					cpuCountMin: Int(options.cpu),
 					memorySizeMin: options.memory * 1024 * 1024)
-				
+
 				config.useCloudInit = source != .iso || options.autoinstall
 				config.agent = source != .iso || options.autoinstall
 				config.nested = options.nested
@@ -173,7 +173,7 @@ public struct VMBuilder {
 			} else {
 				try? location.resizeDisk(options.diskSize)
 			}
-			
+
 			config.networks = options.networks
 			config.mounts = options.mounts
 			config.sockets = options.sockets
@@ -183,9 +183,9 @@ public struct VMBuilder {
 			config.suspendable = options.suspendable
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 			config.source = source
-			
+
 			try config.save()
-			
+
 			if config.os == .linux && config.useCloudInit {
 				let cloudInit = try CloudInit(
 					plateform: SupportedPlatform(rawValue: options.image),
@@ -199,19 +199,19 @@ public struct VMBuilder {
 					networkConfigPath: options.networkConfig,
 					netIfnames: options.netIfnames,
 					runMode: runMode)
-				
+
 				try cloudInit.createDefaultCloudInit(config: config, name: vmName, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL))
 			}
 
-#if arch(arm64)
-			if source == .ipsw {
-				try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
-			} else {
+			#if arch(arm64)
+				if source == .ipsw {
+					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
+				} else {
+					progressHandler(.terminated(.success(())))
+				}
+			#else
 				progressHandler(.terminated(.success(())))
-			}
-#else
-			progressHandler(.terminated(.success(())))
-#endif
+			#endif
 		}
 	}
 
@@ -266,27 +266,27 @@ public struct VMBuilder {
 			if Utilities.checkIfTartPresent() == false {
 				throw ServiceError("tart is not installed")
 			}
-			
+
 			let ociImage = options.image.stringAfter(after: "//")
 			let arguments: [String]
-			
+
 			if scheme == "oci" {
 				arguments = [ociImage, vmName, "--insecure"]
 			} else {
 				arguments = [ociImage, vmName]
 			}
-			
+
 			try Shell.runTart(command: "clone", arguments: arguments, runMode: runMode)
-			
+
 			sourceImage = .oci
 		} else if scheme == "iso" {
 			sourceImage = .iso
 		} else if scheme == "ipsw" {
-#if arch(arm64)
-			sourceImage = .ipsw
-#else
-			ServiceError("unsupported image url: \(options.image)")
-#endif
+			#if arch(arm64)
+				sourceImage = .ipsw
+			#else
+				ServiceError("unsupported image url: \(options.image)")
+			#endif
 		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")

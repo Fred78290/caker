@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 27/06/2025.
 //
 
-import Foundation
-import SwiftUI
-import GRPCLib
 import CakedLib
+import Foundation
+import GRPCLib
+import SwiftUI
 import Virtualization
 
 struct VirtualMachineConfig: Hashable {
@@ -18,13 +18,13 @@ struct VirtualMachineConfig: Hashable {
 		}
 		var width: Int
 		var height: Int
-		
+
 		init(width: Int, height: Int) {
 			self.width = width
 			self.height = height
 		}
 	}
-	
+
 	var os: VirtualizedOS = .linux
 	var cpuCount: Int = 1
 	var memorySize: UInt64 = 512
@@ -41,7 +41,7 @@ struct VirtualMachineConfig: Hashable {
 	var attachedDisks: [DiskAttachement] = []
 	var mounts: [DirectorySharingAttachment] = []
 	var vmname: String! = nil
-	
+
 	var imageName: String
 	var sshAuthorizedKey: String?
 	var configuredUser: String
@@ -53,7 +53,7 @@ struct VirtualMachineConfig: Hashable {
 	var userData: String? = nil
 	var networkConfig: String? = nil
 	var autoinstall: Bool = false
-	
+
 	init() {
 		imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		os = .linux
@@ -83,7 +83,7 @@ struct VirtualMachineConfig: Hashable {
 			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
 		}
 	}
-	
+
 	init(vmname: String, config: CakeConfig) {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
@@ -108,22 +108,22 @@ struct VirtualMachineConfig: Hashable {
 		self.clearPassword = true
 		self.diskSize = 20
 	}
-	
+
 	func save() throws {
 		guard let vmname = self.vmname else {
 			throw ServiceError("Virtual machine name is required to save configuration")
 		}
-		
+
 		try self.save(name: vmname)
 	}
-	
+
 	func save(name: String) throws {
 		let location = try StorageLocation(runMode: .app).find(name)
 		let config = try location.config()
-		
+
 		try self.save(config: config)
 	}
-	
+
 	func save(config: CakeConfig) throws {
 		config.cpuCount = self.cpuCount
 		config.memorySize = self.memorySize * (1024 * 1024)
@@ -139,10 +139,10 @@ struct VirtualMachineConfig: Hashable {
 		config.networks = self.networks
 		config.attachedDisks = self.attachedDisks
 		config.mounts = self.mounts
-		
+
 		try config.save()
 	}
-	
+
 	func buildOptions(image: String, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
@@ -177,24 +177,26 @@ struct VirtualMachineConfig: Hashable {
 	}
 
 	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping VMBuilder.BuildProgressHandler) async {
-		await withTaskCancellationHandler(operation: {
-			do {
-				let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
-				var ipswQueue: DispatchQueue!
-				
-				if imageSource == .ipsw {
-					ipswQueue = DispatchQueue(label: "IPSWQueue")
-				}
+		await withTaskCancellationHandler(
+			operation: {
+				do {
+					let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
+					var ipswQueue: DispatchQueue!
 
-				try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-					progressHandler(result)
-				}
+					if imageSource == .ipsw {
+						ipswQueue = DispatchQueue(label: "IPSWQueue")
+					}
 
-			} catch {
-				progressHandler(.terminated(.failure(error)))
-			}
-		}, onCancel: {
-			progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
-		})
+					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+						progressHandler(result)
+					}
+
+				} catch {
+					progressHandler(.terminated(.failure(error)))
+				}
+			},
+			onCancel: {
+				progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
+			})
 	}
 }

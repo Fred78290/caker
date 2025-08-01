@@ -7,10 +7,10 @@
 
 import CakedLib
 import GRPCLib
+import MultiplatformTabBar
 import NIO
 import SwiftUI
 import Virtualization
-import MultiplatformTabBar
 
 struct VirtualMachineSettingsView: View {
 
@@ -48,10 +48,10 @@ struct VirtualMachineSettingsView: View {
 
 			Spacer()
 			Divider()
-			
+
 			HStack(alignment: .bottom) {
 				Spacer()
-				
+
 				Button {
 					dismiss()
 				} label: {
@@ -59,9 +59,9 @@ struct VirtualMachineSettingsView: View {
 						.frame(width: 60)
 				}
 				.buttonStyle(.borderedProminent)
-				
+
 				Spacer()
-				
+
 				Button {
 					try? self.config.save()
 					dismiss()
@@ -71,12 +71,12 @@ struct VirtualMachineSettingsView: View {
 				}
 				.buttonStyle(.bordered)
 				.disabled(self.configChanged == false)
-				
+
 				Spacer()
 			}
 			.frame(width: 200)
 			.padding(.bottom)
-			
+
 		}
 		.frame(height: 600)
 		.onChange(of: config) { newValue in

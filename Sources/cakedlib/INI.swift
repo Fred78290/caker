@@ -38,7 +38,7 @@ extension INIConfig {
 		return nil
 	}
 
-	private static func parseConfig(_ from : URL) throws -> INIConfig {
+	private static func parseConfig(_ from: URL) throws -> INIConfig {
 		let f = try String(contentsOf: from, encoding: .utf8)
 
 		var currentSectionName = "main"

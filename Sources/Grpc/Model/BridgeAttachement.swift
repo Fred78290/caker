@@ -56,7 +56,7 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 	public var id: String {
 		self.description
 	}
-	
+
 	public init(network: String, mode: NetworkMode? = nil, macAddress: String? = nil) {
 		self.network = network
 		self.mode = mode

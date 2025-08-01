@@ -1,7 +1,7 @@
+import CakedLib
 import Foundation
 import GRPCLib
 import NIOCore
-import CakedLib
 
 struct RemoteHandler: CakedCommand {
 	var request: Caked_RemoteRequest

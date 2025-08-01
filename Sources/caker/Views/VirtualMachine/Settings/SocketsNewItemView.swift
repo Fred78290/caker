@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 extension [SocketDevice] {
 	func editItem(_ editItem: SocketDevice.ID?) -> SocketDevice {
@@ -40,5 +40,5 @@ struct SocketsNewItemView: View {
 }
 
 #Preview {
-    SocketsNewItemView(.constant([]))
+	SocketsNewItemView(.constant([]))
 }

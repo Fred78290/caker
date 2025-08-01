@@ -24,7 +24,7 @@ struct OptionalStringFormatStyle: ParseableFormatStyle {
 		guard let value else {
 			return ""
 		}
-		
+
 		return value
 	}
 }

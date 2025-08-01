@@ -2,8 +2,8 @@ import Foundation
 import GRPCLib
 import NIOCore
 import NIOPosix
-import Virtualization
 import Semaphore
+import Virtualization
 
 extension Error {
 	var isLoggable: Bool {
@@ -68,11 +68,11 @@ class SocketState {
 
 	func forEachConnection(_ body: (EstablishedConnection) throws -> Void) rethrows {
 		self.semaphore.wait()
-		
+
 		defer {
 			self.semaphore.signal()
 		}
-		
+
 		for connection in self.connections {
 			try body(connection)
 		}
@@ -88,9 +88,9 @@ class SocketState {
 		defer {
 			self.semaphore.signal()
 		}
-		
+
 		self.connections.append(conn)
-		
+
 	}
 
 	// Called when the guest vsock is closed by remote or host socket is closed

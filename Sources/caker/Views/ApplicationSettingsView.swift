@@ -23,21 +23,27 @@ struct ApplicationSettingsView: View {
 
 	var body: some View {
 		Form {
-			Toggle(isOn: $isDockIconHidden.inverted, label: {
-				Text("Show dock icon")
-			}).onChange(of: isDockIconHidden) { newValue in
+			Toggle(
+				isOn: $isDockIconHidden.inverted,
+				label: {
+					Text("Show dock icon")
+				}
+			).onChange(of: isDockIconHidden) { newValue in
 				if newValue {
 					isMenuIconShown = true
 				}
 			}
-			
-			Toggle(isOn: $isMenuIconShown, label: {
-				Text("Show menu bar icon")
-			}).disabled(isDockIconHidden)
+
+			Toggle(
+				isOn: $isMenuIconShown,
+				label: {
+					Text("Show menu bar icon")
+				}
+			).disabled(isDockIconHidden)
 		}.formStyle(.grouped)
 	}
 }
 
 #Preview {
-    ApplicationSettingsView()
+	ApplicationSettingsView()
 }

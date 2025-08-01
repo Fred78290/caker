@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 import ArgumentParser
-import SwiftUI
-import GRPCLib
 import CakedLib
+import GRPCLib
+import SwiftUI
 import Virtualization
 
 extension [BridgeAttachement] {
@@ -39,9 +39,9 @@ struct NetworkAttachementNewItemView: View {
 				NetworkAttachementDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
-    }
+	}
 }
 
 #Preview {
-    NetworkAttachementNewItemView(.constant([]))
+	NetworkAttachementNewItemView(.constant([]))
 }

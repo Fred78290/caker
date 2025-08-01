@@ -28,7 +28,7 @@ struct HomeView: View {
 		} detail: {
 			Text(navigationModel.selectedCategory.title)
 		}
-    }
+	}
 }
 
 #Preview {

@@ -1,11 +1,11 @@
 import ArgumentParser
+import CakedLib
 import Darwin
 import Foundation
 import GRPC
 import GRPCLib
 import Logging
 import NIO
-import CakedLib
 
 let delegatedCommand: [String] = [
 	"pull",
@@ -86,7 +86,7 @@ struct Root: ParsableCommand {
 				Umount.self,
 				VMRun.self,
 				WaitIP.self,
-				Import.self
+				Import.self,
 			])
 
 	static func vmrunAvailable() -> Bool {

@@ -14,18 +14,18 @@ struct CypherKeyGeneratorError: Error {
 	}
 }
 
-private extension Data {
+extension Data {
 	/// A partial PKCS8 DER prefix. This specifically is the version and private key algorithm identifier.
 	private static let partialPKCS8Prefix = Data(
 		[
 			0x02, 0x01, 0x00,  // Version, INTEGER 0
-			0x30, 0x0d,        // SEQUENCE, length 13
+			0x30, 0x0d,  // SEQUENCE, length 13
 			0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01,  // rsaEncryption OID
-			0x05, 0x00         // NULL
+			0x05, 0x00,  // NULL
 		]
 	)
 
-	var pkcs8RSAKeyBytes: Data? {
+	fileprivate var pkcs8RSAKeyBytes: Data? {
 		// This is PKCS8. A bit awkward now. Rather than bring over the fully-fledged ASN.1 code from
 		// the main module and all its dependencies, we have a little hand-rolled verifier. To be a proper
 		// PKCS8 key, this should match:
@@ -76,12 +76,12 @@ private extension Data {
 
 		// Ok, the last check are the next 4 bytes, which should now be the tag for OCTET STRING followed by another length.
 		guard self[4 + Data.partialPKCS8Prefix.count] == 0x04,
-		self[4 + Data.partialPKCS8Prefix.count + 1] == 0x82 else {
+			self[4 + Data.partialPKCS8Prefix.count + 1] == 0x82
+		else {
 			return nil
 		}
 
-		let octetStringLength = Int(self[4 + Data.partialPKCS8Prefix.count + 2]) << 8 |
-								Int(self[4 + Data.partialPKCS8Prefix.count + 3])
+		let octetStringLength = Int(self[4 + Data.partialPKCS8Prefix.count + 2]) << 8 | Int(self[4 + Data.partialPKCS8Prefix.count + 3])
 		guard octetStringLength == self.count - 4 - Data.partialPKCS8Prefix.count - 4 else {
 			return nil
 		}
@@ -119,10 +119,14 @@ public struct PrivateKeyModel {
 			privateKeyData = pkcs8Data
 		}
 
-		guard let privateKey = SecKeyCreateWithData(privateKeyData as CFData, [
-			kSecAttrKeyType: kSecAttrKeyTypeRSA,
-			kSecAttrKeyClass: kSecAttrKeyClassPrivate,
-		] as CFDictionary, nil) else {
+		guard
+			let privateKey = SecKeyCreateWithData(
+				privateKeyData as CFData,
+				[
+					kSecAttrKeyType: kSecAttrKeyTypeRSA,
+					kSecAttrKeyClass: kSecAttrKeyClassPrivate,
+				] as CFDictionary, nil)
+		else {
 			throw CypherKeyGeneratorError("Unable to create private key from data")
 		}
 

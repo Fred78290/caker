@@ -1,4 +1,5 @@
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
 import Logging
@@ -9,7 +10,6 @@ import TextTable
 import UniformTypeIdentifiers
 import Virtualization
 import vmnet
-import CakedLib
 
 struct NetworksHandler: CakedCommandAsync {
 	var request: Caked_NetworkRequest

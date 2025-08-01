@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
-import GRPCLib
 import CakedLib
+import GRPCLib
+import SwiftUI
 
 extension [DiskAttachement] {
 	func editItem(_ editItem: DiskAttachement.ID?) -> DiskAttachement {
@@ -38,9 +38,9 @@ struct DiskAttachementNewItemView: View {
 				DiskAttachementDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
-    }
+	}
 }
 
 #Preview {
-    DiskAttachementNewItemView(.constant([]))
+	DiskAttachementNewItemView(.constant([]))
 }

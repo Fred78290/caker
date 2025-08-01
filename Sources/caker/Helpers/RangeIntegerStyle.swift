@@ -10,15 +10,15 @@ import Foundation
 struct RangeIntegerStyle: ParseableFormatStyle {
 	var parseStrategy: RangeIntegerStrategy
 	let range: ClosedRange<Int>
-	
+
 	init(range: ClosedRange<Int>) {
 		self.range = range
 		self.parseStrategy = .init(range: range)
 	}
-	
+
 	func format(_ value: Int) -> String {
 		let constrainedValue = min(max(value, range.lowerBound), range.upperBound)
-		
+
 		return "\(constrainedValue)"
 	}
 

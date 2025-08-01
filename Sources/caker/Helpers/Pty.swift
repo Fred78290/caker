@@ -31,9 +31,9 @@ struct Pty {
 			tty_path.deallocate()
 		}
 
-		let res = openpty(&tty_fd, &sfd, tty_path, nil, nil);
+		let res = openpty(&tty_fd, &sfd, tty_path, nil, nil)
 
-		if (res < 0) {
+		if res < 0 {
 			throw Errno(rawValue: errno)
 		}
 

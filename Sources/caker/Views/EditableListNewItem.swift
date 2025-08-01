@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct EditableListNewItem<Element, Content: View>: View where Element: Hashable & Identifiable & GRPCLib.Validatable {
 	@Environment(\.dismiss) var dismiss
@@ -52,20 +52,20 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 			if newValue.validate() {
 				if editItem != nil {
 					self.configChanged = true
-				} else if self.elements.first(where: {$0.id == newValue.id}) == nil {
+				} else if self.elements.first(where: { $0.id == newValue.id }) == nil {
 					self.configChanged = true
 				}
 			}
 		}
-    }
-	
+	}
+
 	func save() {
 		if let editItem = editItem {
 			self.elements = self.elements.map {
 				if $0.id == editItem {
 					return self.currentItem
 				}
-				
+
 				return $0
 			}
 		} else {

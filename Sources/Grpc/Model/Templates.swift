@@ -20,7 +20,7 @@ public struct TemplateEntry: Codable, Identifiable, Hashable {
 	public var id: String {
 		return self.fqn
 	}
-	
+
 	public init(name: String, fqn: String, diskSize: Int, totalSize: Int) {
 		self.name = name
 		self.fqn = fqn

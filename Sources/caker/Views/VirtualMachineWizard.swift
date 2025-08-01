@@ -1,3 +1,8 @@
+import CakedLib
+import GRPCLib
+import MultiplatformTabBar
+import NIO
+import Steps
 //
 //  VirtualMachineWizard.swift
 //  Caker
@@ -5,12 +10,7 @@
 //  Created by Frederic BOLTZ on 26/06/2025.
 //
 import SwiftUI
-import Steps
-import NIO
-import CakedLib
-import GRPCLib
 import UniformTypeIdentifiers
-import MultiplatformTabBar
 
 typealias OptionalVMLocation = VMLocation?
 
@@ -20,27 +20,27 @@ enum OSCloudImage: Int, CaseIterable {
 		"Ubuntu 24.04",
 		"Ubuntu 22.04",
 		"Ubuntu 20.04",
-		
+	
 		"CentOS 10",
 		"CentOS 9",
-		
+	
 		"Fedora 42",
 		"Fedora 41",
 		"Fedora 40",
-		
+	
 		"Debian 12",
 		"Debian 11",
 		"Debian 10",
-		
+	
 		"OpenSUSE 156",
 		"OpenSUSE 155",
 		"OpenSUSE 154",
-
+	
 		"Alpine 3.22",
 		"Alpine 3.21",
 		"Alpine 3.20",
 	]*/
-	
+
 	case ubuntu2504LTS
 	case ubuntu2404LTS
 	case ubuntu2204LTS
@@ -56,7 +56,7 @@ enum OSCloudImage: Int, CaseIterable {
 	case debian12
 	case debian11
 	case debian10
-	
+
 	case openSUSE156
 	case openSUSE155
 	case openSUSE154
@@ -64,77 +64,77 @@ enum OSCloudImage: Int, CaseIterable {
 	case alpine322
 	case alpine321
 	case alpine320
-	
+
 	var stringValue: String {
 		switch self {
-			case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
-			case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
-			case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
-			case .ubuntu2004LTS: return "Ubuntu 20.04 LTS"
-				
-			case .centos10: return "CentOS 10"
-			case .centos9: return "CentOS 9"
-				
-			case .fedora42: return "Fedora 42"
-			case .fedora41: return "Fedora 41"
-			case .fedora40: return "Fedora 40"
-				
-			case .debian12: return "Debian 12"
-			case .debian11: return "Debian 11"
-			case .debian10: return "Debian 10"
-					
-			case .openSUSE156: return "OpenSUSE Leap 15.6"
-			case .openSUSE155: return "OpenSUSE Leap 15.6"
-			case .openSUSE154: return "OpenSUSE Leap 15.4"
+		case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
+		case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
+		case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
+		case .ubuntu2004LTS: return "Ubuntu 20.04 LTS"
 
-			case .alpine322: return "Alpine 3.22"
-			case .alpine321: return "Alpine 3.21"
-			case .alpine320: return "Alpine 3.20"
+		case .centos10: return "CentOS 10"
+		case .centos9: return "CentOS 9"
+
+		case .fedora42: return "Fedora 42"
+		case .fedora41: return "Fedora 41"
+		case .fedora40: return "Fedora 40"
+
+		case .debian12: return "Debian 12"
+		case .debian11: return "Debian 11"
+		case .debian10: return "Debian 10"
+
+		case .openSUSE156: return "OpenSUSE Leap 15.6"
+		case .openSUSE155: return "OpenSUSE Leap 15.6"
+		case .openSUSE154: return "OpenSUSE Leap 15.4"
+
+		case .alpine322: return "Alpine 3.22"
+		case .alpine321: return "Alpine 3.21"
+		case .alpine320: return "Alpine 3.20"
 		}
 	}
 
 	var arch: String {
-#if arch(arm64)
-		switch self {
-		case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS,.debian12, .debian11, .debian10:
-			return "arm64"
+		#if arch(arm64)
+			switch self {
+			case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+				return "arm64"
 
-		case .centos10, .centos9,.fedora42, .fedora41, .fedora40,.openSUSE156, .openSUSE155, .openSUSE154,.alpine322, .alpine321, .alpine320:
-			return "aarch64"
-		}
-#elseif arch(x86_64)
-		switch self {
-		case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS,.debian12, .debian11, .debian10:
-			return "amd64"
+			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
+				return "aarch64"
+			}
+		#elseif arch(x86_64)
+			switch self {
+			case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+				return "amd64"
 
-		case .centos10, .centos9,.fedora42, .fedora41, .fedora40,.openSUSE156, .openSUSE155, .openSUSE154,.alpine322, .alpine321, .alpine320:
-			return "x86_64"
-		}
-#endif
+			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
+				return "x86_64"
+			}
+		#endif
 	}
 
 	var url: URL {
 		switch self {
-		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")! // amd64|arm64
+		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
 		case .ubuntu2404LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-\(self.arch).img")!
 		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
 		case .ubuntu2004LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-\(self.arch).img")!
-			
+
 		case .centos10: return URL(string: "https://cloud.centos.org/centos/10-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-10-20250506.2.\(self.arch).qcow2")!
 		case .centos9: return URL(string: "https://cloud.centos.org/centos/9-stream/\(self.arch)/images/CentOS-Stream-GenericCloud-9-20250526.1.\(self.arch).qcow2")!
-			
+
 		case .fedora42: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/42/Server/\(self.arch)/images/Fedora-Server-Guest-Generic-42-1.1.\(self.arch).qcow2")!
 		case .fedora41: return URL(string: "https://download.fedoraproject.org/pub/fedora/linux/releases/41/Server/\(self.arch)/images/Fedora-Server-KVM-41-1.4.\(self.arch).qcow2")!
 		case .fedora40: return URL(string: "https://archives.fedoraproject.org/pub/archive/fedora/linux/releases/40/Server/\(self.arch)/images/Fedora-Server-KVM-40-1.14.\(self.arch).qcow2")!
-			
+
 		case .debian12: return URL(string: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-\(self.arch).qcow2")!
 		case .debian11: return URL(string: "https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-\(self.arch).qcow2")!
 		case .debian10: return URL(string: "https://cloud.debian.org/images/cloud/buster/latest/debian-10-generic-\(self.arch).qcow2")!
-			
+
 		case .openSUSE156: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.6/images/openSUSE-Leap-15.6.\(self.arch)-NoCloud.qcow2")!
 		case .openSUSE155: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.5/images/openSUSE-Leap-15.5.\(self.arch)-NoCloud.qcow2")!
 		case .openSUSE154: return URL(string: "https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.4/images/openSUSE-Leap-15.4.\(self.arch)-NoCloud.qcow2")!
-			
+
 		case .alpine322: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/cloud/generic_alpine-3.22.1-\(self.arch)-uefi-cloudinit-r0.qcow2")!
 		case .alpine321: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.21/releases/cloud/generic_alpine-3.21.2-\(self.arch)-uefi-cloudinit-r0.qcow2")!
 		case .alpine320: return URL(string: "https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/generic_alpine-3.20.7-\(self.arch)-uefi-cloudinit-r0.qcow2")!
@@ -200,12 +200,12 @@ let groups: [String] = [
 	"fwupd-refresh",
 	"polkitd",
 	"admin",
-	"netdev"
+	"netdev",
 ]
 
-struct ShortImageInfoComparator : SortComparator {
+struct ShortImageInfoComparator: SortComparator {
 	var order: SortOrder
-	
+
 	func compare(_ lhs: ShortImageInfo, _ rhs: ShortImageInfo) -> ComparisonResult {
 		if lhs.description == rhs.description {
 			return .orderedSame
@@ -222,14 +222,14 @@ struct ShortImageInfoComparator : SortComparator {
 struct ItemView {
 	var title: String
 	var systemName: String
-	
+
 	init(title: String, systemName: String) {
 		self.title = title
 		self.systemName = systemName
 	}
 }
 
-private var items: [ItemView]  = [
+private var items: [ItemView] = [
 	ItemView(title: "Name", systemName: "character.cursor.ibeam"),
 	ItemView(title: "Choose OS", systemName: "cloud"),
 	ItemView(title: "CPU & Ram", systemName: "cpu"),
@@ -237,7 +237,7 @@ private var items: [ItemView]  = [
 	ItemView(title: "Disk", systemName: "externaldrive.badge.plus"),
 	ItemView(title: "Network", systemName: "network"),
 	ItemView(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
-	ItemView(title: "Sockets", systemName: "powerplug")
+	ItemView(title: "Sockets", systemName: "powerplug"),
 ]
 
 class VirtualMachineWizardStateObject: ObservableObject {
@@ -271,13 +271,13 @@ struct VirtualMachineWizard: View {
 	struct ItemView {
 		var title: String
 		var image: Image?
-		
+
 		init(title: String, image: Image?) {
 			self.title = title
 			self.image = image
 		}
 	}
-	
+
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
 	@State private var config: VirtualMachineConfig = .init()
@@ -291,7 +291,7 @@ struct VirtualMachineWizard: View {
 			Footer()
 
 			if #unavailable(macOS 15.0) {
-				HostingWindowFinder() { window in
+				HostingWindowFinder { window in
 					if let window = window {
 						window.standardWindowButton(.zoomButton)?.isEnabled = self.model.createVM == false
 						window.standardWindowButton(.closeButton)?.isEnabled = self.model.createVM == false
@@ -319,16 +319,16 @@ struct VirtualMachineWizard: View {
 				alertError(error)
 			}
 		}
-		
+
 		if #available(macOS 15.0, *) {
 			return view.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
 				.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
 		}
-		
+
 		return view
 	}
-	
+
 	func Toolbar() -> some View {
 		MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
 			.tab(title: items[0].title, systemName: items[0].systemName, disabled: self.model.createVM) {
@@ -356,8 +356,7 @@ struct VirtualMachineWizard: View {
 				socketsView()
 			}
 	}
-	
-	
+
 	func Middle() -> some View {
 		VStack {
 			switch self.model.currentStep {
@@ -384,7 +383,7 @@ struct VirtualMachineWizard: View {
 		.animation(.easeInOut, value: self.model.currentStep)
 		.padding()
 	}
-	
+
 	func Footer() -> some View {
 		VStack {
 			if self.model.createVM {
@@ -398,13 +397,13 @@ struct VirtualMachineWizard: View {
 			}
 
 			Divider()
-			
+
 			HStack {
-				HStack{
+				HStack {
 				}.frame(maxWidth: .infinity)
-				
+
 				Spacer()
-				
+
 				HStack {
 					Button {
 						self.previousStep()
@@ -419,12 +418,12 @@ struct VirtualMachineWizard: View {
 					}
 					.disabled(self.hasNext == false || self.model.createVM)
 				}
-				
+
 				Spacer()
-				
-				HStack{
+
+				HStack {
 					Spacer()
-					
+
 					AsyncButton { done in
 						await openVirtualMachine(done)
 					} label: {
@@ -438,7 +437,7 @@ struct VirtualMachineWizard: View {
 			self.validateConfig(config: newValue)
 		}
 	}
-	
+
 	func generalSettings() -> some View {
 		VStack {
 			Form {
@@ -448,13 +447,13 @@ struct VirtualMachineWizard: View {
 			}.formStyle(.grouped)
 		}.frame(maxHeight: .infinity)
 	}
-	
+
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory & Disk") {
 			let cpuRange = 1...System.coreCount
 			let diskRange = 5...UInt16.max
 			let totalMemoryRange = 1...ProcessInfo().physicalMemory / 1024 / 1024
-			
+
 			Picker("CPU count", selection: $config.cpuCount) {
 				ForEach(cpuRange, id: \.self) { cpu in
 					if cpu == 1 {
@@ -480,13 +479,13 @@ struct VirtualMachineWizard: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
-						
+
 					}
 					.labelsHidden()
 					.disabled(self.model.createVM)
 				}
 			}
-			
+
 			HStack {
 				Text("Disk size")
 				Spacer().border(.black)
@@ -500,7 +499,7 @@ struct VirtualMachineWizard: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 					Stepper(value: $config.diskSize, in: diskRange, step: 1) {
-						
+
 					}
 					.labelsHidden()
 					.disabled(self.model.createVM)
@@ -508,7 +507,7 @@ struct VirtualMachineWizard: View {
 			}
 		}
 	}
-	
+
 	func optionsView() -> some View {
 		Section("Options") {
 			VStack(alignment: .leading) {
@@ -521,7 +520,7 @@ struct VirtualMachineWizard: View {
 			}
 		}
 	}
-	
+
 	func displaySizeView() -> some View {
 		Section("Display size") {
 			VStack(alignment: .leading) {
@@ -552,7 +551,7 @@ struct VirtualMachineWizard: View {
 			}
 		}
 	}
-	
+
 	func chooseVMName() -> some View {
 		Form {
 			Section("Virtual machine name") {
@@ -567,7 +566,7 @@ struct VirtualMachineWizard: View {
 						self.validateConfig(config: self.config)
 					}
 			}
-			
+
 			Section("Administrator settings") {
 				LabeledContent("Administator name") {
 					TextField("User name", text: $config.configuredUser)
@@ -578,7 +577,7 @@ struct VirtualMachineWizard: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 				}
-				
+
 				LabeledContent("Administator password") {
 					HStack {
 						if self.model.showPassword {
@@ -613,7 +612,7 @@ struct VirtualMachineWizard: View {
 							}
 					}
 				}
-				
+
 				LabeledContent("SSH Public key") {
 					HStack {
 						TextField("SSH Public key", value: $config.sshAuthorizedKey, format: .optional)
@@ -634,9 +633,9 @@ struct VirtualMachineWizard: View {
 						.disabled(self.model.createVM)
 					}
 				}
-				
+
 				Toggle("SSH with password", isOn: $config.clearPassword).disabled(self.model.createVM)
-				
+
 				LabeledContent("Administator group") {
 					HStack {
 						Spacer()
@@ -651,10 +650,10 @@ struct VirtualMachineWizard: View {
 					}.frame(width: 100)
 				}
 			}
-			
+
 		}.formStyle(.grouped)
 	}
-	
+
 	func chooseOSImage() -> some View {
 		Form {
 			Section {
@@ -669,7 +668,7 @@ struct VirtualMachineWizard: View {
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
 								.disabled(self.model.createVM)
-							
+
 							Button(action: {
 								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
 									self.config.imageName = "img://\(imageName)"
@@ -681,11 +680,11 @@ struct VirtualMachineWizard: View {
 							.disabled(self.model.createVM)
 						}
 					}
-					
+
 				case .iso:
 					VStack {
 						let platform = SupportedPlatform(rawValue: self.config.imageName)
-						
+
 						LabeledContent("Choose an ISO image disk.") {
 							HStack {
 								TextField("ISO Image", text: $config.imageName)
@@ -695,7 +694,7 @@ struct VirtualMachineWizard: View {
 									.labelsHidden()
 									.clipShape(RoundedRectangle(cornerRadius: 6))
 									.disabled(self.model.createVM)
-								
+
 								Button(action: {
 									if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
 										self.config.imageName = "iso://\(imageName)"
@@ -707,7 +706,7 @@ struct VirtualMachineWizard: View {
 								.buttonStyle(.borderless)
 							}
 						}
-						
+
 						if platform == .ubuntu {
 							Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						} else if platform == .fedora {
@@ -716,30 +715,30 @@ struct VirtualMachineWizard: View {
 							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
 					}
-					
-#if arch(arm64)
-				case .ipsw:
-					LabeledContent("Choose an IPSW image.") {
-						HStack {
-							TextField("IPSW Image", text: $config.imageName)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
-								.disabled(self.model.createVM)
-							Button(action: {
-								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-									self.config.imageName = "ipsw://\(imageName)"
+
+				#if arch(arm64)
+					case .ipsw:
+						LabeledContent("Choose an IPSW image.") {
+							HStack {
+								TextField("IPSW Image", text: $config.imageName)
+									.multilineTextAlignment(.leading)
+									.textFieldStyle(.roundedBorder)
+									.background(.white)
+									.labelsHidden()
+									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.disabled(self.model.createVM)
+								Button(action: {
+									if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+										self.config.imageName = "ipsw://\(imageName)"
+									}
+								}) {
+									Image(systemName: "document.badge.gearshape")
 								}
-							}) {
-								Image(systemName: "document.badge.gearshape")
+								.disabled(self.model.createVM)
+								.buttonStyle(.borderless)
 							}
-							.disabled(self.model.createVM)
-							.buttonStyle(.borderless)
 						}
-					}
-#endif
+				#endif
 
 				case .cloud:
 					LabeledContent {
@@ -763,7 +762,7 @@ struct VirtualMachineWizard: View {
 							self.config.imageName = newValue.url.absoluteString
 						}
 					}
-					
+
 				case .oci:
 					TextField("OCI Image", text: $config.imageName)
 						.multilineTextAlignment(.leading)
@@ -772,7 +771,7 @@ struct VirtualMachineWizard: View {
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
-					
+
 				case .template:
 					Picker("Select a template", selection: $config.imageName) {
 						ForEach(templates(), id: \.self) { template in
@@ -781,7 +780,7 @@ struct VirtualMachineWizard: View {
 					}
 					.pickerStyle(.menu)
 					.disabled(self.model.createVM)
-					
+
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $model.remoteImage) {
@@ -820,13 +819,13 @@ struct VirtualMachineWizard: View {
 							}
 						}.onChange(of: self.model.imageSource) { newValue in
 							self.config.imageName = ""
-#if arch(arm64)
-							if newValue == .ipsw {
-								self.config.cpuCount = max(self.config.cpuCount, 4)
-								self.config.memorySize = max(self.config.memorySize, 4096)
-								self.config.diskSize = max(self.config.diskSize, 40)
-							}
-#endif
+							#if arch(arm64)
+								if newValue == .ipsw {
+									self.config.cpuCount = max(self.config.cpuCount, 4)
+									self.config.memorySize = max(self.config.memorySize, 4096)
+									self.config.diskSize = max(self.config.diskSize, 40)
+								}
+							#endif
 						}
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)
@@ -834,7 +833,7 @@ struct VirtualMachineWizard: View {
 					}.frame(width: 100)
 				}
 			}
-			
+
 			if model.imageSource.supportCloudInit {
 				Section("Cloud init") {
 					LabeledContent("Optional user data") {
@@ -877,7 +876,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped).disabled(self.model.createVM)
 	}
-	
+
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
@@ -885,7 +884,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-	
+
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
@@ -893,7 +892,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-	
+
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
@@ -901,7 +900,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-	
+
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
@@ -909,7 +908,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-	
+
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
@@ -917,7 +916,7 @@ struct VirtualMachineWizard: View {
 			}
 		}.formStyle(.grouped)
 	}
-	
+
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = false
 
@@ -942,7 +941,7 @@ struct VirtualMachineWizard: View {
 				switch result {
 				case .progress(let fractionCompleted):
 					NotificationCenter.default.post(name: NSNotification.ProgressCreateVirtualMachine, object: fractionCompleted)
-					
+
 				case .terminated(let result):
 					if case let .failure(error) = result {
 						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
@@ -955,65 +954,65 @@ struct VirtualMachineWizard: View {
 			}
 		}
 	}
-	
+
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: ofTypes, withTitle: "Select image", allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
-		
+
 		return nil
 	}
-	
+
 	func chooseDiskImage(ofType: UTType = .diskImage) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: "Select image", allowsOtherFileTypes: true) {
 			return diskImg.absoluteURL.path
 		}
-		
+
 		return nil
 	}
-	
+
 	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> String? {
 		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: title, allowsOtherFileTypes: true, showsHiddenFiles: showsHiddenFiles) {
 			return diskImg.absoluteURL.path
 		}
-		
+
 		return nil
 	}
-	
+
 	func chooseYAML() -> String? {
 		if let choosenFile = FileHelpers.selectSingleInputFile(ofType: [.yaml], withTitle: "Select data file", allowsOtherFileTypes: true) {
 			return choosenFile.absoluteURL.path
 		}
-		
+
 		return nil
 	}
-	
+
 	func templates() -> [TemplateEntry] {
 		if let result = try? TemplateHandler.listTemplate(runMode: .app) {
 			return result
 		}
-		
+
 		return []
 	}
-	
+
 	func remotes() -> [RemoteEntry] {
 		if let result = try? RemoteHandler.listRemote(runMode: .app) {
 			return result
 		}
-		
+
 		return []
 	}
-	
+
 	func images(remote: String) async -> [ShortImageInfo] {
 		guard let result = try? await ImageHandler.listImage(remote: remote, runMode: .app) else {
 			return []
 		}
-		
+
 		return result.compactMap {
 			ShortImageInfo(imageInfo: $0)
 		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
 	}
-	
+
 	var hasPrevious: Bool {
 		self.model.currentStep > 0
 	}
@@ -1029,7 +1028,7 @@ struct VirtualMachineWizard: View {
 
 		self.model.currentStep -= 1
 	}
-	
+
 	func nextStep() {
 		guard self.model.currentStep < items.count - 1 else {
 			return

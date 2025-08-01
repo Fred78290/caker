@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 11/07/2025.
 //
 
-import SwiftUI
 import CakedLib
 import GRPCLib
+import SwiftUI
 
 struct CakerMenuBarExtraScene: Scene {
 	@ObservedObject var appState: AppState
@@ -20,15 +20,15 @@ struct CakerMenuBarExtraScene: Scene {
 			Button("Show Caker") {
 				openWindow(id: "home")
 			}.keyboardShortcut("0")
-			.help("Show the main window.")
+				.help("Show the main window.")
 			Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
-			.help("Requires restarting Caker to take affect.")
-			
+				.help("Requires restarting Caker to take affect.")
+
 			Divider()
 			Button("New virtual machine") {
 				openWindow(id: "wizard")
 			}.keyboardShortcut("N")
-			.help("Create a new virtual machine.")
+				.help("Create a new virtual machine.")
 
 			if appState.names.isEmpty {
 				Text("No virtual machines found.")
@@ -44,7 +44,7 @@ struct CakerMenuBarExtraScene: Scene {
 			Button("Quit") {
 				NSApp.terminate(self)
 			}.keyboardShortcut("Q")
-			.help("Terminate UTM and stop all running VMs.")
+				.help("Terminate UTM and stop all running VMs.")
 		} label: {
 			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "icns") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage())

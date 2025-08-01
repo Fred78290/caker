@@ -1,9 +1,9 @@
 import ArgumentParser
+import CakedLib
 import Dispatch
 import GRPC
 import GRPCLib
 import Logging
-import CakedLib
 
 struct Logout: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")

@@ -6,7 +6,7 @@ import GRPCLib
 extension URLRequest {
 	init(url: URL, method: String, cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60.0) {
 		self.init(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
-		
+
 		self.httpMethod = method
 	}
 }
@@ -17,28 +17,28 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate {
 
 	private var buffer: Data = Data()
 	private let inputBufferSize = 16 * 1024 * 1024
-	
+
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 		let capacity = min(response.expectedContentLength, Int64(inputBufferSize))
-		
+
 		self.buffer = Data(capacity: Int(capacity))
 		self.response?.resume(returning: response)
 		self.response = nil
-		
+
 		completionHandler(.allow)
 	}
-	
+
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 		self.buffer.append(data)
-		
+
 		if self.buffer.count >= inputBufferSize {
 			self.stream?.yield(buffer)
 			self.buffer.removeAll(keepingCapacity: true)
 		}
 
 	}
-	
-	func urlSession( _ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+
+	func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
 		if let error = error {
 			self.response?.resume(throwing: error)
 			self.response = nil

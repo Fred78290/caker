@@ -18,9 +18,9 @@ struct RestorationState: ViewModifier {
 		if #available(macOS 15.0, *) {
 			return content
 		} else {
-			return content .onReceive(NSWindow.didBecomeKeyNotification) { output in
+			return content.onReceive(NSWindow.didBecomeKeyNotification) { output in
 				let window = output.object as! NSWindow
-				
+
 				window.isRestorable = behavior == .automatic
 			}
 		}
@@ -38,7 +38,7 @@ extension Scene {
 		if #available(macOS 15.0, *) {
 			return self.restorationBehavior(restoreState == .automatic ? .automatic : .disabled)
 		}
-		
+
 		return self
 	}
 }

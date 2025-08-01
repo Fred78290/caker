@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 import ArgumentParser
-import SwiftUI
-import GRPCLib
 import CakedLib
+import GRPCLib
+import SwiftUI
 import Virtualization
 
 struct NetworkAttachementDetailView: View {
@@ -17,7 +17,7 @@ struct NetworkAttachementDetailView: View {
 		@Published var network: String
 		@Published var mode: NetworkMode?
 		@Published var macAddress: TextFieldStore<String?, OptionalMacAddressParseableFormatStyle>
-		
+
 		init(item: BridgeAttachement) {
 			self.network = item.network
 			self.mode = item.mode
@@ -50,7 +50,7 @@ struct NetworkAttachementDetailView: View {
 					.labelsHidden()
 				}.frame(width: 100)
 			}
-			
+
 			LabeledContent("Mode") {
 				HStack {
 					Spacer()
@@ -89,7 +89,7 @@ struct NetworkAttachementDetailView: View {
 				}.frame(width: 200)
 			}
 		}
-    }
+	}
 }
 
 #Preview {

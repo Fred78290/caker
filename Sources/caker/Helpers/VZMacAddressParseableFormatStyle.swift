@@ -8,37 +8,37 @@
 import Foundation
 import Virtualization
 
-struct VZMacAddressParseableFormatStyle : ParseableFormatStyle {
+struct VZMacAddressParseableFormatStyle: ParseableFormatStyle {
 	struct VZMacAddressStrategy: ParseStrategy {
 		func parse(_ input: String) throws -> VZMACAddress {
 			guard let macAddr = VZMACAddress(string: input) else {
 				throw NSError(domain: "VZMacAddressStrategy", code: 1, userInfo: nil)
 			}
-			
+
 			return macAddr
 		}
 	}
 
 	var parseStrategy = VZMacAddressStrategy()
-	
+
 	func format(_ value: VZMACAddress) -> String {
 		return value.string.uppercased()
 	}
 }
 
-struct OptionalVZMacAddressParseableFormatStyle : ParseableFormatStyle {
+struct OptionalVZMacAddressParseableFormatStyle: ParseableFormatStyle {
 	struct OptionalVZMacAddressStrategy: ParseStrategy {
 		func parse(_ input: String) throws -> VZMACAddress? {
 			guard let macAddr = VZMACAddress(string: input) else {
 				throw NSError(domain: "VZMacAddressStrategy", code: 1, userInfo: nil)
 			}
-			
+
 			return macAddr
 		}
 	}
 
 	var parseStrategy = OptionalVZMacAddressStrategy()
-	
+
 	func format(_ value: VZMACAddress?) -> String {
 		guard let value = value else {
 			return ""
@@ -48,19 +48,19 @@ struct OptionalVZMacAddressParseableFormatStyle : ParseableFormatStyle {
 	}
 }
 
-struct OptionalMacAddressParseableFormatStyle : ParseableFormatStyle {
+struct OptionalMacAddressParseableFormatStyle: ParseableFormatStyle {
 	struct OptionalMacAddressStrategy: ParseStrategy {
 		func parse(_ input: String) throws -> String? {
 			guard let macAddr = VZMACAddress(string: input) else {
 				return nil
 			}
-			
+
 			return macAddr.string.uppercased()
 		}
 	}
 
 	var parseStrategy = OptionalMacAddressStrategy()
-	
+
 	func format(_ value: String?) -> String {
 		guard let value = value else {
 			return ""

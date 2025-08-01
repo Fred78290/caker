@@ -5,7 +5,7 @@ import NIOCore
 import SystemConfiguration
 
 public struct ListHandler {
-	public  static func list(vmonly: Bool, runMode: Utils.RunMode) throws -> [VirtualMachineInfo] {
+	public static func list(vmonly: Bool, runMode: Utils.RunMode) throws -> [VirtualMachineInfo] {
 		var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 			let status = location.status
 			let config = try location.config()

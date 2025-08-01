@@ -1,3 +1,4 @@
+import CakedLib
 //
 //  DeleteHandler..swift
 //  Caker
@@ -7,8 +8,6 @@
 import Foundation
 import GRPCLib
 import NIO
-import CakedLib
-
 
 struct DeleteHandler: CakedCommand {
 	var request: Caked_DeleteRequest

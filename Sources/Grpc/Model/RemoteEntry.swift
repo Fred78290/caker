@@ -16,7 +16,7 @@ public struct RemoteEntry: Identifiable, Equatable, Hashable, Codable {
 	public var id: String {
 		self.url
 	}
-	
+
 	public init(name: String, url: String) {
 		self.name = name
 		self.url = url

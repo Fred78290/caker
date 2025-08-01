@@ -23,7 +23,7 @@ struct RegexParseableFormatStyle: ParseableFormatStyle {
 			return value
 		}
 	}
-	
+
 	var parseStrategy: RegexStategy
 
 	init(regex: String) {
@@ -40,4 +40,3 @@ extension FormatStyle where Self == RegexParseableFormatStyle {
 		.init(regex: pattern)
 	}
 }
-

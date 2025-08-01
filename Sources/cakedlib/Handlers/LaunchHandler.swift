@@ -10,7 +10,7 @@ public struct LaunchHandler {
 		return try StartHandler.startVM(on: Utilities.group.next(), location: location, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)
 	}
 
-	public  static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
+	public static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
 		try await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: CakedLib.BuildHandler.progressHandler)
 
 		let runningIP = try Self.launch(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode)

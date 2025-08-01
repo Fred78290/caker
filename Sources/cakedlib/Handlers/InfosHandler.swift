@@ -5,7 +5,7 @@ import GRPCLib
 import NIO
 
 public struct InfosHandler {
-	public  static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
+	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
 		let location = try StorageLocation(runMode: runMode).find(name)
 		let config: CakeConfig = try location.config()
 		var infos: InfoReply

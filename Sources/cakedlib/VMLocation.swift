@@ -194,7 +194,7 @@ public struct VMLocation: Hashable, Equatable {
 		if self.inited == false {
 			throw ServiceError("VM is not correctly inited, missing files: (\(configURL.lastPathComponent), \(diskURL.lastPathComponent) or \(nvramURL.lastPathComponent))")
 		}
-		
+
 		return self
 	}
 
@@ -284,7 +284,7 @@ public struct VMLocation: Hashable, Equatable {
 		let home = try Home(runMode: runMode)
 		let killVMRun: () -> Void = {
 			let pid = pidFile.isPIDRunning()
-			
+
 			if pid.0 {
 				if pid.1 == "caked" {
 					if let pid = pid.2 {
@@ -305,10 +305,11 @@ public struct VMLocation: Hashable, Equatable {
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
 
-			_ = try client.run(request: Caked_RunCommand.with {
-				$0.command = "reboot"
-				$0.vmname = self.name
-			})
+			_ = try client.run(
+				request: Caked_RunCommand.with {
+					$0.command = "reboot"
+					$0.vmname = self.name
+				})
 		} else {
 			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
 				let ssh = try SSH(host: ip)
@@ -324,7 +325,7 @@ public struct VMLocation: Hashable, Equatable {
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
 			let pid = pidFile.isPIDRunning()
-			
+
 			if pid.0 {
 				if pid.1 == "caked" {
 					if let pid = pid.2 {
@@ -363,7 +364,9 @@ public struct VMLocation: Hashable, Equatable {
 		}
 	}
 
-	public func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (EventLoopFuture<String?>, VirtualMachine) {
+	public func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (
+		EventLoopFuture<String?>, VirtualMachine
+	) {
 		let vm = try VirtualMachine(location: self, config: config, runMode: runMode)
 
 		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall) {
@@ -425,13 +428,13 @@ public struct VMLocation: Hashable, Equatable {
 		do {
 			let conn = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: wait, runMode: runMode, retries: .none)
 			let result: EventLoopFuture<Result<Caked_InfoReply, Error>> = try conn.info()
-			
+
 			result.whenComplete { result in
 				switch result {
-					case .failure(let error):
-						completion(.failure(error))
-					case .success(let value):
-						completion(value)
+				case .failure(let error):
+					completion(.failure(error))
+				case .success(let value):
+					completion(value)
 				}
 			}
 		} catch {

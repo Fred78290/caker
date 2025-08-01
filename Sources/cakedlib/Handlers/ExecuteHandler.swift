@@ -12,9 +12,11 @@ import GRPCLib
 import NIO
 
 public struct ExecuteHandler {
-	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) -> EventLoopFuture<
-		Caked_Reply
-	> {
+	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection)
+		-> EventLoopFuture<
+			Caked_Reply
+		>
+	{
 		var vmname = vmname
 
 		return on.makeFutureWithTask {

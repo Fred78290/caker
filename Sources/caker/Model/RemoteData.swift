@@ -1,3 +1,4 @@
+import CakedLib
 //
 //  RemoteData.swift
 //  Caker
@@ -5,15 +6,14 @@
 //  Created by Frederic BOLTZ on 08/06/2025.
 //
 import Foundation
-import SwiftUI
 import GRPCLib
-import CakedLib
+import SwiftUI
 
 class RemoteData: ObservableObject, Observable {
 	@Published var name: String
 	@Published var url: String
 	@Published var images: [ImageInfo] = []
-	
+
 	init(name: String, url: String) {
 		self.name = name
 		self.url = url
@@ -24,7 +24,7 @@ class RemoteData: ObservableObject, Observable {
 			self.init(name: remote, url: "")
 			return
 		}
-		
+
 		self.init(name: entry.name, url: entry.url)
 	}
 

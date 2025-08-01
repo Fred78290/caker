@@ -1,11 +1,11 @@
 import ArgumentParser
 import CakeAgentLib
+import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
 import Logging
 import NIO
-import CakedLib
 
 struct Infos: CakeAgentAsyncParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")

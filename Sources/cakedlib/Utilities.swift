@@ -1,9 +1,9 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
+import NIO
 import System
 import Virtualization
-import NIO
-import CakeAgentLib
 
 public enum Architecture: String, Codable, CustomStringConvertible {
 	public var description: String {

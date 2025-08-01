@@ -1,16 +1,16 @@
 import Dispatch
 import Foundation
 import GRPCLib
+import Logging
 import NIOCore
 import SwiftUI
 import Virtualization
-import Logging
 
 public struct BuildHandler {
 	public static func progressHandler(_ result: VMBuilder.ProgressValue) {
 		if case let .progress(fractionCompleted) = result {
 			let completed = Int(fractionCompleted * 100)
-			
+
 			if completed % 10 == 0 {
 				if completed == 0 {
 					print(String(format: "%0.2d%%", completed), terminator: "")

@@ -1,7 +1,7 @@
 import ArgumentParser
+import CakedLib
 import GRPCLib
 import Logging
-import CakedLib
 
 struct Rename: ParsableCommand {
 	static let configuration = RenameOptions.configuration

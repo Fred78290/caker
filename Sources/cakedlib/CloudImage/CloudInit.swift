@@ -203,7 +203,7 @@ struct NetworkRoute: Codable {
 	var via: String
 	var metric: Int? = nil
 	var onLink: Bool? = nil
-	
+
 	enum CodingKeys: String, CodingKey {
 		case to
 		case via
@@ -287,44 +287,44 @@ struct AutoInstall: Codable {
 		var userName: String
 		var password: String
 		var hostname: String
-		
+
 		enum CodingKeys: String, CodingKey {
 			case realName = "realname"
 			case userName = "username"
 			case password = "password"
 			case hostname = "hostname"
 		}
-		
+
 		init(from decoder: Decoder) throws {
 			let container: KeyedDecodingContainer<Identity.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-			
+
 			self.realName = try container.decodeIfPresent(String.self, forKey: .realName)
 			self.userName = try container.decode(String.self, forKey: .userName)
 			self.password = try container.decode(String.self, forKey: .password)
 			self.hostname = try container.decode(String.self, forKey: .hostname)
 		}
-		
+
 		func encode(to encoder: Encoder) throws {
 			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-			
+
 			try container.encodeIfPresent(realName, forKey: .realName)
 			try container.encode(userName, forKey: .userName)
 			try container.encode(password, forKey: .password)
 			try container.encode(hostname, forKey: .hostname)
 		}
 	}
-	
+
 	struct Ssh: Codable {
 		var enabled: Bool
 		var authorizedKeys: [String]
 		var allowPassword: Bool
-		
+
 		enum CodingKeys: String, CodingKey {
 			case enabled = "install-server"
 			case authorizedKeys = "authorized-keys"
 			case allowPassword = "allow-pw"
 		}
-		
+
 		init(enabled: Bool, authorizedKeys: [String], allowPassword: Bool) {
 			self.enabled = enabled
 			self.authorizedKeys = authorizedKeys
@@ -333,50 +333,50 @@ struct AutoInstall: Codable {
 
 		init(from decoder: Decoder) throws {
 			let container: KeyedDecodingContainer<Ssh.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-			
+
 			self.enabled = try container.decode(Bool.self, forKey: .enabled)
 			self.authorizedKeys = try container.decode([String].self, forKey: .authorizedKeys)
 			self.allowPassword = try container.decode(Bool.self, forKey: .allowPassword)
 		}
-		
+
 		func encode(to encoder: Encoder) throws {
 			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-			
+
 			try container.encode(enabled, forKey: .enabled)
 			try container.encode(authorizedKeys, forKey: .authorizedKeys)
 			try container.encode(allowPassword, forKey: .allowPassword)
 		}
 	}
-	
+
 	struct RefreshInstaller: Codable {
 		var update: Bool
 		var channel: String?
-		
+
 		enum CodingKeys: String, CodingKey {
 			case update = "update"
 			case channel = "channel"
 		}
-		
+
 		init(from decoder: Decoder) throws {
 			let container: KeyedDecodingContainer<RefreshInstaller.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-			
+
 			self.update = try container.decode(Bool.self, forKey: .update)
 			self.channel = try container.decodeIfPresent(String.self, forKey: .channel)
 		}
-		
+
 		func encode(to encoder: Encoder) throws {
 			var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-			
+
 			try container.encode(update, forKey: .update)
 			try container.encodeIfPresent(channel, forKey: .channel)
 		}
 	}
-	
+
 	enum InstallUpdate: String, Codable {
 		case security
 		case all
 	}
-	
+
 	enum CodingKeys: String, CodingKey {
 		case version = "version"
 		case identity = "identity"
@@ -402,18 +402,20 @@ struct AutoInstall: Codable {
 	var refreshInstaller: RefreshInstaller?
 	var userData: CloudConfigData?
 	var network: NetworkConfig?
-	
-	init(identity: Identity? = nil,
-		 ssh: Ssh? = nil,
-		 timezone: String? = nil,
-		 update: InstallUpdate? = nil,
-		 packages: [String]? = nil,
-		 earlyCommands: [String]? = nil,
-		 lateCommands: [String]? = nil,
-		 refreshInstaller: RefreshInstaller? = nil,
-		 userData: CloudConfigData? = nil,
-		 network: NetworkConfig? = nil) {
-		
+
+	init(
+		identity: Identity? = nil,
+		ssh: Ssh? = nil,
+		timezone: String? = nil,
+		update: InstallUpdate? = nil,
+		packages: [String]? = nil,
+		earlyCommands: [String]? = nil,
+		lateCommands: [String]? = nil,
+		refreshInstaller: RefreshInstaller? = nil,
+		userData: CloudConfigData? = nil,
+		network: NetworkConfig? = nil
+	) {
+
 		self.identity = identity
 		self.ssh = ssh
 		self.timezone = timezone
@@ -425,10 +427,10 @@ struct AutoInstall: Codable {
 		self.userData = userData
 		self.network = network
 	}
-	
+
 	init(from decoder: Decoder) throws {
 		let container: KeyedDecodingContainer<AutoInstall.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-		
+
 		self.version = try container.decode(Int.self, forKey: .version)
 		self.identity = try container.decodeIfPresent(Identity.self, forKey: .identity)
 		self.ssh = try container.decodeIfPresent(Ssh.self, forKey: .ssh)
@@ -441,10 +443,10 @@ struct AutoInstall: Codable {
 		self.userData = try container.decodeIfPresent(CloudConfigData.self, forKey: .userData)
 		self.network = try container.decodeIfPresent(NetworkConfig.self, forKey: .network)
 	}
-	
+
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-		
+
 		try container.encode(version, forKey: .version)
 		try container.encodeIfPresent(identity, forKey: .identity)
 		try container.encodeIfPresent(ssh, forKey: .ssh)
@@ -460,37 +462,39 @@ struct AutoInstall: Codable {
 
 struct AutoInstallConfig: Codable {
 	var autoInstall: AutoInstall
-	
+
 	enum CodingKeys: String, CodingKey {
 		case autoInstall = "autoinstall"
 	}
-	
-	init(identity: AutoInstall.Identity? = nil,
-		 ssh: AutoInstall.Ssh? = nil,
-		 timezone: String? = nil,
-		 update: AutoInstall.InstallUpdate? = nil,
-		 packages: [String]? = nil,
-		 earlyCommands: [String]? = nil,
-		 lateCommands: [String]? = nil,
-		 refreshInstaller: AutoInstall.RefreshInstaller? = nil,
-		 userData: CloudConfigData? = nil,
-		 network: NetworkConfig? = nil) {
-		
+
+	init(
+		identity: AutoInstall.Identity? = nil,
+		ssh: AutoInstall.Ssh? = nil,
+		timezone: String? = nil,
+		update: AutoInstall.InstallUpdate? = nil,
+		packages: [String]? = nil,
+		earlyCommands: [String]? = nil,
+		lateCommands: [String]? = nil,
+		refreshInstaller: AutoInstall.RefreshInstaller? = nil,
+		userData: CloudConfigData? = nil,
+		network: NetworkConfig? = nil
+	) {
+
 		self.autoInstall = .init(identity: identity, ssh: ssh, timezone: timezone, update: update, packages: packages, earlyCommands: earlyCommands, lateCommands: lateCommands, refreshInstaller: refreshInstaller, userData: userData, network: network)
 	}
 
 	init(from decoder: Decoder) throws {
 		let container: KeyedDecodingContainer<AutoInstallConfig.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-		
+
 		self.autoInstall = try container.decode(AutoInstall.self, forKey: .autoInstall)
 	}
-	
+
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
-		
+
 		try container.encode(autoInstall, forKey: .autoInstall)
 	}
-	
+
 	func toCloudInit() throws -> Data {
 		let encoder: YAMLEncoder = newYAMLEncoder()
 		let encoded = "#cloud-config\n\(try encoder.encode(self))"
@@ -502,7 +506,6 @@ struct AutoInstallConfig: Codable {
 		return result
 	}
 }
-
 
 struct CloudConfigData: Codable {
 	var merge: [Merging]? = nil
@@ -865,7 +868,7 @@ public enum SupportedPlatform: String, CaseIterable {
 		let value = Self.allCases.first {
 			rawValue.contains($0.rawValue)
 		}
-		
+
 		if let value = value {
 			self = value
 		} else {
@@ -909,7 +912,9 @@ class CloudInit {
 		}
 	}
 
-	init(plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode) throws {
+	init(
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode
+	) throws {
 		self.platform = plateform
 		self.userName = userName
 		self.password = password
@@ -923,7 +928,10 @@ class CloudInit {
 		self.runMode = runMode
 	}
 
-	convenience init(plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true, runMode: Utils.RunMode)
+	convenience init(
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true,
+		runMode: Utils.RunMode
+	)
 		throws
 	{
 		try self.init(
@@ -1033,8 +1041,7 @@ class CloudInit {
 
 	private func createPreseedData(config: CakeConfig) throws -> Data {
 		let networks = try loadNetworkConfig(config: config).network
-		var scripts: [String] = [
-		]
+		var scripts: [String] = []
 
 		if let network = networks.ethernets.first {
 			let inf = network.key
@@ -1169,7 +1176,7 @@ class CloudInit {
 			} else if let cidr = ethernet.addresses?.first {
 				let addr = cidr.stringBefore(before: "/")
 				let netmask = cidr.stringAfter(after: "/").cidrToNetmask()
-				
+
 				scripts.append("--bootproto=static")
 				scripts.append("--ip=\(addr)")
 				scripts.append("--netmask=\(netmask)")
@@ -1233,7 +1240,7 @@ class CloudInit {
 		let ssh = AutoInstall.Ssh(enabled: true, authorizedKeys: self.sshAuthorizedKeys ?? [], allowPassword: self.clearPassword)
 		let network = try loadNetworkConfig(config: config)
 		let autoInstall = AutoInstallConfig(ssh: ssh, timezone: TimeZone.current.identifier, userData: userData, network: network)
-		
+
 		return try autoInstall.toCloudInit()
 	}
 

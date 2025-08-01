@@ -7,16 +7,14 @@
 
 import Foundation
 
-/**
- Defines the Horizontal Alignment for a `MultiplatformTabBar`.
- */
+/// Defines the Horizontal Alignment for a `MultiplatformTabBar`.
 public enum MultiplatformTabBarHorizontalAlignment {
 	/// Align to the left.
 	case left
-	
+
 	/// Aligns to the center.
 	case center
-	
+
 	/// Align to the right.
 	case right
 }

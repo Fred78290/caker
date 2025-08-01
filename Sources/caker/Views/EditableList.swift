@@ -39,7 +39,7 @@ struct OnEditItemListViewModifier<Element: Hashable, SomeView: View>: ViewModifi
 				.buttonStyle(.borderless)
 				.font(.headline)
 				.disabled(self.disabled)
-				
+
 				if let deleteItem = deleteItem {
 					Button(action: {
 						deleteItem()
@@ -94,7 +94,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 			self.content = content
 		}
 
-		var body : some View {
+		var body: some View {
 			HStack(alignment: .center) {
 				Toggle("Select", isOn: $isSelected)
 					.toggleStyle(.checkbox)
@@ -106,7 +106,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 							selectedItems.remove(item.id)
 						}
 					}
-				
+
 				self.content($item)
 			}
 		}

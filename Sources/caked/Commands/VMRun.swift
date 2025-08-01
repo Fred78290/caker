@@ -1,4 +1,5 @@
 import ArgumentParser
+import CakedLib
 import Cocoa
 import Foundation
 import GRPCLib
@@ -6,7 +7,6 @@ import Logging
 import NIOPortForwarding
 import System
 import Virtualization
-import CakedLib
 
 struct VMRun: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)

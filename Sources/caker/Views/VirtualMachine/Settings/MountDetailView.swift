@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct MountDetailView: View {
 	@Binding private var currentItem: DirectorySharingAttachment
@@ -35,7 +35,7 @@ struct MountDetailView: View {
 						}
 				}.frame(width: readOnly ? 500 : 350)
 			}
-			
+
 			LabeledContent("Host path") {
 				HStack {
 					if readOnly == false {
@@ -45,7 +45,7 @@ struct MountDetailView: View {
 							Image(systemName: "folder")
 						}.buttonStyle(.borderless)
 					}
-					
+
 					TextField("Host path", text: $currentItem.source)
 						.multilineTextAlignment(.leading)
 						.textFieldStyle(.roundedBorder)
@@ -55,7 +55,7 @@ struct MountDetailView: View {
 						.allowsHitTesting(readOnly == false)
 				}.frame(width: readOnly ? 500 : 350)
 			}
-			
+
 			LabeledContent("Guest path") {
 				HStack {
 					TextField("Guest path", value: $currentItem.destination, format: .optional)
@@ -67,14 +67,14 @@ struct MountDetailView: View {
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}.frame(width: readOnly ? 500 : 350)
 			}
-			
+
 			LabeledContent("Read only") {
 				Toggle("Read only", isOn: $currentItem.readOnly)
 					.toggleStyle(.switch)
 					.labelsHidden()
 					.allowsHitTesting(readOnly == false)
 			}
-			
+
 			LabeledContent("Guest user ID mount") {
 				TextField("uid", value: $currentItem.uid, format: .ranged(0...65535))
 					.multilineTextAlignment(.center)
@@ -85,7 +85,7 @@ struct MountDetailView: View {
 					.allowsHitTesting(readOnly == false)
 					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
-			
+
 			LabeledContent("Guest group ID mount") {
 				TextField("gid", value: $currentItem.gid, format: .ranged(0...65535))
 					.multilineTextAlignment(.center)
@@ -97,8 +97,8 @@ struct MountDetailView: View {
 					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
 		}
-    }
-	
+	}
+
 	func chooseFolder() {
 		if let folder = FileHelpers.selectFolder(withTitle: "Choose folder to mount inside VM") {
 			currentItem.source = folder.absoluteURL.path

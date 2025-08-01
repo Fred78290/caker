@@ -1,3 +1,11 @@
+import CakeAgentLib
+import CakedLib
+import FileMonitor
+import FileMonitorShared
+import GRPC
+import GRPCLib
+import NIO
+import SwiftTerm
 //
 //  VirtualMachineDocument.swift
 //  Caker
@@ -6,14 +14,6 @@
 //
 import SwiftUI
 import UniformTypeIdentifiers
-import GRPC
-import GRPCLib
-import FileMonitor
-import FileMonitorShared
-import NIO
-import CakedLib
-import CakeAgentLib
-import SwiftTerm
 
 extension UTType {
 	static var virtualMachine: UTType {
@@ -23,7 +23,7 @@ extension UTType {
 	static var iso9660: UTType {
 		UTType(filenameExtension: "iso")!
 	}
-	
+
 	static var cdr: UTType {
 		UTType(filenameExtension: "cdr")!
 	}
@@ -109,7 +109,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 			if file.matchesContents(of: location.rootURL) {
 				AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
-				
+
 				try DispatchQueue.main.sync {
 					if loadVirtualMachine(from: location.rootURL) == false {
 						throw ServiceError("Unable to load virtual machine")
@@ -123,11 +123,11 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.virtualMachine = nil
 		self.inited = false
 		self.status = .none
-		
+
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
-		
+
 		if self.client != nil {
 			self.client.close().whenComplete { _ in
 				self.client = nil
@@ -161,16 +161,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 			if location.pidFile.isPIDRunning("caked") {
 				self.status = .external
-				
+
 				self.canStart = false
 				self.canStop = true
 				self.canPause = true
 				self.canResume = false
 				self.canRequestStop = true
 				self.suspendable = config.suspendable
-							}
-			else
-			{
+			} else {
 				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
 				self.virtualMachine = virtualMachine
@@ -180,17 +178,17 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			}
 
 			if monitor == nil {
-				let monitor = try FileMonitor(directory: fileURL, delegate: self )
+				let monitor = try FileMonitor(directory: fileURL, delegate: self)
 				try monitor.start()
-				
+
 				self.monitor = monitor
 			}
 
 			return true
 		} catch {
-            DispatchQueue.main.async {
-                alertError(error)
-            }
+			DispatchQueue.main.async {
+				alertError(error)
+			}
 		}
 
 		return false
@@ -224,14 +222,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 				return location.rootURL
 			} catch {
-                DispatchQueue.main.async {
-                    alertError(error)
-                }
+				DispatchQueue.main.async {
+					alertError(error)
+				}
 			}
 
 			return nil
 		}
-		
+
 		return virtualMachine.location.rootURL
 	}
 
@@ -247,7 +245,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		} else if self.status == .external {
 			do {
 				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
-				
+
 				if result.stopped == false {
 					alertError(ServiceError(result.reason))
 				}
@@ -263,7 +261,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		} else if self.status == .external {
 			do {
 				let result = try StopHandler.stopVM(name: self.name, force: true, runMode: .app)
-				
+
 				if result.stopped == false {
 					alertError(ServiceError(result.reason))
 				}
@@ -279,7 +277,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		} else if self.status == .external {
 			do {
 				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
-				
+
 				if result.stopped == false {
 					alertError(ServiceError(result.reason))
 				}
@@ -354,12 +352,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		switch event {
-			case .added(let file):
-				check(file)
-			case .deleted(let file):
-				check(file)
-			case .changed(let file):
-				check(file)
+		case .added(let file):
+			check(file)
+		case .deleted(let file):
+			check(file)
+		case .changed(let file):
+			check(file)
 		}
 	}
 }
@@ -411,7 +409,7 @@ extension VirtualMachineDocument {
 		self.stream = client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
 			self.shellHandlerResponse(response)
 		}
-		
+
 		stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
 		stream.sendShell()
 	}

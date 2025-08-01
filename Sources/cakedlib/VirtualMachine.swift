@@ -21,7 +21,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
-	
+
 	init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
@@ -29,12 +29,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		let directorySharingAttachments = try config.directorySharingAttachments()
 		let socketDeviceAttachments = try config.socketDeviceAttachments(agentURL: location.agentURL)
 		let consoleURL = try config.consoleAttachment()
-		
+
 		let configuration = VZVirtualMachineConfiguration()
 		let plateform = try config.platform(nvramURL: location.nvramURL, needsNestedVirtualization: config.nested)
 		let soundDeviceConfiguration = VZVirtioSoundDeviceConfiguration()
 		let memoryBallons = VZVirtioTraditionalMemoryBalloonDeviceConfiguration()
-		
+
 		var sigcaught: [Int32: DispatchSourceSignal] = [:]
 		var devices: [VZStorageDeviceConfiguration] = [
 			VZVirtioBlockDeviceConfiguration(
@@ -45,19 +45,19 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 					synchronizationMode: .full
 				))
 		]
-		
+
 		let networkDevices = try networks.map {
 			let vio = VZVirtioNetworkDeviceConfiguration()
-			
+
 			(vio.macAddress, vio.attachment) = try $0.attachment(location: location, runMode: runMode)
-			
+
 			return vio
 		}
-		
+
 		devices.append(contentsOf: additionalDiskAttachments)
-		
+
 		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
-		
+
 		configuration.bootLoader = try plateform.bootLoader()
 		configuration.cpuCount = config.cpuCount
 		configuration.memorySize = config.memorySize
@@ -71,28 +71,28 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		configuration.directorySharingDevices = directorySharingAttachments
 		configuration.serialPorts = []
 		configuration.memoryBalloonDevices = [memoryBallons]
-		
+
 		let spiceAgentConsoleDevice = VZVirtioConsoleDeviceConfiguration()
 		let spiceAgentPort = VZVirtioConsolePortConfiguration()
 		let spiceAgentPortAttachment = VZSpiceAgentPortAttachment()
-		
+
 		spiceAgentPortAttachment.sharesClipboard = true
-		
+
 		spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
 		spiceAgentPort.attachment = spiceAgentPortAttachment
 		spiceAgentConsoleDevice.ports[0] = spiceAgentPort
 		configuration.consoleDevices.append(spiceAgentConsoleDevice)
-		
+
 		if config.os == .linux {
 			let cdromURL = URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL).absoluteURL
-			
+
 			if FileManager.default.fileExists(atPath: cdromURL.path) {
 				devices.append(try Self.createCloudInitDrive(cdromURL: cdromURL))
 			}
 		}
-		
+
 		let communicationDevices = try CommunicationDevices.setup(group: Utilities.group, configuration: configuration, consoleURL: consoleURL, sockets: socketDeviceAttachments)
-		
+
 		try configuration.validate()
 
 		if runMode != .app {
@@ -113,7 +113,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 			communicationDevices.delegate = self
 		}
 	}
-	
+
 	func closedByRemote(socket: SocketDevice) {
 	}
 
@@ -124,7 +124,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		if socket.bind == self.location.agentURL.path {
 			do {
 				try PortForwardingServer.createPortForwardingServer(
-					group: Utilities.group.next(), name: self.location.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.location.agentURL, runMode: runMode)
+					group: Utilities.group.next(), name: self.location.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.location.agentURL,
+					runMode: runMode)
 			} catch {
 				Logger(self).error(error)
 			}
@@ -224,7 +225,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public let config: CakeConfig
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
-	
+
 	private var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
 
@@ -270,7 +271,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		self.config = config
 		self.location = location
 		self.env = try VirtualMachineEnvironment(location: location, config: config, runMode: runMode)
-		
+
 		if let queue = queue {
 			self.vmQueue = queue
 			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration, queue: queue)
@@ -317,7 +318,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
-		
 		try await self.env.serveMountService()
 
 		if Task.isCancelled {
@@ -595,12 +595,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			if config.agent {
 				self.location.vmInfos(runMode: runMode) { result in
 					switch result {
-						case .failure(let error):
-							Logger(self).error("VM \(self.location.name) failed to get vm infos: \(error)")
-						case .success(let infos):
-							config.osName = infos.osname
-							config.osRelease = infos.release
-							break
+					case .failure(let error):
+						Logger(self).error("VM \(self.location.name) failed to get vm infos: \(error)")
+					case .success(let infos):
+						config.osName = infos.osname
+						config.osRelease = infos.release
+						break
 					}
 
 					try? config.save()

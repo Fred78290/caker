@@ -1,6 +1,6 @@
+import Combine
 import Foundation
 import SwiftUI
-import Combine
 
 struct FormatAndValidateTextFieldStore<T, F: ParseableFormatStyle>: ViewModifier where F.FormatOutput == String, F.FormatInput == T {
 	private var errorCondition: FormatAndValidateErrorCondition?
@@ -66,8 +66,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 	private var backupText: String
 	private let locale: Locale
 
-	init(value: T, text: String? = nil, type: ValidationType, maxLength: Int = 18, allowNegative: Bool = false, formatter: F, locale: Locale = .current)
-	{
+	init(value: T, text: String? = nil, type: ValidationType, maxLength: Int = 18, allowNegative: Bool = false, formatter: F, locale: Locale = .current) {
 		let input = text ?? formatter.format(value)
 
 		self.value = value
@@ -152,7 +151,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 				restore()
 				return nil
 			}
-			
+
 			if minusCount == 1, !text.hasPrefix("-") {
 				restore()
 				return nil
@@ -178,7 +177,7 @@ class TextFieldStore<T, F: ParseableFormatStyle>: ObservableObject where F.Forma
 					let zeroCount = oldText.trailingZerosCountAfterDecimal()
 
 					newText.append(decimalSeparator)
-					newText += (0..<zeroCount).map{_ in "0"}.joined(separator: "")
+					newText += (0..<zeroCount).map { _ in "0" }.joined(separator: "")
 				}
 			}
 
@@ -204,14 +203,14 @@ extension String {
 	func trailingZerosCountAfterDecimal() -> Int {
 		var count = 0
 		var foundDecimal = false
-		
+
 		for char in self.reversed() {
 			if char == "." {
 				foundDecimal = true
 				break
 			}
 		}
-		
+
 		for char in self.reversed() {
 			if foundDecimal && char == "0" {
 				count += 1
@@ -219,7 +218,7 @@ extension String {
 				break
 			}
 		}
-		
+
 		return count
 	}
 }

@@ -99,7 +99,7 @@ public struct SimpleStreamImageInfos: Codable {
 	public let updated: String?
 	public let products: [String]
 
-	public  func filter(arch: String) -> [String] {
+	public func filter(arch: String) -> [String] {
 		var products: [String] = []
 
 		for product in self.products {

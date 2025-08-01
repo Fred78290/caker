@@ -1,10 +1,9 @@
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
 import Logging
 import TextTable
-import CakedLib
-
 
 extension Format {
 	func render(_ data: CertificatesLocation) -> String {

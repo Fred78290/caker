@@ -43,7 +43,7 @@ struct MemorySizeStategy: ParseStrategy {
 		case useKB
 		case useMB
 		case useGB
-		
+
 		func convert(_ value: UInt64) -> String {
 			switch self {
 			case .useBytes:
@@ -56,7 +56,7 @@ struct MemorySizeStategy: ParseStrategy {
 				return "\(value * (1024 * 1024 * 1024))"
 			}
 		}
-		
+
 		func convert(_ value: String) -> UInt64 {
 			if let value = UInt64(value) {
 				switch self {
@@ -92,12 +92,12 @@ struct OptionalMemorySizeStategy: ParseStrategy {
 		case useKB
 		case useMB
 		case useGB
-		
+
 		func convert(_ value: UInt64?) -> String {
 			guard let value = value else {
 				return ""
 			}
-			
+
 			switch self {
 			case .useBytes:
 				return "\(value)"
@@ -109,7 +109,7 @@ struct OptionalMemorySizeStategy: ParseStrategy {
 				return "\(value * (1024 * 1024 * 1024))"
 			}
 		}
-		
+
 		func convert(_ value: String) -> UInt64? {
 			if let value = UInt64(value) {
 				switch self {

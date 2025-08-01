@@ -4,15 +4,15 @@ public protocol HasExitCode {
 	var exitCode: Int32 { get }
 }
 
-public  struct ExitCode: Error, HasExitCode {
+public struct ExitCode: Error, HasExitCode {
 	public let exitCode: Int32
 
-	public  init(_ code: Int32) {
+	public init(_ code: Int32) {
 		self.exitCode = code
 	}
 }
 
-public  class ServiceError: Error, CustomStringConvertible, Equatable {
+public class ServiceError: Error, CustomStringConvertible, Equatable {
 	public let description: String
 	public let exitCode: Int32
 

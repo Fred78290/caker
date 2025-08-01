@@ -6,11 +6,11 @@
 //
 
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
 import Logging
 import TextTable
-import CakedLib
 
 struct Delete: ParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Delete a VM")

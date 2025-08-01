@@ -19,7 +19,7 @@ public struct StartHandler {
 		internal func start(location: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try location.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
-			
+
 			guard let caked = URL.binary("caked") else {
 				throw ServiceError("caked not found")
 			}

@@ -14,7 +14,7 @@ struct VirtualMachineView: View {
 		Group {
 			HStack(alignment: .center) {
 				Circle()
-					.strokeBorder(.gray,lineWidth: 1)
+					.strokeBorder(.gray, lineWidth: 1)
 					.background(Circle().foregroundColor(lightColor()))
 					.frame(width: 15, height: 15)
 				Text("\(vm.name)").font(.title)
@@ -27,10 +27,10 @@ struct VirtualMachineView: View {
 				.labelsHidden()
 			}
 		}.padding()
-    }
+	}
 
 	func action() {
-		
+
 	}
 
 	func imageName() -> String {
@@ -48,20 +48,20 @@ struct VirtualMachineView: View {
 
 	func lightColor() -> Color {
 		switch vm.status {
-			case .running, .starting:
-				return Color.green
-			case .stopped, .stopping:
-				return Color.red
-			case .paused, .pausing:
-				return Color.yellow
-			default:
-				return Color(red: 192, green: 192, blue: 192)
+		case .running, .starting:
+			return Color.green
+		case .stopped, .stopping:
+			return Color.red
+		case .paused, .pausing:
+			return Color.yellow
+		default:
+			return Color(red: 192, green: 192, blue: 192)
 		}
 	}
 }
 
 #Preview {
 	let appState = AppState()
-	
+
 	VirtualMachineView(vm: .constant(appState.vms.first!.document))
 }

@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 extension [DirectorySharingAttachment] {
 	func editItem(_ editItem: DirectorySharingAttachment.ID?) -> DirectorySharingAttachment {
@@ -35,7 +35,7 @@ struct MountNewItemView: View {
 				MountDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
-    }
+	}
 }
 
 #Preview {

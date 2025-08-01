@@ -1,7 +1,7 @@
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
-import CakedLib
 
 struct Template: ParsableCommand {
 	static let configuration = CommandConfiguration(

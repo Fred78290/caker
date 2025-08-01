@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 30/05/2025.
 //
 
-import SwiftUI
 import CakedLib
 import GRPCLib
+import SwiftUI
 
 class CustomWindowDelegate: NSObject, NSWindowDelegate {
 	override init() {
@@ -38,7 +38,7 @@ struct HostVirtualMachineView: View {
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
 	var body: some View {
-		let view = vmView() { window in
+		let view = vmView { window in
 			if let window = window {
 				windowNumber = window.windowNumber
 
@@ -118,36 +118,36 @@ struct HostVirtualMachineView: View {
 					.help("Start virtual machine")
 					.disabled(document.status == .starting || document.status == .stopping)
 				}
-				
+
 				Button("Pause", systemImage: "pause") {
 					document.suspendFromUI()
 				}
 				.help("Suspends virtual machine")
 				.disabled(document.suspendable == false)
-				
+
 				Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 					document.restartFromUI()
 				}
 				.help("Restart virtual machine")
 				.disabled(self.appState.isStopped)
-				
+
 				Spacer()
-				
+
 				Button("Create template", systemImage: "archivebox") {
 					createTemplate = true
 				}
 				.help("Create template from virtual machine")
 				.disabled(self.appState.isRunning)
-				
+
 				Spacer()
-				
+
 				Button("Delete", systemImage: "trash") {
 					self.appState.deleteVirtualMachine(document: self.document)
 				}
 				.help("Delete virtual machine")
 				.disabled(self.appState.isRunning || self.appState.isPaused)
 			}
-			
+
 			ToolbarItem(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
 					displaySettings = true
@@ -172,8 +172,8 @@ struct HostVirtualMachineView: View {
 		@ViewBuilder catch failure: (any Error) -> some View
 	) -> some View {
 		switch Result(catching: success) {
-			case .success(let success): success
-			case .failure(let error): failure(error)
+		case .success(let success): success
+		case .failure(let error): failure(error)
 		}
 	}
 
@@ -191,16 +191,17 @@ struct HostVirtualMachineView: View {
 				.fontPicker(placement: .secondaryAction)
 				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		} else {
-			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(
+				minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		}
 	}
 
 	func settings() {
 		self.openWindow(id: "settings", value: self.document.virtualMachine!.location.name)
 	}
-	
+
 	func promptToSave() {
-		
+
 	}
 }
 

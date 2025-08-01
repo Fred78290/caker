@@ -1,7 +1,7 @@
+import CakedLib
 import Foundation
 import SwiftUI
 import Virtualization
-import CakedLib
 
 class AppState: ObservableObject, Observable {
 	@Published var status: VMLocation.Status
@@ -9,7 +9,7 @@ class AppState: ObservableObject, Observable {
 	@Published var isSuspendable: Bool
 	@Published var isRunning: Bool
 	@Published var isPaused: Bool
-	
+
 	init(_ vm: VirtualMachine) {
 		let status = vm.status
 
@@ -19,10 +19,10 @@ class AppState: ObservableObject, Observable {
 		self.isPaused = status == .paused
 		self.isSuspendable = status == .running && vm.suspendable
 	}
-	
+
 	func update(vm: VirtualMachine) {
 		self.status = vm.status
-		
+
 		self.isStopped = status == .stopped
 		self.isRunning = status == .running
 		self.isPaused = status == .paused
@@ -113,13 +113,13 @@ struct MainApp: App, VirtualMachineDelegate {
 							self.startFromUI()
 						}.help("Start virtual machine")
 					}
-					
+
 					Button("Pause", systemImage: "pause") {
 						self.suspendFromUI()
 					}
 					.help("Suspends virtual machine")
 					.disabled(self.appState.isSuspendable == false)
-					
+
 					Button("Restart", systemImage: "restart") {
 						self.restartFromUI()
 					}

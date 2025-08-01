@@ -1,7 +1,7 @@
-import Foundation
-import Logging
-import GRPCLib
 import ArgumentParser
+import Foundation
+import GRPCLib
+import Logging
 import Virtualization
 
 struct VMXMap: Sendable {
@@ -159,11 +159,11 @@ struct VMXMap: Sendable {
 	var memorySize: UInt64 {
 		if let value = values["memsize"] {
 			if let memsize = Int(value) {
-				return UInt64(memsize) * 1024 * 1024 // Convert MB to bytes
+				return UInt64(memsize) * 1024 * 1024  // Convert MB to bytes
 			}
 		}
 
-		return 512 * 1024 * 1024 // Default to 512 MB
+		return 512 * 1024 * 1024  // Default to 512 MB
 	}
 
 	var sharedFolders: [DirectorySharingAttachment] {
@@ -269,7 +269,7 @@ struct VMXMap: Sendable {
 							}
 
 							let locked = try! diskURL.appendingPathExtension("lck").exists()
-							
+
 							attachments.append(DiskAttachement(disk: fileName, deviceType: deviceType, controller: controller, controllerNumber: controllerNumber, unitNumber: diskNumber, locked: locked))
 						}
 					}
@@ -370,10 +370,10 @@ struct VMWareImporter: Importer {
 		return (macAddress, networks)
 	}
 
-	func importDiskAttachements(diskAttachments: [VMXMap.DiskAttachement], from: URL, to location: VMLocation) throws -> [GRPCLib.DiskAttachement]{
+	func importDiskAttachements(diskAttachments: [VMXMap.DiskAttachement], from: URL, to location: VMLocation) throws -> [GRPCLib.DiskAttachement] {
 		var diskCount = 0
 		var result: [GRPCLib.DiskAttachement] = []
-		let diskAttachments = diskAttachments.reduce(into: [VMXMap.DiskAttachement.ControllerType:[VMXMap.DiskAttachement]]()) { (attachements, attachment) in
+		let diskAttachments = diskAttachments.reduce(into: [VMXMap.DiskAttachement.ControllerType: [VMXMap.DiskAttachement]]()) { (attachements, attachment) in
 			var controller = attachements[attachment.controller] ?? []
 
 			controller.append(attachment)
@@ -455,11 +455,11 @@ struct VMWareImporter: Importer {
 		return config["host"]?["natIp6Prefix"]
 	}
 
-	func vmnet() throws -> [String:VMNet] {
+	func vmnet() throws -> [String: VMNet] {
 		let networkConfig = URL(fileURLWithPath: "/Library/Preferences/VMware Fusion/Networking")
 		let configContent = try String(contentsOf: networkConfig, encoding: .utf8)
 		let lines = configContent.split(separator: "\n")
-		var vmnets: [String:VMNet] = [:]
+		var vmnets: [String: VMNet] = [:]
 		var whitespacesAndNewlines = CharacterSet.whitespacesAndNewlines
 
 		whitespacesAndNewlines.insert(charactersIn: "\"")
@@ -534,16 +534,17 @@ struct VMWareImporter: Importer {
 						dhcpStart.storage += 1
 						dhcpEnd.storage += 128
 
-						return CreateNetwork(name: ethernet.name,
-						                     network: VZSharedNetwork(
-						                     	mode: vmnet.nat ? .shared : .host,
-						                     	netmask: vmnet.netmask,
-						                     	dhcpStart: dhcpStart.description,
-						                     	dhcpEnd: dhcpEnd.description,
-						                     	dhcpLease: 300,
-						                     	interfaceID: vmnet.uuid ?? UUID().uuidString,
-						                     	nat66Prefix: vmnet.natIp6Prefix
-						                     ))
+						return CreateNetwork(
+							name: ethernet.name,
+							network: VZSharedNetwork(
+								mode: vmnet.nat ? .shared : .host,
+								netmask: vmnet.netmask,
+								dhcpStart: dhcpStart.description,
+								dhcpEnd: dhcpEnd.description,
+								dhcpLease: 300,
+								interfaceID: vmnet.uuid ?? UUID().uuidString,
+								nat66Prefix: vmnet.natIp6Prefix
+							))
 					}
 				} else {
 					throw ServiceError("VMWare network \(ethernet.name) not found in the system.")

@@ -76,7 +76,6 @@ class CloudImageConverter {
 
 		try await Curl(fromURL: fromURL).get(store: temporaryLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
 
-
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
 

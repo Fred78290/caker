@@ -2,17 +2,17 @@ import Foundation
 import GRPCLib
 import Virtualization
 
-private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance] // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
-private typealias MultipassInstances = [String: MultipassInstance] // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
+private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance]  // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
+private typealias MultipassInstances = [String: MultipassInstance]  // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
 
 private let multipass_ssh_key_path: String = "/var/root/Library/Application Support/multipassd/ssh-keys/id_rsa"
 
-private extension MultipassRegisteredInstances {
-	init(data: Data) throws {
+extension MultipassRegisteredInstances {
+	fileprivate init(data: Data) throws {
 		self = try newJSONDecoder().decode(MultipassRegisteredInstances.self, from: data)
 	}
 
-	init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+	fileprivate init(_ json: String, using encoding: String.Encoding = .utf8) throws {
 		guard let data = json.data(using: encoding) else {
 			throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
 		}
@@ -20,7 +20,7 @@ private extension MultipassRegisteredInstances {
 		try self.init(data: data)
 	}
 
-	init(fromURL url: URL) throws {
+	fileprivate init(fromURL url: URL) throws {
 		try self.init(data: try Data(contentsOf: url))
 	}
 }
@@ -107,19 +107,19 @@ private struct MultipassRegisteredInstance: Codable, Sendable {
 	}
 }
 
-private extension MultipassInstances {
-	init(data: Data) throws {
+extension MultipassInstances {
+	fileprivate init(data: Data) throws {
 		self = try newJSONDecoder().decode(MultipassInstances.self, from: data)
 	}
 
-	init(_ json: String, using encoding: String.Encoding = .utf8) throws {
+	fileprivate init(_ json: String, using encoding: String.Encoding = .utf8) throws {
 		guard let data = json.data(using: encoding) else {
 			throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
 		}
 		try self.init(data: data)
 	}
 
-	init(fromURL url: URL) throws {
+	fileprivate init(fromURL url: URL) throws {
 		try self.init(data: try Data(contentsOf: url))
 	}
 }
@@ -177,12 +177,12 @@ struct MultipassInstance: Codable, Sendable {
 	struct Metadata: Codable, Sendable {
 		var arguments: [String]
 		var machineType: String
-//		var mountData: MountData
+		//		var mountData: MountData
 
 		enum CodingKeys: String, CodingKey {
 			case arguments
 			case machineType = "machine_type"
-//			case mountData = "mount_data"
+			//			case mountData = "mount_data"
 		}
 	}
 
@@ -226,7 +226,7 @@ struct MultipassInstance: Codable, Sendable {
 		guard let mounts = self.mounts else {
 			return []
 		}
-		
+
 		return mounts.compactMap {
 			return DirectorySharingAttachment(source: $0.sourcePath, destination: $0.targetPath)
 		}
@@ -235,12 +235,12 @@ struct MultipassInstance: Codable, Sendable {
 	var networkAttachments: (VZMACAddress?, [BridgeAttachement]) {
 		var attachements: [BridgeAttachement] = []
 
-		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: nil)) // Default NAT network
+		attachements.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: nil))  // Default NAT network
 
 		for extraInterface in self.extraInterfaces {
 			attachements.append(BridgeAttachement(network: extraInterface.id, mode: extraInterface.autoMode ? .auto : .manual, macAddress: extraInterface.macAddress))
 		}
-		
+
 		return (VZMACAddress(string: self.macAddr), attachements)
 	}
 
@@ -264,41 +264,41 @@ func newJSONEncoder() -> JSONEncoder {
 
 struct MultipassImporter: Importer {
 	var needSudo: Bool {
-		return true // Multipass operations typically require elevated privileges
+		return true  // Multipass operations typically require elevated privileges
 	}
-	
+
 	var name: String {
 		return "Multipass Importer"
 	}
-	
+
 	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
-		
+
 		guard let registeredInstance = registeredInstances[source] else {
 			throw ServiceError("No registered instance found for source: \(source)")
 		}
-		
+
 		let instances: MultipassInstances = try MultipassInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json"))
-		
+
 		guard let instance = instances[source] else {
 			throw ServiceError("No instance found: \(source)")
 		}
-		
+
 		if instance.deleted {
 			throw ServiceError("Instance \(source) is deleted and cannot be imported.")
 		}
-		
+
 		if instance.state != .off && instance.state != .stopped {
 			throw ServiceError("Instance \(source) is not in a stopped state, current state: \(instance.state)")
 		}
-		
+
 		guard let memorySize = UInt64(instance.memSize) else {
 			throw ServiceError("Invalid memory size for instance \(source).")
 		}
-		
+
 		let networkAttachments = instance.networkAttachments
 		let userName = instance.sshUsername ?? userName
-		
+
 		let config = CakeConfig(
 			location: location.rootURL,
 			os: .linux,
@@ -329,12 +329,12 @@ struct MultipassImporter: Importer {
 		config.mounts = instance.sharedFolders
 		config.macAddress = networkAttachments.0
 		config.firstLaunch = true
-		
+
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
-		
+
 		try config.save()
 	}
-	
+
 	private func importDiskAttachements(diskAttachments: [MultipassRegisteredInstance.DiskAttachement], to location: VMLocation) throws -> [GRPCLib.DiskAttachement] {
 		var diskCount = 0
 

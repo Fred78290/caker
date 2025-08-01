@@ -30,7 +30,7 @@ struct AsyncButton<Label: View>: View {
 		Button(
 			action: {
 				var progressViewTask: Task<Void, Error>?
-				
+
 				if actionOptions.contains(.disableButton) {
 					isDisabled = true
 				}
@@ -76,7 +76,7 @@ extension AsyncButton where Label == Text {
 
 extension AsyncButton where Label == Image {
 	init(systemImageName: String, options: Set<ActionOption> = Set(ActionOption.allCases), action: @escaping (@escaping () -> Void) async -> Void) {
-		self.init( options: options, action: action) {
+		self.init(options: options, action: action) {
 			Image(systemName: systemImageName)
 		}
 	}

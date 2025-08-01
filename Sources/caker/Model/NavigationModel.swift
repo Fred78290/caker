@@ -1,3 +1,5 @@
+import CakedLib
+import GRPCLib
 //
 //  NavigationModel.swift
 //  Caker
@@ -5,15 +7,12 @@
 //  Created by Frederic BOLTZ on 09/06/2025.
 //
 import SwiftUI
-import GRPCLib
-import CakedLib
-
 
 enum SelectedElement: Identifiable, Hashable, Equatable {
 	static func == (lhs: SelectedElement, rhs: SelectedElement) -> Bool {
 		lhs.id == rhs.id
 	}
-	
+
 	case none
 	case image(String, ImageInfo)
 	case template(String)
@@ -38,7 +37,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 	case networks
 	case templates
 	case virtualMachine
-	
+
 	var id: Self { self }
 	var iconName: String {
 		switch self {
@@ -52,7 +51,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 			return "display"
 		}
 	}
-	
+
 	var title: String {
 		switch self {
 		case .images:
@@ -76,12 +75,11 @@ class NavigationModel: ObservableObject, Observable {
 }
 
 extension NavigationModel: Equatable {
-	static func ==(lhs: NavigationModel, rhs: NavigationModel) -> Bool {
+	static func == (lhs: NavigationModel, rhs: NavigationModel) -> Bool {
 		if ObjectIdentifier(lhs) == ObjectIdentifier(rhs) {
 			return true
 		}
 
-		return lhs.columnVisibility == rhs.columnVisibility &&
-		lhs.selectedCategory == rhs.selectedCategory
+		return lhs.columnVisibility == rhs.columnVisibility && lhs.selectedCategory == rhs.selectedCategory
 	}
 }

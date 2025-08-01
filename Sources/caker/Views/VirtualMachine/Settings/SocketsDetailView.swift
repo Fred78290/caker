@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct SocketsDetailView: View {
 	@Binding private var currentItem: SocketDevice
@@ -73,7 +73,7 @@ struct SocketsDetailView: View {
 
 		}
 	}
-	
+
 	func chooseSocketFile() {
 		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
 			self.currentItem.bind = hostPath.absoluteURL.path

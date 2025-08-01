@@ -5,18 +5,18 @@ import Virtualization
 
 public typealias DisplaySize = [String: Int]
 
-public extension DisplaySize {
-	var width: Int {
+extension DisplaySize {
+	public var width: Int {
 		set { self["width"] = newValue }
 		get { self["width"]! }
 	}
 
-	var height: Int {
+	public var height: Int {
 		set { self["height"] = newValue }
 		get { self["height"]! }
 	}
 
-	init(width: Int, height: Int) {
+	public init(width: Int, height: Int) {
 		self.init()
 
 		self.width = width
@@ -182,7 +182,7 @@ public final class CakeConfig {
 			if let source = self.cake["source"] as? String {
 				return VMBuilder.ImageSource(stringValue: source)
 			}
-			
+
 			return VMBuilder.ImageSource.cloud
 		}
 	}
@@ -388,17 +388,17 @@ public final class CakeConfig {
 	public var installAgent: Bool {
 		let source = self.source
 
-#if arch(arm64)
-		if self.firstLaunch && source != .iso && source != .ipsw {
-			return true
-		} else if source == .iso || source == .ipsw {
-			return true
-		}
+		#if arch(arm64)
+			if self.firstLaunch && source != .iso && source != .ipsw {
+				return true
+			} else if source == .iso || source == .ipsw {
+				return true
+			}
 
-		return false
-#else
-		return config.firstLaunch && source != .iso
-#endif
+			return false
+		#else
+			return config.firstLaunch && source != .iso
+		#endif
 	}
 
 	public init(
@@ -592,9 +592,10 @@ extension CakeConfig {
 		let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: self.location).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
 
-		attachedDisks.append(contentsOf: self.attachedDisks.compactMap {
-			try? $0.configuration(relativeTo: self.location)
-		})
+		attachedDisks.append(
+			contentsOf: self.attachedDisks.compactMap {
+				try? $0.configuration(relativeTo: self.location)
+			})
 
 		if try cloudInit.exists() {
 			let attachment = try VZDiskImageStorageDeviceAttachment(url: cloudInit, readOnly: true, cachingMode: .cached, synchronizationMode: VZDiskImageSynchronizationMode.none)

@@ -108,7 +108,7 @@ public struct TunnelAttachement: ExpressibleByArgument, Sendable, CustomStringCo
 		public static func == (lhs: ForwardUnixDomainSocket, rhs: ForwardUnixDomainSocket) -> Bool {
 			return lhs.proto == rhs.proto && lhs.host == rhs.host && lhs.guest == rhs.guest
 		}
-		
+
 		public init(proto: MappedPort.Proto, host: String, guest: String) {
 			self.proto = proto
 			self.host = host
@@ -245,7 +245,7 @@ extension TunnelAttachement.ForwardUnixDomainSocket: Validatable {
 		if proto == .none || host.isEmpty || guest.isEmpty {
 			return false
 		}
-		
+
 		return true
 	}
 }

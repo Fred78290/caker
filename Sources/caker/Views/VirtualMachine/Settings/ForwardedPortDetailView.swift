@@ -5,16 +5,16 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
-import GRPCLib
 import CakeAgentLib
+import GRPCLib
 import NIOPortForwarding
+import SwiftUI
 
 struct ForwardedPortDetailView: View {
 	enum ForwardMode: Int, CaseIterable, Hashable {
 		case portForwarding
 		case unixDomainSocket
-		
+
 		var description: String {
 			switch self {
 			case .portForwarding:
@@ -29,7 +29,7 @@ struct ForwardedPortDetailView: View {
 		case tcp
 		case udp
 		case both
-		
+
 		init(_ from: MappedPort.Proto) {
 			switch from {
 			case .tcp: self = .tcp
@@ -52,7 +52,7 @@ struct ForwardedPortDetailView: View {
 		static func == (lhs: ForwardedPortDetailView.TunnelAttachementModel, rhs: ForwardedPortDetailView.TunnelAttachementModel) -> Bool {
 			lhs.tunnelAttachement == rhs.tunnelAttachement
 		}
-		
+
 		@Published var mode: ForwardMode
 		@Published var selectedProtocol: Proto
 		@Published var hostPath: String?
@@ -77,19 +77,19 @@ struct ForwardedPortDetailView: View {
 				self.mode = ForwardMode.portForwarding
 				self.selectedProtocol = .init(forward.proto)
 				self.hostPort = TextFieldStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.guestPort = TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else if case let .unixDomain(unixDomain) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.unixDomainSocket
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host
 				self.guestPath = unixDomain.guest
 				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			} else {
 				self.mode = .portForwarding
 				self.selectedProtocol = .both
 				self.hostPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
-				self.guestPort =  TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
+				self.guestPort = TextFieldStore(value: 0, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
 			}
 		}
 	}
@@ -229,8 +229,8 @@ struct ForwardedPortDetailView: View {
 		}.onChange(of: model) { newValue in
 			self.currentItem.oneOf = newValue.tunnelAttachement.oneOf
 		}
-    }
-	
+	}
+
 	func chooseSocketFile() {
 		if let hostPath = FileHelpers.selectSingleInputFile(ofType: [.unixSocketAddress], withTitle: "Select socket file", allowsOtherFileTypes: true) {
 			self.model.hostPath = hostPath.absoluteURL.path

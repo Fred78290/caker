@@ -1,12 +1,10 @@
 import ArgumentParser
+import CakedLib
 import Cocoa
 import Foundation
 import GRPCLib
 import NIO
 import Shout
-import CakedLib
-
-
 
 struct TemplateHandler: CakedCommand {
 	let request: Caked_TemplateRequest

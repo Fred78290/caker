@@ -1,4 +1,5 @@
 import ArgumentParser
+import CakedLib
 import Foundation
 import GRPCLib
 import NIOCore
@@ -6,7 +7,6 @@ import NIOPortForwarding
 import Semaphore
 import Shout
 import SystemConfiguration
-import CakedLib
 
 struct StartHandler: CakedCommand {
 	var startMode: CakedLib.StartHandler.StartMode = .background

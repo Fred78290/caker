@@ -1,18 +1,18 @@
-import SwiftUI
 import CakedLib
 import GRPCLib
 import SwiftTerm
+import SwiftUI
 
 func alertError(_ error: Error) {
 	if let error = error as? ServiceError {
 		let alert = NSAlert()
-		
+
 		alert.messageText = "Failed to start VM"
 		alert.informativeText = error.description
 		alert.runModal()
 	} else {
 		let alert = NSAlert(error: error)
-		
+
 		alert.messageText = "Failed to start VM"
 		alert.runModal()
 	}
@@ -28,19 +28,19 @@ struct Defaults {
 		guard let font = NSFont(name: name, size: size) else {
 			return defaultValue
 		}
-		
+
 		return font
 	}
-	
+
 	static func saveTerminalFont(name: String, size: Float) {
 		UserDefaults.standard.set(name, forKey: "TerminalFontName")
 		UserDefaults.standard.set(size, forKey: "TerminalFontSize")
 	}
-	
+
 	static func saveTerminalFont(_ font: NSFont) {
 		saveTerminalFont(name: font.fontName, size: Float(font.pointSize))
 	}
-	
+
 	static func saveTerminalFontColor(color: SwiftTerm.Color) {
 		let value = String(format: "%04x.%04x.%04x", color.red, color.green, color.blue)
 
@@ -51,7 +51,7 @@ struct Defaults {
 		guard let color = UserDefaults.standard.object(forKey: "TerminalFontColor") as? String else {
 			return defaultValue
 		}
-		
+
 		let rgbValues = color.split(separator: ".")
 
 		if rgbValues.count == 3 {
@@ -198,7 +198,7 @@ struct MainApp: App {
 			NSApp.setActivationPolicy(.accessory)
 		}
 	}
-	
+
 	func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
 		return false
 	}

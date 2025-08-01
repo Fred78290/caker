@@ -44,11 +44,11 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 }
 
 public struct MountHandler {
-	public  static func Mount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+	public static func Mount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		return try createMountServiceClient(location: location).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 
-	public  static func Umount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+	public static func Umount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		return try createMountServiceClient(location: location).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 }

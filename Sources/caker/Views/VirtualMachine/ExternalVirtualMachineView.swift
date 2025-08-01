@@ -5,15 +5,14 @@
 //  Created by Frederic BOLTZ on 17/07/2025.
 //
 
-import SwiftUI
+import AppKit
+import CakeAgentLib
 import CakedLib
-import SwiftTerm
 import GRPC
 import GRPCLib
-import CakeAgentLib
 import NIO
-import CakedLib
-import AppKit
+import SwiftTerm
+import SwiftUI
 
 typealias CakeAgentExecuteStream = BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>
 
@@ -39,15 +38,15 @@ extension SwiftTerm.Color {
 			blue = components[2]
 		}
 
-		self.init(red: UInt16(red*65535), green: UInt16(green*65535), blue: UInt16(blue*65535))
+		self.init(red: UInt16(red * 65535), green: UInt16(green * 65535), blue: UInt16(blue * 65535))
 	}
-	
+
 	var uiColor: SwiftUI.Color {
-		.init(red: CGFloat(red)/65535, green: CGFloat(green)/65535, blue: CGFloat(blue)/65535)
+		.init(red: CGFloat(red) / 65535, green: CGFloat(green) / 65535, blue: CGFloat(blue) / 65535)
 	}
 
 	var nsColor: NSColor {
-		NSColor(red: CGFloat(red)/65535, green: CGFloat(green)/65535, blue: CGFloat(blue)/65535, alpha: 1)
+		NSColor(red: CGFloat(red) / 65535, green: CGFloat(green) / 65535, blue: CGFloat(blue) / 65535, alpha: 1)
 	}
 }
 
@@ -79,31 +78,31 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
 		self.document.sendTerminalSize(rows: newRows, cols: newCols)
 	}
-	
+
 	func setTerminalTitle(source: TerminalView, title: String) {
 	}
-	
+
 	func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {
 	}
-	
+
 	func send(source: TerminalView, data: ArraySlice<UInt8>) {
 		self.document.sendDatas(data: data)
 	}
 
 	func scrolled(source: TerminalView, position: Double) {
 	}
-	
+
 	func clipboardCopy(source: SwiftTerm.TerminalView, content: Data) {
-		if let str = String (bytes: content, encoding: .utf8) {
+		if let str = String(bytes: content, encoding: .utf8) {
 			let pasteBoard = NSPasteboard.general
 			pasteBoard.clearContents()
 			pasteBoard.writeObjects([str as NSString])
 		}
 	}
-	
+
 	func rangeChanged(source: SwiftTerm.TerminalView, startY: Int, endY: Int) {
 	}
-	
+
 	func terminalViewDidChangeSize(_ terminalView: TerminalView) {
 		print("terminalViewDidChangeSize")
 	}
@@ -137,7 +136,7 @@ struct ColorWell: NSViewRepresentable {
 	func makeNSView(context: Context) -> NSColorWell {
 		NSViewType()
 	}
-	
+
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if #available(macOS 14.0, *) {
 			nsView.supportsAlpha = false
@@ -151,7 +150,7 @@ struct ColorWell: NSViewRepresentable {
 
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
-	
+
 	@StateObject var document: VirtualMachineDocument
 
 	private var fontPickerDelegate: FontPickerDelegate!
@@ -162,15 +161,11 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	private let terminalView: NSViewType
 
 	var terminalColor: SwiftUI.Color {
-		get {
-			self.fontPickerDelegate.terminalView.fontColor.uiColor
-		}
+		self.fontPickerDelegate.terminalView.fontColor.uiColor
 	}
 
 	var terminalFont: NSFont {
-		get {
-			self.fontPickerDelegate.terminalView.font
-		}
+		self.fontPickerDelegate.terminalView.font
 	}
 
 	class FontPickerDelegate: NSObject, NSWindowDelegate, NSFontChanging {
@@ -186,7 +181,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			set {
 				self._presented = newValue
 			}
-			
+
 		}
 
 		init(terminalView: NSViewType) {
@@ -205,7 +200,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			newFont = fontManager.convert(newFont)
 			self.terminalView.font = newFont
 			self.presented = false
-			
+
 			Defaults.saveTerminalFont(newFont)
 		}
 
@@ -228,22 +223,22 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 				callback(terminalView.window)
 			}
 		}
-		
+
 		return terminalView
 	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		let display: (Data) -> Void = { datas in
 			var converted: [UInt8] = []
-			
+
 			datas.forEach {
 				if $0 == 0x0a {
 					converted.append(0x0d)
 				}
 
-				converted.append( $0)
+				converted.append($0)
 			}
-			
+
 			DispatchQueue.main.async {
 				nsView.feed(byteArray: converted[...])
 			}
@@ -255,7 +250,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			if case let .exitCode(code) = response.response {
 				Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
 
-				self.document.closeShell() {
+				self.document.closeShell {
 					DispatchQueue.main.async {
 						dismiss()
 					}
@@ -287,7 +282,7 @@ struct ColorPickerModifier: ViewModifier {
 	var placement: ToolbarItemPlacement
 	var target: ExternalVirtualMachineView?
 
-	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content : View, Modifier : ViewModifier {
+	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
 		self.init(placement: placement, modifier.content)
 	}
 
@@ -319,7 +314,7 @@ struct ColorWellModifier: ViewModifier {
 	var placement: ToolbarItemPlacement
 	var target: ExternalVirtualMachineView?
 
-	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content : View, Modifier : ViewModifier {
+	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
 		self.init(placement: placement, modifier.content)
 	}
 
@@ -354,13 +349,13 @@ struct FontPickerModifier: ViewModifier {
 
 	private let delegate: FontPanelDelegate
 
-	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content : View, Modifier : ViewModifier {
+	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
 		self.init(placement: placement, modifier.content)
 	}
 
 	init(placement: ToolbarItemPlacement, _ view: any View) {
 		self.placement = placement
-		
+
 		if let target = view as? ExternalVirtualMachineView {
 			self.target = target
 			self.font = target.terminalFont
@@ -368,7 +363,7 @@ struct FontPickerModifier: ViewModifier {
 			self.font = NSFont.monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
 			self.target = nil
 		}
-		
+
 		self.delegate = FontPanelDelegate(self.target)
 	}
 
@@ -423,7 +418,7 @@ extension View where Self == ExternalVirtualMachineView {
 	}
 }
 
-extension ModifiedContent where Content : View, Modifier : ViewModifier {
+extension ModifiedContent where Content: View, Modifier: ViewModifier {
 	func colorPicker(placement: ToolbarItemPlacement) -> some View {
 		self.modifier(ColorWellModifier(placement: placement, modifier: self))
 	}

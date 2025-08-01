@@ -30,9 +30,9 @@ struct VirtualMachinesView: View {
 				}.padding()
 			}.background(.white)
 		}
-    }
+	}
 }
 
 #Preview {
-    VirtualMachinesView(appState: .constant(.init()), navigationModel: .constant(.init()))
+	VirtualMachinesView(appState: .constant(.init()), navigationModel: .constant(.init()))
 }

@@ -27,7 +27,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	public var nested: Bool?
 
 	#if arch(arm64)
-	@Option(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
+		@Option(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
 	#endif
 	public var suspendable: Bool?
 

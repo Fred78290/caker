@@ -41,8 +41,8 @@ public struct BuildOptions: ParsableArguments {
 	@Flag(help: ArgumentHelp("Support autoinstall mecanism from iso image"))
 	public var autoinstall: Bool = false
 
-#if arch(arm64)
-	@Flag(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
+	#if arch(arm64)
+		@Flag(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
 	#endif
 	public var suspendable: Bool = false
 

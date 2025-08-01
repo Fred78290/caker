@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 23/06/2025.
 //
 
-import SwiftUI
-import GRPCLib
 import CakeAgentLib
+import GRPCLib
 import NIOPortForwarding
+import SwiftUI
 
 extension [TunnelAttachement] {
 	func editItem(_ editItem: TunnelAttachement.ID?) -> TunnelAttachement {
@@ -37,7 +37,7 @@ struct ForwardedPortNewItemView: View {
 				ForwardedPortDetailView(currentItem: $newItem, readOnly: false)
 			}
 		}
-    }
+	}
 }
 
 #Preview {

@@ -50,11 +50,11 @@ public struct VMRunHandler {
 		let (_, vm) = try location.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
 
 		completionHandler(vm)
-/*		if display {
-			MainApp.runUI(name: name, vm: vm, config: config)
-		} else {
-			NSApplication.shared.setActivationPolicy(.prohibited)
-			NSApplication.shared.run()
-		}*/
+		/*		if display {
+					MainApp.runUI(name: name, vm: vm, config: config)
+				} else {
+					NSApplication.shared.setActivationPolicy(.prohibited)
+					NSApplication.shared.run()
+				}*/
 	}
 }

@@ -59,15 +59,15 @@ public struct TemplateHandler {
 			}
 
 			Logger(self).info("Creating template \(templateName) from \(sourceName)")
-			
+
 			do {
 				if config.os == .linux && config.useCloudInit {
 					source = try cleanCloudInit(source: source, config: config, runMode: runMode)
 				}
-				
+
 				try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 				try source.templateTo(templateLocation)
-				
+
 				return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 			} catch {
 				Logger(self).error(error)
@@ -115,7 +115,7 @@ public struct TemplateHandler {
 
 		return storage.exists(name)
 	}
-	
+
 	public static func listTemplate(runMode: Utils.RunMode) throws -> [TemplateEntry] {
 		let storage = StorageLocation(runMode: runMode, template: true)
 

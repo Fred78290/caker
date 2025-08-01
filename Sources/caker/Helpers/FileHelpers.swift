@@ -2,12 +2,12 @@
 // File: FileHelpers.swift
 // Package: Mac Template App
 // Created by: Steven Barnett on 25/09/2023
-// 
+//
 // Copyright © 2023 Steven Barnett. All rights reserved.
 //
 
-import Foundation
 import AppKit
+import Foundation
 import UniformTypeIdentifiers
 
 struct FileHelpers {
@@ -99,9 +99,11 @@ struct FileHelpers {
 		return openPrompt
 	}
 
-	private func createOpenPanel(ofType: [UTType],
-	                             withTitle: String?,
-	                             allowsMultiple: Bool = false) -> NSOpenPanel {
+	private func createOpenPanel(
+		ofType: [UTType],
+		withTitle: String?,
+		allowsMultiple: Bool = false
+	) -> NSOpenPanel {
 
 		let openPrompt = NSOpenPanel()
 
