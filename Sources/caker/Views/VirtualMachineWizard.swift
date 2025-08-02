@@ -241,7 +241,7 @@ private var items: [ItemView] = [
 ]
 
 class VirtualMachineWizardStateObject: ObservableObject {
-	@Published var currentStep: Int = 0
+	@Published var currentStep: Int
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -255,6 +255,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var createVMMessage: String
 
 	init() {
+		self.currentStep = 0
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
@@ -265,7 +266,22 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.createVM = false
 		self.fractionCompleted = 0
-		self.createVMMessage = "Installation in progress..."
+		self.createVMMessage = ""
+	}
+	
+	func reset() {
+		self.currentStep = 0
+		self.configValid = false
+		self.password = ""
+		self.showPassword = false
+		self.imageSource = .cloud
+		self.remoteImage = "ubuntu"
+		self.remoteImages = []
+		self.selectedRemoteImage = ""
+		self.cloudImageRelease = .ubuntu2404LTS
+		self.createVM = false
+		self.fractionCompleted = 0
+		self.createVMMessage = ""
 	}
 }
 
@@ -314,6 +330,9 @@ struct VirtualMachineWizard: View {
 					self.dismiss()
 				}
 			}
+			
+			self.config = VirtualMachineConfig()
+			self.model.reset()
 		}.onReceive(NSNotification.FailCreateVirtualMachine) { notification in
 			self.model.createVM = false
 			self.model.createVMMessage = ""
@@ -325,6 +344,8 @@ struct VirtualMachineWizard: View {
 			if let message = notification.object as? String {
 				self.model.createVMMessage = message
 			}
+		}.onAppear {
+			self.validateConfig(config: self.config)
 		}
 
 		if #available(macOS 15.0, *) {
@@ -361,6 +382,8 @@ struct VirtualMachineWizard: View {
 			}
 			.tab(title: items[7].title, systemName: items[7].systemName, disabled: self.model.createVM) {
 				socketsView()
+			}.onChange(of: model.currentStep) { _ in
+				self.validateConfig(config: self.config)
 			}
 	}
 
@@ -394,15 +417,10 @@ struct VirtualMachineWizard: View {
 	func Footer() -> some View {
 		VStack {
 			if self.model.createVM {
-				HStack {
-					GeometryReader { geometry in
-						ProgressView(value: self.model.fractionCompleted) {
-							VStack(alignment: .center) {
-								Text(self.model.createVMMessage)
-							}.frame(width: geometry.size.width)
-						}
-					}
-				}.frame(width: 300, height: 30)
+				VStack(alignment: .center) {
+					Text(self.model.createVMMessage)
+					ProgressView(value: self.model.fractionCompleted).frame(width: 300)
+				}.frame(height: 30)
 			}
 
 			Divider()
@@ -946,7 +964,7 @@ struct VirtualMachineWizard: View {
 		self.model.createVM = true
 		self.model.createVMMessage = "Creating virtual machine..."
 
-		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result, _ in
+		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
@@ -1040,6 +1058,7 @@ struct VirtualMachineWizard: View {
 			return
 		}
 
+		validateConfig(config: self.config)
 		self.model.currentStep -= 1
 	}
 
@@ -1048,6 +1067,7 @@ struct VirtualMachineWizard: View {
 			return
 		}
 
+		validateConfig(config: self.config)
 		self.model.currentStep += 1
 	}
 }

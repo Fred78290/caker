@@ -5,7 +5,7 @@ import Qcow2convert
 class CloudImageConverter {
 	private static func step(_ message: String, progressHandler: ProgressObserver.BuildProgressHandler?) {
 		if let progressHandler = progressHandler {
-			progressHandler(.step(message), .init())
+			progressHandler(.step(message))
 		} else {
 			Logger(self).info(message)
 		}
@@ -59,25 +59,22 @@ class CloudImageConverter {
 
 		class QCow2ConverterProgressHandler: NSObject, Qcow2convertProgressCallbackProtocol {
 			var progressHandler: ProgressObserver.BuildProgressHandler
-			var oldFractionCompleted: Double
-			var fractionCompleted: Double
 			var context: ProgressObserver.ProgressHandlerContext
 
 			init(progressHandler: @escaping ProgressObserver.BuildProgressHandler) {
 				self.progressHandler = progressHandler
-				self.oldFractionCompleted = 0.0
-				self.fractionCompleted = 0.0
+
 				self.context = .init()
 				
 				super.init()
 			}
 
 			@objc func progressCallback(_ readed: Int64, totalSize: Int64) {
-				self.fractionCompleted = Double(readed) / Double(totalSize)
+				let fractionCompleted = Double(readed) / Double(totalSize)
 
-				self.progressHandler(.progress(self.oldFractionCompleted, self.fractionCompleted), self.context)
+				self.progressHandler(.progress(context, fractionCompleted))
 
-				self.oldFractionCompleted = self.fractionCompleted
+				self.context.oldFractionCompleted = fractionCompleted
 			}
 		}
 

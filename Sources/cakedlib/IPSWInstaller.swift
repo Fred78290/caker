@@ -101,7 +101,7 @@ import Virtualization
 				if progress.fractionCompleted != context.oldFractionCompleted {
 					self.logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
 
-					progressHandler(.progress(context.oldFractionCompleted, progress.fractionCompleted), context)
+					progressHandler(.progress(context, progress.fractionCompleted))
 
 					self.logger.trace("[\(Thread.currentThread.description)] ipsw leave progress \(progress.fractionCompleted)")
 					context.oldFractionCompleted = progress.fractionCompleted
@@ -160,6 +160,7 @@ import Virtualization
 		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
 
+			progressHandler(.step("Installing MacOS from IPSW..."))
 			if self.queue == nil {
 				try await self.installIPSWSync(url, progressHandler: progressHandler)
 			} else {
@@ -167,6 +168,7 @@ import Virtualization
 			}
 
 			self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
+			progressHandler(.step("Install MacOS from IPSW done..."))
 		}
 	}
 #endif

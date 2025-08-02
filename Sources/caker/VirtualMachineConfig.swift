@@ -187,16 +187,16 @@ struct VirtualMachineConfig: Hashable {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
 
-					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result, context in
-						progressHandler(result, context)
+					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+						progressHandler(result)
 					}
 
 				} catch {
-					progressHandler(.terminated(.failure(error)), .init())
+					progressHandler(.terminated(.failure(error)))
 				}
 			},
 			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError("Cancelled"))), .init())
+				progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
 			})
 	}
 }

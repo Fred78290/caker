@@ -146,12 +146,12 @@ public struct Logger {
 
 public final class ProgressObserver: NSObject, @unchecked Sendable {
 	public enum ProgressValue: Sendable {
-		case progress(Double, Double)
+		case progress(ProgressHandlerContext, Double)
 		case step(String)
 		case terminated(Result<VMLocation, any Error>)
 	}
 
-	public class ProgressHandlerContext {
+	public final class ProgressHandlerContext: @unchecked Sendable {
 		public var oldFractionCompleted: Double = -1
 		public var lastCompleted10: Int
 		public var lastCompleted2: Int
@@ -162,14 +162,14 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 		}
 	}
 
-	public typealias BuildProgressHandler = (ProgressValue, ProgressHandlerContext) -> Void
+	public typealias BuildProgressHandler = (ProgressValue) -> Void
 
 	@objc var progress: Progress
 	var observation: NSKeyValueObservation?
 	let progressHandler: BuildProgressHandler?
 
-	public static func progressHandler(_ result: ProgressValue, context: ProgressHandlerContext) {
-		if case let .progress(_, fractionCompleted) = result {
+	public static func progressHandler(_ result: ProgressValue) {
+		if case let .progress(context, fractionCompleted) = result {
 			let completed = Int(100 * fractionCompleted)
 			
 			if completed % 10 == 0 {
@@ -227,9 +227,9 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			if context.oldFractionCompleted != progress.fractionCompleted {
 
 				if let progressHandler = self.progressHandler {
-					progressHandler(.progress(context.oldFractionCompleted, progress.fractionCompleted), context)
+					progressHandler(.progress(context, progress.fractionCompleted))
 				} else {
-					Self.progressHandler(.progress(context.oldFractionCompleted, progress.fractionCompleted), context: context)
+					Self.progressHandler(.progress(context, progress.fractionCompleted))
 				}
 
 				context.oldFractionCompleted = progress.fractionCompleted

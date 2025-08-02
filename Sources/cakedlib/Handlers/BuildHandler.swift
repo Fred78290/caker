@@ -27,11 +27,11 @@ public struct BuildHandler {
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
 					}
 
-					progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))), .init())
+					progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))))
 				} catch {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 
-					progressHandler(.terminated(.failure(error)), .init())
+					progressHandler(.terminated(.failure(error)))
 
 					throw error
 				}
