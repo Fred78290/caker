@@ -7,32 +7,7 @@ import SwiftUI
 import Virtualization
 
 public struct BuildHandler {
-	public static func progressHandler(_ result: VMBuilder.ProgressValue) {
-		if case let .progress(fractionCompleted) = result {
-			let completed = Int(fractionCompleted * 100)
-
-			if completed % 10 == 0 {
-				if completed == 0 {
-					print(String(format: "%0.2d%%", completed), terminator: "")
-				} else if completed < 100 {
-					print(String(format: "...%0.2d%%", completed), terminator: "")
-				} else {
-					print(String(format: "...%0.3d%%", completed), terminator: " complete\n")
-				}
-				fflush(stdout)
-			}
-		} else if case let .terminated(result) = result {
-			let logger = Logger("BuildHandler")
-
-			if case let .failure(error) = result {
-				logger.error("Installation failed: \(error)")
-			} else {
-				logger.info("Installation succeeded")
-			}
-		}
-	}
-
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping VMBuilder.BuildProgressHandler) async throws {
+	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		if StorageLocation(runMode: runMode).exists(name) {
 			throw ServiceError("VM already exists")
 		}
@@ -51,10 +26,12 @@ public struct BuildHandler {
 					} else {
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
 					}
+
+					progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))), .init())
 				} catch {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 
-					progressHandler(.terminated(.failure(error)))
+					progressHandler(.terminated(.failure(error)), .init())
 
 					throw error
 				}

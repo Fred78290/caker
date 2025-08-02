@@ -313,7 +313,7 @@ public struct ImageVersionItem: Codable {
 }
 
 extension LinuxContainerImage {
-	public func pullSimpleStreamImageAndConvert(runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
+	public func pullSimpleStreamImageAndConvert(runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
@@ -328,7 +328,7 @@ extension LinuxContainerImage {
 		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 
-	public func retrieveSimpleStreamImageAndConvert(to: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
+	public func retrieveSimpleStreamImageAndConvert(to: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 

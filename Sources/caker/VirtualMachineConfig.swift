@@ -176,7 +176,7 @@ struct VirtualMachineConfig: Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 
-	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping VMBuilder.BuildProgressHandler) async {
+	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
 		await withTaskCancellationHandler(
 			operation: {
 				do {
@@ -187,16 +187,16 @@ struct VirtualMachineConfig: Hashable {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
 
-					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-						progressHandler(result)
+					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result, context in
+						progressHandler(result, context)
 					}
 
 				} catch {
-					progressHandler(.terminated(.failure(error)))
+					progressHandler(.terminated(.failure(error)), .init())
 				}
 			},
 			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
+				progressHandler(.terminated(.failure(ServiceError("Cancelled"))), .init())
 			})
 	}
 }

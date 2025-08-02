@@ -4,7 +4,7 @@ import NIO
 import Shout
 import Virtualization
 
-public struct VMLocation: Hashable, Equatable {
+public struct VMLocation: Hashable, Equatable, Sendable {
 	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
 
 	public enum Status: String {

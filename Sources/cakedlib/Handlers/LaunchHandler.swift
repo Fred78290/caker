@@ -11,7 +11,7 @@ public struct LaunchHandler {
 	}
 
 	public static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
-		try await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: CakedLib.BuildHandler.progressHandler)
+		try await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 		let runningIP = try Self.launch(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode)
 

@@ -353,7 +353,7 @@ struct MultipassImporter: Importer {
 
 				diskCount += 1
 
-				try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL)
+				try CloudImageConverter.convertCloudImageToRaw(from: disk.diskURL, to: destinationURL, progressHandler: ProgressObserver.progressHandler)
 			} else {
 				if disk.diskURL.lastPathComponent == "cloud-init-config.iso" {
 					destinationURL = location.rootURL.appendingPathComponent(cloudInitIso)

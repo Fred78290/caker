@@ -119,7 +119,7 @@ public struct ImageHandler {
 		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
 
-		try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: BuildHandler.progressHandler)
+		try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 		return image
 	}

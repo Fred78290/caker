@@ -423,4 +423,5 @@ extension NSNotification {
 	static let CreatedVirtualMachine = NSNotification.Name("CreatedVirtualMachine")
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
+	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
 }

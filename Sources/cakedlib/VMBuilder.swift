@@ -11,13 +11,6 @@ let cloudInitIso = "cloud-init.iso"
 #endif
 
 public struct VMBuilder {
-	public enum ProgressValue: Sendable {
-		case progress(Double)
-		case terminated(Result<Void, any Error>)
-	}
-
-	public typealias BuildProgressHandler = (ProgressValue) -> Void
-
 	public enum ImageSource: Int, Hashable, CaseIterable, CustomStringConvertible, Sendable {
 		public var description: String {
 			switch self {
@@ -82,15 +75,15 @@ public struct VMBuilder {
 		}
 	}
 
-	#if arch(arm64)
-		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping BuildProgressHandler) async throws {
+#if arch(arm64)
+	private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
 
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
 		}
 	#endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping BuildProgressHandler) async throws {
+	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 
@@ -206,16 +199,12 @@ public struct VMBuilder {
 			#if arch(arm64)
 				if source == .ipsw {
 					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
-				} else {
-					progressHandler(.terminated(.success(())))
 				}
-			#else
-				progressHandler(.terminated(.success(())))
 			#endif
 		}
 	}
 
-	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping BuildProgressHandler) async throws -> ImageSource {
+	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> ImageSource {
 		if FileManager.default.fileExists(atPath: location.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
@@ -257,7 +246,7 @@ public struct VMBuilder {
 			try templateLocation.copyTo(location)
 			sourceImage = .template
 		} else if scheme == "qcow2" {
-			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL)
+			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL, progressHandler: progressHandler)
 		} else if scheme == "http" || scheme == "https" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else if scheme == "cloud" {
@@ -305,7 +294,7 @@ public struct VMBuilder {
 		return sourceImage
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping BuildProgressHandler) async throws -> ImageSource {
+	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> ImageSource {
 		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
 
 		if sourceImage == .oci {

@@ -186,7 +186,7 @@ struct MainApp: App {
 
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
-			.frame(minWidth: 700, maxWidth: 700, minHeight: 800, maxHeight: 800)
+			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
 	}
 }
 

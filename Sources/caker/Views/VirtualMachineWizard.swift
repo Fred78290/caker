@@ -252,6 +252,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var cloudImageRelease: OSCloudImage
 	@Published var createVM: Bool
 	@Published var fractionCompleted: Double
+	@Published var createVMMessage: String
 
 	init() {
 		self.configValid = false
@@ -264,6 +265,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.cloudImageRelease = .ubuntu2404LTS
 		self.createVM = false
 		self.fractionCompleted = 0
+		self.createVMMessage = "Installation in progress..."
 	}
 }
 
@@ -314,9 +316,14 @@ struct VirtualMachineWizard: View {
 			}
 		}.onReceive(NSNotification.FailCreateVirtualMachine) { notification in
 			self.model.createVM = false
+			self.model.createVMMessage = ""
 
 			if let error = notification.object as? Error {
 				alertError(error)
+			}
+		}.onReceive(NSNotification.ProgressMessageCreateVirtualMachine) { notification in
+			if let message = notification.object as? String {
+				self.model.createVMMessage = message
 			}
 		}
 
@@ -388,12 +395,14 @@ struct VirtualMachineWizard: View {
 		VStack {
 			if self.model.createVM {
 				HStack {
-					ProgressView(value: self.model.fractionCompleted) {
-						VStack(alignment: .center) {
-							Text("Installation in progress...")
-						}.frame(width: 200)
+					GeometryReader { geometry in
+						ProgressView(value: self.model.fractionCompleted) {
+							VStack(alignment: .center) {
+								Text(self.model.createVMMessage)
+							}.frame(width: geometry.size.width)
+						}
 					}
-				}.frame(width: 200, height: 30)
+				}.frame(width: 300, height: 30)
 			}
 
 			Divider()
@@ -880,7 +889,7 @@ struct VirtualMachineWizard: View {
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: $model.createVM)
+				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}
@@ -888,7 +897,7 @@ struct VirtualMachineWizard: View {
 	func networksView() -> some View {
 		Form {
 			Section("Network attachements") {
-				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM)
+				NetworkAttachementView(networks: $config.networks, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}
@@ -896,7 +905,7 @@ struct VirtualMachineWizard: View {
 	func mountsView() -> some View {
 		Form {
 			Section("Directory sharing") {
-				MountView(mounts: $config.mounts, disabled: $model.createVM)
+				MountView(mounts: $config.mounts, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}
@@ -904,7 +913,7 @@ struct VirtualMachineWizard: View {
 	func diskAttachementView() -> some View {
 		Form {
 			Section("Disks attachements") {
-				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM)
+				DiskAttachementView(attachedDisks: $config.attachedDisks, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}
@@ -912,7 +921,7 @@ struct VirtualMachineWizard: View {
 	func socketsView() -> some View {
 		Form {
 			Section("Virtual sockets") {
-				SocketsView(sockets: $config.sockets, disabled: $model.createVM)
+				SocketsView(sockets: $config.sockets, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}
@@ -935,21 +944,26 @@ struct VirtualMachineWizard: View {
 		}
 
 		self.model.createVM = true
+		self.model.createVMMessage = "Creating virtual machine..."
 
-		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
+		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result, _ in
 			DispatchQueue.main.async {
 				switch result {
-				case .progress(let fractionCompleted):
+				case .progress(_, let fractionCompleted):
 					NotificationCenter.default.post(name: NSNotification.ProgressCreateVirtualMachine, object: fractionCompleted)
 
 				case .terminated(let result):
 					if case let .failure(error) = result {
 						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
-					} else if let location = try? StorageLocation(runMode: .app).find(config.vmname) {
+					} else if case let .success(location) = result {
 						NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+					} else {
+						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"))
 					}
 
 					done()
+				case .step(let message):
+					NotificationCenter.default.post(name: NSNotification.ProgressMessageCreateVirtualMachine, object: message)
 				}
 			}
 		}
