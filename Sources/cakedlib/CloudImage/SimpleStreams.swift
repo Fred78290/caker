@@ -313,7 +313,7 @@ public struct ImageVersionItem: Codable {
 }
 
 extension LinuxContainerImage {
-	public func pullSimpleStreamImageAndConvert(runMode: Utils.RunMode) async throws {
+	public func pullSimpleStreamImageAndConvert(runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
@@ -325,10 +325,10 @@ extension LinuxContainerImage {
 
 		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
-		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, runMode: runMode)
+		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: nil, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 
-	public func retrieveSimpleStreamImageAndConvert(to: URL, runMode: Utils.RunMode) async throws {
+	public func retrieveSimpleStreamImageAndConvert(to: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
 		let imageCache: SimpleStreamsImageCache = try SimpleStreamsImageCache(name: remoteName, runMode: runMode)
 		let cacheLocation = try imageCache.directoryFor(directoryName: self.fingerprint).appendingPathComponent("disk.img", isDirectory: false)
 
@@ -345,7 +345,7 @@ extension LinuxContainerImage {
 
 		try imageCache.addCache(fingerprint: fingerprint, url: self.path.absoluteURL, kind: CacheEntryKind.image, alias: self.alias)
 
-		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation, runMode: runMode)
+		try await CloudImageConverter.retrieveRemoteImageCacheItAndConvert(from: self.path, to: to, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 }
 

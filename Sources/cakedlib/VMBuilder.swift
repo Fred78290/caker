@@ -215,7 +215,7 @@ public struct VMBuilder {
 		}
 	}
 
-	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode) async throws -> ImageSource {
+	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping BuildProgressHandler) async throws -> ImageSource {
 		if FileManager.default.fileExists(atPath: location.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
@@ -259,9 +259,9 @@ public struct VMBuilder {
 		} else if scheme == "qcow2" {
 			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL)
 		} else if scheme == "http" || scheme == "https" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else if scheme == "cloud" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode)
+			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else if scheme == "oci" || scheme == "ocis" {
 			if Utilities.checkIfTartPresent() == false {
 				throw ServiceError("tart is not installed")
@@ -295,7 +295,7 @@ public struct VMBuilder {
 			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), runMode: runMode)
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode)
+			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 
 			sourceImage = .stream
 		} else {
@@ -306,7 +306,7 @@ public struct VMBuilder {
 	}
 
 	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping BuildProgressHandler) async throws -> ImageSource {
-		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode)
+		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
 
 		if sourceImage == .oci {
 			let location = try StorageLocation(runMode: runMode).find(vmName)

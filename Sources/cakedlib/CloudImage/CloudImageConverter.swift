@@ -60,7 +60,7 @@ class CloudImageConverter {
 		}
 	}
 
-	static func downloadLinuxImage(fromURL: URL, toURL: URL, runMode: Utils.RunMode) async throws -> URL {
+	static func downloadLinuxImage(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
 			throw ServiceError("file already exists: \(toURL.path)")
 		}
@@ -74,12 +74,12 @@ class CloudImageConverter {
 			try? FileManager.default.removeItem(at: temporaryLocation)
 		}
 
-		try await Curl(fromURL: fromURL).get(store: temporaryLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(fromURL.lastPathComponent)"))
+		try await Curl(fromURL: fromURL).get(store: temporaryLocation, observer: ProgressObserver(progressHandler: progressHandler).log("Fetching \(fromURL.lastPathComponent)"))
 
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
 
-	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode) async throws -> URL {
+	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws -> URL {
 		// Check if we already have this linux image in cache
 		let fileName = remoteURL.lastPathComponent.deletingPathExtension
 		let imageCache = try CloudImageCache(name: remoteURL.host()!, runMode: runMode)
@@ -91,18 +91,18 @@ class CloudImageConverter {
 			return cacheLocation
 		}
 
-		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode)
+		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 
-	static func retrieveCloudImageAndConvert(from: URL, to: URL, runMode: Utils.RunMode) async throws {
+	static func retrieveCloudImageAndConvert(from: URL, to: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
 		let fileName = from.lastPathComponent.deletingPathExtension
 		let imageCache: CloudImageCache = try CloudImageCache(name: from.host()!, runMode: runMode)
 		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
 
-		try await retrieveRemoteImageCacheItAndConvert(from: from, to: to, cacheLocation: cacheLocation, runMode: runMode)
+		try await retrieveRemoteImageCacheItAndConvert(from: from, to: to, cacheLocation: cacheLocation, runMode: runMode, progressHandler: progressHandler)
 	}
 
-	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL, runMode: Utils.RunMode) async throws {
+	static func retrieveRemoteImageCacheItAndConvert(from: URL, to: URL?, cacheLocation: URL, runMode: Utils.RunMode, progressHandler: VMBuilder.BuildProgressHandler?) async throws {
 		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
 
 		defer {
@@ -122,7 +122,7 @@ class CloudImageConverter {
 			// Download the cloud-image
 			Logger(self).info("Fetching \(from.lastPathComponent)...")
 
-			try await Curl(fromURL: from).get(store: temporaryLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(from.lastPathComponent)"))
+			try await Curl(fromURL: from).get(store: temporaryLocation, observer: ProgressObserver(progressHandler: progressHandler).log("Fetching \(from.lastPathComponent)"))
 
 			try convertCloudImageToRaw(from: temporaryLocation, to: cacheLocation)
 			try FileManager.default.removeItem(at: temporaryLocation)

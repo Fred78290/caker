@@ -147,29 +147,41 @@ public struct Logger {
 public final class ProgressObserver: NSObject, @unchecked Sendable {
 	@objc var progress: Progress
 	var observation: NSKeyValueObservation?
-	var lastUpdate = Date.now
+	let progressHandler: VMBuilder.BuildProgressHandler?
+
+	public init(progressHandler: VMBuilder.BuildProgressHandler?) {
+		self.progress = Progress(totalUnitCount: 100)
+		self.progressHandler = progressHandler
+	}
 
 	public init(totalUnitCount unitCount: Int64) {
 		self.progress = Progress(totalUnitCount: unitCount)
+		self.progressHandler = nil
 	}
 
 	public func log(_ message: String) -> ProgressObserver {
-		Logger.appendNewLine(ProgressObserver.renderLine(message, self.progress))
+		print(message + ":", terminator: "")
 
-		observation = observe(\.progress.fractionCompleted) { progress, _ in
-			let currentTime = Date.now
+		observation = progress.observe(\.fractionCompleted, options: [.initial, .new]) { progress, _ in
+			if let progressHandler = self.progressHandler {
+				progressHandler(.progress(progress.fractionCompleted))
+			} else {
+				let completed = Int(100 * progress.fractionCompleted)
 
-			if self.progress.isFinished || currentTime.timeIntervalSince(self.lastUpdate) >= 1.0 {
-				self.lastUpdate = currentTime
+				if completed % 10 == 0 {
+					if completed == 0 {
+						print(String(format: "%0.2d%%", completed), terminator: "")
+					} else if completed < 100 {
+						print(String(format: "...%0.2d%%", completed), terminator: "")
+					} else {
+						print(String(format: "...%0.3d%%", completed), terminator: " complete\n")
+					}
 
-				Logger.updateLastLine(ProgressObserver.renderLine(message, self.progress))
+					fflush(stdout)
+				}
 			}
 		}
 
 		return self
-	}
-
-	private static func renderLine(_ message: String, _ progress: Progress) -> String {
-		String("\(message): \(Int(100 * progress.fractionCompleted)) %")
 	}
 }

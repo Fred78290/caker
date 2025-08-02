@@ -96,7 +96,7 @@ public struct MultiplatformTabBar: View {
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .right {
 					Spacer()
 				}
-				ForEach(0..<tabSet.tabs.count) { index in
+				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
 					RoundedRectangle(cornerRadius: 10)
 						.fill(self.selection == index ? Color.systemGray3 : Color.red.opacity(0.0))
 						.overlay(
@@ -126,7 +126,7 @@ public struct MultiplatformTabBar: View {
 		HStack {
 			VStack {
 				Spacer()
-				ForEach(0..<tabSet.tabs.count) { index in
+				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
 					RoundedRectangle(cornerRadius: 10)
 						.fill(self.selection == index ? Color.systemGray3 : Color.red.opacity(0.0))
 						.overlay(
