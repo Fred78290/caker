@@ -388,6 +388,10 @@ public final class CakeConfig {
 	public var installAgent: Bool {
 		let source = self.source
 
+		if self.agent {
+			return false
+		}
+
 		#if arch(arm64)
 			if self.firstLaunch && source != .iso && source != .ipsw {
 				return true

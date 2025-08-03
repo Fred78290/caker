@@ -50,6 +50,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	static var readableContentTypes: [UTType] { [.virtualMachine] }
 
+	enum AgentStatus: Int {
+		case none = 0
+		case installed = 1
+		case installing = 2
+	}
+
 	enum Status: Int {
 		case none = -2
 		case external = -1
@@ -86,6 +92,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var canResume: Bool = false
 	@Published var canRequestStop: Bool = false
 	@Published var suspendable: Bool = false
+	@Published var agent = AgentStatus.none
 
 	init() {
 		self.virtualMachine = nil
@@ -123,6 +130,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.virtualMachine = nil
 		self.inited = false
 		self.status = .none
+		self.agent = .none
 
 		if let monitor = self.monitor {
 			monitor.stop()
@@ -158,6 +166,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.virtualMachineConfig = VirtualMachineConfig(vmname: location.name, config: config)
 			self.name = location.name
 			self.location = location
+			self.agent = config.agent ? .installed : .none
 
 			if location.pidFile.isPIDRunning("caked") {
 				self.status = .external
@@ -202,6 +211,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 				self.virtualMachineConfig = VirtualMachineConfig(vmname: name, config: config)
 				self.location = location
+				self.agent = config.agent ? .installed : .none
 
 				if location.pidFile.isPIDRunning("caked") {
 					self.status = .external
@@ -231,6 +241,26 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		return virtualMachine.location.rootURL
+	}
+
+	func installAgent(_ done: @escaping () -> Void) {
+		if let virtualMachine = self.virtualMachine {
+			self.agent = .installing
+
+			Task {
+				do {
+					self.agent = try await virtualMachine.installAgent(runMode: .app) ? .installed : .none
+
+					if self.agent == .none {
+						alertError(ServiceError("Failed to install agent."))
+					}
+				} catch {
+					alertError(error)
+				}
+
+				done()
+			}
+		}
 	}
 
 	func startFromUI() {
@@ -319,6 +349,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.canResume = virtualMachine.canResume
 		self.canRequestStop = virtualMachine.canRequestStop
 		self.suspendable = suspendable
+		self.agent = vm.config.agent ? .installed : .none
 		self.status = status
 	}
 

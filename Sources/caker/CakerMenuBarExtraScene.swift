@@ -46,7 +46,7 @@ struct CakerMenuBarExtraScene: Scene {
 			}.keyboardShortcut("Q")
 				.help("Terminate UTM and stop all running VMs.")
 		} label: {
-			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "icns") {
+			if let path = Bundle.main.path(forResource: "MenuBarIcon", ofType: "png") {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage())
 			} else {
 				Image("AppIcon")

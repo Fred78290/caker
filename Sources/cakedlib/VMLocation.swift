@@ -653,7 +653,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
 		try tempFileURL.delete()
-		let result = try ssh.capture("sudo sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'")
+		let result = try ssh.capture("echo \(config.configuredPassword ?? config.configuredUser) | sudo -S sh -c '/tmp/install-agent.sh 2>&1 | tee /tmp/install-agent.log'")
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")

@@ -556,6 +556,40 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	public func installAgent(runMode: Utils.RunMode) async throws -> Bool {
+		return try await withCheckedThrowingContinuation { continuation in
+			do {
+				let response = try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode)
+
+				response.whenSuccess { runningIP in
+					let config = self.config
+
+					guard let runningIP = runningIP else {
+						Logger(self).error("VM \(self.location.name) failed to get primary IP")
+						continuation.resume(with: .success(false))
+						return
+					}
+
+					do {
+						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, runMode: runMode)
+						config.runningIP = runningIP
+						config.firstLaunch = false
+
+						try config.save()
+
+						continuation.resume(with: .success(true))
+					} catch {
+						Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
+						continuation.resume(with: .failure(error))
+					}
+				}
+
+			} catch {
+				continuation.resume(with: .failure(error))
+			}
+		}
+	}
+
 	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
 
 		if self.env.runMode == .app {

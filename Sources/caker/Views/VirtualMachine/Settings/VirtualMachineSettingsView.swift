@@ -19,14 +19,20 @@ struct VirtualMachineSettingsView: View {
 	@Binding var config: VirtualMachineConfig
 	@State var configChanged = false
 	@State var selectedTab = 0
+	@State var showPassword = false
+	@State var userPassword: String
 
 	init(config: Binding<VirtualMachineConfig>) {
 		self._config = config
+		self.userPassword = config.wrappedValue.configuredPassword ?? ""
 	}
 
 	var body: some View {
 		VStack {
 			MultiplatformTabBar(selection: $selectedTab, tabPosition: .top, barHorizontalAlignment: .center)
+				.tab(title: "Account", systemName: "person.badge.key") {
+					self.userSettings()
+				}
 				.tab(title: "General", systemName: "cpu") {
 					self.generalSettings()
 				}
@@ -82,6 +88,56 @@ struct VirtualMachineSettingsView: View {
 		.onChange(of: config) { newValue in
 			self.configChanged = true
 		}
+	}
+
+	func userSettings() -> some View {
+		VStack {
+			Form {
+				Section("Administrator settings") {
+					LabeledContent("Administator name") {
+						TextField("User name", text: $config.configuredUser)
+							.multilineTextAlignment(.leading)
+							.textFieldStyle(.roundedBorder)
+							.background(.white)
+							.labelsHidden()
+							.clipShape(RoundedRectangle(cornerRadius: 6))
+					}
+					
+					LabeledContent("Administator password") {
+						HStack {
+							if self.showPassword {
+								TextField("Password", value: $config.configuredPassword, format: .optional)
+									.multilineTextAlignment(.leading)
+									.textFieldStyle(.roundedBorder)
+									.background(.white)
+									.labelsHidden()
+									.clipShape(RoundedRectangle(cornerRadius: 6))
+							} else {
+								SecureField("Password", text: $userPassword)
+									.multilineTextAlignment(.leading)
+									.textFieldStyle(.roundedBorder)
+									.background(.white)
+									.labelsHidden()
+									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.onChange(of: userPassword) { newValue in
+										if newValue.isEmpty {
+											config.configuredPassword = nil
+										} else {
+											config.configuredPassword = newValue
+										}
+									}
+							}
+						}.overlay(alignment: .trailing) {
+							Image(systemName: self.showPassword ? "eye.fill" : "eye.slash.fill")
+								.padding()
+								.onTapGesture {
+									self.showPassword.toggle()
+								}
+						}
+					}
+				}
+			}.formStyle(.grouped)
+		}.frame(maxHeight: .infinity)
 	}
 
 	func generalSettings() -> some View {

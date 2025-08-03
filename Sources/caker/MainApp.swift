@@ -112,27 +112,41 @@ struct MainApp: App {
 			}
 			CommandMenu("Control") {
 				Button("Start") {
-					appState.currentDocument?.startFromUI()
+					appState.currentDocument.startFromUI()
 				}.disabled(appState.isRunning || appState.currentDocument == nil)
 
 				Button("Stop") {
-					appState.currentDocument?.stopFromUI()
-				}.disabled(appState.isStopped || appState.currentDocument == nil)
+					appState.currentDocument.stopFromUI()
+				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 
 				Button("Request Stop") {
-					appState.currentDocument?.requestStopFromUI()
-				}.disabled(appState.isStopped || appState.currentDocument == nil)
+					appState.currentDocument.requestStopFromUI()
+				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 
 				if #available(macOS 14, *) {
 					Button("Suspend") {
-						appState.currentDocument?.suspendFromUI()
-					}.disabled(!appState.isSuspendable || appState.currentDocument == nil)
+						appState.currentDocument.suspendFromUI()
+					}.disabled(!appState.isSuspendable || appState.isAgentInstalling || appState.currentDocument == nil)
 				}
 
 				Button("Create template") {
 					createTemplate = true
 				}
 				.disabled(appState.isRunning || appState.currentDocument == nil)
+				.alert("Create template", isPresented: $createTemplate) {
+					CreateTemplateView(appState: $appState)
+				}
+				
+				Divider()
+
+				Button("Install agent") {
+					appState.isAgentInstalling = true
+
+					appState.currentDocument.installAgent {
+						appState.isAgentInstalling = false
+					}
+				}
+				.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 				.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView(appState: $appState)
 				}

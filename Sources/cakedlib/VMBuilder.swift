@@ -116,8 +116,8 @@ public struct VMBuilder {
 
 				config.hardwareModel = requirements.hardwareModel
 				config.ecid = VZMacMachineIdentifier()
-				config.useCloudInit = true
-				config.agent = true
+				config.useCloudInit = false
+				config.agent = false
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
 			}

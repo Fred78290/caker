@@ -24,6 +24,7 @@ cp -c Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprof
 cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
 cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
 cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
+cp -c Resources/menubar.png ${PKGDIR}/Contents/Resources/MenuBarIcon.png
 cp -c Resources/Icons/*.png ${PKGDIR}/Contents/Resources/Icons
 
 mkdir .bin

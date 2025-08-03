@@ -85,6 +85,7 @@ struct HostVirtualMachineView: View {
 		}.onChange(of: appearsActive) { newValue in
 			if newValue {
 				self.appState.currentDocument = self.document
+				self.appState.isAgentInstalling = self.document.agent == .installing
 				self.appState.isStopped = document.status == .stopped || document.status == .stopping
 				self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
 				self.appState.isPaused = document.status == .paused || document.status == .pausing
@@ -94,6 +95,7 @@ struct HostVirtualMachineView: View {
 			}
 		}.onChange(of: self.document.status) { newValue in
 			if self.appearsActive {
+				self.appState.isAgentInstalling = self.document.agent == .installing
 				self.appState.isStopped = newValue == .stopped || newValue == .stopping
 				self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
 				self.appState.isPaused = newValue == .paused || newValue == .pausing
@@ -102,11 +104,11 @@ struct HostVirtualMachineView: View {
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
 				if document.status == .running || document.status == .external {
-					Button(action: {
+					Button("Stop", systemImage: "stop") {
 						document.requestStopFromUI()
-					}) {
-						Image(systemName: "stop").imageScale(.large)
-					}.help("Stop virtual machine")
+					}
+					.help("Stop virtual machine")
+					.disabled(document.agent == .installing)
 				} else if document.status == .paused {
 					Button("Start", systemImage: "playpause") {
 						document.startFromUI()
@@ -123,13 +125,13 @@ struct HostVirtualMachineView: View {
 					document.suspendFromUI()
 				}
 				.help("Suspends virtual machine")
-				.disabled(document.suspendable == false)
+				.disabled(document.suspendable == false || document.agent == .installing)
 
 				Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 					document.restartFromUI()
 				}
 				.help("Restart virtual machine")
-				.disabled(self.appState.isStopped)
+				.disabled(self.appState.isStopped || document.agent == .installing)
 
 				Spacer()
 
@@ -138,6 +140,25 @@ struct HostVirtualMachineView: View {
 				}
 				.help("Create template from virtual machine")
 				.disabled(self.appState.isRunning)
+
+				Spacer()
+
+				Button(action: {
+					self.appState.isAgentInstalling = true
+
+					self.document.installAgent {
+						self.appState.isAgentInstalling = false
+					}
+				}, label: {
+					ZStack {
+						Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
+						if self.appState.isAgentInstalling {
+							ProgressView().frame(height: 10).scaleEffect(0.5)
+						}
+					}
+				})
+				.help("Install agent into virtual machine")
+				.disabled(self.appState.isStopped || self.document.agent != .none)
 
 				Spacer()
 
