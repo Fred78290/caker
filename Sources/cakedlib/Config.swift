@@ -393,8 +393,8 @@ public final class CakeConfig {
 		}
 
 		#if arch(arm64)
-			if self.firstLaunch && source != .iso && source != .ipsw {
-				return true
+			if self.firstLaunch {
+				return source != .iso && source != .ipsw
 			} else if source == .iso || source == .ipsw {
 				return true
 			}
