@@ -3,19 +3,21 @@ import GRPCLib
 import SwiftTerm
 import SwiftUI
 
+@MainActor
 func alertError(_ error: Error) {
+	let informativeText: String
+	
 	if let error = error as? ServiceError {
-		let alert = NSAlert()
-
-		alert.messageText = "Failed to start VM"
-		alert.informativeText = error.description
-		alert.runModal()
+		informativeText = error.description
 	} else {
-		let alert = NSAlert(error: error)
-
-		alert.messageText = "Failed to start VM"
-		alert.runModal()
+		informativeText = error.localizedDescription
 	}
+	
+	let alert = NSAlert(error: error)
+
+	alert.messageText = "Failed to start VM"
+	alert.informativeText = informativeText
+	alert.runModal()
 }
 
 struct Defaults {

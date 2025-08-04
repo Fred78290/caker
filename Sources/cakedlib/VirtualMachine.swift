@@ -556,7 +556,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func installAgent(runMode: Utils.RunMode) async throws -> Bool {
+	public func installAgent(timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
 		return try await withCheckedThrowingContinuation { continuation in
 			do {
 				let response = try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode)
@@ -571,7 +571,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 					}
 
 					do {
-						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, runMode: runMode)
+						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
 						config.runningIP = runningIP
 						config.firstLaunch = false
 

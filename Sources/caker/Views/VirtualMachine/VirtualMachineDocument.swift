@@ -248,17 +248,24 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.agent = .installing
 
 			Task {
-				do {
-					self.agent = try await virtualMachine.installAgent(runMode: .app) ? .installed : .none
+				var agent: AgentStatus = .installing
 
-					if self.agent == .none {
-						alertError(ServiceError("Failed to install agent."))
+				do {
+					agent = try await virtualMachine.installAgent(timeout: 10, runMode: .app) ? .installed : .none
+
+					if agent == .none {
+						throw ServiceError("Failed to install agent.")
 					}
 				} catch {
-					alertError(error)
+					await alertError(error)
+					
+					agent = .none
 				}
 
-				done()
+				DispatchQueue.main.async {
+					self.agent = agent
+					done()
+				}
 			}
 		}
 	}
@@ -277,10 +284,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
 
 				if result.stopped == false {
-					alertError(ServiceError(result.reason))
+					MainActor.assumeIsolated {
+						alertError(ServiceError(result.reason))
+					}
 				}
 			} catch {
-				alertError(error)
+				MainActor.assumeIsolated {
+					alertError(error)
+				}
 			}
 		}
 	}
@@ -293,10 +304,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.stopVM(name: self.name, force: true, runMode: .app)
 
 				if result.stopped == false {
-					alertError(ServiceError(result.reason))
+					MainActor.assumeIsolated {
+						alertError(ServiceError(result.reason))
+					}
 				}
 			} catch {
-				alertError(error)
+				MainActor.assumeIsolated {
+					alertError(error)
+				}
 			}
 		}
 	}
@@ -309,10 +324,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
 
 				if result.stopped == false {
-					alertError(ServiceError(result.reason))
+					MainActor.assumeIsolated {
+						alertError(ServiceError(result.reason))
+					}
 				}
 			} catch {
-				alertError(error)
+				MainActor.assumeIsolated {
+					alertError(error)
+				}
 			}
 		}
 	}

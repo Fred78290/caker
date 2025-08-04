@@ -517,7 +517,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		} while true
 	}
 
-	public func installAgent(config: CakeConfig, runningIP: String, runMode: Utils.RunMode) throws -> Bool {
+	public func installAgent(config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
 		let home: Home = try Home(runMode: runMode)
@@ -526,7 +526,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		let serverKey: String = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii)
 		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii)
 		let sharedPublicKey = try home.getSharedPublicKey()
-		let ssh = try createSSH(host: runningIP, timeout: 120)
+		let ssh = try createSSH(host: runningIP, timeout: timeout)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
 			#!/bin/sh
