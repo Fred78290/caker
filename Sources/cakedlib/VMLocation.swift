@@ -517,15 +517,27 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		} while true
 	}
 
+	func getPublicSSHKeys(config: CakeConfig, runMode: Utils.RunMode) throws -> [String] {
+		let sharedPublicKey = try Home(runMode: runMode).getSharedPublicKey()
+
+		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			if let content = try? String(contentsOf: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL), encoding: .utf8) {
+				return [sharedPublicKey, content]
+			}
+		}
+
+		return [sharedPublicKey]
+	}
+
 	public func installAgent(config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
-		let home: Home = try Home(runMode: runMode)
+		let imageSource = config.source
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii)
 		let serverKey: String = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii)
 		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii)
-		let sharedPublicKey = try home.getSharedPublicKey()
+		let sshPublicKeys = try getPublicSSHKeys(config: config, runMode: runMode).joined(separator: "\n")
 		let ssh = try createSSH(host: runningIP, timeout: timeout)
 		let tempFileURL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("install-agent.sh")
 		let install_agent = """
@@ -595,7 +607,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 			echo "Downloaded CakeAgent, setting permissions"
 			curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
-			echo "\(sharedPublicKey)" >> "${SSHDIR}/authorized_keys"
+			echo "\(sshPublicKeys)" >> "${SSHDIR}/authorized_keys"
 			chown -R \(config.configuredUser) "${SSHDIR}"
 			chmod 600 "${SSHDIR}/authorized_keys"
 
@@ -644,7 +656,9 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
-		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+		if imageSource == .ipsw {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
 			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
