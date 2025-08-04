@@ -15,7 +15,7 @@ func alertError(_ error: Error) {
 	
 	let alert = NSAlert(error: error)
 
-	alert.messageText = "Failed to start VM"
+	alert.messageText = "An error occured"
 	alert.informativeText = informativeText
 	alert.runModal()
 }
