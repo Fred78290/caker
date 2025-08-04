@@ -1100,7 +1100,6 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
@@ -1111,6 +1110,7 @@
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
+				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 			);
 			path = Views;
