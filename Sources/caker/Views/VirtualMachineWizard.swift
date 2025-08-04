@@ -736,10 +736,10 @@ struct VirtualMachineWizard: View {
 
 						if platform == .ubuntu {
 							Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
-						} else if platform == .fedora {
-							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
-						} else if platform == .debian {
-							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
+//						} else if platform == .fedora {
+//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
+//						} else if platform == .debian {
+//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
 					}
 
