@@ -151,6 +151,7 @@ private nonisolated(unsafe) var managerThreadRunLoop: RunLoop? = nil
 // Protected by managerThreadRunLoopIsRunningCondition
 private nonisolated(unsafe) var managerThreadRunLoopIsRunning = false
 private let managerThreadRunLoopIsRunningCondition = NSCondition()
+private var managerThreadRunLoopQos: QualityOfService = .default
 
 internal let kCFSocketNoCallBack: CFOptionFlags = 0  // .noCallBack cannot be used because empty option flags are imported as unavailable.
 internal let kCFSocketAcceptCallBack = CFSocketCallBackType.acceptCallBack.rawValue
@@ -222,7 +223,7 @@ private func processIsEqual(_ a: UnsafeRawPointer?, _ b: UnsafeRawPointer?) -> D
 }
 
 open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
-	private static func setup() {
+	private static func setup(qos: QualityOfService = .default) {
 		struct Once {
 			static var done = false
 			static let lock = NSLock()
@@ -256,6 +257,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 					managerThreadRunLoop?.run()
 					fatalError("ProcessWithSharedFileHandle manager run loop exited unexpectedly; it should run forever once initialized")
 				}
+				thread.qualityOfService = qos
 				thread.start()
 				managerThreadRunLoopIsRunningCondition.lock()
 				while managerThreadRunLoopIsRunning == false {
@@ -273,9 +275,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 	// Upon process death a notification will be sent
 	//   { Name = ProcessDidTerminateNotification; object = process; }
 	//
-
 	public override init() {
-
 	}
 
 	// These properties can only be set before a launch.
@@ -415,7 +415,7 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 		}
 
 		// Dispatch the manager thread if it isn't already running
-		ProcessWithSharedFileHandle.setup()
+		ProcessWithSharedFileHandle.setup(qos: managerThreadRunLoopQos)
 
 		// Check that the process isnt run more than once
 		guard hasStarted == false && hasFinished == false else {
@@ -822,4 +822,12 @@ open class ProcessWithSharedFileHandle: NSObject, @unchecked Sendable {
 
 extension ProcessWithSharedFileHandle {
 	public static let didTerminateNotification = NSNotification.Name(rawValue: "NSTaskDidTerminateNotification")
+	public static var runLoopQos: QualityOfService {
+		get {
+			managerThreadRunLoopQos
+		}
+		set {
+			managerThreadRunLoopQos = newValue
+		}
+	}
 }
