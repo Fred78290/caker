@@ -4,9 +4,98 @@ import NIO
 import NIOPortForwarding
 import Semaphore
 import Virtualization
+import Socket
+import Shout
 
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
+}
+
+extension SSHError.Kind {
+	var description: String {
+		switch self {
+		case .authenticationFailed:
+			return "Authentication failed"
+		case .channelFailure:
+			return "Channel failure"
+		case .channelClosed:
+			return "Channel closed"
+		case .channelRequestDenied:
+			return "Channel request denied"
+		case .genericError:
+			return "Unknow error"
+		case .bannerRecv:
+			return "Banner recv"
+		case .bannerSend:
+			return "Banner send"
+		case .invalidMac:
+			return "Invalic mac address"
+		case .kexFailure:
+			return "kext failure"
+		case .alloc:
+			return "allocation failure"
+		case .socketSend:
+			return "error socket"
+		case .keyExchangeFailure:
+			return "key exchange failure"
+		case .errorTimeout:
+			return "connection timeout"
+		case .hostkeyInit, .hostkeySign, .decrypt:
+			return "SSH key problem"
+		case .socketDisconnect:
+			return "socket disconnect"
+		case .proto:
+			return "wrong protocol"
+		case .passwordExpired:
+			return "password expired"
+		case .file:
+			return "file error"
+		case .methodNone:
+			return "wrong method"
+		case .publicKeyUnverified:
+			return "public key can't be verified"
+		case .channelOutOfOrder, .channelUnknown, .channelWindowExceeded, .channelPacketExceeded, .channelEofSent, .channelWindowFull:
+			return "channel error"
+		case .scpProtocol, .sftpProtocol:
+			return "exchange protocol error"
+		case .zlib:
+			return "zlib error"
+		case .socketTimeout:
+			return "some socket timeout"
+		case .requestDenied:
+			return "request denied"
+		case .methodNotSupported:
+			return "method not supported"
+		case .inval:
+			return "invalid argument"
+		case .invalidPollType:
+			return "invalid poll type"
+		case .publicKeyProtocol:
+			return "wrong public key protocol"
+		case .eagain:
+			return "some socket error"
+		case .bufferTooSmall:
+			return "buffer too small"
+		case .badUse:
+			return "bad use"
+		case .compress:
+			return "compress error"
+		case .outOfBoundary:
+			return "out of boundary"
+		case .agentProtocol:
+			return "agent protocol error"
+		case .socketRecv:
+			return "socket recv error"
+		case .encrypt:
+			return "encrypt error"
+		case .badSocket:
+			return "bad socket"
+		case .knownHosts:
+			return "wrong known hosts"
+		case .keyfileAuthFailed:
+			return "key authentication failed"
+		}
+	}
 }
 
 class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
@@ -580,7 +669,18 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						continuation.resume(with: .success(true))
 					} catch {
 						Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
-						continuation.resume(with: .failure(error))
+
+						if let err = error as? SSHError {
+							continuation.resume(with: .failure(ServiceError(err.kind.description)))
+						} else if let err = error as? Socket.Error {
+							if err.errorCode == Socket.SOCKET_ERR_GETADDRINFO_FAILED {
+								continuation.resume(with: .failure(ServiceError("SSH server not responding")))
+							} else {
+								continuation.resume(with: .failure(ServiceError("Socket error: \(err.errorCode)")))
+							}
+						} else {
+							continuation.resume(with: .failure(error))
+						}
 					}
 				}
 
