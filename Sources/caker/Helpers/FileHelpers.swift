@@ -18,9 +18,9 @@ struct FileHelpers {
 		return selectSingleInputFile(ofType: imageTypes, withTitle: windowTitle)
 	}
 
-	public static func selectSingleInputFile(ofType fileTypes: [UTType], withTitle windowTitle: String?, allowsOtherFileTypes: Bool = false, canCreateDirectories: Bool = false, showsHiddenFiles: Bool = false) -> URL? {
+	public static func selectSingleInputFile(ofType fileTypes: [UTType], withTitle windowTitle: String?, allowsOtherFileTypes: Bool = false, canCreateDirectories: Bool = false, showsHiddenFiles: Bool = false, directoryURL: URL? = nil) -> URL? {
 
-		let openPrompt = FileHelpers().createOpenPanel(ofType: fileTypes, withTitle: windowTitle)
+		let openPrompt = FileHelpers().createOpenPanel(ofType: fileTypes, withTitle: windowTitle, directoryURL: directoryURL)
 
 		openPrompt.allowsOtherFileTypes = allowsOtherFileTypes
 		openPrompt.canCreateDirectories = canCreateDirectories
@@ -102,7 +102,8 @@ struct FileHelpers {
 	private func createOpenPanel(
 		ofType: [UTType],
 		withTitle: String?,
-		allowsMultiple: Bool = false
+		allowsMultiple: Bool = false,
+		directoryURL: URL? = nil
 	) -> NSOpenPanel {
 
 		let openPrompt = NSOpenPanel()
@@ -116,6 +117,7 @@ struct FileHelpers {
 		openPrompt.canChooseFiles = true
 		openPrompt.resolvesAliases = true
 		openPrompt.allowedContentTypes = ofType
+		openPrompt.directoryURL = directoryURL
 
 		return openPrompt
 	}

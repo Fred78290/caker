@@ -193,7 +193,9 @@ struct MainApp: App {
 	}
 
 	private func open() {
-		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine") {
+		let home = StorageLocation(runMode: .app).rootURL
+
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
 			Task {
 				try? await openDocument(at: documentURL)
 			}
@@ -210,6 +212,8 @@ struct MainApp: App {
 	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
+		ProcessWithSharedFileHandle.runLoopQos = .userInteractive
+
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
 		}
