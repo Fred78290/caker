@@ -251,7 +251,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				var agent: AgentStatus = .installing
 
 				do {
-					agent = try await virtualMachine.installAgent(timeout: 10, runMode: .app) ? .installed : .none
+					agent = try await virtualMachine.installAgent(timeout: 2, runMode: .app) ? .installed : .none
 
 					if agent == .none {
 						throw ServiceError("Failed to install agent.")
