@@ -151,7 +151,15 @@ struct HostVirtualMachineView: View {
 					}
 				}, label: {
 					ZStack {
-						Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
+						if let path = Bundle.main.path(forResource: "agent", ofType: "svg") {
+							Image(nsImage: NSImage(contentsOfFile: path)!)
+								.resizable()
+								.renderingMode(.template)
+								.colorMultiply(.init(nsColor: self.appState.isStopped || self.document.agent != .none ? .lightGray : .darkGray))
+								.frame(size: CGSize(width: 17, height: 17)).opacity(self.appState.isAgentInstalling ? 0 : 1)
+						} else {
+							Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
+						}
 						if self.appState.isAgentInstalling {
 							ProgressView().frame(height: 10).scaleEffect(0.5)
 						}
