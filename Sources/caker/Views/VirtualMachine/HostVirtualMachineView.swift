@@ -126,40 +126,30 @@ struct HostVirtualMachineView: View {
 				}
 				.help("Suspends virtual machine")
 				.disabled(document.suspendable == false || document.agent == .installing)
-
+				
 				Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 					document.restartFromUI()
 				}
 				.help("Restart virtual machine")
 				.disabled(self.appState.isStopped || document.agent == .installing)
 
-				Spacer()
-
 				Button("Create template", systemImage: "archivebox") {
 					createTemplate = true
 				}
 				.help("Create template from virtual machine")
 				.disabled(self.appState.isRunning)
+			}
 
-				Spacer()
-
+			ToolbarItemGroup(placement: .secondaryAction) {
 				Button(action: {
 					self.appState.isAgentInstalling = true
-
+					
 					self.document.installAgent {
 						self.appState.isAgentInstalling = false
 					}
 				}, label: {
 					ZStack {
-						if let path = Bundle.main.path(forResource: "agent", ofType: "svg") {
-							Image(nsImage: NSImage(contentsOfFile: path)!)
-								.resizable()
-								.renderingMode(.template)
-								.colorMultiply(.init(nsColor: self.appState.isStopped || self.document.agent != .none ? .lightGray : .darkGray))
-								.frame(size: CGSize(width: 17, height: 17)).opacity(self.appState.isAgentInstalling ? 0 : 1)
-						} else {
-							Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
-						}
+						Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
 						if self.appState.isAgentInstalling {
 							ProgressView().frame(height: 10).scaleEffect(0.5)
 						}
@@ -167,9 +157,7 @@ struct HostVirtualMachineView: View {
 				})
 				.help("Install agent into virtual machine")
 				.disabled(self.appState.isStopped || self.document.agent != .none)
-
-				Spacer()
-
+				
 				Button("Delete", systemImage: "trash") {
 					self.appState.deleteVirtualMachine(document: self.document)
 				}
@@ -177,7 +165,7 @@ struct HostVirtualMachineView: View {
 				.disabled(self.appState.isRunning || self.appState.isPaused)
 			}
 
-			ToolbarItem(placement: .primaryAction) {
+			ToolbarItemGroup(placement: .primaryAction) {
 				Button("Settings", systemImage: "gear") {
 					displaySettings = true
 				}

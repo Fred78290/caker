@@ -5,6 +5,7 @@ import Qcow2convert
 class CloudImageConverter {
 	private static func step(_ message: String, progressHandler: ProgressObserver.BuildProgressHandler?) {
 		if let progressHandler = progressHandler {
+			Logger(self).info(message)
 			progressHandler(.step(message))
 		} else {
 			Logger(self).info(message)

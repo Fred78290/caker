@@ -490,6 +490,7 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
+			.menuStyle(.button)
 			.pickerStyle(.menu)
 			.disabled(self.model.createVM)
 
@@ -801,7 +802,7 @@ struct VirtualMachineWizard: View {
 
 				case .template:
 					Picker("Select a template", selection: $config.imageName) {
-						ForEach(templates(), id: \.self) { template in
+						ForEach(AppState.shared.templates, id: \.self) { template in
 							Text(template.name).tag(template.fqn)
 						}
 					}
@@ -811,7 +812,7 @@ struct VirtualMachineWizard: View {
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $model.remoteImage) {
-							ForEach(remotes(), id: \.self) { remote in
+							ForEach(AppState.shared.remotes, id: \.self) { remote in
 								Text(remote.name).tag(remote.name)
 							}
 						}
