@@ -6,7 +6,7 @@ import GRPCLib
 import NIO
 import Semaphore
 
-class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
+class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 	static let supportsSecureCoding: Bool = false
 	
 	enum ServiceReply {
@@ -19,7 +19,7 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 	private var response: ServiceReply? = nil
 	
 	override init() {
-		self.response = ReplyMountService.ServiceReply.none
+		self.response = ReplyVMRunService.ServiceReply.none
 	}
 	
 	required init?(coder: NSCoder) {
@@ -59,7 +59,7 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 			}
 
 			return MountInfos.with {
-				$0.response = .error("Unexpected reply from MountService \(reply)")
+				$0.response = .error("Unexpected reply from VMRunService \(reply)")
 			}
 		}
 
@@ -71,14 +71,14 @@ class ReplyMountService: NSObject, NSSecureCoding, ReplyMountServiceProtocol {
 
 public struct MountHandler {
 	public static func VncURL(location: VMLocation) throws -> URL? {
-		return try createMountServiceClient(location: location).vncURL()
+		return try createVMRunServiceClient(location: location).vncURL()
 	}
 
 	public static func Mount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
-		return try createMountServiceClient(location: location).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+		return try createVMRunServiceClient(location: location).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 
 	public static func Umount(location: VMLocation, mounts: [DirectorySharingAttachment]) throws -> MountInfos {
-		return try createMountServiceClient(location: location).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+		return try createVMRunServiceClient(location: location).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
 	}
 }

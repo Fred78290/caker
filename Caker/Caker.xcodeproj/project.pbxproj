@@ -146,6 +146,7 @@
 		9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
+		9B8509C52E450AC9004999B6 /* RoyalVNCKit in Frameworks */ = {isa = PBXBuildFile; productRef = 9B8509C42E450AC9004999B6 /* RoyalVNCKit */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
@@ -260,12 +261,12 @@
 		9BEBC7772DF440720092B196 /* Curl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7592DF440720092B196 /* Curl.swift */; };
 		9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */; };
 		9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7512DF440720092B196 /* VZVMNetSocket.swift */; };
-		9BEBC77B2DF440720092B196 /* MountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC73B2DF440720092B196 /* MountService.swift */; };
+		9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC73B2DF440720092B196 /* VMRunService.swift */; };
 		9BEBC77D2DF440720092B196 /* NetworkAttachement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */; };
 		9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7372DF440720092B196 /* mount.pb.swift */; };
 		9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC72B2DF440720092B196 /* VMRunHandler.swift */; };
 		9BEBC7802DF440720092B196 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7582DF440720092B196 /* Config.swift */; };
-		9BEBC7812DF440720092B196 /* GRPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7342DF440720092B196 /* GRPCMountService.swift */; };
+		9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7342DF440720092B196 /* GRPCVMRunService.swift */; };
 		9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75A2DF440720092B196 /* DHCPLeases.swift */; };
 		9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71F2DF440720092B196 /* ListHandler.swift */; };
 		9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7682DF440720092B196 /* VMLocation.swift */; };
@@ -312,7 +313,7 @@
 		9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71D2DF440720092B196 /* InfosHandler.swift */; };
 		9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7532DF440720092B196 /* ARPParser.swift */; };
 		9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7602DF440720092B196 /* PortForwardingServer.swift */; };
-		9BEBC7B22DF440720092B196 /* XPCMountService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7392DF440720092B196 /* XPCMountService.swift */; };
+		9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7392DF440720092B196 /* XPCVMRunService.swift */; };
 		9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7272DF440720092B196 /* RunHandler.swift */; };
 		9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7642DF440720092B196 /* StorageLocation.swift */; };
 		9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7222DF440720092B196 /* MountHandler.swift */; };
@@ -748,12 +749,12 @@
 		9BEBC7302DF440720092B196 /* IP.Block.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.Block.swift; sourceTree = "<group>"; };
 		9BEBC7312DF440720092B196 /* IP.V4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IP.V4.swift; sourceTree = "<group>"; };
 		9BEBC7332DF440720092B196 /* generate.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = generate.sh; sourceTree = "<group>"; };
-		9BEBC7342DF440720092B196 /* GRPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCMountService.swift; sourceTree = "<group>"; };
+		9BEBC7342DF440720092B196 /* GRPCVMRunService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCVMRunService.swift; sourceTree = "<group>"; };
 		9BEBC7352DF440720092B196 /* mount.proto */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.protobuf; path = mount.proto; sourceTree = "<group>"; };
 		9BEBC7362DF440720092B196 /* mount.grpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mount.grpc.swift; sourceTree = "<group>"; };
 		9BEBC7372DF440720092B196 /* mount.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = mount.pb.swift; sourceTree = "<group>"; };
-		9BEBC7392DF440720092B196 /* XPCMountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCMountService.swift; sourceTree = "<group>"; };
-		9BEBC73B2DF440720092B196 /* MountService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountService.swift; sourceTree = "<group>"; };
+		9BEBC7392DF440720092B196 /* XPCVMRunService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPCVMRunService.swift; sourceTree = "<group>"; };
+		9BEBC73B2DF440720092B196 /* VMRunService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRunService.swift; sourceTree = "<group>"; };
 		9BEBC73D2DF440720092B196 /* CommunicationDevices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationDevices.swift; sourceTree = "<group>"; };
 		9BEBC73E2DF440720092B196 /* CommunicationHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationHandlers.swift; sourceTree = "<group>"; };
 		9BEBC73F2DF440720092B196 /* ConsoleDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleDevice.swift; sourceTree = "<group>"; };
@@ -900,6 +901,7 @@
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
+				9B8509C52E450AC9004999B6 /* RoyalVNCKit in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
 			);
@@ -1502,7 +1504,7 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7332DF440720092B196 /* generate.sh */,
-				9BEBC7342DF440720092B196 /* GRPCMountService.swift */,
+				9BEBC7342DF440720092B196 /* GRPCVMRunService.swift */,
 				9BEBC7352DF440720092B196 /* mount.proto */,
 				9BEBC7362DF440720092B196 /* mount.grpc.swift */,
 				9BEBC7372DF440720092B196 /* mount.pb.swift */,
@@ -1513,19 +1515,19 @@
 		9BEBC73A2DF440720092B196 /* XPC */ = {
 			isa = PBXGroup;
 			children = (
-				9BEBC7392DF440720092B196 /* XPCMountService.swift */,
+				9BEBC7392DF440720092B196 /* XPCVMRunService.swift */,
 			);
 			path = XPC;
 			sourceTree = "<group>";
 		};
-		9BEBC73C2DF440720092B196 /* MountService */ = {
+		9BEBC73C2DF440720092B196 /* VMRunService */ = {
 			isa = PBXGroup;
 			children = (
 				9BEBC7382DF440720092B196 /* GRPC */,
 				9BEBC73A2DF440720092B196 /* XPC */,
-				9BEBC73B2DF440720092B196 /* MountService.swift */,
+				9BEBC73B2DF440720092B196 /* VMRunService.swift */,
 			);
-			path = MountService;
+			path = VMRunService;
 			sourceTree = "<group>";
 		};
 		9BEBC7412DF440720092B196 /* Sockets */ = {
@@ -1602,7 +1604,7 @@
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
-				9BEBC73C2DF440720092B196 /* MountService */,
+				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC7462DF440720092B196 /* Tunnel */,
 				9BEBC74C2DF440720092B196 /* UI */,
@@ -1664,6 +1666,7 @@
 				9B7C7B6A2E0FC7DA009D0A26 /* Steps */,
 				9B9123802E29253A006DD682 /* SwiftTerm */,
 				9B0D1A452E2BAA2700D70267 /* FileMonitor */,
+				9B8509C42E450AC9004999B6 /* RoyalVNCKit */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1954,6 +1957,7 @@
 				9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */,
 				9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
 				9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */,
+				9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2196,12 +2200,12 @@
 				9BEBC7772DF440720092B196 /* Curl.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */,
-				9BEBC77B2DF440720092B196 /* MountService.swift in Sources */,
+				9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */,
 				9BEBC77D2DF440720092B196 /* NetworkAttachement.swift in Sources */,
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
 				9BEBC7802DF440720092B196 /* Config.swift in Sources */,
-				9BEBC7812DF440720092B196 /* GRPCMountService.swift in Sources */,
+				9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */,
 				9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */,
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
@@ -2255,7 +2259,7 @@
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
-				9BEBC7B22DF440720092B196 /* XPCMountService.swift in Sources */,
+				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
@@ -3040,6 +3044,14 @@
 				minimumVersion = 0.3.9;
 			};
 		};
+		9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/royalapplications/royalvnc.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
@@ -3231,6 +3243,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B7C7B692E0FC7B3009D0A26 /* XCRemoteSwiftPackageReference "Steps" */;
 			productName = Steps;
+		};
+		9B8509C42E450AC9004999B6 /* RoyalVNCKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
+			productName = RoyalVNCKit;
 		};
 		9B9123802E29253A006DD682 /* SwiftTerm */ = {
 			isa = XCSwiftPackageProductDependency;

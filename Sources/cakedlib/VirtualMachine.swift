@@ -106,7 +106,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let networks: [NetworkAttachement]
 	let sigcaught: [Int32: DispatchSourceSignal]
 	var semaphore = AsyncSemaphore(value: 0)
-	var mountService: MountServiceServerProtocol! = nil
+	var vmrunService: VMRunServiceServerProtocol! = nil
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
@@ -239,25 +239,25 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		try? PortForwardingServer.closeForwardedPort()
 	}
 
-	func stopMountService() {
-		if let mountService = self.mountService {
+	func stopVMRunService() {
+		if let service = self.vmrunService {
 			Logger(self).info("Stopping mount service for VM \(self.location.name)...")
-			mountService.stop()
+			service.stop()
 		}
 	}
 
-	func startMountService(_ vm: VirtualMachine) throws {
-		self.mountService = createMountServiceServer(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
+	func startVMRunService(_ vm: VirtualMachine) throws {
+		self.vmrunService = createVMRunServiceServer(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
 	}
 
-	func serveMountService() async throws {
+	func serveVMRunService() async throws {
 		defer {
-			self.stopMountService()
+			self.stopVMRunService()
 			self.stopNetworkDevices()
 		}
 
 		do {
-			self.mountService.serve()
+			self.vmrunService.serve()
 			try await self.semaphore.waitUnlessCancelled()
 		} catch is CancellationError {
 		}
@@ -382,7 +382,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 
-		try self.env.startMountService(self)
+		try self.env.startVMRunService(self)
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -408,7 +408,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
-		try await self.env.serveMountService()
+		try await self.env.serveVMRunService()
 
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {

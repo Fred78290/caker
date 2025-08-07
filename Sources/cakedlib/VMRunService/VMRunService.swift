@@ -5,18 +5,18 @@ import GRPCLib
 import NIO
 import Virtualization
 
-protocol MountServiceClient {
+protocol VMRunServiceClient {
 	func vncURL() throws -> URL?
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 }
 
-protocol MountServiceServerProtocol {
+protocol VMRunServiceServerProtocol {
 	func serve()
 	func stop()
 }
 
-class MountService: NSObject {
+class VMRunService: NSObject {
 	let runMode: Utils.RunMode
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
@@ -97,10 +97,10 @@ class MountService: NSObject {
 	}
 }
 
-func createMountServiceClient(location: VMLocation) -> MountServiceClient {
-	return XPCMountServiceClient(location: location)
+func createVMRunServiceClient(location: VMLocation) -> VMRunServiceClient {
+	return XPCVMRunServiceClient(location: location)
 }
 
-func createMountServiceServer(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> MountServiceServerProtocol {
-	return XPCMountServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+func createVMRunServiceServer(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
+	return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
 }

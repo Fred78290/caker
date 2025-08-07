@@ -72,11 +72,11 @@ extension Vmrun_MountReply {
 	}
 }
 
-class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncProvider {
+class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider {
 	var server: Server? = nil
 
 	func createServer() throws -> EventLoopFuture<Server> {
-		let listeningAddress = self.vm.location.mountServiceURL
+		let listeningAddress = self.vm.location.serviceURL
 		let target: ConnectionTarget
 
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
@@ -109,7 +109,7 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 			do {
 				self.server = try await self.createServer().get()
 			} catch {
-				Logger.appendNewLine("Failed to start MountService server: \(error)")
+				Logger.appendNewLine("Failed to start VMRunService server: \(error)")
 			}
 		}
 	}

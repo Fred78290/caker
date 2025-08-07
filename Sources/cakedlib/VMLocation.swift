@@ -57,7 +57,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}
 
-	public var mountServiceURL: URL {
+	public var serviceURL: URL {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "mount")
 	}
 

@@ -26,7 +26,7 @@ public class VNCServer {
 				return URL(string: "vnc://127.0.0.1:\(port)")!
 			}
 
-			Thread.sleep(forTimeInterval: 1)
+			Thread.sleep(forTimeInterval: 0.05)
 		}
 	}
 

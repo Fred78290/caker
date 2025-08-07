@@ -235,18 +235,18 @@ struct MountRequest: Codable {
 	}
 }
 
-@objc protocol ReplyMountServiceProtocol {
+@objc protocol ReplyVMRunServiceProtocol {
 	func vncURLReply(response: String)
 	func mountReply(response: String)
 }
 
-@objc protocol MountServiceProtocol {
+@objc protocol VMRunServiceProtocol {
 	func vncUrl()
 	func mount(request: String)
 	func umount(request: String)
 }
 
-class XPCMountService: MountService, MountServiceProtocol {
+class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	let connection: NSXPCConnection
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection) {
@@ -260,14 +260,14 @@ class XPCMountService: MountService, MountServiceProtocol {
 
 		Logger(self).info("XPC mount: \(String(describing: request))")
 
-		guard let mountServiceReply = proxyObject as? ReplyMountServiceProtocol else {
-			Logger(self).error("Failed to get proxy ReplyMountServiceProtocol")
+		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
+			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
 			return
 		}
 
 		reply = self.mount(request: request.toCakeAgent(), umount: umount).toXPC()
 
-		mountServiceReply.mountReply(response: reply.toJSON())
+		serviceReply.mountReply(response: reply.toJSON())
 	}
 
 	func vncUrl() {
@@ -280,12 +280,12 @@ class XPCMountService: MountService, MountServiceProtocol {
 			result = ""
 		}
 
-		guard let mountServiceReply = proxyObject as? ReplyMountServiceProtocol else {
-			Logger(self).error("Failed to get proxy ReplyMountServiceProtocol")
+		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
+			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
 			return
 		}
 
-		mountServiceReply.vncURLReply(response: result)
+		serviceReply.vncURLReply(response: result)
 	}
 	
 	public func mount(request: String) {
@@ -297,7 +297,7 @@ class XPCMountService: MountService, MountServiceProtocol {
 	}
 }
 
-class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServerProtocol {
+class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServerProtocol {
 	private let listener: NSXPCListener
 	private let certLocation: CertificatesLocation
 	private let semaphore = AsyncSemaphore(value: 0)
@@ -308,7 +308,7 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
 		let name = vm.location.name
 
-		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.MountService.\(name)")
+		self.listener = NSXPCListener(machServiceName: "com.aldunelabs.caked.VMRunService.\(name)")
 		self.group = group
 		self.runMode = runMode
 		self.vm = vm
@@ -321,9 +321,9 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 	func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
 		Logger(self).info("XPC receive connection: \(String(describing: newConnection))")
 
-		newConnection.exportedInterface = NSXPCInterface(with: MountServiceProtocol.self)
-		newConnection.exportedObject = XPCMountService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection)
-		newConnection.remoteObjectInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
+		newConnection.exportedInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
+		newConnection.exportedObject = XPCVMRunService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection)
+		newConnection.remoteObjectInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 		newConnection.activate()
 
 		return true
@@ -351,7 +351,7 @@ class XPCMountServiceServer: NSObject, NSXPCListenerDelegate, MountServiceServer
 	}
 }
 
-class XPCMountServiceClient: MountServiceClient {
+class XPCVMRunServiceClient: VMRunServiceClient {
 	let location: VMLocation
 
 	init(location: VMLocation) {
@@ -360,11 +360,11 @@ class XPCMountServiceClient: MountServiceClient {
 
 	func vncURL() throws -> URL? {
 		if location.status == .running {
-			let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
-			let replier = ReplyMountService()
+			let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
+			let replier = ReplyVMRunService()
 
-			xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
-			xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
+			xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
+			xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 			xpcConnection.exportedObject = replier
 
 			xpcConnection.activate()
@@ -375,11 +375,11 @@ class XPCMountServiceClient: MountServiceClient {
 
 			let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 
-			guard let mountService = proxyObject as? MountServiceProtocol else {
-				throw ServiceError("Failed to connect to MountService")
+			guard let service = proxyObject as? VMRunServiceProtocol else {
+				throw ServiceError("Failed to connect to VMRunService")
 			}
 
-			mountService.vncUrl()
+			service.vncUrl()
 
 			if let reply = replier.wait() {
 				if case let .vncURL(url) = reply {
@@ -407,11 +407,11 @@ class XPCMountServiceClient: MountServiceClient {
 			try config.save()
 
 			if location.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
-				let replier = ReplyMountService()
+				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
+				let replier = ReplyVMRunService()
 
-				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
-				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
+				xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
+				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 				xpcConnection.exportedObject = replier
 
 				xpcConnection.activate()
@@ -422,11 +422,11 @@ class XPCMountServiceClient: MountServiceClient {
 
 				let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 
-				guard let mountService = proxyObject as? MountServiceProtocol else {
-					throw ServiceError("Failed to connect to MountService")
+				guard let service = proxyObject as? VMRunServiceProtocol else {
+					throw ServiceError("Failed to connect to VMRunService")
 				}
 
-				mountService.mount(request: MountRequest(valided).toJSON())
+				service.mount(request: MountRequest(valided).toJSON())
 
 				return replier.waitForMountInfosReply()
 			} else {
@@ -456,11 +456,11 @@ class XPCMountServiceClient: MountServiceClient {
 			try config.save()
 
 			if location.status == .running {
-				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
-				let replier = ReplyMountService()
+				let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
+				let replier = ReplyVMRunService()
 
-				xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
-				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
+				xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
+				xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 				xpcConnection.exportedObject = replier
 
 				xpcConnection.activate()
@@ -469,11 +469,11 @@ class XPCMountServiceClient: MountServiceClient {
 					xpcConnection.invalidate()
 				}
 
-				guard let mountService = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") }) as? MountServiceProtocol else {
-					throw ServiceError("Failed to connect to MountService")
+				guard let service = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") }) as? VMRunServiceProtocol else {
+					throw ServiceError("Failed to connect to VMRunService")
 				}
 
-				mountService.umount(request: MountRequest(valided).toJSON())
+				service.umount(request: MountRequest(valided).toJSON())
 
 				return replier.waitForMountInfosReply()
 			} else {
