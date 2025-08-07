@@ -296,32 +296,16 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
-	func stopFromUI() {
+	func stopFromUI(force: Bool) {
 		if let virtualMachine = self.virtualMachine {
-			virtualMachine.stopFromUI()
-		} else if self.status == .external {
-			do {
-				let result = try StopHandler.stopVM(name: self.name, force: true, runMode: .app)
-
-				if result.stopped == false {
-					MainActor.assumeIsolated {
-						alertError(ServiceError(result.reason))
-					}
-				}
-			} catch {
-				MainActor.assumeIsolated {
-					alertError(error)
-				}
+			if force {
+				virtualMachine.stopFromUI()
+			} else {
+				virtualMachine.requestStopFromUI()
 			}
-		}
-	}
-
-	func requestStopFromUI() {
-		if let virtualMachine = self.virtualMachine {
-			virtualMachine.requestStopFromUI()
 		} else if self.status == .external {
 			do {
-				let result = try StopHandler.stopVM(name: self.name, force: false, runMode: .app)
+				let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
 
 				if result.stopped == false {
 					MainActor.assumeIsolated {

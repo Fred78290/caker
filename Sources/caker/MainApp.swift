@@ -118,11 +118,11 @@ struct MainApp: App {
 				}.disabled(appState.isRunning || appState.currentDocument == nil)
 
 				Button("Stop") {
-					appState.currentDocument.stopFromUI()
+					appState.currentDocument.stopFromUI(force: true)
 				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 
 				Button("Request Stop") {
-					appState.currentDocument.requestStopFromUI()
+					appState.currentDocument.stopFromUI(force: false)
 				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
 
 				if #available(macOS 14, *) {

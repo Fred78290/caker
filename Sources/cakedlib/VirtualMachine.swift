@@ -552,13 +552,19 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	private func _stopVM(completionHandler: StopCompletionHandler? = nil) {
-		self.virtualMachine.stop { result in
-			Logger(self).info("VM \(self.location.name) stopped")
+		self.virtualMachine.stop { error in
+			if let error = error {
+				Logger(self).error("VM \(self.location.name) failed to stop, \(error)")
+			} else {
+				Logger(self).info("VM \(self.location.name) stopped")
+
+				self.location.removePID()
+			}
 
 			self.env.stopServices()
 
 			if let completionHandler = completionHandler {
-				completionHandler(result)
+				completionHandler(error)
 			}
 
 			self.didChangedState()

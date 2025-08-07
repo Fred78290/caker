@@ -300,6 +300,7 @@ struct VirtualMachineWizard: View {
 	@Environment(\.openDocument) private var openDocument
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
+	@StateObject private var appState = AppState.shared
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
@@ -802,7 +803,7 @@ struct VirtualMachineWizard: View {
 
 				case .template:
 					Picker("Select a template", selection: $config.imageName) {
-						ForEach(AppState.shared.templates, id: \.self) { template in
+						ForEach(self.appState.templates, id: \.self) { template in
 							Text(template.name).tag(template.fqn)
 						}
 					}
@@ -812,7 +813,7 @@ struct VirtualMachineWizard: View {
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $model.remoteImage) {
-							ForEach(AppState.shared.remotes, id: \.self) { remote in
+							ForEach(self.appState.remotes, id: \.self) { remote in
 								Text(remote.name).tag(remote.name)
 							}
 						}

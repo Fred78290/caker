@@ -325,7 +325,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
 			let pid = pidFile.isPIDRunning()
-
+			
 			if pid.0 {
 				if pid.1 == "caked" {
 					if let pid = pid.2 {
@@ -335,19 +335,19 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 				}
 			}
 		}
-
+		
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
-
+		
 		if self.status != .running {
 			throw ServiceError("vm \(name) is not running")
 		}
-
+		
 		if force || config.agent == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
-
+			
 			try client.shutdown().log()
 		} else {
 			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
@@ -358,10 +358,12 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 				killVMRun()
 			}
 		}
-
+		
 		while self.status == .running {
 			Thread.sleep(forTimeInterval: 1)
 		}
+		
+		removePID()
 	}
 
 	public func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (

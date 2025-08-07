@@ -86,11 +86,11 @@ private struct VMMenuItem: View {
 				}
 			} else {
 				Button("Request stop") {
-					vm.requestStopFromUI()
+					vm.stopFromUI(force: false)
 				}.disabled(vm.canStop == false)
 
 				Button("Stop") {
-					vm.stopFromUI()
+					vm.stopFromUI(force: true)
 				}.disabled(vm.canStop == false)
 
 				if vm.suspendable {

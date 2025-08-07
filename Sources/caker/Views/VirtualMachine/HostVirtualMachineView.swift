@@ -58,7 +58,7 @@ struct HostVirtualMachineView: View {
 			if let window = notification.object as? NSWindow {
 				if window.windowNumber == windowNumber {
 					if document.status == .running {
-						document.requestStopFromUI()
+						document.stopFromUI(force: false)
 					}
 
 					DispatchQueue.main.async {
@@ -77,7 +77,7 @@ struct HostVirtualMachineView: View {
 				}
 
 				if document.status == .running {
-					document.stopFromUI()
+					document.stopFromUI(force: false)
 				}
 
 				dismiss()
@@ -103,14 +103,20 @@ struct HostVirtualMachineView: View {
 			}
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
-				if document.status == .running || document.status == .external {
-					Button("Stop", systemImage: "stop") {
-						document.requestStopFromUI()
+				if document.status == .stopping {
+					Button("Force stop", systemImage: "power") {
+						document.stopFromUI(force: true)
 					}
-					.help("Stop virtual machine")
+					.help("Force to stop virtual machine")
+					.disabled(document.agent == .installing)
+				} else if document.status == .running || document.status == .external {
+					Button("Request to stop", systemImage: "stop") {
+						document.stopFromUI(force: false)
+					}
+					.help("Request to stop virtual machine")
 					.disabled(document.agent == .installing)
 				} else if document.status == .paused {
-					Button("Start", systemImage: "playpause") {
+					Button("Resume", systemImage: "playpause") {
 						document.startFromUI()
 					}.help("Resumes virtual machine")
 				} else {
