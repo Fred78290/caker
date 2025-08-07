@@ -120,6 +120,20 @@ class GRPCMountService: MountService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		}
 	}
 
+	func vncEndPoint(request: Vmrun_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
+		guard let vncServer = self.vm.vncServer else {
+			return Vmrun_VNCEndPointReply()
+		}
+
+		guard let u = try? vncServer.waitForURL() else {
+			return Vmrun_VNCEndPointReply()
+		}
+
+		return Vmrun_VNCEndPointReply.with { reply in
+			reply.vncURL = u.absoluteString
+		}
+	}
+	
 	func mount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCakeAgent(), umount: false).toCaked()
 	}

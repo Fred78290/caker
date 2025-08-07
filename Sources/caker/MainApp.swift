@@ -99,6 +99,7 @@ struct MainApp: App {
 			}
 		}
 		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 			CommandGroup(replacing: .newItem) {

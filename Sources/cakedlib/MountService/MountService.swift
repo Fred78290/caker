@@ -6,6 +6,7 @@ import NIO
 import Virtualization
 
 protocol MountServiceClient {
+	func vncURL() throws -> URL?
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 }
@@ -37,6 +38,15 @@ class MountService: NSObject {
 			tlsCert: self.certLocation.clientCertURL.path,
 			tlsKey: self.certLocation.clientKeyURL.path,
 			retries: retries)
+	}
+
+	func vncURL() -> URL? {
+		guard let vncServer = vm.vncServer else {
+			return nil
+		}
+		
+		return try? vncServer.waitForURL()
+		
 	}
 
 	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {

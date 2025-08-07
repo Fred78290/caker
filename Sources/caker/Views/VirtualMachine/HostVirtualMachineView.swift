@@ -146,7 +146,7 @@ struct HostVirtualMachineView: View {
 				.disabled(self.appState.isRunning)
 			}
 
-			ToolbarItemGroup(placement: .secondaryAction) {
+			ToolbarItemGroup(placement: .primaryAction) {
 				Button(action: {
 					self.appState.isAgentInstalling = true
 					

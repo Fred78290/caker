@@ -8,8 +8,16 @@ option objc_class_prefix = "vmrun";
 package vmrun;
 
 service Service {
+	rpc VncEndPoint(Empty) returns (VNCEndPointReply);
 	rpc Mount(MountRequest) returns (MountReply);
 	rpc Umount(MountRequest) returns (MountReply);
+}
+
+message Empty {
+}
+
+message VNCEndPointReply {
+	optional string vncURL = 1;
 }
 
 message MountVirtioFS {

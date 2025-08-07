@@ -314,6 +314,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public let config: CakeConfig
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
+	public var vncServer: VNCServer? = nil
 
 	private var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue

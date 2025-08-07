@@ -16,6 +16,11 @@ public protocol Vmrun_ServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
   var interceptors: Vmrun_ServiceClientInterceptorFactoryProtocol? { get }
 
+  func vncEndPoint(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply>
+
   func mount(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
@@ -30,6 +35,24 @@ public protocol Vmrun_ServiceClientProtocol: GRPCClient {
 extension Vmrun_ServiceClientProtocol {
   public var serviceName: String {
     return "vmrun.Service"
+  }
+
+  /// Unary call to VncEndPoint
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to VncEndPoint.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func vncEndPoint(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply> {
+    return self.makeUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.vncEndPoint.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
   }
 
   /// Unary call to Mount
@@ -131,6 +154,11 @@ public protocol Vmrun_ServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Vmrun_ServiceClientInterceptorFactoryProtocol? { get }
 
+  func makeVncEndPointCall(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply>
+
   func makeMountCall(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
@@ -150,6 +178,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
 
   public var interceptors: Vmrun_ServiceClientInterceptorFactoryProtocol? {
     return nil
+  }
+
+  public func makeVncEndPointCall(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply> {
+    return self.makeAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.vncEndPoint.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
   }
 
   public func makeMountCall(
@@ -179,6 +219,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Vmrun_ServiceAsyncClientProtocol {
+  public func vncEndPoint(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmrun_VNCEndPointReply {
+    return try await self.performAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.vncEndPoint.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
+  }
+
   public func mount(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions? = nil
@@ -223,6 +275,9 @@ public struct Vmrun_ServiceAsyncClient: Vmrun_ServiceAsyncClientProtocol {
 
 public protocol Vmrun_ServiceClientInterceptorFactoryProtocol: Sendable {
 
+  /// - Returns: Interceptors to use when invoking 'vncEndPoint'.
+  func makeVncEndPointInterceptors() -> [ClientInterceptor<Vmrun_Empty, Vmrun_VNCEndPointReply>]
+
   /// - Returns: Interceptors to use when invoking 'mount'.
   func makeMountInterceptors() -> [ClientInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
 
@@ -235,12 +290,19 @@ public enum Vmrun_ServiceClientMetadata {
     name: "Service",
     fullName: "vmrun.Service",
     methods: [
+      Vmrun_ServiceClientMetadata.Methods.vncEndPoint,
       Vmrun_ServiceClientMetadata.Methods.mount,
       Vmrun_ServiceClientMetadata.Methods.umount,
     ]
   )
 
   public enum Methods {
+    public static let vncEndPoint = GRPCMethodDescriptor(
+      name: "VncEndPoint",
+      path: "/vmrun.Service/VncEndPoint",
+      type: GRPCCallType.unary
+    )
+
     public static let mount = GRPCMethodDescriptor(
       name: "Mount",
       path: "/vmrun.Service/Mount",
@@ -259,6 +321,8 @@ public enum Vmrun_ServiceClientMetadata {
 public protocol Vmrun_ServiceProvider: CallHandlerProvider {
   var interceptors: Vmrun_ServiceServerInterceptorFactoryProtocol? { get }
 
+  func vncEndPoint(request: Vmrun_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_VNCEndPointReply>
+
   func mount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
 
   func umount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
@@ -276,6 +340,15 @@ extension Vmrun_ServiceProvider {
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
     switch name {
+    case "VncEndPoint":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmrun_VNCEndPointReply>(),
+        interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? [],
+        userFunction: self.vncEndPoint(request:context:)
+      )
+
     case "Mount":
       return UnaryServerHandler(
         context: context,
@@ -305,6 +378,11 @@ extension Vmrun_ServiceProvider {
 public protocol Vmrun_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Vmrun_ServiceServerInterceptorFactoryProtocol? { get }
+
+  func vncEndPoint(
+    request: Vmrun_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmrun_VNCEndPointReply
 
   func mount(
     request: Vmrun_MountRequest,
@@ -336,6 +414,15 @@ extension Vmrun_ServiceAsyncProvider {
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
     switch name {
+    case "VncEndPoint":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmrun_VNCEndPointReply>(),
+        interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? [],
+        wrapping: { try await self.vncEndPoint(request: $0, context: $1) }
+      )
+
     case "Mount":
       return GRPCAsyncServerHandler(
         context: context,
@@ -362,6 +449,10 @@ extension Vmrun_ServiceAsyncProvider {
 
 public protocol Vmrun_ServiceServerInterceptorFactoryProtocol: Sendable {
 
+  /// - Returns: Interceptors to use when handling 'vncEndPoint'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeVncEndPointInterceptors() -> [ServerInterceptor<Vmrun_Empty, Vmrun_VNCEndPointReply>]
+
   /// - Returns: Interceptors to use when handling 'mount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeMountInterceptors() -> [ServerInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
@@ -376,12 +467,19 @@ public enum Vmrun_ServiceServerMetadata {
     name: "Service",
     fullName: "vmrun.Service",
     methods: [
+      Vmrun_ServiceServerMetadata.Methods.vncEndPoint,
       Vmrun_ServiceServerMetadata.Methods.mount,
       Vmrun_ServiceServerMetadata.Methods.umount,
     ]
   )
 
   public enum Methods {
+    public static let vncEndPoint = GRPCMethodDescriptor(
+      name: "VncEndPoint",
+      path: "/vmrun.Service/VncEndPoint",
+      type: GRPCCallType.unary
+    )
+
     public static let mount = GRPCMethodDescriptor(
       name: "Mount",
       path: "/vmrun.Service/Mount",

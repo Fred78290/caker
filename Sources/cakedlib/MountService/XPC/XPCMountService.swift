@@ -236,10 +236,12 @@ struct MountRequest: Codable {
 }
 
 @objc protocol ReplyMountServiceProtocol {
-	func reply(response: String)
+	func vncURLReply(response: String)
+	func mountReply(response: String)
 }
 
 @objc protocol MountServiceProtocol {
+	func vncUrl()
 	func mount(request: String)
 	func umount(request: String)
 }
@@ -265,9 +267,27 @@ class XPCMountService: MountService, MountServiceProtocol {
 
 		reply = self.mount(request: request.toCakeAgent(), umount: umount).toXPC()
 
-		mountServiceReply.reply(response: reply.toJSON())
+		mountServiceReply.mountReply(response: reply.toJSON())
 	}
 
+	func vncUrl() {
+		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
+		let result: String
+
+		if let u = self.vncURL() {
+			result = u.absoluteString
+		} else {
+			result = ""
+		}
+
+		guard let mountServiceReply = proxyObject as? ReplyMountServiceProtocol else {
+			Logger(self).error("Failed to get proxy ReplyMountServiceProtocol")
+			return
+		}
+
+		mountServiceReply.vncURLReply(response: result)
+	}
+	
 	public func mount(request: String) {
 		self.mount(request: MountRequest(fromJSON: request), umount: false)
 	}
@@ -338,6 +358,39 @@ class XPCMountServiceClient: MountServiceClient {
 		self.location = location
 	}
 
+	func vncURL() throws -> URL? {
+		if location.status == .running {
+			let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.MountService.\(location.name)")
+			let replier = ReplyMountService()
+
+			xpcConnection.remoteObjectInterface = NSXPCInterface(with: MountServiceProtocol.self)
+			xpcConnection.exportedInterface = NSXPCInterface(with: ReplyMountServiceProtocol.self)
+			xpcConnection.exportedObject = replier
+
+			xpcConnection.activate()
+
+			defer {
+				xpcConnection.invalidate()
+			}
+
+			let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
+
+			guard let mountService = proxyObject as? MountServiceProtocol else {
+				throw ServiceError("Failed to connect to MountService")
+			}
+
+			mountService.vncUrl()
+
+			if let reply = replier.wait() {
+				if case let .vncURL(url) = reply {
+					return URL(string: url)
+				}
+			}
+		}
+
+		return nil
+	}
+	
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		let config: CakeConfig = try location.config()
 		let valided = config.newAttachements(mounts)
@@ -366,6 +419,7 @@ class XPCMountServiceClient: MountServiceClient {
 				defer {
 					xpcConnection.invalidate()
 				}
+
 				let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 
 				guard let mountService = proxyObject as? MountServiceProtocol else {
@@ -374,13 +428,7 @@ class XPCMountServiceClient: MountServiceClient {
 
 				mountService.mount(request: MountRequest(valided).toJSON())
 
-				if let reply = replier.wait() {
-					return reply
-				}
-
-				return MountInfos.with {
-					$0.response = .error("Timeout")
-				}
+				return replier.waitForMountInfosReply()
 			} else {
 				return MountInfos.with {
 					$0.response = .error("VM is not running")
@@ -427,13 +475,7 @@ class XPCMountServiceClient: MountServiceClient {
 
 				mountService.umount(request: MountRequest(valided).toJSON())
 
-				if let reply = replier.wait() {
-					return reply
-				}
-
-				return MountInfos.with {
-					$0.response = .error("Timeout")
-				}
+				return replier.waitForMountInfosReply()
 			} else {
 				return MountInfos.with {
 					$0.response = .error("VM is not running")
