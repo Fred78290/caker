@@ -1,5 +1,5 @@
 {
-  "originHash" : "52d4aefc2992776826985a0cc4b4648173ae85125e7114ed10712aed4886464f",
+  "originHash" : "2596d356828dfb129d8362c5fb6c7ff1ea174d89241fc276ff26e1b4d3b80279",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -95,6 +95,15 @@
       "location" : "https://github.com/Fred78290/Multipart.git",
       "state" : {
         "revision" : "9901ef8f452ed13e176c49e4b079f2daada76bde"
+      }
+    },
+    {
+      "identity" : "royalvnc",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/royalapplications/royalvnc.git",
+      "state" : {
+        "revision" : "60a92e1a60e928b29c16230598efd5a97c134139",
+        "version" : "1.0.0"
       }
     },
     {

@@ -121,11 +121,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	}
 
 	func vncEndPoint(request: Vmrun_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
-		guard let vncServer = self.vm.vncServer else {
-			return Vmrun_VNCEndPointReply()
-		}
-
-		guard let u = try? vncServer.waitForURL() else {
+		guard let u = self.vm.vncEndPoint else {
 			return Vmrun_VNCEndPointReply()
 		}
 

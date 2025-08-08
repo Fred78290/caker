@@ -30,7 +30,7 @@ public struct StartHandler {
 			try config.startNetworkServices(runMode: runMode)
 
 			if startMode == .foreground {
-				arguments.append("--display")
+				arguments.append("--display=ui")
 			} else if startMode == .service {
 				arguments.append("--service")
 			}

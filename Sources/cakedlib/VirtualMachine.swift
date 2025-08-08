@@ -110,6 +110,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
+	var vncServer: VNCServer? = nil
 
 	init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
@@ -246,6 +247,12 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
+	func stopVncServer() {
+		if let vncServer {
+			vncServer.stop()
+		}
+	}
+
 	func startVMRunService(_ vm: VirtualMachine) throws {
 		self.vmrunService = createVMRunServiceServer(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
 	}
@@ -314,7 +321,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public let config: CakeConfig
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
-	public var vncServer: VNCServer? = nil
 
 	private var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
@@ -437,6 +443,22 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		if let completionHandler: VirtualMachine.StartCompletionHandler = completionHandler {
 			completionHandler(result)
 		}
+	}
+
+	func startVncServer() {
+		self.env.vncServer =  VNCServer(self.virtualMachine, queue: self.vmQueue)
+	}
+
+	var vncEndPoint: URL? {
+		guard let vncServer = self.env.vncServer else {
+			return nil
+		}
+
+		guard let u = try? vncServer.waitForURL() else {
+			return nil
+		}
+		
+		return u
 	}
 
 	public func startFromUI() {

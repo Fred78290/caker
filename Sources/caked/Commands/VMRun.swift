@@ -23,8 +23,8 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp("Use socket-vmnet for network", visibility: .private))
 	var useLimaVMNet: Bool = false
 
-	@Flag(help: ArgumentHelp("Show UI", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
-	var display: Bool = false
+	@Option(help: ArgumentHelp("VM Display mode", discussion: "This option allow display window of running vm or vnc server", visibility: .hidden))
+	var display: VMRunHandler.DisplayMode = .none
 
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
@@ -43,7 +43,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 	}
 
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
 		let (_, location) = self.locations
@@ -59,7 +59,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
-		MainApp._display = display
+		MainApp._display = display == .ui
 
 		let config = try location.config()
 
@@ -69,6 +69,10 @@ struct VMRun: AsyncParsableCommand {
 
 		if let console = config.console {
 			try console.validate()
+		}
+		
+		if self.launchedFromService {
+			self.display = .vnc
 		}
 	}
 
@@ -86,7 +90,7 @@ struct VMRun: AsyncParsableCommand {
 			config: config)
 
 		try handler.run { vm in
-			if display {
+			if display == .ui {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)

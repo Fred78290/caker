@@ -41,12 +41,7 @@ class VMRunService: NSObject {
 	}
 
 	func vncURL() -> URL? {
-		guard let vncServer = vm.vncServer else {
-			return nil
-		}
-		
-		return try? vncServer.waitForURL()
-		
+		return vm.vncEndPoint
 	}
 
 	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {

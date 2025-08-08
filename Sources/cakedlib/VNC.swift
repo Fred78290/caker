@@ -12,7 +12,7 @@ import Virtualization
 public class VNCServer {
 	private let vnc: Dynamic
 
-	public init(virtualMachine: VZVirtualMachine, queue: dispatch_queue_t) {
+	public init(_ virtualMachine: VZVirtualMachine, queue: dispatch_queue_t) {
 		let securityConfiguration = Dynamic._VZVNCNoSecuritySecurityConfiguration()
 
 		vnc = Dynamic._VZVNCServer(port: 0, queue: queue, securityConfiguration: securityConfiguration)
@@ -30,11 +30,11 @@ public class VNCServer {
 		}
 	}
 
-	public func stop() throws {
+	public func stop() {
 		vnc.stop()
 	}
 
 	deinit {
-		try? stop()
+		stop()
 	}
 }

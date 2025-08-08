@@ -4,18 +4,33 @@ import GRPCLib
 import Logging
 import System
 import Virtualization
+import ArgumentParser
 
 public struct VMRunHandler {
 	public static var launchedFromService = false
+
+	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument {
+		public var description: String {
+			switch self {
+			case .none: return "none"
+			case .ui: return "ui"
+			case .vnc: return "vnc"
+			}
+		}
+		
+		case none
+		case ui
+		case vnc
+	}
 
 	let storageLocation: StorageLocation
 	let location: VMLocation
 	let name: String
 	let runMode: Utils.RunMode
-	let display: Bool
+	let display: DisplayMode
 	let config: CakeConfig
 
-	public init(storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: Bool, config: CakeConfig) {
+	public init(storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: DisplayMode, config: CakeConfig) {
 		self.storageLocation = storageLocation
 		self.location = location
 		self.name = name
@@ -49,12 +64,10 @@ public struct VMRunHandler {
 
 		let (_, vm) = try location.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
 
+		if self.display == .vnc {
+			vm.startVncServer()
+		}
+
 		completionHandler(vm)
-		/*		if display {
-					MainApp.runUI(name: name, vm: vm, config: config)
-				} else {
-					NSApplication.shared.setActivationPolicy(.prohibited)
-					NSApplication.shared.run()
-				}*/
 	}
 }
