@@ -1,4 +1,4 @@
-// swift-tools-version: 5.10
+// swift-tools-version:5.10
 
 import PackageDescription
 
@@ -56,7 +56,7 @@ let package = Package(
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "e142840b3d291f4fcd7adedc5d687ab98fc323fd"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0"),
-		.package(url :"https://github.com/royalapplications/royalvnc.git", exact: "1.0.0")
+		.package(url :"https://github.com/royalapplications/royalvnc.git", revision: "2089e1c1ed77af17058229eb8de1f266c8a6ac83")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -130,12 +130,6 @@ let package = Package(
 			.product(name: "SwiftTerm", package: "SwiftTerm"),
 			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "RoyalVNCKit", package: "royalvnc"),
-		],
-		swiftSettings: [
-            //.swiftLanguageMode(SwiftLanguageMode.v5),
-			.unsafeFlags([
-				"-enable-library-evolution"
-			])
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.target(name: "CakedLib"),

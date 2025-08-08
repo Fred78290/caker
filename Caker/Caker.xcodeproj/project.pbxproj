@@ -137,6 +137,8 @@
 		9B7895F12E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */; };
 		9B7895F22E37D9C2004D07EB /* MultiplatformTabCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */; };
 		9B7895F32E37D9C2004D07EB /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */; };
+		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
+		9B7997262E4638E100147500 /* RoyalVNCKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 9B8509C42E450AC9004999B6 /* RoyalVNCKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
 		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
@@ -484,6 +486,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
+		9B7997272E4638E100147500 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				9B7997262E4638E100147500 /* RoyalVNCKit in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9BA22EF42E2505D500172D25 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -607,6 +620,7 @@
 		9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarVerticalAlignment.swift; sourceTree = "<group>"; };
 		9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
+		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountNewItemView.swift; sourceTree = "<group>"; };
@@ -1096,6 +1110,7 @@
 				9B2BFAB12DFED25E000045C3 /* HostVirtualMachineView.swift */,
 				9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */,
 				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
+				9B7997242E45EDEC00147500 /* VNCView.swift */,
 				9B2BFAAF2DFED25E000045C3 /* Settings */,
 			);
 			path = VirtualMachine;
@@ -1575,8 +1590,6 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
-				9B4832D72E44F78000EC0697 /* VNC.swift */,
-				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -1589,6 +1602,7 @@
 				9BEBC75C2DF440720092B196 /* GuestPlateform.swift */,
 				9BEBC75D2DF440720092B196 /* Home.swift */,
 				9B20D6052E01A74000BEFB41 /* INI.swift */,
+				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC75E2DF440720092B196 /* Logger.swift */,
 				9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */,
 				9BEBC7602DF440720092B196 /* PortForwardingServer.swift */,
@@ -1600,15 +1614,16 @@
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
+				9B4832D72E44F78000EC0697 /* VNC.swift */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
-				9BEBC73C2DF440720092B196 /* VMRunService */,
 				9BEBC7412DF440720092B196 /* Sockets */,
 				9BEBC7462DF440720092B196 /* Tunnel */,
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BEBC7522DF440720092B196 /* VMNet */,
+				9BEBC73C2DF440720092B196 /* VMRunService */,
 			);
 			path = cakedlib;
 			sourceTree = "<group>";
@@ -1649,6 +1664,7 @@
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* CopyFiles */,
 				9BA22EF42E2505D500172D25 /* CopyFiles */,
+				9B7997272E4638E100147500 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2031,6 +2047,7 @@
 				9B215B712E0C35D400AFC89D /* ForwardedPortDetailView.swift in Sources */,
 				9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */,
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
+				9B7997252E45EDEC00147500 /* VNCView.swift in Sources */,
 				9B9C4E902E23BF1300C13D23 /* RemoteData.swift in Sources */,
 				9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */,
 				9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */,
@@ -3048,8 +3065,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/royalapplications/royalvnc.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				kind = revision;
+				revision = 2089e1c1ed77af17058229eb8de1f266c8a6ac83;
 			};
 		};
 		9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
