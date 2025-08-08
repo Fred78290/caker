@@ -1,11 +1,3 @@
-import CakeAgentLib
-import CakedLib
-import FileMonitor
-import FileMonitorShared
-import GRPC
-import GRPCLib
-import NIO
-import SwiftTerm
 //
 //  VirtualMachineDocument.swift
 //  Caker
@@ -14,6 +6,15 @@ import SwiftTerm
 //
 import SwiftUI
 import UniformTypeIdentifiers
+import CakeAgentLib
+import CakedLib
+import FileMonitor
+import FileMonitorShared
+import GRPC
+import GRPCLib
+import NIO
+import SwiftTerm
+import RoyalVNCKit
 
 extension UTType {
 	static var virtualMachine: UTType {
@@ -56,6 +57,27 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		case installing = 2
 	}
 
+	enum VncStatus: Int {
+		case disconnected
+		case connecting
+		case connected
+		case disconnecting
+		case ready
+		
+		init(vncStatus: VNCConnection.Status) {
+			switch vncStatus {
+				case .disconnected:
+					self = .disconnected
+				case .connecting:
+					self = .connecting
+				case .connected:
+					self = .connected
+				case .disconnecting:
+					self = .disconnecting
+			}
+		}
+	}
+
 	enum Status: Int {
 		case none = -2
 		case external = -1
@@ -77,6 +99,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	private var monitor: FileMonitor?
 	private var inited = false
 
+	weak var framebufferView: VNCFramebufferView? = nil
+
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation?
 	var name: String = ""
@@ -92,7 +116,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var canResume: Bool = false
 	@Published var canRequestStop: Bool = false
 	@Published var suspendable: Bool = false
+	@Published var vncURL: URL? = nil
 	@Published var agent = AgentStatus.none
+	@Published var connection: VNCConnection! = nil
+	@Published var vncStatus: VncStatus = .disconnected
 
 	init() {
 		self.virtualMachine = nil
@@ -136,6 +163,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			monitor.stop()
 		}
 
+		if let connection = self.connection {
+			connection.disconnect()
+		}
+
 		if self.client != nil {
 			self.client.close().whenComplete { _ in
 				self.client = nil
@@ -177,6 +208,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				self.canResume = false
 				self.canRequestStop = true
 				self.suspendable = config.suspendable
+				self.vncURL = self.retrieveVNCURL(location: location)
 			} else {
 				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
@@ -222,10 +254,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					self.canResume = false
 					self.canRequestStop = true
 					self.suspendable = config.suspendable
+					self.vncURL = retrieveVNCURL(location: location)
 				} else {
 					let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
 					self.virtualMachine = virtualMachine
+					self.vncURL = nil
 					self.didChangedState(virtualMachine)
 					virtualMachine.delegate = self
 				}
@@ -372,6 +406,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					self.canResume = false
 					self.canRequestStop = true
 					self.suspendable = self.virtualMachineConfig.suspendable
+					self.vncURL = self.retrieveVNCURL(location: location)
 				} else {
 					self.status = .stopped
 
@@ -381,6 +416,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					self.canResume = false
 					self.canRequestStop = false
 					self.suspendable = false
+					self.vncStatus = .disconnected
+					
+					self.connection?.disconnect()
 				}
 			}
 		}
@@ -394,6 +432,116 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			check(file)
 		}
 	}
+}
+
+extension VirtualMachineDocument: VNCLogger {
+	var isDebugLoggingEnabled: Bool {
+		get {
+			Logger.LoggingLevel() == .debug
+		}
+
+		set(newValue) {
+			if newValue {
+				Logger.setLevel(.debug)
+			}
+		}
+	}
+	
+	func logDebug(_ message: String) {
+		Logger(self).debug(message)
+	}
+	
+	func logInfo(_ message: String) {
+		Logger(self).info(message)
+	}
+	
+	func logWarning(_ message: String) {
+		Logger(self).warn(message)
+	}
+	
+	func logError(_ message: String) {
+		Logger(self).error(message)
+	}
+}
+
+extension VirtualMachineDocument: VNCConnectionDelegate {
+	func retrieveVNCURL(location: VMLocation) -> URL? {
+		try? createVMRunServiceClient(location: location).vncURL()
+	}
+
+	func tryVNCConnect() {
+		if connection != nil {
+			return
+		}
+
+		if let vncURL = self.vncURL {
+			// Create settings
+			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true,
+												  hostname: vncURL.host()!,
+												  port: UInt16(vncURL.port ?? 5900),
+												  isShared: true,
+												  isScalingEnabled: true,
+												  useDisplayLink: false,
+												  inputMode: .none,
+												  isClipboardRedirectionEnabled: false,
+												  colorDepth: .depth24Bit,
+												  frameEncodings: .default)
+
+			let connection = VNCConnection(settings: settings, logger: self)
+
+			self.connection = connection
+			self.vncStatus = .connecting
+			
+			connection.delegate = self
+			connection.connect()
+		}
+	}
+
+	func connection(_ connection: VNCConnection, stateDidChange connectionState: VNCConnection.ConnectionState) {
+		self.vncStatus = VncStatus(vncStatus: connectionState.status)
+
+		if connectionState.status == .connected {
+			self.connection = connection
+		} else if connectionState.status == .disconnected {
+			self.connection = nil
+		}
+	}
+	
+	func connection(_ connection: VNCConnection, credentialFor authenticationType: VNCAuthenticationType, completion: @escaping ((any VNCCredential)?) -> Void) {
+		if let vncURL = self.vncURL {
+			if authenticationType.requiresPassword && authenticationType.requiresUsername {
+				if let userName = vncURL.user, let password = vncURL.password {
+					completion(VNCUsernamePasswordCredential(username: userName, password: password))
+				}
+			} else if authenticationType.requiresPassword {
+				if let password = vncURL.password {
+					completion(VNCPasswordCredential(password: password))
+				}
+			}
+		}
+
+		completion(nil)
+	}
+	
+	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
+		self.vncStatus = .ready
+	}
+	
+	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
+	}
+	
+	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
+		if let framebufferView = self.framebufferView {
+			framebufferView.connection(connection, didUpdateFramebuffer: framebuffer, x: x, y: y, width: width, height: height)
+		}
+	}
+	
+	func connection(_ connection: VNCConnection, didUpdateCursor cursor: VNCCursor) {
+		if let framebufferView = self.framebufferView {
+			framebufferView.connection(connection, didUpdateCursor: cursor)
+		}
+	}
+	
 }
 
 extension VirtualMachineDocument {

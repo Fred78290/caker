@@ -274,7 +274,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 		let result: String
 
-		if let u = self.vncURL() {
+		if let u = self.vncURL {
 			result = u.absoluteString
 		} else {
 			result = ""

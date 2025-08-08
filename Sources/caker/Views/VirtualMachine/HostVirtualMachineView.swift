@@ -20,6 +20,12 @@ class CustomWindowDelegate: NSObject, NSWindowDelegate {
 }
 
 struct HostVirtualMachineView: View {
+	enum ExternalModeView: Int, Hashable {
+		case none
+		case terminal
+		case vnc
+	}
+
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
@@ -34,14 +40,26 @@ struct HostVirtualMachineView: View {
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
+	@State var externalModeView: ExternalModeView
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
+
+	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
+		self._appState = appState
+		self._document = StateObject(wrappedValue: document)
+		
+		if document.status == .external {
+			self.externalModeView = document.vncURL != nil ? .vnc : .terminal
+		} else {
+			self.externalModeView = .none
+		}
+	}
 
 	var body: some View {
 		let view = vmView { window in
 			if let window = window {
 				windowNumber = window.windowNumber
-
+				
 				if #unavailable(macOS 15.0) {
 					window.delegate = self.delegate
 				}
@@ -60,7 +78,7 @@ struct HostVirtualMachineView: View {
 					if document.status == .running {
 						document.stopFromUI(force: false)
 					}
-
+					
 					DispatchQueue.main.async {
 						self.document.close()
 					}
@@ -75,11 +93,11 @@ struct HostVirtualMachineView: View {
 				if self.appState.currentDocument == self.document {
 					self.appState.currentDocument = nil
 				}
-
+				
 				if document.status == .running {
 					document.stopFromUI(force: false)
 				}
-
+				
 				dismiss()
 			}
 		}.onChange(of: appearsActive) { newValue in
@@ -90,6 +108,10 @@ struct HostVirtualMachineView: View {
 				self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
 				self.appState.isPaused = document.status == .paused || document.status == .pausing
 				self.appState.isSuspendable = document.status == .running && document.suspendable
+
+				if self.document.status == .external {
+					self.document.tryVNCConnect()
+				}
 			} else if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
 			}
@@ -100,6 +122,12 @@ struct HostVirtualMachineView: View {
 				self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
 				self.appState.isPaused = newValue == .paused || newValue == .pausing
 				self.appState.isSuspendable = newValue == .running && document.suspendable
+			}
+		}.onChange(of: document.status) { newValue in
+			if newValue == .external {
+				self.externalModeView = document.vncURL != nil ? .vnc : .terminal
+			} else {
+				self.externalModeView = .none
 			}
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
@@ -209,10 +237,56 @@ struct HostVirtualMachineView: View {
 		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 
 		if self.document.status == .external {
-			ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
-				.colorPicker(placement: .secondaryAction)
-				.fontPicker(placement: .secondaryAction)
-				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+			if self.document.vncURL == nil {
+				ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+					.colorPicker(placement: .secondaryAction)
+					.fontPicker(placement: .secondaryAction)
+					.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+			} else {
+				AnyView {
+					let view: any View
+	
+					if self.externalModeView == .terminal {
+						view = ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+							.colorPicker(placement: .secondaryAction)
+							.fontPicker(placement: .secondaryAction)
+							.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+					} else if self.document.vncStatus == .ready {
+						view = GeometryReader { proxy in
+							VNCView(document: self.document, viewSize: proxy.size)
+						}
+					} else {
+						view = HStack(alignment: .center) {
+							switch self.document.vncStatus {
+								case .connecting:
+								VStack(alignment: .center) {
+									ProgressView()
+									Text("Connecting to VNC").foregroundStyle(.white)
+								}
+								case .disconnected:
+									Text("VNC not connected").foregroundStyle(.white)
+								case .connected:
+									Text("VNC connected").foregroundStyle(.white)
+								case .disconnecting:
+									Text("VNC disconnecting").foregroundStyle(.white)
+								case .ready:
+									Text("VNC ready").foregroundStyle(.white)
+							}
+						}
+					}
+
+					return view
+				}
+				.foregroundColor(.black)
+				.toolbar {
+					ToolbarItem(placement: .secondaryAction) {
+						Picker("Mode", selection: $externalModeView) {
+							Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+							Image(systemName: "play.display").tag(ExternalModeView.vnc)
+						}.labelsHidden()
+					}
+				}
+			}
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(
 				minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)

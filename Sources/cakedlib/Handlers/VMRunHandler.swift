@@ -9,7 +9,7 @@ import ArgumentParser
 public struct VMRunHandler {
 	public static var launchedFromService = false
 
-	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument {
+	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 		public var description: String {
 			switch self {
 			case .none: return "none"
@@ -63,10 +63,6 @@ public struct VMRunHandler {
 		}
 
 		let (_, vm) = try location.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
-
-		if self.display == .vnc {
-			vm.startVncServer()
-		}
 
 		completionHandler(vm)
 	}

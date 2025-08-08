@@ -344,6 +344,18 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	public var vncURL: URL? {
+		guard let vncServer = self.env.vncServer else {
+			return nil
+		}
+
+		guard let u = try? vncServer.waitForURL() else {
+			return nil
+		}
+		
+		return u
+	}
+
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: cdromURL,
@@ -445,20 +457,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	func startVncServer() {
-		self.env.vncServer =  VNCServer(self.virtualMachine, queue: self.vmQueue)
-	}
-
-	var vncEndPoint: URL? {
-		guard let vncServer = self.env.vncServer else {
-			return nil
+	public func startVncServer() -> URL {
+		if self.env.vncServer == nil {
+			self.env.vncServer =  VNCServer(self.virtualMachine, queue: DispatchQueue.global())
 		}
 
-		guard let u = try? vncServer.waitForURL() else {
-			return nil
-		}
-		
-		return u
+		return self.vncURL!
 	}
 
 	public func startFromUI() {

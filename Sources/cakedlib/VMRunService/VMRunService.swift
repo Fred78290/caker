@@ -5,7 +5,7 @@ import GRPCLib
 import NIO
 import Virtualization
 
-protocol VMRunServiceClient {
+public protocol VMRunServiceClient {
 	func vncURL() throws -> URL?
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
@@ -21,6 +21,10 @@ class VMRunService: NSObject {
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
+
+	var vncURL: URL? {
+		return vm.vncURL
+	}
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
 		self.vm = vm
@@ -38,10 +42,6 @@ class VMRunService: NSObject {
 			tlsCert: self.certLocation.clientCertURL.path,
 			tlsKey: self.certLocation.clientKeyURL.path,
 			retries: retries)
-	}
-
-	func vncURL() -> URL? {
-		return vm.vncEndPoint
 	}
 
 	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {
@@ -92,7 +92,7 @@ class VMRunService: NSObject {
 	}
 }
 
-func createVMRunServiceClient(location: VMLocation) -> VMRunServiceClient {
+public func createVMRunServiceClient(location: VMLocation) -> VMRunServiceClient {
 	return XPCVMRunServiceClient(location: location)
 }
 

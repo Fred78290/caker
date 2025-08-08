@@ -23,7 +23,7 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(name: [.customLong("lima"), .customShort("m")], help: ArgumentHelp("Use socket-vmnet for network", visibility: .private))
 	var useLimaVMNet: Bool = false
 
-	@Option(help: ArgumentHelp("VM Display mode", discussion: "This option allow display window of running vm or vnc server", visibility: .hidden))
+	@Flag(help: ArgumentHelp("VM Display mode", discussion: "This option allow display window of running vm or vnc server", visibility: .hidden))
 	var display: VMRunHandler.DisplayMode = .none
 
 	var locations: (StorageLocation, VMLocation) {
@@ -93,6 +93,12 @@ struct VMRun: AsyncParsableCommand {
 			if display == .ui {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {
+				if display == .vnc {
+					let vncURL = vm.startVncServer()
+					
+					Logger(self).info("VNC server started at \(vncURL)")
+				}
+
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()
 			}
