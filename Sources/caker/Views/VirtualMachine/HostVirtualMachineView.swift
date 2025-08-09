@@ -68,6 +68,10 @@ struct HostVirtualMachineView: View {
 		.onAppear {
 			NSWindow.allowsAutomaticWindowTabbing = false
 			self.appState.currentDocument = self.document
+
+			if self.document.status == .external {
+				self.document.tryVNCConnect()
+			}
 		}.onDisappear {
 			if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
