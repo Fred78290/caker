@@ -41,6 +41,8 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
+	@State var size: CGSize
+	@State var automaticallyReconfiguresDisplay: Bool
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
@@ -53,6 +55,12 @@ struct HostVirtualMachineView: View {
 		} else {
 			self.externalModeView = .none
 		}
+
+		let config = document.virtualMachineConfig
+		let display = config.display
+	
+		self.size = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
+		self.automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 	}
 
 	var body: some View {
@@ -71,6 +79,10 @@ struct HostVirtualMachineView: View {
 		}.onDisappear {
 			if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
+			}
+		}.onReceive(NSNotification.VNCFramebufferSizeChanged) { notification in
+			if let size = notification.object as? CGSize {
+				self.size = size
 			}
 		}.onReceive(NSWindow.willCloseNotification) { notification in
 			if let window = notification.object as? NSWindow {
@@ -277,30 +289,21 @@ struct HostVirtualMachineView: View {
 					.font(.largeTitle)
 					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
 			case .ready:
-				VStack(alignment: .center) {
-					GeometryReader { proxy in
-						VNCView(document: self.document, viewSize: proxy.size)
-					}
+				ViewThatFits {
+					VNCView(document: self.document, viewSize: self.size)
 				}
-				.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
 			}
 		}
 	}
 
 	@ViewBuilder
 	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
-		let config = document.virtualMachineConfig
-		let display = config.display
-		let minWidth = CGFloat(display.width)
-		let minHeight = CGFloat(display.height)
-		let automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
-
 		if self.document.status == .external {
 			if self.document.vncURL == nil {
-				self.terminalView(minWidth: minWidth, minHeight: minHeight, callback: callback)
+				self.terminalView(minWidth: self.size.width, minHeight: self.size.height, callback: callback)
 			} else {
-				self.combinedView(minWidth: minWidth, minHeight: minHeight, callback: callback)
-					.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+				self.combinedView(minWidth: self.size.width, minHeight: self.size.height, callback: callback)
+					.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
 					.toolbar {
 						 ToolbarItem(placement: .secondaryAction) {
 							 Picker("Mode", selection: $externalModeView) {
@@ -312,7 +315,7 @@ struct HostVirtualMachineView: View {
 			}
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+				.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
 		}
 	}
 

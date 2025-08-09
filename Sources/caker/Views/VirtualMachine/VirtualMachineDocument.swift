@@ -100,7 +100,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 
-	weak var framebufferView: VNCFramebufferView? = nil
+	weak var framebufferView: VNCCAFramebufferView? = nil
 
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation?
@@ -540,6 +540,14 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
+		self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
+
+		if let framebufferView = self.framebufferView {
+			DispatchQueue.main.async {
+				//framebufferView.bounds = CGRectMake(0, 0, CGFloat(framebuffer.size.width), CGFloat(framebuffer.size.height))
+				NotificationCenter.default.post(name: NSNotification.VNCFramebufferSizeChanged, object: framebuffer.size)
+			}
+		}
 	}
 	
 	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
@@ -618,4 +626,5 @@ extension NSNotification {
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
+	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
 }
