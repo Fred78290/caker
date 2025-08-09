@@ -13,15 +13,30 @@ struct VNCView: NSViewRepresentable {
 	var document: VirtualMachineDocument
 	var viewSize: CGSize
 
+	func makeCoordinator() -> VirtualMachineDocument {
+		return document
+	}
+
 	func makeNSView(context: Context) -> NSView {
-		if let connection = document.connection, let framebuffer = connection.framebuffer {
-			return VNCCAFramebufferView(frame: CGRectMake(0, 0, viewSize.width, viewSize.height), framebuffer: framebuffer, connection: connection)
+		let view: NSView
+
+		if let connection = context.coordinator.connection, let framebuffer = connection.framebuffer {
+			view = VNCCAFramebufferView(frame: CGRectMake(0, 0, viewSize.width, viewSize.height), framebuffer: framebuffer, connection: connection)
+		} else {
+			view = NSViewType(frame: CGRectMake(0, 0, viewSize.width, viewSize.height))
 		}
-		
-		return NSViewType(frame: CGRectMake(0, 0, viewSize.width, viewSize.height))
+
+		view.autoresizingMask = [.width, .height]
+
+		return view
 	}
 	
 	func updateNSView(_ nsView: NSView, context: Context) {
+		if let view = nsView as? VNCCAFramebufferView {
+			context.coordinator.framebufferView = view
+		} else {
+			context.coordinator.framebufferView = nil
+		}
 	}
 
 }

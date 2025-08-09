@@ -85,6 +85,9 @@ extension Service {
 		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
 		var tlsKey: String?
 
+		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
+		var mode: VMRunServiceMode = .grpc
+
 		static func findMe() throws -> String {
 			return try Shell.execute(to: "command", arguments: ["-v", "caked"])
 		}
@@ -125,6 +128,12 @@ extension Service {
 				"--log-level=\(self.logLevel.rawValue)",
 				"--address=\(listenAddress)",
 			]
+
+			if self.mode == .grpc {
+				arguments.append("--grpc")
+			} else {
+				arguments.append("--xpc")
+			}
 
 			if self.asSystem {
 				arguments.append("--system")
@@ -201,8 +210,13 @@ extension Service {
 		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Server private key")
 		var tlsKey: String?
 
+		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
+		var mode: VMRunServiceMode = .grpc
+
 		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
+
+			VMRunHandler.serviceMode = mode
 
 			if self.secure {
 				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)

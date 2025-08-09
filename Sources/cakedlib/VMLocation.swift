@@ -58,7 +58,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 	}
 
 	public var serviceURL: URL {
-		return rootURL.resolvingSymlinksInPath().socketPath(name: "mount")
+		return rootURL.resolvingSymlinksInPath().socketPath(name: "service")
 	}
 
 	public var name: String {
@@ -366,12 +366,12 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		removePID()
 	}
 
-	public func startVirtualMachine(on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (
+	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (
 		EventLoopFuture<String?>, VirtualMachine
 	) {
 		let vm = try VirtualMachine(location: self, config: config, runMode: runMode)
 
-		let runningIP = try vm.runInBackground(on: on, internalCall: internalCall) {
+		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall) {
 			if let handler = completionHandler {
 				switch $0 {
 				case .success:

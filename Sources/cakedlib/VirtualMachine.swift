@@ -253,8 +253,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		}
 	}
 
-	func startVMRunService(_ vm: VirtualMachine) throws {
-		self.vmrunService = createVMRunServiceServer(group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
+	func startVMRunService(_ mode: VMRunServiceMode, vm: VirtualMachine) throws {
+		self.vmrunService = createVMRunServiceServer(mode, group: Utilities.group.next(), runMode: self.runMode, vm: vm, certLocation: try CertificatesLocation.createAgentCertificats(runMode: self.runMode))
 	}
 
 	func serveVMRunService() async throws {
@@ -397,10 +397,10 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return self.virtualMachine
 	}
 
-	private func start(completionHandler: StartCompletionHandler? = nil) async throws {
+	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
 		var resumeVM: Bool = false
 
-		try self.env.startVMRunService(self)
+		try self.env.startVMRunService(mode, vm: self)
 
 		#if arch(arm64)
 			if #available(macOS 14, *) {
@@ -793,12 +793,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return response
 	}
 
-	public func runInBackground(on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
 		let task = Task {
 			var status: Int32 = 0
 
 			do {
-				try await self.start(completionHandler: completionHandler)
+				try await self.start(mode, completionHandler: completionHandler)
 			} catch {
 				status = 1
 			}

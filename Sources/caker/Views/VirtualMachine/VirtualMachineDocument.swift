@@ -98,6 +98,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	private var shellHandlerResponse: ShellHandlerResponse!
 	private var monitor: FileMonitor?
 	private var inited = false
+	private let logger = Logger("VirtualMachineDocument")
 
 	weak var framebufferView: VNCFramebufferView? = nil
 
@@ -154,6 +155,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func close() {
+		self.logger.info("Closing \(self.name)")
 		self.virtualMachine = nil
 		self.inited = false
 		self.status = .none
@@ -179,25 +181,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		throw ServiceError("Unimplemented")
 	}
 
-	func loadVirtualMachine(from fileURL: URL) -> Bool {
-		if inited {
-			return true
-		}
-
-		defer {
-			inited = true
-		}
-
+	func loadVirtualMachine(from location: VMLocation) -> URL? {
 		do {
-			let location = try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)
 			let config = try location.config()
 
-			try fileURL.updateAccessDate()
-
 			self.virtualMachineConfig = VirtualMachineConfig(vmname: location.name, config: config)
-			self.name = location.name
 			self.location = location
 			self.agent = config.agent ? .installed : .none
+			self.name = location.name
 
 			if location.pidFile.isPIDRunning("caked") {
 				self.status = .external
@@ -208,24 +199,45 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				self.canResume = false
 				self.canRequestStop = true
 				self.suspendable = config.suspendable
-				self.vncURL = self.retrieveVNCURL(location: location)
+				
+				retrieveVNCURL()
 			} else {
 				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
 
 				self.virtualMachine = virtualMachine
+				self.vncURL = nil
 				self.didChangedState(virtualMachine)
-
 				virtualMachine.delegate = self
 			}
 
 			if monitor == nil {
-				let monitor = try FileMonitor(directory: fileURL, delegate: self)
+				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 				try monitor.start()
 
 				self.monitor = monitor
 			}
 
+			return location.rootURL
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+
+		return nil
+	}
+
+	func loadVirtualMachine(from fileURL: URL) -> Bool {
+		if inited {
 			return true
+		}
+
+		defer {
+			inited = true
+		}
+
+		do {
+			return self.loadVirtualMachine(from: try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)) != nil
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -237,38 +249,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	func loadVirtualMachine() -> URL? {
 		guard let virtualMachine = self.virtualMachine else {
-			do {
-				let location = try StorageLocation(runMode: .app).find(name)
-				let config = try location.config()
+			if let location = try? StorageLocation(runMode: .app).find(name) {
+				return self.loadVirtualMachine(from: location)
+			}
 
-				self.virtualMachineConfig = VirtualMachineConfig(vmname: name, config: config)
-				self.location = location
-				self.agent = config.agent ? .installed : .none
-
-				if location.pidFile.isPIDRunning("caked") {
-					self.status = .external
-
-					self.canStart = false
-					self.canStop = true
-					self.canPause = true
-					self.canResume = false
-					self.canRequestStop = true
-					self.suspendable = config.suspendable
-					self.vncURL = retrieveVNCURL(location: location)
-				} else {
-					let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
-
-					self.virtualMachine = virtualMachine
-					self.vncURL = nil
-					self.didChangedState(virtualMachine)
-					virtualMachine.delegate = self
-				}
-
-				return location.rootURL
-			} catch {
-				DispatchQueue.main.async {
-					alertError(error)
-				}
+			DispatchQueue.main.async {
+				alertError(ServiceError("Unable to find virtual machine: \(self.name)"))
 			}
 
 			return nil
@@ -406,7 +392,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					self.canResume = false
 					self.canRequestStop = true
 					self.suspendable = self.virtualMachineConfig.suspendable
-					self.vncURL = self.retrieveVNCURL(location: location)
+					
+					self.retrieveVNCURL()
 				} else {
 					self.status = .stopped
 
@@ -448,25 +435,33 @@ extension VirtualMachineDocument: VNCLogger {
 	}
 	
 	func logDebug(_ message: String) {
-		Logger(self).debug(message)
+		self.logger.debug(message)
 	}
 	
 	func logInfo(_ message: String) {
-		Logger(self).info(message)
+		self.logger.info(message)
 	}
 	
 	func logWarning(_ message: String) {
-		Logger(self).warn(message)
+		self.logger.warn(message)
 	}
 	
 	func logError(_ message: String) {
-		Logger(self).error(message)
+		self.logger.error(message)
 	}
 }
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
-	func retrieveVNCURL(location: VMLocation) -> URL? {
-		try? createVMRunServiceClient(location: location).vncURL()
+	func retrieveVNCURL() {
+		Task {
+			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+			
+			self.logger.info("Found VNC URL: \(String(describing: url))")
+
+			DispatchQueue.main.async {
+				self.vncURL = url
+			}
+		}
 	}
 
 	func tryVNCConnect() {
@@ -481,9 +476,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 												  port: UInt16(vncURL.port ?? 5900),
 												  isShared: true,
 												  isScalingEnabled: true,
-												  useDisplayLink: false,
-												  inputMode: .none,
-												  isClipboardRedirectionEnabled: false,
+												  useDisplayLink: true,
+												  inputMode: .forwardAllKeyboardShortcutsAndHotKeys,
+												  isClipboardRedirectionEnabled: true,
 												  colorDepth: .depth24Bit,
 												  frameEncodings: .default)
 
@@ -498,12 +493,22 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func connection(_ connection: VNCConnection, stateDidChange connectionState: VNCConnection.ConnectionState) {
-		self.vncStatus = VncStatus(vncStatus: connectionState.status)
+		self.logger.info("Connection state changed to \(connectionState.status)")
 
-		if connectionState.status == .connected {
-			self.connection = connection
-		} else if connectionState.status == .disconnected {
-			self.connection = nil
+		DispatchQueue.main.async {
+			var newStatus = VncStatus(vncStatus: connectionState.status)
+
+			if connectionState.status == .connected {
+				self.connection = connection
+
+				if connection.framebuffer != nil {
+					newStatus = .ready
+				}
+			} else if connectionState.status == .disconnected {
+				self.connection = nil
+			}
+			
+			self.vncStatus = newStatus
 		}
 	}
 	
@@ -512,10 +517,14 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			if authenticationType.requiresPassword && authenticationType.requiresUsername {
 				if let userName = vncURL.user, let password = vncURL.password {
 					completion(VNCUsernamePasswordCredential(username: userName, password: password))
+					
+					return
 				}
 			} else if authenticationType.requiresPassword {
 				if let password = vncURL.password {
 					completion(VNCPasswordCredential(password: password))
+
+					return
 				}
 			}
 		}
@@ -524,7 +533,10 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
-		self.vncStatus = .ready
+		DispatchQueue.main.async {
+			self.logger.info("vnc ready")
+			self.vncStatus = .ready
+		}
 	}
 	
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {

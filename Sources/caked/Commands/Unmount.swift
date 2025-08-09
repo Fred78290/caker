@@ -16,6 +16,9 @@ struct Umount: ParsableCommand {
 	@OptionGroup(title: "Umount options")
 	var umount: UmountOptions
 
+	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a running service", visibility: .hidden))
+	var mode: VMRunServiceMode = .grpc
+
 	public func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
@@ -34,7 +37,7 @@ struct Umount: ParsableCommand {
 
 	func run() throws {
 		let location = try StorageLocation(runMode: self.common.runMode).find(self.umount.name)
-		let response = try CakedLib.MountHandler.Umount(location: location, mounts: self.umount.mounts)
+		let response = try CakedLib.MountHandler.Umount(mode, location: location, mounts: self.umount.mounts, runMode: self.common.runMode)
 
 		Logger.appendNewLine(self.common.format.render(response))
 

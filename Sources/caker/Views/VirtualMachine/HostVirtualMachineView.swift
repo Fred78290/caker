@@ -68,10 +68,6 @@ struct HostVirtualMachineView: View {
 		.onAppear {
 			NSWindow.allowsAutomaticWindowTabbing = false
 			self.appState.currentDocument = self.document
-
-			if self.document.status == .external {
-				self.document.tryVNCConnect()
-			}
 		}.onDisappear {
 			if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
@@ -82,7 +78,7 @@ struct HostVirtualMachineView: View {
 					if document.status == .running {
 						document.stopFromUI(force: false)
 					}
-					
+
 					DispatchQueue.main.async {
 						self.document.close()
 					}
@@ -112,10 +108,6 @@ struct HostVirtualMachineView: View {
 				self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
 				self.appState.isPaused = document.status == .paused || document.status == .pausing
 				self.appState.isSuspendable = document.status == .running && document.suspendable
-
-				if self.document.status == .external {
-					self.document.tryVNCConnect()
-				}
 			} else if self.appState.currentDocument == self.document {
 				self.appState.currentDocument = nil
 			}
@@ -132,6 +124,10 @@ struct HostVirtualMachineView: View {
 				self.externalModeView = document.vncURL != nil ? .vnc : .terminal
 			} else {
 				self.externalModeView = .none
+			}
+		}.onChange(of: self.externalModeView) { newValue in
+			if newValue == .vnc && self.document.status == .external {
+				self.document.tryVNCConnect()
 			}
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
@@ -233,6 +229,65 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
+	func terminalView(minWidth: CGFloat, minHeight: CGFloat, callback: VMView.CallbackWindow? = nil) -> some View {
+		if self.document.agent == .installed {
+			ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+				.colorPicker(placement: .secondaryAction)
+				.fontPicker(placement: .secondaryAction)
+				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+		} else if self.document.agent == .installing {
+			Text("Installing agent...")
+		} else {
+			Text("Agent not installed. Please install the agent first.")
+		}
+	}
+
+	@ViewBuilder
+	func combinedView(minWidth: CGFloat, minHeight: CGFloat, callback: VMView.CallbackWindow? = nil) -> some View {
+		if self.externalModeView == .terminal {
+			self.terminalView(minWidth: minWidth, minHeight: minHeight, callback: callback)
+		} else {
+			switch self.document.vncStatus {
+			case .connecting:
+				VStack(alignment: .center) {
+					ProgressView()
+					Text("Connecting to VNC")
+						.foregroundStyle(.white)
+						.background(.black)
+						.font(.largeTitle)
+						.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+				}
+				.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+			case .disconnected:
+				Text("VNC not connected")
+					.foregroundStyle(.white)
+					.background(.black)
+					.font(.largeTitle)
+					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+			case .connected:
+				Text("VNC connected")
+					.foregroundStyle(.white)
+					.background(.black)
+					.font(.largeTitle)
+					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+			case .disconnecting:
+				Text("VNC disconnecting")
+					.foregroundStyle(.white)
+					.background(.black)
+					.font(.largeTitle)
+					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+			case .ready:
+				VStack(alignment: .center) {
+					GeometryReader { proxy in
+						VNCView(document: self.document, viewSize: proxy.size)
+					}
+				}
+				.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+			}
+		}
+	}
+
+	@ViewBuilder
 	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
 		let config = document.virtualMachineConfig
 		let display = config.display
@@ -242,58 +297,22 @@ struct HostVirtualMachineView: View {
 
 		if self.document.status == .external {
 			if self.document.vncURL == nil {
-				ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
-					.colorPicker(placement: .secondaryAction)
-					.fontPicker(placement: .secondaryAction)
-					.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+				self.terminalView(minWidth: minWidth, minHeight: minHeight, callback: callback)
 			} else {
-				AnyView {
-					let view: any View
-	
-					if self.externalModeView == .terminal {
-						view = ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
-							.colorPicker(placement: .secondaryAction)
-							.fontPicker(placement: .secondaryAction)
-							.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
-					} else if self.document.vncStatus == .ready {
-						view = GeometryReader { proxy in
-							VNCView(document: self.document, viewSize: proxy.size)
-						}
-					} else {
-						view = HStack(alignment: .center) {
-							switch self.document.vncStatus {
-								case .connecting:
-								VStack(alignment: .center) {
-									ProgressView()
-									Text("Connecting to VNC").foregroundStyle(.white)
-								}
-								case .disconnected:
-									Text("VNC not connected").foregroundStyle(.white)
-								case .connected:
-									Text("VNC connected").foregroundStyle(.white)
-								case .disconnecting:
-									Text("VNC disconnecting").foregroundStyle(.white)
-								case .ready:
-									Text("VNC ready").foregroundStyle(.white)
-							}
-						}
-					}
-
-					return view
-				}
-				.foregroundColor(.black)
-				.toolbar {
-					ToolbarItem(placement: .secondaryAction) {
-						Picker("Mode", selection: $externalModeView) {
-							Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-							Image(systemName: "play.display").tag(ExternalModeView.vnc)
-						}.labelsHidden()
-					}
-				}
+				self.combinedView(minWidth: minWidth, minHeight: minHeight, callback: callback)
+					.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+					.toolbar {
+						 ToolbarItem(placement: .secondaryAction) {
+							 Picker("Mode", selection: $externalModeView) {
+								 Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+								 Image(systemName: "play.display").tag(ExternalModeView.vnc)
+							 }.pickerStyle(.segmented).labelsHidden()
+						 }
+					 }
 			}
 		} else {
-			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback).frame(
-				minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
+				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
 		}
 	}
 

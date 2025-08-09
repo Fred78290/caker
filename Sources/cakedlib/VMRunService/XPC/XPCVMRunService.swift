@@ -248,6 +248,7 @@ struct MountRequest: Codable {
 
 class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	let connection: NSXPCConnection
+	let logger: Logger = .init("XPCVMRunService")
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection) {
 		self.connection = connection
@@ -258,7 +259,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 		let reply: MountInfos
 
-		Logger(self).info("XPC mount: \(String(describing: request))")
+		self.logger.info("XPC mount: \(String(describing: request))")
 
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
@@ -268,10 +269,12 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		reply = self.mount(request: request.toCakeAgent(), umount: umount).toXPC()
 
 		serviceReply.mountReply(response: reply.toJSON())
+
+		self.logger.debug("Replied to mount request: \(reply)")
 	}
 
 	func vncUrl() {
-		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
+		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ self.logger.error("XPC Error: \($0)") })
 		let result: String
 
 		if let u = self.vncURL {
@@ -280,12 +283,16 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 			result = ""
 		}
 
+		self.logger.info("Handling VNC URL request: \(result)")
+
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
-			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
+			self.logger.error("Failed to get proxy ReplyVMRunServiceProtocol")
 			return
 		}
 
 		serviceReply.vncURLReply(response: result)
+
+		self.logger.debug("Replied to VNC URL request: \(result)")
 	}
 	
 	public func mount(request: String) {
@@ -351,10 +358,82 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 	}
 }
 
+class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
+	static let supportsSecureCoding: Bool = false
+	
+	enum ServiceReply {
+		case mountInfos(MountInfos)
+		case vncURL(String)
+		case none
+	}
+	
+	private let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
+	private var response: ServiceReply? = nil
+	private let logger: Logger = .init("ReplyVMRunService")
+
+	override init() {
+		self.response = nil
+		super.init()
+	}
+
+	required init?(coder: NSCoder) {
+		self.response = coder.decodeObject(forKey: "response") as? ServiceReply
+	}
+	
+	func vncURLReply(response: String) {
+		self.logger.debug("Received VNC URL: \(response)")
+		self.response = .vncURL(response)
+	}
+	
+	func mountReply(response: String) {
+		self.logger.debug("Received MountReply: \(response)")
+		self.response = .mountInfos(MountInfos(fromJSON: response))
+		self.semaphore.signal()
+	}
+	
+	func wait() -> ServiceReply? {
+		if self.response == nil {
+			self.semaphore.wait()
+			/*
+			 guard self.semaphore.wait(timeout: .now().advanced(by: .seconds(300))) == .timedOut else {
+			 Logger(self).error("Timeout")
+			 return nil
+			 }*/
+		}
+		
+		return self.response
+	}
+	
+	func encode(with coder: NSCoder) {
+		coder.encode(self.response, forKey: "response")
+	}
+	
+	func waitForMountInfosReply() -> MountInfos {
+		if let reply = self.wait() {
+			if case let .mountInfos(mountInfos) = reply {
+				return mountInfos
+			}
+
+			return MountInfos.with {
+				$0.response = .error("Unexpected reply from VMRunService \(reply)")
+			}
+		}
+
+		return MountInfos.with {
+			$0.response = .error("Timeout")
+		}
+	}
+}
+
 class XPCVMRunServiceClient: VMRunServiceClient {
 	let location: VMLocation
+	let logger: Logger = .init("XPCVMRunServiceClient")
 
-	init(location: VMLocation) {
+	static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
+		XPCVMRunServiceClient(location: location)
+	}
+
+	private init(location: VMLocation) {
 		self.location = location
 	}
 
@@ -376,16 +455,24 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 			let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
 
 			guard let service = proxyObject as? VMRunServiceProtocol else {
+				logger.error("Failed to connect to VMRunService")
 				throw ServiceError("Failed to connect to VMRunService")
 			}
 
+			logger.info("Requesting VNC URL")
+
 			service.vncUrl()
+
+			logger.info("Wait VNC URL reply")
 
 			if let reply = replier.wait() {
 				if case let .vncURL(url) = reply {
+					logger.info("VNC URL reply: \(url)")
 					return URL(string: url)
 				}
 			}
+
+			logger.info("Unexpected VNC URL reply")
 		}
 
 		return nil

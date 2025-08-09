@@ -26,6 +26,9 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(help: ArgumentHelp("VM Display mode", discussion: "This option allow display window of running vm or vnc server", visibility: .hidden))
 	var display: VMRunHandler.DisplayMode = .none
 
+	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow run vm in service mode", visibility: .hidden))
+	var mode: VMRunServiceMode = .grpc
+
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
 			let storageLocation = StorageLocation(runMode: self.common.runMode)
@@ -48,7 +51,8 @@ struct VMRun: AsyncParsableCommand {
 
 		let (_, location) = self.locations
 
-		CakedLib.VMRunHandler.launchedFromService = self.launchedFromService
+		VMRunHandler.launchedFromService = self.launchedFromService
+		VMRunHandler.serviceMode = self.mode
 
 		if location.inited == false {
 			throw ValidationError("VM at \(path) does not exist")
@@ -82,6 +86,7 @@ struct VMRun: AsyncParsableCommand {
 		let config = try location.config()
 
 		let handler = CakedLib.VMRunHandler(
+			mode,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,

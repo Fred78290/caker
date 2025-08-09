@@ -70,39 +70,43 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "vmrun"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "linux"
-            isEnabled = "NO">
+            argument = "ubuntu-desktop"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--display"
-            isEnabled = "NO">
+            argument = "--vnc"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--log-level=debug"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "build"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ipswtest"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-c=4"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-m=4096"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d=40"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ipsw:///Volumes/Manix/Users/fboltz/Downloads/UniversalMac_15.5_24F74_Restore.ipsw"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>

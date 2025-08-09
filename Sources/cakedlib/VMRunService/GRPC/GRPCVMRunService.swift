@@ -32,7 +32,59 @@ extension CakeAgent.MountReply {
 	}
 }
 
+fileprivate extension DirectorySharingAttachment {
+	func toMountVirtioFS() -> Vmrun_MountVirtioFS {
+		Vmrun_MountVirtioFS.with {
+			$0.source = self.source
+			$0.name = self.name
+			$0.uid = Int32(self.uid)
+			$0.gid = Int32(self.gid)
+			$0.readonly = self.readOnly
+
+			if let destination {
+				$0.target = destination
+			}
+		}
+	}
+}
+
+extension Vmrun_MountVirtioFSReply {
+	func toMountVirtioFS() -> MountVirtioFS {
+		MountVirtioFS.with {
+			$0.name = self.name
+
+			if case let .error(value) = self.response {
+				$0.response = .error(value)
+			} else if case let .success(value) = self.response {
+				$0.response = .success(value)
+			}
+		}
+	}
+}
+
+extension Vmrun_MountReply {
+	func toMountInfos() -> MountInfos {
+		if case let .error(value) = self.response {
+			return MountInfos.with {
+				$0.response = .error(value)
+			}
+		}
+		
+		return MountInfos.with {
+			$0.response = .success(true)
+			$0.mounts = self.mounts.map { $0.toMountVirtioFS() }
+		}
+	}
+}
+
 extension Vmrun_MountRequest {
+	init(_ command: Vmrun_MountCommand, attachments: [DirectorySharingAttachment]) {
+		self.command = command
+		self.mounts = attachments.map {
+			$0.toMountVirtioFS()
+		}
+	}
+
 	func toCakeAgent() -> CakeAgent.MountRequest {
 		CakeAgent.MountRequest.with {
 			$0.mounts = self.mounts.map { mount in
@@ -72,8 +124,71 @@ extension Vmrun_MountReply {
 	}
 }
 
-class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider {
+class GRPCVMRunServiceClient: VMRunServiceClient {
+	let client: Vmrun_ServiceNIOClient
+
+	public static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> GRPCVMRunServiceClient {
+
+		let listeningAddress = location.serviceURL
+		let target: ConnectionTarget
+		let connectionTimeout: TimeInterval = 5
+		let retries: ConnectionBackoff.Retries = .unlimited
+
+		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
+			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
+		} else if listeningAddress.scheme == "tcp" {
+			target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
+		} else {
+			throw ServiceError("unsupported address scheme: \(listeningAddress)")
+		}
+
+		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())
+		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let tlsCert = try NIOSSLCertificate(file: certLocation.clientCertURL.path, format: .pem)
+		let tlsKey = try NIOSSLPrivateKey(file: certLocation.clientKeyURL.path, format: .pem)
+		let trustRoots: NIOSSLTrustRoots = .certificates([try NIOSSLCertificate(file: certLocation.caCertURL.path, format: .pem)])
+
+		clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
+			certificateChain: [.certificate(tlsCert)],
+			privateKey: .privateKey(tlsKey),
+			trustRoots: trustRoots,
+			certificateVerification: .noHostnameVerification)
+
+		if retries != .unlimited {
+			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout, minimumConnectionTimeout: connectionTimeout, retries: retries)
+		} else {
+			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout)
+		}
+
+		return GRPCVMRunServiceClient(client: Vmrun_ServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration)))
+	}
+
+	private init(client: Vmrun_ServiceNIOClient) {
+		self.client = client
+	}
+
+	func vncURL() throws -> URL? {
+		let result = try client.vncEndPoint(Vmrun_Empty()).response.wait()
+		
+		if result.hasVncURL {
+			return URL(string: result.vncURL)
+		}
+		
+		return nil
+	}
+	
+	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+		try client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.wait().toMountInfos()
+	}
+	
+	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+		try client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.wait().toMountInfos()
+	}
+}
+
+class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
 	var server: Server? = nil
+	let logger: Logger = .init("GRPCVMRunService")
 
 	func createServer() throws -> EventLoopFuture<Server> {
 		let listeningAddress = self.vm.location.serviceURL
@@ -106,15 +221,18 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 	func serve() {
 		Task {
+			self.logger.info("Start GRPC VMRunService server")
 			do {
 				self.server = try await self.createServer().get()
 			} catch {
-				Logger.appendNewLine("Failed to start VMRunService server: \(error)")
+				Logger.appendNewLine("Failed to start GRPC VMRunService server: \(error)")
 			}
 		}
 	}
 
 	func stop() {
+		self.logger.info("Stop GRPC VMRunService server")
+
 		if let server = self.server {
 			try? server.close().wait()
 		}

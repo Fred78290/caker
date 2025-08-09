@@ -16,6 +16,9 @@ struct Mount: ParsableCommand {
 	@OptionGroup(title: "Mount options")
 	var mount: MountOptions
 
+	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a running service", visibility: .hidden))
+	var mode: VMRunServiceMode = .grpc
+
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
@@ -34,7 +37,7 @@ struct Mount: ParsableCommand {
 
 	func run() throws {
 		let location = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
-		let response = try CakedLib.MountHandler.Mount(location: location, mounts: self.mount.mounts)
+		let response = try CakedLib.MountHandler.Mount(mode, location: location, mounts: self.mount.mounts, runMode: self.common.runMode)
 
 		Logger.appendNewLine(self.common.format.render(response))
 

@@ -19,9 +19,9 @@ struct MountHandler: CakedCommandAsync {
 			let response: MountInfos
 
 			if command == .mount {
-				response = try CakedLib.MountHandler.Mount(location: location, mounts: directorySharingAttachment)
+				response = try CakedLib.MountHandler.Mount(VMRunHandler.serviceMode, location: location, mounts: directorySharingAttachment, runMode: runMode)
 			} else {
-				response = try CakedLib.MountHandler.Umount(location: location, mounts: directorySharingAttachment)
+				response = try CakedLib.MountHandler.Umount(VMRunHandler.serviceMode, location: location, mounts: directorySharingAttachment, runMode: runMode)
 			}
 
 			if case let .error(v) = response.response {

@@ -8,6 +8,7 @@ import ArgumentParser
 
 public struct VMRunHandler {
 	public static var launchedFromService = false
+	public static var serviceMode: VMRunServiceMode = .grpc
 
 	public enum DisplayMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
 		public var description: String {
@@ -29,14 +30,16 @@ public struct VMRunHandler {
 	let runMode: Utils.RunMode
 	let display: DisplayMode
 	let config: CakeConfig
+	let mode: VMRunServiceMode
 
-	public init(storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: DisplayMode, config: CakeConfig) {
+	public init(_ mode: VMRunServiceMode, storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: DisplayMode, config: CakeConfig) {
 		self.storageLocation = storageLocation
 		self.location = location
 		self.name = name
 		self.runMode = runMode
 		self.display = display
 		self.config = config
+		self.mode = mode
 	}
 
 	public func run(_ completionHandler: @escaping (VirtualMachine) -> Void) throws {
@@ -62,7 +65,7 @@ public struct VMRunHandler {
 			}
 		}
 
-		let (_, vm) = try location.startVirtualMachine(on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
+		let (_, vm) = try location.startVirtualMachine(mode, on: Utilities.group.next(), config: config, internalCall: false, runMode: runMode)
 
 		completionHandler(vm)
 	}

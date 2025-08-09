@@ -4,6 +4,7 @@ import GRPC
 import GRPCLib
 import NIO
 import Virtualization
+import ArgumentParser
 
 public protocol VMRunServiceClient {
 	func vncURL() throws -> URL?
@@ -14,6 +15,15 @@ public protocol VMRunServiceClient {
 protocol VMRunServiceServerProtocol {
 	func serve()
 	func stop()
+}
+
+public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable, EnumerableFlag {
+	public var description: String {
+		return self.rawValue
+	}
+	
+	case grpc
+	case xpc
 }
 
 class VMRunService: NSObject {
@@ -92,10 +102,18 @@ class VMRunService: NSObject {
 	}
 }
 
-public func createVMRunServiceClient(location: VMLocation) -> VMRunServiceClient {
-	return XPCVMRunServiceClient(location: location)
+public func createVMRunServiceClient(_ mode: VMRunServiceMode, location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
+	if mode == .xpc {
+		return try XPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+	} else {
+		return try GRPCVMRunServiceClient.createClient(location: location, runMode: runMode)
+	}
 }
 
-func createVMRunServiceServer(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
-	return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+func createVMRunServiceServer(_ mode: VMRunServiceMode, group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) -> VMRunServiceServerProtocol {
+	if mode == .xpc {
+		return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+	} else {
+		return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+	}
 }
