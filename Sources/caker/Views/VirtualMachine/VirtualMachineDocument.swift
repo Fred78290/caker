@@ -160,6 +160,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.inited = false
 		self.status = .none
 		self.agent = .none
+		self.framebufferView = nil
+		self.vncURL = nil
+		self.vncStatus = .disconnected
 
 		if let monitor = self.monitor {
 			monitor.stop()
@@ -542,12 +545,12 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
 		self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
 
-		if let framebufferView = self.framebufferView {
+		//if let framebufferView = self.framebufferView {
 			DispatchQueue.main.async {
 				//framebufferView.bounds = CGRectMake(0, 0, CGFloat(framebuffer.size.width), CGFloat(framebuffer.size.height))
 				NotificationCenter.default.post(name: NSNotification.VNCFramebufferSizeChanged, object: framebuffer.size)
 			}
-		}
+		//}
 	}
 	
 	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {

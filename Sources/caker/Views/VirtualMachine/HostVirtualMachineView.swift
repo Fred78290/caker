@@ -43,6 +43,7 @@ struct HostVirtualMachineView: View {
 	@State var externalModeView: ExternalModeView
 	@State var size: CGSize
 	@State var automaticallyReconfiguresDisplay: Bool
+	private let logger = Logger("HostVirtualMachineView")
 
 	var delegate: CustomWindowDelegate = CustomWindowDelegate()
 
@@ -82,6 +83,7 @@ struct HostVirtualMachineView: View {
 			}
 		}.onReceive(NSNotification.VNCFramebufferSizeChanged) { notification in
 			if let size = notification.object as? CGSize {
+				self.logger.info("VNCFramebufferSizeChanged: \(size)")
 				self.size = size
 			}
 		}.onReceive(NSWindow.willCloseNotification) { notification in
@@ -124,6 +126,12 @@ struct HostVirtualMachineView: View {
 				self.appState.currentDocument = nil
 			}
 		}.onChange(of: self.document.status) { newValue in
+			if newValue == .external {
+				self.externalModeView = document.vncURL != nil ? .vnc : .terminal
+			} else {
+				self.externalModeView = .none
+			}
+
 			if self.appearsActive {
 				self.appState.isAgentInstalling = self.document.agent == .installing
 				self.appState.isStopped = newValue == .stopped || newValue == .stopping
@@ -131,11 +139,10 @@ struct HostVirtualMachineView: View {
 				self.appState.isPaused = newValue == .paused || newValue == .pausing
 				self.appState.isSuspendable = newValue == .running && document.suspendable
 			}
-		}.onChange(of: document.status) { newValue in
-			if newValue == .external {
-				self.externalModeView = document.vncURL != nil ? .vnc : .terminal
-			} else {
-				self.externalModeView = .none
+		}.onChange(of: self.document.vncStatus) { newValue in
+			if let framebuffer = self.document.connection.framebuffer, newValue == .ready {
+				self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
+				self.size = framebuffer.cgSize
 			}
 		}.onChange(of: self.externalModeView) { newValue in
 			if newValue == .vnc && self.document.status == .external {
@@ -241,12 +248,12 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
-	func terminalView(minWidth: CGFloat, minHeight: CGFloat, callback: VMView.CallbackWindow? = nil) -> some View {
+	func terminalView(callback: VMView.CallbackWindow? = nil) -> some View {
 		if self.document.agent == .installed {
-			ExternalVirtualMachineView(document: _document, size: CGSize(width: minWidth, height: minHeight), dismiss: dismiss, callback: callback)
+			ExternalVirtualMachineView(document: _document, size: self.size, dismiss: dismiss, callback: callback)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
-				.frame(minWidth: minWidth, idealWidth: minWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: minHeight, maxHeight: .infinity)
+				.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
 		} else if self.document.agent == .installing {
 			Text("Installing agent...")
 		} else {
@@ -255,9 +262,9 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
-	func combinedView(minWidth: CGFloat, minHeight: CGFloat, callback: VMView.CallbackWindow? = nil) -> some View {
+	func combinedView(callback: VMView.CallbackWindow? = nil) -> some View {
 		if self.externalModeView == .terminal {
-			self.terminalView(minWidth: minWidth, minHeight: minHeight, callback: callback)
+			self.terminalView(callback: callback)
 		} else {
 			switch self.document.vncStatus {
 			case .connecting:
@@ -267,27 +274,27 @@ struct HostVirtualMachineView: View {
 						.foregroundStyle(.white)
 						.background(.black)
 						.font(.largeTitle)
-						.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+						.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 				}
-				.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+				.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 			case .disconnected:
 				Text("VNC not connected")
 					.foregroundStyle(.white)
 					.background(.black)
 					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 			case .connected:
 				Text("VNC connected")
 					.foregroundStyle(.white)
 					.background(.black)
 					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 			case .disconnecting:
 				Text("VNC disconnecting")
 					.foregroundStyle(.white)
 					.background(.black)
 					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: minHeight, maxHeight: .infinity)
+					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 			case .ready:
 				ViewThatFits {
 					VNCView(document: self.document, viewSize: self.size)
@@ -300,9 +307,9 @@ struct HostVirtualMachineView: View {
 	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
 		if self.document.status == .external {
 			if self.document.vncURL == nil {
-				self.terminalView(minWidth: self.size.width, minHeight: self.size.height, callback: callback)
+				self.terminalView(callback: callback)
 			} else {
-				self.combinedView(minWidth: self.size.width, minHeight: self.size.height, callback: callback)
+				self.combinedView(callback: callback)
 					.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
 					.toolbar {
 						 ToolbarItem(placement: .secondaryAction) {
