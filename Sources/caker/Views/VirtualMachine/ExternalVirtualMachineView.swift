@@ -335,8 +335,6 @@ struct ColorWellModifier: ViewModifier {
 		}.toolbar {
 			ToolbarItem(placement: placement) {
 				ColorWell(selection: self.$color)
-					//.colorWellStyle(.minimal)
-					.frame(width: 30, height: 24)
 			}
 		}
 	}

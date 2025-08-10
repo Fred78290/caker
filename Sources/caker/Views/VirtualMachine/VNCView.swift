@@ -8,34 +8,52 @@
 import Foundation
 import SwiftUI
 import RoyalVNCKit
+import CakedLib
 
 struct VNCView: NSViewRepresentable {
-	var document: VirtualMachineDocument
-	var viewSize: CGSize
+	private let document: VirtualMachineDocument
+	private let callback: VMView.CallbackWindow?
+	private let logger = Logger("HostVirtualMachineView")
+
+	init(document: VirtualMachineDocument, _ callback: VMView.CallbackWindow? = nil) {
+		self.document = document
+		self.callback = callback
+	}
 
 	func makeCoordinator() -> VirtualMachineDocument {
 		return document
 	}
 
 	func makeNSView(context: Context) -> NSView {
-		let view: NSView
+		let view = context.coordinator.vncView!
 
-		if let connection = context.coordinator.connection, let framebuffer = connection.framebuffer {
-			view = VNCCAFramebufferView(frame: CGRectMake(0, 0, viewSize.width, viewSize.height), framebuffer: framebuffer, connection: connection)
-		} else {
-			view = NSViewType(frame: CGRectMake(0, 0, viewSize.width, viewSize.height))
+		if let callback = self.callback {
+			DispatchQueue.main.async {
+				callback(view.window)
+			}
 		}
 
-		view.autoresizingMask = [.width, .height]
+		self.logger.info("makeNSView: \(view), \(view.frame)")
 
-		return view
+		return context.coordinator.vncView
 	}
-	
+
+	func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
+		if let framebuffer = self.document.connection.framebuffer {
+			return framebuffer.cgSize
+		}
+		
+		return nil
+	}
+
 	func updateNSView(_ nsView: NSView, context: Context) {
-		if let view = nsView as? VNCCAFramebufferView {
-			context.coordinator.framebufferView = view
+		self.logger.info("updateNSView: \(nsView), \(nsView.frame)")
+
+		if let framebuffer = self.document.connection.framebuffer {
+			//nsView.frame = CGRectMake(nsView.frame.origin.x, nsView.frame.origin.y, framebuffer.cgSize.width, framebuffer.cgSize.height)
+			self.logger.info("Resize NSView: \(framebuffer), \(nsView.frame), \(framebuffer.cgSize)")
 		} else {
-			context.coordinator.framebufferView = nil
+			self.logger.info("updateNSView: framebuffer nil")
 		}
 	}
 

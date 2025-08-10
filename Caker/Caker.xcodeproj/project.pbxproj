@@ -139,6 +139,10 @@
 		9B7895F32E37D9C2004D07EB /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */; };
 		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
 		9B7997262E4638E100147500 /* RoyalVNCKit in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 9B8509C42E450AC9004999B6 /* RoyalVNCKit */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9B7999072E48A27900147500 /* NSVNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7999052E48A27900147500 /* NSVNCView.swift */; };
+		9B7999092E48A2A900147500 /* DisplayLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7999082E48A2A600147500 /* DisplayLink.swift */; };
+		9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */; };
+		9B79990D2E48A36C00147500 /* VNCFramebufferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
 		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
@@ -621,6 +625,10 @@
 		9B7895EB2E37D9C2004D07EB /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
+		9B7999052E48A27900147500 /* NSVNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSVNCView.swift; sourceTree = "<group>"; };
+		9B7999082E48A2A600147500 /* DisplayLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayLink.swift; sourceTree = "<group>"; };
+		9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardModifiers.swift; sourceTree = "<group>"; };
+		9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebufferView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountNewItemView.swift; sourceTree = "<group>"; };
@@ -1131,6 +1139,7 @@
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
 				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
+				9B7999062E48A27900147500 /* VNC */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1324,6 +1333,17 @@
 				9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */,
 			);
 			path = MultiplatformTabBar;
+			sourceTree = "<group>";
+		};
+		9B7999062E48A27900147500 /* VNC */ = {
+			isa = PBXGroup;
+			children = (
+				9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */,
+				9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */,
+				9B7999082E48A2A600147500 /* DisplayLink.swift */,
+				9B7999052E48A27900147500 /* NSVNCView.swift */,
+			);
+			path = VNC;
 			sourceTree = "<group>";
 		};
 		9B9C4E592E23BC8B00C13D23 /* Home */ = {
@@ -2025,6 +2045,7 @@
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
 				9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */,
+				9B7999092E48A2A900147500 /* DisplayLink.swift in Sources */,
 				9B9C4E632E23BDAA00C13D23 /* NavigationModel.swift in Sources */,
 				9B2BFAC12DFED25E000045C3 /* DiskAttachementView.swift in Sources */,
 				9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */,
@@ -2032,11 +2053,13 @@
 				9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */,
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
+				9B7999072E48A27900147500 /* NSVNCView.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
 				9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */,
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
+				9B79990D2E48A36C00147500 /* VNCFramebufferView.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
@@ -2057,6 +2080,7 @@
 				9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */,
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
+				9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
 				9B215B752E0C391500AFC89D /* NetworkAttachementDetailView.swift in Sources */,
 				9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */,
@@ -3074,7 +3098,7 @@
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = e142840b3d291f4fcd7adedc5d687ab98fc323fd;
+				revision = ab423247d2f5ca4608ecb03d0e23d0957ce530c4;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {

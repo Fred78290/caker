@@ -58,7 +58,7 @@ extension Logging.Logger.Level: @retroactive ExpressibleByArgument {
 	}
 }
 
-public struct Logger {
+public final class Logger {
 	private static let eraseCursorDown: String = "\u{001B}[J"
 	private static let moveUp = "\u{001B}[1A"
 	private static let moveBeginningOfLine = "\r"
