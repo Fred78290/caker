@@ -266,43 +266,43 @@ struct HostVirtualMachineView: View {
 		if self.externalModeView == .terminal {
 			self.terminalView(callback: callback)
 		} else {
-			switch self.document.vncStatus {
-			case .connecting:
-				VStack(alignment: .center) {
-					ProgressView()
-					Text("Connecting to VNC")
+			ZStack {
+				/*HostingWindowFinder { window in
+					if let window, let contentViewController = window.contentViewController {
+						contentViewController.view.wantsLayer = true
+						contentViewController.view.layer?.backgroundColor = NSColor.black.cgColor
+					}
+				}*/
+
+				switch self.document.vncStatus {
+				case .connecting:
+					VStack(alignment: .center) {
+						ProgressView()
+						Text("Connecting to VNC")
+							.foregroundStyle(.white)
+							.font(.largeTitle)
+					}
+				case .disconnected:
+					Text("VNC not connected")
 						.foregroundStyle(.white)
-						.background(.black)
 						.font(.largeTitle)
-						.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
-				}
-				.background(.black)
-				.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
-			case .disconnected:
-				Text("VNC not connected")
-					.foregroundStyle(.white)
-					.background(.black)
-					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
-			case .connected:
-				Text("VNC connected")
-					.foregroundStyle(.white)
-					.background(.black)
-					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
-			case .disconnecting:
-				Text("VNC disconnecting")
-					.foregroundStyle(.white)
-					.background(.black)
-					.font(.largeTitle)
-					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
-			case .ready:
-				ViewThatFits {
-					VNCView(document: self.document, callback)
+				case .connected:
+					Text("VNC connected")
+						.foregroundStyle(.white)
+						.font(.largeTitle)
+				case .disconnecting:
+					Text("VNC disconnecting")
+						.foregroundStyle(.white)
+						.font(.largeTitle)
+				case .ready:
+					ViewThatFits {
+						VNCView(document: self.document, callback)
 						.scaledToFit()
 						.frame(size: self.size)
+					}
 				}
 			}
+			.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
 		}
 	}
 
