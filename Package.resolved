@@ -1,5 +1,5 @@
 {
-  "originHash" : "76f8a838d2405259b737563f6580d530d8f42402de8db6f6ca38c8e7052b8218",
+  "originHash" : "8bc82f3da4152b76d51a1435724545d651e9e187cabdd3bea81de742b2e367e3",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -339,6 +339,15 @@
       }
     },
     {
+      "identity" : "swift-subprocess",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-subprocess",
+      "state" : {
+        "branch" : "main",
+        "revision" : "7fb7ee86df8ca4f172697bfbafa89cdc583ac016"
+      }
+    },
+    {
       "identity" : "swift-sysctl",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sersoft-gmbh/swift-sysctl.git",
@@ -415,7 +424,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/migueldeicaza/SwiftTerm.git",
       "state" : {
-        "revision" : "e142840b3d291f4fcd7adedc5d687ab98fc323fd"
+        "revision" : "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"
       }
     },
     {

@@ -157,11 +157,19 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			let location = StorageLocation(runMode: .app).location(vmName)
 
 			if file.matchesContents(of: location.rootURL) {
-				AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
-
-				try DispatchQueue.main.sync {
+				func loadVM() throws {
 					if loadVirtualMachine(from: location.rootURL) == false {
 						throw ServiceError("Unable to load virtual machine")
+					} else {
+						AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
+					}
+				}
+
+				if Thread.isMainThread {
+					try loadVM()
+				} else {
+					try DispatchQueue.main.sync {
+						try loadVM()
 					}
 				}
 			}

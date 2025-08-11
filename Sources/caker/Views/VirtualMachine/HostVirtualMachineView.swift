@@ -298,7 +298,9 @@ struct HostVirtualMachineView: View {
 					.frame(maxWidth: .infinity, minHeight: self.size.height, maxHeight: .infinity)
 			case .ready:
 				ViewThatFits {
-					VNCView(document: self.document, callback).frame(size: self.size)
+					VNCView(document: self.document, callback)
+						.scaledToFit()
+						.frame(size: self.size)
 				}
 			}
 		}
@@ -312,7 +314,6 @@ struct HostVirtualMachineView: View {
 			} else {
 				self.combinedView(callback: callback)
 					.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
-					.background(.black)
 					.toolbar {
 						 ToolbarItem(placement: .secondaryAction) {
 							 Picker("Mode", selection: $externalModeView) {
