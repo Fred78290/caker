@@ -32,7 +32,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", from: "2.30.0"),
 		.package(url: "https://github.com/apple/swift-nio-transport-services.git", from: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-nio.git", from: "2.82.1"),
-		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.29.0"),
+		.package(url: "https://github.com/apple/swift-protobuf.git", from: "1.31.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
 		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "dc3e771bd2351b8773bc874cf9892dc127e4d294"),

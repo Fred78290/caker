@@ -798,7 +798,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RunCommand: @unchecked Sendable {
+    public struct RunCommand: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -825,7 +825,7 @@ public struct Caked_Caked: Sendable {
       fileprivate var _input: Data? = nil
     }
 
-    public struct ExecuteResponse: @unchecked Sendable {
+    public struct ExecuteResponse: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -874,7 +874,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, @unchecked Sendable {
+      public enum OneOf_Response: Equatable, Sendable {
         case exitCode(Int32)
         case stdout(Data)
         case stderr(Data)
@@ -886,7 +886,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct ExecuteRequest: @unchecked Sendable {
+    public struct ExecuteRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -927,7 +927,7 @@ public struct Caked_Caked: Sendable {
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Execute: Equatable, @unchecked Sendable {
+      public enum OneOf_Execute: Equatable, Sendable {
         case command(Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand)
         case input(Data)
         case size(Caked_Caked.VMRequest.ExecuteRequest.TerminalSize)
@@ -2059,7 +2059,7 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
-    public struct RunReply: @unchecked Sendable {
+    public struct RunReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
@@ -2822,32 +2822,7 @@ extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
 extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "cpu"),
-    3: .same(proto: "memory"),
-    4: .same(proto: "user"),
-    22: .same(proto: "password"),
-    5: .same(proto: "mainGroup"),
-    6: .same(proto: "sshPwAuth"),
-    7: .same(proto: "image"),
-    8: .same(proto: "sshAuthorizedKey"),
-    9: .same(proto: "vendorData"),
-    10: .same(proto: "userData"),
-    11: .same(proto: "networkConfig"),
-    12: .same(proto: "diskSize"),
-    13: .same(proto: "autostart"),
-    14: .same(proto: "nested"),
-    15: .same(proto: "forwardedPort"),
-    16: .same(proto: "mounts"),
-    17: .same(proto: "networks"),
-    18: .same(proto: "sockets"),
-    19: .same(proto: "console"),
-    20: .same(proto: "attachedDisks"),
-    21: .same(proto: "dynamicPortForwarding"),
-    23: .same(proto: "ifnames"),
-    24: .same(proto: "suspendable"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -3078,9 +3053,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
 
 extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".BuildRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "options"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3114,10 +3087,7 @@ extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtob
 
 extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StartRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "waitIPTimeout"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3156,13 +3126,7 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
 
 extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CloneRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "sourceName"),
-    2: .same(proto: "targetName"),
-    3: .same(proto: "insecure"),
-    4: .same(proto: "concurrency"),
-    5: .same(proto: "deduplicate"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}targetName\0\u{1}insecure\0\u{1}concurrency\0\u{1}deduplicate\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3216,11 +3180,7 @@ extension Caked_Caked.VMRequest.CloneRequest: SwiftProtobuf.Message, SwiftProtob
 
 extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DuplicateRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "from"),
-    2: .same(proto: "to"),
-    3: .same(proto: "resetMacAddress"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}from\0\u{1}to\0\u{1}resetMacAddress\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3260,10 +3220,7 @@ extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftPr
 
 extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".LaunchRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "options"),
-    2: .same(proto: "waitIPTimeout"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3302,24 +3259,7 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ConfigureRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "cpu"),
-    3: .same(proto: "memory"),
-    4: .same(proto: "diskSize"),
-    5: .same(proto: "displayRefit"),
-    6: .same(proto: "autostart"),
-    7: .same(proto: "nested"),
-    8: .same(proto: "mounts"),
-    9: .same(proto: "networks"),
-    10: .same(proto: "sockets"),
-    11: .same(proto: "console"),
-    12: .same(proto: "randomMAC"),
-    13: .same(proto: "forwardedPort"),
-    14: .same(proto: "attachedDisks"),
-    15: .same(proto: "dynamicPortForwarding"),
-    16: .same(proto: "suspendable"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3428,10 +3368,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
 
 extension Caked_Caked.VMRequest.WaitIPRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".WaitIPRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "timeout"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}timeout\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3466,11 +3403,7 @@ extension Caked_Caked.VMRequest.WaitIPRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.StopRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StopRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "force"),
-    2: .same(proto: "all"),
-    3: .same(proto: "names"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}force\0\u{1}all\0\u{1}names\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3537,9 +3470,7 @@ extension Caked_Caked.VMRequest.StopRequest: SwiftProtobuf.Message, SwiftProtobu
 
 extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.StopRequest.protoMessageName + ".VMNames"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3569,10 +3500,7 @@ extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, Swif
 
 extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DeleteRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    2: .same(proto: "all"),
-    3: .same(proto: "names"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\u{2}all\0\u{1}names\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3634,9 +3562,7 @@ extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.DeleteRequest.protoMessageName + ".VMNames"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3666,9 +3592,7 @@ extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, Sw
 
 extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ListRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "vmonly"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmonly\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3698,9 +3622,7 @@ extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobu
 
 extension Caked_Caked.VMRequest.InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".InfoRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3730,10 +3652,7 @@ extension Caked_Caked.VMRequest.InfoRequest: SwiftProtobuf.Message, SwiftProtobu
 
 extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RenameRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "oldname"),
-    2: .same(proto: "newname"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}oldname\0\u{1}newname\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3768,11 +3687,7 @@ extension Caked_Caked.VMRequest.RenameRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".TemplateRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "createRequest"),
-    3: .same(proto: "deleteRequest"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}createRequest\0\u{1}deleteRequest\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3838,20 +3753,12 @@ extension Caked_Caked.VMRequest.TemplateRequest: SwiftProtobuf.Message, SwiftPro
 }
 
 extension Caked_Caked.VMRequest.TemplateRequest.TemplateCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "none"),
-    1: .same(proto: "add"),
-    2: .same(proto: "delete"),
-    3: .same(proto: "list"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}add\0\u{1}delete\0\u{1}list\0")
 }
 
 extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.TemplateRequest.protoMessageName + ".TemplateRequestAdd"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "sourceName"),
-    2: .same(proto: "templateName"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}sourceName\0\u{1}templateName\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3886,12 +3793,7 @@ extension Caked_Caked.VMRequest.TemplateRequest.TemplateRequestAdd: SwiftProtobu
 
 extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".RunCommand"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "vmname"),
-    2: .same(proto: "command"),
-    3: .same(proto: "args"),
-    4: .same(proto: "input"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmname\0\u{1}command\0\u{1}args\0\u{1}input\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3940,13 +3842,7 @@ extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf
 
 extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ExecuteResponse"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "exitCode"),
-    2: .same(proto: "stdout"),
-    3: .same(proto: "stderr"),
-    4: .same(proto: "failure"),
-    5: .same(proto: "established"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0\u{1}failure\0\u{1}established\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4039,12 +3935,7 @@ extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftPro
 
 extension Caked_Caked.VMRequest.ExecuteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ExecuteRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "input"),
-    3: .same(proto: "size"),
-    4: .same(proto: "eof"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}input\0\u{1}size\0\u{1}eof\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4135,10 +4026,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest: SwiftProtobuf.Message, SwiftProt
 
 extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.protoMessageName + ".ExecuteCommand"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "shell"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}shell\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4200,10 +4088,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand: SwiftProtobuf.Mes
 
 extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.protoMessageName + ".Command"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "args"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}args\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4238,10 +4123,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.ExecuteCommand.Command: SwiftProt
 
 extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteRequest.protoMessageName + ".TerminalSize"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "rows"),
-    2: .same(proto: "cols"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}rows\0\u{1}cols\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4276,17 +4158,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "error"),
-    3: .same(proto: "vms"),
-    4: .same(proto: "images"),
-    5: .same(proto: "networks"),
-    6: .same(proto: "remotes"),
-    7: .same(proto: "templates"),
-    8: .same(proto: "run"),
-    9: .same(proto: "mounts"),
-    10: .same(proto: "tart"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}error\0\u{2}\u{2}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}tart\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4472,10 +4344,7 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 
 extension Caked_Caked.Reply.Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".Error"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "code"),
-    2: .same(proto: "reason"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}code\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4510,13 +4379,7 @@ extension Caked_Caked.Reply.Error: SwiftProtobuf.Message, SwiftProtobuf._Message
 
 extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-    2: .same(proto: "delete"),
-    3: .same(proto: "stop"),
-    4: .same(proto: "infos"),
-    5: .same(proto: "message"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}infos\0\u{1}message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4629,9 +4492,7 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".VirtualMachineInfoReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "infos"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4661,18 +4522,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "type"),
-    2: .same(proto: "source"),
-    3: .same(proto: "name"),
-    4: .same(proto: "fqn"),
-    5: .same(proto: "instanceID"),
-    6: .same(proto: "diskSize"),
-    7: .same(proto: "totalSize"),
-    8: .same(proto: "state"),
-    9: .same(proto: "ip"),
-    10: .same(proto: "fingerprint"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}totalSize\0\u{1}state\0\u{1}ip\0\u{1}fingerprint\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4751,9 +4601,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
 
 extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".DeleteReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "objects"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4783,12 +4631,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.DeleteReply.protoMessageName + ".DeletedObject"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "source"),
-    2: .same(proto: "name"),
-    3: .same(proto: "deleted"),
-    4: .same(proto: "reason"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}source\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4833,9 +4676,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject: Swift
 
 extension Caked_Caked.Reply.VirtualMachineReply.StopReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".StopReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "objects"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4865,12 +4706,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply: SwiftProtobuf.Message
 
 extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StopReply.protoMessageName + ".StoppedObject"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "status"),
-    3: .same(proto: "stopped"),
-    4: .same(proto: "reason"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}status\0\u{1}stopped\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4915,23 +4751,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "version"),
-    2: .same(proto: "uptime"),
-    3: .same(proto: "memory"),
-    4: .same(proto: "cpuCount"),
-    5: .same(proto: "diskInfos"),
-    6: .same(proto: "ipaddresses"),
-    7: .same(proto: "osname"),
-    8: .same(proto: "hostname"),
-    9: .same(proto: "release"),
-    10: .same(proto: "status"),
-    11: .same(proto: "mounts"),
-    12: .same(proto: "name"),
-    13: .same(proto: "networks"),
-    14: .same(proto: "tunnels"),
-    15: .same(proto: "sockets"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -5099,11 +4919,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.protoMessageName + ".MemoryInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "total"),
-    2: .same(proto: "free"),
-    3: .same(proto: "used"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}total\0\u{1}free\0\u{1}used\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5147,14 +4963,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.MemoryInfo: SwiftProto
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.DiskInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.protoMessageName + ".DiskInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "device"),
-    2: .same(proto: "mount"),
-    3: .same(proto: "fsType"),
-    4: .same(proto: "size"),
-    5: .same(proto: "used"),
-    6: .same(proto: "free"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}device\0\u{1}mount\0\u{1}fsType\0\u{1}size\0\u{1}used\0\u{1}free\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5209,11 +5018,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.DiskInfo: SwiftProtobu
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.AttachedNetwork: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.protoMessageName + ".AttachedNetwork"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "network"),
-    2: .same(proto: "mode"),
-    3: .same(proto: "macAddress"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}network\0\u{1}mode\0\u{1}macAddress\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5257,10 +5062,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.AttachedNetwork: Swift
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.protoMessageName + ".TunnelInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "forward"),
-    2: .same(proto: "unixDomain"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}forward\0\u{1}unixDomain\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5326,19 +5128,12 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo: SwiftProto
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.ProtocolEnum: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "tcp"),
-    1: .same(proto: "udp"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0tcp\0\u{1}udp\0")
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.ForwardedPort: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.protoMessageName + ".ForwardedPort"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "protocol"),
-    2: .same(proto: "host"),
-    3: .same(proto: "guest"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}protocol\0\u{1}host\0\u{1}guest\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5378,11 +5173,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.ForwardedPo
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.Tunnel: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.protoMessageName + ".Tunnel"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "protocol"),
-    2: .same(proto: "host"),
-    3: .same(proto: "guest"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}protocol\0\u{1}host\0\u{1}guest\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5422,11 +5213,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo.Tunnel: Swi
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.SocketInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.InfoReply.protoMessageName + ".SocketInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "mode"),
-    2: .same(proto: "host"),
-    3: .same(proto: "port"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}host\0\u{1}port\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5465,21 +5252,12 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.SocketInfo: SwiftProto
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply.SocketInfo.Mode: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "bind"),
-    1: .same(proto: "connect"),
-    2: .same(proto: "tcp"),
-    3: .same(proto: "udp"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0bind\0\u{1}connect\0\u{1}tcp\0\u{1}udp\0")
 }
 
 extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".ImageReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "infos"),
-    2: .same(proto: "pull"),
-    3: .same(proto: "list"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0\u{1}pull\0\u{1}list\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5563,9 +5341,7 @@ extension Caked_Caked.Reply.ImageReply: SwiftProtobuf.Message, SwiftProtobuf._Me
 
 extension Caked_Caked.Reply.ImageReply.ListImagesInfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ListImagesInfoReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "infos"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}infos\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5595,19 +5371,7 @@ extension Caked_Caked.Reply.ImageReply.ListImagesInfoReply: SwiftProtobuf.Messag
 
 extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".ImageInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "aliases"),
-    2: .same(proto: "architecture"),
-    3: .same(proto: "pub"),
-    4: .same(proto: "fileName"),
-    5: .same(proto: "fingerprint"),
-    6: .same(proto: "size"),
-    7: .same(proto: "type"),
-    8: .same(proto: "created"),
-    9: .same(proto: "expires"),
-    10: .same(proto: "uploaded"),
-    11: .same(proto: "properties"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}aliases\0\u{1}architecture\0\u{1}pub\0\u{1}fileName\0\u{1}fingerprint\0\u{1}size\0\u{1}type\0\u{1}created\0\u{1}expires\0\u{1}uploaded\0\u{1}properties\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5691,14 +5455,7 @@ extension Caked_Caked.Reply.ImageReply.ImageInfo: SwiftProtobuf.Message, SwiftPr
 
 extension Caked_Caked.Reply.ImageReply.PulledImageInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.ImageReply.protoMessageName + ".PulledImageInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "alias"),
-    2: .same(proto: "path"),
-    3: .same(proto: "size"),
-    4: .same(proto: "fingerprint"),
-    5: .same(proto: "remoteName"),
-    6: .same(proto: "description"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}alias\0\u{1}path\0\u{1}size\0\u{1}fingerprint\0\u{1}remoteName\0\u{1}description\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5757,11 +5514,7 @@ extension Caked_Caked.Reply.ImageReply.PulledImageInfo: SwiftProtobuf.Message, S
 
 extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".NetworksReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-    2: .same(proto: "status"),
-    3: .same(proto: "message"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}status\0\u{1}message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5840,16 +5593,7 @@ extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf.
 
 extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "mode"),
-    3: .same(proto: "description"),
-    4: .same(proto: "gateway"),
-    5: .same(proto: "dhcpEnd"),
-    6: .same(proto: "netmask"),
-    7: .same(proto: "interfaceID"),
-    8: .same(proto: "endpoint"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5914,9 +5658,7 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, Sw
 
 extension Caked_Caked.Reply.NetworksReply.ListNetworksReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".ListNetworksReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "networks"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}networks\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5946,10 +5688,7 @@ extension Caked_Caked.Reply.NetworksReply.ListNetworksReply: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".RemoteReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-    2: .same(proto: "message"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6011,9 +5750,7 @@ extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._M
 
 extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".ListRemoteReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "remotes"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}remotes\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6043,10 +5780,7 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, 
 
 extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.ListRemoteReply.protoMessageName + ".RemoteEntry"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "url"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}url\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6081,11 +5815,7 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtob
 
 extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".TemplateReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "list"),
-    2: .same(proto: "create"),
-    3: .same(proto: "delete"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}create\0\u{1}delete\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6169,9 +5899,7 @@ extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf.
 
 extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".ListTemplatesReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "templates"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}templates\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6201,12 +5929,7 @@ extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Mess
 
 extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.ListTemplatesReply.protoMessageName + ".TemplateEntry"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "fqn"),
-    3: .same(proto: "diskSize"),
-    4: .same(proto: "totalSize"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}fqn\0\u{1}diskSize\0\u{1}totalSize\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6251,11 +5974,7 @@ extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry: Swif
 
 extension Caked_Caked.Reply.TemplateReply.CreateTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".CreateTemplateReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "created"),
-    3: .same(proto: "reason"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}created\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6299,11 +6018,7 @@ extension Caked_Caked.Reply.TemplateReply.CreateTemplateReply: SwiftProtobuf.Mes
 
 extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".DeleteTemplateReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "deleted"),
-    3: .same(proto: "reason"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6347,11 +6062,7 @@ extension Caked_Caked.Reply.TemplateReply.DeleteTemplateReply: SwiftProtobuf.Mes
 
 extension Caked_Caked.Reply.RunReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".RunReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "exitCode"),
-    2: .same(proto: "stdout"),
-    3: .same(proto: "stderr"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6391,11 +6102,7 @@ extension Caked_Caked.Reply.RunReply: SwiftProtobuf.Message, SwiftProtobuf._Mess
 
 extension Caked_Caked.Reply.MountReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".MountReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "mounts"),
-    2: .same(proto: "error"),
-    3: .same(proto: "success"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mounts\0\u{1}error\0\u{1}success\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6457,12 +6164,7 @@ extension Caked_Caked.Reply.MountReply: SwiftProtobuf.Message, SwiftProtobuf._Me
 
 extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.MountReply.protoMessageName + ".MountVirtioFSReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "path"),
-    3: .same(proto: "error"),
-    4: .same(proto: "success"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}path\0\u{1}error\0\u{1}success\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6529,9 +6231,7 @@ extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message
 
 extension Caked_Caked.Reply.TartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".TartReply"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "message"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6561,12 +6261,7 @@ extension Caked_Caked.Reply.TartReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
 
 extension Caked_Caked.NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".NetworkRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "name"),
-    3: .same(proto: "create"),
-    4: .same(proto: "configure"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0\u{1}create\0\u{1}configure\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6649,35 +6344,16 @@ extension Caked_Caked.NetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._Mess
 }
 
 extension Caked_Caked.NetworkRequest.NetworkMode: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "shared"),
-    1: .same(proto: "host"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0shared\0\u{1}host\0")
 }
 
 extension Caked_Caked.NetworkRequest.NetworkCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "infos"),
-    1: .same(proto: "new"),
-    2: .same(proto: "set"),
-    3: .same(proto: "start"),
-    4: .same(proto: "shutdown"),
-    5: .same(proto: "remove"),
-    6: .same(proto: "status"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0infos\0\u{1}new\0\u{1}set\0\u{1}start\0\u{1}shutdown\0\u{1}remove\0\u{1}status\0")
 }
 
 extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".ConfigureNetworkRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "gateway"),
-    3: .same(proto: "dhcpEnd"),
-    4: .same(proto: "netmask"),
-    5: .same(proto: "uuid"),
-    6: .same(proto: "nat66prefix"),
-    7: .same(proto: "dhcpLease"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6741,16 +6417,7 @@ extension Caked_Caked.NetworkRequest.ConfigureNetworkRequest: SwiftProtobuf.Mess
 
 extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.NetworkRequest.protoMessageName + ".CreateNetworkRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "mode"),
-    2: .same(proto: "name"),
-    3: .same(proto: "gateway"),
-    4: .same(proto: "dhcpEnd"),
-    5: .same(proto: "netmask"),
-    6: .same(proto: "uuid"),
-    7: .same(proto: "nat66prefix"),
-    8: .same(proto: "dhcpLease"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}mode\0\u{1}name\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}uuid\0\u{1}nat66prefix\0\u{1}dhcpLease\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6819,10 +6486,7 @@ extension Caked_Caked.NetworkRequest.CreateNetworkRequest: SwiftProtobuf.Message
 
 extension Caked_Caked.ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ImageRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "name"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6856,21 +6520,12 @@ extension Caked_Caked.ImageRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
 }
 
 extension Caked_Caked.ImageRequest.ImageCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "none"),
-    1: .same(proto: "info"),
-    2: .same(proto: "pull"),
-    3: .same(proto: "list"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}info\0\u{1}pull\0\u{1}list\0")
 }
 
 extension Caked_Caked.RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".RemoteRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "addRequest"),
-    3: .same(proto: "deleteRequest"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}addRequest\0\u{1}deleteRequest\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6936,20 +6591,12 @@ extension Caked_Caked.RemoteRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
 }
 
 extension Caked_Caked.RemoteRequest.RemoteCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "none"),
-    1: .same(proto: "list"),
-    2: .same(proto: "add"),
-    3: .same(proto: "delete"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}list\0\u{1}add\0\u{1}delete\0")
 }
 
 extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.RemoteRequest.protoMessageName + ".RemoteRequestAdd"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "name"),
-    2: .same(proto: "url"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}url\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6984,10 +6631,7 @@ extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, Swi
 
 extension Caked_Caked.CakedCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CakedCommandRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "arguments"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}arguments\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7022,12 +6666,7 @@ extension Caked_Caked.CakedCommandRequest: SwiftProtobuf.Message, SwiftProtobuf.
 
 extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PurgeRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "entries"),
-    2: .same(proto: "olderThan"),
-    3: .same(proto: "spaceBudget"),
-    5: .same(proto: "gc"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}entries\0\u{1}olderThan\0\u{1}spaceBudget\0\u{2}\u{2}gc\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7076,9 +6715,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
 extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LogoutRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "host"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7108,13 +6745,7 @@ extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
 
 extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LoginRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "host"),
-    2: .same(proto: "username"),
-    3: .same(proto: "password"),
-    4: .same(proto: "insecure"),
-    5: .same(proto: "noValidate"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0\u{1}username\0\u{1}password\0\u{1}insecure\0\u{1}noValidate\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7164,11 +6795,7 @@ extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
 extension Caked_Caked.MountRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".MountRequest"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "command"),
-    2: .same(proto: "name"),
-    3: .same(proto: "mounts"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}name\0\u{1}mounts\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7207,23 +6834,12 @@ extension Caked_Caked.MountRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
 }
 
 extension Caked_Caked.MountRequest.MountCommand: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    0: .same(proto: "none"),
-    1: .same(proto: "mount"),
-    2: .same(proto: "umount"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0none\0\u{1}mount\0\u{1}umount\0")
 }
 
 extension Caked_Caked.MountRequest.MountVirtioFS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.MountRequest.protoMessageName + ".MountVirtioFS"
-  public static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "source"),
-    2: .same(proto: "target"),
-    3: .same(proto: "name"),
-    4: .same(proto: "uid"),
-    5: .same(proto: "gid"),
-    6: .same(proto: "readonly"),
-  ]
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}source\0\u{1}target\0\u{1}name\0\u{1}uid\0\u{1}gid\0\u{1}readonly\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
