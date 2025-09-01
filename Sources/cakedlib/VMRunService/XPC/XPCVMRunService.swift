@@ -238,10 +238,12 @@ struct MountRequest: Codable {
 @objc protocol ReplyVMRunServiceProtocol {
 	func vncURLReply(response: String)
 	func mountReply(response: String)
+	func screenSizeReply()
 }
 
 @objc protocol VMRunServiceProtocol {
 	func vncUrl()
+	func resizeScreen(width: Int, height: Int)
 	func mount(request: String)
 	func umount(request: String)
 }
@@ -295,6 +297,24 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		self.logger.debug("Replied to VNC URL request: \(result)")
 	}
 	
+	func resizeScreen(width: Int, height: Int) {
+		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
+
+		self.logger.info("XPC setScreenSize: \(width)x\(height)")
+
+		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
+			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
+			return
+		}
+
+		self.setScreenSize(width: width, height: height)
+
+		serviceReply.screenSizeReply()
+
+		self.logger.debug("Replied to resizeScreen request")
+	}
+	
+
 	public func mount(request: String) {
 		self.mount(request: MountRequest(fromJSON: request), umount: false)
 	}
@@ -364,18 +384,19 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 	enum ServiceReply {
 		case mountInfos(MountInfos)
 		case vncURL(String)
+		case screenSize
 		case none
 	}
 	
 	private let semaphore: DispatchSemaphore = DispatchSemaphore(value: 0)
 	private var response: ServiceReply? = nil
 	private let logger: Logger = .init("ReplyVMRunService")
-
+	
 	override init() {
 		self.response = nil
 		super.init()
 	}
-
+	
 	required init?(coder: NSCoder) {
 		self.response = coder.decodeObject(forKey: "response") as? ServiceReply
 	}
@@ -391,6 +412,12 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		self.semaphore.signal()
 	}
 	
+	func screenSizeReply() {
+		self.logger.debug("Received ScreenSizeReply")
+		self.response = .screenSize
+		self.semaphore.signal()
+	}
+
 	func wait() -> ServiceReply? {
 		if self.response == nil {
 			self.semaphore.wait()
@@ -413,15 +440,19 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 			if case let .mountInfos(mountInfos) = reply {
 				return mountInfos
 			}
-
+			
 			return MountInfos.with {
 				$0.response = .error("Unexpected reply from VMRunService \(reply)")
 			}
 		}
-
+		
 		return MountInfos.with {
 			$0.response = .error("Timeout")
 		}
+	}
+	
+	func waitForScreenSizeReply() {
+		_ = self.wait()
 	}
 }
 
@@ -572,6 +603,36 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 
 		return MountInfos.with {
 			$0.response = .error("No umounts")
+		}
+	}
+	
+	func setScreenSize(width: Int, height: Int) throws {
+		let config: CakeConfig = try location.config()
+
+		config.display = DisplaySize(width: width, height: height)
+		try config.save()
+
+		if location.status == .running {
+			let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
+			let replier = ReplyVMRunService()
+			
+			xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
+			xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
+			xpcConnection.exportedObject = replier
+			
+			xpcConnection.activate()
+			
+			defer {
+				xpcConnection.invalidate()
+			}
+			
+			guard let service = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") }) as? VMRunServiceProtocol else {
+				throw ServiceError("Failed to connect to VMRunService")
+			}
+			
+			service.resizeScreen(width: width, height: height)
+			
+			replier.waitForScreenSizeReply()
 		}
 	}
 }

@@ -9,8 +9,14 @@ package vmrun;
 
 service Service {
 	rpc VncEndPoint(Empty) returns (VNCEndPointReply);
+	rpc SetScreenSize(ScreenSize) returns (Empty);
 	rpc Mount(MountRequest) returns (MountReply);
 	rpc Umount(MountRequest) returns (MountReply);
+}
+
+message ScreenSize {
+	int32 width = 1;
+	int32 height = 2;
 }
 
 message Empty {

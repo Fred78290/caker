@@ -8,6 +8,7 @@ import ArgumentParser
 
 public protocol VMRunServiceClient {
 	func vncURL() throws -> URL?
+	func setScreenSize(width: Int, height: Int) throws
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 }
@@ -98,6 +99,20 @@ class VMRunService: NSObject {
 			return CakeAgent.MountReply.with {
 				$0.response = .error(error.localizedDescription)
 			}
+		}
+	}
+
+	func setScreenSize(width: Int, height: Int) {
+		if #available(macOS 14.0, *) {
+			let vm = vm.virtualMachine
+
+			vm.graphicsDevices.forEach { device in
+				device.displays.forEach { display in
+					try? display.reconfigure(sizeInPixels: CGSize(width: width, height: height))
+				}
+			}
+		} else {
+			// Fallback on earlier versions
 		}
 	}
 }

@@ -21,6 +21,11 @@ public protocol Vmrun_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply>
 
+  func setScreenSize(
+    _ request: Vmrun_ScreenSize,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmrun_ScreenSize, Vmrun_Empty>
+
   func mount(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
@@ -52,6 +57,24 @@ extension Vmrun_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to SetScreenSize
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to SetScreenSize.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func setScreenSize(
+    _ request: Vmrun_ScreenSize,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmrun_ScreenSize, Vmrun_Empty> {
+    return self.makeUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
 
@@ -159,6 +182,11 @@ public protocol Vmrun_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_VNCEndPointReply>
 
+  func makeSetScreenSizeCall(
+    _ request: Vmrun_ScreenSize,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmrun_ScreenSize, Vmrun_Empty>
+
   func makeMountCall(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
@@ -189,6 +217,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
+  }
+
+  public func makeSetScreenSizeCall(
+    _ request: Vmrun_ScreenSize,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmrun_ScreenSize, Vmrun_Empty> {
+    return self.makeAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
 
@@ -228,6 +268,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? []
+    )
+  }
+
+  public func setScreenSize(
+    _ request: Vmrun_ScreenSize,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmrun_Empty {
+    return try await self.performAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
 
@@ -278,6 +330,9 @@ public protocol Vmrun_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'vncEndPoint'.
   func makeVncEndPointInterceptors() -> [ClientInterceptor<Vmrun_Empty, Vmrun_VNCEndPointReply>]
 
+  /// - Returns: Interceptors to use when invoking 'setScreenSize'.
+  func makeSetScreenSizeInterceptors() -> [ClientInterceptor<Vmrun_ScreenSize, Vmrun_Empty>]
+
   /// - Returns: Interceptors to use when invoking 'mount'.
   func makeMountInterceptors() -> [ClientInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
 
@@ -291,6 +346,7 @@ public enum Vmrun_ServiceClientMetadata {
     fullName: "vmrun.Service",
     methods: [
       Vmrun_ServiceClientMetadata.Methods.vncEndPoint,
+      Vmrun_ServiceClientMetadata.Methods.setScreenSize,
       Vmrun_ServiceClientMetadata.Methods.mount,
       Vmrun_ServiceClientMetadata.Methods.umount,
     ]
@@ -300,6 +356,12 @@ public enum Vmrun_ServiceClientMetadata {
     public static let vncEndPoint = GRPCMethodDescriptor(
       name: "VncEndPoint",
       path: "/vmrun.Service/VncEndPoint",
+      type: GRPCCallType.unary
+    )
+
+    public static let setScreenSize = GRPCMethodDescriptor(
+      name: "SetScreenSize",
+      path: "/vmrun.Service/SetScreenSize",
       type: GRPCCallType.unary
     )
 
@@ -322,6 +384,8 @@ public protocol Vmrun_ServiceProvider: CallHandlerProvider {
   var interceptors: Vmrun_ServiceServerInterceptorFactoryProtocol? { get }
 
   func vncEndPoint(request: Vmrun_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_VNCEndPointReply>
+
+  func setScreenSize(request: Vmrun_ScreenSize, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_Empty>
 
   func mount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
 
@@ -347,6 +411,15 @@ extension Vmrun_ServiceProvider {
         responseSerializer: ProtobufSerializer<Vmrun_VNCEndPointReply>(),
         interceptors: self.interceptors?.makeVncEndPointInterceptors() ?? [],
         userFunction: self.vncEndPoint(request:context:)
+      )
+
+    case "SetScreenSize":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_ScreenSize>(),
+        responseSerializer: ProtobufSerializer<Vmrun_Empty>(),
+        interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? [],
+        userFunction: self.setScreenSize(request:context:)
       )
 
     case "Mount":
@@ -383,6 +456,11 @@ public protocol Vmrun_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Vmrun_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_VNCEndPointReply
+
+  func setScreenSize(
+    request: Vmrun_ScreenSize,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmrun_Empty
 
   func mount(
     request: Vmrun_MountRequest,
@@ -423,6 +501,15 @@ extension Vmrun_ServiceAsyncProvider {
         wrapping: { try await self.vncEndPoint(request: $0, context: $1) }
       )
 
+    case "SetScreenSize":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_ScreenSize>(),
+        responseSerializer: ProtobufSerializer<Vmrun_Empty>(),
+        interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? [],
+        wrapping: { try await self.setScreenSize(request: $0, context: $1) }
+      )
+
     case "Mount":
       return GRPCAsyncServerHandler(
         context: context,
@@ -453,6 +540,10 @@ public protocol Vmrun_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeVncEndPointInterceptors() -> [ServerInterceptor<Vmrun_Empty, Vmrun_VNCEndPointReply>]
 
+  /// - Returns: Interceptors to use when handling 'setScreenSize'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSetScreenSizeInterceptors() -> [ServerInterceptor<Vmrun_ScreenSize, Vmrun_Empty>]
+
   /// - Returns: Interceptors to use when handling 'mount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeMountInterceptors() -> [ServerInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
@@ -468,6 +559,7 @@ public enum Vmrun_ServiceServerMetadata {
     fullName: "vmrun.Service",
     methods: [
       Vmrun_ServiceServerMetadata.Methods.vncEndPoint,
+      Vmrun_ServiceServerMetadata.Methods.setScreenSize,
       Vmrun_ServiceServerMetadata.Methods.mount,
       Vmrun_ServiceServerMetadata.Methods.umount,
     ]
@@ -477,6 +569,12 @@ public enum Vmrun_ServiceServerMetadata {
     public static let vncEndPoint = GRPCMethodDescriptor(
       name: "VncEndPoint",
       path: "/vmrun.Service/VncEndPoint",
+      type: GRPCCallType.unary
+    )
+
+    public static let setScreenSize = GRPCMethodDescriptor(
+      name: "SetScreenSize",
+      path: "/vmrun.Service/SetScreenSize",
       type: GRPCCallType.unary
     )
 

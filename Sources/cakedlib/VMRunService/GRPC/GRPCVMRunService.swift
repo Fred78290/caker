@@ -126,14 +126,14 @@ extension Vmrun_MountReply {
 
 class GRPCVMRunServiceClient: VMRunServiceClient {
 	let client: Vmrun_ServiceNIOClient
-
+	
 	public static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> GRPCVMRunServiceClient {
-
+		
 		let listeningAddress = location.serviceURL
 		let target: ConnectionTarget
 		let connectionTimeout: TimeInterval = 5
 		let retries: ConnectionBackoff.Retries = .unlimited
-
+		
 		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 		} else if listeningAddress.scheme == "tcp" {
@@ -141,32 +141,32 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		} else {
 			throw ServiceError("unsupported address scheme: \(listeningAddress)")
 		}
-
+		
 		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let tlsCert = try NIOSSLCertificate(file: certLocation.clientCertURL.path, format: .pem)
 		let tlsKey = try NIOSSLPrivateKey(file: certLocation.clientKeyURL.path, format: .pem)
 		let trustRoots: NIOSSLTrustRoots = .certificates([try NIOSSLCertificate(file: certLocation.caCertURL.path, format: .pem)])
-
+		
 		clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
 			certificateChain: [.certificate(tlsCert)],
 			privateKey: .privateKey(tlsKey),
 			trustRoots: trustRoots,
 			certificateVerification: .noHostnameVerification)
-
+		
 		if retries != .unlimited {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout, minimumConnectionTimeout: connectionTimeout, retries: retries)
 		} else {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout)
 		}
-
+		
 		return GRPCVMRunServiceClient(client: Vmrun_ServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration)))
 	}
-
+	
 	private init(client: Vmrun_ServiceNIOClient) {
 		self.client = client
 	}
-
+	
 	func vncURL() throws -> URL? {
 		let result = try client.vncEndPoint(Vmrun_Empty()).response.wait()
 		
@@ -184,16 +184,21 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.wait().toMountInfos()
 	}
+	
+	func setScreenSize(width: Int, height: Int) throws {
+		_ = try client.setScreenSize(Vmrun_ScreenSize.with { $0.width = Int32(width); $0.height = Int32(height) }).response.wait()
+	}
+	
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
 	var server: Server? = nil
 	let logger: Logger = .init("GRPCVMRunService")
-
+	
 	func createServer() throws -> EventLoopFuture<Server> {
 		let listeningAddress = self.vm.location.serviceURL
 		let target: ConnectionTarget
-
+		
 		if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
 			try listeningAddress.deleteIfFileExists()
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
@@ -202,23 +207,23 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		} else {
 			throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
 		}
-
+		
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
-
+		
 		let tlsCert = try NIOSSLCertificate(file: self.certLocation.serverCertURL.path, format: .pem)
 		let tlsKey = try NIOSSLPrivateKey(file: self.certLocation.serverKeyURL.path, format: .pem)
 		let trustRoots = NIOSSLTrustRoots.certificates([try NIOSSLCertificate(file: self.certLocation.caCertURL.path, format: .pem)])
-
+		
 		serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
 			certificateChain: [.certificate(tlsCert)],
 			privateKey: .privateKey(tlsKey),
 			trustRoots: trustRoots,
 			certificateVerification: CertificateVerification.none,
 			requireALPN: false)
-
+		
 		return Server.start(configuration: serverConfiguration)
 	}
-
+	
 	func serve() {
 		Task {
 			self.logger.info("Start GRPC VMRunService server")
@@ -229,20 +234,20 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 			}
 		}
 	}
-
+	
 	func stop() {
 		self.logger.info("Stop GRPC VMRunService server")
-
+		
 		if let server = self.server {
 			try? server.close().wait()
 		}
 	}
-
-	func vncEndPoint(request: Vmrun_Empty, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
+	
+	func vncEndPoint(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
 		guard let u = self.vm.vncURL else {
 			return Vmrun_VNCEndPointReply()
 		}
-
+		
 		return Vmrun_VNCEndPointReply.with { reply in
 			reply.vncURL = u.absoluteString
 		}
@@ -251,8 +256,15 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	func mount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCakeAgent(), umount: false).toCaked()
 	}
-
+	
 	func umount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCakeAgent(), umount: true).toCaked()
 	}
+	
+	func setScreenSize(request: Vmrun_ScreenSize, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
+		self.setScreenSize(width: Int(request.width), height: Int(request.height))
+
+		return Vmrun_Empty()
+	}
+	
 }
