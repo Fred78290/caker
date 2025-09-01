@@ -2508,18 +2508,20 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Preview Content\"";
-				DEVELOPMENT_TEAM = LE7988HTRN;
+				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_DEBUG_DYLIB = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Caker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caked need SSH access to running VM and create virtual network";
@@ -2532,6 +2534,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Caker Develop 2";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2562,6 +2565,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Caker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Caker;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = Fred78290;
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Caked need SSH access to running VM and create virtual network";
