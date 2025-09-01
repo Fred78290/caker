@@ -56,7 +56,7 @@ let package = Package(
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0"),
-		.package(url :"https://github.com/royalapplications/royalvnc.git", revision: "2089e1c1ed77af17058229eb8de1f266c8a6ac83")
+		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -129,7 +129,7 @@ let package = Package(
 			.product(name: "Steps", package: "Steps"),
 			.product(name: "SwiftTerm", package: "SwiftTerm"),
 			.product(name: "FileMonitor", package: "FileMonitor"),
-			.product(name: "RoyalVNCKit", package: "royalvnc"),
+			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.target(name: "CakedLib"),
