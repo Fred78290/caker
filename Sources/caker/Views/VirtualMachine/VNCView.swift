@@ -10,7 +10,41 @@ import SwiftUI
 import RoyalVNCKit
 import CakedLib
 
+class VNCConnectionLogger: VNCLogger {
+	let logger: Logger = Logger("VNCConnectionLogger")
+
+	public var isDebugLoggingEnabled: Bool {
+		get {
+			Logger.LoggingLevel() == .debug
+		}
+
+		set(newValue) {
+			if newValue {
+				Logger.setLevel(.debug)
+			}
+		}
+	}
+	
+	public func logDebug(_ message: String) {
+		self.logger.debug(message)
+	}
+	
+	public func logInfo(_ message: String) {
+		self.logger.info(message)
+	}
+	
+	public func logWarning(_ message: String) {
+		self.logger.warn(message)
+	}
+	
+	public func logError(_ message: String) {
+		self.logger.error(message)
+	}
+}
+
 struct VNCView: NSViewRepresentable {
+	typealias NSViewType = NSVNCView
+
 	private let document: VirtualMachineDocument
 	private let callback: VMView.CallbackWindow?
 	private let logger = Logger("HostVirtualMachineView")
@@ -24,8 +58,15 @@ struct VNCView: NSViewRepresentable {
 		return document
 	}
 
-	func makeNSView(context: Context) -> NSView {
-		let view = context.coordinator.vncView!
+	func makeNSView(context: Context) -> NSViewType {
+		guard let connection = document.connection, let framebuffer = connection.framebuffer else {
+			fatalError("Connection is nil")
+		}
+
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
+
+		self.document.vncView = view
+		view.delegate = self.document
 
 		if let callback = self.callback {
 			DispatchQueue.main.async {
@@ -35,25 +76,28 @@ struct VNCView: NSViewRepresentable {
 
 		self.logger.info("makeNSView: \(view), \(view.frame)")
 
-		return context.coordinator.vncView
+		view.allowsFrameSizeDidChangeNotification = true
+
+		return view
 	}
 
-	func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
-		if let framebuffer = self.document.connection.framebuffer {
+	/*func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
+		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
 			return framebuffer.cgSize
 		}
-		
+
+		self.logger.info("sizeThatFits: \(proposal)")
+
 		return nil
-	}
+	}*/
 
-	func updateNSView(_ nsView: NSView, context: Context) {
-		self.logger.info("updateNSView: \(nsView), \(nsView.frame)")
+	func updateNSView(_ nsView: NSViewType, context: Context) {
+		nsView.allowsFrameSizeDidChangeNotification = true
 
-		if let framebuffer = self.document.connection.framebuffer {
-			//nsView.frame = CGRectMake(nsView.frame.origin.x, nsView.frame.origin.y, framebuffer.cgSize.width, framebuffer.cgSize.height)
-			self.logger.info("Resize NSView: \(framebuffer), \(nsView.frame), \(framebuffer.cgSize)")
+		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
+			self.logger.info("updateNSView: \(framebuffer), \(nsView.frame), \(framebuffer.cgSize)")
 		} else {
-			self.logger.info("updateNSView: framebuffer nil")
+			self.logger.info("updateNSView: framebuffer nil, \(nsView.frame)")
 		}
 	}
 

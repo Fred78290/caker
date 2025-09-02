@@ -115,7 +115,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 
-	var vncView: NSVNCView!
+	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation?
 	var name: String = ""
@@ -446,33 +446,17 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 }
 
-extension Logger: @retroactive VNCLogger {
-	public var isDebugLoggingEnabled: Bool {
-		get {
-			Logger.LoggingLevel() == .debug
-		}
+extension VirtualMachineDocument: NSVNCViewDelegate {
+	@objc func frameSizeDidChange(_ size: CGSize) {
+		self.logger.info("resizeScreen: \(size)")
 
-		set(newValue) {
-			if newValue {
-				Logger.setLevel(.debug)
-			}
+		//let config = self.virtualMachine.config
+		//config.display = DisplaySize(width: Int(size.width), height: Int(size.height))
+		//try? config.save()
+
+		Task {
+			try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(size.width), height: Int(size.height))
 		}
-	}
-	
-	public func logDebug(_ message: String) {
-		self.debug(message)
-	}
-	
-	public func logInfo(_ message: String) {
-		self.info(message)
-	}
-	
-	public func logWarning(_ message: String) {
-		self.warn(message)
-	}
-	
-	public func logError(_ message: String) {
-		self.error(message)
 	}
 }
 
@@ -507,7 +491,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 												  colorDepth: .depth24Bit,
 												  frameEncodings: .default)
 
-			let connection = VNCConnection(settings: settings, logger: Logger("VNCConnection"))
+			let connection = VNCConnection(settings: settings, logger: VNCConnectionLogger())
 
 			self.connection = connection
 			self.vncStatus = .connecting
@@ -565,7 +549,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 		DispatchQueue.main.async {
 			self.logger.info("vnc ready")
-			self.vncView = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
+			//self.vncView = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
 			self.vncStatus = .ready
 		}
 	}
@@ -574,23 +558,17 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		self.logger.info("VNC framebuffer size changed: \(framebuffer), size:\(framebuffer.cgSize)")
 
 		DispatchQueue.main.async {
-			//self.vncView.bounds = CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height)
+			self.vncView?.allowsFrameSizeDidChangeNotification = false
 			NotificationCenter.default.post(name: NSNotification.VNCFramebufferSizeChanged, object: framebuffer.cgSize)
 		}
 	}
 	
 	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
-		//self.logger.info("Connection update framebuffer")
-
-		if let vncView = self.vncView {
-			vncView.connection(connection, didUpdateFramebuffer: framebuffer, x: x, y: y, width: width, height: height)
-		}
+		vncView?.connection(connection, didUpdateFramebuffer: framebuffer, x: x, y: y, width: width, height: height)
 	}
 	
 	func connection(_ connection: VNCConnection, didUpdateCursor cursor: VNCCursor) {
-		if let vncView = self.vncView {
-			vncView.connection(connection, didUpdateCursor: cursor)
-		}
+		vncView?.connection(connection, didUpdateCursor: cursor)
 	}
 	
 }

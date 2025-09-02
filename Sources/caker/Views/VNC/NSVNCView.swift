@@ -10,6 +10,10 @@ import RoyalVNCKit
 import AppKit
 import Carbon
 
+@objc protocol NSVNCViewDelegate: AnyObject {
+	@objc func frameSizeDidChange(_ size: CGSize)
+}
+
 class NSVNCView: NSView {
 	private let connection: VNCConnection
 	private var accumulatedScrollDeltaX: CGFloat = 0
@@ -19,6 +23,9 @@ class NSVNCView: NSView {
 	private var displayLink: DisplayLink?
 	private var trackingArea: NSTrackingArea?
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
+	var allowsFrameSizeDidChangeNotification: Bool = false
+
+	@objc weak var delegate: NSVNCViewDelegate?
 
 	private var framebufferSize: CGSize {
 		self.connection.framebuffer!.cgSize
@@ -558,10 +565,17 @@ private extension NSVNCView {
 		}
 	}
 
-	func frameSizeDidChange(_ size: CGSize) {
-		self.connection.logger.logInfo("frameSizeDidChange: \(size)")
+	func allowsFrameSizeDidChangeNotification(_ size: CGSize) -> Bool {
+		return allowsFrameSizeDidChangeNotification && size != framebufferSize
+	}
 
-		if settings.isScalingEnabled, let layer = layer {
+	func frameSizeDidChange(_ size: CGSize) {
+		self.connection.logger.logInfo("allowsFrameSizeDidChangeNotification: \(allowsFrameSizeDidChangeNotification), frameSizeDidChange: \(size), framebufferSize:\(framebufferSize)")
+
+		if self.allowsFrameSizeDidChangeNotification(size), let delegate, let layer = layer {
+			layer.contentsGravity = .center
+			delegate.frameSizeDidChange(size)
+		} else if settings.isScalingEnabled, let layer = layer {
 			if frameSizeExceedsFramebufferSize(size) {
 				// Don't allow upscaling
 				layer.contentsGravity = .center

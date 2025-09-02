@@ -9,6 +9,12 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 
+extension View {
+	func minSize(_ size: CGSize) -> some View {
+		frame(minWidth: size.width, idealWidth: size.width, maxWidth: .infinity, minHeight: size.height, idealHeight: size.height, maxHeight: .infinity)
+	}
+}
+
 class CustomWindowDelegate: NSObject, NSWindowDelegate {
 	override init() {
 		super.init()
@@ -43,9 +49,10 @@ struct HostVirtualMachineView: View {
 	@State var externalModeView: ExternalModeView
 	@State var size: CGSize
 	@State var automaticallyReconfiguresDisplay: Bool
-	private let logger = Logger("HostVirtualMachineView")
 
-	var delegate: CustomWindowDelegate = CustomWindowDelegate()
+	private let logger = Logger("HostVirtualMachineView")
+	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
+	private let minSize: CGSize
 
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		self._appState = appState
@@ -61,6 +68,7 @@ struct HostVirtualMachineView: View {
 		let display = config.display
 	
 		self.size = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
+		self.minSize = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
 		self.automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 	}
 
@@ -140,7 +148,7 @@ struct HostVirtualMachineView: View {
 				self.appState.isSuspendable = newValue == .running && document.suspendable
 			}
 		}.onChange(of: self.document.vncStatus) { newValue in
-			if let framebuffer = self.document.connection.framebuffer, newValue == .ready {
+			if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
 				self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
 				self.size = framebuffer.cgSize
 			}
@@ -250,10 +258,10 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func terminalView(callback: VMView.CallbackWindow? = nil) -> some View {
 		if self.document.agent == .installed {
-			ExternalVirtualMachineView(document: _document, size: self.size, dismiss: dismiss, callback: callback)
+			ExternalVirtualMachineView(document: _document, size: self.minSize, dismiss: dismiss, callback: callback)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
-				.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
+				.minSize(self.minSize)
 		} else if self.document.agent == .installing {
 			Text("Installing agent...")
 		} else {
@@ -263,46 +271,47 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func combinedView(callback: VMView.CallbackWindow? = nil) -> some View {
-		if self.externalModeView == .terminal {
-			self.terminalView(callback: callback)
-		} else {
-			ZStack {
-				/*HostingWindowFinder { window in
-					if let window, let contentViewController = window.contentViewController {
-						contentViewController.view.wantsLayer = true
-						contentViewController.view.layer?.backgroundColor = NSColor.black.cgColor
-					}
-				}*/
-
-				switch self.document.vncStatus {
-				case .connecting:
-					VStack(alignment: .center) {
-						ProgressView()
-						Text("Connecting to VNC")
+		HStack {
+			if self.externalModeView == .terminal {
+				self.terminalView(callback: callback)
+			} else {
+				ZStack {
+					switch self.document.vncStatus {
+					case .connecting:
+						VStack(alignment: .center) {
+							ProgressView()
+							Text("Connecting to VNC")
+								.foregroundStyle(.white)
+								.font(.largeTitle)
+						}
+					case .disconnected:
+						Text("VNC not connected")
 							.foregroundStyle(.white)
 							.font(.largeTitle)
-					}
-				case .disconnected:
-					Text("VNC not connected")
-						.foregroundStyle(.white)
-						.font(.largeTitle)
-				case .connected:
-					Text("VNC connected")
-						.foregroundStyle(.white)
-						.font(.largeTitle)
-				case .disconnecting:
-					Text("VNC disconnecting")
-						.foregroundStyle(.white)
-						.font(.largeTitle)
-				case .ready:
-					ViewThatFits {
-						VNCView(document: self.document, callback)
-						.scaledToFit()
-						.frame(size: self.size)
+					case .connected:
+						Text("VNC connected")
+							.foregroundStyle(.white)
+							.font(.largeTitle)
+					case .disconnecting:
+						Text("VNC disconnecting")
+							.foregroundStyle(.white)
+							.font(.largeTitle)
+					case .ready:
+						GeometryReader { geom in
+							VNCView(document: self.document, callback)
+								.frame(size: geom.size)
+						}
 					}
 				}
+				.minSize(self.minSize)
 			}
-			.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
+		}.toolbar {
+			ToolbarItem(placement: .secondaryAction) {
+				Picker("Mode", selection: $externalModeView) {
+					Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+					Image(systemName: "play.display").tag(ExternalModeView.vnc)
+				}.pickerStyle(.segmented).labelsHidden()
+			}
 		}
 	}
 
@@ -313,19 +322,10 @@ struct HostVirtualMachineView: View {
 				self.terminalView(callback: callback)
 			} else {
 				self.combinedView(callback: callback)
-					.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
-					.toolbar {
-						 ToolbarItem(placement: .secondaryAction) {
-							 Picker("Mode", selection: $externalModeView) {
-								 Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-								 Image(systemName: "play.display").tag(ExternalModeView.vnc)
-							 }.pickerStyle(.segmented).labelsHidden()
-						 }
-					 }
 			}
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-				.frame(minWidth: self.size.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.size.height, idealHeight: self.size.height, maxHeight: .infinity)
+				.minSize(self.minSize)
 		}
 	}
 
