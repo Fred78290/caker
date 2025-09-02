@@ -448,11 +448,15 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 extension VirtualMachineDocument: NSVNCViewDelegate {
 	@objc func frameSizeDidChange(_ size: CGSize) {
-		self.logger.info("resizeScreen: \(size)")
+		if size.width == 0 && size.height == 0 {
+			return
+		}
 
 		//let config = self.virtualMachine.config
 		//config.display = DisplaySize(width: Int(size.width), height: Int(size.height))
 		//try? config.save()
+
+		self.logger.debug("resizeScreen: \(size)")
 
 		Task {
 			try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(size.width), height: Int(size.height))
