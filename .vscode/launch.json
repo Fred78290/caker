@@ -91,7 +91,7 @@
 				"launch",
 				"linux",
 				"--foreground",
-				"--display-refit",
+				"--ui-refit",
 				"--cpus=2",
 				"--memory=2048",
 				"--disk-size=20",
@@ -267,7 +267,7 @@
 			"args": [
 				"vmrun",
 				"linux",
-				"--display",
+				"--ui",
 				"--log-level=info"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -281,8 +281,8 @@
 			"args": [
 				"vmrun",
 				"frank-eland",
-				"--display",
-				"--log-level=info"
+				"--ui",
+				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun frank-eland",
@@ -295,7 +295,7 @@
 			"args": [
 				"vmrun",
 				"sequoia",
-				"--display",
+				"--ui",
 				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -309,7 +309,7 @@
 			"args": [
 				"vmrun",
 				"ubuntu-desktop",
-				"--display",
+				"--vnc",
 				"--log-level=info"
 			],
 			"cwd": "${workspaceFolder:caker}",
@@ -323,7 +323,7 @@
 			"args": [
 				"vmrun",
 				"/Volumes/Manix/Users/fboltz/.cake/vms/test/disk.img",
-				"--display"
+				"--ui"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun /Volumes/Manix/Users/fboltz/.cake/vms/test/disk.img",
@@ -677,7 +677,7 @@
 				"--user=admin",
 				"--password=admin",
 				"--clear-password",
-				"--display-refit",
+				"--ui-refit",
 				"--dynamic-port-forwarding",
 				"--publish=2222:22/tcp",
 				"--network=nat",
