@@ -105,19 +105,7 @@ class VMRunService: NSObject {
 	}
 
 	func setScreenSize(width: Int, height: Int) {
-		self.logger.info("Resizing screen to \(width)x\(height)")
-
-		if #available(macOS 14.0, *) {
-			let vm = vm.virtualMachine
-
-			vm.graphicsDevices.forEach { device in
-				device.displays.forEach { display in
-					try? display.reconfigure(sizeInPixels: CGSize(width: width, height: height))
-				}
-			}
-		} else {
-			// Fallback on earlier versions
-		}
+		vm.setScreenSize(width: width, height: height)
 	}
 }
 

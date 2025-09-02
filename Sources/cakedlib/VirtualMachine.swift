@@ -610,6 +610,28 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	func setScreenSize(width: Int, height: Int) {
+		if #available(macOS 14.0, *) {
+			let newSize = CGSize(width: width, height: height)
+			
+			if newSize != .zero {
+				self.vmQueue.async {					
+					Logger(self).info("Resizing screen to \(width)x\(height)")
+
+					self.virtualMachine.graphicsDevices.forEach { device in
+						device.displays.forEach { display in
+							if newSize != display.sizeInPixels {
+								try? display.reconfigure(sizeInPixels: newSize)
+							}
+						}
+					}
+				}
+			} else {
+				Logger(self).info("Try resizing screen to zero size, but nothing to do.")
+			}
+		}
+	}
+
 	private func _requestStopVM() throws {
 		self.env.requestStopFromUIPending = true
 
