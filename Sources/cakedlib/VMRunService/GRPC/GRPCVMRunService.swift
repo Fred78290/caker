@@ -193,7 +193,6 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
 	var server: Server? = nil
-	let logger: Logger = .init("GRPCVMRunService")
 	
 	func createServer() throws -> EventLoopFuture<Server> {
 		let listeningAddress = self.vm.location.serviceURL

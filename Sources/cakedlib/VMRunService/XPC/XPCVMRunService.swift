@@ -250,11 +250,10 @@ struct MountRequest: Codable {
 
 class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	let connection: NSXPCConnection
-	let logger: Logger = .init("XPCVMRunService")
 
-	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection) {
+	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, connection: NSXPCConnection, logger: Logger) {
 		self.connection = connection
-		super.init(group: group, runMode: runMode, vm: vm, certLocation: certLocation)
+		super.init(group: group, runMode: runMode, vm: vm, certLocation: certLocation, logger: logger)
 	}
 
 	func mount(request: MountRequest, umount: Bool) {
@@ -349,7 +348,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 		Logger(self).info("XPC receive connection: \(String(describing: newConnection))")
 
 		newConnection.exportedInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
-		newConnection.exportedObject = XPCVMRunService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection)
+		newConnection.exportedObject = XPCVMRunService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection, logger: Logger("XPCVMRunService"))
 		newConnection.remoteObjectInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 		newConnection.activate()
 

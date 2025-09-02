@@ -28,6 +28,7 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 }
 
 class VMRunService: NSObject {
+	let logger: Logger
 	let runMode: Utils.RunMode
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
@@ -37,11 +38,12 @@ class VMRunService: NSObject {
 		return vm.vncURL
 	}
 
-	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation) {
+	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, logger: Logger) {
 		self.vm = vm
 		self.runMode = runMode
 		self.group = group
 		self.certLocation = certLocation
+		self.logger = logger
 	}
 
 	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
@@ -103,6 +105,8 @@ class VMRunService: NSObject {
 	}
 
 	func setScreenSize(width: Int, height: Int) {
+		self.logger.info("Resizing screen to \(width)x\(height)")
+
 		if #available(macOS 14.0, *) {
 			let vm = vm.virtualMachine
 
@@ -129,6 +133,6 @@ func createVMRunServiceServer(_ mode: VMRunServiceMode, group: EventLoopGroup, r
 	if mode == .xpc {
 		return XPCVMRunServiceServer(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
 	} else {
-		return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation)
+		return GRPCVMRunService(group: group.next(), runMode: runMode, vm: vm, certLocation: certLocation, logger: Logger("GRPCVMRunService"))
 	}
 }
