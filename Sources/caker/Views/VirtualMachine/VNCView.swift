@@ -66,7 +66,6 @@ struct VNCView: NSViewRepresentable {
 		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
 
 		self.document.vncView = view
-		view.delegate = self.document
 
 		if let callback = self.callback {
 			DispatchQueue.main.async {
@@ -76,24 +75,10 @@ struct VNCView: NSViewRepresentable {
 
 		self.logger.info("makeNSView: \(view), \(view.frame)")
 
-		view.allowsFrameSizeDidChangeNotification = true
-
 		return view
 	}
 
-	/*func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
-		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-			return framebuffer.cgSize
-		}
-
-		self.logger.info("sizeThatFits: \(proposal)")
-
-		return nil
-	}*/
-
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.allowsFrameSizeDidChangeNotification = true
-
 		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
 			self.logger.info("updateNSView: \(framebuffer), \(nsView.frame), \(framebuffer.cgSize)")
 		} else {

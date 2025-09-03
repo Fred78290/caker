@@ -83,79 +83,27 @@ struct HostVirtualMachineView: View {
 			}
 		}
 		.onAppear {
-			NSWindow.allowsAutomaticWindowTabbing = false
-			self.appState.currentDocument = self.document
+			handleAppear()
 		}.onDisappear {
-			if self.appState.currentDocument == self.document {
-				self.appState.currentDocument = nil
-			}
-		}.onReceive(NSNotification.VNCFramebufferSizeChanged) { notification in
-			if let size = notification.object as? CGSize {
-				self.logger.info("VNCFramebufferSizeChanged: \(size)")
-				self.size = size
-			}
+			handleDisappear()
+		}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
+			handleDidResizeNotification(notification)
 		}.onReceive(NSWindow.willCloseNotification) { notification in
-			if let window = notification.object as? NSWindow {
-				if window.windowNumber == windowNumber {
-					if document.status == .running {
-						document.stopFromUI(force: false)
-					}
-
-					DispatchQueue.main.async {
-						self.document.close()
-					}
-				}
-			}
+			handleWillCloseNotification(notification)
+		}.onReceive(NSNotification.VNCFramebufferSizeChanged) { notification in
+			handleVNCFramebufferSizeChangedNotification(notification)
 		}.onReceive(NSNotification.StartVirtualMachine) { notification in
-			if let name = notification.object as? String, name == document.name, document.status != .running {
-				document.startFromUI()
-			}
+			handleStartVirtualMachineNotification(notification)
 		}.onReceive(NSNotification.DeleteVirtualMachine) { notification in
-			if let name = notification.object as? String, name == document.name {
-				if self.appState.currentDocument == self.document {
-					self.appState.currentDocument = nil
-				}
-				
-				if document.status == .running {
-					document.stopFromUI(force: false)
-				}
-				
-				dismiss()
-			}
+			handleDeleteVirtualMachineNotification(notification)
 		}.onChange(of: appearsActive) { newValue in
-			if newValue {
-				self.appState.currentDocument = self.document
-				self.appState.isAgentInstalling = self.document.agent == .installing
-				self.appState.isStopped = document.status == .stopped || document.status == .stopping
-				self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
-				self.appState.isPaused = document.status == .paused || document.status == .pausing
-				self.appState.isSuspendable = document.status == .running && document.suspendable
-			} else if self.appState.currentDocument == self.document {
-				self.appState.currentDocument = nil
-			}
+			handleAppStateChangedNotification(newValue)
 		}.onChange(of: self.document.status) { newValue in
-			if newValue == .external {
-				self.externalModeView = document.vncURL != nil ? .vnc : .terminal
-			} else {
-				self.externalModeView = .none
-			}
-
-			if self.appearsActive {
-				self.appState.isAgentInstalling = self.document.agent == .installing
-				self.appState.isStopped = newValue == .stopped || newValue == .stopping
-				self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
-				self.appState.isPaused = newValue == .paused || newValue == .pausing
-				self.appState.isSuspendable = newValue == .running && document.suspendable
-			}
+			handleDocumentStatusChangedNotification(newValue)
 		}.onChange(of: self.document.vncStatus) { newValue in
-			if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
-				self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
-				self.size = framebuffer.cgSize
-			}
+			handleVncStatusChangedNotification(newValue)
 		}.onChange(of: self.externalModeView) { newValue in
-			if newValue == .vnc && self.document.status == .external {
-				self.document.tryVNCConnect()
-			}
+			handleExternalModeChangedNotification(newValue)
 		}.toolbar {
 			ToolbarItemGroup(placement: .navigation) {
 				if document.status == .stopping {
@@ -245,6 +193,112 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
+	func isMyWindowKey(_ notification: Notification) -> Bool {
+		if let window = notification.object as? NSWindow, window.windowNumber == windowNumber {
+			return true
+		}
+
+		return false
+	}
+
+	func handleAppear() {
+		NSWindow.allowsAutomaticWindowTabbing = false
+		self.appState.currentDocument = self.document
+	}
+
+	func handleDisappear() {
+		if self.appState.currentDocument == self.document {
+			self.appState.currentDocument = nil
+		}
+	}
+
+	func handleDidResizeNotification(_ notification: Notification) {
+		if isMyWindowKey(notification) {
+			self.document.setScreenSize(self.size)
+		}
+	}
+	
+	func handleWillCloseNotification(_ notification: Notification) {
+		if isMyWindowKey(notification) {
+			if document.status == .running {
+				document.stopFromUI(force: false)
+			}
+
+			DispatchQueue.main.async {
+				self.document.close()
+			}
+		}
+	}
+
+	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
+		if let size = notification.object as? CGSize {
+			self.logger.info("VNCFramebufferSizeChanged: \(size)")
+			self.size = size
+		}
+	}
+
+	func handleStartVirtualMachineNotification(_ notification: Notification) {
+		if let name = notification.object as? String, name == document.name, document.status != .running {
+			document.startFromUI()
+		}
+	}
+
+	func handleDeleteVirtualMachineNotification(_ notification: Notification) {
+		if let name = notification.object as? String, name == document.name {
+			if self.appState.currentDocument == self.document {
+				self.appState.currentDocument = nil
+			}
+			
+			if document.status == .running {
+				document.stopFromUI(force: false)
+			}
+			
+			dismiss()
+		}
+	}
+
+	func handleAppStateChangedNotification(_ newValue: Bool) {
+		if newValue {
+			self.appState.currentDocument = self.document
+			self.appState.isAgentInstalling = self.document.agent == .installing
+			self.appState.isStopped = document.status == .stopped || document.status == .stopping
+			self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
+			self.appState.isPaused = document.status == .paused || document.status == .pausing
+			self.appState.isSuspendable = document.status == .running && document.suspendable
+		} else if self.appState.currentDocument == self.document {
+			self.appState.currentDocument = nil
+		}
+	}
+
+	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
+		if newValue == .external {
+			self.externalModeView = document.vncURL != nil ? .vnc : .terminal
+		} else {
+			self.externalModeView = .none
+		}
+
+		if self.appearsActive {
+			self.appState.isAgentInstalling = self.document.agent == .installing
+			self.appState.isStopped = newValue == .stopped || newValue == .stopping
+			self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
+			self.appState.isPaused = newValue == .paused || newValue == .pausing
+			self.appState.isSuspendable = newValue == .running && document.suspendable
+		}
+	}
+
+	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
+		if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
+			self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
+			self.size = framebuffer.cgSize
+		}
+	}
+
+	func handleExternalModeChangedNotification(_ newValue: ExternalModeView) {
+		if newValue == .vnc && self.document.status == .external {
+			self.document.tryVNCConnect()
+		}
+	}
+
 	@ViewBuilder public func tryIt(
 		@ViewBuilder try success: () throws -> some View,
 		@ViewBuilder catch failure: (any Error) -> some View
@@ -271,48 +325,55 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func combinedView(callback: VMView.CallbackWindow? = nil) -> some View {
-		HStack {
-			if self.externalModeView == .terminal {
-				self.terminalView(callback: callback)
-			} else {
-				ZStack {
-					switch self.document.vncStatus {
-					case .connecting:
-						VStack(alignment: .center) {
-							ProgressView()
-							Text("Connecting to VNC")
+		GeometryReader { geom in
+			HStack {
+				if self.externalModeView == .terminal {
+					self.terminalView(callback: callback)
+				} else {
+					ZStack {
+						switch self.document.vncStatus {
+						case .connecting:
+							VStack(alignment: .center) {
+								ProgressView()
+								Text("Connecting to VNC")
+									.foregroundStyle(.white)
+									.font(.largeTitle)
+							}
+						case .disconnected:
+							Text("VNC not connected")
 								.foregroundStyle(.white)
 								.font(.largeTitle)
-						}
-					case .disconnected:
-						Text("VNC not connected")
-							.foregroundStyle(.white)
-							.font(.largeTitle)
-					case .connected:
-						Text("VNC connected")
-							.foregroundStyle(.white)
-							.font(.largeTitle)
-					case .disconnecting:
-						Text("VNC disconnecting")
-							.foregroundStyle(.white)
-							.font(.largeTitle)
-					case .ready:
-						GeometryReader { geom in
+						case .connected:
+							Text("VNC connected")
+								.foregroundStyle(.white)
+								.font(.largeTitle)
+						case .disconnecting:
+							Text("VNC disconnecting")
+								.foregroundStyle(.white)
+								.font(.largeTitle)
+						case .ready:
 							VNCView(document: self.document, callback)
 								.frame(size: geom.size)
 						}
 					}
+					.minSize(self.minSize)
 				}
-				.minSize(self.minSize)
+			}.onAppear {
+				document.setScreenSize(geom.size)
+			}.toolbar {
+				ToolbarItem(placement: .secondaryAction) {
+					Picker("Mode", selection: $externalModeView) {
+						Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+						Image(systemName: "play.display").tag(ExternalModeView.vnc)
+					}.pickerStyle(.segmented).labelsHidden()
+				}
 			}
-		}.toolbar {
-			ToolbarItem(placement: .secondaryAction) {
-				Picker("Mode", selection: $externalModeView) {
-					Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-					Image(systemName: "play.display").tag(ExternalModeView.vnc)
-				}.pickerStyle(.segmented).labelsHidden()
+			.onGeometryChange(for: CGRect.self) { proxy in
+				proxy.frame(in: .global)
+			} action: { newValue in
+				self.size = newValue.size
 			}
-		}
+		}.minSize(self.minSize)
 	}
 
 	@ViewBuilder

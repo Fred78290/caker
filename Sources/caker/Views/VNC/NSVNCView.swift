@@ -10,10 +10,6 @@ import RoyalVNCKit
 import AppKit
 import Carbon
 
-@objc protocol NSVNCViewDelegate: AnyObject {
-	@objc func frameSizeDidChange(_ size: CGSize)
-}
-
 class NSVNCView: NSView {
 	private let connection: VNCConnection
 	private var accumulatedScrollDeltaX: CGFloat = 0
@@ -23,9 +19,7 @@ class NSVNCView: NSView {
 	private var displayLink: DisplayLink?
 	private var trackingArea: NSTrackingArea?
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
-	var allowsFrameSizeDidChangeNotification: Bool = false
-
-	@objc weak var delegate: NSVNCViewDelegate?
+	private var didResizeFramebuffer: Bool = false
 
 	private var framebufferSize: CGSize {
 		self.connection.framebuffer!.cgSize
@@ -279,13 +273,17 @@ class NSVNCView: NSView {
 }
 
 extension NSVNCView {
+	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
+		self.didResizeFramebuffer = true
+	}
+
 	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		// NOTE: If we ever take the updatedRegion into consideration, we will likely need to flip the coordinates on macOS
 		guard !settings.useDisplayLink, displayLink == nil else {
 			return
 		}
 
-		updateImage(framebuffer.cgImage)
+		updateImage(framebuffer.cgImage, animated: didResizeFramebuffer)
 	}
 
 	func connection(_ connection: VNCConnection, didUpdateCursor cursor: VNCCursor) {
@@ -557,31 +555,39 @@ private extension NSVNCView {
 		}
 	}
 
-	func updateImage(_ image: CGImage?) {
+	func updateImage(_ image: CGImage?, animated: Bool) {
+		didResizeFramebuffer = false
+
 		DispatchQueue.main.async { [weak self] in
 			if let self, let layer {
-				layer.contents = image
+				if animated {
+					let transition = CATransition()
+
+					transition.duration = 0.5
+					transition.type = .fade
+					//transition.subtype = .fromBottom
+
+					CATransaction.setDisableActions(true)
+
+					layer.contents = image
+					layer.add(transition, forKey: nil)
+				} else {
+					layer.contents = image
+				}
 			}
 		}
 	}
 
-	func allowsFrameSizeDidChangeNotification(_ size: CGSize) -> Bool {
-		return allowsFrameSizeDidChangeNotification && size != framebufferSize
-	}
-
 	func frameSizeDidChange(_ size: CGSize) {
-		self.connection.logger.logInfo("allowsFrameSizeDidChangeNotification: \(allowsFrameSizeDidChangeNotification), frameSizeDidChange: \(size), framebufferSize:\(framebufferSize)")
-
-		if self.allowsFrameSizeDidChangeNotification(size), let delegate, let layer = layer {
-			layer.contentsGravity = .center
-			delegate.frameSizeDidChange(size)
-		} else if settings.isScalingEnabled, let layer = layer {
-			if frameSizeExceedsFramebufferSize(size) {
-				// Don't allow upscaling
-				layer.contentsGravity = .center
-			} else {
-				// Allow downscaling
-				layer.contentsGravity = .resizeAspect
+		if let layer = layer {
+			if settings.isScalingEnabled {
+				if frameSizeExceedsFramebufferSize(size) {
+					// Don't allow upscaling
+					layer.contentsGravity = .center
+				} else {
+					// Allow downscaling
+					layer.contentsGravity = .resizeAspect
+				}
 			}
 		}
 	}
@@ -606,6 +612,6 @@ private extension NSVNCView {
 
 extension NSVNCView: DisplayLinkDelegate {
 	func displayLinkDidUpdate(_ displayLink: DisplayLink) {
-		updateImage(self.connection.framebuffer?.cgImage)
+		updateImage(self.connection.framebuffer?.cgImage, animated: didResizeFramebuffer)
 	}
 }
