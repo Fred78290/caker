@@ -315,6 +315,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
+	func start() {
+	}
+
 	func startFromUI() {
 		if let virtualMachine = self.virtualMachine {
 			virtualMachine.startFromUI()

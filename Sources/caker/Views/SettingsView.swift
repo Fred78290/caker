@@ -14,6 +14,10 @@ struct SettingsView: View {
 				.tabItem {
 					Label("Application", systemImage: "app.badge")
 				}
+			VMSettingsView().padding()
+				.tabItem {
+					Label("Virtual Machines", systemImage: "display")
+				}
 		}.frame(minWidth: 450, minHeight: 350, alignment: .topLeading)
 	}
 }

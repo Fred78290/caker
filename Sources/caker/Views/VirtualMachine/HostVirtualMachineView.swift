@@ -32,6 +32,8 @@ struct HostVirtualMachineView: View {
 		case vnc
 	}
 
+	@AppStorage("VMLaunchMode") var launchVMExternally = false
+
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
@@ -124,7 +126,11 @@ struct HostVirtualMachineView: View {
 					}.help("Resumes virtual machine")
 				} else {
 					Button("Start", systemImage: "play") {
-						document.startFromUI()
+						if self.launchVMExternally {
+							document.start()
+						} else {
+							document.startFromUI()
+						}
 					}
 					.help("Start virtual machine")
 					.disabled(document.status == .starting || document.status == .stopping)
