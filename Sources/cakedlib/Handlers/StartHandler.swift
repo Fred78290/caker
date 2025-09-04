@@ -31,8 +31,11 @@ public struct StartHandler {
 
 			if startMode == .foreground {
 				arguments.append("--ui")
+			} else if startMode == .background {
+				arguments.append("--vnc")
 			} else if startMode == .service {
 				arguments.append("--service")
+				arguments.append("--vnc")
 			}
 
 			if startMode == .service || startMode == .background {
