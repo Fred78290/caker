@@ -126,11 +126,7 @@ struct HostVirtualMachineView: View {
 					}.help("Resumes virtual machine")
 				} else {
 					Button("Start", systemImage: "play") {
-						if self.launchVMExternally {
-							document.start()
-						} else {
-							document.startFromUI()
-						}
+						document.startFromUI()
 					}
 					.help("Start virtual machine")
 					.disabled(document.status == .starting || document.status == .stopping)
