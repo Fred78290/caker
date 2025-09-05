@@ -206,6 +206,30 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		throw ServiceError("Unimplemented")
 	}
 
+	func setStateAsStopped(_ status: Status = .stopped) {
+		self.canStart = true
+		self.canStop = false
+		self.canPause = false
+		self.canResume = false
+		self.canRequestStop = false
+		self.suspendable = false
+		self.vncURL = nil
+		self.vncStatus = .disconnected
+		self.status = status
+		self.connection?.disconnect()
+	}
+
+	func setStateAsRunning(_ status: Status, suspendable: Bool, vncURL: URL?) {
+		self.canStart = false
+		self.canStop = true
+		self.canPause = true
+		self.canResume = false
+		self.canRequestStop = true
+		self.suspendable = suspendable
+		self.vncURL = vncURL
+		self.status = status
+	}
+
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
 		do {
 			let config = try location.config()
@@ -215,16 +239,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.agent = config.agent ? .installed : .none
 			self.name = location.name
 
-			if location.pidFile.isPIDRunning("caked") {
-				self.status = .external
-
-				self.canStart = false
-				self.canStop = true
-				self.canPause = true
-				self.canResume = false
-				self.canRequestStop = true
-				self.suspendable = config.suspendable
-				
+			if location.pidFile.isPIDRunning("caked") {			
 				retrieveVNCURL()
 			} else {
 				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
@@ -315,43 +330,60 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
-	func start() {
-		if let location {
-			do {
-				let config = try location.config()
-				let promise = Utilities.group.next().makePromise(of: String.self)
-				
+	func startFromUI() {
+		if AppState.shared.launchVMExternally {
+			if let location {
 				self.status = .starting
 
-				promise.futureResult.whenSuccess { _ in
-					self.status = .external
-				}
+				Task {
+					do {
+						let config = try location.config()
+						let promise = Utilities.group.next().makePromise(of: String.self)
+						let suspendable = config.suspendable
 
-				promise.futureResult.whenFailure { result in
-					self.status = .stopped
-				}
+						promise.futureResult.whenSuccess { _ in
+							self.logger.info("VM \(self.name) terminated")
 
-				_ = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .background, runMode: .user, promise: promise)
-			} catch {
-				self.status = .stopped
+							DispatchQueue.main.async {
+								self.setStateAsStopped()
+							}
+						}
+						
+						promise.futureResult.whenFailure { result in
+							self.logger.error("VM \(self.name) failed to start: \(result)")
 
-				DispatchQueue.main.async {
-					alertError(error)
+							DispatchQueue.main.async {
+								self.setStateAsStopped()
+							}
+						}
+						
+						let runningIP = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .background, runMode: .user, promise: promise)
+						let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+
+						self.logger.info("VM started on \(runningIP)")
+						self.logger.info("Found VNC URL: \(String(describing: url))")
+
+						DispatchQueue.main.async {
+							self.setStateAsRunning(.external, suspendable: suspendable, vncURL: url)
+						}
+					} catch {
+						self.status = .stopped
+						
+						DispatchQueue.main.async {
+							alertError(error)
+						}
+					}
 				}
+			}
+		} else {
+			if let virtualMachine = self.virtualMachine {
+				virtualMachine.startFromUI()
 			}
 		}
 	}
 
-	func startFromUI() {
-		if let virtualMachine = self.virtualMachine {
-			virtualMachine.startFromUI()
-		}
-	}
-
 	func restartFromUI() {
-		if let virtualMachine = self.virtualMachine {
-			virtualMachine.restartFromUI()
-		} else if self.status == .external {
+		if self.status == .external {
 			do {
 				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
 
@@ -365,17 +397,13 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					alertError(error)
 				}
 			}
+		} else if let virtualMachine = self.virtualMachine {
+			virtualMachine.restartFromUI()
 		}
 	}
 
 	func stopFromUI(force: Bool) {
-		if let virtualMachine = self.virtualMachine {
-			if force {
-				virtualMachine.stopFromUI()
-			} else {
-				virtualMachine.requestStopFromUI()
-			}
-		} else if self.status == .external {
+		if self.status == .external {
 			do {
 				let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
 
@@ -383,17 +411,42 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					MainActor.assumeIsolated {
 						alertError(ServiceError(result.reason))
 					}
+				} else {
+					self.setStateAsStopped()
 				}
 			} catch {
 				MainActor.assumeIsolated {
 					alertError(error)
 				}
 			}
+		} else if let virtualMachine = self.virtualMachine {
+			if force {
+				virtualMachine.stopFromUI()
+			} else {
+				virtualMachine.requestStopFromUI()
+			}
 		}
 	}
 
 	func suspendFromUI() {
-		if let virtualMachine = self.virtualMachine {
+		if self.status == .external {
+			do {
+				let result = try SuspendHandler.suspendVM(name: self.name, runMode: .app)
+
+				if result.suspended == false {
+					MainActor.assumeIsolated {
+						alertError(ServiceError(result.reason))
+					}
+				} else {
+					self.setStateAsStopped(.paused)
+				}
+			} catch {
+				MainActor.assumeIsolated {
+					alertError(error)
+				}
+			}
+
+		} else if let virtualMachine = self.virtualMachine {
 			virtualMachine.suspendFromUI()
 		}
 	}
@@ -435,29 +488,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 		let check: (URL) -> Void = { file in
 			if file == location.pidFile {
-				if file.isPIDRunning("caked") {
-					self.status = .external
-
-					self.canStart = false
-					self.canStop = true
-					self.canPause = true
-					self.canResume = false
-					self.canRequestStop = true
-					self.suspendable = self.virtualMachineConfig.suspendable
-					
-					self.retrieveVNCURL()
-				} else {
-					self.status = .stopped
-
-					self.canStart = true
-					self.canStop = false
-					self.canPause = false
-					self.canResume = false
-					self.canRequestStop = false
-					self.suspendable = false
-					self.vncStatus = .disconnected
-					
-					self.connection?.disconnect()
+				DispatchQueue.main.async {
+					if file.isPIDRunning("caked") {
+						self.retrieveVNCURL()
+					} else {
+						self.setStateAsStopped()
+					}
 				}
 			}
 		}
@@ -488,6 +524,16 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 
+	func retrieveVNCURLSync() {
+		let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+		
+		self.logger.info("Found VNC URL: \(String(describing: url))")
+
+		DispatchQueue.main.async {
+			self.vncURL = url
+		}
+	}
+
 	func retrieveVNCURL() {
 		Task {
 			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
@@ -495,7 +541,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.info("Found VNC URL: \(String(describing: url))")
 
 			DispatchQueue.main.async {
-				self.vncURL = url
+				self.setStateAsRunning(.external, suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
 			}
 		}
 	}
