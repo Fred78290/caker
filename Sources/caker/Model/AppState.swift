@@ -83,6 +83,8 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 class AppState: ObservableObject, Observable {
 	static var shared = AppState()
 
+	@AppStorage("VMLaunchMode") var launchVMExternally = false
+
 	@Published var currentDocument: VirtualMachineDocument!
 	@Published var isAgentInstalling: Bool = true
 	@Published var isStopped: Bool = true
