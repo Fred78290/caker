@@ -339,6 +339,7 @@ message Caked {
 				repeated AttachedNetwork networks = 13;
 				repeated TunnelInfo tunnels = 14;
 				repeated SocketInfo sockets = 15;
+				optional string vncURL = 17;
 			}
 			
 			oneof response {

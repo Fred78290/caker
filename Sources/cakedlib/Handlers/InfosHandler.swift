@@ -5,13 +5,14 @@ import GRPCLib
 import NIO
 
 public struct InfosHandler {
-	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> InfoReply {
+	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> VMInformations {
 		let location = try StorageLocation(runMode: runMode).find(name)
 		let config: CakeConfig = try location.config()
-		var infos: InfoReply
+		var infos: VMInformations
 
 		if location.status == .running {
-			infos = try client.info(callOptions: callOptions)
+			infos = .init(from: try client.info(callOptions: callOptions))
+			infos.vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: .app).vncURL()?.absoluteString
 		} else {
 			var diskInfos: [DiskInfo] = []
 
@@ -23,7 +24,7 @@ public struct InfosHandler {
 				diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
 			}
 
-			infos = InfoReply.with {
+			infos = VMInformations.with {
 				$0.osname = config.os.rawValue
 				$0.status = .stopped
 				$0.cpuCount = Int32(config.cpuCount)

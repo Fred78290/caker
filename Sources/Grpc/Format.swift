@@ -15,12 +15,14 @@ public struct ShortInfoReply: Sendable, Codable {
 	public let ipaddresses: String
 	public let cpuCount: String
 	public let memory: String
+	public let vncURL: String?
 
-	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64) {
+	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64, vncURL: String?) {
 		self.name = name
 		self.ipaddresses = ipaddresses.joined(separator: ", ")
 		self.cpuCount = "\(cpuCount)"
 		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
+		self.vncURL = vncURL
 	}
 
 	public init(ipaddress: String) {
@@ -28,6 +30,7 @@ public struct ShortInfoReply: Sendable, Codable {
 		self.ipaddresses = ipaddress
 		self.cpuCount = ""
 		self.memory = ""
+		self.vncURL = nil
 	}
 }
 
@@ -317,7 +320,15 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		if self == .json {
 			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0))
+			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: nil))
+		}
+	}
+
+	public func render(_ data: VMInformations) -> String {
+		if self == .json {
+			return self.renderSingle(data)
+		} else {
+			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: data.vncURL))
 		}
 	}
 

@@ -1396,6 +1396,15 @@ public struct Caked_Caked: Sendable {
           set {_uniqueStorage()._sockets = newValue}
         }
 
+        public var vncURL: String {
+          get {return _storage._vncURL ?? String()}
+          set {_uniqueStorage()._vncURL = newValue}
+        }
+        /// Returns true if `vncURL` has been explicitly set.
+        public var hasVncURL: Bool {return _storage._vncURL != nil}
+        /// Clears the value of `vncURL`. Subsequent reads from it will return its default value.
+        public mutating func clearVncURL() {_uniqueStorage()._vncURL = nil}
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public struct MemoryInfo: Sendable {
@@ -4751,7 +4760,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{2}\u{2}vncURL\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -4769,6 +4778,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
     var _networks: [Caked_Caked.Reply.VirtualMachineReply.InfoReply.AttachedNetwork] = []
     var _tunnels: [Caked_Caked.Reply.VirtualMachineReply.InfoReply.TunnelInfo] = []
     var _sockets: [Caked_Caked.Reply.VirtualMachineReply.InfoReply.SocketInfo] = []
+    var _vncURL: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -4794,6 +4804,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
       _networks = source._networks
       _tunnels = source._tunnels
       _sockets = source._sockets
+      _vncURL = source._vncURL
     }
   }
 
@@ -4827,6 +4838,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
         case 13: try { try decoder.decodeRepeatedMessageField(value: &_storage._networks) }()
         case 14: try { try decoder.decodeRepeatedMessageField(value: &_storage._tunnels) }()
         case 15: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._vncURL) }()
         default: break
         }
       }
@@ -4884,6 +4896,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
       if !_storage._sockets.isEmpty {
         try visitor.visitRepeatedMessageField(value: _storage._sockets, fieldNumber: 15)
       }
+      try { if let v = _storage._vncURL {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 17)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4908,6 +4923,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InfoReply: SwiftProtobuf.Message
         if _storage._networks != rhs_storage._networks {return false}
         if _storage._tunnels != rhs_storage._tunnels {return false}
         if _storage._sockets != rhs_storage._sockets {return false}
+        if _storage._vncURL != rhs_storage._vncURL {return false}
         return true
       }
       if !storagesAreEqual {return false}
