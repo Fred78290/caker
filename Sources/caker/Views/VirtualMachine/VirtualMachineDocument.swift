@@ -316,6 +316,30 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func start() {
+		if let location {
+			do {
+				let config = try location.config()
+				let promise = Utilities.group.next().makePromise(of: String.self)
+				
+				self.status = .starting
+
+				promise.futureResult.whenSuccess { _ in
+					self.status = .external
+				}
+
+				promise.futureResult.whenFailure { result in
+					self.status = .stopped
+				}
+
+				_ = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .background, runMode: .user, promise: promise)
+			} catch {
+				self.status = .stopped
+
+				DispatchQueue.main.async {
+					alertError(error)
+				}
+			}
+		}
 	}
 
 	func startFromUI() {
