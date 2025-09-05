@@ -27,6 +27,10 @@
 /* Begin PBXBuildFile section */
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
+		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
+		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
+		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
+		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
@@ -533,6 +537,10 @@
 
 /* Begin PBXFileReference section */
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
+		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
+		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
+		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
+		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
 		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
@@ -1260,6 +1268,7 @@
 				9B464A812D5A3E0300164BF5 /* Sh.swift */,
 				9B464A822D5A3E0300164BF5 /* Start.swift */,
 				9B464A832D5A3E0300164BF5 /* Stop.swift */,
+				9B1500C02E6B092A00B23147 /* Suspend.swift */,
 				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
 				9BD32F862D75FF060066A01E /* Umount.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
@@ -1431,6 +1440,7 @@
 				9BEBC6AA2DF4400A0092B196 /* Sh.swift */,
 				9BEBC6AB2DF4400A0092B196 /* Start.swift */,
 				9BEBC6AC2DF4400A0092B196 /* Stop.swift */,
+				9B1500BE2E6B07EC00B23147 /* Suspend.swift */,
 				9BEBC6AD2DF4400A0092B196 /* Template.swift */,
 				9BEBC6AE2DF4400A0092B196 /* Unmount.swift */,
 				9BEBC6AF2DF4400A0092B196 /* VMRun.swift */,
@@ -1462,6 +1472,7 @@
 				9BEBC6C32DF4400A0092B196 /* RunHandler.swift */,
 				9BEBC6C42DF4400A0092B196 /* StartHandler.swift */,
 				9BEBC6C52DF4400A0092B196 /* StopHandler.swift */,
+				9B1500BC2E6B067200B23147 /* SuspendHandler.swift */,
 				9BEBC6C62DF4400A0092B196 /* TartHandler.swift */,
 				9BEBC6C72DF4400A0092B196 /* TemplateHandler.swift */,
 				9BEBC6C82DF4400A0092B196 /* WaitIPHandler.swift */,
@@ -1518,6 +1529,7 @@
 				9BEBC7272DF440720092B196 /* RunHandler.swift */,
 				9BEBC7282DF440720092B196 /* StartHandler.swift */,
 				9BEBC7292DF440720092B196 /* StopHandler.swift */,
+				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
 				9BEBC72A2DF440720092B196 /* TemplateHandler.swift */,
 				9BEBC72B2DF440720092B196 /* VMRunHandler.swift */,
 				9BEBC72C2DF440720092B196 /* WaitIPHandler.swift */,
@@ -2112,6 +2124,7 @@
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
 				9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */,
+				9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */,
 				9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */,
 				9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */,
 				9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */,
@@ -2185,8 +2198,10 @@
 				9BEBC6DD2DF4400A0092B196 /* MountHandler.swift in Sources */,
 				9BEBC6DE2DF4400A0092B196 /* Sh.swift in Sources */,
 				9BEBC6DF2DF4400A0092B196 /* Service.swift in Sources */,
+				9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */,
 				9BEBC6E02DF4400A0092B196 /* VMRun.swift in Sources */,
 				9BEBC6E12DF4400A0092B196 /* Stop.swift in Sources */,
+				9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC6E22DF4400A0092B196 /* ImageHandler.swift in Sources */,
 				9BEBC6E32DF4400A0092B196 /* TartHandler.swift in Sources */,
 				9BEBC6E42DF4400A0092B196 /* NetworksHandler.swift in Sources */,
@@ -2302,6 +2317,7 @@
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
+				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,

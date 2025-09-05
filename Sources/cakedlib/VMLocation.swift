@@ -322,6 +322,23 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 
 	}
 
+	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
+		if self.status != .running {
+			throw ServiceError("vm \(name) is not running")
+		}
+
+		let pid = pidFile.isPIDRunning()
+		
+		if pid.0 {
+			if pid.1 == "caked" {
+				if let pid = pid.2 {
+					kill(pid, SIGUSR1)
+					removePID()
+				}
+			}
+		}
+	}
+
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
 			let pid = pidFile.isPIDRunning()

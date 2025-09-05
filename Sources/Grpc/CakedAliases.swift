@@ -55,7 +55,9 @@ public typealias Caked_DeleteReply = Caked.Reply.VirtualMachineReply.DeleteReply
 public typealias Caked_DeletedObject = Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject
 public typealias Caked_InfoReply = Caked.Reply.VirtualMachineReply.InfoReply
 public typealias Caked_StopReply = Caked.Reply.VirtualMachineReply.StopReply
+public typealias Caked_SuspendReply = Caked.Reply.VirtualMachineReply.SuspendReply
 public typealias Caked_StoppedObject = Caked.Reply.VirtualMachineReply.StopReply.StoppedObject
+public typealias Caked_SuspendedObject = Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject
 public typealias Caked_VirtualMachineInfoReply = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply
 public typealias Caked_VirtualMachineInfo = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo
 
@@ -77,6 +79,7 @@ public typealias Caked_RenameRequest = Caked.VMRequest.RenameRequest
 public typealias Caked_RunCommand = Caked.VMRequest.RunCommand
 public typealias Caked_StartRequest = Caked.VMRequest.StartRequest
 public typealias Caked_StopRequest = Caked.VMRequest.StopRequest
+public typealias Caked_SuspendRequest = Caked.VMRequest.SuspendRequest
 public typealias Caked_TemplateRequest = Caked.VMRequest.TemplateRequest
 public typealias Caked_WaitIPRequest = Caked.VMRequest.WaitIPRequest
 

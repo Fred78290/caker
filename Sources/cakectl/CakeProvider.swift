@@ -181,6 +181,13 @@ extension Caked_StopRequest {
 	}
 }
 
+extension Caked_SuspendRequest {
+	init(command: Suspend) {
+		self.init()
+		self.names = command.names
+	}
+}
+
 extension Caked_PurgeRequest {
 	init(command: Purge) {
 		self.init()

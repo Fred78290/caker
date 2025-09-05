@@ -81,6 +81,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>
 
+  func suspend(
+    _ request: Caked_Caked.VMRequest.SuspendRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>
+
   func template(
     _ request: Caked_Caked.VMRequest.TemplateRequest,
     callOptions: CallOptions?
@@ -376,6 +381,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to Suspend
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Suspend.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func suspend(
+    _ request: Caked_Caked.VMRequest.SuspendRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.suspend.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
     )
   }
 
@@ -704,6 +727,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>
 
+  func makeSuspendCall(
+    _ request: Caked_Caked.VMRequest.SuspendRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>
+
   func makeTemplateCall(
     _ request: Caked_Caked.VMRequest.TemplateRequest,
     callOptions: CallOptions?
@@ -921,6 +949,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeStopInterceptors() ?? []
+    )
+  }
+
+  public func makeSuspendCall(
+    _ request: Caked_Caked.VMRequest.SuspendRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.suspend.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
     )
   }
 
@@ -1237,6 +1277,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func suspend(
+    _ request: Caked_Caked.VMRequest.SuspendRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.suspend.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+    )
+  }
+
   public func template(
     _ request: Caked_Caked.VMRequest.TemplateRequest,
     callOptions: CallOptions? = nil
@@ -1428,6 +1480,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'stop'.
   func makeStopInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'suspend'.
+  func makeSuspendInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when invoking 'template'.
   func makeTemplateInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
 
@@ -1480,6 +1535,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.run,
       Caked_ServiceClientMetadata.Methods.start,
       Caked_ServiceClientMetadata.Methods.stop,
+      Caked_ServiceClientMetadata.Methods.suspend,
       Caked_ServiceClientMetadata.Methods.template,
       Caked_ServiceClientMetadata.Methods.waitIP,
       Caked_ServiceClientMetadata.Methods.image,
@@ -1570,6 +1626,12 @@ public enum Caked_ServiceClientMetadata {
     public static let stop = GRPCMethodDescriptor(
       name: "Stop",
       path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let suspend = GRPCMethodDescriptor(
+      name: "Suspend",
+      path: "/caked.Service/Suspend",
       type: GRPCCallType.unary
     )
 
@@ -1670,6 +1732,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func start(request: Caked_Caked.VMRequest.StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   func stop(request: Caked_Caked.VMRequest.StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   func template(request: Caked_Caked.VMRequest.TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
@@ -1821,6 +1885,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeStopInterceptors() ?? [],
         userFunction: self.stop(request:context:)
+      )
+
+    case "Suspend":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.SuspendRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
+        userFunction: self.suspend(request:context:)
       )
 
     case "Template":
@@ -1997,6 +2070,11 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func stop(
     request: Caked_Caked.VMRequest.StopRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func suspend(
+    request: Caked_Caked.VMRequest.SuspendRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
@@ -2192,6 +2270,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.stop(request: $0, context: $1) }
       )
 
+    case "Suspend":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.SuspendRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
+        wrapping: { try await self.suspend(request: $0, context: $1) }
+      )
+
     case "Template":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2351,6 +2438,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeStopInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.StopRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when handling 'suspend'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSuspendInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when handling 'template'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeTemplateInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
@@ -2414,6 +2505,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.run,
       Caked_ServiceServerMetadata.Methods.start,
       Caked_ServiceServerMetadata.Methods.stop,
+      Caked_ServiceServerMetadata.Methods.suspend,
       Caked_ServiceServerMetadata.Methods.template,
       Caked_ServiceServerMetadata.Methods.waitIP,
       Caked_ServiceServerMetadata.Methods.image,
@@ -2504,6 +2596,12 @@ public enum Caked_ServiceServerMetadata {
     public static let stop = GRPCMethodDescriptor(
       name: "Stop",
       path: "/caked.Service/Stop",
+      type: GRPCCallType.unary
+    )
+
+    public static let suspend = GRPCMethodDescriptor(
+      name: "Suspend",
+      path: "/caked.Service/Suspend",
       type: GRPCCallType.unary
     )
 

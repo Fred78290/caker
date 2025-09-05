@@ -212,6 +212,7 @@ struct Client: AsyncParsableCommand {
 			Sh.self,
 			Start.self,
 			Stop.self,
+			Suspend.self,
 			Template.self,
 			WaitIP.self,
 			Mount.self,

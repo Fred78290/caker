@@ -22,6 +22,7 @@ service Service {
 	rpc Run (Caked.VMRequest.RunCommand) returns (Caked.Reply);
 	rpc Start (Caked.VMRequest.StartRequest) returns (Caked.Reply) {}
 	rpc Stop (Caked.VMRequest.StopRequest) returns (Caked.Reply) {}
+	rpc Suspend (Caked.VMRequest.SuspendRequest) returns (Caked.Reply) {}
 	rpc Template(Caked.VMRequest.TemplateRequest) returns (Caked.Reply) {}
 	rpc WaitIP (Caked.VMRequest.WaitIPRequest) returns (Caked.Reply) {}
 	rpc Image(Caked.ImageRequest) returns (Caked.Reply) {}
@@ -129,6 +130,10 @@ message Caked {
 			}
 		}
 		
+		message SuspendRequest {
+			repeated string names = 1;
+		}
+
 		message DeleteRequest {
 			message VMNames {
 				repeated string list = 1;
@@ -265,6 +270,17 @@ message Caked {
 				repeated StoppedObject objects = 1;
 			}
 			
+			message SuspendReply {
+				message SuspendedObject {
+					string name = 1;
+					string status = 2;
+					bool suspended = 3;
+					string reason = 4;
+				}
+				
+				repeated SuspendedObject objects = 1;
+			}
+
 			message InfoReply {
 				message MemoryInfo {
 					uint64 total = 1;
@@ -346,8 +362,9 @@ message Caked {
 				VirtualMachineInfoReply list = 1;
 				DeleteReply delete = 2;
 				StopReply stop = 3;
-				InfoReply infos = 4;
-				string message = 5;
+				SuspendReply suspend = 4;
+				InfoReply infos = 5;
+				string message = 6;
 			}
 		}	
 

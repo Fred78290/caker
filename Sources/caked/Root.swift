@@ -82,6 +82,7 @@ struct Root: ParsableCommand {
 				Sh.self,
 				Start.self,
 				Stop.self,
+				Suspend.self,
 				Template.self,
 				Umount.self,
 				VMRun.self,

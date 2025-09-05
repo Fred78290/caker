@@ -622,6 +622,18 @@ public struct Caked_Caked: Sendable {
       public init() {}
     }
 
+    public struct SuspendRequest: Sendable {
+      // SwiftProtobuf.Message conformance is added in an extension below. See the
+      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+      // methods supported on all messages.
+
+      public var names: [String] = []
+
+      public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public init() {}
+    }
+
     public struct DeleteRequest: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1142,6 +1154,14 @@ public struct Caked_Caked: Sendable {
         set {response = .stop(newValue)}
       }
 
+      public var suspend: Caked_Caked.Reply.VirtualMachineReply.SuspendReply {
+        get {
+          if case .suspend(let v)? = response {return v}
+          return Caked_Caked.Reply.VirtualMachineReply.SuspendReply()
+        }
+        set {response = .suspend(newValue)}
+      }
+
       public var infos: Caked_Caked.Reply.VirtualMachineReply.InfoReply {
         get {
           if case .infos(let v)? = response {return v}
@@ -1164,6 +1184,7 @@ public struct Caked_Caked: Sendable {
         case list(Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply)
         case delete(Caked_Caked.Reply.VirtualMachineReply.DeleteReply)
         case stop(Caked_Caked.Reply.VirtualMachineReply.StopReply)
+        case suspend(Caked_Caked.Reply.VirtualMachineReply.SuspendReply)
         case infos(Caked_Caked.Reply.VirtualMachineReply.InfoReply)
         case message(String)
 
@@ -1285,6 +1306,36 @@ public struct Caked_Caked: Sendable {
           public var status: String = String()
 
           public var stopped: Bool = false
+
+          public var reason: String = String()
+
+          public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+          public init() {}
+        }
+
+        public init() {}
+      }
+
+      public struct SuspendReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var objects: [Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public struct SuspendedObject: Sendable {
+          // SwiftProtobuf.Message conformance is added in an extension below. See the
+          // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+          // methods supported on all messages.
+
+          public var name: String = String()
+
+          public var status: String = String()
+
+          public var suspended: Bool = false
 
           public var reason: String = String()
 
@@ -3507,6 +3558,36 @@ extension Caked_Caked.VMRequest.StopRequest.VMNames: SwiftProtobuf.Message, Swif
   }
 }
 
+extension Caked_Caked.VMRequest.SuspendRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".SuspendRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}names\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedStringField(value: &self.names) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.names.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.names, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.SuspendRequest, rhs: Caked_Caked.VMRequest.SuspendRequest) -> Bool {
+    if lhs.names != rhs.names {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_Caked.VMRequest.DeleteRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".DeleteRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\u{2}all\0\u{1}names\0")
@@ -4388,7 +4469,7 @@ extension Caked_Caked.Reply.Error: SwiftProtobuf.Message, SwiftProtobuf._Message
 
 extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}infos\0\u{1}message\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}infos\0\u{1}message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4436,6 +4517,19 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
         }
       }()
       case 4: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.SuspendReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .suspend(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .suspend(v)
+        }
+      }()
+      case 5: try {
         var v: Caked_Caked.Reply.VirtualMachineReply.InfoReply?
         var hadOneofValue = false
         if let current = self.response {
@@ -4448,7 +4542,7 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
           self.response = .infos(v)
         }
       }()
-      case 5: try {
+      case 6: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
@@ -4479,13 +4573,17 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
       guard case .stop(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
+    case .suspend?: try {
+      guard case .suspend(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
     case .infos?: try {
       guard case .infos(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
     }()
     case .message?: try {
       guard case .message(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
+      try visitor.visitSingularStringField(value: v, fieldNumber: 6)
     }()
     case nil: break
     }
@@ -4752,6 +4850,81 @@ extension Caked_Caked.Reply.VirtualMachineReply.StopReply.StoppedObject: SwiftPr
     if lhs.name != rhs.name {return false}
     if lhs.status != rhs.status {return false}
     if lhs.stopped != rhs.stopped {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".SuspendReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}objects\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.objects) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.objects.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.objects, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.SuspendReply, rhs: Caked_Caked.Reply.VirtualMachineReply.SuspendReply) -> Bool {
+    if lhs.objects != rhs.objects {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.SuspendReply.protoMessageName + ".SuspendedObject"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}status\0\u{1}suspended\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.status) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.suspended) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.status.isEmpty {
+      try visitor.visitSingularStringField(value: self.status, fieldNumber: 2)
+    }
+    if self.suspended != false {
+      try visitor.visitSingularBoolField(value: self.suspended, fieldNumber: 3)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject, rhs: Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.status != rhs.status {return false}
+    if lhs.suspended != rhs.suspended {return false}
     if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

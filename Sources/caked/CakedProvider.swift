@@ -223,6 +223,12 @@ extension Caked_StopRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_SuspendRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return SuspendHandler(request: self)
+	}
+}
+
 extension Caked_Error {
 	init(code: Int32, reason: String) {
 		self.init()
@@ -346,6 +352,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
+	func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Caked.Reply {
+		return try self.execute(command: request)
+	}
+	
 	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}

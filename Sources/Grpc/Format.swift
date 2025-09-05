@@ -15,14 +15,14 @@ public struct ShortInfoReply: Sendable, Codable {
 	public let ipaddresses: String
 	public let cpuCount: String
 	public let memory: String
-	public let vncURL: String?
+	public let vncURL: String
 
 	public init(name: String, ipaddresses: [String], cpuCount: Int32, memory: UInt64, vncURL: String?) {
 		self.name = name
 		self.ipaddresses = ipaddresses.joined(separator: ", ")
 		self.cpuCount = "\(cpuCount)"
 		self.memory = ByteCountFormatter.string(fromByteCount: Int64(memory), countStyle: .memory)
-		self.vncURL = vncURL
+		self.vncURL = vncURL == nil ? "" : vncURL!
 	}
 
 	public init(ipaddress: String) {
@@ -30,7 +30,7 @@ public struct ShortInfoReply: Sendable, Codable {
 		self.ipaddresses = ipaddress
 		self.cpuCount = ""
 		self.memory = ""
-		self.vncURL = nil
+		self.vncURL = ""
 	}
 }
 
@@ -342,6 +342,14 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 
 	public func render(_ data: Caked_DeleteReply) -> String {
 		return self.render(data.objects.map { DeleteReply(from: $0) })
+	}
+
+	public func render(_ data: [SuspendReply]) -> String {
+		return self.renderList(data)
+	}
+
+	public func render(_ data: Caked_SuspendReply) -> String {
+		return self.render(data.objects.map { SuspendReply(from: $0) })
 	}
 
 	public func render(_ data: [StopReply]) -> String {
