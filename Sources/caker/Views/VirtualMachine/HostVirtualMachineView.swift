@@ -60,7 +60,7 @@ struct HostVirtualMachineView: View {
 		self._appState = appState
 		self._document = StateObject(wrappedValue: document)
 		
-		if document.status == .external {
+		if document.externalRunning {
 			self.externalModeView = document.vncURL != nil ? .vnc : .terminal
 		} else {
 			self.externalModeView = .none
@@ -101,6 +101,8 @@ struct HostVirtualMachineView: View {
 			handleDeleteVirtualMachineNotification(notification)
 		}.onChange(of: appearsActive) { newValue in
 			handleAppStateChangedNotification(newValue)
+		}.onChange(of: self.document.externalRunning) { newValue in
+			handleDocumentExternalRunningChangedNotification(newValue)
 		}.onChange(of: self.document.status) { newValue in
 			handleDocumentStatusChangedNotification(newValue)
 		}.onChange(of: self.document.vncStatus) { newValue in
@@ -115,7 +117,7 @@ struct HostVirtualMachineView: View {
 					}
 					.help("Force to stop virtual machine")
 					.disabled(document.agent == .installing)
-				} else if document.status == .running || document.status == .external {
+				} else if document.status == .running {
 					Button("Request to stop", systemImage: "stop") {
 						document.stopFromUI(force: false)
 					}
@@ -265,7 +267,7 @@ struct HostVirtualMachineView: View {
 			self.appState.currentDocument = self.document
 			self.appState.isAgentInstalling = self.document.agent == .installing
 			self.appState.isStopped = document.status == .stopped || document.status == .stopping
-			self.appState.isRunning = document.status == .running || document.status == .starting || document.status == .external
+			self.appState.isRunning = document.status == .running || document.status == .starting
 			self.appState.isPaused = document.status == .paused || document.status == .pausing
 			self.appState.isSuspendable = document.status == .running && document.suspendable
 		} else if self.appState.currentDocument == self.document {
@@ -273,17 +275,19 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
-		if newValue == .external {
+	func handleDocumentExternalRunningChangedNotification(_ newValue: Bool) {
+		if newValue {
 			self.externalModeView = document.vncURL != nil ? .vnc : .terminal
 		} else {
 			self.externalModeView = .none
 		}
+	}
 
+	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
 		if self.appearsActive {
 			self.appState.isAgentInstalling = self.document.agent == .installing
 			self.appState.isStopped = newValue == .stopped || newValue == .stopping
-			self.appState.isRunning = newValue == .running || newValue == .starting || newValue == .external
+			self.appState.isRunning = newValue == .running || newValue == .starting
 			self.appState.isPaused = newValue == .paused || newValue == .pausing
 			self.appState.isSuspendable = newValue == .running && document.suspendable
 		}
@@ -379,7 +383,7 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func vmView(callback: VMView.CallbackWindow? = nil) -> some View {
-		if self.document.status == .external {
+		if self.document.externalRunning {
 			if self.document.vncURL == nil {
 				self.terminalView(callback: callback)
 			} else {
