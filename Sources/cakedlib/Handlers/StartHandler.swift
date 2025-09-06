@@ -16,7 +16,7 @@ public struct StartHandler {
 	}
 
 	private final class StartHandlerVMRun: Sendable {
-		internal func start(location: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+		internal func start(location: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil, extras: [String]? = nil) throws -> String {
 			let config: CakeConfig = try location.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
 
@@ -46,6 +46,10 @@ public struct StartHandler {
 				if let fds = $0.sharedFileDescriptors {
 					sharedFileDescriptors.append(contentsOf: fds)
 				}
+			}
+
+			if let extras = extras {
+				arguments.append(contentsOf: extras)
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
@@ -157,8 +161,8 @@ public struct StartHandler {
 		return process
 	}
 
-	public static func internalStartVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+	public static func internalStartVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil, extras: [String]? = nil) throws -> String {
+		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise, extras: extras)
 	}
 
 	public static func startVM(on: EventLoop, location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) throws -> String {
