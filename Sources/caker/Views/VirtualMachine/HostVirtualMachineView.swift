@@ -319,9 +319,9 @@ struct HostVirtualMachineView: View {
 				.fontPicker(placement: .secondaryAction)
 				.minSize(self.minSize)
 		} else if self.document.agent == .installing {
-			Text("Installing agent...")
+			LabelView("Installing agent...")
 		} else {
-			Text("Agent not installed. Please install the agent first.")
+			LabelView("Agent not installed. Please install the agent first.")
 		}
 	}
 
@@ -387,17 +387,51 @@ struct HostVirtualMachineView: View {
 				self.combinedView(callback: callback)
 			}
 		} else if self.launchVMExternally {
-			ViewThatFits {
-				HStack {
-					
+			if self.document.status == .starting {
+				GeometryReader { geom in
+					VStack(alignment: .center) {
+						ProgressView().overlay {
+							Color.white.mask {
+								ProgressView()
+							}
+						}
+						Text(self.vmStatus())
+							.foregroundStyle(.white)
+							.font(.largeTitle)
+					}
+					.frame(size: geom.size)
+					.background(.black, ignoresSafeAreaEdges: .bottom)
 				}
-				.frame(size: self.size)
-				.background(.black)
+			} else {
+				LabelView(self.vmStatus())
 			}
-			.minSize(self.minSize)
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
 				.minSize(self.minSize)
+	func vmStatus() -> String {
+		switch self.document.status {
+		case .running:
+			return "VM is running"
+		case .paused:
+			return "VM is paused"
+		case .stopped:
+			return "VM is stopped"
+		case .saving:
+			return "VM is saving"
+		case .none:
+			return "VM is undefined"
+		case .error:
+			return "VM on error"
+		case .starting:
+			return "VM is starting"
+		case .pausing:
+			return "VM is pausing"
+		case .resuming:
+			return "VM is resuming"
+		case .stopping:
+			return "VM is stopping"
+		case .restoring:
+			return "VM is restoring"
 		}
 	}
 
