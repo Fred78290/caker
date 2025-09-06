@@ -457,9 +457,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func startVncServer() -> URL {
+	public func startVncServer(vncPassword: String, port: Int) -> URL {
 		if self.env.vncServer == nil {
-			self.env.vncServer =  VNCServer(self.virtualMachine, queue: DispatchQueue.global())
+			self.env.vncServer =  VNCServer(self.virtualMachine, password: vncPassword, port: port, queue: DispatchQueue.global())
 		}
 
 		return self.vncURL!
