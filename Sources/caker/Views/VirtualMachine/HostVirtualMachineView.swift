@@ -336,23 +336,23 @@ struct HostVirtualMachineView: View {
 						switch self.document.vncStatus {
 						case .connecting:
 							VStack(alignment: .center) {
-								ProgressView()
+								ProgressView().overlay {
+									Color.white.mask {
+										ProgressView()
+									}
+								}
 								Text("Connecting to VNC")
 									.foregroundStyle(.white)
 									.font(.largeTitle)
 							}
+							.frame(size: geom.size)
+							.background(.black, ignoresSafeAreaEdges: .bottom)
 						case .disconnected:
-							Text("VNC not connected")
-								.foregroundStyle(.white)
-								.font(.largeTitle)
+							LabelView("VNC not connected")
 						case .connected:
-							Text("VNC connected")
-								.foregroundStyle(.white)
-								.font(.largeTitle)
+							LabelView("VNC connected")
 						case .disconnecting:
-							Text("VNC disconnecting")
-								.foregroundStyle(.white)
-								.font(.largeTitle)
+							LabelView("VNC disconnecting")
 						case .ready:
 							VNCView(document: self.document, callback)
 								.frame(size: geom.size)
