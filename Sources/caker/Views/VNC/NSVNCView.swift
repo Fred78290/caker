@@ -205,7 +205,7 @@ class NSVNCView: NSView {
 		}
 		set {
 			super.frame = newValue
-			self.connection.logger.logInfo("frame: \(newValue)")
+			self.connection.logger.logInfo("NSVNCView setFrame: \(newValue)")
 
 			frameSizeDidChange(newValue.size)
 		}
