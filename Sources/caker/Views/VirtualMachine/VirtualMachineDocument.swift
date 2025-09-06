@@ -94,8 +94,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	enum Status: Int {
-		case none = -2
-		case external = -1
+		case none = -1
 		case stopped = 0
 		case running = 1
 		case paused = 2
@@ -124,6 +123,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
+	@Published var externalRunning: Bool = false
 	@Published var status: Status = .none
 	@Published var canStart: Bool = false
 	@Published var canStop: Bool = false
@@ -216,10 +216,11 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.vncURL = nil
 		self.vncStatus = .disconnected
 		self.status = status
+		self.externalRunning = false
 		self.connection?.disconnect()
 	}
 
-	func setStateAsRunning(_ status: Status, suspendable: Bool, vncURL: URL?) {
+	func setStateAsRunning(suspendable: Bool, vncURL: URL?) {
 		self.canStart = false
 		self.canStop = true
 		self.canPause = true
@@ -227,7 +228,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.canRequestStop = true
 		self.suspendable = suspendable
 		self.vncURL = vncURL
-		self.status = status
+		self.status = .running
 	}
 
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
@@ -238,8 +239,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.location = location
 			self.agent = config.agent ? .installed : .none
 			self.name = location.name
+			self.externalRunning = location.pidFile.isPIDRunning("caked")
 
-			if location.pidFile.isPIDRunning("caked") {			
+			if externalRunning {
 				retrieveVNCURL()
 			} else {
 				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
@@ -247,6 +249,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				self.virtualMachine = virtualMachine
 				self.vncURL = nil
 				self.didChangedState(virtualMachine)
+
 				virtualMachine.delegate = self
 			}
 
@@ -331,51 +334,69 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func startFromUI() {
+		guard self.status == .stopped else {
+			return
+		}
+
 		if AppState.shared.launchVMExternally {
 			if let location {
-				self.status = .starting
+				do {
+					let config = try location.config()
+					let vncPassword = config.vncPassword
+					let vncPort = try Utilities.findFreePort()
+					let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")
 
-				Task {
-					do {
-						let config = try location.config()
-						let promise = Utilities.group.next().makePromise(of: String.self)
-						let suspendable = config.suspendable
+					self.externalRunning = true
+					self.status = .starting
+					self.vncURL = vncURL
 
-						promise.futureResult.whenSuccess { _ in
-							self.logger.info("VM \(self.name) terminated")
+					Task {
+						do {
+							let promise = Utilities.group.next().makePromise(of: String.self)
+							let suspendable = config.suspendable
+
+							promise.futureResult.whenSuccess { _ in
+								self.logger.info("VM \(self.name) terminated")
+
+								DispatchQueue.main.async {
+									self.setStateAsStopped()
+								}
+							}
+							
+							promise.futureResult.whenFailure { result in
+								self.logger.error("VM \(self.name) failed to start: \(result)")
+
+								DispatchQueue.main.async {
+									self.setStateAsStopped()
+								}
+							}
+							
+							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: ["--vncPassword=\(vncPassword)", "--vncPort=\(vncPort)"])
+							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+
+							self.logger.info("VM started on \(runningIP)")
+							self.logger.info("Found VNC URL: \(String(describing: url))")
 
 							DispatchQueue.main.async {
-								self.setStateAsStopped()
+								self.setStateAsRunning(suspendable: suspendable, vncURL: url)
 							}
-						}
-						
-						promise.futureResult.whenFailure { result in
-							self.logger.error("VM \(self.name) failed to start: \(result)")
-
+						} catch {
+							self.status = .stopped
+							
 							DispatchQueue.main.async {
-								self.setStateAsStopped()
+								alertError(error)
 							}
 						}
-						
-						let runningIP = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise)
-						let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
-
-						self.logger.info("VM started on \(runningIP)")
-						self.logger.info("Found VNC URL: \(String(describing: url))")
-
-						DispatchQueue.main.async {
-							self.setStateAsRunning(.external, suspendable: suspendable, vncURL: url)
-						}
-					} catch {
-						self.status = .stopped
-						
-						DispatchQueue.main.async {
-							alertError(error)
-						}
+					}
+				} catch {
+					DispatchQueue.main.async {
+						alertError(error)
 					}
 				}
 			}
 		} else {
+			self.externalRunning = false
+
 			if let virtualMachine = self.virtualMachine {
 				virtualMachine.startFromUI()
 			}
@@ -383,7 +404,11 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func restartFromUI() {
-		if self.status == .external {
+		guard self.status == .running else {
+			return
+		}
+
+		if self.externalRunning {
 			do {
 				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
 
@@ -403,7 +428,11 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func stopFromUI(force: Bool) {
-		if self.status == .external {
+		guard self.status == .running else {
+			return
+		}
+
+		if self.externalRunning {
 			do {
 				let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
 
@@ -429,7 +458,11 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func suspendFromUI() {
-		if self.status == .external {
+		guard self.status == .running else {
+			return
+		}
+
+		if self.externalRunning {
 			do {
 				let result = try SuspendHandler.suspendVM(name: self.name, runMode: .app)
 
@@ -452,6 +485,10 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func createTemplateFromUI(name: String) -> CreateTemplateReply {
+		guard self.status == .running else {
+			return .init(name: name, created: false, reason: "VM is running")
+		}
+
 		do {
 			return try TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.location.name, templateName: name, runMode: .app)
 		} catch {
@@ -511,7 +548,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
 	func setScreenSize(_ size: CGSize) {
-		if self.status == .external {
+		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
 			if size.width == 0 && size.height == 0 {
 				return
 			}
@@ -537,7 +574,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func retrieveVNCURL() {
-		self.setStateAsRunning(.external, suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
+		self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 		self.retrieveVNCURLAsync()
 	}
 
@@ -548,7 +585,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 		if let vncURL = self.vncURL {
 			// Create settings
-			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true,
+			let settings = VNCConnection.Settings(isDebugLoggingEnabled: Logger.LoggingLevel() == .debug,
 												  hostname: vncURL.host()!,
 												  port: UInt16(vncURL.port ?? 5900),
 												  isShared: true,
@@ -564,6 +601,8 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.connection = connection
 			self.vncStatus = .connecting
 			
+			self.logger.info("Connect VNC \(vncURL)...")
+
 			connection.delegate = self
 			connection.connect()
 		}
@@ -581,12 +620,27 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 				if connection.framebuffer != nil {
 					newStatus = .ready
 				}
+			} else if connectionState.status == .disconnecting {
+				if self.status == .starting || self.status == .running {
+					newStatus = .connecting
+				}
 			} else if connectionState.status == .disconnected {
 				self.connection = nil
-				self.vncView = nil
+
+				if self.status == .starting || self.status == .running {
+					self.tryVNCConnect()
+					newStatus = .connecting
+				} else {
+					self.vncView = nil
+				}
 			}
 			
 			self.vncStatus = newStatus
+
+			if newStatus == .ready, let vncView = self.vncView {
+				let size = vncView.frame.size
+				self.setScreenSize(size)
+			}
 		}
 	}
 	
