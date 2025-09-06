@@ -392,6 +392,44 @@ public struct Utilities {
 			tlsKey: certificates.clientKeyURL.path)
 	}
 
+	public static func findFreePort() throws -> Int {
+		let socketFD = socket(AF_INET, SOCK_STREAM, 0)
+
+		if socketFD == -1 {
+			throw ServiceError(errno)
+		}
+
+		defer {
+			close(socketFD)
+		}
+
+		var addr = sockaddr_in()
+
+		addr.sin_family = sa_family_t(AF_INET)
+		addr.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+		addr.sin_port = in_port_t(0).bigEndian
+
+		let bindResult = withUnsafePointer(to: &addr) {
+			$0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+				bind(socketFD, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+			}
+		}
+
+		guard bindResult == 0 else {
+			throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: nil)
+		}
+
+		var len = socklen_t(MemoryLayout<sockaddr_in>.size)
+
+		getsockname(socketFD, withUnsafeMutablePointer(to: &addr) {
+			$0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+				UnsafeMutablePointer($0)
+			}
+		}, &len)
+
+		return Int(UInt16(bigEndian: addr.sin_port))
+	}
+
 	public static func environment(runMode: Utils.RunMode) throws -> [String: String] {
 		var environment = ProcessInfo.processInfo.environment
 		let home = try Utils.getHome(runMode: runMode)
