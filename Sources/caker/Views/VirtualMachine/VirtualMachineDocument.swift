@@ -357,7 +357,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 							}
 						}
 						
-						let runningIP = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .background, runMode: .user, promise: promise)
+						let runningIP = try StartHandler.startVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise)
 						let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
 						self.logger.info("VM started on \(runningIP)")
@@ -524,26 +524,21 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 
-	func retrieveVNCURLSync() {
-		let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
-		
-		self.logger.info("Found VNC URL: \(String(describing: url))")
+	func retrieveVNCURLAsync() {
+		Task {
+			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
-		DispatchQueue.main.async {
-			self.vncURL = url
+			self.logger.info("Found VNC URL: \(String(describing: url))")
+			
+			DispatchQueue.main.async {
+				self.vncURL = url
+			}
 		}
 	}
 
 	func retrieveVNCURL() {
-		Task {
-			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
-			
-			self.logger.info("Found VNC URL: \(String(describing: url))")
-
-			DispatchQueue.main.async {
-				self.setStateAsRunning(.external, suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
-			}
-		}
+		self.setStateAsRunning(.external, suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
+		self.retrieveVNCURLAsync()
 	}
 
 	func tryVNCConnect() {

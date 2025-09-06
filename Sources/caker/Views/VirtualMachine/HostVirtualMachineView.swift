@@ -386,6 +386,15 @@ struct HostVirtualMachineView: View {
 			} else {
 				self.combinedView(callback: callback)
 			}
+		} else if self.launchVMExternally {
+			ViewThatFits {
+				HStack {
+					
+				}
+				.frame(size: self.size)
+				.background(.black)
+			}
+			.minSize(self.minSize)
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
 				.minSize(self.minSize)
