@@ -11,15 +11,15 @@ import Virtualization
 
 public class VNCServer {
 	private let vnc: Dynamic
-	private let password = UUID().uuidString
+	private let password: String // = UUID().uuidString
 
-	public init(_ virtualMachine: VZVirtualMachine, queue: dispatch_queue_t) {
+	public init(_ virtualMachine: VZVirtualMachine, password: String, port: Int, queue: dispatch_queue_t) {
 		let securityConfiguration = Dynamic._VZVNCAuthenticationSecurityConfiguration(password: password)
 		//let securityConfiguration = Dynamic._VZVNCNoSecuritySecurityConfiguration()
-
-		vnc = Dynamic._VZVNCServer(port: 0, queue: queue, securityConfiguration: securityConfiguration)
-		vnc.virtualMachine = virtualMachine
-		vnc.start()
+		self.password = password
+		self.vnc = Dynamic._VZVNCServer(port: port, queue: queue, securityConfiguration: securityConfiguration)
+		self.vnc.virtualMachine = virtualMachine
+		self.vnc.start()
 	}
 
 	public func waitForURL() throws -> URL {

@@ -29,6 +29,12 @@ struct VMRun: AsyncParsableCommand {
 	@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow run vm in service mode", visibility: .hidden))
 	var mode: VMRunServiceMode = .grpc
 
+	@Option(help: ArgumentHelp("VNC server password", discussion: "This option allow run vnc server with password", visibility: .hidden))
+	var vncPassword: String? = nil
+
+	@Option(help: ArgumentHelp("VNC Server port", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
+	var vncPort: Int = 0
+
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
 			let storageLocation = StorageLocation(runMode: self.common.runMode)
@@ -99,7 +105,7 @@ struct VMRun: AsyncParsableCommand {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {
 				if display == .vnc {
-					let vncURL = vm.startVncServer()
+					let vncURL = vm.startVncServer(vncPassword: self.vncPassword ?? UUID().uuidString, port: self.vncPort)
 					
 					Logger(self).info("VNC server started at \(vncURL)")
 				}

@@ -405,6 +405,19 @@ public final class CakeConfig {
 		#endif
 	}
 
+	public var vncPassword: String {
+		set { self.cake["vncPassword"] = newValue }
+		get {
+			guard let vncPassword = self.cake["vncPassword"] as? String else {
+				let vncPassword = UUID().uuidString
+				self.cake["vncPassword"] = vncPassword
+				return vncPassword
+			}
+
+			return vncPassword
+		}
+	}
+
 	public init(
 		location: URL,
 		os: VirtualizedOS,
@@ -437,6 +450,7 @@ public final class CakeConfig {
 		self.configuredPassword = configuredPassword
 		self.autostart = autostart
 		self.display = display
+		self.vncPassword = UUID().uuidString
 	}
 
 	public init(location: URL, configuredUser: String, configuredPassword: String) throws {
@@ -446,6 +460,7 @@ public final class CakeConfig {
 		self.configuredUser = "admin"
 		self.configuredPassword = "admin"
 		self.autostart = false
+		self.vncPassword = UUID().uuidString
 
 		self.networks = []
 		self.mounts = []
@@ -462,6 +477,12 @@ public final class CakeConfig {
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
+		
+		if self.cake["vncPassword"] == nil {
+			self.cake["vncPassword"] = UUID().uuidString
+
+			try? self.save()
+		}
 	}
 
 	public init(location: URL, options: BuildOptions) throws {
@@ -477,6 +498,7 @@ public final class CakeConfig {
 		self.useCloudInit = false
 		self.agent = false
 		self.attachedDisks = options.attachedDisks
+		self.vncPassword = UUID().uuidString
 
 		if self.os == .darwin {
 			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)
