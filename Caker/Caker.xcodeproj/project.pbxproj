@@ -31,6 +31,7 @@
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
+		9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1501382E6C2AE000B23147 /* LabelView.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
@@ -541,6 +542,7 @@
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
+		9B1501382E6C2AE000B23147 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
 		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
@@ -1141,13 +1143,14 @@
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B3602442E2273C200889BFD /* Extensions.swift */,
+				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
+				9B1501382E6C2AE000B23147 /* LabelView.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
+				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
 				9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */,
-				9B9C4E592E23BC8B00C13D23 /* Home */,
-				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7999062E48A27900147500 /* VNC */,
 			);
 			path = Views;
@@ -2083,6 +2086,7 @@
 				9B215B712E0C35D400AFC89D /* ForwardedPortDetailView.swift in Sources */,
 				9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */,
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
+				9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */,
 				9B7997252E45EDEC00147500 /* VNCView.swift in Sources */,
 				9B9C4E902E23BF1300C13D23 /* RemoteData.swift in Sources */,
 				9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */,
