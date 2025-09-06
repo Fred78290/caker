@@ -84,6 +84,7 @@ struct HostVirtualMachineView: View {
 				}
 			}
 		}
+		.frame(minWidth: self.minSize.width, idealWidth: self.size.width, maxWidth: .infinity, minHeight: self.minSize.height, idealHeight: self.size.height, maxHeight: .infinity)
 		.onAppear {
 			handleAppear()
 		}.onDisappear {
@@ -296,7 +297,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleExternalModeChangedNotification(_ newValue: ExternalModeView) {
-		if newValue == .vnc && self.document.status == .external {
+		if newValue == .vnc && self.document.externalRunning {
 			self.document.tryVNCConnect()
 		}
 	}
@@ -317,7 +318,6 @@ struct HostVirtualMachineView: View {
 			ExternalVirtualMachineView(document: _document, size: self.minSize, dismiss: dismiss, callback: callback)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
-				.minSize(self.minSize)
 		} else if self.document.agent == .installing {
 			LabelView("Installing agent...")
 		} else {
@@ -358,7 +358,6 @@ struct HostVirtualMachineView: View {
 								.frame(size: geom.size)
 						}
 					}
-					.minSize(self.minSize)
 				}
 			}.onAppear {
 				document.setScreenSize(geom.size)
@@ -375,7 +374,7 @@ struct HostVirtualMachineView: View {
 			} action: { newValue in
 				self.size = newValue.size
 			}
-		}.minSize(self.minSize)
+		}
 	}
 
 	@ViewBuilder
@@ -407,7 +406,9 @@ struct HostVirtualMachineView: View {
 			}
 		} else {
 			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-				.minSize(self.minSize)
+		}
+	}
+
 	func vmStatus() -> String {
 		switch self.document.status {
 		case .running:
