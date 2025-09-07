@@ -67,6 +67,8 @@ public class RemoteDatabase {
 }
 
 public struct Home {
+	public static let cakedCommandName = "caked"
+
 	public let cakeHomeDirectory: URL
 	public let networkDirectory: URL
 	public let cacheDirectory: URL

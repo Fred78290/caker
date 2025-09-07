@@ -28,6 +28,14 @@ struct Service: ParsableCommand {
 }
 
 extension Service {
+	static func findMe() throws -> String {		
+		guard let url = URL.binary(Home.cakedCommandName) else {
+			return try Shell.execute(to: "command", arguments: ["-v", Home.cakedCommandName])
+		}
+
+		return url.path
+	}
+
 	struct LaunchAgent: Codable {
 		let label: String
 		let programArguments: [String]
@@ -61,6 +69,7 @@ extension Service {
 			try data.write(to: to)
 		}
 	}
+
 	struct Install: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
 
@@ -87,10 +96,6 @@ extension Service {
 
 		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
 		var mode: VMRunServiceMode = .grpc
-
-		static func findMe() throws -> String {
-			return try Shell.execute(to: "command", arguments: ["-v", "caked"])
-		}
 
 		func getCertificats() throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
@@ -122,7 +127,7 @@ extension Service {
 			let cakedSignature = Utils.cakerSignature
 
 			var arguments: [String] = [
-				try Install.findMe(),
+				try Service.findMe(),
 				"service",
 				"listen",
 				"--log-level=\(self.logLevel.rawValue)",
@@ -374,10 +379,6 @@ extension Service {
 		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
 		var tlsKey: String?
 
-		static func findMe() throws -> String {
-			return try Shell.execute(to: "command", arguments: ["-v", "caked"])
-		}
-
 		func getCertificats() throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
 				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
@@ -404,7 +405,7 @@ extension Service {
 			let listenAddress: String = try getListenAddress()
 
 			var arguments: [String] = [
-				try Install.findMe(),
+				try Service.findMe(),
 				"service",
 				"listen",
 				"--log-level=\(self.logLevel.rawValue)",

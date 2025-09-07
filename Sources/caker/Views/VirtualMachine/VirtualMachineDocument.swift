@@ -135,6 +135,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var agent = AgentStatus.none
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
+	@Published var documentSize: CGSize = .zero
+	@Published var documentWidth: CGFloat = .zero
+	@Published var documentHeight: CGFloat = .zero
 
 	init() {
 		self.virtualMachine = nil
@@ -206,6 +209,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		throw ServiceError("Unimplemented")
 	}
 
+	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped) {
 		self.canStart = true
 		self.canStop = false
@@ -220,6 +224,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.connection?.disconnect()
 	}
 
+	@MainActor
 	func setStateAsRunning(suspendable: Bool, vncURL: URL?) {
 		self.canStart = false
 		self.canStop = true
@@ -231,6 +236,15 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.status = .running
 	}
 
+	private func setDocumentSize(_ size: CGSize) {
+		self.logger.info("Setting document size to \(size)")
+		self.documentSize = size
+		self.documentWidth = size.width
+		self.documentHeight = size.height
+		self.virtualMachineConfig.display.width = Int(size.width)
+		self.virtualMachineConfig.display.height = Int(size.height)
+	}
+
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
 		do {
 			let config = try location.config()
@@ -239,7 +253,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.location = location
 			self.agent = config.agent ? .installed : .none
 			self.name = location.name
-			self.externalRunning = location.pidFile.isPIDRunning("caked")
+			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
+			self.setDocumentSize(self.virtualMachineConfig.display.size)
 
 			if externalRunning {
 				retrieveVNCURL()
@@ -371,7 +386,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 								}
 							}
 							
-							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: ["--vncPassword=\(vncPassword)", "--vncPort=\(vncPort)"])
+							let extras = [
+								"--vncPassword=\(vncPassword)",
+								"--vncPort=\(vncPort)",
+								"--screenSize=\(self.documentSize.width)x\(self.documentSize.height)"
+							]
+							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: extras)
 							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
 							self.logger.info("VM started on \(runningIP)")
@@ -433,19 +453,17 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		if self.externalRunning {
-			do {
-				let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
-
-				if result.stopped == false {
-					MainActor.assumeIsolated {
-						alertError(ServiceError(result.reason))
+			Task {
+				do {
+					let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
+					
+					if result.stopped == false {
+						await alertError(ServiceError(result.reason))
+					} else {
+						await self.setStateAsStopped()
 					}
-				} else {
-					self.setStateAsStopped()
-				}
-			} catch {
-				MainActor.assumeIsolated {
-					alertError(error)
+				} catch {
+					await alertError(error)
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
@@ -463,22 +481,19 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		if self.externalRunning {
-			do {
-				let result = try SuspendHandler.suspendVM(name: self.name, runMode: .app)
-
-				if result.suspended == false {
-					MainActor.assumeIsolated {
-						alertError(ServiceError(result.reason))
+			Task {
+				do {
+					let result = try SuspendHandler.suspendVM(name: self.name, runMode: .app)
+					
+					if result.suspended == false {
+						await alertError(ServiceError(result.reason))
+					} else {
+						await self.setStateAsStopped(.paused)
 					}
-				} else {
-					self.setStateAsStopped(.paused)
-				}
-			} catch {
-				MainActor.assumeIsolated {
-					alertError(error)
+				} catch {
+					await alertError(error)
 				}
 			}
-
 		} else if let virtualMachine = self.virtualMachine {
 			virtualMachine.suspendFromUI()
 		}
@@ -526,7 +541,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		let check: (URL) -> Void = { file in
 			if file == location.pidFile {
 				DispatchQueue.main.async {
-					if file.isPIDRunning("caked") {
+					if file.isPIDRunning(Home.cakedCommandName) {
 						self.retrieveVNCURL()
 					} else {
 						self.setStateAsStopped()
@@ -548,11 +563,13 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
 	func setScreenSize(_ size: CGSize) {
-		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
-			if size.width == 0 && size.height == 0 {
-				return
-			}
+		if size.width == 0 && size.height == 0 {
+			return
+		}
 
+		self.setDocumentSize(size)
+
+		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
 			self.logger.debug("resizeScreen: \(size)")
 
 			Task {
@@ -574,8 +591,10 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func retrieveVNCURL() {
-		self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
-		self.retrieveVNCURLAsync()
+		MainActor.assumeIsolated {
+			self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
+			self.retrieveVNCURLAsync()
+		}
 	}
 
 	func tryVNCConnect() {
@@ -609,7 +628,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func connection(_ connection: VNCConnection, stateDidChange connectionState: VNCConnection.ConnectionState) {
-		self.logger.info("Connection state changed to \(connectionState.status.description)")
+		self.logger.debug("Connection state changed to \(connectionState.status.description)")
 
 		DispatchQueue.main.async {
 			var newStatus = VncStatus(vncStatus: connectionState.status)
@@ -628,7 +647,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 				self.connection = nil
 
 				if self.status == .starting || self.status == .running {
-					self.tryVNCConnect()
+					DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+						self.tryVNCConnect()
+					}
 					newStatus = .connecting
 				} else {
 					self.vncView = nil
@@ -645,7 +666,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, credentialFor authenticationType: VNCAuthenticationType, completion: @escaping ((any VNCCredential)?) -> Void) {
-		self.logger.info("Connection need credential")
+		self.logger.debug("Connection need credential")
 
 		if let vncURL = self.vncURL {
 			if authenticationType.requiresPassword && authenticationType.requiresUsername {
@@ -667,7 +688,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
-		self.logger.info("Connection create framebuffer \(framebuffer), size:\(framebuffer.cgSize)")
+		self.logger.info("Connection create framebuffer size: \(framebuffer.cgSize)")
 
 		DispatchQueue.main.async {
 			self.logger.info("vnc ready")
@@ -676,11 +697,13 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
-		self.logger.info("VNC framebuffer size changed: \(framebuffer), size:\(framebuffer.cgSize)")
+		self.logger.info("VNC framebuffer size changed: \(framebuffer.cgSize)")
 
 		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
 		DispatchQueue.main.async {
+			self.setDocumentSize(framebuffer.cgSize)
+
 			NotificationCenter.default.post(name: NSNotification.VNCFramebufferSizeChanged, object: framebuffer.cgSize)
 		}
 	}

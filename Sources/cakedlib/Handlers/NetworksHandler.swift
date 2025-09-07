@@ -238,7 +238,7 @@ public final class SudoCaked {
 	}
 
 	public static func checkIfSudoable() throws -> (Bool, URL, URL) {
-		guard let binary = URL.binary("caked") else {
+		guard let binary = URL.binary(Home.cakedCommandName) else {
 			throw ServiceError("caked not found in path")
 		}
 
@@ -284,7 +284,7 @@ public final class SudoCaked {
 public struct NetworksHandler {
 	public static func setDHCPLease(leaseTime: Int32, runMode: Utils.RunMode) throws -> String {
 		if geteuid() == 0 {
-			guard let ref = SCPreferencesCreate(nil, "caked" as CFString, "com.apple.InternetSharing.default.plist" as CFString) else {
+			guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, "com.apple.InternetSharing.default.plist" as CFString) else {
 				throw ServiceError("Unable to create SCPreferences")
 			}
 
@@ -378,7 +378,7 @@ public struct NetworksHandler {
 	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> ProcessWithSharedFileHandle {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
-		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : "caked") else {
+		guard let executableURL = URL.binary(phUseLimaVMNet ? "sock-vmnet" : Home.cakedCommandName) else {
 			throw ServiceError("caked not found in path")
 		}
 
@@ -539,7 +539,7 @@ public struct NetworksHandler {
 
 			arguments.append("--pidfile=\(socketURL.1.path)")
 			arguments.append(socketURL.0.path)
-		} else if let caker = URL.binary("caked") {
+		} else if let caker = URL.binary(Home.cakedCommandName) {
 			executableURL = caker
 
 			arguments.append(contentsOf: ["networks", "run", "--mode=\(mode.rawValue)"])
@@ -734,7 +734,7 @@ public struct NetworksHandler {
 
 		Logger(self).info("Start network: \(networkName) Using socket: \(socketURL.0.path)")
 
-		guard let executableURL = URL.binary("caked") else {
+		guard let executableURL = URL.binary(Home.cakedCommandName) else {
 			throw ServiceError("caked not found in path")
 		}
 

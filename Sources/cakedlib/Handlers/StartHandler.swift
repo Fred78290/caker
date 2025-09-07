@@ -20,7 +20,7 @@ public struct StartHandler {
 			let config: CakeConfig = try location.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
 
-			guard let caked = URL.binary("caked") else {
+			guard let caked = URL.binary(Home.cakedCommandName) else {
 				throw ServiceError("caked not found")
 			}
 

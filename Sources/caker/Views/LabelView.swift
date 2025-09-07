@@ -8,14 +8,19 @@
 import SwiftUI
 
 struct LabelView: View {
-	let text: String
+	private let text: String
+	private var callback: ((NSWindow?) -> Void)?
 
-	init(_ text: String = "Hello, World!") {
+	init(_ text: String, _ callback: ((NSWindow?) -> Void)?) {
 		self.text = text
+		self.callback = callback
 	}
 
 	var body: some View {
 		GeometryReader { geom in
+			if let callback = self.callback {
+				HostingWindowFinder(callback)
+			}
 			HStack {
 				Text(text).foregroundStyle(.white).font(.largeTitle)
 			}
@@ -26,5 +31,5 @@ struct LabelView: View {
 }
 
 #Preview {
-	LabelView()
+	LabelView("Hello, World!", nil)
 }

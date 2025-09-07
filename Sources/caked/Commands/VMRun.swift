@@ -8,6 +8,33 @@ import NIOPortForwarding
 import System
 import Virtualization
 
+struct ViewSize: Codable, Identifiable, Hashable, ExpressibleByArgument {
+	var id: String {
+		"\(width)x\(height)"
+	}
+	var width: Int
+	var height: Int
+	var size: CGSize {
+		.init(width: CGFloat(width), height: CGFloat(height))
+	}
+	
+	init(width: Int, height: Int) {
+		self.width = width
+		self.height = height
+	}
+	
+	init(argument: String) {
+		let parts = argument.components(separatedBy: "x").map {
+			Int($0) ?? 0
+		}
+
+		self = ViewSize(
+			width: parts.first ?? 0,
+			height: parts.count > 0 ? parts[1] : 0
+		)
+	}
+}
+
 struct VMRun: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
@@ -34,6 +61,9 @@ struct VMRun: AsyncParsableCommand {
 
 	@Option(help: ArgumentHelp("VNC Server port", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var vncPort: Int = 0
+
+	@Option(help: ArgumentHelp("Screen size", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
+	var screenSize: ViewSize?
 
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
@@ -90,6 +120,11 @@ struct VMRun: AsyncParsableCommand {
 	func run() async throws {
 		let (storageLocation, location) = self.locations
 		let config = try location.config()
+
+		if let screenSize = self.screenSize {
+			config.display = .init(width: screenSize.width, height: screenSize.height)
+			try? config.save()
+		}
 
 		let handler = CakedLib.VMRunHandler(
 			mode,

@@ -205,7 +205,7 @@ class NSVNCView: NSView {
 		}
 		set {
 			super.frame = newValue
-			self.connection.logger.logInfo("NSVNCView setFrame: \(newValue)")
+			self.connection.logger.logDebug("NSVNCView setFrame: \(newValue)")
 
 			frameSizeDidChange(newValue.size)
 		}
@@ -581,13 +581,13 @@ private extension NSVNCView {
 	func frameSizeDidChange(_ size: CGSize) {
 		if let layer = layer {
 			if settings.isScalingEnabled {
-				if frameSizeExceedsFramebufferSize(size) {
-					// Don't allow upscaling
-					layer.contentsGravity = .center
-				} else {
-					// Allow downscaling
-					layer.contentsGravity = .resizeAspect
-				}
+				layer.contentsGravity = .resizeAspect
+			} else if frameSizeExceedsFramebufferSize(size) {
+				// Don't allow upscaling
+				layer.contentsGravity = .center
+			} else {
+				// Allow downscaling
+				layer.contentsGravity = .resizeAspect
 			}
 		}
 	}

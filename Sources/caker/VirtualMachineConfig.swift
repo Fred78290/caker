@@ -13,11 +13,14 @@ import Virtualization
 
 struct VirtualMachineConfig: Hashable {
 	struct ViewSize: Identifiable, Hashable {
-		var id: Int {
-			width * height
+		var id: String {
+			"\(width)x\(height)"
 		}
 		var width: Int
 		var height: Int
+		var size: CGSize {
+			.init(width: CGFloat(width), height: CGFloat(height))
+		}
 
 		init(width: Int, height: Int) {
 			self.width = width
@@ -92,6 +95,7 @@ struct VirtualMachineConfig: Hashable {
 		self.macAddress = config.macAddress?.string ?? ""
 		self.autostart = config.autostart
 		self.suspendable = config.suspendable
+		self.display = ViewSize(width: config.display.width, height: config.display.height)
 		self.dynamicPortForwarding = config.dynamicPortForwarding
 		self.displayRefit = config.displayRefit
 		self.nestedVirtualization = config.nested

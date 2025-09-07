@@ -286,7 +286,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 			let pid = pidFile.isPIDRunning()
 
 			if pid.0 {
-				if pid.1 == "caked" {
+				if pid.1 == Home.cakedCommandName {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
@@ -330,7 +330,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		let pid = pidFile.isPIDRunning()
 		
 		if pid.0 {
-			if pid.1 == "caked" {
+			if pid.1 == Home.cakedCommandName {
 				if let pid = pid.2 {
 					kill(pid, SIGUSR1)
 					removePID()
@@ -344,7 +344,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 			let pid = pidFile.isPIDRunning()
 			
 			if pid.0 {
-				if pid.1 == "caked" {
+				if pid.1 == Home.cakedCommandName {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
@@ -383,7 +383,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		removePID()
 	}
 
-	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> (
+	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, internalCall: Bool, runMode: Utils.RunMode, completionHandler: StartCompletionHandler? = nil) throws -> (
 		EventLoopFuture<String?>, VirtualMachine
 	) {
 		let vm = try VirtualMachine(location: self, config: config, runMode: runMode)

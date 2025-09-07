@@ -76,15 +76,12 @@ struct MainApp: App {
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
+	@ViewBuilder
 	func documentView(fileURL: URL, document: VirtualMachineDocument) -> some View {
-		let loaded = document.loadVirtualMachine(from: fileURL)
-
-		return HStack {
-			if loaded {
-				HostVirtualMachineView(appState: $appState, document: document)
-			} else {
-				Text("Unable to load virtual machine \(document.name)")
-			}
+		if document.loadVirtualMachine(from: fileURL) {
+			HostVirtualMachineView(appState: $appState, document: document)
+		} else {
+			Text("Unable to load virtual machine \(document.name)")
 		}
 	}
 
@@ -93,7 +90,9 @@ struct MainApp: App {
 
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			if let fileURL = file.fileURL {
-				documentView(fileURL: fileURL, document: file.document).restorationState(.disabled)
+				documentView(fileURL: fileURL, document: file.document)
+					.frame(minWidth: 1024, idealWidth: file.document.documentWidth, maxWidth: .infinity, minHeight: 768, idealHeight: file.document.documentHeight, maxHeight: .infinity)
+					.restorationState(.disabled)
 			} else {
 				Color.red.restorationState(.disabled)
 			}
@@ -170,19 +169,6 @@ struct MainApp: App {
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
-
-		//WindowGroup("Open virtual machine", id: "opendocument", for: URL.self) { $url in
-		//	if let fileURL = url, let document = appState.virtualMachines[fileURL] {
-		//		documentView(fileURL: fileURL, document: document).onAppear{
-		//			document.startFromUI()
-		//		}
-		//	} else {
-		//		newDocWizard()
-		//	}
-		//}.commands {
-		//	CommandGroup(replacing: .saveItem, addition: {})
-		//}
-		//.restorationState(.disabled)
 
 		Settings {
 			SettingsView()

@@ -14,8 +14,6 @@ let delegatedCommand: [String] = [
 	"export",
 ]
 
-let COMMAND_NAME = "caked"
-
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
@@ -58,9 +56,9 @@ struct Root: ParsableCommand {
 
 	nonisolated(unsafe)
 		static var configuration = CommandConfiguration(
-			commandName: "\(COMMAND_NAME)",
-			usage: "\(COMMAND_NAME) <subcommand>",
-			discussion: "\(COMMAND_NAME) is an hypervisor running VM",
+			commandName: "\(Home.cakedCommandName)",
+			usage: "\(Home.cakedCommandName) <subcommand>",
+			discussion: "\(Home.cakedCommandName) is an hypervisor running VM",
 			version: CI.version,
 			subcommands: [
 				Build.self,

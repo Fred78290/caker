@@ -203,7 +203,7 @@ extension URL: Purgeable {
 	}
 
 	public func isCakedRunning() -> Bool {
-		self.isPIDRunning("caked")
+		self.isPIDRunning(Home.cakedCommandName)
 	}
 
 	public typealias WaitPIDHandler = () throws -> Void
@@ -260,6 +260,10 @@ extension URL: Purgeable {
 	}
 
 	public static func binary(_ name: String) -> URL? {
+		if let executablePath = Bundle.main.path(forAuxiliaryExecutable: name) {
+			return URL(fileURLWithPath: executablePath).resolvingSymlinksInPath().absoluteURL
+		}
+
 		let pathd = [ProcessInfo.processInfo.environment["PATH"], "/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"]
 
 		return pathd.compactMap {
