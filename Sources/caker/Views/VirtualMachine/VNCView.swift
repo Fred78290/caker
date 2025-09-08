@@ -46,14 +46,10 @@ struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
 
 	private let document: VirtualMachineDocument
-	private let callback: VMView.CallbackWindow
 	private let logger = Logger("HostVirtualMachineView")
-	private let size: CGSize
 
-	init(document: VirtualMachineDocument, size: CGSize, _ callback: @escaping VMView.CallbackWindow) {
+	init(document: VirtualMachineDocument,) {
 		self.document = document
-		self.size = size
-		self.callback = callback
 	}
 
 	func makeCoordinator() -> VirtualMachineDocument {
@@ -61,35 +57,35 @@ struct VNCView: NSViewRepresentable {
 	}
 
 	func makeNSView(context: Context) -> NSViewType {
-		guard let connection = document.connection/*, let framebuffer = connection.framebuffer*/ else {
+		guard let connection = document.connection, let framebuffer = connection.framebuffer else {
 			fatalError("Connection is nil")
 		}
 
-		//let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
-		let view = NSVNCView(frame: CGRectMake(0, 0, size.width, size.height), connection: connection)
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
 
 		self.document.vncView = view
 
-		DispatchQueue.main.async {
-			callback(view.window)
-		}
-
-		self.logger.info("makeNSView: \(size), \(view.frame)")
+		self.logger.info("makeNSView: \(view.frame), \(framebuffer.cgSize)")
 
 		return view
 	}
 
-	/*func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
-		if let width = proposal.width, let height = proposal.height {
-			self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame)")
-		}
-
+	func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
 		if let framebuffer = self.document.connection.framebuffer {
+			if let width = proposal.width, let height = proposal.height {
+				self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame), \(framebuffer.cgSize)")
+			}
+
+
 			return framebuffer.cgSize
+		} else {
+			if let width = proposal.width, let height = proposal.height {
+				self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame)")
+			}
 		}
 		
 		return nil
-	}*/
+	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
