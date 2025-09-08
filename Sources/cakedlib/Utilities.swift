@@ -4,7 +4,7 @@ import GRPCLib
 import NIO
 import System
 import Virtualization
-
+import Socket
 public enum Architecture: String, Codable, CustomStringConvertible {
 	public var description: String {
 		switch self {
@@ -380,6 +380,14 @@ extension DirectorySharingAttachments {
 	}
 }
 
+extension Socket {
+	static func create(host: String, port: Int) throws -> Socket {
+		let signature = try Socket.Signature(protocolFamily: .inet, socketType: .stream, proto: .tcp, hostname: "localhost", port: Int32(port))!
+		
+		return try Socket.create(connectedUsing: signature)
+	}
+}
+
 public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 
@@ -394,6 +402,23 @@ public struct Utilities {
 			caCert: certificates.caCertURL.path,
 			tlsCert: certificates.clientCertURL.path,
 			tlsKey: certificates.clientKeyURL.path)
+	}
+
+	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool{
+		let start = Date()
+
+		while Date().timeIntervalSince(start) < timeout {
+			do {
+				let socket = try Socket.create(host: host, port: port)
+				socket.close()
+				return true
+			} catch {
+			}
+
+			Thread.sleep(forTimeInterval: 0.05)
+		}
+
+		return false
 	}
 
 	public static func findFreePort() throws -> Int {
