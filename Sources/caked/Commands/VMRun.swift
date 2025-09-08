@@ -135,16 +135,10 @@ struct VMRun: AsyncParsableCommand {
 			display: display,
 			config: config)
 
-		try handler.run { vm in
+		try handler.run(display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { vm in
 			if display == .ui {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {
-				if display == .vnc {
-					let vncURL = vm.startVncServer(vncPassword: self.vncPassword ?? UUID().uuidString, port: self.vncPort)
-					
-					Logger(self).info("VNC server started at \(vncURL)")
-				}
-
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()
 			}
