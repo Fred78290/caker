@@ -9,27 +9,39 @@ import SwiftUI
 
 struct LabelView: View {
 	private let text: String
-	private var callback: ((NSWindow?) -> Void)?
+	private let progress: Bool
 
-	init(_ text: String, _ callback: ((NSWindow?) -> Void)?) {
+	init(_ text: String, progress: Bool = false) {
 		self.text = text
-		self.callback = callback
+		self.progress = progress
 	}
 
 	var body: some View {
 		GeometryReader { geom in
-			if let callback = self.callback {
-				HostingWindowFinder(callback)
+			if progress {
+				VStack(alignment: .center) {
+					ProgressView().overlay {
+						Color.white.mask {
+							ProgressView()
+						}
+					}
+					Text(text)
+						.foregroundStyle(.white)
+						.font(.largeTitle)
+				}
+				.frame(size: geom.size)
+				.background(.black, ignoresSafeAreaEdges: .bottom)
+			} else {
+				HStack {
+					Text(text).foregroundStyle(.white).font(.largeTitle)
+				}
+				.frame(size: geom.size)
+				.background(.black, ignoresSafeAreaEdges: .bottom)
 			}
-			HStack {
-				Text(text).foregroundStyle(.white).font(.largeTitle)
-			}
-			.frame(size: geom.size)
-			.background(.black, ignoresSafeAreaEdges: .bottom)
 		}
     }
 }
 
 #Preview {
-	LabelView("Hello, World!", nil)
+	LabelView("Hello, World!")
 }

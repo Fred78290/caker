@@ -81,7 +81,7 @@ struct MainApp: App {
 		if document.loadVirtualMachine(from: fileURL) {
 			HostVirtualMachineView(appState: $appState, document: document)
 		} else {
-			Text("Unable to load virtual machine \(document.name)")
+			LabelView("Unable to load virtual machine \(document.name)")
 		}
 	}
 
