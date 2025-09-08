@@ -9,9 +9,18 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 
+func viewLog(_ text: String) -> some View {
+	Logger("View").info(text)
+
+	return EmptyView()
+}
+
 extension View {
-	func minSize(_ size: CGSize) -> some View {
-		frame(minWidth: size.width, idealWidth: size.width, maxWidth: .infinity, minHeight: size.height, idealHeight: size.height, maxHeight: .infinity)
+	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
+		Logger(label).info("frame(minSize: \(minSize), idealSize: \(idealSize))")
+
+		//return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
+		return frame(size: idealSize)
 	}
 }
 
@@ -59,12 +68,11 @@ struct HostVirtualMachineView: View {
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		let config = document.virtualMachineConfig
 		let display = config.display
-		let size = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
 
 		self._appState = appState
 		self._document = StateObject(wrappedValue: document)
-		self.size = size
-		self.minSize = size
+		self.size = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
+		self.minSize = CGSize(width: 800, height: 600)
 		self.automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 	}
@@ -187,7 +195,10 @@ struct HostVirtualMachineView: View {
 			proxy.frame(in: .global)
 		} action: { newValue in
 			self.size = newValue.size
-		}.frame(minWidth: self.minSize.width, idealWidth: self.document.documentWidth, maxWidth: .infinity, minHeight: self.minSize.height, idealHeight: self.document.documentHeight, maxHeight: .infinity)
+			self.document.setDocumentSize(newValue.size)
+		}
+		.presentedWindowToolbarStyle(.unifiedCompact)
+		.frame("MainView", minSize: self.minSize, idealSize: self.document.documentSize)
 
 		if #available(macOS 15.0, *) {
 			view.windowToolbarFullScreenVisibility(.onHover)
@@ -313,57 +324,43 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
-	func terminalView(callback: @escaping VMView.CallbackWindow) -> some View {
+	func terminalView(_ size: CGSize) -> some View {
 		if self.document.agent == .installed {
-			ExternalVirtualMachineView(document: _document, size: self.minSize, dismiss: dismiss, callback: callback)
+			ExternalVirtualMachineView(document: _document, size: self.size, dismiss: dismiss)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
+				.frame(size: size)
 		} else if self.document.agent == .installing {
-			LabelView("Installing agent...", callback)
+			LabelView("Installing agent...")
 		} else {
-			LabelView("Agent not installed. Please install the agent first.", callback)
+			LabelView("Agent not installed. Please install the agent first.")
 		}
 	}
 
 	@ViewBuilder
-	func combinedView(callback: @escaping VMView.CallbackWindow) -> some View {
-		GeometryReader { geom in
-			HStack {
-				if self.externalModeView == .terminal {
-					self.terminalView(callback: callback)
-				} else {
-					ZStack {
-						switch self.document.vncStatus {
-						case .connecting:
-							HostingWindowFinder(callback)
-							VStack(alignment: .center) {
-								ProgressView().overlay {
-									Color.white.mask {
-										ProgressView()
-									}
-								}
-								Text("Connecting to VNC")
-									.foregroundStyle(.white)
-									.font(.largeTitle)
-							}
-							.frame(size: geom.size)
-							.background(.black, ignoresSafeAreaEdges: .bottom)
-						case .disconnected:
-							LabelView("VNC not connected", callback)
-						case .connected:
-							LabelView("VNC connected", callback)
-						case .disconnecting:
-							LabelView("VNC disconnecting", callback)
-						case .ready:
-							VNCView(document: self.document, size: geom.size, callback)
-								.frame(size: geom.size)
-								.onAppear {
-									document.setScreenSize(geom.size)
-								}
-						}
-					}
-				}
-			}.toolbar {
+	func externalView(_ size: CGSize) -> some View {
+		if self.document.vncURL == nil || self.externalModeView == .terminal {
+			self.terminalView(size)
+		} else {
+			switch self.document.vncStatus {
+			case .connecting:
+				LabelView("Connecting to VNC", progress: true)
+			case .disconnected:
+				LabelView("VNC not connected")
+			case .connected:
+				LabelView("VNC connected")
+			case .disconnecting:
+				LabelView("VNC disconnecting")
+			case .ready:
+				VNCView(document: self.document).frame(size: size)
+			}
+		}
+	}
+	
+	@ViewBuilder
+	func combinedView(_ size: CGSize) -> some View {
+		externalView(size)
+			.toolbar {
 				ToolbarItem(placement: .secondaryAction) {
 					Picker("Mode", selection: $externalModeView) {
 						Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
@@ -371,41 +368,32 @@ struct HostVirtualMachineView: View {
 					}.pickerStyle(.segmented).labelsHidden()
 				}
 			}
-		}
 	}
 
 	@ViewBuilder
 	func vmView(callback: @escaping VMView.CallbackWindow) -> some View {
-		if self.document.externalRunning {
-			if self.document.vncURL == nil {
-				self.terminalView(callback: callback)
-			} else {
-				self.combinedView(callback: callback)
-			}
-		} else if self.launchVMExternally {
-			if self.document.status == .starting {
-				GeometryReader { geom in
-					HostingWindowFinder(callback)
+		GeometryReader { geom in
+			HostingWindowFinder(callback)
 
-					VStack(alignment: .center) {
-						ProgressView().overlay {
-							Color.white.mask {
-								ProgressView()
-							}
-						}
-						Text(self.vmStatus())
-							.foregroundStyle(.white)
-							.font(.largeTitle)
-					}
+			if self.document.externalRunning {
+				self.combinedView(geom.size)
 					.frame(size: geom.size)
-					.background(.black, ignoresSafeAreaEdges: .bottom)
-				}
+					.onAppear {
+						document.setScreenSize(geom.size)
+					}
+			} else if self.launchVMExternally {
+				LabelView(self.vmStatus(), progress: self.document.status == .starting)
+					.onAppear {
+						document.setScreenSize(geom.size)
+					}
 			} else {
-				LabelView(self.vmStatus(), callback)
+				InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
+					.frame(size: geom.size)
+					.onAppear {
+						document.setScreenSize(geom.size)
+					}
 			}
-		} else {
-			InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, callback: callback)
-		}
+		}.frame(minSize: self.minSize, idealSize: self.document.documentSize)
 	}
 
 	func vmStatus() -> String {
