@@ -120,6 +120,7 @@ struct VMRun: AsyncParsableCommand {
 	func run() async throws {
 		let (storageLocation, location) = self.locations
 		let config = try location.config()
+		let vncPassword = self.vncPassword ?? config.vncPassword
 
 		if let screenSize = self.screenSize {
 			config.display = .init(width: screenSize.width, height: screenSize.height)
