@@ -16,11 +16,7 @@ struct InternalVirtualMachineView: View {
 	var callback: VMView.CallbackWindow?
 
 	var body: some View {
-		VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine) { window in
-			if let callback = callback {
-				callback(window)
-			}
-		}
+		VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: callback)
 	}
 
 }
