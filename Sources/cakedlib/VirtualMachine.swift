@@ -615,12 +615,15 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			let newSize = CGSize(width: width, height: height)
 			
 			if newSize != .zero {
-				self.vmQueue.async {					
-					Logger(self).info("Resizing screen to \(width)x\(height)")
+				self.vmQueue.async {
+					let logger = Logger(self)
+						
+					logger.info("Will resize screen to \(width)x\(height)")
 
 					self.virtualMachine.graphicsDevices.forEach { device in
 						device.displays.forEach { display in
 							if newSize != display.sizeInPixels {
+								logger.info("Resizing screen from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
 								try? display.reconfigure(sizeInPixels: newSize)
 							}
 						}
