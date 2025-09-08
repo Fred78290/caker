@@ -246,6 +246,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
+		self.logger.info("Load VM from: \(location.rootURL)")
+
 		do {
 			let config = try location.config()
 
