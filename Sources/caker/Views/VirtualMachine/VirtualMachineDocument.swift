@@ -604,9 +604,11 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 		if let vncURL = self.vncURL {
 			// Create settings
+			let vncPort = vncURL.port ?? 5900
+			let vncHost = vncURL.host()!
 			let settings = VNCConnection.Settings(isDebugLoggingEnabled: Logger.LoggingLevel() == .debug,
-												  hostname: vncURL.host()!,
-												  port: UInt16(vncURL.port ?? 5900),
+												  hostname: vncHost,
+												  port: UInt16(vncPort),
 												  isShared: true,
 												  isScalingEnabled: true,
 												  useDisplayLink: true,
@@ -614,16 +616,19 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 												  isClipboardRedirectionEnabled: true,
 												  colorDepth: .depth24Bit,
 												  frameEncodings: .default)
-
 			let connection = VNCConnection(settings: settings, logger: VNCConnectionLogger())
-
+			
 			self.connection = connection
 			self.vncStatus = .connecting
-			
-			self.logger.info("Connect VNC \(vncURL)...")
 
 			connection.delegate = self
-			connection.connect()
+
+			Task {
+				if Utilities.waitPortReady(host: vncHost, port: vncPort) {
+					connection.connect()
+					self.logger.info("Connected to: \(vncURL)...")
+				}
+			}
 		}
 	}
 
