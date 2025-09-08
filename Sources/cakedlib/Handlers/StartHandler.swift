@@ -38,6 +38,10 @@ public struct StartHandler {
 				arguments.append("--vnc")
 			}
 
+			if let extras = extras {
+				arguments.append(contentsOf: extras)
+			}
+
 			if startMode == .service || startMode == .background {
 				arguments.append(contentsOf: ["2>&1", "|", "tee", log])
 			}
@@ -46,10 +50,6 @@ public struct StartHandler {
 				if let fds = $0.sharedFileDescriptors {
 					sharedFileDescriptors.append(contentsOf: fds)
 				}
-			}
-
-			if let extras = extras {
-				arguments.append(contentsOf: extras)
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
