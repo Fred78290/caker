@@ -236,7 +236,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.status = .running
 	}
 
-	private func setDocumentSize(_ size: CGSize) {
+	func setDocumentSize(_ size: CGSize) {
 		self.logger.info("Setting document size to \(size)")
 		self.documentSize = size
 		self.documentWidth = size.width
