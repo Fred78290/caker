@@ -663,9 +663,8 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			
 			self.vncStatus = newStatus
 
-			if newStatus == .ready, let vncView = self.vncView {
-				let size = vncView.frame.size
-				self.setScreenSize(size)
+			if newStatus == .ready {
+				self.setScreenSize(self.documentSize)
 			}
 		}
 	}
