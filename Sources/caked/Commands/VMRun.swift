@@ -123,7 +123,6 @@ struct VMRun: AsyncParsableCommand {
 
 		if let screenSize = self.screenSize {
 			config.display = .init(width: screenSize.width, height: screenSize.height)
-			try? config.save()
 		}
 
 		let handler = CakedLib.VMRunHandler(
