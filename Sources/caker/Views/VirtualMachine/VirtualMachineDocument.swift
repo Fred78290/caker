@@ -387,9 +387,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 							}
 							
 							let extras = [
-								"--vncPassword=\(vncPassword)",
-								"--vncPort=\(vncPort)",
-								"--screenSize=\(self.documentSize.width)x\(self.documentSize.height)"
+								"--vnc-password=\(vncPassword)",
+								"--vnc-port=\(vncPort)",
+								"--screen-size=\(Int(self.documentSize.width))x\(Int(self.documentSize.height))"
 							]
 							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: extras)
 							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
