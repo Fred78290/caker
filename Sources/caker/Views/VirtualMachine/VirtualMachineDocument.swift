@@ -403,15 +403,15 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 								self.setStateAsRunning(suspendable: suspendable, vncURL: url)
 							}
 						} catch {
-							self.status = .stopped
-							
 							DispatchQueue.main.async {
+								self.status = .stopped
 								alertError(error)
 							}
 						}
 					}
 				} catch {
 					DispatchQueue.main.async {
+						self.status = .stopped
 						alertError(error)
 					}
 				}
