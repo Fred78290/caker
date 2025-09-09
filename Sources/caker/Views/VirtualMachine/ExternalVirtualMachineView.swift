@@ -151,8 +151,7 @@ struct ColorWell: NSViewRepresentable {
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
 
-	@StateObject var document: VirtualMachineDocument
-
+	private let document: VirtualMachineDocument
 	private var fontPickerDelegate: FontPickerDelegate!
 	private let dismiss: DismissAction
 	private let callback: VMView.CallbackWindow?
@@ -209,11 +208,11 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		}
 	}
 
-	init(document: StateObject<VirtualMachineDocument>, size: CGSize, dismiss: DismissAction, callback: VMView.CallbackWindow? = nil) {
-		self._document = document
+	init(document: VirtualMachineDocument, size: CGSize, dismiss: DismissAction, callback: VMView.CallbackWindow? = nil) {
+		self.document = document
 		self.callback = callback
 		self.dismiss = dismiss
-		self.terminalView = NSViewType(document: document.wrappedValue, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
+		self.terminalView = NSViewType(document: document, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
 
