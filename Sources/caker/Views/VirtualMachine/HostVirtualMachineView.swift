@@ -19,8 +19,8 @@ extension View {
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
 		Logger(label).info("frame(minSize: \(minSize), idealSize: \(idealSize))")
 
-		//return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
-		return frame(size: idealSize)
+		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
+		//return frame(size: idealSize)
 	}
 }
 
@@ -58,7 +58,7 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
-	@State var size: CGSize
+	@State var documentSize: CGSize
 	@State var automaticallyReconfiguresDisplay: Bool
 
 	private let logger = Logger("HostVirtualMachineView")
@@ -66,14 +66,11 @@ struct HostVirtualMachineView: View {
 	private let minSize: CGSize
 
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
-		let config = document.virtualMachineConfig
-		let display = config.display
-
 		self._appState = appState
 		self._document = StateObject(wrappedValue: document)
-		self.size = CGSize(width: CGFloat(display.width), height: CGFloat(display.height))
+		self.documentSize = document.documentSize
 		self.minSize = CGSize(width: 800, height: 600)
-		self.automaticallyReconfiguresDisplay = config.displayRefit || (config.os == .darwin)
+		self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 	}
 
@@ -86,7 +83,9 @@ struct HostVirtualMachineView: View {
 					window.delegate = self.delegate
 				}
 			}
-		}.onAppear {
+		}
+		//.frame("MainView", minSize: self.minSize, idealSize: self.documentSize)
+		.onAppear {
 			handleAppear()
 		}.onDisappear {
 			handleDisappear()
@@ -194,11 +193,10 @@ struct HostVirtualMachineView: View {
 		}.onGeometryChange(for: CGRect.self) { proxy in
 			proxy.frame(in: .global)
 		} action: { newValue in
-			self.size = newValue.size
+			self.documentSize = newValue.size
 			self.document.setDocumentSize(newValue.size)
 		}
 		.presentedWindowToolbarStyle(.unifiedCompact)
-		.frame("MainView", minSize: self.minSize, idealSize: self.document.documentSize)
 
 		if #available(macOS 15.0, *) {
 			view.windowToolbarFullScreenVisibility(.onHover)
@@ -226,7 +224,7 @@ struct HostVirtualMachineView: View {
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			self.document.setScreenSize(self.size)
+			self.document.setScreenSize(self.documentSize)
 		}
 	}
 	
@@ -245,7 +243,7 @@ struct HostVirtualMachineView: View {
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
 		if let size = notification.object as? CGSize {
 			self.logger.info("VNCFramebufferSizeChanged: \(size)")
-			self.size = size
+			self.documentSize = size
 		}
 	}
 
@@ -303,7 +301,7 @@ struct HostVirtualMachineView: View {
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
 		if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
 			self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
-			self.size = framebuffer.cgSize
+			self.documentSize = framebuffer.cgSize
 		}
 	}
 
@@ -326,10 +324,10 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
 		if self.document.agent == .installed {
-			ExternalVirtualMachineView(document: _document, size: self.size, dismiss: dismiss)
+			ExternalVirtualMachineView(document: document, size: self.documentSize, dismiss: dismiss)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
-				.frame(size: size)
+				//.frame(size: size)
 		} else if self.document.agent == .installing {
 			LabelView("Installing agent...")
 		} else {
@@ -352,7 +350,7 @@ struct HostVirtualMachineView: View {
 			case .disconnecting:
 				LabelView("VNC disconnecting")
 			case .ready:
-				VNCView(document: self.document).frame(size: size)
+				VNCView(document: self.document)//.frame(size: size)
 			}
 		}
 	}
@@ -360,6 +358,7 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func combinedView(_ size: CGSize) -> some View {
 		externalView(size)
+			//.frame(size: size)
 			.toolbar {
 				ToolbarItem(placement: .secondaryAction) {
 					Picker("Mode", selection: $externalModeView) {
@@ -374,26 +373,19 @@ struct HostVirtualMachineView: View {
 	func vmView(callback: @escaping VMView.CallbackWindow) -> some View {
 		GeometryReader { geom in
 			HostingWindowFinder(callback)
-
-			if self.document.externalRunning {
-				self.combinedView(geom.size)
-					.frame(size: geom.size)
-					.onAppear {
-						document.setScreenSize(geom.size)
-					}
-			} else if self.launchVMExternally {
-				LabelView(self.vmStatus(), progress: self.document.status == .starting)
-					.onAppear {
-						document.setScreenSize(geom.size)
-					}
-			} else {
-				InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
-					.frame(size: geom.size)
-					.onAppear {
-						document.setScreenSize(geom.size)
-					}
+			ViewThatFits {
+				if self.document.externalRunning {
+					self.combinedView(geom.size)
+				} else if self.launchVMExternally {
+					LabelView(self.vmStatus(), progress: self.document.status == .starting)
+				} else {
+					InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
+						.frame(size: geom.size)
+				}
+			}.onAppear {
+				self.document.setScreenSize(geom.size)
 			}
-		}.frame(minSize: self.minSize, idealSize: self.document.documentSize)
+		}
 	}
 
 	func vmStatus() -> String {
