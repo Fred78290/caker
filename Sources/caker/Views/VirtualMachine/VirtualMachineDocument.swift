@@ -710,7 +710,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		DispatchQueue.main.async {
 			self.setDocumentSize(framebuffer.cgSize)
 
-			NotificationCenter.default.post(name: NSNotification.VNCFramebufferSizeChanged, object: framebuffer.cgSize)
+			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
 		}
 	}
 	
@@ -778,7 +778,7 @@ extension VirtualMachineDocument {
 	}
 }
 
-extension NSNotification {
+extension VirtualMachineDocument {
 	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
@@ -788,4 +788,12 @@ extension NSNotification {
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
+	
+	func issuedNotificationFromDocument<T>(_ notification: Notification) -> T? {
+		guard let document = notification.userInfo?["document"] as? VirtualMachineDocument, document.id == self.id else {
+			return nil
+		}
+		
+		return notification.object as? T
+	}
 }

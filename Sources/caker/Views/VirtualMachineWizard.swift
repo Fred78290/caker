@@ -318,11 +318,11 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
-		}.onReceive(NSNotification.ProgressCreateVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {
 				self.model.fractionCompleted = fractionCompleted
 			}
-		}.onReceive(NSNotification.CreatedVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
 			self.model.createVM = false
 
 			if let location = notification.object as? VMLocation {
@@ -334,14 +334,14 @@ struct VirtualMachineWizard: View {
 			
 			self.config = VirtualMachineConfig()
 			self.model.reset()
-		}.onReceive(NSNotification.FailCreateVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
 			self.model.createVM = false
 			self.model.createVMMessage = ""
 
 			if let error = notification.object as? Error {
 				alertError(error)
 			}
-		}.onReceive(NSNotification.ProgressMessageCreateVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.ProgressMessageCreateVirtualMachine) { notification in
 			if let message = notification.object as? String {
 				self.model.createVMMessage = message
 			}
@@ -970,20 +970,20 @@ struct VirtualMachineWizard: View {
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
-					NotificationCenter.default.post(name: NSNotification.ProgressCreateVirtualMachine, object: fractionCompleted)
+					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressCreateVirtualMachine, object: fractionCompleted)
 
 				case .terminated(let result):
 					if case let .failure(error) = result {
-						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: error)
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error)
 					} else if case let .success(location) = result {
-						NotificationCenter.default.post(name: NSNotification.CreatedVirtualMachine, object: location)
+						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: location)
 					} else {
-						NotificationCenter.default.post(name: NSNotification.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"))
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"))
 					}
 
 					done()
 				case .step(let message):
-					NotificationCenter.default.post(name: NSNotification.ProgressMessageCreateVirtualMachine, object: message)
+					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressMessageCreateVirtualMachine, object: message)
 				}
 			}
 		}

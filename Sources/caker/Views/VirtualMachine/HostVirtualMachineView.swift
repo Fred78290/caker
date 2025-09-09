@@ -94,11 +94,11 @@ struct HostVirtualMachineView: View {
 			handleDidResizeNotification(notification)
 		}.onReceive(NSWindow.willCloseNotification) { notification in
 			handleWillCloseNotification(notification)
-		}.onReceive(NSNotification.VNCFramebufferSizeChanged) { notification in
+		}.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
 			handleVNCFramebufferSizeChangedNotification(notification)
-		}.onReceive(NSNotification.StartVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.StartVirtualMachine) { notification in
 			handleStartVirtualMachineNotification(notification)
-		}.onReceive(NSNotification.DeleteVirtualMachine) { notification in
+		}.onReceive(VirtualMachineDocument.DeleteVirtualMachine) { notification in
 			handleDeleteVirtualMachineNotification(notification)
 		}.onChange(of: appearsActive) { newValue in
 			handleAppStateChangedNotification(newValue)

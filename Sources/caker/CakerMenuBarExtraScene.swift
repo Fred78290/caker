@@ -112,7 +112,7 @@ private struct VMMenuItem: View {
 	func openVirtualMachine() async {
 		do {
 			try await openDocument(at: url)
-			NotificationCenter.default.post(name: NSNotification.StartVirtualMachine, object: vm.name)
+			NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm.name)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)

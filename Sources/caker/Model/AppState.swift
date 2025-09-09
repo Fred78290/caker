@@ -227,7 +227,7 @@ class AppState: ObservableObject, Observable {
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				NotificationCenter.default.post(name: NSNotification.DeleteVirtualMachine, object: vm.name)
+				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm.name)
 
 				let result = try DeleteHandler.delete(names: [vm.name], runMode: .app)
 
