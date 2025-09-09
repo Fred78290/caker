@@ -70,7 +70,7 @@ struct VNCView: NSViewRepresentable {
 		return view
 	}
 
-	func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
+	/*func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
 		if let framebuffer = self.document.connection.framebuffer {
 			if let width = proposal.width, let height = proposal.height {
 				self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame), \(framebuffer.cgSize)")
@@ -85,7 +85,7 @@ struct VNCView: NSViewRepresentable {
 		}
 		
 		return nil
-	}
+	}*/
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if let connection = self.document.connection, let framebuffer = connection.framebuffer {

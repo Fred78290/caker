@@ -690,11 +690,16 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
-		self.logger.info("Connection create framebuffer size: \(framebuffer.cgSize)")
+		let size = framebuffer.cgSize
+
+		self.logger.info("Connection create framebuffer size: \(size)")
 
 		DispatchQueue.main.async {
 			self.logger.info("vnc ready")
+			self.setDocumentSize(size)
 			self.vncStatus = .ready
+
+			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
 		}
 	}
 	
