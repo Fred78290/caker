@@ -2,6 +2,7 @@ import CakedLib
 import GRPCLib
 import SwiftTerm
 import SwiftUI
+import SwifterSwiftUI
 
 @MainActor
 func alertError(_ error: Error) {
@@ -76,29 +77,36 @@ struct MainApp: App {
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
-	@ViewBuilder
-	func documentView(fileURL: URL, document: VirtualMachineDocument) -> some View {
-		if document.loadVirtualMachine(from: fileURL) {
-			HostVirtualMachineView(appState: $appState, document: document)
-		} else {
-			LabelView("Unable to load virtual machine \(document.name)")
-		}
-	}
-
 	var body: some Scene {
 		CakerMenuBarExtraScene(appState: appState)
 
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
-			if let fileURL = file.fileURL {
-				documentView(fileURL: fileURL, document: file.document)
-					.frame(minWidth: 1024, idealWidth: file.document.documentWidth, maxWidth: .infinity, minHeight: 768, idealHeight: file.document.documentHeight, maxHeight: .infinity)
-					.restorationState(.disabled)
+			let document = file.document
+			let minSize = CGSize(width: 800, height: 600)
+
+			if file.document.loadVirtualMachine(from: file.fileURL!) {
+				@State var documentSize: CGSize = document.documentSize
+
+				HostVirtualMachineView(appState: $appState, document: document)
+					.frame("MainApp", minSize: minSize, idealSize: documentSize)
+					//.frame(size: documentSize)
+					.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
+						if let size: CGSize = document.issuedNotificationFromDocument(notification) {
+							Logger(self).info("Received VNCFramebufferSizeChanged: \(size)")
+
+							withAnimation {
+								documentSize = size
+							}
+						}
+					}
 			} else {
-				Color.red.restorationState(.disabled)
+				LabelView("Unable to load virtual machine \(document.name)")
+					.frame(size: minSize)
 			}
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 			CommandGroup(replacing: .newItem) {
@@ -153,7 +161,7 @@ struct MainApp: App {
 					CreateTemplateView(appState: $appState)
 				}
 			}
-		}.restorationState(.disabled)
+		}
 
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
