@@ -383,10 +383,10 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		removePID()
 	}
 
-	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode, completionHandler: StartCompletionHandler? = nil) throws -> (
+	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode, completionHandler: StartCompletionHandler? = nil) throws -> (
 		EventLoopFuture<String?>, VirtualMachine
 	) {
-		let vm = try VirtualMachine(location: self, config: config, runMode: runMode)
+		let vm = try VirtualMachine(location: self, config: config, screenSize: screenSize, runMode: runMode)
 
 		if display == .vnc {
 			let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)

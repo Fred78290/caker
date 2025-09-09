@@ -121,9 +121,12 @@ struct VMRun: AsyncParsableCommand {
 		let (storageLocation, location) = self.locations
 		let config = try location.config()
 		let vncPassword = self.vncPassword ?? config.vncPassword
+		let displaySize: CGSize
 
 		if let screenSize = self.screenSize {
-			config.display = .init(width: screenSize.width, height: screenSize.height)
+			displaySize = .init(width: screenSize.width, height: screenSize.height)
+		} else {
+			displaySize = config.display.cgSize
 		}
 
 		let handler = CakedLib.VMRunHandler(
@@ -135,7 +138,7 @@ struct VMRun: AsyncParsableCommand {
 			display: display,
 			config: config)
 
-		try handler.run(display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { vm in
+		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { vm in
 			if display == .ui {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {

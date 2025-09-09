@@ -4,7 +4,7 @@ import Virtualization
 public protocol GuestPlateForm {
 	func bootLoader() throws -> VZBootLoader
 	func platform() throws -> VZPlatformConfiguration
-	func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration
+	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration
 	func keyboards(_ suspendable: Bool) -> [VZKeyboardConfiguration]
 	func pointingDevices(_ suspendable: Bool) -> [VZPointingDeviceConfiguration]
 }
@@ -31,13 +31,13 @@ struct LinuxPlateform: GuestPlateForm {
 		return config
 	}
 
-	func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration {
+	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {
 		let result: VZVirtioGraphicsDeviceConfiguration = VZVirtioGraphicsDeviceConfiguration()
 
 		result.scanouts = [
 			VZVirtioGraphicsScanoutConfiguration(
-				widthInPixels: vmConfig.display.width,
-				heightInPixels: vmConfig.display.height
+				widthInPixels: Int(screenSize.width),
+				heightInPixels: Int(screenSize.height)
 			)
 		]
 
@@ -78,11 +78,11 @@ struct LinuxPlateform: GuestPlateForm {
 			return result
 		}
 
-		func graphicsDevice(vmConfig: CakeConfig) -> VZGraphicsDeviceConfiguration {
+		func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {
 			let result: VZMacGraphicsDeviceConfiguration = VZMacGraphicsDeviceConfiguration()
 
 			if let hostMainScreen = NSScreen.main {
-				let vmScreenSize = NSSize(width: vmConfig.display.width, height: vmConfig.display.height)
+				let vmScreenSize = NSSize(width: screenSize.width, height: screenSize.height)
 
 				result.displays = [
 					VZMacGraphicsDisplayConfiguration(for: hostMainScreen, sizeInPoints: vmScreenSize)
@@ -93,8 +93,8 @@ struct LinuxPlateform: GuestPlateForm {
 
 			result.displays = [
 				VZMacGraphicsDisplayConfiguration(
-					widthInPixels: vmConfig.display.width,
-					heightInPixels: vmConfig.display.height,
+					widthInPixels: Int(screenSize.width),
+					heightInPixels: Int(screenSize.height),
 					pixelsPerInch: 72
 				)
 			]

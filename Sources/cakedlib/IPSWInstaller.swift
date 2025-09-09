@@ -49,7 +49,7 @@ import Virtualization
 			configuration.cpuCount = config.cpuCount
 			configuration.memorySize = config.memorySize
 			configuration.platform = try plateform.platform()
-			configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
+			configuration.graphicsDevices = [plateform.graphicsDevice(screenSize: config.display.cgSize)]
 			configuration.audioDevices = [soundDeviceConfiguration]
 			configuration.keyboards = plateform.keyboards(suspendable)
 			configuration.pointingDevices = plateform.pointingDevices(suspendable)

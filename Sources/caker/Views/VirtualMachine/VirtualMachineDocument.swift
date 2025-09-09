@@ -257,7 +257,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			if externalRunning {
 				retrieveVNCURL()
 			} else {
-				let virtualMachine = try VirtualMachine(location: location, config: config, runMode: .app)
+				let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
 
 				self.virtualMachine = virtualMachine
 				self.vncURL = nil

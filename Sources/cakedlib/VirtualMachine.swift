@@ -112,7 +112,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let runMode: Utils.RunMode
 	var vncServer: VNCServer? = nil
 
-	init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws {
+	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
@@ -152,7 +152,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		configuration.cpuCount = config.cpuCount
 		configuration.memorySize = config.memorySize
 		configuration.platform = try plateform.platform()
-		configuration.graphicsDevices = [plateform.graphicsDevice(vmConfig: config)]
+		configuration.graphicsDevices = [plateform.graphicsDevice(screenSize: screenSize)]
 		configuration.audioDevices = [soundDeviceConfiguration]
 		configuration.keyboards = plateform.keyboards(suspendable)
 		configuration.pointingDevices = plateform.pointingDevices(suspendable)
@@ -370,7 +370,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return cdrom
 	}
 
-	public init(location: VMLocation, config: CakeConfig, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
+	public init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError("Unsupported architecture")
@@ -378,7 +378,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 		self.config = config
 		self.location = location
-		self.env = try VirtualMachineEnvironment(location: location, config: config, runMode: runMode)
+		self.env = try VirtualMachineEnvironment(location: location, config: config, screenSize: screenSize, runMode: runMode)
 
 		if let queue = queue {
 			self.vmQueue = queue

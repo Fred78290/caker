@@ -6,6 +6,10 @@ import Virtualization
 public typealias DisplaySize = [String: Int]
 
 extension DisplaySize {
+	public var cgSize: CGSize {
+		CGSize(width: CGFloat(width), height: CGFloat(height))
+	}
+
 	public var width: Int {
 		set { self["width"] = newValue }
 		get { self["width"]! }

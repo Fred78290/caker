@@ -42,7 +42,7 @@ public struct VMRunHandler {
 		self.mode = mode
 	}
 
-	public func run(display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, _ completionHandler: @escaping (VirtualMachine) -> Void) throws {
+	public func run(screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, _ completionHandler: @escaping (VirtualMachine) -> Void) throws {
 		defer {
 			location.removePID()
 		}
@@ -65,7 +65,7 @@ public struct VMRunHandler {
 			}
 		}
 
-		let (_, vm) = try location.startVirtualMachine(mode, on: Utilities.group.next(), config: config, display: display, vncPassword: vncPassword, vncPort: vncPort, internalCall: false, runMode: runMode)
+		let (_, vm) = try location.startVirtualMachine(mode, on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, internalCall: false, runMode: runMode)
 
 		completionHandler(vm)
 	}
