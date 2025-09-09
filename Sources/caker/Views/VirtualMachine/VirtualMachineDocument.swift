@@ -136,8 +136,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: CGSize = .zero
-	@Published var documentWidth: CGFloat = .zero
-	@Published var documentHeight: CGFloat = .zero
 
 	init() {
 		self.virtualMachine = nil
@@ -239,8 +237,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	func setDocumentSize(_ size: CGSize) {
 		self.logger.info("Setting document size to \(size)")
 		self.documentSize = size
-		self.documentWidth = size.width
-		self.documentHeight = size.height
 		self.virtualMachineConfig.display.width = Int(size.width)
 		self.virtualMachineConfig.display.height = Int(size.height)
 	}
