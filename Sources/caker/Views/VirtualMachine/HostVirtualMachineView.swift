@@ -82,7 +82,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	var body: some View {
-		let view = vmView { window in
+		let view = vmView()
 		.windowAccessor($window, delegate: self.windowDelegate)
 		.presentedWindowToolbarStyle(.unifiedCompact)
 		.onAppear {
@@ -354,35 +354,40 @@ struct HostVirtualMachineView: View {
 		}
 	}
 	
-	@ViewBuilder
-	func combinedView(_ size: CGSize) -> some View {
-		externalView(size)
-			//.frame(size: size)
-			.toolbar {
-				ToolbarItem(placement: .secondaryAction) {
-					Picker("Mode", selection: $externalModeView) {
-						Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-						Image(systemName: "play.display").tag(ExternalModeView.vnc)
-					}.pickerStyle(.segmented).labelsHidden()
-				}
-			}
-	}
-
-	@ViewBuilder
-	func vmView(callback: @escaping VMView.CallbackWindow) -> some View {
+	func vmView() -> some View {
 		GeometryReader { geom in
-			HostingWindowFinder(callback)
-			ViewThatFits {
-				if self.document.externalRunning {
-					self.combinedView(geom.size)
-				} else if self.launchVMExternally {
-					LabelView(self.vmStatus(), progress: self.document.status == .starting)
-				} else {
-					InternalVirtualMachineView(document: document, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
-						.frame(size: geom.size)
-				}
-			}.onAppear {
-				self.document.setScreenSize(geom.size)
+			if self.document.externalRunning {
+				externalView(geom.size)
+					.toolbar {
+						ToolbarItem(placement: .secondaryAction) {
+							Picker("Mode", selection: $externalModeView) {
+								Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+								Image(systemName: "play.display").tag(ExternalModeView.vnc)
+							}.pickerStyle(.segmented).labelsHidden()
+						}
+					}
+					.onAppear {
+						self.document.setScreenSize(geom.size)
+					}
+			} else if self.launchVMExternally {
+				LabelView(self.vmStatus(), progress: self.document.status == .starting)
+					.onAppear {
+						self.document.setScreenSize(geom.size)
+					}
+			} else if document.virtualMachine != nil {
+				VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
+					.frame(size: geom.size)
+					.onAppear {
+						self.document.setScreenSize(geom.size)
+					}
+				/*InternalVirtualMachineView(virtualMachine: document.virtualMachine, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
+					.frame(size: geom.size)
+					.onAppear {
+						self.document.setScreenSize(geom.size)
+					}
+				*/
+			} else {
+				LabelView("Virtual machine not loaded", size: geom.size)
 			}
 		}
 	}
