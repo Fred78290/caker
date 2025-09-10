@@ -51,7 +51,7 @@ struct HostVirtualMachineView: View {
 	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
 
-	@State var windowNumber: Int = 0
+	@State var window: NSWindow? = nil
 	@State var displaySettings: Bool = false
 	@State var createTemplate: Bool = false
 	@State var virtualMachineConfig: VirtualMachineConfig = VirtualMachineConfig()
@@ -77,8 +77,10 @@ struct HostVirtualMachineView: View {
 	var body: some View {
 		let view = vmView { window in
 			if let window = window {
-				windowNumber = window.windowNumber
-				
+				self.window = window
+
+				window.isRestorable = false
+
 				if #unavailable(macOS 15.0) {
 					window.delegate = self.delegate
 				}
@@ -204,7 +206,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	func isMyWindowKey(_ notification: Notification) -> Bool {
-		if let window = notification.object as? NSWindow, window.windowNumber == windowNumber {
+		if let window = notification.object as? NSWindow, window.windowNumber == self.window?.windowNumber {
 			return true
 		}
 
