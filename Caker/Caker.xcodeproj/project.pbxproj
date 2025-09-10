@@ -134,6 +134,7 @@
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
 		9B4832D82E44F78900EC0697 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4832D72E44F78000EC0697 /* VNC.swift */; };
+		9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
@@ -626,6 +627,7 @@
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B4832D72E44F78000EC0697 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowAccessor.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7895E72E37D9C2004D07EB /* MultiplatformTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTab.swift; sourceTree = "<group>"; };
@@ -1172,16 +1174,17 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				9B75A6D22E2A2C45000AA773 /* Pty.swift */,
-				9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */,
-				9B3601A02E21169200889BFD /* Settings.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
 				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
+				9B75A6D22E2A2C45000AA773 /* Pty.swift */,
 				9B30BA4B2E0BF2B600256A9D /* RangeIntegerStyle.swift */,
 				9B30BA4D2E0BF37300256A9D /* RegexParseableFormatStyle.swift */,
+				9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */,
+				9B3601A02E21169200889BFD /* Settings.swift */,
 				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
+				9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -2069,6 +2072,7 @@
 				9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */,
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
+				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,
 				9B7999072E48A27900147500 /* NSVNCView.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
