@@ -84,7 +84,7 @@ struct HostVirtualMachineView: View {
 	var body: some View {
 		let view = vmView { window in
 		.windowAccessor($window, delegate: self.windowDelegate)
-				self.window = window
+		.presentedWindowToolbarStyle(.unifiedCompact)
 		.onAppear {
 			handleAppear()
 		}.onDisappear {
@@ -196,7 +196,6 @@ struct HostVirtualMachineView: View {
 			self.documentSize = newValue.size
 			self.document.setDocumentSize(newValue.size)
 		}
-		.presentedWindowToolbarStyle(.unifiedCompact)
 
 		if #available(macOS 15.0, *) {
 			view.windowToolbarFullScreenVisibility(.onHover)
