@@ -88,17 +88,17 @@ struct MainApp: App {
 				@State var documentSize: CGSize = document.documentSize
 
 				HostVirtualMachineView(appState: $appState, document: document)
-					.restorationState(.disabled)
-					.frame("MainApp", minSize: minSize, idealSize: documentSize)
 					.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
 						if let size: CGSize = document.issuedNotificationFromDocument(notification) {
-							Logger(self).info("Received VNCFramebufferSizeChanged: \(size)")
+							Logger(self).info("### Received VNCFramebufferSizeChanged: \(size)")
 
 							withAnimation {
 								documentSize = size
 							}
 						}
 					}
+					.restorationState(.disabled)
+					.frame("MainApp", minSize: minSize, idealSize: documentSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
 					.restorationState(.disabled)
