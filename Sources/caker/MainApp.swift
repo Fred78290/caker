@@ -88,6 +88,7 @@ struct MainApp: App {
 				@State var documentSize: CGSize = document.documentSize
 
 				HostVirtualMachineView(appState: $appState, document: document)
+					.restorationState(.disabled)
 					.frame("MainApp", minSize: minSize, idealSize: documentSize)
 					//.frame(size: documentSize)
 					.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
@@ -101,6 +102,7 @@ struct MainApp: App {
 					}
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
+					.restorationState(.disabled)
 					.frame(size: minSize)
 			}
 		}
