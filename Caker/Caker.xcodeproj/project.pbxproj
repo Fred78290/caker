@@ -1143,14 +1143,14 @@
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B3602442E2273C200889BFD /* Extensions.swift */,
-				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
 				9B1501382E6C2AE000B23147 /* LabelView.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
-				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
 				9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */,
+				9B9C4E592E23BC8B00C13D23 /* Home */,
+				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7999062E48A27900147500 /* VNC */,
 			);
 			path = Views;
