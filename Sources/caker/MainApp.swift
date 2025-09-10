@@ -90,7 +90,6 @@ struct MainApp: App {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.restorationState(.disabled)
 					.frame("MainApp", minSize: minSize, idealSize: documentSize)
-					//.frame(size: documentSize)
 					.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
 						if let size: CGSize = document.issuedNotificationFromDocument(notification) {
 							Logger(self).info("Received VNCFramebufferSizeChanged: \(size)")
