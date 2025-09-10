@@ -10,13 +10,16 @@ import GRPCLib
 import SwiftUI
 
 struct InternalVirtualMachineView: View {
-	@StateObject var document: VirtualMachineDocument
+	private var virtualMachine: VirtualMachine
+	private var automaticallyReconfiguresDisplay: Bool
 
-	var automaticallyReconfiguresDisplay: Bool
-	var callback: VMView.CallbackWindow?
+	init(virtualMachine: VirtualMachine, automaticallyReconfiguresDisplay: Bool) {
+		self.automaticallyReconfiguresDisplay = automaticallyReconfiguresDisplay
+		self.virtualMachine = virtualMachine
+	}
 
 	var body: some View {
-		VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: callback)
+		VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: self.virtualMachine, virtualMachine: self.virtualMachine.virtualMachine, callback: nil)
 	}
 
 }
