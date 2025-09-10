@@ -328,9 +328,9 @@ struct HostVirtualMachineView: View {
 				.fontPicker(placement: .secondaryAction)
 				//.frame(size: size)
 		} else if self.document.agent == .installing {
-			LabelView("Installing agent...")
+			LabelView("Installing agent...", size: size)
 		} else {
-			LabelView("Agent not installed. Please install the agent first.")
+			LabelView("Agent not installed. Please install the agent first.", size: size)
 		}
 	}
 
@@ -341,13 +341,13 @@ struct HostVirtualMachineView: View {
 		} else {
 			switch self.document.vncStatus {
 			case .connecting:
-				LabelView("Connecting to VNC", progress: true)
+				LabelView("Connecting to VNC", size: size, progress: true)
 			case .disconnected:
-				LabelView("VNC not connected")
+				LabelView("VNC not connected", size: size)
 			case .connected:
-				LabelView("VNC connected")
+				LabelView("VNC connected", size: size)
 			case .disconnecting:
-				LabelView("VNC disconnecting")
+				LabelView("VNC disconnecting", size: size)
 			case .ready:
 				VNCView(document: self.document)//.frame(size: size)
 			}
