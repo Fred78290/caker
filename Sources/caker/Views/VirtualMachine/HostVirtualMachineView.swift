@@ -64,6 +64,13 @@ struct HostVirtualMachineView: View {
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
 	private let minSize: CGSize
+	private var windowDelegate: CustomWindowDelegate? {
+		if #unavailable(macOS 15.0) {
+			return self.delegate
+		}
+		
+		return nil
+	}
 
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		self._appState = appState
@@ -76,17 +83,8 @@ struct HostVirtualMachineView: View {
 
 	var body: some View {
 		let view = vmView { window in
-			if let window = window {
+		.windowAccessor($window, delegate: self.windowDelegate)
 				self.window = window
-
-				window.isRestorable = false
-
-				if #unavailable(macOS 15.0) {
-					window.delegate = self.delegate
-				}
-			}
-		}
-		//.frame("MainView", minSize: self.minSize, idealSize: self.documentSize)
 		.onAppear {
 			handleAppear()
 		}.onDisappear {
