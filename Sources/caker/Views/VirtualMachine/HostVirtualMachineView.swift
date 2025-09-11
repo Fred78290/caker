@@ -193,7 +193,7 @@ struct HostVirtualMachineView: View {
 		}.onGeometryChange(for: CGRect.self) { proxy in
 			proxy.frame(in: .global)
 		} action: { newValue in
-			self.documentSize = newValue.size
+			Logger(self).info("onGeometryChange: \(newValue.size), window: \(String(describing: window))")
 			self.document.setDocumentSize(newValue.size)
 		}
 
