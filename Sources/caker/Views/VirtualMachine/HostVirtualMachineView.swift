@@ -84,6 +84,7 @@ struct HostVirtualMachineView: View {
 	var body: some View {
 		let view = vmView()
 		.windowAccessor($window, delegate: self.windowDelegate)
+		.frame(minSize: self.minSize, idealSize: self.documentSize)
 		.presentedWindowToolbarStyle(.unifiedCompact)
 		.onAppear {
 			handleAppear()
