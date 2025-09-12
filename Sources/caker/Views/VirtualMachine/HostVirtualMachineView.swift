@@ -47,7 +47,7 @@ struct HostVirtualMachineView: View {
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.dismiss) var dismiss
-
+	@Environment
 	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
 
@@ -64,13 +64,6 @@ struct HostVirtualMachineView: View {
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
 	private let minSize: CGSize
-	private var windowDelegate: CustomWindowDelegate? {
-		if #unavailable(macOS 15.0) {
-			return self.delegate
-		}
-		
-		return nil
-	}
 
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		self._appState = appState
@@ -82,125 +75,145 @@ struct HostVirtualMachineView: View {
 	}
 
 	var body: some View {
-		let view = vmView()
-		.windowAccessor($window, delegate: self.windowDelegate)
-		.frame(minSize: self.minSize, idealSize: self.documentSize)
-		.presentedWindowToolbarStyle(.unifiedCompact)
-		.onAppear {
-			handleAppear()
-		}.onDisappear {
-			handleDisappear()
-		}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
-			handleDidResizeNotification(notification)
-		}.onReceive(NSWindow.willCloseNotification) { notification in
-			handleWillCloseNotification(notification)
-		}.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
-			handleVNCFramebufferSizeChangedNotification(notification)
-		}.onReceive(VirtualMachineDocument.StartVirtualMachine) { notification in
-			handleStartVirtualMachineNotification(notification)
-		}.onReceive(VirtualMachineDocument.DeleteVirtualMachine) { notification in
-			handleDeleteVirtualMachineNotification(notification)
-		}.onChange(of: appearsActive) { newValue in
-			handleAppStateChangedNotification(newValue)
-		}.onChange(of: self.document.externalRunning) { newValue in
-			handleDocumentExternalRunningChangedNotification(newValue)
-		}.onChange(of: self.document.status) { newValue in
-			handleDocumentStatusChangedNotification(newValue)
-		}.onChange(of: self.document.vncStatus) { newValue in
-			handleVncStatusChangedNotification(newValue)
-		}.onChange(of: self.externalModeView) { newValue in
-			handleExternalModeChangedNotification(newValue)
-		}.toolbar {
-			ToolbarItemGroup(placement: .navigation) {
-				if document.status == .stopping {
-					Button("Force stop", systemImage: "power") {
-						document.stopFromUI(force: true)
-					}
-					.help("Force to stop virtual machine")
-					.disabled(document.agent == .installing)
-				} else if document.status == .running {
-					Button("Request to stop", systemImage: "stop") {
-						document.stopFromUI(force: false)
-					}
-					.help("Request to stop virtual machine")
-					.disabled(document.agent == .installing)
-				} else if document.status == .paused {
-					Button("Resume", systemImage: "playpause") {
-						document.startFromUI()
-					}.help("Resumes virtual machine")
-				} else {
-					Button("Start", systemImage: "play") {
-						document.startFromUI()
-					}
-					.help("Start virtual machine")
-					.disabled(document.status == .starting || document.status == .stopping)
-				}
-
-				Button("Pause", systemImage: "pause") {
-					document.suspendFromUI()
-				}
-				.help("Suspends virtual machine")
-				.disabled(document.suspendable == false || document.agent == .installing)
-				
-				Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
-					document.restartFromUI()
-				}
-				.help("Restart virtual machine")
-				.disabled(self.appState.isStopped || document.agent == .installing)
-
-				Button("Create template", systemImage: "archivebox") {
-					createTemplate = true
-				}
-				.help("Create template from virtual machine")
-				.disabled(self.appState.isRunning)
-			}
-
-			ToolbarItemGroup(placement: .primaryAction) {
-				Button(action: {
-					self.appState.isAgentInstalling = true
-					
-					self.document.installAgent {
-						self.appState.isAgentInstalling = false
-					}
-				}, label: {
-					ZStack {
-						Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
-						if self.appState.isAgentInstalling {
-							ProgressView().frame(height: 10).scaleEffect(0.5)
+		HStack {
+			let view = vmView(self.documentSize)
+				.windowAccessor($window) {
+					if let window = $0 {
+						let frame = window.frame
+						
+						self.window = window
+						
+						if #unavailable(macOS 15.0) {
+							window.delegate = self.delegate
+						}
+						
+						DispatchQueue.main.async {
+							self.documentSize = frame.size
+							self.document.setDocumentSize(frame.size)
 						}
 					}
-				})
-				.help("Install agent into virtual machine")
-				.disabled(self.appState.isStopped || self.document.agent != .none)
-				
-				Button("Delete", systemImage: "trash") {
-					self.appState.deleteVirtualMachine(document: self.document)
 				}
-				.help("Delete virtual machine")
-				.disabled(self.appState.isRunning || self.appState.isPaused)
-			}
-
-			ToolbarItemGroup(placement: .primaryAction) {
-				Button("Settings", systemImage: "gear") {
-					displaySettings = true
+				.frame("MainView", minSize: self.minSize, idealSize: self.documentSize)
+				.presentedWindowToolbarStyle(.unifiedCompact)
+				.onAppear {
+					handleAppear()
+				}.onDisappear {
+					handleDisappear()
+				}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
+					handleDidResizeNotification(notification)
+				}.onReceive(NSWindow.willCloseNotification) { notification in
+					handleWillCloseNotification(notification)
+				}.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
+					handleVNCFramebufferSizeChangedNotification(notification)
+				}.onReceive(VirtualMachineDocument.StartVirtualMachine) { notification in
+					handleStartVirtualMachineNotification(notification)
+				}.onReceive(VirtualMachineDocument.DeleteVirtualMachine) { notification in
+					handleDeleteVirtualMachineNotification(notification)
+				}.onChange(of: appearsActive) { newValue in
+					handleAppStateChangedNotification(newValue)
+				}.onChange(of: self.document.externalRunning) { newValue in
+					handleDocumentExternalRunningChangedNotification(newValue)
+				}.onChange(of: self.document.status) { newValue in
+					handleDocumentStatusChangedNotification(newValue)
+				}.onChange(of: self.document.vncStatus) { newValue in
+					handleVncStatusChangedNotification(newValue)
+				}.onChange(of: self.externalModeView) { newValue in
+					handleExternalModeChangedNotification(newValue)
+				}.toolbar {
+					ToolbarItemGroup(placement: .navigation) {
+						if document.status == .stopping {
+							Button("Force stop", systemImage: "power") {
+								document.stopFromUI(force: true)
+							}
+							.help("Force to stop virtual machine")
+							.disabled(document.agent == .installing)
+						} else if document.status == .running {
+							Button("Request to stop", systemImage: "stop") {
+								document.stopFromUI(force: false)
+							}
+							.help("Request to stop virtual machine")
+							.disabled(document.agent == .installing)
+						} else if document.status == .paused {
+							Button("Resume", systemImage: "playpause") {
+								document.startFromUI()
+							}.help("Resumes virtual machine")
+						} else {
+							Button("Start", systemImage: "play") {
+								document.startFromUI()
+							}
+							.help("Start virtual machine")
+							.disabled(document.status == .starting || document.status == .stopping)
+						}
+						
+						Button("Pause", systemImage: "pause") {
+							document.suspendFromUI()
+						}
+						.help("Suspends virtual machine")
+						.disabled(document.suspendable == false || document.agent == .installing)
+						
+						Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
+							document.restartFromUI()
+						}
+						.help("Restart virtual machine")
+						.disabled(self.appState.isStopped || document.agent == .installing)
+						
+						Button("Create template", systemImage: "archivebox") {
+							createTemplate = true
+						}
+						.help("Create template from virtual machine")
+						.disabled(self.appState.isRunning)
+					}
+					
+					ToolbarItemGroup(placement: .primaryAction) {
+						Button(action: {
+							self.appState.isAgentInstalling = true
+							
+							self.document.installAgent {
+								self.appState.isAgentInstalling = false
+							}
+						}, label: {
+							ZStack {
+								Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
+								if self.appState.isAgentInstalling {
+									ProgressView().frame(height: 10).scaleEffect(0.5)
+								}
+							}
+						})
+						.help("Install agent into virtual machine")
+						.disabled(self.appState.isStopped || self.document.agent != .none)
+						
+						Button("Delete", systemImage: "trash") {
+							self.appState.deleteVirtualMachine(document: self.document)
+						}
+						.help("Delete virtual machine")
+						.disabled(self.appState.isRunning || self.appState.isPaused)
+					}
+					
+					ToolbarItemGroup(placement: .primaryAction) {
+						Button("Settings", systemImage: "gear") {
+							displaySettings = true
+						}
+						.help("Configure virtual machine")
+						.disabled(self.document.virtualMachine == nil)
+					}
+				}.sheet(isPresented: $displaySettings) {
+					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
+				}.alert("Create template", isPresented: $createTemplate) {
+					CreateTemplateView(appState: $appState)
+				}.onGeometryChange(for: CGRect.self) { proxy in
+					proxy.frame(in: .global)
+				} action: { newValue in
+					Logger(self).info("onGeometryChange: \(newValue.size), window: \(String(describing: window))")
+					if self.window != nil {
+						self.documentSize = newValue.size
+						self.document.setDocumentSize(newValue.size)
+					}
 				}
-				.help("Configure virtual machine")
-				.disabled(self.document.virtualMachine == nil)
+			
+			if #available(macOS 15.0, *) {
+				view.windowToolbarFullScreenVisibility(.onHover)
 			}
-		}.sheet(isPresented: $displaySettings) {
-			VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
-		}.alert("Create template", isPresented: $createTemplate) {
-			CreateTemplateView(appState: $appState)
-		}.onGeometryChange(for: CGRect.self) { proxy in
-			proxy.frame(in: .global)
-		} action: { newValue in
-			Logger(self).info("onGeometryChange: \(newValue.size), window: \(String(describing: window))")
-			self.document.setDocumentSize(newValue.size)
-		}
-
-		if #available(macOS 15.0, *) {
-			view.windowToolbarFullScreenVisibility(.onHover)
-		}
+		}.frame("MainView+HStack", minSize: self.minSize, idealSize: self.documentSize)
 	}
 
 	func isMyWindowKey(_ notification: Notification) -> Bool {
@@ -214,6 +227,10 @@ struct HostVirtualMachineView: View {
 	func handleAppear() {
 		NSWindow.allowsAutomaticWindowTabbing = false
 		self.appState.currentDocument = self.document
+
+		if let window = self.window {
+			self.document.setScreenSize(window.frame.size)
+		}
 	}
 
 	func handleDisappear() {
@@ -324,7 +341,7 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
 		if self.document.agent == .installed {
-			ExternalVirtualMachineView(document: document, size: self.documentSize, dismiss: dismiss)
+			ExternalVirtualMachineView(document: document, size: size, dismiss: dismiss)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
 				//.frame(size: size)
@@ -355,41 +372,31 @@ struct HostVirtualMachineView: View {
 		}
 	}
 	
-	func vmView() -> some View {
-		GeometryReader { geom in
-			if self.document.externalRunning {
-				externalView(geom.size)
-					.toolbar {
-						ToolbarItem(placement: .secondaryAction) {
-							Picker("Mode", selection: $externalModeView) {
-								Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-								Image(systemName: "play.display").tag(ExternalModeView.vnc)
-							}.pickerStyle(.segmented).labelsHidden()
-						}
+	@ViewBuilder
+	func vmView(_ size: CGSize) -> some View {
+		if self.document.externalRunning {
+			externalView(size)
+				.toolbar {
+					ToolbarItem(placement: .secondaryAction) {
+						Picker("Mode", selection: $externalModeView) {
+							Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+							Image(systemName: "play.display").tag(ExternalModeView.vnc)
+						}.pickerStyle(.segmented).labelsHidden()
 					}
-					.onAppear {
-						self.document.setScreenSize(geom.size)
-					}
-			} else if self.launchVMExternally {
-				LabelView(self.vmStatus(), progress: self.document.status == .starting)
-					.onAppear {
-						self.document.setScreenSize(geom.size)
-					}
-			} else if document.virtualMachine != nil {
-				VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
-					.frame(size: geom.size)
-					.onAppear {
-						self.document.setScreenSize(geom.size)
-					}
-				/*InternalVirtualMachineView(virtualMachine: document.virtualMachine, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
-					.frame(size: geom.size)
-					.onAppear {
-						self.document.setScreenSize(geom.size)
-					}
-				*/
-			} else {
-				LabelView("Virtual machine not loaded", size: geom.size)
-			}
+				}
+		} else if self.launchVMExternally {
+			LabelView(self.vmStatus(), progress: self.document.status == .starting)
+		} else if document.virtualMachine != nil {
+			VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
+				.frame(size: size)
+			/*InternalVirtualMachineView(virtualMachine: document.virtualMachine, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
+				.frame(size: geom.size)
+				.onAppear {
+					self.document.setScreenSize(size)
+				}
+			*/
+		} else {
+			LabelView("Virtual machine not loaded", size: size)
 		}
 	}
 
