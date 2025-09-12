@@ -7,8 +7,15 @@
 import SwiftUI
 
 struct WindowAccessor: NSViewRepresentable {
-	@Binding var window: NSWindow?
-	let delegate: NSWindowDelegate?
+	typealias CallbackWindow = (NSWindow?) -> Void
+
+	@Binding private var window: NSWindow?
+	private let callback: CallbackWindow?
+
+	init(_ window: Binding<NSWindow?>, callback: CallbackWindow? = nil) {
+		self._window = window
+		self.callback = callback
+	}
 
 	class MoveToWindowDetector: NSView {
 		var onMoveToWindow: (NSWindow?) -> Void = { _ in }
@@ -25,17 +32,17 @@ struct WindowAccessor: NSViewRepresentable {
 	func updateNSView(_ nsView: MoveToWindowDetector, context: Context) {
 		nsView.onMoveToWindow = {
 			window = $0
-			if delegate != nil {
-				$0?.delegate = delegate
+			if let callback {
+				callback($0)
 			}
 		}
 	}
 }
 
 extension View {
-	func windowAccessor(_ window: Binding<NSWindow?>, delegate: NSWindowDelegate? = nil) -> some View {
+	func windowAccessor(_ window: Binding<NSWindow?>, callback: WindowAccessor.CallbackWindow? = nil) -> some View {
 		background {
-			WindowAccessor(window: window, delegate: delegate)
+			WindowAccessor(window, callback: callback)
 		}
 	}
 }

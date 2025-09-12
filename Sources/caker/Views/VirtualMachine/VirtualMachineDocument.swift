@@ -135,7 +135,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var agent = AgentStatus.none
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
-	@Published var documentSize: CGSize = .zero
+	@Published var documentSize: ViewSize = .zero
 
 	init() {
 		self.virtualMachine = nil
@@ -234,8 +234,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.status = .running
 	}
 
-	func setDocumentSize(_ size: CGSize) {
-		self.logger.info("Setting document size to \(size)")
+	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
+		self.logger.info("Setting document size to \(size) at \(_line): \(_file)")
 		self.documentSize = size
 		self.virtualMachineConfig.display.width = Int(size.width)
 		self.virtualMachineConfig.display.height = Int(size.height)
@@ -252,7 +252,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.agent = config.agent ? .installed : .none
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-			self.setDocumentSize(self.virtualMachineConfig.display.size)
+
+			if AppState.shared.launchVMExternally {
+				self.setDocumentSize(.standard)
+			} else {
+				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
+			}
 
 			if externalRunning {
 				retrieveVNCURL()
@@ -560,7 +565,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 }
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
-	func setScreenSize(_ size: CGSize) {
+	func setScreenSize(_ size: ViewSize) {
 		if size.width == 0 && size.height == 0 {
 			return
 		}
@@ -604,7 +609,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
-			let settings = VNCConnection.Settings(isDebugLoggingEnabled: Logger.LoggingLevel() == .debug,
+			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true, //Logger.LoggingLevel() == .debug,
 												  hostname: vncHost,
 												  port: UInt16(vncPort),
 												  isShared: true,
@@ -690,9 +695,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
-		let size = framebuffer.cgSize
+		let size = ViewSize(size: framebuffer.cgSize)
 
-		self.logger.info("Connection create framebuffer size: \(size)")
+		self.logger.info("Connection create framebuffer size: \(size.description)")
 
 		DispatchQueue.main.async {
 			self.logger.info("vnc ready")
@@ -706,12 +711,14 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
 		self.logger.info("VNC framebuffer size changed: \(framebuffer.cgSize)")
 
-		self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
-
-		DispatchQueue.main.async {
-			self.setDocumentSize(framebuffer.cgSize)
-
-			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
+		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
+			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
+			
+			DispatchQueue.main.async {
+				self.setDocumentSize(.init(size: framebuffer.cgSize))
+				
+				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
+			}
 		}
 	}
 	
