@@ -47,7 +47,6 @@ struct HostVirtualMachineView: View {
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.dismiss) var dismiss
-	@Environment
 	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
 
@@ -58,7 +57,7 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
-	@State var documentSize: CGSize
+	@State var documentSize: ViewSize
 	@State var automaticallyReconfiguresDisplay: Bool
 
 	private let logger = Logger("HostVirtualMachineView")
@@ -75,8 +74,8 @@ struct HostVirtualMachineView: View {
 	}
 
 	var body: some View {
-		HStack {
-			let view = vmView(self.documentSize)
+		GeometryReader { geom in
+			let view = vmView(geom.size)
 				.windowAccessor($window) {
 					if let window = $0 {
 						let frame = window.frame
@@ -86,14 +85,9 @@ struct HostVirtualMachineView: View {
 						if #unavailable(macOS 15.0) {
 							window.delegate = self.delegate
 						}
-						
-						DispatchQueue.main.async {
-							self.documentSize = frame.size
-							self.document.setDocumentSize(frame.size)
-						}
 					}
 				}
-				.frame("MainView", minSize: self.minSize, idealSize: self.documentSize)
+				.frame(size: geom.size)
 				.presentedWindowToolbarStyle(.unifiedCompact)
 				.onAppear {
 					handleAppear()
@@ -204,16 +198,17 @@ struct HostVirtualMachineView: View {
 					proxy.frame(in: .global)
 				} action: { newValue in
 					Logger(self).info("onGeometryChange: \(newValue.size), window: \(String(describing: window))")
+
 					if self.window != nil {
-						self.documentSize = newValue.size
-						self.document.setDocumentSize(newValue.size)
+						self.documentSize.cgSize = newValue.size
+						self.document.setDocumentSize(self.documentSize)
 					}
 				}
 			
 			if #available(macOS 15.0, *) {
 				view.windowToolbarFullScreenVisibility(.onHover)
 			}
-		}.frame("MainView+HStack", minSize: self.minSize, idealSize: self.documentSize)
+		}
 	}
 
 	func isMyWindowKey(_ notification: Notification) -> Bool {
@@ -229,7 +224,7 @@ struct HostVirtualMachineView: View {
 		self.appState.currentDocument = self.document
 
 		if let window = self.window {
-			self.document.setScreenSize(window.frame.size)
+			self.document.setScreenSize(.init(size: window.frame.size))
 		}
 	}
 
@@ -260,7 +255,20 @@ struct HostVirtualMachineView: View {
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
 		if let size = notification.object as? CGSize {
 			self.logger.info("VNCFramebufferSizeChanged: \(size)")
-			self.documentSize = size
+			self.documentSize.cgSize = size
+
+			if let window = self.window {
+				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
+					let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
+					var frame = window.frame
+
+					frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, size.width, size.height + titleBarHeight))
+					frame.origin.y += window.frame.size.height
+					frame.origin.y -= frame.size.height
+
+					window.setFrame(frame, display: true, animate: true)
+				}
+			}
 		}
 	}
 
@@ -318,7 +326,7 @@ struct HostVirtualMachineView: View {
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
 		if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
 			self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
-			self.documentSize = framebuffer.cgSize
+			self.documentSize.cgSize = framebuffer.cgSize
 		}
 	}
 
@@ -344,7 +352,7 @@ struct HostVirtualMachineView: View {
 			ExternalVirtualMachineView(document: document, size: size, dismiss: dismiss)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
-				//.frame(size: size)
+				.frame(size: size)
 		} else if self.document.agent == .installing {
 			LabelView("Installing agent...", size: size)
 		} else {
@@ -367,7 +375,7 @@ struct HostVirtualMachineView: View {
 			case .disconnecting:
 				LabelView("VNC disconnecting", size: size)
 			case .ready:
-				VNCView(document: self.document)//.frame(size: size)
+				VNCView(document: self.document).frame(size: size)
 			}
 		}
 	}
@@ -376,6 +384,7 @@ struct HostVirtualMachineView: View {
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.externalRunning {
 			externalView(size)
+				.frame(size: size)
 				.toolbar {
 					ToolbarItem(placement: .secondaryAction) {
 						Picker("Mode", selection: $externalModeView) {

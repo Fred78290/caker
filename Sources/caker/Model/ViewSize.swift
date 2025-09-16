@@ -20,6 +20,16 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 		case height
 	}
 	
+	public var cgSize: CGSize {
+		get {
+			return .init(width: width, height: height)
+		}
+		set {
+			width = newValue.width
+			height = newValue.height
+		}
+	}
+
 	var description: String {
 		return "(\(width), \(height))"
 	}
