@@ -63,6 +63,7 @@ struct HostVirtualMachineView: View {
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
 	private let minSize: CGSize
+	private let id: String = UUID().uuidString
 
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		self._appState = appState
@@ -77,11 +78,9 @@ struct HostVirtualMachineView: View {
 		GeometryReader { geom in
 			let view = vmView(geom.size)
 				.windowAccessor($window) {
+					self.logger.info("\(self.id) Attaching window accessor: \(String(describing: $0))")
+
 					if let window = $0 {
-						let frame = window.frame
-						
-						self.window = window
-						
 						if #unavailable(macOS 15.0) {
 							window.delegate = self.delegate
 						}
@@ -224,7 +223,7 @@ struct HostVirtualMachineView: View {
 		self.appState.currentDocument = self.document
 
 		if let window = self.window {
-			self.document.setScreenSize(.init(size: window.frame.size))
+			self.document.setScreenSize(.init(size: window.contentLayoutRect.size))
 		}
 	}
 
@@ -254,7 +253,8 @@ struct HostVirtualMachineView: View {
 
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
 		if let size = notification.object as? CGSize {
-			self.logger.info("VNCFramebufferSizeChanged: \(size)")
+			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
+
 			self.documentSize.cgSize = size
 
 			if let window = self.window {
@@ -398,12 +398,6 @@ struct HostVirtualMachineView: View {
 		} else if document.virtualMachine != nil {
 			VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
 				.frame(size: size)
-			/*InternalVirtualMachineView(virtualMachine: document.virtualMachine, automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay)
-				.frame(size: geom.size)
-				.onAppear {
-					self.document.setScreenSize(size)
-				}
-			*/
 		} else {
 			LabelView("Virtual machine not loaded", size: size)
 		}
