@@ -396,8 +396,12 @@ struct HostVirtualMachineView: View {
 		} else if self.launchVMExternally {
 			LabelView(self.vmStatus(), progress: self.document.status == .starting)
 		} else if document.virtualMachine != nil {
-			VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
-				.frame(size: size)
+			if self.document.status == .stopped {
+				LabelView(self.vmStatus(), progress: false)
+			} else {
+				VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
+					.frame(size: size)
+			}
 		} else {
 			LabelView("Virtual machine not loaded", size: size)
 		}
