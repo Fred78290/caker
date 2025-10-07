@@ -262,7 +262,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		self.logger.info("Setting document size to \(size) at \(_line): \(_file)")
+		self.logger.info("Setting document size to \(size.description) at \(_file):\(_line)")
 		self.documentSize = size
 		self.virtualMachineConfig.display.width = Int(size.width)
 		self.virtualMachineConfig.display.height = Int(size.height)
@@ -281,7 +281,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 
 			if AppState.shared.launchVMExternally {
-				self.setDocumentSize(.standard)
+				self.setDocumentSize(self.getVncScreenSize())
 			} else {
 				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
 			}
@@ -592,20 +592,37 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 }
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
+	func setVncScreenSize(_ size: ViewSize) {
+		if size.width == 0 && size.height == 0 {
+			return
+		}
+
+		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
+			self.logger.debug("setVncScreenSize: \(size.description)")
+
+			Task {
+				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(size.width), height: Int(size.height))
+			}
+		}
+	}
+
+	func getVncScreenSize() -> ViewSize {
+		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
+			if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
+				return ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
+			}
+		}
+
+		return ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
+	}
+
 	func setScreenSize(_ size: ViewSize) {
 		if size.width == 0 && size.height == 0 {
 			return
 		}
 
 		self.setDocumentSize(size)
-
-		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
-			self.logger.debug("resizeScreen: \(size)")
-
-			Task {
-				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(size.width), height: Int(size.height))
-			}
-		}
+		self.setVncScreenSize(size)
 	}
 
 	func retrieveVNCURLAsync() {
@@ -728,10 +745,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 		DispatchQueue.main.async {
 			self.logger.info("vnc ready")
-			self.setDocumentSize(size)
 			self.vncStatus = .ready
-
-			NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
 		}
 	}
 	
