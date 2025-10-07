@@ -31,9 +31,11 @@ struct WindowAccessor: NSViewRepresentable {
 
 	func updateNSView(_ nsView: MoveToWindowDetector, context: Context) {
 		nsView.onMoveToWindow = {
-			window = $0
-			if let callback {
-				callback($0)
+			if $0 != nil {
+				window = $0
+				if let callback {
+					callback($0)
+				}
 			}
 		}
 	}
