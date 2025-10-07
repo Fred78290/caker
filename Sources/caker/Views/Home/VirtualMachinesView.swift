@@ -20,10 +20,10 @@ struct VirtualMachinesView: View {
 					ForEach(appState.vms) { vm in
 						VStack {
 							LabeledContent("Name") {
-								Text("\(vm.document.name)")
+								Text(vm.document.name)
 							}
 							LabeledContent("Status") {
-								Text("\(vm.document.status)")
+								Text(vm.document.status.description)
 							}
 						}.frame(size: .init(width: 200, height: 200)).border(.gray, width: 1)
 					}
