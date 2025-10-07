@@ -156,7 +156,6 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	private let dismiss: DismissAction
 	private let callback: VMView.CallbackWindow?
 	private let fontManager = NSFontManager.shared
-	private let fontPanel = NSFontPanel.shared
 	private let terminalView: NSViewType
 
 	var terminalColor: SwiftUI.Color {
