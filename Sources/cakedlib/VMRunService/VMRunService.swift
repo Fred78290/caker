@@ -9,6 +9,7 @@ import ArgumentParser
 public protocol VMRunServiceClient {
 	func vncURL() throws -> URL?
 	func setScreenSize(width: Int, height: Int) throws
+	func getScreenSize() throws -> (Int, Int)
 	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
 }
@@ -33,11 +34,11 @@ class VMRunService: NSObject {
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
-
+	
 	var vncURL: URL? {
 		return vm.vncURL
 	}
-
+	
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, logger: Logger) {
 		self.vm = vm
 		self.runMode = runMode
@@ -45,7 +46,7 @@ class VMRunService: NSObject {
 		self.certLocation = certLocation
 		self.logger = logger
 	}
-
+	
 	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
 		return try CakeAgentHelper(
 			on: self.group.next(),
@@ -56,28 +57,28 @@ class VMRunService: NSObject {
 			tlsKey: self.certLocation.clientKeyURL.path,
 			retries: retries)
 	}
-
+	
 	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {
 		guard request.mounts.isEmpty == false else {
 			return CakeAgent.MountReply.with {
 				$0.response = .error("No mounts")
 			}
 		}
-
+		
 		do {
 			let config: CakeConfig = try vm.location.config()
-
+			
 			if config.os == .darwin {
 				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
 					return CakeAgent.MountReply.with {
 						$0.response = .error("No shared devices")
 					}
 				}
-
+				
 				DispatchQueue.main.sync {
 					sharedDevices.share = config.mounts.multipleDirectoryShares
 				}
-
+				
 				return CakeAgent.MountReply.with {
 					$0.response = .success(true)
 					$0.mounts = request.mounts.map { mount in
@@ -88,25 +89,30 @@ class VMRunService: NSObject {
 					}
 				}
 			}
-
+			
 			let conn = try self.createCakeAgentConnection()
-
+			
 			if umount {
 				return try conn.umount(request: request)
 			} else {
 				return try conn.mount(request: request)
 			}
-
+			
 		} catch {
 			return CakeAgent.MountReply.with {
 				$0.response = .error(error.localizedDescription)
 			}
 		}
 	}
-
+	
 	func setScreenSize(width: Int, height: Int) {
 		vm.setScreenSize(width: width, height: height)
 	}
+	
+	func getScreenSize() throws -> (Int, Int) {
+		return vm.getScreenSize()
+	}
+	
 }
 
 public func createVMRunServiceClient(_ mode: VMRunServiceMode, location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {

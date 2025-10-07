@@ -635,6 +635,18 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	func getScreenSize() -> (Int, Int) {
+		if #available(macOS 14.0, *) {
+			if let display = self.virtualMachine.graphicsDevices.first?.displays.first {
+				let size = display.sizeInPixels
+
+				return (Int(size.width), Int(size.height))
+			}
+		}
+
+		return (0, 0)
+	}
+
 	private func _requestStopVM() throws {
 		self.env.requestStopFromUIPending = true
 

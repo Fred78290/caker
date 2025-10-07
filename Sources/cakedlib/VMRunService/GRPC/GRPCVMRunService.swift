@@ -188,7 +188,12 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	func setScreenSize(width: Int, height: Int) throws {
 		_ = try client.setScreenSize(Vmrun_ScreenSize.with { $0.width = Int32(width); $0.height = Int32(height) }).response.wait()
 	}
-	
+
+	func getScreenSize() throws -> (Int, Int) {
+		let reply = try client.getScreenSize(Vmrun_Empty()).response.wait()
+
+		return (Int(reply.width), Int(reply.height))
+	}
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
@@ -265,5 +270,15 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 		return Vmrun_Empty()
 	}
+
+	func getScreenSize(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_ScreenSize {
+		let screenSize = self.vm.getScreenSize()
+		
+		return Vmrun_ScreenSize.with {
+			$0.width = Int32(screenSize.0)
+			$0.height = Int32(screenSize.1)
+		}
+	}
 	
+
 }
