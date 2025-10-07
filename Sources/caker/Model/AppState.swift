@@ -86,7 +86,7 @@ class AppState: ObservableObject, Observable {
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
 
 	@Published var currentDocument: VirtualMachineDocument!
-	@Published var isAgentInstalling: Bool = true
+	@Published var isAgentInstalling: Bool = false
 	@Published var isStopped: Bool = true
 	@Published var isSuspendable: Bool = false
 	@Published var isRunning: Bool = false
