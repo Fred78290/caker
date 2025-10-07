@@ -93,7 +93,34 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
-	enum Status: Int {
+	enum Status: Int, CustomStringConvertible {
+		var description: String {
+			switch self {
+				case .running:
+					return "running"
+				case .stopped:
+					return "stopped"
+				case .starting:
+					return "starting"
+				case .pausing:
+					return "pausing"
+				case .resuming:
+					return "resuming"
+				case .stopping:
+					return "stopping"
+				case .saving:
+					return "saving"
+				case .restoring:
+					return "restoring"
+				case .none:
+					return "none"
+				case .paused:
+					return "paused"
+				case .error:
+					return "error"
+			}
+		}
+		
 		case none = -1
 		case stopped = 0
 		case running = 1
