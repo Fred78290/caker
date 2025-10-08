@@ -86,16 +86,7 @@ struct MainApp: App {
 
 			if file.document.loadVirtualMachine(from: file.fileURL!) {
 				HostVirtualMachineView(appState: $appState, document: document)
-					//.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
-					//	if let size: CGSize = document.issuedNotificationFromDocument(notification) {
-					//		Logger(self).info("### Received VNCFramebufferSizeChanged: \(size)")
-					//		withAnimation {
-					//			documentSize.cgSize = size
-					//		}
-					//	}
-					//}
-					//.restorationState(.disabled)
-					//.frame(size: CGSize(width: document.documentSize.width, height: document.documentSize.height /*+ 38*/))
+					.restorationState(.disabled)
 					.frame("MainApp", minSize: minSize, idealSize: document.documentSize.cgSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
@@ -105,7 +96,7 @@ struct MainApp: App {
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
-		//.restorationState(.disabled)
+		.restorationState(.disabled)
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 			CommandGroup(replacing: .newItem) {
