@@ -43,9 +43,14 @@ extension NSWindow {
 extension View {
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
 		Logger(label).info("frame(minSize: \(minSize), idealSize: \(idealSize))")
-
+		
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
-		//return frame(size: idealSize)
+	}
+	
+	func frame(_ label: String = "View", minSize: CGSize) -> some View {
+		Logger(label).info("frame(minSize: \(minSize)")
+
+		return frame(minWidth: minSize.width, maxWidth: .infinity, minHeight: minSize.height, maxHeight: .infinity)
 	}
 }
 
@@ -86,7 +91,6 @@ struct HostVirtualMachineView: View {
 	@State var automaticallyReconfiguresDisplay: Bool
 	@State var liveResizeWindow: Bool = false
 	@State var captureImage: NSImage? = nil
-	@State var autoResize: Bool = false
 
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -109,6 +113,12 @@ struct HostVirtualMachineView: View {
 					self.logger.info("\(self.id) Attaching window accessor: \(String(describing: $0))")
 
 					if let window = $0 {
+						let size = self.documentSize.cgSize
+
+						DispatchQueue.main.async {
+							self.setContentSize(size, animated: true)
+						}
+
 						if #unavailable(macOS 15.0) {
 							window.delegate = self.delegate
 						}
@@ -230,10 +240,16 @@ struct HostVirtualMachineView: View {
 						self.setDocumentSize(newValue.size)
 					}
 				}
-			
+
 			if #available(macOS 15.0, *) {
 				view.windowToolbarFullScreenVisibility(.onHover)
 			}
+		}
+	}
+
+	func setContentSize(_ size: CGSize, animated: Bool) {
+		if let window = self.window {
+			window.resizeContentView(to: size, animated: animated)
 		}
 	}
 
@@ -272,7 +288,7 @@ struct HostVirtualMachineView: View {
 	
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if self.document.externalRunning == false {
-			if isMyWindowKey(notification) && self.autoResize == false {
+			if isMyWindowKey(notification) {
 				self.liveResizeWindow = true
 				
 				if self.document.externalRunning && self.externalModeView == .vnc {
@@ -294,8 +310,6 @@ struct HostVirtualMachineView: View {
 						self.liveResizeWindow = false
 						self.captureImage = nil
 					}
-				} else if self.autoResize {
-					self.autoResize = false
 				}
 			}
 		}
@@ -320,12 +334,11 @@ struct HostVirtualMachineView: View {
 			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
 
 			self.documentSize.cgSize = size
+			self.captureImage = nil
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
-					self.autoResize = true
-
-					window.resizeContentView(to: size, animated: true)
+					self.setContentSize(size, animated: true)
 				}
 			}
 		}
