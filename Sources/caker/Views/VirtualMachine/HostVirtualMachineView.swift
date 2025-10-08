@@ -278,40 +278,46 @@ struct HostVirtualMachineView: View {
 	}
 	
 	func handleStartLiveResizeNotification(_ notification: Notification) {
-		if isMyWindowKey(notification) && self.autoResize == false {
-			self.liveResizeWindow = true
-
-			if self.document.externalRunning && self.externalModeView == .vnc {
-				if let contentView = self.window?.contentView {
-					self.captureImage = contentView.image()
+		if self.document.externalRunning == false {
+			if isMyWindowKey(notification) && self.autoResize == false {
+				self.liveResizeWindow = true
+				
+				if self.document.externalRunning && self.externalModeView == .vnc {
+					if let contentView = self.window?.contentView {
+						self.captureImage = contentView.image()
+					}
 				}
 			}
 		}
 	}
 
 	func handleDidResizeNotification(_ notification: Notification) {
-		if isMyWindowKey(notification) {
-			if self.liveResizeWindow {
-				self.document.setScreenSize(self.documentSize)
-
-				if self.externalModeView != .vnc {
-					self.liveResizeWindow = false
-					self.captureImage = nil
+		if self.document.externalRunning == false {
+			if isMyWindowKey(notification) {
+				if self.liveResizeWindow {
+					self.document.setScreenSize(self.documentSize)
+					
+					if self.externalModeView != .vnc {
+						self.liveResizeWindow = false
+						self.captureImage = nil
+					}
+				} else if self.autoResize {
+					self.autoResize = false
 				}
-			} else if self.autoResize {
-				self.autoResize = false
 			}
 		}
 	}
 	
 	func handleWillCloseNotification(_ notification: Notification) {
-		if isMyWindowKey(notification) {
-			if document.status == .running {
-				document.stopFromUI(force: false)
-			}
-
-			DispatchQueue.main.async {
-				self.document.close()
+		if self.document.externalRunning == false {
+			if isMyWindowKey(notification) {
+				if document.status == .running {
+					document.stopFromUI(force: false)
+				}
+				
+				DispatchQueue.main.async {
+					self.document.close()
+				}
 			}
 		}
 	}
