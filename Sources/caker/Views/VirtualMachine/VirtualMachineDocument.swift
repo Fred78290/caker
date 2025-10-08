@@ -597,7 +597,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			return
 		}
 
-		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
+		if self.externalRunning && self.status == .running {
 			self.logger.debug("setVncScreenSize: \(size.description)")
 
 			Task {
@@ -607,7 +607,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func getVncScreenSize() -> ViewSize {
-		if self.externalRunning && (self.vncStatus == .connected || self.vncStatus == .ready) {
+		if self.externalRunning && self.status == .running {
 			if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
 				return ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
 			}
