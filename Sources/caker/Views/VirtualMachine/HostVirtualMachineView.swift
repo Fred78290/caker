@@ -45,6 +45,19 @@ extension NSView {
 	}
 }
 
+extension NSWindow {
+	func resizeContentView(to size: CGSize, animated: Bool) {
+		let titleBarHeight: CGFloat = self.frame.height - self.contentLayoutRect.height
+		var frame = self.frame
+
+		frame = self.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, size.width, size.height + titleBarHeight))
+		frame.origin.y += self.frame.size.height
+		frame.origin.y -= frame.size.height
+
+		self.setFrame(frame, display: true, animate: animated)
+	}
+}
+
 extension View {
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
 		Logger(label).info("frame(minSize: \(minSize), idealSize: \(idealSize))")
@@ -330,16 +343,9 @@ struct HostVirtualMachineView: View {
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
-					let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
-					var frame = window.frame
-
 					self.autoResize = true
 
-					frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, size.width, size.height + titleBarHeight))
-					frame.origin.y += window.frame.size.height
-					frame.origin.y -= frame.size.height
-
-					window.setFrame(frame, display: true, animate: true)
+					window.resizeContentView(to: size, animated: true)
 				}
 			}
 		}
