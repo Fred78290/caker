@@ -743,13 +743,15 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 	
 	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
-		let size = ViewSize(size: framebuffer.cgSize)
+		if self.vncStatus != .ready {
+			let size = ViewSize(size: framebuffer.cgSize)
 
-		self.logger.info("Connection create framebuffer size: \(size.description)")
+			self.logger.info("Connection create framebuffer size: \(size.description)")
 
-		DispatchQueue.main.async {
-			self.logger.info("vnc ready")
-			self.vncStatus = .ready
+			DispatchQueue.main.async {
+				self.logger.info("vnc ready")
+				self.vncStatus = .ready
+			}
 		}
 	}
 	
