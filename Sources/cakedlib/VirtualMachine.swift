@@ -635,7 +635,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	func getScreenSize() -> (Int, Int) {
+	func getScreenSize() -> (width: Int, height: Int) {
 		if #available(macOS 14.0, *) {
 			if let display = self.virtualMachine.graphicsDevices.first?.displays.first {
 				let size = display.sizeInPixels
