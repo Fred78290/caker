@@ -96,7 +96,7 @@ struct MainApp: App {
 					//}
 					//.restorationState(.disabled)
 					//.frame(size: CGSize(width: document.documentSize.width, height: document.documentSize.height /*+ 38*/))
-					//.frame("MainApp", minSize: minSize, idealSize: document.documentSize.cgSize)
+					.frame("MainApp", minSize: minSize, idealSize: document.documentSize.cgSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
 					.restorationState(.disabled)
