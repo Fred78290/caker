@@ -46,7 +46,7 @@ struct EditableListNewItem<Element, Content: View>: View where Element: Hashable
 					Text(self.editItem == nil ? "Add" : "Save").frame(width: 60)
 				}.disabled(self.configChanged == false)
 			}
-		}.onChange(of: currentItem) { newValue in
+		}.onChange(of: currentItem) { _, newValue in
 			self.configChanged = false
 
 			if newValue.validate() {

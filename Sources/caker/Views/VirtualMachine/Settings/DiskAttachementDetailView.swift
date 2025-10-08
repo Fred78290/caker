@@ -48,7 +48,7 @@ struct DiskAttachementDetailView: View {
 					.labelsHidden()
 					.toggleStyle(.switch)
 					.allowsHitTesting(readOnly == false)
-					.onChange(of: syncing) { newValue in
+					.onChange(of: syncing) { _, newValue in
 						self.currentItem.diskOptions.syncMode = newValue ? "full" : "none"
 					}
 			}

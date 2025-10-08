@@ -83,7 +83,7 @@ struct NetworkAttachementDetailView: View {
 						.allowsHitTesting(readOnly == false)
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.formatAndValidate($model.macAddress)
-						.onChange(of: model.macAddress.value) { newValue in
+						.onChange(of: model.macAddress.value) { _, newValue in
 							self.currentItem.macAddress = newValue
 						}
 				}.frame(width: 200)

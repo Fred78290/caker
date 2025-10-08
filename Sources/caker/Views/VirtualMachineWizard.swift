@@ -383,7 +383,7 @@ struct VirtualMachineWizard: View {
 			}
 			.tab(title: items[7].title, systemName: items[7].systemName, disabled: self.model.createVM) {
 				socketsView()
-			}.onChange(of: model.currentStep) { _ in
+			}.onChange(of: model.currentStep) {
 				self.validateConfig(config: self.config)
 			}
 	}
@@ -461,7 +461,7 @@ struct VirtualMachineWizard: View {
 				}.frame(maxWidth: .infinity)
 			}.padding(EdgeInsets(top: 1, leading: 15, bottom: 15, trailing: 15))
 		}
-		.onChange(of: config) { newValue in
+		.onChange(of: config) { _, newValue in
 			self.validateConfig(config: newValue)
 		}
 	}
@@ -591,7 +591,7 @@ struct VirtualMachineWizard: View {
 					.labelsHidden()
 					.clipShape(RoundedRectangle(cornerRadius: 6))
 					.disabled(self.model.createVM)
-					.onChange(of: config.vmname) { newValue in
+					.onChange(of: config.vmname) {
 						self.validateConfig(config: self.config)
 					}
 			}
@@ -625,7 +625,7 @@ struct VirtualMachineWizard: View {
 								.labelsHidden()
 								.clipShape(RoundedRectangle(cornerRadius: 6))
 								.disabled(self.model.createVM)
-								.onChange(of: self.model.password) { newValue in
+								.onChange(of: self.model.password) { _, newValue in
 									if newValue.isEmpty {
 										config.configuredPassword = nil
 									} else {
@@ -787,7 +787,7 @@ struct VirtualMachineWizard: View {
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)
 						.labelsHidden()
-						.onChange(of: model.cloudImageRelease) { newValue in
+						.onChange(of: model.cloudImageRelease) { _, newValue in
 							self.config.imageName = newValue.url.absoluteString
 						}
 					}
@@ -821,7 +821,7 @@ struct VirtualMachineWizard: View {
 						.disabled(self.model.createVM)
 						.task {
 							self.model.remoteImages = await images(remote: self.model.remoteImage)
-						}.onChange(of: self.model.remoteImage) { newValue in
+						}.onChange(of: self.model.remoteImage) { _, newValue in
 							Task {
 								self.model.remoteImages = await images(remote: newValue)
 							}
@@ -835,7 +835,7 @@ struct VirtualMachineWizard: View {
 								}
 							}.frame(minHeight: 250, maxHeight: .infinity)
 						}
-					}.onChange(of: model.selectedRemoteImage) { newValue in
+					}.onChange(of: model.selectedRemoteImage) { _, newValue in
 						self.config.imageName = "\(self.model.remoteImage)://\(newValue)"
 					}
 				}
@@ -846,7 +846,7 @@ struct VirtualMachineWizard: View {
 							ForEach(VMBuilder.ImageSource.allCases, id: \.self) { source in
 								Text(source.description).tag(source)
 							}
-						}.onChange(of: self.model.imageSource) { newValue in
+						}.onChange(of: self.model.imageSource) { _, newValue in
 							self.config.imageName = ""
 							#if arch(arm64)
 								if newValue == .ipsw {

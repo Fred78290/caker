@@ -30,7 +30,7 @@ struct MountDetailView: View {
 						.labelsHidden()
 						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.allowsHitTesting(readOnly == false)
-						.onChange(of: name) { newValue in
+						.onChange(of: name) { _, newValue in
 							currentItem.name = newValue
 						}
 				}.frame(width: readOnly ? 500 : 350)

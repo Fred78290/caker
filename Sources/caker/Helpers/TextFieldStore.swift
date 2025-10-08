@@ -16,7 +16,7 @@ struct FormatAndValidateTextFieldStore<T, F: ParseableFormatStyle>: ViewModifier
 	}
 
 	func body(content: Content) -> some View {
-		return content.onChange(of: textFieldStore.text) { text in
+		return content.onChange(of: textFieldStore.text) { _, text in
 			guard let value = textFieldStore.getValue() else {
 				if text.isEmpty || (text == textFieldStore.minusCharacter && textFieldStore.allowNegative) {
 					inputError = false

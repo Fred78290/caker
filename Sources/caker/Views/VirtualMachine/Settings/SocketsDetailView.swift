@@ -66,7 +66,7 @@ struct SocketsDetailView: View {
 					.formatAndValidate($port) {
 						RangeIntegerStyle.guestPortRange.outside($0)
 					}
-					.onChange(of: port.value) { newValue in
+					.onChange(of: port.value) { _, newValue in
 						self.currentItem.port = newValue
 					}
 			}

@@ -99,7 +99,7 @@ struct EditableList<Data: TotalCollection, Content: View>: View where Data.Eleme
 				Toggle("Select", isOn: $isSelected)
 					.toggleStyle(.checkbox)
 					.labelsHidden()
-					.onChange(of: isSelected) { newValue in
+					.onChange(of: isSelected) { _, newValue in
 						if newValue {
 							selectedItems.insert(item.id)
 						} else {

@@ -25,24 +25,6 @@ extension NSView {
 		cacheDisplay(in: bounds, to: imageRepresentation)
 		return NSImage(cgImage: imageRepresentation.cgImage!, size: bounds.size)
 	}
-
-	func takeScreenshot() -> NSImage? {
-		let screenRect = self.screenCoordinates()
-
-		guard let window = self.window else {
-			assert(false);
-			return nil
-		}
-
-		let windowID = CGWindowID(window.windowNumber)
-
-		guard let screenshot = CGWindowListCreateImage(screenRect, .optionIncludingWindow, windowID, []) else {
-			assert(false);
-			return nil
-		}
-
-		return NSImage(cgImage: screenshot, size: self.frame.size)
-	}
 }
 
 extension NSWindow {
@@ -150,17 +132,15 @@ struct HostVirtualMachineView: View {
 					handleStartVirtualMachineNotification(notification)
 				}.onReceive(VirtualMachineDocument.DeleteVirtualMachine) { notification in
 					handleDeleteVirtualMachineNotification(notification)
-				}.onChange(of: appearsActive) { newValue in
+				}.onChange(of: appearsActive) { _, newValue in
 					handleAppStateChangedNotification(newValue)
-				}.onChange(of: autoResize) { newValue in
-					handleAutoResizeChangedNotification(newValue)
-				}.onChange(of: self.document.externalRunning) { newValue in
+				}.onChange(of: self.document.externalRunning) { _, newValue in
 					handleDocumentExternalRunningChangedNotification(newValue)
-				}.onChange(of: self.document.status) { newValue in
+				}.onChange(of: self.document.status) { _, newValue in
 					handleDocumentStatusChangedNotification(newValue)
-				}.onChange(of: self.document.vncStatus) { newValue in
+				}.onChange(of: self.document.vncStatus) { _, newValue in
 					handleVncStatusChangedNotification(newValue)
-				}.onChange(of: self.externalModeView) { newValue in
+				}.onChange(of: self.externalModeView) { _, newValue in
 					handleExternalModeChangedNotification(newValue)
 				}.toolbar {
 					ToolbarItemGroup(placement: .navigation) {

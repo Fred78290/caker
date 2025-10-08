@@ -85,7 +85,7 @@ struct VirtualMachineSettingsView: View {
 
 		}
 		.frame(height: 600)
-		.onChange(of: config) { newValue in
+		.onChange(of: config) { _, newValue in
 			self.configChanged = true
 		}
 	}
@@ -119,7 +119,7 @@ struct VirtualMachineSettingsView: View {
 									.background(.white)
 									.labelsHidden()
 									.clipShape(RoundedRectangle(cornerRadius: 6))
-									.onChange(of: userPassword) { newValue in
+									.onChange(of: userPassword) { _, newValue in
 										if newValue.isEmpty {
 											config.configuredPassword = nil
 										} else {

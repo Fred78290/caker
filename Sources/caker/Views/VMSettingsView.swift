@@ -17,7 +17,7 @@ struct VMSettingsView: View {
 				label: {
 					Text("Launch VM inside app")
 				}
-			).onChange(of: launchVMExternally) { newValue in
+			).onChange(of: launchVMExternally) { _, newValue in
 				if newValue {
 					launchVMExternally = true
 				}

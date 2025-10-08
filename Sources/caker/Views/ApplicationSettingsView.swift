@@ -28,7 +28,7 @@ struct ApplicationSettingsView: View {
 				label: {
 					Text("Show dock icon")
 				}
-			).onChange(of: isDockIconHidden) { newValue in
+			).onChange(of: isDockIconHidden) { _, newValue in
 				if newValue {
 					isMenuIconShown = true
 				}

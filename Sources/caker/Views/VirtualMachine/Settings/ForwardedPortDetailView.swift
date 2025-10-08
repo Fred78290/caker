@@ -167,7 +167,7 @@ struct ForwardedPortDetailView: View {
 							.formatAndValidate($model.hostPort) {
 								RangeIntegerStyle.hostPortRange.outside($0)
 							}
-							.onChange(of: model.hostPort.value) { newValue in
+							.onChange(of: model.hostPort.value) { _, newValue in
 								print("onchange: newValue=\(newValue)")
 								self.currentItem.oneOf = model.tunnelAttachement.oneOf
 							}
@@ -188,7 +188,7 @@ struct ForwardedPortDetailView: View {
 							.formatAndValidate($model.guestPort) {
 								RangeIntegerStyle.guestPortRange.outside($0)
 							}
-							.onChange(of: model.guestPort.value) { newValue in
+							.onChange(of: model.guestPort.value) { _, newValue in
 								self.currentItem.oneOf = model.tunnelAttachement.oneOf
 							}
 					}
@@ -226,7 +226,7 @@ struct ForwardedPortDetailView: View {
 					}.frame(width: readOnly ? 450 : 350)
 				}
 			}
-		}.onChange(of: model) { newValue in
+		}.onChange(of: model) { _, newValue in
 			self.currentItem.oneOf = newValue.tunnelAttachement.oneOf
 		}
 	}

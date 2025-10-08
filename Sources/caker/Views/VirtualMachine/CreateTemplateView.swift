@@ -24,7 +24,7 @@ struct CreateTemplateView: View {
 			}
 		)
 		.disabled(templateName.isEmpty || TemplateHandler.exists(name: templateName, runMode: .app))
-		.onChange(of: templateResult) { newValue in
+		.onChange(of: templateResult) { _, newValue in
 			isCreateTemplatFailed(templateResult: newValue)
 		}
 

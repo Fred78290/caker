@@ -296,7 +296,7 @@ struct ColorPickerModifier: ViewModifier {
 	}
 
 	func body(content: Content) -> some View {
-		return content.onChange(of: self.color) { newValue in
+		return content.onChange(of: self.color) { _, newValue in
 			target?.setTerminalColor(newValue)
 		}.toolbar {
 			ToolbarItem(placement: placement) {
@@ -328,7 +328,7 @@ struct ColorWellModifier: ViewModifier {
 	}
 
 	func body(content: Content) -> some View {
-		return content.onChange(of: self.color) { newValue in
+		return content.onChange(of: self.color) { _, newValue in
 			target?.setTerminalColor(newValue)
 		}.toolbar {
 			ToolbarItem(placement: placement) {
