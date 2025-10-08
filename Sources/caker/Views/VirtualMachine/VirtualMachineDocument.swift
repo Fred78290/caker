@@ -592,28 +592,32 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 }
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
-	func setVncScreenSize(_ size: ViewSize) {
-		if size.width == 0 && size.height == 0 {
+	func setVncScreenSize(_ screenSize: ViewSize) {
+		if screenSize.width == 0 && screenSize.height == 0 {
 			return
 		}
 
 		if self.externalRunning && self.status == .running {
-			self.logger.debug("setVncScreenSize: \(size.description)")
+			self.logger.debug("setVncScreenSize: \(screenSize.description)")
 
 			Task {
-				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(size.width), height: Int(size.height))
+				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(screenSize.width), height: Int(screenSize.height))
 			}
 		}
 	}
 
 	func getVncScreenSize() -> ViewSize {
+		var screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
+		
 		if self.externalRunning && self.status == .running {
 			if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
-				return ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
+				screenSize = ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
 			}
 		}
 
-		return ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
+		self.logger.debug("getVncScreenSize: \(screenSize.description)")
+
+		return screenSize
 	}
 
 	func setScreenSize(_ size: ViewSize) {
