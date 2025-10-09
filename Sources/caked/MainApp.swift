@@ -126,7 +126,7 @@ struct MainApp: App, VirtualMachineDelegate {
 					.help("Restarts virtual machine")
 					.disabled(self.appState.isStopped)
 				}
-			}.onChange(of: self.appState.status) { newValue in
+			}.onChange(of: self.appState.status) { _, newValue in
 				Logger(self).info("New status: \(newValue)")
 			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 		}.commands {

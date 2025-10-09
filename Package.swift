@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
 	name: "Caker",
 	platforms: [
-		.macOS(.v13)
+		.macOS(.v14)
 	],
 	products: [
 		.executable(name: "caked", targets: ["caked"]),
