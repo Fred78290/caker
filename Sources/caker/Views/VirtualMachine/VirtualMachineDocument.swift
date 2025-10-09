@@ -262,10 +262,13 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		self.logger.info("Setting document size to \(size.description) at \(_file):\(_line)")
-		self.documentSize = size
-		self.virtualMachineConfig.display.width = Int(size.width)
-		self.virtualMachineConfig.display.height = Int(size.height)
+		if self.documentSize != size {
+			self.logger.info("Setting document size to \(size.description) at \(_file):\(_line)")
+
+			self.documentSize = size
+			self.virtualMachineConfig.display.width = Int(size.width)
+			self.virtualMachineConfig.display.height = Int(size.height)
+		}
 	}
 
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
@@ -593,10 +596,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 extension VirtualMachineDocument: VNCConnectionDelegate {
 	func setVncScreenSize(_ screenSize: ViewSize) {
-		if screenSize.width == 0 && screenSize.height == 0 {
-			return
-		}
-
 		if self.externalRunning && self.status == .running {
 			self.logger.debug("setVncScreenSize: \(screenSize.description)")
 
@@ -620,7 +619,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		return screenSize
 	}
 
-	func setScreenSize(_ size: ViewSize) {
+	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
+		self.logger.info("Setting screen size to \(size.description) at \(_file):\(_line)")
+
 		if size.width == 0 && size.height == 0 {
 			return
 		}
@@ -657,7 +658,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
-			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true, //Logger.LoggingLevel() == .debug,
+			let settings = VNCConnection.Settings(isDebugLoggingEnabled: false, //Logger.LoggingLevel() == .debug,
 												  hostname: vncHost,
 												  port: UInt16(vncPort),
 												  isShared: true,
