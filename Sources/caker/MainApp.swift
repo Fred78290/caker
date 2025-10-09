@@ -3,6 +3,8 @@ import GRPCLib
 import SwiftTerm
 import SwiftUI
 import SwifterSwiftUI
+import ArgumentParser
+import Logging
 
 @MainActor
 func alertError(_ error: Error) {
@@ -67,6 +69,15 @@ struct Defaults {
 	}
 }
 
+struct MainAppParseArgument: ParsableCommand {
+	@Option(name: [.customLong("log-level")], help: "Log level")
+	var logLevel: Logging.Logger.Level = .info
+	
+	func validate() throws {
+		Logger.setLevel(self.logLevel)
+	}
+}
+
 @main
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
@@ -76,6 +87,10 @@ struct MainApp: App {
 	@State var createTemplate = false
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
+
+	init() {
+		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
+	}
 
 	var body: some Scene {
 		CakerMenuBarExtraScene(appState: appState)
