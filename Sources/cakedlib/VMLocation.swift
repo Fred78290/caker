@@ -388,13 +388,15 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 	) {
 		let vm = try VirtualMachine(location: self, config: config, screenSize: screenSize, runMode: runMode)
 
-		if display == .vnc {
-			let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)
-			
-			Logger(self).info("VNC server started at \(vncURL)")
-		}
-
 		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall) {
+			if case .success = $0 {
+				if display == .vnc {
+					let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+					
+					Logger(self).info("VNC server started at \(vncURL)")
+				}
+			}
+
 			if let handler = completionHandler {
 				switch $0 {
 				case .success:
