@@ -12,21 +12,12 @@ import CakedLib
 
 class VNCConnectionLogger: VNCLogger {
 	let logger: Logger = Logger("VNCConnectionLogger")
-
-	public var isDebugLoggingEnabled: Bool {
-		get {
-			Logger.LoggingLevel() == .debug
-		}
-
-		set(newValue) {
-			if newValue {
-				Logger.setLevel(.debug)
-			}
-		}
-	}
+	var isDebugLoggingEnabled: Bool = false
 	
 	public func logDebug(_ message: String) {
-		self.logger.debug(message)
+		if isDebugLoggingEnabled {
+			self.logger.debug(message)
+		}
 	}
 	
 	public func logInfo(_ message: String) {
