@@ -403,7 +403,7 @@ struct HostVirtualMachineView: View {
 
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
 		if newValue == .ready, let connection = self.document.connection, let framebuffer = connection.framebuffer {
-			self.logger.info("VNC framebuffer size changed: \(framebuffer.size)")
+			self.logger.info("VNC status changed: \(newValue), framebuffer size: \(framebuffer.size)")
 			self.documentSize.cgSize = framebuffer.cgSize
 		}
 	}
