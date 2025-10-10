@@ -95,8 +95,6 @@ struct HostVirtualMachineView: View {
 	@State var documentSize: ViewSize
 	@State var automaticallyReconfiguresDisplay: Bool
 	@State var liveResizeWindow: Bool = false
-	@State var captureImage: NSImage? = nil
-	@State var autoResize: Bool = false
 	@State var needsResize: Bool = false
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -152,8 +150,6 @@ struct HostVirtualMachineView: View {
 					handleStartVirtualMachineNotification(notification)
 				}.onReceive(VirtualMachineDocument.DeleteVirtualMachine) { notification in
 					handleDeleteVirtualMachineNotification(notification)
-				}.onChange(of: autoResize) { _, newValue in
-					handleAutoResizeChangedNotification(newValue)
 				}.onChange(of: appearsActive) { _, newValue in
 					handleAppStateChangedNotification(newValue)
 				}.onChange(of: self.document.externalRunning) { _, newValue in
@@ -259,12 +255,6 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	func setAutoResize(_ autoResize: Bool, _line: UInt = #line, _file: String = #file) {
-		self.logger.info("set autoResize to \(autoResize) at \(_file):\(_line)")
-
-		self.autoResize = autoResize
-	}
-
 	func setContentSize(_ size: CGSize, animated: Bool) {
 		if let window = self.window {
 			let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
@@ -275,7 +265,6 @@ struct HostVirtualMachineView: View {
 			frame.origin.y -= frame.size.height
 
 			if frame != window.frame {
-				self.setAutoResize(true)
 				window.setFrame(frame, display: true, animate: animated)
 			}
 		}
@@ -318,35 +307,20 @@ struct HostVirtualMachineView: View {
 	
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			self.logger.debug("handleStartLiveResizeNotification: \(notification) autoResize=\(self.autoResize) captureImage=\(String(describing: self.captureImage))")
+			self.logger.debug("handleStartLiveResizeNotification: \(notification)")
 
-			if self.autoResize == false {
-				self.liveResizeWindow = true
-				
-				if self.externalModeView == .vnc {
-					if let contentView = self.window?.contentView {
-						self.logger.debug("Creating capture image")
-						self.captureImage = contentView.image()
-					}
-				}
-			}
+			self.liveResizeWindow = true
 		}
 	}
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			self.logger.debug("handleDidResizeNotification: \(notification) autoResize=\(self.autoResize) captureImage=\(String(describing: self.captureImage))")
+			self.logger.debug("handleDidResizeNotification: \(notification)")
 
-			if self.autoResize {
-				self.setAutoResize(false)
-			} else if self.liveResizeWindow {
+			if self.liveResizeWindow {
 				self.liveResizeWindow = false
 
 				self.document.setScreenSize(self.documentSize)
-
-				if self.externalModeView != .vnc {
-					self.captureImage = nil
-				}
 			}
 		}
 	}
@@ -370,7 +344,6 @@ struct HostVirtualMachineView: View {
 			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
 
 			self.documentSize.cgSize = size
-			self.captureImage = nil
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
@@ -399,12 +372,6 @@ struct HostVirtualMachineView: View {
 			}
 			
 			dismiss()
-		}
-	}
-
-	func handleAutoResizeChangedNotification(_ newValue: Bool) {
-		if newValue == false {
-			self.captureImage = nil
 		}
 	}
 
@@ -437,8 +404,6 @@ struct HostVirtualMachineView: View {
 			self.appState.isPaused = newValue == .paused || newValue == .pausing
 			self.appState.isSuspendable = newValue == .running && document.suspendable
 		}
-		
-		self.captureImage = nil
 	}
 
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
@@ -492,15 +457,7 @@ struct HostVirtualMachineView: View {
 			case .disconnecting:
 				LabelView("VNC disconnecting", size: size)
 			case .ready:
-				if let captureImage = self.captureImage {
-					Image(systemName: "sun.max.circle.fill")
-						.resizable()
-						.aspectRatio(contentMode: .fill)
-						.frame(size: size)
-						.log(text: "Use capture image instead of VNC")
-				} else {
-					VNCView(document: self.document).frame(size: size)
-				}
+				VNCView(document: self.document).frame(size: size)
 			}
 		}
 	}

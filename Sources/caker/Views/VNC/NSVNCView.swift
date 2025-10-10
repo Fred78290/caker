@@ -20,6 +20,7 @@ class NSVNCView: NSView {
 	private var trackingArea: NSTrackingArea?
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
 	private var didResizeFramebuffer: Bool = false
+	private var liveViewResize: Bool = false
 
 	private var framebufferSize: CGSize {
 		self.connection.framebuffer!.cgSize
@@ -129,6 +130,17 @@ class NSVNCView: NSView {
 	public override func viewDidMoveToWindow() {
 		addDisplayLink()
 	}
+
+	public override func viewWillStartLiveResize() {
+		self.liveViewResize = true
+		self.layer?.contentsGravity = .resize
+	}
+
+	/*override func viewDidEndLiveResize() {
+		self.liveViewResize = false
+
+		self.frameSizeDidChange(self.bounds.size)
+	}*/
 
 	func removeDisplayLink() {
 		guard settings.useDisplayLink else {
@@ -579,15 +591,17 @@ private extension NSVNCView {
 	}
 
 	func frameSizeDidChange(_ size: CGSize) {
-		if let layer = layer {
-			if settings.isScalingEnabled {
-				layer.contentsGravity = .resizeAspect
-			} else if frameSizeExceedsFramebufferSize(size) {
-				// Don't allow upscaling
-				layer.contentsGravity = .center
-			} else {
-				// Allow downscaling
-				layer.contentsGravity = .resizeAspect
+		if self.liveViewResize == false {
+			if let layer = layer {
+				if settings.isScalingEnabled {
+					layer.contentsGravity = .resizeAspect
+				} else if frameSizeExceedsFramebufferSize(size) {
+					// Don't allow upscaling
+					layer.contentsGravity = .center
+				} else {
+					// Allow downscaling
+					layer.contentsGravity = .resizeAspect
+				}
 			}
 		}
 	}
