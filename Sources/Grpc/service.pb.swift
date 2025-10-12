@@ -254,7 +254,39 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
       public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
 
+      public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
+        get {return _storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+        set {_uniqueStorage()._screenSize = newValue}
+      }
+      /// Returns true if `screenSize` has been explicitly set.
+      public var hasScreenSize: Bool {return _storage._screenSize != nil}
+      /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+      public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
+
+      public var displayRefit: Bool {
+        get {return _storage._displayRefit ?? false}
+        set {_uniqueStorage()._displayRefit = newValue}
+      }
+      /// Returns true if `displayRefit` has been explicitly set.
+      public var hasDisplayRefit: Bool {return _storage._displayRefit != nil}
+      /// Clears the value of `displayRefit`. Subsequent reads from it will return its default value.
+      public mutating func clearDisplayRefit() {_uniqueStorage()._displayRefit = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public struct ScreenSize: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var width: Int32 = 0
+
+        public var height: Int32 = 0
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
 
       public init() {}
 
@@ -397,167 +429,165 @@ public struct Caked_Caked: Sendable {
       fileprivate var _waitIptimeout: Int32? = nil
     }
 
-    public struct ConfigureRequest: Sendable {
+    public struct ConfigureRequest: @unchecked Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
 
-      public var name: String = String()
+      public var name: String {
+        get {return _storage._name}
+        set {_uniqueStorage()._name = newValue}
+      }
 
       public var cpu: Int32 {
-        get {return _cpu ?? 0}
-        set {_cpu = newValue}
+        get {return _storage._cpu ?? 0}
+        set {_uniqueStorage()._cpu = newValue}
       }
       /// Returns true if `cpu` has been explicitly set.
-      public var hasCpu: Bool {return self._cpu != nil}
+      public var hasCpu: Bool {return _storage._cpu != nil}
       /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
-      public mutating func clearCpu() {self._cpu = nil}
+      public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
       public var memory: Int32 {
-        get {return _memory ?? 0}
-        set {_memory = newValue}
+        get {return _storage._memory ?? 0}
+        set {_uniqueStorage()._memory = newValue}
       }
       /// Returns true if `memory` has been explicitly set.
-      public var hasMemory: Bool {return self._memory != nil}
+      public var hasMemory: Bool {return _storage._memory != nil}
       /// Clears the value of `memory`. Subsequent reads from it will return its default value.
-      public mutating func clearMemory() {self._memory = nil}
+      public mutating func clearMemory() {_uniqueStorage()._memory = nil}
 
       public var diskSize: Int32 {
-        get {return _diskSize ?? 0}
-        set {_diskSize = newValue}
+        get {return _storage._diskSize ?? 0}
+        set {_uniqueStorage()._diskSize = newValue}
       }
       /// Returns true if `diskSize` has been explicitly set.
-      public var hasDiskSize: Bool {return self._diskSize != nil}
+      public var hasDiskSize: Bool {return _storage._diskSize != nil}
       /// Clears the value of `diskSize`. Subsequent reads from it will return its default value.
-      public mutating func clearDiskSize() {self._diskSize = nil}
+      public mutating func clearDiskSize() {_uniqueStorage()._diskSize = nil}
 
       public var displayRefit: Bool {
-        get {return _displayRefit ?? false}
-        set {_displayRefit = newValue}
+        get {return _storage._displayRefit ?? false}
+        set {_uniqueStorage()._displayRefit = newValue}
       }
       /// Returns true if `displayRefit` has been explicitly set.
-      public var hasDisplayRefit: Bool {return self._displayRefit != nil}
+      public var hasDisplayRefit: Bool {return _storage._displayRefit != nil}
       /// Clears the value of `displayRefit`. Subsequent reads from it will return its default value.
-      public mutating func clearDisplayRefit() {self._displayRefit = nil}
+      public mutating func clearDisplayRefit() {_uniqueStorage()._displayRefit = nil}
 
       public var autostart: Bool {
-        get {return _autostart ?? false}
-        set {_autostart = newValue}
+        get {return _storage._autostart ?? false}
+        set {_uniqueStorage()._autostart = newValue}
       }
       /// Returns true if `autostart` has been explicitly set.
-      public var hasAutostart: Bool {return self._autostart != nil}
+      public var hasAutostart: Bool {return _storage._autostart != nil}
       /// Clears the value of `autostart`. Subsequent reads from it will return its default value.
-      public mutating func clearAutostart() {self._autostart = nil}
+      public mutating func clearAutostart() {_uniqueStorage()._autostart = nil}
 
       public var nested: Bool {
-        get {return _nested ?? false}
-        set {_nested = newValue}
+        get {return _storage._nested ?? false}
+        set {_uniqueStorage()._nested = newValue}
       }
       /// Returns true if `nested` has been explicitly set.
-      public var hasNested: Bool {return self._nested != nil}
+      public var hasNested: Bool {return _storage._nested != nil}
       /// Clears the value of `nested`. Subsequent reads from it will return its default value.
-      public mutating func clearNested() {self._nested = nil}
+      public mutating func clearNested() {_uniqueStorage()._nested = nil}
 
       public var mounts: String {
-        get {return _mounts ?? String()}
-        set {_mounts = newValue}
+        get {return _storage._mounts ?? String()}
+        set {_uniqueStorage()._mounts = newValue}
       }
       /// Returns true if `mounts` has been explicitly set.
-      public var hasMounts: Bool {return self._mounts != nil}
+      public var hasMounts: Bool {return _storage._mounts != nil}
       /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
-      public mutating func clearMounts() {self._mounts = nil}
+      public mutating func clearMounts() {_uniqueStorage()._mounts = nil}
 
       public var networks: String {
-        get {return _networks ?? String()}
-        set {_networks = newValue}
+        get {return _storage._networks ?? String()}
+        set {_uniqueStorage()._networks = newValue}
       }
       /// Returns true if `networks` has been explicitly set.
-      public var hasNetworks: Bool {return self._networks != nil}
+      public var hasNetworks: Bool {return _storage._networks != nil}
       /// Clears the value of `networks`. Subsequent reads from it will return its default value.
-      public mutating func clearNetworks() {self._networks = nil}
+      public mutating func clearNetworks() {_uniqueStorage()._networks = nil}
 
       public var sockets: String {
-        get {return _sockets ?? String()}
-        set {_sockets = newValue}
+        get {return _storage._sockets ?? String()}
+        set {_uniqueStorage()._sockets = newValue}
       }
       /// Returns true if `sockets` has been explicitly set.
-      public var hasSockets: Bool {return self._sockets != nil}
+      public var hasSockets: Bool {return _storage._sockets != nil}
       /// Clears the value of `sockets`. Subsequent reads from it will return its default value.
-      public mutating func clearSockets() {self._sockets = nil}
+      public mutating func clearSockets() {_uniqueStorage()._sockets = nil}
 
       public var console: String {
-        get {return _console ?? String()}
-        set {_console = newValue}
+        get {return _storage._console ?? String()}
+        set {_uniqueStorage()._console = newValue}
       }
       /// Returns true if `console` has been explicitly set.
-      public var hasConsole: Bool {return self._console != nil}
+      public var hasConsole: Bool {return _storage._console != nil}
       /// Clears the value of `console`. Subsequent reads from it will return its default value.
-      public mutating func clearConsole() {self._console = nil}
+      public mutating func clearConsole() {_uniqueStorage()._console = nil}
 
       public var randomMac: Bool {
-        get {return _randomMac ?? false}
-        set {_randomMac = newValue}
+        get {return _storage._randomMac ?? false}
+        set {_uniqueStorage()._randomMac = newValue}
       }
       /// Returns true if `randomMac` has been explicitly set.
-      public var hasRandomMac: Bool {return self._randomMac != nil}
+      public var hasRandomMac: Bool {return _storage._randomMac != nil}
       /// Clears the value of `randomMac`. Subsequent reads from it will return its default value.
-      public mutating func clearRandomMac() {self._randomMac = nil}
+      public mutating func clearRandomMac() {_uniqueStorage()._randomMac = nil}
 
       public var forwardedPort: String {
-        get {return _forwardedPort ?? String()}
-        set {_forwardedPort = newValue}
+        get {return _storage._forwardedPort ?? String()}
+        set {_uniqueStorage()._forwardedPort = newValue}
       }
       /// Returns true if `forwardedPort` has been explicitly set.
-      public var hasForwardedPort: Bool {return self._forwardedPort != nil}
+      public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
       /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
-      public mutating func clearForwardedPort() {self._forwardedPort = nil}
+      public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
       public var attachedDisks: String {
-        get {return _attachedDisks ?? String()}
-        set {_attachedDisks = newValue}
+        get {return _storage._attachedDisks ?? String()}
+        set {_uniqueStorage()._attachedDisks = newValue}
       }
       /// Returns true if `attachedDisks` has been explicitly set.
-      public var hasAttachedDisks: Bool {return self._attachedDisks != nil}
+      public var hasAttachedDisks: Bool {return _storage._attachedDisks != nil}
       /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
-      public mutating func clearAttachedDisks() {self._attachedDisks = nil}
+      public mutating func clearAttachedDisks() {_uniqueStorage()._attachedDisks = nil}
 
       public var dynamicPortForwarding: Bool {
-        get {return _dynamicPortForwarding ?? false}
-        set {_dynamicPortForwarding = newValue}
+        get {return _storage._dynamicPortForwarding ?? false}
+        set {_uniqueStorage()._dynamicPortForwarding = newValue}
       }
       /// Returns true if `dynamicPortForwarding` has been explicitly set.
-      public var hasDynamicPortForwarding: Bool {return self._dynamicPortForwarding != nil}
+      public var hasDynamicPortForwarding: Bool {return _storage._dynamicPortForwarding != nil}
       /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
-      public mutating func clearDynamicPortForwarding() {self._dynamicPortForwarding = nil}
+      public mutating func clearDynamicPortForwarding() {_uniqueStorage()._dynamicPortForwarding = nil}
 
       public var suspendable: Bool {
-        get {return _suspendable ?? false}
-        set {_suspendable = newValue}
+        get {return _storage._suspendable ?? false}
+        set {_uniqueStorage()._suspendable = newValue}
       }
       /// Returns true if `suspendable` has been explicitly set.
-      public var hasSuspendable: Bool {return self._suspendable != nil}
+      public var hasSuspendable: Bool {return _storage._suspendable != nil}
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
-      public mutating func clearSuspendable() {self._suspendable = nil}
+      public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
+
+      public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
+        get {return _storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+        set {_uniqueStorage()._screenSize = newValue}
+      }
+      /// Returns true if `screenSize` has been explicitly set.
+      public var hasScreenSize: Bool {return _storage._screenSize != nil}
+      /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+      public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
 
-      fileprivate var _cpu: Int32? = nil
-      fileprivate var _memory: Int32? = nil
-      fileprivate var _diskSize: Int32? = nil
-      fileprivate var _displayRefit: Bool? = nil
-      fileprivate var _autostart: Bool? = nil
-      fileprivate var _nested: Bool? = nil
-      fileprivate var _mounts: String? = nil
-      fileprivate var _networks: String? = nil
-      fileprivate var _sockets: String? = nil
-      fileprivate var _console: String? = nil
-      fileprivate var _randomMac: Bool? = nil
-      fileprivate var _forwardedPort: String? = nil
-      fileprivate var _attachedDisks: String? = nil
-      fileprivate var _dynamicPortForwarding: Bool? = nil
-      fileprivate var _suspendable: Bool? = nil
+      fileprivate var _storage = _StorageClass.defaultInstance
     }
 
     public struct WaitIPRequest: Sendable {
@@ -2882,7 +2912,7 @@ extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
 extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -2909,6 +2939,8 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _dynamicPortForwarding: Bool? = nil
     var _ifnames: Bool? = nil
     var _suspendable: Bool? = nil
+    var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
+    var _displayRefit: Bool? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -2943,6 +2975,8 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       _dynamicPortForwarding = source._dynamicPortForwarding
       _ifnames = source._ifnames
       _suspendable = source._suspendable
+      _screenSize = source._screenSize
+      _displayRefit = source._displayRefit
     }
   }
 
@@ -2985,6 +3019,8 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 22: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         case 23: try { try decoder.decodeSingularBoolField(value: &_storage._ifnames) }()
         case 24: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
+        case 25: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
+        case 26: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
         default: break
         }
       }
@@ -3069,6 +3105,12 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       try { if let v = _storage._suspendable {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 24)
       } }()
+      try { if let v = _storage._screenSize {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 25)
+      } }()
+      try { if let v = _storage._displayRefit {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 26)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -3102,10 +3144,47 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         if _storage._dynamicPortForwarding != rhs_storage._dynamicPortForwarding {return false}
         if _storage._ifnames != rhs_storage._ifnames {return false}
         if _storage._suspendable != rhs_storage._suspendable {return false}
+        if _storage._screenSize != rhs_storage._screenSize {return false}
+        if _storage._displayRefit != rhs_storage._displayRefit {return false}
         return true
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.CommonBuildRequest.protoMessageName + ".ScreenSize"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt32Field(value: &self.width) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.height) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.width != 0 {
+      try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 1)
+    }
+    if self.height != 0 {
+      try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize, rhs: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize) -> Bool {
+    if lhs.width != rhs.width {return false}
+    if lhs.height != rhs.height {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3319,108 +3398,181 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ConfigureRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0")
+
+  fileprivate class _StorageClass {
+    var _name: String = String()
+    var _cpu: Int32? = nil
+    var _memory: Int32? = nil
+    var _diskSize: Int32? = nil
+    var _displayRefit: Bool? = nil
+    var _autostart: Bool? = nil
+    var _nested: Bool? = nil
+    var _mounts: String? = nil
+    var _networks: String? = nil
+    var _sockets: String? = nil
+    var _console: String? = nil
+    var _randomMac: Bool? = nil
+    var _forwardedPort: String? = nil
+    var _attachedDisks: String? = nil
+    var _dynamicPortForwarding: Bool? = nil
+    var _suspendable: Bool? = nil
+    var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _name = source._name
+      _cpu = source._cpu
+      _memory = source._memory
+      _diskSize = source._diskSize
+      _displayRefit = source._displayRefit
+      _autostart = source._autostart
+      _nested = source._nested
+      _mounts = source._mounts
+      _networks = source._networks
+      _sockets = source._sockets
+      _console = source._console
+      _randomMac = source._randomMac
+      _forwardedPort = source._forwardedPort
+      _attachedDisks = source._attachedDisks
+      _dynamicPortForwarding = source._dynamicPortForwarding
+      _suspendable = source._suspendable
+      _screenSize = source._screenSize
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
-      case 2: try { try decoder.decodeSingularInt32Field(value: &self._cpu) }()
-      case 3: try { try decoder.decodeSingularInt32Field(value: &self._memory) }()
-      case 4: try { try decoder.decodeSingularInt32Field(value: &self._diskSize) }()
-      case 5: try { try decoder.decodeSingularBoolField(value: &self._displayRefit) }()
-      case 6: try { try decoder.decodeSingularBoolField(value: &self._autostart) }()
-      case 7: try { try decoder.decodeSingularBoolField(value: &self._nested) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self._mounts) }()
-      case 9: try { try decoder.decodeSingularStringField(value: &self._networks) }()
-      case 10: try { try decoder.decodeSingularStringField(value: &self._sockets) }()
-      case 11: try { try decoder.decodeSingularStringField(value: &self._console) }()
-      case 12: try { try decoder.decodeSingularBoolField(value: &self._randomMac) }()
-      case 13: try { try decoder.decodeSingularStringField(value: &self._forwardedPort) }()
-      case 14: try { try decoder.decodeSingularStringField(value: &self._attachedDisks) }()
-      case 15: try { try decoder.decodeSingularBoolField(value: &self._dynamicPortForwarding) }()
-      case 16: try { try decoder.decodeSingularBoolField(value: &self._suspendable) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
+        case 2: try { try decoder.decodeSingularInt32Field(value: &_storage._cpu) }()
+        case 3: try { try decoder.decodeSingularInt32Field(value: &_storage._memory) }()
+        case 4: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
+        case 5: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
+        case 6: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
+        case 7: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._mounts) }()
+        case 9: try { try decoder.decodeSingularStringField(value: &_storage._networks) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._sockets) }()
+        case 11: try { try decoder.decodeSingularStringField(value: &_storage._console) }()
+        case 12: try { try decoder.decodeSingularBoolField(value: &_storage._randomMac) }()
+        case 13: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
+        case 14: try { try decoder.decodeSingularStringField(value: &_storage._attachedDisks) }()
+        case 15: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
+        case 16: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
+        case 17: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
+        default: break
+        }
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    if !self.name.isEmpty {
-      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._name.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 1)
+      }
+      try { if let v = _storage._cpu {
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
+      } }()
+      try { if let v = _storage._memory {
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._diskSize {
+        try visitor.visitSingularInt32Field(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._displayRefit {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+      } }()
+      try { if let v = _storage._autostart {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
+      } }()
+      try { if let v = _storage._nested {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 7)
+      } }()
+      try { if let v = _storage._mounts {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 8)
+      } }()
+      try { if let v = _storage._networks {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 9)
+      } }()
+      try { if let v = _storage._sockets {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 10)
+      } }()
+      try { if let v = _storage._console {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 11)
+      } }()
+      try { if let v = _storage._randomMac {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 12)
+      } }()
+      try { if let v = _storage._forwardedPort {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 13)
+      } }()
+      try { if let v = _storage._attachedDisks {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 14)
+      } }()
+      try { if let v = _storage._dynamicPortForwarding {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 15)
+      } }()
+      try { if let v = _storage._suspendable {
+        try visitor.visitSingularBoolField(value: v, fieldNumber: 16)
+      } }()
+      try { if let v = _storage._screenSize {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
+      } }()
     }
-    try { if let v = self._cpu {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._memory {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._diskSize {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 4)
-    } }()
-    try { if let v = self._displayRefit {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
-    } }()
-    try { if let v = self._autostart {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 6)
-    } }()
-    try { if let v = self._nested {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 7)
-    } }()
-    try { if let v = self._mounts {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 8)
-    } }()
-    try { if let v = self._networks {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 9)
-    } }()
-    try { if let v = self._sockets {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 10)
-    } }()
-    try { if let v = self._console {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 11)
-    } }()
-    try { if let v = self._randomMac {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 12)
-    } }()
-    try { if let v = self._forwardedPort {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 13)
-    } }()
-    try { if let v = self._attachedDisks {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 14)
-    } }()
-    try { if let v = self._dynamicPortForwarding {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 15)
-    } }()
-    try { if let v = self._suspendable {
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 16)
-    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.VMRequest.ConfigureRequest, rhs: Caked_Caked.VMRequest.ConfigureRequest) -> Bool {
-    if lhs.name != rhs.name {return false}
-    if lhs._cpu != rhs._cpu {return false}
-    if lhs._memory != rhs._memory {return false}
-    if lhs._diskSize != rhs._diskSize {return false}
-    if lhs._displayRefit != rhs._displayRefit {return false}
-    if lhs._autostart != rhs._autostart {return false}
-    if lhs._nested != rhs._nested {return false}
-    if lhs._mounts != rhs._mounts {return false}
-    if lhs._networks != rhs._networks {return false}
-    if lhs._sockets != rhs._sockets {return false}
-    if lhs._console != rhs._console {return false}
-    if lhs._randomMac != rhs._randomMac {return false}
-    if lhs._forwardedPort != rhs._forwardedPort {return false}
-    if lhs._attachedDisks != rhs._attachedDisks {return false}
-    if lhs._dynamicPortForwarding != rhs._dynamicPortForwarding {return false}
-    if lhs._suspendable != rhs._suspendable {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._name != rhs_storage._name {return false}
+        if _storage._cpu != rhs_storage._cpu {return false}
+        if _storage._memory != rhs_storage._memory {return false}
+        if _storage._diskSize != rhs_storage._diskSize {return false}
+        if _storage._displayRefit != rhs_storage._displayRefit {return false}
+        if _storage._autostart != rhs_storage._autostart {return false}
+        if _storage._nested != rhs_storage._nested {return false}
+        if _storage._mounts != rhs_storage._mounts {return false}
+        if _storage._networks != rhs_storage._networks {return false}
+        if _storage._sockets != rhs_storage._sockets {return false}
+        if _storage._console != rhs_storage._console {return false}
+        if _storage._randomMac != rhs_storage._randomMac {return false}
+        if _storage._forwardedPort != rhs_storage._forwardedPort {return false}
+        if _storage._attachedDisks != rhs_storage._attachedDisks {return false}
+        if _storage._dynamicPortForwarding != rhs_storage._dynamicPortForwarding {return false}
+        if _storage._suspendable != rhs_storage._suspendable {return false}
+        if _storage._screenSize != rhs_storage._screenSize {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

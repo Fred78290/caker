@@ -307,7 +307,9 @@ struct MultipassImporter: Importer {
 			configuredPassword: password,
 			displayRefit: true,
 			cpuCountMin: instance.numCores,
-			memorySizeMin: memorySize)
+			memorySizeMin: memorySize,
+			screenSize: .standard
+		)
 
 		if let sshPrivateKey = sshPrivateKey {
 			config.sshPrivateKeyPath = sshPrivateKey

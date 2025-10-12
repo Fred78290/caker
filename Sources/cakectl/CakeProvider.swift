@@ -84,6 +84,10 @@ extension Caked_CommonBuildRequest {
 		self.image = buildOptions.image
 		self.ifnames = buildOptions.netIfnames
 		self.suspendable = buildOptions.suspendable
+		self.screenSize = Caked_ScreenSize.with {
+			$0.width = Int32(buildOptions.screenSize.width)
+			$0.height = Int32(buildOptions.screenSize.height)
+		}
 
 		if mounts.isEmpty == false {
 			self.mounts = mounts.joined(separator: String.grpcSeparator)
@@ -283,6 +287,13 @@ extension Caked_ConfigureRequest {
 
 		if let dynamicPortForwarding = options.dynamicPortForwarding {
 			self.dynamicPortForwarding = dynamicPortForwarding
+		}
+
+		if let screenSize = options.screenSize {
+			self.screenSize = Caked_ScreenSize.with {
+				$0.width = Int32(screenSize.width)
+				$0.height = Int32(screenSize.height)
+			}
 		}
 
 		self.randomMac = options.randomMAC

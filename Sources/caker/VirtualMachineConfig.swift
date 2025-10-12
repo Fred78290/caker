@@ -10,24 +10,9 @@ import Foundation
 import GRPCLib
 import SwiftUI
 import Virtualization
+import ArgumentParser
 
 struct VirtualMachineConfig: Hashable {
-	struct ViewSize: Identifiable, Hashable {
-		var id: String {
-			"\(width)x\(height)"
-		}
-		var width: Int
-		var height: Int
-		var size: CGSize {
-			.init(width: CGFloat(width), height: CGFloat(height))
-		}
-
-		init(width: Int, height: Int) {
-			self.width = width
-			self.height = height
-		}
-	}
-
 	var os: VirtualizedOS = .linux
 	var cpuCount: Int = 1
 	var memorySize: UInt64 = 512
@@ -37,7 +22,7 @@ struct VirtualMachineConfig: Hashable {
 	var dynamicPortForwarding: Bool = false
 	var displayRefit: Bool = true
 	var nestedVirtualization: Bool = true
-	var display: ViewSize = ViewSize(width: 1920, height: 1080)
+	var display: VMScreenSize = VMScreenSize(width: 1920, height: 1080)
 	var forwardPorts: [TunnelAttachement] = []
 	var sockets: [SocketDevice] = []
 	var networks: [BridgeAttachement] = []
@@ -69,7 +54,7 @@ struct VirtualMachineConfig: Hashable {
 		dynamicPortForwarding = false
 		displayRefit = true
 		nestedVirtualization = true
-		display = ViewSize(width: 1920, height: 1080)
+		display = VMScreenSize(width: 1920, height: 1080)
 		forwardPorts = []
 		sockets = []
 		networks = []
@@ -95,11 +80,10 @@ struct VirtualMachineConfig: Hashable {
 		self.macAddress = config.macAddress?.string ?? ""
 		self.autostart = config.autostart
 		self.suspendable = config.suspendable
-		self.display = ViewSize(width: config.display.width, height: config.display.height)
+		self.display = VMScreenSize(width: config.display.width, height: config.display.height)
 		self.dynamicPortForwarding = config.dynamicPortForwarding
 		self.displayRefit = config.displayRefit
 		self.nestedVirtualization = config.nested
-		self.display = ViewSize(width: config.display.width, height: config.display.height)
 		self.forwardPorts = config.forwardedPorts
 		self.sockets = config.sockets
 		self.networks = config.networks
@@ -153,6 +137,7 @@ struct VirtualMachineConfig: Hashable {
 			cpu: UInt16(self.cpuCount),
 			memory: self.memorySize,
 			diskSize: self.diskSize,
+			screenSize: self.display,
 			attachedDisks: self.attachedDisks,
 			user: self.configuredUser,
 			password: self.configuredPassword,

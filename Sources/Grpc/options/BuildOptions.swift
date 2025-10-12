@@ -80,6 +80,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.customLong("net.ifnames")], help: "Use ifnames for network interfaces instead of eth0, eth1, etc. This is the default on most modern Linux distributions.")
 	public var netIfnames: Bool = true
 
+	@Option(name: [.customLong("display")], help: "Set the VM screen size.")
+	public var screenSize: VMScreenSize = VMScreenSize.standard
+
 	@Option(
 		name: [.customLong("socket")],
 		help: ArgumentHelp("Allow to create virtio socket between guest and host, format like url: <bind|connect|tcp|udp>://<address>:<port number>/<file for unix socket>, eg. bind://dummy:1234/tmp/vsock.sock", discussion: socket_help))
@@ -96,6 +99,7 @@ public struct BuildOptions: ParsableArguments {
 		cpu: UInt16 = 2,
 		memory: UInt64 = 2048,
 		diskSize: UInt16 = 10,
+		screenSize: VMScreenSize = .standard,
 		attachedDisks: [DiskAttachement] = [],
 		user: String = "admin",
 		password: String? = "nil",
@@ -144,6 +148,7 @@ public struct BuildOptions: ParsableArguments {
 		self.consoleURL = consoleURL
 		self.dynamicPortForwarding = false
 		self.autoinstall = autoinstall
+		self.screenSize = screenSize
 	}
 
 	public init(request: Caked_CommonBuildRequest) throws {
@@ -297,6 +302,12 @@ public struct BuildOptions: ParsableArguments {
 			self.suspendable = request.suspendable
 		} else {
 			self.suspendable = false
+		}
+
+		if request.hasScreenSize {
+			self.screenSize = VMScreenSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
+		} else {
+			self.screenSize = .standard
 		}
 	}
 

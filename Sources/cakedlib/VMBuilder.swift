@@ -112,7 +112,9 @@ public struct VMBuilder {
 					configuredPassword: options.password,
 					displayRefit: options.displayRefit,
 					cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
-					memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024))
+					memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024),
+					screenSize: options.screenSize
+				)
 
 				config.hardwareModel = requirements.hardwareModel
 				config.ecid = VZMacMachineIdentifier()
@@ -150,7 +152,8 @@ public struct VMBuilder {
 					configuredPassword: options.password,
 					displayRefit: options.displayRefit,
 					cpuCountMin: Int(options.cpu),
-					memorySizeMin: options.memory * 1024 * 1024)
+					memorySizeMin: options.memory * 1024 * 1024,
+					screenSize: options.screenSize)
 
 				config.useCloudInit = source != .iso || options.autoinstall
 				config.agent = source != .iso || options.autoinstall

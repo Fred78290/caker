@@ -330,7 +330,9 @@ struct VMWareImporter: Importer {
 			configuredPassword: password,
 			displayRefit: true,
 			cpuCountMin: vmxMap.cpuCount,
-			memorySizeMin: vmxMap.memorySize)
+			memorySizeMin: vmxMap.memorySize,
+			screenSize: .standard
+		)
 
 		config.useCloudInit = true
 		config.agent = false

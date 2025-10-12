@@ -64,6 +64,7 @@ public typealias Caked_VirtualMachineInfo = Caked.Reply.VirtualMachineReply.Virt
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
 public typealias Caked_CloneRequest = Caked.VMRequest.CloneRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest
+public typealias Caked_ScreenSize = Caked.VMRequest.CommonBuildRequest.ScreenSize
 public typealias Caked_ConfigureRequest = Caked.VMRequest.ConfigureRequest
 public typealias Caked_DeleteRequest = Caked.VMRequest.DeleteRequest
 public typealias Caked_DuplicateRequest = Caked.VMRequest.DuplicateRequest

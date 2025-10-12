@@ -431,14 +431,9 @@ public final class CakeConfig {
 		displayRefit: Bool,
 		cpuCountMin: Int,
 		memorySizeMin: UInt64,
-		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered()
+		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
+		screenSize: VMScreenSize
 	) {
-
-		var display = DisplaySize()
-
-		display.width = 1024
-		display.height = 768
-
 		self.location = location
 		self.config = Config()
 		self.cake = Config()
@@ -453,7 +448,7 @@ public final class CakeConfig {
 		self.configuredUser = configuredUser
 		self.configuredPassword = configuredPassword
 		self.autostart = autostart
-		self.display = display
+		self.display = DisplaySize(width: screenSize.width, height: screenSize.height)
 		self.vncPassword = UUID().uuidString
 	}
 
@@ -503,6 +498,7 @@ public final class CakeConfig {
 		self.agent = false
 		self.attachedDisks = options.attachedDisks
 		self.vncPassword = UUID().uuidString
+		self.display = DisplaySize(width: options.screenSize.width, height: options.screenSize.height)
 
 		if self.os == .darwin {
 			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)
