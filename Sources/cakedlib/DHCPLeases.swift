@@ -62,7 +62,7 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 	}
 
 	private static func parseLeases(_ filePath: String) throws -> [String: DHCPLease] {
-		let content = try String(contentsOfFile: filePath)
+		let content = try String(contentsOfFile: filePath, encoding: .ascii)
 		var leases = [DHCPLease]()
 		let lines = content.split(separator: "\n")
 

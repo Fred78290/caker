@@ -101,7 +101,12 @@ struct MainApp: App {
 
 			if file.document.loadVirtualMachine(from: file.fileURL!) {
 				HostVirtualMachineView(appState: $appState, document: document)
+					.windowMinimizeBehavior(.enabled)
+					.windowResizeBehavior(.enabled)
+					.windowFullScreenBehavior(.enabled)
+					.windowToolbarFullScreenVisibility(.automatic)
 					.restorationState(.disabled)
+					//.frame(size: document.documentSize.cgSize)
 					.frame("MainApp", minSize: minSize, idealSize: document.documentSize.cgSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")

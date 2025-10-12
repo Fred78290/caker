@@ -1114,9 +1114,9 @@ class CloudInit {
 
 	private func createKickStartData(config: CakeConfig) throws -> Data {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
-		let caCert = try String(contentsOf: certificates.caCertURL)
-		let serverKey = try String(contentsOf: certificates.serverKeyURL)
-		let serverPem = try String(contentsOf: certificates.serverCertURL)
+		let caCert = try String(contentsOf: certificates.caCertURL, encoding: .ascii)
+		let serverKey = try String(contentsOf: certificates.serverKeyURL, encoding: .ascii)
+		let serverPem = try String(contentsOf: certificates.serverCertURL, encoding: .ascii)
 		let networks = try loadNetworkConfig(config: config).network
 		var scripts: [String] = [
 			"bootloader --location=none"
