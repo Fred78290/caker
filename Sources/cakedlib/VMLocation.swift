@@ -391,9 +391,11 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall) {
 			if case .success = $0 {
 				if display == .vnc {
-					let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)
-					
-					Logger(self).info("VNC server started at \(vncURL)")
+					DispatchQueue.main.async {
+						let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+						
+						Logger(self).info("VNC server started at \(vncURL)")
+					}
 				}
 			}
 

@@ -92,9 +92,6 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
-	@State var documentSize: ViewSize
-	@State var automaticallyReconfiguresDisplay: Bool
-	@State var liveResizeWindow: Bool = false
 	@State var needsResize: Bool = false
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -104,9 +101,7 @@ struct HostVirtualMachineView: View {
 	init(appState: Binding<AppState>, document: VirtualMachineDocument) {
 		self._appState = appState
 		self._document = StateObject(wrappedValue: document)
-		self.documentSize = document.documentSize
 		self.minSize = CGSize(width: 800, height: 600)
-		self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 	}
 
@@ -117,8 +112,10 @@ struct HostVirtualMachineView: View {
 					self.logger.info("\(self.id) Attaching window accessor: \(String(describing: $0))")
 
 					if let window = $0 {
+						window.minSize = CGSizeMake(800, 600)
+
 						if self.needsResize {
-							let size = self.documentSize.cgSize
+							let size = self.document.documentSize.cgSize
 
 							DispatchQueue.main.async {
 								self.needsResize = false
@@ -138,10 +135,6 @@ struct HostVirtualMachineView: View {
 					handleAppear()
 				}.onDisappear {
 					handleDisappear()
-				}.onReceive(NSWindow.willStartLiveResizeNotification) { notification in
-					handleStartLiveResizeNotification(notification)
-				}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
-					handleDidResizeNotification(notification)
 				}.onReceive(NSWindow.willCloseNotification) { notification in
 					handleWillCloseNotification(notification)
 				}.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
@@ -241,12 +234,6 @@ struct HostVirtualMachineView: View {
 					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView(appState: $appState)
-				}.onGeometryChange(for: CGRect.self) { proxy in
-					proxy.frame(in: .global)
-				} action: { newValue in
-					if self.window != nil {
-						self.setDocumentSize(newValue.size)
-					}
 				}
 
 			if #available(macOS 15.0, *) {
@@ -267,16 +254,6 @@ struct HostVirtualMachineView: View {
 			if frame != window.frame {
 				window.setFrame(frame, display: true, animate: animated)
 			}
-		}
-	}
-
-	func setDocumentSize(_ size: CGSize) {
-		self.documentSize.cgSize = size
-
-		if self.liveResizeWindow == false {
-			Logger(self).info("onGeometryChange: \(size), window: \(String(describing: window))")
-
-			self.document.setDocumentSize(self.documentSize)
 		}
 	}
 
@@ -304,27 +281,7 @@ struct HostVirtualMachineView: View {
 			self.appState.currentDocument = nil
 		}
 	}
-	
-	func handleStartLiveResizeNotification(_ notification: Notification) {
-		if isMyWindowKey(notification) {
-			self.logger.debug("handleStartLiveResizeNotification: \(notification)")
 
-			self.liveResizeWindow = true
-		}
-	}
-
-	func handleDidResizeNotification(_ notification: Notification) {
-		if isMyWindowKey(notification) {
-			self.logger.debug("handleDidResizeNotification: \(notification)")
-
-			if self.liveResizeWindow {
-				self.liveResizeWindow = false
-
-				self.document.setScreenSize(self.documentSize)
-			}
-		}
-	}
-	
 	func handleWillCloseNotification(_ notification: Notification) {
 		if self.document.externalRunning == false {
 			if isMyWindowKey(notification) {
@@ -342,8 +299,6 @@ struct HostVirtualMachineView: View {
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
 		if let size = notification.object as? CGSize {
 			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
-
-			self.documentSize.cgSize = size
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
@@ -481,7 +436,7 @@ struct HostVirtualMachineView: View {
 			if self.document.status == .stopped {
 				LabelView(self.vmStatus(), progress: false)
 			} else {
-				VMView(automaticallyReconfiguresDisplay: automaticallyReconfiguresDisplay, vm: document.virtualMachine, virtualMachine: document.virtualMachine.virtualMachine, callback: nil)
+				InternalVirtualMachineView(document: document)
 					.frame(size: size)
 			}
 		} else {

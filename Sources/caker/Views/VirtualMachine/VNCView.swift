@@ -52,7 +52,7 @@ struct VNCView: NSViewRepresentable {
 			fatalError("Connection is nil")
 		}
 
-		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: connection)
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), document: document)
 
 		self.document.vncView = view
 
@@ -79,10 +79,12 @@ struct VNCView: NSViewRepresentable {
 	}*/
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-			self.logger.info("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
-		} else {
-			self.logger.info("updateNSView: \(nsView.frame), framebuffer: nil")
+		if nsView.isLiveViewResize == false {
+			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
+				self.logger.info("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
+			} else {
+				self.logger.info("updateNSView: \(nsView.frame), framebuffer: nil")
+			}
 		}
 	}
 

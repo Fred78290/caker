@@ -105,12 +105,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let configuration: VZVirtualMachineConfiguration
 	let networks: [NetworkAttachement]
 	let sigcaught: [Int32: DispatchSourceSignal]
+	let screenSize: CGSize
 	var semaphore = AsyncSemaphore(value: 0)
 	var vmrunService: VMRunServiceServerProtocol! = nil
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
 	var vncServer: VNCServer? = nil
+	var vzMachineView: VZVirtualMachineView! = nil
 
 	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
@@ -170,6 +172,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 		spiceAgentPort.name = VZSpiceAgentPortAttachment.spiceAgentPortName
 		spiceAgentPort.attachment = spiceAgentPortAttachment
+		spiceAgentPort.isConsole = false
 		spiceAgentConsoleDevice.ports[0] = spiceAgentPort
 		configuration.consoleDevices.append(spiceAgentConsoleDevice)
 
@@ -198,6 +201,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.communicationDevices = communicationDevices
 		self.networks = networks
 		self.sigcaught = sigcaught
+		self.screenSize = screenSize
 
 		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
@@ -459,7 +463,14 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	public func startVncServer(vncPassword: String, port: Int) -> URL {
 		if self.env.vncServer == nil {
+			let vzMachineView = VZVirtualMachineView(frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+
+			vzMachineView.virtualMachine = self.virtualMachine
+			vzMachineView.autoresizingMask = [.width, .height]
+			vzMachineView.automaticallyReconfiguresDisplay = true
+
 			self.env.vncServer =  VNCServer(self.virtualMachine, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vzMachineView = vzMachineView
 		}
 
 		return self.vncURL!
@@ -611,27 +622,37 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	func setScreenSize(width: Int, height: Int) {
-		if #available(macOS 14.0, *) {
-			let newSize = CGSize(width: width, height: height)
-			
-			if newSize != .zero {
-				self.vmQueue.async {
-					let logger = Logger(self)
-						
-					logger.info("Will resize screen to \(width)x\(height)")
+		guard width != 0 && height != 0 else {
+			Logger(self).info("Try resizing screen to zero size, but nothing to do.")
+			return
+		}
 
+		self.vmQueue.async {
+			let newSize = CGSize(width: width, height: height)
+			let logger = Logger(self)
+
+			logger.info("Will resize screen to \(width)x\(height)")
+
+			guard let vzMachineView = self.env.vzMachineView else {
+				if #available(macOS 14.0, *) {
 					self.virtualMachine.graphicsDevices.forEach { device in
 						device.displays.forEach { display in
 							if newSize != display.sizeInPixels {
-								logger.info("Resizing screen from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
+								logger.info("Resizing display from: \(display.sizeInPixels.width)x\(display.sizeInPixels.height) to: \(width)x\(height)")
 								try? display.reconfigure(sizeInPixels: newSize)
 							}
 						}
 					}
 				}
-			} else {
-				Logger(self).info("Try resizing screen to zero size, but nothing to do.")
+				
+				return
 			}
+
+			let bounds = vzMachineView.bounds
+			
+			logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+			
+			vzMachineView.frame = CGRect(origin: .zero, size: newSize)
 		}
 	}
 

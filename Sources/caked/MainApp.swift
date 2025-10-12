@@ -91,7 +91,8 @@ struct MainApp: App, VirtualMachineDelegate {
 			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine).onAppear {
+				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine)
+				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}.onDisappear {
 					if kill(getpid(), SIGINT) != 0 {

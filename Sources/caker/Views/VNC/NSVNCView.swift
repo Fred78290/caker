@@ -11,16 +11,27 @@ import AppKit
 import Carbon
 
 class NSVNCView: NSView {
+	private let document: VirtualMachineDocument
 	private let connection: VNCConnection
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
 	private var scrollStep: CGFloat = 12
 	private var lastModifierFlags: NSEvent.ModifierFlags = [ ]
-	private var displayLink: DisplayLink?
+	private var displayLink: CADisplayLink?
 	private var trackingArea: NSTrackingArea?
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
 	private var didResizeFramebuffer: Bool = false
 	private var liveViewResize: Bool = false
+
+	private let checkVNCReconfigurationTimeoutPeriod: Double = 0.1
+	private var checkVNCReconfigurationTimeoutAttempts: Int = 5
+	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
+
+	var isLiveViewResize : Bool {
+		get {
+			return self.liveViewResize
+		}
+	}
 
 	private var framebufferSize: CGSize {
 		self.connection.framebuffer!.cgSize
@@ -86,8 +97,9 @@ class NSVNCView: NSView {
 		true
 	}
 
-	public init(frame frameRect: CGRect, connection: VNCConnection) {
-		self.connection = connection
+	public init(frame frameRect: CGRect, document: VirtualMachineDocument) {
+		self.document = document
+		self.connection = document.connection
 		self.currentCursor = VNCCursor.empty.nsCursor
 
 		super.init(frame: frameRect)
@@ -136,23 +148,23 @@ class NSVNCView: NSView {
 		self.layer?.contentsGravity = .resize
 	}
 
-	/*override func viewDidEndLiveResize() {
+	override func viewDidEndLiveResize() {
 		self.liveViewResize = false
+		self.startWaitVNCReconfiguration()
+		self.document.setScreenSize(.init(size: self.bounds.size))
+	}
 
-		self.frameSizeDidChange(self.bounds.size)
-	}*/
+	override func viewWillMove(toWindow newWindow: NSWindow?) {
+		self.stopWaitVNCReconfiguration()
+		super.viewWillMove(toWindow: newWindow)
+	}
 
 	func removeDisplayLink() {
-		guard settings.useDisplayLink else {
+		guard settings.useDisplayLink, let displayLink = self.displayLink else {
 			return
 		}
 
-		guard let oldDisplayLink = self.displayLink else {
-			return
-		}
-
-		oldDisplayLink.delegate = nil
-		oldDisplayLink.isEnabled = false
+		displayLink.remove(from: .current, forMode: .default)
 
 		self.displayLink = nil
 	}
@@ -168,15 +180,11 @@ class NSVNCView: NSView {
 			return
 		}
 
-		guard let displayLink = DisplayLink(screen: screen) else {
-			return
-		}
-
-		displayLink.delegate = self
+		let displayLink = screen.displayLink(target: self, selector: #selector(displayLinkDidUpdate))
 
 		self.displayLink = displayLink
 
-		displayLink.isEnabled = true
+		displayLink.add(to: .current, forMode: .default)
 	}
 
 	public override func updateTrackingAreas() {
@@ -287,6 +295,7 @@ class NSVNCView: NSView {
 extension NSVNCView {
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
 		self.didResizeFramebuffer = true
+		self.stopWaitVNCReconfiguration()
 	}
 
 	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
@@ -577,7 +586,6 @@ private extension NSVNCView {
 
 					transition.duration = 0.5
 					transition.type = .fade
-					//transition.subtype = .fromBottom
 
 					CATransaction.setDisableActions(true)
 
@@ -624,8 +632,35 @@ private extension NSVNCView {
 	}
 }
 
-extension NSVNCView: DisplayLinkDelegate {
-	func displayLinkDidUpdate(_ displayLink: DisplayLink) {
+extension NSVNCView {
+	@objc func displayLinkDidUpdate() {
 		updateImage(self.connection.framebuffer?.cgImage, animated: didResizeFramebuffer)
 	}
+}
+
+extension NSVNCView {
+	func startWaitVNCReconfiguration() {
+		cancelWaitVNCReconfiguration?.cancel()
+		cancelWaitVNCReconfiguration = DispatchWorkItem { [weak self] in
+			guard let self = self else {
+				return
+			}
+
+			if checkVNCReconfigurationTimeoutAttempts > 0 {
+				checkVNCReconfigurationTimeoutAttempts -= 1
+				DispatchQueue.main.asyncAfter(deadline: .now() + checkVNCReconfigurationTimeoutPeriod, execute: cancelWaitVNCReconfiguration!)
+			} else {
+				cancelWaitVNCReconfiguration = nil
+				self.frameSizeDidChange(self.bounds.size)
+			}
+		}
+
+		DispatchQueue.main.asyncAfter(deadline: .now() + checkVNCReconfigurationTimeoutPeriod, execute: cancelWaitVNCReconfiguration!)
+	}
+
+	func stopWaitVNCReconfiguration() {
+		cancelWaitVNCReconfiguration?.cancel()
+		cancelWaitVNCReconfiguration = nil
+	}
+
 }
