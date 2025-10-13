@@ -765,7 +765,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			DispatchQueue.main.async {
 				self.setDocumentSize(.init(size: framebuffer.cgSize))
 				
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self])
+				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.name])
 			}
 		}
 	}

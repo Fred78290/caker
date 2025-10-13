@@ -296,7 +296,27 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
+	func isNotificationConcerned(_ notification: Notification) -> String? {
+		guard let userInfos = notification.userInfo else {
+			return nil
+		}
+
+		guard let document = userInfos["document"] as? String else {
+			return nil
+		}
+		
+		guard document == self.document.name else {
+			return nil
+		}
+
+		return document
+	}
+
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
+		guard let _ = self.isNotificationConcerned(notification) else {
+			return
+		}
+
 		if let size = notification.object as? CGSize {
 			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
 
@@ -311,23 +331,29 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleStartVirtualMachineNotification(_ notification: Notification) {
-		if let name = notification.object as? String, name == document.name, document.status != .running {
+		guard let name = self.isNotificationConcerned(notification) else {
+			return
+		}
+
+		if document.status != .running {
 			document.startFromUI()
 		}
 	}
 
 	func handleDeleteVirtualMachineNotification(_ notification: Notification) {
-		if let name = notification.object as? String, name == document.name {
-			if self.appState.currentDocument == self.document {
-				self.appState.currentDocument = nil
-			}
-			
-			if document.status == .running {
-				document.stopFromUI(force: false)
-			}
-			
-			dismiss()
+		guard let name = self.isNotificationConcerned(notification) else {
+			return
 		}
+
+		if self.appState.currentDocument == self.document {
+			self.appState.currentDocument = nil
+		}
+		
+		if document.status == .running {
+			document.stopFromUI(force: false)
+		}
+		
+		dismiss()
 	}
 
 	func handleAppStateChangedNotification(_ newValue: Bool) {
