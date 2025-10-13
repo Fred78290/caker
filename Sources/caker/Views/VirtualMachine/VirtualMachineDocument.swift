@@ -149,6 +149,14 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		name
 	}
 
+	var isLaunchVMExternally: Bool {
+		guard let launchVMExternally = self.launchVMExternally else {
+			return AppState.shared.launchVMExternally
+		}
+		
+		return launchVMExternally
+	}
+
 	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
 	@Published var externalRunning: Bool = false
 	@Published var status: Status = .none
@@ -163,6 +171,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: ViewSize = .zero
+	@Published var launchVMExternally: Bool? = nil
 
 	init() {
 		self.virtualMachine = nil
@@ -283,7 +292,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 
-			if AppState.shared.launchVMExternally {
+			if self.isLaunchVMExternally {
 				self.setDocumentSize(self.getVncScreenSize())
 			} else {
 				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
@@ -386,7 +395,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			return
 		}
 
-		if AppState.shared.launchVMExternally {
+		if self.isLaunchVMExternally {
 			if let location {
 				do {
 					let config = try location.config()

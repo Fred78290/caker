@@ -93,6 +93,8 @@ struct HostVirtualMachineView: View {
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
 	@State var needsResize: Bool = false
+	@State var launchExternally: Bool = false
+
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
 	private let minSize: CGSize
@@ -199,6 +201,17 @@ struct HostVirtualMachineView: View {
 					}
 					
 					ToolbarItemGroup(placement: .primaryAction) {
+						Button("Run detached", systemImage: self.launchExternally ? "personalhotspot.slash" : "personalhotspot") {
+							self.launchExternally.toggle()
+							
+							if self.launchExternally == self.launchVMExternally {
+								document.launchVMExternally = nil
+							} else {
+								document.launchVMExternally = launchExternally
+							}
+						}
+						.help("Launch machine in detached mode")
+						Spacer()
 						Button(action: {
 							self.appState.isAgentInstalling = true
 							
@@ -456,7 +469,7 @@ struct HostVirtualMachineView: View {
 						}.pickerStyle(.segmented).labelsHidden()
 					}
 				}
-		} else if self.launchVMExternally {
+		} else if self.document.isLaunchVMExternally {
 			LabelView(self.vmStatus(), progress: self.document.status == .starting)
 		} else if document.virtualMachine != nil {
 			if self.document.status == .stopped {
