@@ -17,7 +17,7 @@ class CakerVZVirtualMachineView: VZVirtualMachineView {
 	init(document: VirtualMachineDocument) {
 		self.document = document
 
-		super.init()
+		super.init(frame: .zero)
 		self.virtualMachine = document.virtualMachine.getVM()
 
 		if #available(macOS 14.0, *) {
