@@ -17,8 +17,9 @@ class CakerVZVirtualMachineView: VZVirtualMachineView {
 	init(document: VirtualMachineDocument) {
 		self.document = document
 
-		super.init(frame: .zero)
+		super.init(frame: .init(origin: .zero, size: document.documentSize.cgSize))
 		self.virtualMachine = document.virtualMachine.getVM()
+		self.document.virtualMachine.vzMachineView = self
 
 		if #available(macOS 14.0, *) {
 			self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
@@ -54,5 +55,7 @@ struct InternalVirtualMachineView: NSViewRepresentable {
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
+		self.document.virtualMachine.vzMachineView = nsView
+		nsView.virtualMachine = self.document.virtualMachine.getVM()
 	}
 }
