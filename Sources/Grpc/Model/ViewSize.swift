@@ -8,7 +8,7 @@ import Foundation
 import ArgumentParser
 
 public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringConvertible, Hashable, Sendable {
-	public static let standard = VMScreenSize(width: 1920, height: 1080)
+	public static let standard = VMScreenSize(width: 1024, height: 768)
 
 	public var id: String {
 		self.description

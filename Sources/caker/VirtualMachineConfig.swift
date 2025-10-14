@@ -22,7 +22,7 @@ struct VirtualMachineConfig: Hashable {
 	var dynamicPortForwarding: Bool = false
 	var displayRefit: Bool = true
 	var nestedVirtualization: Bool = true
-	var display: VMScreenSize = VMScreenSize(width: 1920, height: 1080)
+	var display: VMScreenSize = .standard
 	var forwardPorts: [TunnelAttachement] = []
 	var sockets: [SocketDevice] = []
 	var networks: [BridgeAttachement] = []
@@ -54,7 +54,7 @@ struct VirtualMachineConfig: Hashable {
 		dynamicPortForwarding = false
 		displayRefit = true
 		nestedVirtualization = true
-		display = VMScreenSize(width: 1920, height: 1080)
+		display = .standard
 		forwardPorts = []
 		sockets = []
 		networks = []
