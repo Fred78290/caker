@@ -97,7 +97,6 @@ struct MainApp: App {
 
 		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
 			let document = file.document
-			let minSize = CGSize(width: 800, height: 600)
 
 			if file.document.loadVirtualMachine(from: file.fileURL!) {
 				HostVirtualMachineView(appState: $appState, document: document)
@@ -106,12 +105,11 @@ struct MainApp: App {
 					.windowFullScreenBehavior(.enabled)
 					.windowToolbarFullScreenVisibility(.automatic)
 					.restorationState(.disabled)
-					//.frame(size: document.documentSize.cgSize)
-					.frame("MainApp", minSize: minSize, idealSize: document.documentSize.cgSize)
+					.frame("MainApp", minSize: document.documentSize.cgSize, idealSize: document.documentSize.cgSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
 					.restorationState(.disabled)
-					.frame(size: minSize)
+					.frame(size: document.documentSize.cgSize)
 			}
 		}
 		.windowResizability(.contentSize)
