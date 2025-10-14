@@ -91,14 +91,15 @@ struct MainApp: App, VirtualMachineDelegate {
 			let idealHeight = CGFloat(display.height)
 
 			Group {
-				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, virtualMachine: MainApp.virtualMachine)
-				.onAppear {
-					NSWindow.allowsAutomaticWindowTabbing = false
-				}.onDisappear {
-					if kill(getpid(), SIGINT) != 0 {
-						NSApplication.shared.terminate(self)
+				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm)
+					.presentedWindowToolbarStyle(.unifiedCompact)
+					.onAppear {
+						NSWindow.allowsAutomaticWindowTabbing = false
+					}.onDisappear {
+						if kill(getpid(), SIGINT) != 0 {
+							NSApplication.shared.terminate(self)
+						}
 					}
-				}
 			}.toolbar {
 				ToolbarItemGroup(placement: .navigation) {
 					if self.appState.status == .running {
@@ -130,7 +131,10 @@ struct MainApp: App, VirtualMachineDelegate {
 			}.onChange(of: self.appState.status) { _, newValue in
 				Logger(self).info("New status: \(newValue)")
 			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
-		}.commands {
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.commands {
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})
 			CommandGroup(replacing: .pasteboard, addition: {})
