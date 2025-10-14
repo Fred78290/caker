@@ -309,24 +309,24 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	func isNotificationConcerned(_ notification: Notification) -> String? {
+	func isNotificationConcerned(_ notification: Notification) -> Bool {
 		guard let userInfos = notification.userInfo else {
-			return nil
+			return false
 		}
 
 		guard let document = userInfos["document"] as? String else {
-			return nil
+			return false
 		}
 		
 		guard document == self.document.name else {
-			return nil
+			return false
 		}
 
-		return document
+		return true
 	}
 
 	func handleVNCFramebufferSizeChangedNotification(_ notification: Notification) {
-		guard let _ = self.isNotificationConcerned(notification) else {
+		guard self.isNotificationConcerned(notification) else {
 			return
 		}
 
@@ -344,7 +344,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleStartVirtualMachineNotification(_ notification: Notification) {
-		guard let name = self.isNotificationConcerned(notification) else {
+		guard self.isNotificationConcerned(notification) else {
 			return
 		}
 
@@ -354,7 +354,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleDeleteVirtualMachineNotification(_ notification: Notification) {
-		guard let name = self.isNotificationConcerned(notification) else {
+		guard self.isNotificationConcerned(notification) else {
 			return
 		}
 
