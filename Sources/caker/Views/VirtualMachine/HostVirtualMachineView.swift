@@ -200,17 +200,19 @@ struct HostVirtualMachineView: View {
 					}
 					
 					ToolbarItemGroup(placement: .primaryAction) {
-						Button("Run detached", systemImage: self.launchExternally ? "personalhotspot.slash" : "personalhotspot") {
-							self.launchExternally.toggle()
-							
-							if self.launchExternally == self.launchVMExternally {
-								document.launchVMExternally = nil
-							} else {
-								document.launchVMExternally = launchExternally
+						if self.document.status == .stopped {
+							Button("Run detached", systemImage: self.launchExternally ? "personalhotspot.slash" : "personalhotspot") {
+								self.launchExternally.toggle()
+								
+								if self.launchExternally == self.launchVMExternally {
+									document.launchVMExternally = nil
+								} else {
+									document.launchVMExternally = launchExternally
+								}
 							}
+							.help("Launch machine in detached mode")
 						}
-						.help("Launch machine in detached mode")
-						Spacer()
+
 						Button(action: {
 							self.appState.isAgentInstalling = true
 							
