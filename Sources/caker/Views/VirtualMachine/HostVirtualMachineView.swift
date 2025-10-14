@@ -114,13 +114,12 @@ struct HostVirtualMachineView: View {
 					self.logger.info("\(self.id) Attaching window accessor: \(String(describing: $0))")
 
 					if let window = $0 {
-						window.minSize = CGSizeMake(800, 600)
-
 						if self.needsResize {
 							let size = self.document.documentSize.cgSize
 
 							DispatchQueue.main.async {
 								self.needsResize = false
+								window.minSize = CGSizeMake(800, 600)
 								self.setContentSize(size, animated: true)
 							}
 
