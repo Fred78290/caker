@@ -9,30 +9,21 @@ import Virtualization
 
 public struct VMView: NSViewRepresentable {
 	public typealias NSViewType = VZVirtualMachineView
-	public typealias CallbackWindow = (NSWindow?) -> Void
 
 	let automaticallyReconfiguresDisplay: Bool
 
 	@ObservedObject
 	public var vm: VirtualMachine
 	public var virtualMachine: VZVirtualMachine
-	var callback: CallbackWindow? = nil
 
-	public init(automaticallyReconfiguresDisplay: Bool = false, vm: VirtualMachine, virtualMachine: VZVirtualMachine, callback: CallbackWindow? = nil) {
+	public init(automaticallyReconfiguresDisplay: Bool = false, vm: VirtualMachine) {
 		self.automaticallyReconfiguresDisplay = automaticallyReconfiguresDisplay
 		self.vm = vm
-		self.virtualMachine = virtualMachine
-		self.callback = callback
+		self.virtualMachine = vm.getVM()
 	}
 
 	public func makeNSView(context: Context) -> NSViewType {
 		let machineView = VZVirtualMachineView()
-
-		if let callback = self.callback {
-			DispatchQueue.main.async { [weak machineView] in
-				callback(machineView?.window)
-			}
-		}
 
 		if #available(macOS 14.0, *) {
 			machineView.automaticallyReconfiguresDisplay = self.automaticallyReconfiguresDisplay

@@ -154,7 +154,6 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	private let document: VirtualMachineDocument
 	private var fontPickerDelegate: FontPickerDelegate!
 	private let dismiss: DismissAction
-	private let callback: VMView.CallbackWindow?
 	private let fontManager = NSFontManager.shared
 	private let terminalView: NSViewType
 
@@ -207,21 +206,14 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		}
 	}
 
-	init(document: VirtualMachineDocument, size: CGSize, dismiss: DismissAction, callback: VMView.CallbackWindow? = nil) {
+	init(document: VirtualMachineDocument, size: CGSize, dismiss: DismissAction) {
 		self.document = document
-		self.callback = callback
 		self.dismiss = dismiss
 		self.terminalView = NSViewType(document: document, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
 
 	func makeNSView(context: Context) -> NSViewType {
-		if let callback = self.callback {
-			DispatchQueue.main.async {
-				callback(self.terminalView.window)
-			}
-		}
-
 		return terminalView
 	}
 
