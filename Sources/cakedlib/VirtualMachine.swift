@@ -360,6 +360,16 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return u
 	}
 
+	public var vzMachineView: VZVirtualMachineView? {
+		get {
+			self.env.vzMachineView
+		}
+		
+		set {
+			self.env.vzMachineView = newValue
+		}
+	}
+
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: cdromURL,
