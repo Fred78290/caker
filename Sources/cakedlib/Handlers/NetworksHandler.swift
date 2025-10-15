@@ -288,7 +288,7 @@ public struct NetworksHandler {
 				throw ServiceError("Unable to create SCPreferences")
 			}
 
-			Logger(self).info("Set DHCP lease time to \(leaseTime) seconds")
+			Logger(self).debug("Set DHCP lease time to \(leaseTime) seconds")
 
 			let lease =
 				[
@@ -458,7 +458,7 @@ public struct NetworksHandler {
 		arguments.append("--pidfile=\(pidFile.path)")
 
 		runningArguments.append(contentsOf: arguments)
-		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+		Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
 		try? pidFile.delete()
 
@@ -467,7 +467,7 @@ public struct NetworksHandler {
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		process.terminationHandler = { process in
-			Logger(self).info("Process died: \(process.terminationStatus), \(process.terminationReason)")
+			Logger(self).debug("Process died: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
 		}
 
@@ -617,13 +617,13 @@ public struct NetworksHandler {
 
 		runningArguments.append(contentsOf: arguments)
 
-		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+		Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
 		process.environment = try Utilities.environment(runMode: runMode)
 		process.standardInput = FileHandle.nullDevice
 		process.terminationHandler = { process in
-			Logger(self).info("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
+			Logger(self).debug("Process terminated: \(process.terminationStatus), \(process.terminationReason)")
 			kill(getpid(), SIGUSR2)
 		}
 
@@ -732,7 +732,7 @@ public struct NetworksHandler {
 			throw ServiceError("Network \(networkName) already running \(socketURL.1.path)")
 		}
 
-		Logger(self).info("Start network: \(networkName) Using socket: \(socketURL.0.path)")
+		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.0.path)")
 
 		guard let executableURL = URL.binary(Home.cakedCommandName) else {
 			throw ServiceError("caked not found in path")
@@ -776,7 +776,7 @@ public struct NetworksHandler {
 
 		runningArguments.append(contentsOf: arguments)
 
-		Logger(self).info("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
+		Logger(self).debug("Running: \(process.executableURL!.path) \(runningArguments.joined(separator: " "))")
 
 		process.arguments = runningArguments
 		process.environment = try Utilities.environment(runMode: runMode)
@@ -899,7 +899,7 @@ public struct NetworksHandler {
 		}
 
 		guard pidURL.isCakedRunning() else {
-			Logger(self).info("PID \(pidURL.path) is not running")
+			Logger(self).debug("PID \(pidURL.path) is not running")
 			return "PID \(pidURL.path) is not running"
 		}
 
@@ -908,7 +908,7 @@ public struct NetworksHandler {
 			if pidURL.killPID(SIGTERM) < 0 {
 				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
 			} else {
-				Logger(self).info("PID \(pidURL.path) stopped")
+				Logger(self).debug("PID \(pidURL.path) stopped")
 			}
 		} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path)"], runMode: runMode).runAndWait() != 0 {
 			throw ServiceError("Failed to kill process \(pidURL.path)")

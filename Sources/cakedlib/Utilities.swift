@@ -244,7 +244,7 @@ extension URL: Purgeable {
 
 			if FileManager.default.fileExists(atPath: self.path) {
 				if self.isPIDRunning().0 {
-					Logger(self).info("PID file exists at \(self.path)")
+					Logger(self).debug("PID file exists at \(self.path)")
 					return
 				}
 

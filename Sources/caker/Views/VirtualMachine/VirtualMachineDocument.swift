@@ -214,7 +214,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func close() {
-		self.logger.info("Closing \(self.name)")
+		self.logger.debug("Closing \(self.name)")
 		self.virtualMachine = nil
 		self.inited = false
 		self.status = .none
@@ -272,16 +272,16 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
 		if self.documentSize != size {
-			self.logger.info("Setting document size to \(size.description) at \(_file):\(_line)")
+			self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
 
 			self.documentSize = size
-			self.virtualMachineConfig.display.width = Int(size.width)
-			self.virtualMachineConfig.display.height = Int(size.height)
+			//self.virtualMachineConfig.display.width = Int(size.width)
+			//self.virtualMachineConfig.display.height = Int(size.height)
 		}
 	}
 
 	func loadVirtualMachine(from location: VMLocation) -> URL? {
-		self.logger.info("Load VM from: \(location.rootURL)")
+		self.logger.debug("Load VM from: \(location.rootURL)")
 
 		do {
 			let config = try location.config()
@@ -413,7 +413,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 							let suspendable = config.suspendable
 
 							promise.futureResult.whenSuccess { _ in
-								self.logger.info("VM \(self.name) terminated")
+								self.logger.debug("VM \(self.name) terminated")
 
 								DispatchQueue.main.async {
 									self.setStateAsStopped()
@@ -436,8 +436,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: extras)
 							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
-							self.logger.info("VM started on \(runningIP)")
-							self.logger.info("Found VNC URL: \(String(describing: url))")
+							self.logger.debug("VM started on \(runningIP)")
+							self.logger.debug("Found VNC URL: \(String(describing: url))")
 
 							DispatchQueue.main.async {
 								self.setStateAsRunning(suspendable: suspendable, vncURL: url)
@@ -640,7 +640,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		self.logger.info("Setting screen size to \(size.description) at \(_file):\(_line)")
+		self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
 
 		if size.width == 0 && size.height == 0 {
 			return
@@ -654,7 +654,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		Task {
 			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
-			self.logger.info("Found VNC URL: \(String(describing: url))")
+			self.logger.debug("Found VNC URL: \(String(describing: url))")
 			
 			DispatchQueue.main.async {
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
@@ -697,7 +697,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			Task {
 				if Utilities.waitPortReady(host: vncHost, port: vncPort) {
 					connection.connect()
-					self.logger.info("Connected to: \(vncURL)...")
+					self.logger.debug("Connected to: \(vncURL)...")
 				}
 			}
 		}
@@ -766,17 +766,17 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		if self.vncStatus != .ready {
 			let size = ViewSize(size: framebuffer.cgSize)
 
-			self.logger.info("Connection create framebuffer size: \(size.description)")
+			self.logger.debug("Connection create framebuffer size: \(size.description)")
 
 			DispatchQueue.main.async {
-				self.logger.info("vnc ready")
+				self.logger.debug("vnc ready")
 				self.vncStatus = .ready
 			}
 		}
 	}
 	
 	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
-		self.logger.info("VNC framebuffer size changed: \(framebuffer.cgSize)")
+		self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
 
 		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
 			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)

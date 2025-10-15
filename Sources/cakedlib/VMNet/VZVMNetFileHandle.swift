@@ -39,14 +39,14 @@ public final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 			self.stopInterface()
 		}
 
-		self.logger.info("Will start pipe channel with fd=\(self.fileDescriptor)")
+		self.logger.debug("Will start pipe channel with fd=\(self.fileDescriptor)")
 
 		let promise = self.eventLoop.makePromise(of: Void.self)
 		let pipe = NIOPipeBootstrap(group: self.eventLoop)
 			.channelOption(.maxMessagesPerRead, value: 16)
 			.takingOwnershipOfDescriptor(inputOutput: self.fileDescriptor)
 			.flatMap { channel in
-				self.logger.info("Started pipe channel with fd=\(self.fileDescriptor)")
+				self.logger.debug("Started pipe channel with fd=\(self.fileDescriptor)")
 
 				self.serverChannel = channel
 
@@ -61,7 +61,7 @@ public final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		try self.pidFile.writePID()
 
 		promise.futureResult.whenComplete { _ in
-			self.logger.info("Pipe channel closed on fd=\(self.fileDescriptor)")
+			self.logger.debug("Pipe channel closed on fd=\(self.fileDescriptor)")
 		}
 
 		try promise.futureResult.wait()
@@ -71,10 +71,10 @@ public final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 		if let serverChannel = self.serverChannel {
 			let promise = self.eventLoop.makePromise(of: Void.self)
 
-			self.logger.info("Will stop pipe channel with fd=\(self.fileDescriptor)")
+			self.logger.debug("Will stop pipe channel with fd=\(self.fileDescriptor)")
 
 			promise.futureResult.whenComplete { _ in
-				self.logger.info("Pipe channel with fd=\(self.fileDescriptor) released on stop")
+				self.logger.debug("Pipe channel with fd=\(self.fileDescriptor) released on stop")
 			}
 
 			serverChannel.close(mode: .all, promise: promise)

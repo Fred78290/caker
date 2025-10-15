@@ -123,7 +123,7 @@ public class VZVMNet: @unchecked Sendable {
 	}
 
 	public func reconfigure(networkConfig: VZSharedNetwork) throws {
-		self.logger.info("Reconfiguring VMNet with new parameters")
+		self.logger.debug("Reconfiguring VMNet with new parameters")
 
 		self.networkConfig = networkConfig
 
@@ -136,7 +136,7 @@ public class VZVMNet: @unchecked Sendable {
 
 	internal func print_vmnet_start_param(params: xpc_object_t?, info: String = "settings") {
 		guard let params = params else {
-			self.logger.info("params not defined")
+			self.logger.debug("params not defined")
 			return
 		}
 
@@ -145,30 +145,30 @@ public class VZVMNet: @unchecked Sendable {
 			let key = String(cString: key)
 
 			if t == XPC_TYPE_UINT64 {
-				self.logger.info("\(info) \(key): \(xpc_dictionary_get_uint64(params, key))")
+				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_uint64(params, key))")
 			} else if t == XPC_TYPE_INT64 {
-				self.logger.info("\(info) \(key): \(xpc_dictionary_get_int64(params, key))")
+				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_int64(params, key))")
 			} else if t == XPC_TYPE_DOUBLE {
-				self.logger.info("\(info) \(key): \(xpc_dictionary_get_double(params, key))")
+				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_double(params, key))")
 			} else if t == XPC_TYPE_DATE {
-				self.logger.info("\(info) \(key): \(xpc_dictionary_get_date(params, key))")
+				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_date(params, key))")
 			} else if t == XPC_TYPE_BOOL {
-				self.logger.info("\(info) \(key): \(xpc_dictionary_get_bool(params, key))")
+				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_bool(params, key))")
 			} else if t == XPC_TYPE_STRING {
 				if let cstr = xpc_string_get_string_ptr(value) {
 					let value = String(cString: cstr)
 
-					self.logger.info("\(info) \(key): \(value)")
+					self.logger.debug("\(info) \(key): \(value)")
 				}
 			} else if t == XPC_TYPE_UUID {
 				UnsafeMutablePointer<Int8>.allocate(capacity: 37).withMemoryRebound(to: UInt8.self, capacity: 37) { uuid in
 					uuid_unparse(xpc_uuid_get_bytes(value), uuid)
 
 					let value = String(cString: uuid)
-					self.logger.info("\(info) \(key): \(value)")
+					self.logger.debug("\(info) \(key): \(value)")
 				}
 			} else {
-				self.logger.info("\(info) \(key): \(t)")
+				self.logger.debug("\(info) \(key): \(t)")
 			}
 
 			return true

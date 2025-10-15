@@ -56,7 +56,7 @@ struct VNCView: NSViewRepresentable {
 
 		self.document.vncView = view
 
-		self.logger.info("makeNSView: \(view.frame), \(framebuffer.cgSize)")
+		self.logger.debug("makeNSView: \(view.frame), \(framebuffer.cgSize)")
 
 		return view
 	}
@@ -64,14 +64,14 @@ struct VNCView: NSViewRepresentable {
 	/*func sizeThatFits(_ proposal: ProposedViewSize, nsView: Self.NSViewType, context: Self.Context) -> CGSize? {
 		if let framebuffer = self.document.connection.framebuffer {
 			if let width = proposal.width, let height = proposal.height {
-				self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame), \(framebuffer.cgSize)")
+				self.logger.debug("sizeThatFits: \(width)x\(height), \(nsView.frame), \(framebuffer.cgSize)")
 			}
 
 
 			return framebuffer.cgSize
 		} else {
 			if let width = proposal.width, let height = proposal.height {
-				self.logger.info("sizeThatFits: \(width)x\(height), \(nsView.frame)")
+				self.logger.debug("sizeThatFits: \(width)x\(height), \(nsView.frame)")
 			}
 		}
 		
@@ -81,9 +81,9 @@ struct VNCView: NSViewRepresentable {
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if nsView.isLiveViewResize == false {
 			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-				self.logger.info("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
+				self.logger.debug("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
 			} else {
-				self.logger.info("updateNSView: \(nsView.frame), framebuffer: nil")
+				self.logger.debug("updateNSView: \(nsView.frame), framebuffer: nil")
 			}
 		}
 	}

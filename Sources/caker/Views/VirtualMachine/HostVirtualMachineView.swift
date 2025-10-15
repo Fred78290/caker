@@ -10,7 +10,7 @@ import GRPCLib
 import SwiftUI
 
 func viewLog(_ text: String) -> some View {
-	Logger("View").info(text)
+	Logger("View").debug(text)
 
 	return EmptyView()
 }
@@ -47,13 +47,13 @@ extension View {
 	}
 
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
-		Logger(label).info("frame(minSize: \(minSize), idealSize: \(idealSize))")
+		Logger(label).debug("frame(minSize: \(minSize), idealSize: \(idealSize))")
 		
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
 	}
 	
 	func frame(_ label: String = "View", minSize: CGSize) -> some View {
-		Logger(label).info("frame(minSize: \(minSize)")
+		Logger(label).debug("frame(minSize: \(minSize)")
 
 		return frame(minWidth: minSize.width, maxWidth: .infinity, minHeight: minSize.height, maxHeight: .infinity)
 	}
@@ -112,7 +112,7 @@ struct HostVirtualMachineView: View {
 		GeometryReader { geom in
 			let view = vmView(geom.size)
 				.windowAccessor($window) {
-					self.logger.info("\(self.id) Attaching window accessor: \(String(describing: $0))")
+					self.logger.debug("\(self.id) Attaching window accessor: \(String(describing: $0))")
 
 					if let window = $0 {
 						if self.needsResize {
@@ -338,7 +338,7 @@ struct HostVirtualMachineView: View {
 		}
 
 		if let size = notification.object as? CGSize {
-			self.logger.info("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
+			self.logger.debug("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {

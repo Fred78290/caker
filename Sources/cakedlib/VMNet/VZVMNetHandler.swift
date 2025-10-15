@@ -89,7 +89,7 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 			var readableBytes = byteBuffer.readableBytes
 
 			if side == .host {
-				//Logger(self).info("available \(readableBytes) bytes")
+				//Logger(self).debug("available \(readableBytes) bytes")
 
 				while readableBytes > 0 {
 					guard let packetLen = byteBuffer.readInteger(endianness: .big, as: UInt32.self) else {
@@ -98,7 +98,7 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 					}
 
 					if let bufData = byteBuffer.readData(length: Int(packetLen)) {
-						//Logger(self).info("Readed \(packetLen) bytes")
+						//Logger(self).debug("Readed \(packetLen) bytes")
 						partner?.partnerWrite(NIOAny(ByteBuffer(data: bufData)))
 					} else {
 						Logger(self).error("Failed to read \(packetLen) bytes")
@@ -112,10 +112,10 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 					 }*/
 
 					readableBytes -= Int(packetLen) + MemoryLayout<UInt32>.size
-					//Logger(self).info("Remains \(readableBytes) bytes")
+					//Logger(self).debug("Remains \(readableBytes) bytes")
 				}
 
-				//Logger(self).info("Done reading")
+				//Logger(self).debug("Done reading")
 
 				/*				byteBuffer.withUnsafeMutableReadableBytes {
 				 	var baseAddress = $0.baseAddress!

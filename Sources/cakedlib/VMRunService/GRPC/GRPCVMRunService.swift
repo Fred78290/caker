@@ -230,17 +230,17 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	
 	func serve() {
 		Task {
-			self.logger.info("Start GRPC VMRunService server")
+			self.logger.debug("Start GRPC VMRunService server")
 			do {
 				self.server = try await self.createServer().get()
 			} catch {
-				Logger.appendNewLine("Failed to start GRPC VMRunService server: \(error)")
+				self.logger.error("Failed to start GRPC VMRunService server: \(error)")
 			}
 		}
 	}
 	
 	func stop() {
-		self.logger.info("Stop GRPC VMRunService server")
+		self.logger.debug("Stop GRPC VMRunService server")
 		
 		if let server = self.server {
 			try? server.close().wait()

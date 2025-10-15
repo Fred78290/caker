@@ -261,7 +261,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 		let reply: MountInfos
 
-		self.logger.info("XPC mount: \(String(describing: request))")
+		self.logger.debug("XPC mount: \(String(describing: request))")
 
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
@@ -285,7 +285,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 			result = ""
 		}
 
-		self.logger.info("Handling VNC URL request: \(result)")
+		self.logger.debug("Handling VNC URL request: \(result)")
 
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			self.logger.error("Failed to get proxy ReplyVMRunServiceProtocol")
@@ -300,7 +300,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func resizeScreen(width: Int, height: Int) {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 
-		self.logger.info("XPC setScreenSize: \(width)x\(height)")
+		self.logger.debug("XPC setScreenSize: \(width)x\(height)")
 
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
@@ -317,7 +317,7 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func getScreenSize() {
 		let proxyObject = self.connection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("XPC Error: \($0)") })
 
-		self.logger.info("XPC getScreenSize")
+		self.logger.debug("XPC getScreenSize")
 
 		guard let serviceReply = proxyObject as? ReplyVMRunServiceProtocol else {
 			Logger(self).error("Failed to get proxy ReplyVMRunServiceProtocol")
@@ -362,7 +362,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 	}
 
 	func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
-		Logger(self).info("XPC receive connection: \(String(describing: newConnection))")
+		Logger(self).debug("XPC receive connection: \(String(describing: newConnection))")
 
 		newConnection.exportedInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
 		newConnection.exportedObject = XPCVMRunService(group: self.group.next(), runMode: self.runMode, vm: self.vm, certLocation: self.certLocation, connection: newConnection, logger: Logger("XPCVMRunService"))
@@ -374,7 +374,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 
 	func serve() {
 		Task {
-			Logger(self).info("XPC start listening")
+			Logger(self).debug("XPC start listening")
 
 			listener.activate()
 
@@ -384,7 +384,7 @@ class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServer
 				Logger(self).error("Error: \(error)")
 			}
 
-			Logger(self).info("XPC end listening")
+			Logger(self).debug("XPC end listening")
 		}
 	}
 
@@ -512,20 +512,20 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 				throw ServiceError("Failed to connect to VMRunService")
 			}
 			
-			logger.info("Requesting VNC URL")
+			logger.debug("Requesting VNC URL")
 			
 			service.vncUrl()
 			
-			logger.info("Wait VNC URL reply")
+			logger.debug("Wait VNC URL reply")
 			
 			if let reply = replier.wait() {
 				if case let .vncURL(url) = reply {
-					logger.info("VNC URL reply: \(url)")
+					logger.debug("VNC URL reply: \(url)")
 					return URL(string: url)
 				}
 			}
 			
-			logger.info("Unexpected VNC URL reply")
+			logger.debug("Unexpected VNC URL reply")
 		}
 		
 		return nil

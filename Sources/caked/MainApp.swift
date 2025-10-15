@@ -129,7 +129,7 @@ struct MainApp: App, VirtualMachineDelegate {
 					.disabled(self.appState.isStopped)
 				}
 			}.onChange(of: self.appState.status) { _, newValue in
-				Logger(self).info("New status: \(newValue)")
+				Logger(self).debug("New status: \(newValue)")
 			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 		}
 		.windowResizability(.contentSize)
