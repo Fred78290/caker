@@ -576,12 +576,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func fileDidChanged(event: FileChangeEvent) {
-		guard let location = self.location, self.virtualMachine == nil else {
+		guard let location = self.location else {
 			return
 		}
 
 		let check: (URL) -> Void = { file in
-			if file == location.pidFile {
+			if file.absoluteURL.path == location.pidFile.absoluteURL.path {
 				DispatchQueue.main.async {
 					if file.isPIDRunning(Home.cakedCommandName) {
 						self.retrieveVNCURL()
