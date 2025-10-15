@@ -23,8 +23,8 @@ class NSVNCView: NSView {
 	private var didResizeFramebuffer: Bool = false
 	private var liveViewResize: Bool = false
 
-	private let checkVNCReconfigurationTimeoutPeriod: Double = 0.1
-	private var checkVNCReconfigurationTimeoutAttempts: Int = 5
+	private let checkVNCReconfigurationTimeoutPeriod: Double = 0.250
+	private var checkVNCReconfigurationTimeoutAttempts: Int = 20
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
 
 	var isLiveViewResize : Bool {
@@ -600,6 +600,8 @@ private extension NSVNCView {
 
 	func frameSizeDidChange(_ size: CGSize) {
 		if self.liveViewResize == false {
+			self.stopWaitVNCReconfiguration()
+
 			if let layer = layer {
 				if settings.isScalingEnabled {
 					layer.contentsGravity = .resizeAspect
