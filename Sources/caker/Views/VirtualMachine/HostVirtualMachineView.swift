@@ -104,6 +104,7 @@ struct HostVirtualMachineView: View {
 		self._appState = appState
 		self._document = StateObject(wrappedValue: document)
 		self.minSize = CGSize(width: 800, height: 600)
+		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 	}
 
@@ -154,6 +155,8 @@ struct HostVirtualMachineView: View {
 					handleVncStatusChangedNotification(newValue)
 				}.onChange(of: self.externalModeView) { _, newValue in
 					handleExternalModeChangedNotification(newValue)
+				}.onChange(of: self.launchVMExternally) { _, newValue in
+					self.launchExternally = self.document.isLaunchVMExternally
 				}.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
 						if document.status == .stopping {
@@ -201,16 +204,19 @@ struct HostVirtualMachineView: View {
 					
 					ToolbarItemGroup(placement: .primaryAction) {
 						if self.document.status == .stopped {
-							Button("Run detached", systemImage: self.launchExternally ? "personalhotspot.slash" : "personalhotspot") {
-								self.launchExternally.toggle()
-								
-								if self.launchExternally == self.launchVMExternally {
+							if self.launchExternally {
+								Button("Run hosted", systemImage: "personalhotspot.slash") {
+									launchExternally.toggle()
 									document.launchVMExternally = nil
-								} else {
-									document.launchVMExternally = launchExternally
 								}
+								.help("Launch machine in detached mode")
+							} else {
+								Button("Run detached", systemImage: "personalhotspot") {
+									launchExternally.toggle()
+									document.launchVMExternally = true
+								}
+								.help("Launch machine inside app")
 							}
-							.help("Launch machine in detached mode")
 						}
 
 						Button(action: {
