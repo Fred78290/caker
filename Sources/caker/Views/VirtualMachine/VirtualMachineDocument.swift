@@ -592,9 +592,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 
 		let check: (URL) -> Void = { file in
-			if file.absoluteURL.path == location.pidFile.absoluteURL.path {
+			if file.lastPathComponent == location.pidFile.lastPathComponent {
 				DispatchQueue.main.async {
-					if file.isPIDRunning(Home.cakedCommandName) {
+					if location.pidFile.isPIDRunning(Home.cakedCommandName) {
 						self.retrieveVNCURL()
 					} else {
 						self.setStateAsStopped()
