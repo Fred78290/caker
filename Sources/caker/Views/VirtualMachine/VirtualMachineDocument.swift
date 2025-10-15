@@ -443,9 +443,20 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 								self.setStateAsRunning(suspendable: suspendable, vncURL: url)
 							}
 						} catch {
-							DispatchQueue.main.async {
-								self.status = .stopped
-								alertError(error)
+							if location.pidFile.isPIDRunning(Home.cakedCommandName) == false {
+								DispatchQueue.main.async {
+									self.setStateAsStopped()
+									alertError(error)
+								}
+							} else if self.vncURL == nil {
+								let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+								DispatchQueue.main.async {
+									self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+								}
+							} else {
+								DispatchQueue.main.async {
+									self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: self.vncURL)
+								}
 							}
 						}
 					}
@@ -646,14 +657,13 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.info("Found VNC URL: \(String(describing: url))")
 			
 			DispatchQueue.main.async {
-				self.vncURL = url
+				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
 			}
 		}
 	}
 
 	func retrieveVNCURL() {
 		MainActor.assumeIsolated {
-			self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 			self.retrieveVNCURLAsync()
 		}
 	}
