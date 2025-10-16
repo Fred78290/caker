@@ -514,6 +514,12 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 	}
 
 	public func waitIP(on: EventLoop, config: CakeConfig, wait: Int, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+		if config.source == .iso && config.firstLaunch {
+			return on.submit {
+				try? self.waitIPWithLease(wait: wait, runMode: runMode)
+			}
+		}
+
 		if config.agent {
 			return try CakeAgentConnection.createCakeAgentConnection(on: on, listeningAddress: self.agentURL, timeout: wait, runMode: runMode).info().flatMap { response in
 				switch response {
