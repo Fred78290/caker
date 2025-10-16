@@ -652,12 +652,16 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 	func retrieveVNCURLAsync() {
 		Task {
-			let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
-
-			self.logger.debug("Found VNC URL: \(String(describing: url))")
-			
-			DispatchQueue.main.async {
-				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+			do {
+				if let url = try createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL() {
+					self.logger.info("Found VNC URL: \(url)")
+					
+					await self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+				} else {
+					await self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
+				}
+			} catch {
+				self.logger.error("Failed to retrieve VNC URL: \(error)")
 			}
 		}
 	}

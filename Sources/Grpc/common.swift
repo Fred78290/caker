@@ -371,3 +371,29 @@ extension FileManager {
 		}
 	}
 }
+
+extension NSView {
+	public func screenCoordinates() -> CGRect {
+		return self.window!.convertToScreen(self.convert(self.bounds, to: nil))
+	}
+
+	public func image() -> NSImage {
+		let imageRepresentation = bitmapImageRepForCachingDisplay(in: bounds)!
+		cacheDisplay(in: bounds, to: imageRepresentation)
+		return NSImage(cgImage: imageRepresentation.cgImage!, size: bounds.size)
+	}
+}
+
+extension NSWindow {
+	public func resizeContentView(to size: CGSize, animated: Bool) {
+		let titleBarHeight: CGFloat = self.frame.height - self.contentLayoutRect.height
+		var frame = self.frame
+
+		frame = self.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, size.width, size.height + titleBarHeight))
+		frame.origin.y += self.frame.size.height
+		frame.origin.y -= frame.size.height
+
+		self.setFrame(frame, display: true, animate: animated)
+	}
+}
+

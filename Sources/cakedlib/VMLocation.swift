@@ -53,6 +53,10 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		buildURL(cloudInitIso).absoluteURL
 	}
 
+	public var screenshotURL: URL {
+		buildURL("screenshot.png").absoluteURL
+	}
+
 	public var agentURL: URL {
 		return rootURL.resolvingSymlinksInPath().socketPath(name: "agent")
 	}

@@ -33,10 +33,10 @@ enum SelectedElement: Identifiable, Hashable, Equatable {
 }
 
 enum Category: Int, CaseIterable, Codable, Identifiable {
-	case images
-	case networks
-	case templates
 	case virtualMachine
+	case networks
+	case images
+	case templates
 
 	var id: Self { self }
 	var iconName: String {

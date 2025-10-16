@@ -9,6 +9,8 @@ import SwiftUI
 
 struct VMSettingsView: View {
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
+	@AppStorage("NoScreenshot") var isNoScreenshot = false
+	@AppStorage("NoSaveScreenshot") var isNoSaveScreenshot = false
 
 	var body: some View {
 		Form {
@@ -23,6 +25,27 @@ struct VMSettingsView: View {
 				}
 			}
 
+			Toggle(
+				isOn: $isNoScreenshot.inverted,
+				label: {
+					Text("Disable VM screenshoting")
+				}
+			).onChange(of: isNoScreenshot) { _, newValue in
+				if newValue {
+					isNoScreenshot = true
+				}
+			}
+
+			Toggle(
+				isOn: $isNoSaveScreenshot.inverted,
+				label: {
+					Text("Don't save VM screenshots")
+				}
+			).onChange(of: isNoSaveScreenshot) { _, newValue in
+				if newValue {
+					isNoSaveScreenshot = true
+				}
+			}
 		}.formStyle(.grouped)
     }
 }

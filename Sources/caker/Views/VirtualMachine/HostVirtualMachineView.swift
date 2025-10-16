@@ -15,31 +15,6 @@ func viewLog(_ text: String) -> some View {
 	return EmptyView()
 }
 
-extension NSView {
-	func screenCoordinates() -> CGRect {
-		return self.window!.convertToScreen(self.convert(self.bounds, to: nil))
-	}
-
-	func image() -> NSImage {
-		let imageRepresentation = bitmapImageRepForCachingDisplay(in: bounds)!
-		cacheDisplay(in: bounds, to: imageRepresentation)
-		return NSImage(cgImage: imageRepresentation.cgImage!, size: bounds.size)
-	}
-}
-
-extension NSWindow {
-	func resizeContentView(to size: CGSize, animated: Bool) {
-		let titleBarHeight: CGFloat = self.frame.height - self.contentLayoutRect.height
-		var frame = self.frame
-
-		frame = self.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, size.width, size.height + titleBarHeight))
-		frame.origin.y += self.frame.size.height
-		frame.origin.y -= frame.size.height
-
-		self.setFrame(frame, display: true, animate: animated)
-	}
-}
-
 extension View {
 	func log(_ label: String = "View", text: String) -> some View {
 		Logger(label).debug(text)

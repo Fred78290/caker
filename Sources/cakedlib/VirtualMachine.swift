@@ -7,6 +7,8 @@ import Virtualization
 import Socket
 import Shout
 
+private let kScreenshotPeriodSeconds = 60.0
+
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
 }
@@ -113,6 +115,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let runMode: Utils.RunMode
 	var vncServer: VNCServer? = nil
 	var vzMachineView: VZVirtualMachineView! = nil
+	var screenshot: NSImage? = nil
+	var timer: Timer? = nil
 
 	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
@@ -460,6 +464,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		switch result {
 		case .success:
 			Logger(self).info("VM \(self.location.name) started")
+			self.env.timer = self.startScreenshotTimer()
 			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
@@ -521,6 +526,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	private func _pauseVM(completionHandler: StartCompletionHandler? = nil) {
 		if self.virtualMachine.canPause {
+			try? self.saveScreenshot()
 			if #available(macOS 14, *) {
 				do {
 					try self.env.configuration.validateSaveRestoreSupport()
@@ -536,6 +542,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 							Logger(self).info("VM \(self.location.name) paused")
 
 							self.env.stopServices()
+
+							self.env.timer?.invalidate()
+							self.env.timer = nil
 
 							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
 								if let error = result {
@@ -569,6 +578,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						Logger(self).info("VM \(self.location.name) paused")
 
 						self.env.stopServices()
+
+						self.env.timer?.invalidate()
+						self.env.timer = nil
 					}
 
 					if let completionHandler = completionHandler {
@@ -600,6 +612,8 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	private func _stopVM(completionHandler: StopCompletionHandler? = nil) {
+		try? self.saveScreenshot()
+
 		self.virtualMachine.stop { error in
 			if let error = error {
 				Logger(self).error("VM \(self.location.name) failed to stop, \(error)")
@@ -610,6 +624,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			}
 
 			self.env.stopServices()
+
+			self.env.timer?.invalidate()
+			self.env.timer = nil
 
 			if let completionHandler = completionHandler {
 				completionHandler(error)
@@ -913,5 +930,78 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				delegate.didChangedState(self)
 			}
 		}
+	}
+}
+
+extension VirtualMachine {
+	nonisolated var isScreenshotEnabled: Bool {
+		!UserDefaults.standard.bool(forKey: "NoScreenshot")
+	}
+
+	nonisolated private var isScreenshotSaveEnabled: Bool {
+		isScreenshotEnabled && !UserDefaults.standard.bool(forKey: "NoSaveScreenshot")
+	}
+		
+	func startScreenshotTimer() -> Timer {
+		if !isScreenshotSaveEnabled {
+			try? deleteScreenshot()
+		}
+
+		let timer = Timer(timeInterval: kScreenshotPeriodSeconds, repeats: true) { [weak self] timer in
+			guard let self = self else {
+				timer.invalidate()
+				return
+			}
+
+			guard self.isScreenshotEnabled else {
+				return
+			}
+
+			if self.status == .running {
+				Task { @MainActor in
+					await self.takeScreenshot()
+				}
+			}
+		}
+
+		RunLoop.main.add(timer, forMode: .default)
+
+		return timer
+	}
+	
+	func saveScreenshot() throws {
+		guard isScreenshotSaveEnabled else {
+			return
+		}
+
+		guard let screenshot = self.env.screenshot else {
+			return
+		}
+
+		try screenshot.pngData?.write(to: self.location.screenshotURL)
+	}
+	
+	func deleteScreenshot() throws {
+		try self.location.screenshotURL.delete()
+	}
+	
+	@MainActor func takeScreenshot() async {
+		if let vzMachineView = self.env.vzMachineView {
+			self.env.screenshot = vzMachineView.image()
+		}
+	}
+}
+
+extension NSImage {
+	var pngData: Data? {
+		guard let cgref = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+			return nil
+		}
+
+		let newrep = NSBitmapImageRep(cgImage: cgref)
+
+		newrep.size = self.size
+
+		return newrep.representation(using: .png, properties: [:])
 	}
 }
