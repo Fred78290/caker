@@ -991,3 +991,17 @@ extension VirtualMachine {
 		}
 	}
 }
+
+extension VirtualMachine {
+	func mountShares(config: CakeConfig) throws -> Bool {
+		guard let sharedDevices: VZVirtioFileSystemDevice = self.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
+			return false
+		}
+
+		self.vmQueue.async {
+			sharedDevices.share = config.mounts.multipleDirectoryShares
+		}
+		
+		return true
+	}
+}
