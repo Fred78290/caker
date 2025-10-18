@@ -83,7 +83,7 @@ struct HostVirtualMachineView: View {
 		self.minSize = CGSize(width: 800, height: 600)
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
-		self.documentSize = document.documentSize
+		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 	}
 
 	var body: some View {
@@ -97,8 +97,6 @@ struct HostVirtualMachineView: View {
 							let size = self.document.documentSize.cgSize
 
 							DispatchQueue.main.async {
-								self.needsResize = false
-								window.minSize = CGSizeMake(800, 600)
 								self.setContentSize(size, animated: true)
 							}
 
@@ -239,7 +237,9 @@ struct HostVirtualMachineView: View {
 				}.onGeometryChange(for: CGRect.self) { proxy in
 					proxy.frame(in: .global)
 				} action: { newValue in
-					self.setDocumentSize(newValue.size)
+					if needsResize == false && window != nil {
+						self.setDocumentSize(newValue.size)
+					}
 				}
 
 			if #available(macOS 15.0, *) {
@@ -250,6 +250,9 @@ struct HostVirtualMachineView: View {
 
 	func setContentSize(_ size: CGSize, animated: Bool) {
 		if let window = self.window {
+			self.logger.debug("\(self.id) Resize window: \(size)")
+			self.needsResize = false
+
 			let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
 			var frame = window.frame
 
