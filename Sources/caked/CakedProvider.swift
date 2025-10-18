@@ -72,7 +72,7 @@ extension Caked_MountRequest: CreateCakedCommand {
 		return MountHandler(request: self)
 	}
 
-	func directorySharingAttachment() -> [DirectorySharingAttachment] {
+	func directorySharingAttachment() -> DirectorySharingAttachments {
 		return self.mounts.map { mount in
 			DirectorySharingAttachment(
 				source: mount.source,

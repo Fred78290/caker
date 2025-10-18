@@ -9,7 +9,7 @@ import GRPCLib
 import SwiftUI
 
 struct MountView: View {
-	@Binding var mounts: [DirectorySharingAttachment]
+	@Binding var mounts: DirectorySharingAttachments
 	@Binding var disabled: Bool
 	@State private var selection: DirectorySharingAttachment.ID? = nil
 

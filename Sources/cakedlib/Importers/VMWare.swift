@@ -166,8 +166,8 @@ struct VMXMap: Sendable {
 		return 512 * 1024 * 1024  // Default to 512 MB
 	}
 
-	var sharedFolders: [DirectorySharingAttachment] {
-		var sharedFolders: [DirectorySharingAttachment] = []
+	var sharedFolders: DirectorySharingAttachments {
+		var sharedFolders: DirectorySharingAttachments = []
 
 		guard let maxNum = Int(values["sharedFolder.maxNum".lowercased()] ?? "0") else {
 			return sharedFolders

@@ -272,7 +272,7 @@ public final class CakeConfig {
 		}
 	}
 
-	public var mounts: [DirectorySharingAttachment] {
+	public var mounts: DirectorySharingAttachments {
 		set { self.cake["mounts"] = newValue.map { $0.description } }
 		get {
 			guard let mounts: [String] = self.cake["mounts"] as? [String] else {
@@ -661,7 +661,7 @@ extension CakeConfig {
 		return nil
 	}
 
-	public func validAttachements(_ values: [DirectorySharingAttachment]) -> [DirectorySharingAttachment] {
+	public func validAttachements(_ values: DirectorySharingAttachments) -> DirectorySharingAttachments {
 		return self.mounts.compactMap { attachemnt in
 			let description = attachemnt.description
 
@@ -669,7 +669,7 @@ extension CakeConfig {
 		}
 	}
 
-	public func newAttachements(_ values: [DirectorySharingAttachment]) -> [DirectorySharingAttachment] {
+	public func newAttachements(_ values: DirectorySharingAttachments) -> DirectorySharingAttachments {
 		let mounts = self.mounts
 
 		return values.compactMap { attachemnt in

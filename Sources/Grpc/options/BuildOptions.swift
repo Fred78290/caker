@@ -72,7 +72,7 @@ public struct BuildOptions: ParsableArguments {
 	public var forwardedPorts: [TunnelAttachement] = []
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
-	public var mounts: [DirectorySharingAttachment] = []
+	public var mounts: DirectorySharingAttachments = []
 
 	@Option(name: [.customLong("network"), .customShort("n")], help: ArgumentHelp("Add a network interface to the instance", discussion: network_help, valueName: "spec"))
 	public var networks: [BridgeAttachement] = []
@@ -116,7 +116,7 @@ public struct BuildOptions: ParsableArguments {
 		networkConfig: String? = nil,
 		displayRefit: Bool = true,
 		forwardedPorts: [TunnelAttachement] = [],
-		mounts: [DirectorySharingAttachment] = ["~"].compactMap { DirectorySharingAttachment(argument: $0) },
+		mounts: DirectorySharingAttachments = ["~"].compactMap { DirectorySharingAttachment(argument: $0) },
 		networks: [BridgeAttachement] = [],
 		sockets: [SocketDevice] = [],
 		consoleURL: ConsoleAttachment? = nil,

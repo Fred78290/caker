@@ -8,7 +8,7 @@ public struct UmountOptions: ParsableArguments {
 	public var name: String = ""
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Give host path to umount", discussion: "Remove directory shares. If omitted all mounts will be removed from the named vm"))
-	public var mounts: [DirectorySharingAttachment] = []
+	public var mounts: DirectorySharingAttachments = []
 
 	public init() {
 	}

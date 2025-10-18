@@ -222,7 +222,7 @@ struct MultipassInstance: Codable, Sendable {
 		}
 	}
 
-	var sharedFolders: [DirectorySharingAttachment] {
+	var sharedFolders: DirectorySharingAttachments {
 		guard let mounts = self.mounts else {
 			return []
 		}

@@ -8,7 +8,7 @@ public struct MountOptions: ParsableArguments {
 	public var name: String = ""
 
 	@Option(name: [.customLong("mount"), .customShort("v")], help: ArgumentHelp("Additional directory shares", discussion: mount_help))
-	public var mounts: [DirectorySharingAttachment] = []
+	public var mounts: DirectorySharingAttachments = []
 
 	public init() {
 	}

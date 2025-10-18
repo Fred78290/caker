@@ -202,7 +202,7 @@ struct MountRequest: Codable {
 		self.mounts = mounts
 	}
 
-	init(_ attachements: [DirectorySharingAttachment]) {
+	init(_ attachements: DirectorySharingAttachments) {
 		self.mounts = attachements.map {
 			XPCMountVirtioFS(attachment: $0)
 		}

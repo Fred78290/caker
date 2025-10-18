@@ -78,7 +78,7 @@ extension Vmrun_MountReply {
 }
 
 extension Vmrun_MountRequest {
-	init(_ command: Vmrun_MountCommand, attachments: [DirectorySharingAttachment]) {
+	init(_ command: Vmrun_MountCommand, attachments: DirectorySharingAttachments) {
 		self.command = command
 		self.mounts = attachments.map {
 			$0.toMountVirtioFS()
@@ -177,11 +177,11 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		return nil
 	}
 	
-	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.wait().toMountInfos()
 	}
 	
-	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos {
+	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.wait().toMountInfos()
 	}
 	

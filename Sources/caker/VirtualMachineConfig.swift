@@ -27,7 +27,7 @@ struct VirtualMachineConfig: Hashable {
 	var sockets: [SocketDevice] = []
 	var networks: [BridgeAttachement] = []
 	var attachedDisks: [DiskAttachement] = []
-	var mounts: [DirectorySharingAttachment] = []
+	var mounts: DirectorySharingAttachments = []
 	var vmname: String! = nil
 
 	var imageName: String

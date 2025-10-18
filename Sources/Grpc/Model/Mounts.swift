@@ -119,7 +119,7 @@ public struct MountInfos: Codable {
 		self = try! decoder.decode(Self.self, from: fromJSON.data(using: .utf8)!)
 	}
 
-	public func withDirectorySharingAttachment(directorySharingAttachment: [DirectorySharingAttachment]) -> MountInfos {
+	public func withDirectorySharingAttachment(directorySharingAttachment: DirectorySharingAttachments) -> MountInfos {
 		MountInfos.with {
 			$0.mounts = self.mounts.map { mount in
 				if let attachement = directorySharingAttachment.first(where: { attachement in attachement.name == mount.name }) {

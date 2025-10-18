@@ -187,7 +187,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		return socket.compactMap { SocketDevice(argument: $0) }
 	}
 
-	public var mounts: [DirectorySharingAttachment]? {
+	public var mounts: DirectorySharingAttachments? {
 		if mount.contains("unset") {
 			return nil
 		}
