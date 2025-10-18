@@ -292,7 +292,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 
-			if self.isLaunchVMExternally {
+			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
 			} else {
 				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
@@ -628,10 +628,8 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	func getVncScreenSize() -> ViewSize {
 		var screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
 		
-		if self.externalRunning && self.status == .running {
-			if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
-				screenSize = ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
-			}
+		if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
+			screenSize = ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
 		}
 
 		self.logger.debug("getVncScreenSize: \(screenSize.description)")
@@ -668,7 +666,17 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 	func retrieveVNCURL() {
 		MainActor.assumeIsolated {
-			self.retrieveVNCURLAsync()
+			do {
+				if let url = try createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL() {
+					self.logger.info("Found VNC URL: \(url)")
+					
+					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+				} else {
+					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
+				}
+			} catch {
+				self.logger.error("Failed to retrieve VNC URL: \(error)")
+			}
 		}
 	}
 
