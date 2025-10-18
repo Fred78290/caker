@@ -6,6 +6,7 @@ import Semaphore
 import Virtualization
 import Socket
 import Shout
+import CakeAgentLib
 
 private let kScreenshotPeriodSeconds = 60.0
 
