@@ -991,17 +991,3 @@ extension VirtualMachine {
 		}
 	}
 }
-
-extension NSImage {
-	var pngData: Data? {
-		guard let cgref = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-			return nil
-		}
-
-		let newrep = NSBitmapImageRep(cgImage: cgref)
-
-		newrep.size = self.size
-
-		return newrep.representation(using: .png, properties: [:])
-	}
-}

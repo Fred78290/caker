@@ -397,3 +397,51 @@ extension NSWindow {
 	}
 }
 
+extension NSImage {
+	public var pngData: Data? {
+		guard let cgref = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+			return nil
+		}
+
+		let newrep = NSBitmapImageRep(cgImage: cgref)
+		newrep.size = self.size
+		return newrep.representation(using: .png, properties: [:])
+	}
+
+	public var cgImage: CGImage? {
+		return self.cgImage(forProposedRect: nil, context: nil, hints: nil)
+	}
+
+	public func blurred(radius: CGFloat = 10.0) -> NSImage? {
+		guard let cgImage = self.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+			return nil
+		}
+
+		let ciImage = CIImage(cgImage: cgImage)
+		let filter = CIFilter(name: "CIGaussianBlur")
+
+		filter?.setValue(ciImage, forKey: kCIInputImageKey)
+		filter?.setValue(radius, forKey: kCIInputRadiusKey)
+
+		guard let outputImage = filter?.outputImage else {
+			return nil
+		}
+
+		let ciContext = CIContext()
+		let rect = CGRect(origin: .zero, size: self.size)
+
+		guard let cgBlurred = ciContext.createCGImage(outputImage, from: rect) else {
+			return nil
+		}
+
+		let blurredImage = NSImage(size: self.size)
+
+		blurredImage.lockFocus()
+
+		NSGraphicsContext.current?.cgContext.draw(cgBlurred, in: rect)
+
+		blurredImage.unlockFocus()
+
+		return blurredImage
+	}
+}
