@@ -146,6 +146,9 @@ class NSVNCView: NSView {
 	public override func viewWillStartLiveResize() {
 		self.liveViewResize = true
 		self.layer?.contentsGravity = .resize
+		if let blurred = self.image().blurred() {
+			self.updateImage(blurred.cgImage, animated: true, duration: 0.2)
+		}
 	}
 
 	override func viewDidEndLiveResize() {
@@ -576,24 +579,30 @@ private extension NSVNCView {
 		}
 	}
 
+	func updateImage(_ image: CGImage?, animated: Bool, duration: CGFloat = 0.5) {
+		if let layer {
+			if animated {
+				let transition = CATransition()
+
+				transition.duration = duration
+				transition.type = .fade
+
+				CATransaction.setDisableActions(true)
+
+				layer.contents = image
+				layer.add(transition, forKey: nil)
+			} else {
+				layer.contents = image
+			}
+		}
+	}
+
 	func updateImage(_ image: CGImage?, animated: Bool) {
 		didResizeFramebuffer = false
 
 		DispatchQueue.main.async { [weak self] in
-			if let self, let layer {
-				if animated {
-					let transition = CATransition()
-
-					transition.duration = 0.5
-					transition.type = .fade
-
-					CATransaction.setDisableActions(true)
-
-					layer.contents = image
-					layer.add(transition, forKey: nil)
-				} else {
-					layer.contents = image
-				}
+			if let self {
+				self.updateImage(image, animated: animated, duration: 0.5)
 			}
 		}
 	}
