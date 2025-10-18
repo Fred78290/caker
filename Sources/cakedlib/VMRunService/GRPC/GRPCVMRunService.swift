@@ -9,26 +9,9 @@ import Semaphore
 import SwiftASN1
 import X509
 
-extension CakeAgent.MountReply {
+extension Caked.Reply {
 	func toCaked() -> Vmrun_MountReply {
-		Vmrun_MountReply.with { mountReply in
-			if case let .error(value) = self.response {
-				mountReply.error = value
-			} else if case let .success(value) = self.response {
-				mountReply.success = value
-			}
-
-			mountReply.mounts = self.mounts.map { mountVirtioFSReply in
-				Vmrun_MountVirtioFSReply.with {
-					$0.name = mountVirtioFSReply.name
-					if case let .error(value) = mountVirtioFSReply.response {
-						$0.error = value
-					} else if case let .success(value) = mountVirtioFSReply.response {
-						$0.success = value
-					}
-				}
-			}
-		}
+		.init(self)
 	}
 }
 
@@ -85,16 +68,15 @@ extension Vmrun_MountRequest {
 		}
 	}
 
-	func toCakeAgent() -> CakeAgent.MountRequest {
-		CakeAgent.MountRequest.with {
+	func toCaked() -> Caked.MountRequest {
+		Caked.MountRequest.with {
 			$0.mounts = self.mounts.map { mount in
-				CakeAgent.MountRequest.MountVirtioFS.with {
+				Caked.MountRequest.MountVirtioFS.with {
 					$0.name = mount.name
 					$0.target = mount.target
 					$0.uid = Int32(mount.uid)
 					$0.gid = Int32(mount.gid)
 					$0.readonly = mount.readonly
-					$0.early = true
 				}
 			}
 		}
@@ -102,15 +84,15 @@ extension Vmrun_MountRequest {
 }
 
 extension Vmrun_MountReply {
-	init(_ from: CakeAgent.MountReply) {
+	init(_ from: Caked.Reply) {
 		self = Vmrun_MountReply.with { mountReply in
 			if case let .error(value) = from.response {
-				mountReply.error = value
-			} else if case let .success(value) = from.response {
-				mountReply.success = value
+				mountReply.response = .error(value.reason)
+			} else {
+				mountReply.response = .success(true)
 			}
 
-			mountReply.mounts = from.mounts.map { mountVirtioFSReply in
+			mountReply.mounts = from.mounts.mounts.map { mountVirtioFSReply in
 				Vmrun_MountVirtioFSReply.with {
 					$0.name = mountVirtioFSReply.name
 					if case let .error(value) = mountVirtioFSReply.response {
@@ -126,7 +108,8 @@ extension Vmrun_MountReply {
 
 class GRPCVMRunServiceClient: VMRunServiceClient {
 	let client: Vmrun_ServiceNIOClient
-	
+	let location: VMLocation
+
 	public static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> GRPCVMRunServiceClient {
 		
 		let listeningAddress = location.serviceURL
@@ -160,10 +143,11 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout)
 		}
 		
-		return GRPCVMRunServiceClient(client: Vmrun_ServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration)))
+		return GRPCVMRunServiceClient(location: location, client: Vmrun_ServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration)))
 	}
 	
-	private init(client: Vmrun_ServiceNIOClient) {
+	private init(location: VMLocation, client: Vmrun_ServiceNIOClient) {
+		self.location = location
 		self.client = client
 	}
 	
@@ -258,11 +242,11 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	}
 	
 	func mount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
-		return self.mount(request: request.toCakeAgent(), umount: false).toCaked()
+		return self.mount(request: request.toCaked(), umount: false).toCaked()
 	}
 	
 	func umount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
-		return self.mount(request: request.toCakeAgent(), umount: true).toCaked()
+		return self.mount(request: request.toCaked(), umount: true).toCaked()
 	}
 	
 	func setScreenSize(request: Vmrun_ScreenSize, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {

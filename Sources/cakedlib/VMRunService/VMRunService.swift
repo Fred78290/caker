@@ -7,11 +7,72 @@ import Virtualization
 import ArgumentParser
 
 public protocol VMRunServiceClient {
+	var location: VMLocation { get }
+
 	func vncURL() throws -> URL?
 	func setScreenSize(width: Int, height: Int) throws
 	func getScreenSize() throws -> (Int, Int)
-	func mount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
-	func umount(mounts: [DirectorySharingAttachment]) throws -> MountInfos
+	func share(mounts: DirectorySharingAttachments) throws -> MountInfos
+	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos
+}
+
+extension VMRunServiceClient {
+	public func mount(mounts: DirectorySharingAttachments) throws -> MountInfos {
+		let config: CakeConfig = try location.config()
+		let valided = config.newAttachements(mounts)
+
+		if valided.isEmpty == false {
+			var directorySharingAttachments = config.mounts
+			
+			valided.forEach { mount in
+				directorySharingAttachments.removeAll { $0.name == mount.name }
+				directorySharingAttachments.append(mount)
+			}
+			
+			config.mounts = directorySharingAttachments
+			try config.save()
+			
+			if location.status == .running {
+				return try self.share(mounts: valided)
+			} else {
+				return MountInfos.with {
+					$0.response = .error("VM is not running")
+				}
+			}
+		}
+
+		return MountInfos.with {
+			$0.response = .error("No new mounts")
+		}
+	}
+
+	func umount(mounts: DirectorySharingAttachments) throws -> MountInfos {
+		let config: CakeConfig = try location.config()
+		let valided = config.validAttachements(mounts)
+		
+		if valided.isEmpty == false {
+			var directorySharingAttachments = config.mounts
+			
+			valided.forEach { mount in
+				directorySharingAttachments.removeAll { $0.name == mount.name }
+			}
+			
+			config.mounts = directorySharingAttachments
+			try config.save()
+			
+			if location.status == .running {
+				return try self.unshare(mounts: valided)
+			} else {
+				return MountInfos.with {
+					$0.response = .error("VM is not running")
+				}
+			}
+		}
+
+		return MountInfos.with {
+			$0.response = .error("No umounts")
+		}
+	}
 }
 
 protocol VMRunServiceServerProtocol {
@@ -58,49 +119,92 @@ class VMRunService: NSObject {
 			retries: retries)
 	}
 	
-	func mount(request: CakeAgent.MountRequest, umount: Bool) -> CakeAgent.MountReply {
+	func mount(request: Caked.MountRequest, umount: Bool) -> Caked.Reply {
 		guard request.mounts.isEmpty == false else {
-			return CakeAgent.MountReply.with {
-				$0.response = .error("No mounts")
+			return Caked.Reply.with {
+				$0.error = .with {
+					$0.reason = "No mounts specified"
+				}
 			}
 		}
 		
 		do {
 			let config: CakeConfig = try vm.location.config()
-			
+
 			if config.os == .darwin {
-				guard let sharedDevices: VZVirtioFileSystemDevice = vm.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
-					return CakeAgent.MountReply.with {
-						$0.response = .error("No shared devices")
+				guard try vm.mountShares(config: config) else {
+					return Caked.Reply.with {
+						$0.error = .with {
+							$0.reason = "No shared devices"
+						}
 					}
 				}
 				
-				DispatchQueue.main.sync {
-					sharedDevices.share = config.mounts.multipleDirectoryShares
+				return Caked.Reply.with {
+					$0.response = .mounts(.with {
+						$0.response = .success(true)
+						$0.mounts = request.mounts.map { mount in
+							.with {
+								 $0.name = mount.name
+								 $0.response = .success(true)
+							}
+						}
+					})
 				}
-				
-				return CakeAgent.MountReply.with {
-					$0.response = .success(true)
-					$0.mounts = request.mounts.map { mount in
-						CakeAgent.MountReply.MountVirtioFSReply.with {
+			}
+			
+			let reply: CakeAgent.MountReply
+			let conn = try self.createCakeAgentConnection()
+			let request = CakeAgent.MountRequest.with {
+				$0.mounts = request.mounts.map { mount in
+					.with {
+						if mount.hasName {
 							$0.name = mount.name
-							$0.response = .success(true)
+						}
+						
+						if mount.hasTarget {
+							$0.target = mount.target
+						}
+						
+						if mount.hasUid {
+							$0.uid = mount.uid
+						}
+						
+						if mount.hasGid {
+							$0.gid = mount.gid
 						}
 					}
 				}
 			}
-			
-			let conn = try self.createCakeAgentConnection()
-			
+
 			if umount {
-				return try conn.umount(request: request)
+				reply = try conn.umount(request: request)
 			} else {
-				return try conn.mount(request: request)
+				reply = try conn.mount(request: request)
 			}
-			
+
+			return Caked.Reply.with {
+				if case let .error(value) = reply.response {
+					$0.error = .with {
+						$0.reason = value
+					}
+				} else {
+					$0.response = .mounts(.with {
+						$0.response = .success(true)
+						$0.mounts = request.mounts.map { mount in
+								.with {
+									$0.name = mount.name
+									$0.response = .success(true)
+								}
+						}
+					})
+				}
+			}
 		} catch {
-			return CakeAgent.MountReply.with {
-				$0.response = .error(error.localizedDescription)
+			return Caked.Reply.with {
+				$0.error = .with {
+					$0.reason = error.localizedDescription
+				}
 			}
 		}
 	}
