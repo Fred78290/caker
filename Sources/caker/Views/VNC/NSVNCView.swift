@@ -652,6 +652,7 @@ extension NSVNCView {
 extension NSVNCView {
 	func startWaitVNCReconfiguration() {
 		cancelWaitVNCReconfiguration?.cancel()
+		checkVNCReconfigurationTimeoutAttempts = 20
 		cancelWaitVNCReconfiguration = DispatchWorkItem { [weak self] in
 			guard let self = self else {
 				return

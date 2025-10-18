@@ -671,6 +671,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 					self.logger.info("Found VNC URL: \(url)")
 					
 					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+					self.tryVNCConnect()
 				} else {
 					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 				}
@@ -714,7 +715,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			}
 		}
 	}
-
+	
 	func connection(_ connection: VNCConnection, stateDidChange connectionState: VNCConnection.ConnectionState) {
 		self.logger.debug("Connection state changed to \(connectionState.status.description)")
 
