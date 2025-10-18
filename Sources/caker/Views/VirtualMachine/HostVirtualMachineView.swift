@@ -67,6 +67,8 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
+	@State var documentSize: ViewSize
+	@State var liveResizeWindow: Bool = false
 	@State var needsResize: Bool = false
 	@State var launchExternally: Bool = false
 
@@ -81,6 +83,7 @@ struct HostVirtualMachineView: View {
 		self.minSize = CGSize(width: 800, height: 600)
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
+		self.documentSize = document.documentSize
 	}
 
 	var body: some View {
@@ -112,6 +115,10 @@ struct HostVirtualMachineView: View {
 					handleAppear()
 				}.onDisappear {
 					handleDisappear()
+				}.onReceive(NSWindow.willStartLiveResizeNotification) { notification in
+					handleStartLiveResizeNotification(notification)
+				}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
+					handleDidResizeNotification(notification)
 				}.onReceive(NSWindow.willCloseNotification) { notification in
 					handleWillCloseNotification(notification)
 				}.onReceive(VirtualMachineDocument.VNCFramebufferSizeChanged) { notification in
@@ -229,6 +236,10 @@ struct HostVirtualMachineView: View {
 					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView(appState: $appState)
+				}.onGeometryChange(for: CGRect.self) { proxy in
+					proxy.frame(in: .global)
+				} action: { newValue in
+					self.setDocumentSize(newValue.size)
 				}
 
 			if #available(macOS 15.0, *) {
@@ -249,6 +260,16 @@ struct HostVirtualMachineView: View {
 			if frame != window.frame {
 				window.setFrame(frame, display: true, animate: animated)
 			}
+		}
+	}
+
+	func setDocumentSize(_ size: CGSize) {
+		self.documentSize.cgSize = size
+
+		if self.liveResizeWindow == false {
+			Logger(self).info("onGeometryChange: \(size), window: \(String(describing: window))")
+
+			self.document.setDocumentSize(self.documentSize)
 		}
 	}
 
@@ -274,6 +295,26 @@ struct HostVirtualMachineView: View {
 	func handleDisappear() {
 		if self.appState.currentDocument == self.document {
 			self.appState.currentDocument = nil
+		}
+	}
+
+	func handleStartLiveResizeNotification(_ notification: Notification) {
+		if isMyWindowKey(notification) {
+			self.logger.debug("handleStartLiveResizeNotification: \(notification)")
+
+			self.liveResizeWindow = true
+		}
+	}
+
+	func handleDidResizeNotification(_ notification: Notification) {
+		if isMyWindowKey(notification) {
+			self.logger.debug("handleDidResizeNotification: \(notification)")
+
+			if self.liveResizeWindow {
+				self.liveResizeWindow = false
+
+				self.document.setDocumentSize(self.documentSize)
+			}
 		}
 	}
 
