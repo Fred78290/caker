@@ -244,7 +244,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	@MainActor
-	func setStateAsStopped(_ status: Status = .stopped) {
+	func setStateAsStopped(_ status: Status = .stopped, _line: UInt = #line, _file: String = #file) {
+		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
 		self.canStart = true
 		self.canStop = false
 		self.canPause = false
@@ -259,7 +260,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	@MainActor
-	func setStateAsRunning(suspendable: Bool, vncURL: URL?) {
+	func setStateAsRunning(suspendable: Bool, vncURL: URL?, _line: UInt = #line, _file: String = #file) {
+		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
 		self.canStart = false
 		self.canStop = true
 		self.canPause = true
@@ -268,6 +270,19 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.suspendable = suspendable
 		self.vncURL = vncURL
 		self.status = .running
+	}
+
+	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
+		self.logger.debug("setState to \(status) at \(_file):\(_line)")
+
+		self.status = status
+		self.canStart = status == .stopped || status == .paused
+		self.canStop = status == .running
+		self.canPause = status == .running
+		self.canResume = status == .paused
+		self.canRequestStop = status == .running
+		self.vncURL = vncURL
+		self.suspendable = suspendable
 	}
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
@@ -404,8 +419,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")
 
 					self.externalRunning = true
-					self.status = .starting
-					self.vncURL = vncURL
+
+					self.setState(suspendable: config.suspendable, status: .starting, vncURL: vncURL)
 
 					Task {
 						do {
@@ -462,7 +477,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 					}
 				} catch {
 					DispatchQueue.main.async {
-						self.status = .stopped
+						self.setState(suspendable: false, status: .stopped)
 						alertError(error)
 					}
 				}
@@ -471,7 +486,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.externalRunning = false
 
 			if let virtualMachine = self.virtualMachine {
-				self.status = .starting
+				self.setState(suspendable: false, status: .starting)
 
 				virtualMachine.startFromUI()
 			}
@@ -573,6 +588,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	func didChangedState(_ vm: VirtualMachine) {
 		let virtualMachine = vm.virtualMachine
 
+		self.logger.debug("didChangedState: \(virtualMachine.state)")
+
 		guard let status = Status(rawValue: virtualMachine.state.rawValue) else {
 			self.status = .none
 			return
@@ -589,7 +606,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 	}
 
 	func fileDidChanged(event: FileChangeEvent) {
-		guard let location = self.location else {
+		guard let location = self.location, self.externalRunning else {
 			return
 		}
 
