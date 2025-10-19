@@ -32,16 +32,18 @@ class CakerVZVirtualMachineView: VZVirtualMachineView {
 	
 	public override func viewWillStartLiveResize() {
 		self.liveViewResize = true
+		super.viewWillStartLiveResize()
 	}
 
 	override func viewDidEndLiveResize() {
 		self.liveViewResize = false
 		self.document.setScreenSize(.init(size: self.bounds.size))
+		super.viewDidEndLiveResize()
 	}
 }
 
 struct InternalVirtualMachineView: NSViewRepresentable {
-	public typealias NSViewType = VZVirtualMachineView
+	public typealias NSViewType = CakerVZVirtualMachineView
 
 	private let document: VirtualMachineDocument
 	private let logger = Logger("InternalVirtualMachineView")
@@ -55,7 +57,5 @@ struct InternalVirtualMachineView: NSViewRepresentable {
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
-		self.document.virtualMachine.vzMachineView = nsView
-		nsView.virtualMachine = self.document.virtualMachine.getVM()
 	}
 }
