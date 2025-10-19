@@ -28,22 +28,22 @@ struct VMSettingsView: View {
 			Toggle(
 				isOn: $isNoScreenshot.inverted,
 				label: {
-					Text("Disable VM screenshoting")
+					Text("Enable VM screenshoting")
 				}
 			).onChange(of: isNoScreenshot) { _, newValue in
 				if newValue {
-					isNoScreenshot = true
+					isNoScreenshot = newValue
 				}
 			}
 
 			Toggle(
 				isOn: $isNoSaveScreenshot.inverted,
 				label: {
-					Text("Don't save VM screenshots")
+					Text("Save VM screenshots")
 				}
 			).onChange(of: isNoSaveScreenshot) { _, newValue in
 				if newValue {
-					isNoSaveScreenshot = true
+					isNoSaveScreenshot = newValue
 				}
 			}
 		}.formStyle(.grouped)
