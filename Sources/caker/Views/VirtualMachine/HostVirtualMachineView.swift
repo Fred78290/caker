@@ -498,7 +498,7 @@ struct HostVirtualMachineView: View {
 		} else if self.document.isLaunchVMExternally {
 			LabelView(self.vmStatus(), progress: self.document.status == .starting)
 		} else if document.virtualMachine != nil {
-			if self.document.status == .stopped {
+			if self.document.status != .running {
 				LabelView(self.vmStatus(), progress: false)
 			} else {
 				InternalVirtualMachineView(document: document)
