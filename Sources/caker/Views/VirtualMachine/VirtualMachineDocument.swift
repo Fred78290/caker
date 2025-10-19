@@ -471,6 +471,8 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			self.externalRunning = false
 
 			if let virtualMachine = self.virtualMachine {
+				self.status = .starting
+
 				virtualMachine.startFromUI()
 			}
 		}
