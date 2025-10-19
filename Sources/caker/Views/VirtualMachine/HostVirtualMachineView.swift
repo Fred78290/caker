@@ -156,7 +156,7 @@ struct HostVirtualMachineView: View {
 								document.startFromUI()
 							}.help("Resumes virtual machine")
 						} else {
-							Button("Start", systemImage: "play") {
+							Button("Start", systemImage: "play.fill") {
 								document.startFromUI()
 							}
 							.help("Start virtual machine")
