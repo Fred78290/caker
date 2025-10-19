@@ -707,6 +707,8 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	private func _requestStopVM() throws {
 		self.env.requestStopFromUIPending = true
 
+		try? self.saveScreenshot()
+
 		if self.virtualMachine.canRequestStop {
 			Logger(self).info("Requesting stop VM \(self.location.name)...")
 			try self.virtualMachine.requestStop()
