@@ -8,7 +8,7 @@ import Socket
 import Shout
 import CakeAgentLib
 
-private let kScreenshotPeriodSeconds = 60.0
+private let kScreenshotPeriodSeconds = 5.0
 
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
