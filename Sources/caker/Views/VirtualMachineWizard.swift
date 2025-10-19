@@ -219,29 +219,44 @@ struct ShortImageInfoComparator: SortComparator {
 	}
 }
 
-struct ItemView {
+enum SelectedItem: Int, Hashable {
+	case name
+	case os
+	case cpuAndRam
+	case sharing
+	case disk
+	case network
+	case ports
+	case sockets
+}
+
+struct ItemView: Identifiable {
+	var id: SelectedItem
 	var title: String
 	var systemName: String
 
-	init(title: String, systemName: String) {
+	init(_ id: SelectedItem, title: String, systemName: String) {
 		self.title = title
 		self.systemName = systemName
+		self.id = id
 	}
 }
 
 private var items: [ItemView] = [
-	ItemView(title: "Name", systemName: "character.cursor.ibeam"),
-	ItemView(title: "Choose OS", systemName: "cloud"),
-	ItemView(title: "CPU & Ram", systemName: "cpu"),
-	ItemView(title: "Sharing", systemName: "folder.badge.plus"),
-	ItemView(title: "Disk", systemName: "externaldrive.badge.plus"),
-	ItemView(title: "Network", systemName: "network"),
-	ItemView(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
-	ItemView(title: "Sockets", systemName: "powerplug"),
+	ItemView(.name, title: "Name", systemName: "character.cursor.ibeam"),
+	ItemView(.os, title: "Choose OS", systemName: "cloud"),
+	ItemView(.cpuAndRam, title: "CPU & Ram", systemName: "cpu"),
+	ItemView(.sharing, title: "Sharing", systemName: "folder.badge.plus"),
+	ItemView(.disk, title: "Disk", systemName: "externaldrive.badge.plus"),
+	ItemView(.network, title: "Network", systemName: "network"),
+	ItemView(.ports, title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
+	ItemView(.sockets, title: "Sockets", systemName: "powerplug"),
 ]
 
 class VirtualMachineWizardStateObject: ObservableObject {
-	@Published var currentStep: Int
+	@Published var currentStep: SelectedItem
+	@Published var hoverStep: SelectedItem? = nil
+	@Published var pressedStep: SelectedItem? = nil
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -255,7 +270,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var createVMMessage: String
 
 	init() {
-		self.currentStep = 0
+		self.currentStep = .name
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
@@ -270,7 +285,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	}
 	
 	func reset() {
-		self.currentStep = 0
+		self.currentStep = .name
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
@@ -285,28 +300,104 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	}
 }
 
-struct VirtualMachineWizard: View {
-	struct ItemView {
-		var title: String
-		var image: Image?
+struct ToolbarButton: View {
+	let systemName: String
+	let label: String
 
-		init(title: String, image: Image?) {
-			self.title = title
-			self.image = image
-		}
+	init(_ label: String, systemName: String) {
+		self.label = label
+		self.systemName = systemName
 	}
 
+	var body: some View {
+		VStack {
+			Image(systemName: systemName)
+			.resizable()
+			.aspectRatio(contentMode: .fit)
+			.frame(width: 24, height: 24, alignment: .center)
+			
+			Text(label)
+				.font(.footnote)
+		}
+		.background(Color.red.opacity(0.0))
+	}
+}
+
+struct PressActions: ViewModifier {
+	var onPress: () -> Void
+	var onRelease: () -> Void = { }
+
+	func body(content: Content) -> some View {
+		content
+			.simultaneousGesture(
+				DragGesture(minimumDistance: 0)
+					.onChanged({ _ in
+						onPress()
+					})
+					.onEnded({ _ in
+						onRelease()
+					})
+			)
+	}
+}
+
+struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
 	@StateObject private var appState = AppState.shared
-
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
+	@ViewBuilder
+	func Content() -> some View {
+		switch (self.model.currentStep) {
+		case .name:
+			chooseVMName()
+		case .os:
+			chooseOSImage()
+		case .cpuAndRam:
+			generalSettings()
+		case .sharing:
+			mountsView()
+		case .disk:
+			diskAttachementView()
+		case .network:
+			networksView()
+		case .ports:
+			forwardPortsView()
+		case .sockets:
+			socketsView()
+		}
+	}
+
+	func fillToolbarColor(_ item: SelectedItem) -> Color {
+		if item == self.model.currentStep {
+			return Color.systemGray2
+		}
+
+		if item == self.model.hoverStep {
+			return Color.systemGray2
+		}
+		
+		return Color.red.opacity(0.0)
+	}
+
+	func foregroundToolbarColor(_ item: SelectedItem) -> Color {
+		if item == self.model.currentStep {
+			return Color.accentColor
+		}
+
+		if item == self.model.pressedStep {
+			return Color.black
+		}
+		
+		return Color.primary
+	}
+
 	var body: some View {
-		let view = VStack(spacing: 12) {
-			Toolbar()
+		VStack(spacing: 12) {
+			Content()
 			Footer()
 
 			if #unavailable(macOS 15.0) {
@@ -318,11 +409,13 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
-		}.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
+		}
+		.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {
 				self.model.fractionCompleted = fractionCompleted
 			}
-		}.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
+		}
+		.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
 			self.model.createVM = false
 
 			if let location = notification.object as? VMLocation {
@@ -334,81 +427,77 @@ struct VirtualMachineWizard: View {
 			
 			self.config = VirtualMachineConfig()
 			self.model.reset()
-		}.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
+		}
+		.onReceive(VirtualMachineDocument.FailCreateVirtualMachine) { notification in
 			self.model.createVM = false
 			self.model.createVMMessage = ""
 
 			if let error = notification.object as? Error {
 				alertError(error)
 			}
-		}.onReceive(VirtualMachineDocument.ProgressMessageCreateVirtualMachine) { notification in
+		}
+		.onReceive(VirtualMachineDocument.ProgressMessageCreateVirtualMachine) { notification in
 			if let message = notification.object as? String {
 				self.model.createVMMessage = message
 			}
-		}.onAppear {
+		}
+		.onAppear {
 			self.validateConfig(config: self.config)
 		}
-
-		if #available(macOS 15.0, *) {
-			return view.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
-				.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
-			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+		.navigationViewStyle(.columns)
+		.toolbar {
+			ToolbarItemGroup(placement: .principal) {
+				ForEach(items) { item in
+					RoundedRectangle(cornerRadius: 10)
+						.fill(self.fillToolbarColor(item.id))
+					.overlay(
+						ToolbarButton(item.title, systemName: item.systemName)
+					)
+					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 65)
+					.padding(0)
+					.foregroundColor(foregroundToolbarColor(item.id))
+					.onHover { hover in
+						self.model.hoverStep = hover ? item.id : nil
+					}
+					.labelStyle(.titleOnly)
+					.gesture(
+						DragGesture(minimumDistance: 0)
+							.onChanged({ _ in
+								self.model.pressedStep = item.id
+							})
+							.onEnded({ _ in
+								self.model.pressedStep = nil
+								self.model.currentStep = item.id
+							})
+					)
+				}
+			}
 		}
-
-		return view
-	}
-
-	func Toolbar() -> some View {
-		MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
-			.tab(title: items[0].title, systemName: items[0].systemName, disabled: self.model.createVM) {
-				chooseVMName()
-			}
-			.tab(title: items[1].title, systemName: items[1].systemName, disabled: self.model.createVM) {
-				chooseOSImage()
-			}
-			.tab(title: items[2].title, systemName: items[2].systemName, disabled: self.model.createVM) {
-				generalSettings()
-			}
-			.tab(title: items[3].title, systemName: items[3].systemName, disabled: self.model.createVM) {
-				mountsView()
-			}
-			.tab(title: items[4].title, systemName: items[4].systemName, disabled: self.model.createVM) {
-				diskAttachementView()
-			}
-			.tab(title: items[5].title, systemName: items[5].systemName, disabled: self.model.createVM) {
-				networksView()
-			}
-			.tab(title: items[6].title, systemName: items[6].systemName, disabled: self.model.createVM) {
-				forwardPortsView()
-			}
-			.tab(title: items[7].title, systemName: items[7].systemName, disabled: self.model.createVM) {
-				socketsView()
-			}.onChange(of: model.currentStep) {
-				self.validateConfig(config: self.config)
-			}
+		.toolbarTitleDisplayMode(.inlineLarge)
+		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
+		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
+			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
 	}
 
 	func Middle() -> some View {
 		VStack {
-			switch self.model.currentStep {
-			case 0:
+			switch (self.model.currentStep) {
+			case .name:
 				chooseVMName()
-			case 1:
+			case .os:
 				chooseOSImage()
-			case 2:
+			case .cpuAndRam:
 				generalSettings()
-			case 3:
+			case .sharing:
 				mountsView()
-			case 4:
+			case .disk:
 				diskAttachementView()
-			case 5:
+			case .network:
 				networksView()
-			case 6:
+			case .ports:
 				forwardPortsView()
-			case 7:
+			case .sockets:
 				socketsView()
-			default:
-				EmptyView()
 			}
 		}
 		.animation(.easeInOut, value: self.model.currentStep)
@@ -581,6 +670,7 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
+	@ViewBuilder
 	func chooseVMName() -> some View {
 		Form {
 			Section("Virtual machine name") {
@@ -1048,29 +1138,29 @@ struct VirtualMachineWizard: View {
 	}
 
 	var hasPrevious: Bool {
-		self.model.currentStep > 0
+		self.model.currentStep != .name
 	}
 
 	var hasNext: Bool {
-		self.model.currentStep < items.count - 1
+		self.model.currentStep != .sockets
 	}
 
 	func previousStep() {
-		guard self.model.currentStep > 0 else {
+		guard self.model.currentStep != .name else {
 			return
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep -= 1
+		self.model.currentStep = SelectedItem(rawValue: self.model.currentStep.rawValue - 1)!
 	}
 
 	func nextStep() {
-		guard self.model.currentStep < items.count - 1 else {
+		guard self.model.currentStep != .sockets else {
 			return
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep += 1
+		self.model.currentStep = SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
 	}
 }
 
