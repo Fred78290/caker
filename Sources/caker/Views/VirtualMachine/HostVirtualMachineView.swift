@@ -187,7 +187,7 @@ struct HostVirtualMachineView: View {
 							if self.launchExternally {
 								Button("Run hosted", systemImage: "personalhotspot.slash") {
 									launchExternally.toggle()
-									document.launchVMExternally = nil
+									document.launchVMExternally = false
 								}
 								.help("Launch machine in detached mode")
 							} else {
