@@ -90,17 +90,20 @@ struct MainApp: App, VirtualMachineDelegate {
 			let minHeight = CGFloat(display.height)
 			let idealHeight = CGFloat(display.height)
 
-			Group {
-				VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm)
-					.presentedWindowToolbarStyle(.unifiedCompact)
-					.onAppear {
-						NSWindow.allowsAutomaticWindowTabbing = false
-					}.onDisappear {
-						if kill(getpid(), SIGINT) != 0 {
-							NSApplication.shared.terminate(self)
-						}
-					}
-			}.toolbar {
+			VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm)
+			.onAppear {
+				NSWindow.allowsAutomaticWindowTabbing = false
+			}
+			.onDisappear {
+				if kill(getpid(), SIGINT) != 0 {
+					NSApplication.shared.terminate(self)
+				}
+			}
+			.onChange(of: self.appState.status) { _, newValue in
+				Logger(self).debug("New status: \(newValue)")
+			}
+			.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
+			.toolbar {
 				ToolbarItemGroup(placement: .navigation) {
 					if self.appState.status == .running {
 						Button("Stop", systemImage: "stop") {
@@ -128,9 +131,9 @@ struct MainApp: App, VirtualMachineDelegate {
 					.help("Restarts virtual machine")
 					.disabled(self.appState.isStopped)
 				}
-			}.onChange(of: self.appState.status) { _, newValue in
-				Logger(self).debug("New status: \(newValue)")
-			}.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
+			}
+			.presentedWindowToolbarStyle(.unifiedCompact)
+			.windowToolbarFullScreenVisibility(.onHover)
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
