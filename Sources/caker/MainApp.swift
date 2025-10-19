@@ -104,7 +104,7 @@ struct MainApp: App {
 					.windowMinimizeBehavior(.enabled)
 					.windowResizeBehavior(.enabled)
 					.windowFullScreenBehavior(.enabled)
-					.windowToolbarFullScreenVisibility(.automatic)
+					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
 			} else {
@@ -182,6 +182,7 @@ struct MainApp: App {
 				.restorationState(.disabled)
 		}
 		.windowResizability(.contentSize)
+		.windowToolbarStyle(.expanded)
 		.restorationState(.disabled)
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
