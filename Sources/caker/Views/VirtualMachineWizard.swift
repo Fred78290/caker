@@ -444,7 +444,6 @@ struct VirtualMachineWizard: View {
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
-		.navigationViewStyle(.columns)
 		.toolbar {
 			ToolbarItemGroup(placement: .principal) {
 				ForEach(items) { item in
