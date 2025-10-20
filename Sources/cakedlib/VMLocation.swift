@@ -695,6 +695,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
 
+#if arch(arm64)
 		if imageSource == .ipsw {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
@@ -702,7 +703,14 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		} else {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
-
+#else
+		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
+		} else {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		}
+#endif
+		
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
 		try tempFileURL.delete()

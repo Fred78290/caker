@@ -528,6 +528,29 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	private func _pauseVM(completionHandler: StartCompletionHandler? = nil) {
 		if self.virtualMachine.canPause {
 			try? self.saveScreenshot()
+
+			let pauseVM = {
+				self.virtualMachine.pause { result in
+					if case let .failure(err) = result {
+						Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
+					} else {
+						Logger(self).info("VM \(self.location.name) paused")
+
+						self.env.stopServices()
+
+						self.env.timer?.invalidate()
+						self.env.timer = nil
+					}
+
+					if let completionHandler = completionHandler {
+						completionHandler(result)
+					}
+
+					self.didChangedState()
+				}
+			}
+
+			#if arch(arm64)
 			if #available(macOS 14, *) {
 				do {
 					try self.env.configuration.validateSaveRestoreSupport()
@@ -572,25 +595,11 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 					}
 				}
 			} else {
-				self.virtualMachine.pause { result in
-					if case let .failure(err) = result {
-						Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
-					} else {
-						Logger(self).info("VM \(self.location.name) paused")
-
-						self.env.stopServices()
-
-						self.env.timer?.invalidate()
-						self.env.timer = nil
-					}
-
-					if let completionHandler = completionHandler {
-						completionHandler(result)
-					}
-
-					self.didChangedState()
-				}
+				pauseVM()
 			}
+			#else
+			pauseVM()
+			#endif
 		}
 	}
 

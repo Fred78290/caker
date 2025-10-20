@@ -134,7 +134,11 @@ public struct VMBuilder {
 				config.macAddress = VZMACAddress.randomLocallyAdministered()
 
 				if config.os == .darwin {
+		#if arch(arm64)
 					config.ecid = VZMacMachineIdentifier()
+		#else
+					throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+		#endif
 				}
 			} else {
 				// Create NVRAM
@@ -277,7 +281,7 @@ public struct VMBuilder {
 			#if arch(arm64)
 				sourceImage = .ipsw
 			#else
-				ServiceError("unsupported image url: \(options.image)")
+				throw ServiceError("unsupported image url: \(options.image)")
 			#endif
 		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {

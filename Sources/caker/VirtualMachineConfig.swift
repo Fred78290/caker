@@ -172,9 +172,11 @@ struct VirtualMachineConfig: Hashable {
 					let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
 					var ipswQueue: DispatchQueue!
 
+					#if arch(arm64)
 					if imageSource == .ipsw {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
+					#endif
 
 					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
 						progressHandler(result)

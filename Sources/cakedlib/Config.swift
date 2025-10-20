@@ -405,7 +405,7 @@ public final class CakeConfig {
 
 			return false
 		#else
-			return config.firstLaunch && source != .iso
+			return self.firstLaunch && source != .iso
 		#endif
 	}
 
