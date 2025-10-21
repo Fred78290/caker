@@ -11,18 +11,21 @@ struct SideBarView: View {
 	@Binding var navigationModel: NavigationModel
 
 	var body: some View {
-		NavigationView {
-			List(selection: $navigationModel.selectedCategory) {
-				ForEach(navigationModel.categories) { category in
-					NavigationLink(value: category) {
-						Label(category.title, systemImage: category.iconName)
+		List(selection: $navigationModel.selectedCategory) {
+			ForEach(navigationModel.categories) { category in
+				NavigationLink(value: category) {
+					Label {
+						Text(category.title).font(.title)
+					} icon: {
+						Image(category.iconName)
+							.resizable()
+							.scaledToFit()
 					}
 				}
 			}
-			.listStyle(.sidebar)
-			.navigationTitle("Explore")
-			.frame(width: 180)
 		}
+		.listStyle(.sidebar)
+		.navigationTitle("Explore")
 	}
 }
 

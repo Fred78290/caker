@@ -10,11 +10,13 @@ import SwiftUI
 struct HomeView: View {
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
+	@State var columns: NavigationSplitViewVisibility = .all
 
 	var body: some View {
 		NavigationSplitView {
 			SideBarView(navigationModel: $navigationModel)
-		} content: {
+				.navigationSplitViewColumnWidth(200)
+		} detail: {
 			switch navigationModel.selectedCategory {
 			case .images:
 				RemotesView(appState: $appState, navigationModel: $navigationModel)
@@ -25,9 +27,8 @@ struct HomeView: View {
 			case .virtualMachine:
 				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel)
 			}
-		} detail: {
-			Text(navigationModel.selectedCategory.title)
 		}
+		.frame(minWidth: 500, minHeight: 400)
 	}
 }
 
