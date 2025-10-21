@@ -71,7 +71,7 @@ class NavigationModel: ObservableObject, Observable {
 	@Published var selectedCategory: Category = .images
 	@Published var selectedElement: SelectedElement? = nil
 
-	var categories: [Category] = [.images, .templates, .networks, .virtualMachine]
+	var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
 }
 
 extension NavigationModel: Equatable {
