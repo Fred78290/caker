@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # helper script to build and run a signed caked binary
 # usage: ./scripts/run-signed.sh run sonoma-base
 set -e
 
-pushd "$(dirname $0)/.." >/dev/null
+pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR=${PWD}
 PKGDIR=${CURDIR}/dist/Caker.app
 popd > /dev/null

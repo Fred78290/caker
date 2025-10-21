@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-pushd "$(dirname $0)/.." >/dev/null
+pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR=${PWD}
 PKGDIR=${CURDIR}/dist/Caker.app
 popd > /dev/null
