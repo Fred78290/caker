@@ -144,13 +144,13 @@ jobs:
       - name: Install the Apple certificate and provisioning profile
         if: steps.version.outputs.build_package == 'true'
         run: |
-          ./.ci/setup-keychain.sh $RUNNER_TEMP/app-signing.keychain-db
+          ./.ci/setup-keychain.sh ${RUNNER_TEMP}/app-signing.keychain-db
   
       - name: package
         if: steps.version.outputs.build_package == 'true'
         run: |
           export VERSION_TAG="${GITHUB_REF##*/}"
-          ./.ci/create-pkg.sh $RUNNER_TEMP/app-signing.keychain-db
+          ./.ci/create-pkg.sh ${RUNNER_TEMP}/app-signing.keychain-db
 
       - name: "Create release"
         env:
@@ -166,4 +166,4 @@ jobs:
       - name: Clean up keychain and provisioning profile
         if: steps.version.outputs.build_package == 'true'
         run: |
-          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          security delete-keychain ${RUNNER_TEMP}/app-signing.keychain-db

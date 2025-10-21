@@ -2,30 +2,17 @@
 
 set -e
 
-mkdir -p /usr/local/bin
+echo "/Applications/Caker.app/Contents/MacOS" >> /etc/paths.d/com.aldunelabs.caker.public
 
-cat <<EOF > /usr/local/bin/caked
-#!/bin/sh
-exec "/Library/Application Support/Caker/Caker.app/Contents/MacOS/caked" "\$@"
-EOF
-chmod +x /usr/local/bin/caked
-
-cat <<EOF > /usr/local/bin/cakectl
-#!/bin/sh
-exec "/Library/Application Support/Caker/Caker.app/Contents/Resources/cakectl" "\$@"
-EOF
-
-chmod +x /usr/local/bin/cakectl
-
+# Create sudoers file for Caker
 cat <<EOF > /etc/sudoers.d/caker
 # Caker sudoers file
-%everyone ALL=(root:wheel) NOPASSWD: /usr/local/bin/caked
+%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/MacOS/caked
 EOF
 
 chgroup staff /etc/sudoers.d/caker
 
 chmod 0664 /etc/sudoers.d/caker
 
-
 # Install the Caker service
-caked service install --system
+/Applications/Caker.app/Contents/MacOS/caked service install --system

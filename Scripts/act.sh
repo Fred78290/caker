@@ -1,5 +1,5 @@
-#!/bin/sh
-pushd "$(dirname $0)/.." >/dev/null
+#!/bin/bash
+pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
 CURDIR=${PWD}
 popd > /dev/null
 
