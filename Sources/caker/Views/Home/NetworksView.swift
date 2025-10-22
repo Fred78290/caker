@@ -5,14 +5,27 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
+import GRPCLib
 import SwiftUI
 
 struct NetworksView: View {
 	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
+	@State private var selection: BridgedNetwork.ID? = nil
+	@State private var disabled: Bool = false
 
 	var body: some View {
-		Text( /*@START_MENU_TOKEN@*/"Hello, World!" /*@END_MENU_TOKEN@*/)
+		GeometryReader { geometry in
+			EditableList($appState.networks, selection: $selection) { $item in
+				NetworkDetailView(currentItem: $item).padding(5)
+			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
+				NetworkNewItemView($appState.networks, editItem: editItem)
+			} deleteItem: {
+				appState.networks.removeAll {
+					$0.id == selection
+				}
+			}.frame(size: geometry.size)
+		}
 	}
 }
 
