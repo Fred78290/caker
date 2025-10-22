@@ -157,12 +157,8 @@ struct ForwardedPortDetailView: View {
 					HStack {
 						Spacer()
 						TextField("Host port", text: $model.hostPort.text)
-							.multilineTextAlignment(.center)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
+							.rounded(.center)
 							.frame(width: 80)
-							.clipShape(RoundedRectangle(cornerRadius: 6))
 							.allowsHitTesting(readOnly == false)
 							.formatAndValidate($model.hostPort) {
 								RangeIntegerStyle.hostPortRange.outside($0)
@@ -178,12 +174,8 @@ struct ForwardedPortDetailView: View {
 					HStack {
 						Spacer()
 						TextField("Guest port", text: $model.guestPort.text)
-							.multilineTextAlignment(.center)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
+							.rounded(.center)
 							.frame(width: 80)
-							.clipShape(RoundedRectangle(cornerRadius: 6))
 							.allowsHitTesting(readOnly == false)
 							.formatAndValidate($model.guestPort) {
 								RangeIntegerStyle.guestPortRange.outside($0)
@@ -197,11 +189,7 @@ struct ForwardedPortDetailView: View {
 				LabeledContent("Host path") {
 					HStack {
 						TextField("Host path", value: $model.hostPath, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.rounded(.leading)
 							.allowsHitTesting(readOnly == false)
 
 						if readOnly == false {
@@ -217,11 +205,7 @@ struct ForwardedPortDetailView: View {
 				LabeledContent("Guest path") {
 					HStack {
 						TextField("Guest path", value: $model.guestPath, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.rounded(.leading)
 							.allowsHitTesting(readOnly == false)
 					}.frame(width: readOnly ? 450 : 350)
 				}

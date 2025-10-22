@@ -96,29 +96,17 @@ struct VirtualMachineSettingsView: View {
 				Section("Administrator settings") {
 					LabeledContent("Administator name") {
 						TextField("User name", text: $config.configuredUser)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.rounded(.leading)
 					}
 					
 					LabeledContent("Administator password") {
 						HStack {
 							if self.showPassword {
 								TextField("Password", value: $config.configuredPassword, format: .optional)
-									.multilineTextAlignment(.leading)
-									.textFieldStyle(.roundedBorder)
-									.background(.white)
-									.labelsHidden()
-									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.rounded(.leading)
 							} else {
 								SecureField("Password", text: $userPassword)
-									.multilineTextAlignment(.leading)
-									.textFieldStyle(.roundedBorder)
-									.background(.white)
-									.labelsHidden()
-									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.rounded(.leading)
 									.onChange(of: userPassword) { _, newValue in
 										if newValue.isEmpty {
 											config.configuredPassword = nil
@@ -189,12 +177,8 @@ struct VirtualMachineSettingsView: View {
 				Spacer().border(.black)
 				HStack {
 					TextField("", value: $config.memorySize, format: .number /*.memory(.useGB)*/)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
 
 					}.labelsHidden()
@@ -222,23 +206,15 @@ struct VirtualMachineSettingsView: View {
 					Text("Width")
 					Spacer().border(.black)
 					TextField("", value: $config.display.width, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 				HStack {
 					Text("Height")
 					Spacer().border(.black)
 					TextField("", value: $config.display.height, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}
 			}
 		}

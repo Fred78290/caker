@@ -588,12 +588,8 @@ struct VirtualMachineWizard: View {
 				Spacer().border(.black)
 				HStack {
 					TextField("", value: $config.memorySize, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
 
@@ -608,12 +604,8 @@ struct VirtualMachineWizard: View {
 				Spacer().border(.black)
 				HStack {
 					TextField("", value: $config.diskSize, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 					Stepper(value: $config.diskSize, in: diskRange, step: 1) {
 
@@ -645,24 +637,16 @@ struct VirtualMachineWizard: View {
 					Text("Width")
 					Spacer().border(.black)
 					TextField("", value: $config.display.width, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 				}
 				HStack {
 					Text("Height")
 					Spacer().border(.black)
 					TextField("", value: $config.display.height, format: .number)
+						.rounded(.center)
 						.frame(width: 50)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 						.disabled(self.model.createVM)
 				}
 			}
@@ -674,11 +658,7 @@ struct VirtualMachineWizard: View {
 		Form {
 			Section("Virtual machine name") {
 				TextField("Virtual machine name", value: $config.vmname, format: .optional)
-					.multilineTextAlignment(.leading)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
-					.clipShape(RoundedRectangle(cornerRadius: 6))
+					.rounded(.leading)
 					.disabled(self.model.createVM)
 					.onChange(of: config.vmname) {
 						self.validateConfig(config: self.config)
@@ -688,11 +668,7 @@ struct VirtualMachineWizard: View {
 			Section("Administrator settings") {
 				LabeledContent("Administator name") {
 					TextField("User name", text: $config.configuredUser)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.leading)
 						.disabled(self.model.createVM)
 				}
 
@@ -700,19 +676,11 @@ struct VirtualMachineWizard: View {
 					HStack {
 						if self.model.showPassword {
 							TextField("Password", value: $config.configuredPassword, format: .optional)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.rounded(.leading)
 								.disabled(self.model.createVM)
 						} else {
 							SecureField("Password", text: $model.password)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.rounded(.leading)
 								.disabled(self.model.createVM)
 								.onChange(of: self.model.password) { _, newValue in
 									if newValue.isEmpty {
@@ -734,11 +702,7 @@ struct VirtualMachineWizard: View {
 				LabeledContent("SSH Public key") {
 					HStack {
 						TextField("SSH Public key", value: $config.sshAuthorizedKey, format: .optional)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.rounded(.leading)
 							.disabled(self.model.createVM)
 						Button(action: {
 							if let sshPublicKey = chooseDocument("Select public key", ofType: UTType.sshPublicKey, showsHiddenFiles: true) {
@@ -780,11 +744,7 @@ struct VirtualMachineWizard: View {
 					LabeledContent("Choose a local image disk.") {
 						HStack {
 							TextField("OS Image", text: $config.imageName)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.rounded(.leading)
 								.disabled(self.model.createVM)
 
 							Button(action: {
@@ -806,11 +766,7 @@ struct VirtualMachineWizard: View {
 						LabeledContent("Choose an ISO image disk.") {
 							HStack {
 								TextField("ISO Image", text: $config.imageName)
-									.multilineTextAlignment(.leading)
-									.textFieldStyle(.roundedBorder)
-									.background(.white)
-									.labelsHidden()
-									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.rounded(.leading)
 									.disabled(self.model.createVM)
 
 								Button(action: {
@@ -839,11 +795,7 @@ struct VirtualMachineWizard: View {
 						LabeledContent("Choose an IPSW image.") {
 							HStack {
 								TextField("IPSW Image", text: $config.imageName)
-									.multilineTextAlignment(.leading)
-									.textFieldStyle(.roundedBorder)
-									.background(.white)
-									.labelsHidden()
-									.clipShape(RoundedRectangle(cornerRadius: 6))
+									.rounded(.leading)
 									.disabled(self.model.createVM)
 								Button(action: {
 									if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
@@ -861,11 +813,7 @@ struct VirtualMachineWizard: View {
 				case .cloud:
 					LabeledContent {
 						TextField("Cloud Image", text: $config.imageName)
-							.multilineTextAlignment(.leading)
-							.textFieldStyle(.roundedBorder)
-							.background(.white)
-							.labelsHidden()
-							.clipShape(RoundedRectangle(cornerRadius: 6))
+							.rounded(.leading)
 							.disabled(self.model.createVM)
 					} label: {
 						Picker("Preconfigured image", selection: $model.cloudImageRelease) {
@@ -883,11 +831,7 @@ struct VirtualMachineWizard: View {
 
 				case .oci:
 					TextField("OCI Image", text: $config.imageName)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.leading)
 						.disabled(self.model.createVM)
 
 				case .template:
@@ -957,11 +901,7 @@ struct VirtualMachineWizard: View {
 					LabeledContent("Optional user data") {
 						HStack {
 							TextField("User data", value: $config.userData, format: .optional)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.rounded(.leading)
 								.disabled(self.model.createVM)
 							Button(action: {
 								config.userData = chooseYAML()
@@ -975,11 +915,7 @@ struct VirtualMachineWizard: View {
 					LabeledContent("Optional network configuration") {
 						HStack {
 							TextField("network configuration", value: $config.networkConfig, format: .optional)
-								.multilineTextAlignment(.leading)
-								.textFieldStyle(.roundedBorder)
-								.background(.white)
-								.labelsHidden()
-								.clipShape(RoundedRectangle(cornerRadius: 6))
+								.rounded(.leading)
 								.disabled(self.model.createVM)
 							Button(action: {
 								config.networkConfig = chooseYAML()

@@ -76,13 +76,9 @@ struct NetworkAttachementDetailView: View {
 					}
 
 					TextField("", text: $model.macAddress.text)
-						.multilineTextAlignment(.center)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.allowsHitTesting(readOnly == false)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.center)
 						.formatAndValidate($model.macAddress)
+						.allowsHitTesting(readOnly == false)
 						.onChange(of: model.macAddress.value) { _, newValue in
 							self.currentItem.macAddress = newValue
 						}

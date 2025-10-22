@@ -25,6 +25,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
@@ -538,6 +539,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
@@ -2048,6 +2050,7 @@
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
 				9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */,
+				9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */,
 				9B2BFABA2DFED25E000045C3 /* MainView.swift in Sources */,
 				9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,

@@ -26,11 +26,7 @@ struct DiskAttachementDetailView: View {
 			LabeledContent("Disk path") {
 				HStack {
 					TextField("Disk image path", text: $currentItem.diskPath)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.leading)
 						.allowsHitTesting(readOnly == false)
 
 					if readOnly == false {

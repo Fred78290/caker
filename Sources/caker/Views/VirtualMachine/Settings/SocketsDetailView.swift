@@ -45,23 +45,15 @@ struct SocketsDetailView: View {
 						}.buttonStyle(.borderless)
 					}
 					TextField("Host path", text: $currentItem.bind)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
+						.rounded(.leading)
 						.allowsHitTesting(readOnly == false)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}.frame(width: readOnly ? 450 : 350)
 			}
 
 			LabeledContent("Guest port") {
 				TextField("Guest port", text: $port.text)
-					.multilineTextAlignment(.center)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
+					.rounded(.center)
 					.frame(width: 50)
-					.clipShape(RoundedRectangle(cornerRadius: 6))
 					.allowsHitTesting(readOnly == false)
 					.formatAndValidate($port) {
 						RangeIntegerStyle.guestPortRange.outside($0)

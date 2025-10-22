@@ -24,11 +24,7 @@ struct MountDetailView: View {
 			LabeledContent("Name") {
 				HStack {
 					TextField("Name", text: $name, prompt: Text(currentItem.name))
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.leading)
 						.allowsHitTesting(readOnly == false)
 						.onChange(of: name) { _, newValue in
 							currentItem.name = newValue
@@ -47,11 +43,7 @@ struct MountDetailView: View {
 					}
 
 					TextField("Host path", text: $currentItem.source)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
-						.clipShape(RoundedRectangle(cornerRadius: 6))
+						.rounded(.leading)
 						.allowsHitTesting(readOnly == false)
 				}.frame(width: readOnly ? 500 : 350)
 			}
@@ -59,12 +51,8 @@ struct MountDetailView: View {
 			LabeledContent("Guest path") {
 				HStack {
 					TextField("Guest path", value: $currentItem.destination, format: .optional)
-						.multilineTextAlignment(.leading)
-						.textFieldStyle(.roundedBorder)
-						.background(.white)
-						.labelsHidden()
+						.rounded(.leading)
 						.allowsHitTesting(readOnly == false)
-						.clipShape(RoundedRectangle(cornerRadius: 6))
 				}.frame(width: readOnly ? 500 : 350)
 			}
 
@@ -77,24 +65,16 @@ struct MountDetailView: View {
 
 			LabeledContent("Guest user ID mount") {
 				TextField("uid", value: $currentItem.uid, format: .ranged(0...65535))
-					.multilineTextAlignment(.center)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
+					.rounded(.center)
 					.frame(width: 80)
 					.allowsHitTesting(readOnly == false)
-					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
 
 			LabeledContent("Guest group ID mount") {
 				TextField("gid", value: $currentItem.gid, format: .ranged(0...65535))
-					.multilineTextAlignment(.center)
-					.textFieldStyle(.roundedBorder)
-					.background(.white)
-					.labelsHidden()
+					.rounded(.center)
 					.frame(width: 80)
 					.allowsHitTesting(readOnly == false)
-					.clipShape(RoundedRectangle(cornerRadius: 6))
 			}
 		}
 	}
