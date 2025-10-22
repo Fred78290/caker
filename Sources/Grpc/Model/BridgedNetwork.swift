@@ -5,11 +5,18 @@
 //  Created by Frederic BOLTZ on 12/04/2025.
 //
 
+public enum BridgedNetworkMode: String, Codable, CaseIterable {
+	case nat
+	case bridged
+	case shared
+	case host
+}
+
 public struct BridgedNetwork: Codable, Hashable, Identifiable {
 	public typealias ID = String
 
 	public var name: String
-	public var mode: String
+	public var mode: BridgedNetworkMode
 	public var description: String = ""
 	public var gateway: String = ""
 	public var dhcpEnd = ""
@@ -20,7 +27,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable {
 		self.name
 	}
 
-	public init(name: String, mode: String, description: String, gateway: String, dhcpEnd: String = "", interfaceID: String, endpoint: String) {
+	public init(name: String, mode: BridgedNetworkMode, description: String, gateway: String, dhcpEnd: String = "", interfaceID: String, endpoint: String) {
 		self.name = name
 		self.mode = mode
 		self.description = description
@@ -32,7 +39,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable {
 
 	public init(from: Caked_NetworkInfo) {
 		self.name = from.name
-		self.mode = from.mode
+		self.mode = .init(rawValue: from.mode) ?? .shared
 		self.description = from.description_p
 		self.gateway = from.gateway
 		self.dhcpEnd = from.dhcpEnd
@@ -43,7 +50,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable {
 	public func toCaked_NetworkInfo() -> Caked_NetworkInfo {
 		Caked_NetworkInfo.with {
 			$0.name = self.name
-			$0.mode = self.mode
+			$0.mode = self.mode.rawValue
 			$0.description_p = self.description
 			$0.gateway = self.gateway
 			$0.dhcpEnd = self.dhcpEnd
