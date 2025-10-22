@@ -15,12 +15,12 @@ struct SideBarView: View {
 			ForEach(navigationModel.categories) { category in
 				NavigationLink(value: category) {
 					Label {
-						Text(category.title).font(.title)
+						Text(category.title).font(.title3)
 					} icon: {
-						Image(category.iconName)
+						Image(systemName: category.iconName)
 							.resizable()
 							.scaledToFit()
-					}
+					}.padding(2)
 				}
 			}
 		}

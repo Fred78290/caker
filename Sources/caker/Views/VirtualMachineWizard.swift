@@ -455,10 +455,10 @@ struct VirtualMachineWizard: View {
 					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 65)
 					.padding(0)
 					.foregroundColor(foregroundToolbarColor(item.id))
+					.labelStyle(.titleOnly)
 					.onHover { hover in
 						self.model.hoverStep = hover ? item.id : nil
 					}
-					.labelStyle(.titleOnly)
 					.gesture(
 						DragGesture(minimumDistance: 0)
 							.onChanged({ _ in
