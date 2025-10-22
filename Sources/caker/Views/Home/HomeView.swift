@@ -15,6 +15,7 @@ struct HomeView: View {
 	var body: some View {
 		NavigationSplitView {
 			SideBarView(navigationModel: $navigationModel)
+				.frame(minWidth: 200, maxWidth: 200)
 				.navigationSplitViewColumnWidth(200)
 		} detail: {
 			switch navigationModel.selectedCategory {

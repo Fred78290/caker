@@ -18,7 +18,7 @@ import SwiftUI
 ///  }
 /// }
 /// ```
-public struct MultiplatformTab: View {
+public struct MultiplatformTab {
 
 	/// The title of the tab.
 	public var title: String = ""
@@ -47,23 +47,5 @@ public struct MultiplatformTab: View {
 		self.tag = tag
 		self.disabled = disabled
 		self.contents = contents
-	}
-
-	/**
-	Draws the tab in the tab bar.
-	 */
-	public var body: some View {
-		VStack {
-			icon
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.foregroundColor(disabled ? .gray : .black)
-				.frame(width: 24, height: 24, alignment: .center)
-
-			Text(title)
-				.font(.footnote)
-				.foregroundColor(disabled ? .gray : .black)
-		}
-		.background(Color.red.opacity(0.0))
 	}
 }

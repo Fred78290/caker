@@ -12,7 +12,40 @@ import SwiftletUtilities
 /// Extends color to support the `MultiplatformTabBar`.
 extension Color {
 
-	#if os(macOS)
+	public static var toolbarForegroundColor: Color {
+		
+		switch colorScheme {
+		case .dark:
+			return Color(fromHex: "9d9b9aFF")!
+		default:
+			return Color.primary
+		}
+		
+	}
+
+	public static var toolbarPressedColor: Color {
+		
+		switch colorScheme {
+		case .dark:
+			return Color(fromHex: "eeeeeeff")!
+		default:
+			return Color(fromHex: "202020ff")!
+		}
+		
+	}
+
+	public static var toolbarFillColor: Color {
+		
+		switch colorScheme {
+		case .dark:
+			return Color(fromHex: "494543FF")!
+		default:
+			return Color(fromHex: "e6e4e1ff")!
+		}
+		
+	}
+
+#if os(macOS)
 		/// Holds the standard window background color.
 		static let backgroundColor = Color(NSColor.windowBackgroundColor)
 
@@ -70,6 +103,9 @@ public struct MultiplatformTabBar: View {
 
 	// MARK: - Initializers
 
+	@State var hoverItem: Int? = nil
+	@State var pressedItem: Int? = nil
+
 	/// Creates a new instance of the object.
 	public init(selection: Binding<Int>) {
 		self._selection = selection
@@ -88,6 +124,61 @@ public struct MultiplatformTabBar: View {
 		self._selection = selection
 	}
 
+	private func fillToolbarColor(_ item: Int) -> Color {
+		if item == self.selection || item == self.hoverItem {
+			return Color.toolbarFillColor
+		}
+
+		return Color.red.opacity(0.0)
+	}
+
+	private func foregroundToolbarColor(_ item: Int) -> Color {
+		if item == self.pressedItem && item == self.pressedItem {
+			return Color.accentColor.withBrightnessValue(20)
+		}
+
+		if item == self.pressedItem {
+			return Color.toolbarPressedColor
+		}
+		
+		if item == self.selection {
+			return Color.accentColor
+		}
+
+		return Color.toolbarForegroundColor
+	}
+
+	private func gesture(_ index: Int) -> some Gesture {
+		DragGesture(minimumDistance: 0)
+			.onChanged({ _ in
+				if tabSet.tabs[index].disabled == false {
+					self.pressedItem = index
+				}
+			})
+			.onEnded({ _ in
+				self.pressedItem = nil
+				if tabSet.tabs[index].disabled == false {
+					self.selection = index
+				}
+			})
+	}
+
+	@ViewBuilder
+	private func tabContent(_ tab: MultiplatformTab, foregroundColor: Color) -> some View {
+		VStack {
+			tab.icon
+				.resizable()
+				.aspectRatio(contentMode: .fit)
+				.foregroundStyle(tab.disabled ? .gray : foregroundColor)
+				.frame(width: 24, height: 24, alignment: .center)
+
+			Text(tab.title)
+				.font(.footnote)
+				.foregroundStyle(tab.disabled ? .gray : foregroundColor)
+		}
+		.background(Color.red.opacity(0.0))
+	}
+
 	// MARK: - Functions
 	/// Generates a horizontal Tab Bar.
 	private var barHorizontal: some View {
@@ -97,19 +188,20 @@ public struct MultiplatformTabBar: View {
 					Spacer()
 				}
 				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
+					let foregroundColor = self.foregroundToolbarColor(index)
+
 					RoundedRectangle(cornerRadius: 10)
-						.fill(self.selection == index ? Color.systemGray3 : Color.red.opacity(0.0))
+						.fill(self.fillToolbarColor(index))
 						.overlay(
-							tabSet.tabs[index]
+							tabContent(tabSet.tabs[index], foregroundColor: foregroundColor)
 						)
 						.frame(width: 65, height: 65)
 						.padding(0)
-						.foregroundColor(self.selection == index ? Color.accentColor : Color.primary)
-						.onTapGesture {
-							if tabSet.tabs[index].disabled == false {
-								self.selection = index
-							}
+						.foregroundColor(foregroundColor)
+						.onHover { hover in
+							self.hoverItem = hover ? index : nil
 						}
+						.gesture(gesture(index))
 				}
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .left {
 					Spacer()
@@ -127,19 +219,20 @@ public struct MultiplatformTabBar: View {
 			VStack {
 				Spacer()
 				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
+					let foregroundColor = self.foregroundToolbarColor(index)
+
 					RoundedRectangle(cornerRadius: 10)
-						.fill(self.selection == index ? Color.systemGray3 : Color.red.opacity(0.0))
+						.fill(self.fillToolbarColor(index))
 						.overlay(
-							tabSet.tabs[index]
+							tabContent(tabSet.tabs[index], foregroundColor: foregroundColor)
 						)
 						.frame(width: 65, height: 65)
 						.padding(0)
-						.foregroundColor(self.selection == index ? Color.accentColor : Color.primary)
-						.onTapGesture {
-							if tabSet.tabs[index].disabled == false {
-								self.selection = index
-							}
+						.foregroundColor(foregroundColor)
+						.onHover { hover in
+							self.hoverItem = hover ? index : nil
 						}
+						.gesture(gesture(index))
 				}
 				Spacer()
 			}
