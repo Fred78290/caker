@@ -174,8 +174,7 @@ struct MainApp: App {
 
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
-				.restorationState(.disabled)
-		}.restorationState(.disabled)
+		}
 
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
