@@ -133,7 +133,7 @@ public struct MultiplatformTabBar: View {
 	}
 
 	private func foregroundToolbarColor(_ item: Int) -> Color {
-		if item == self.pressedItem && item == self.pressedItem {
+		if item == self.pressedItem && item == self.selection {
 			return Color.accentColor.withBrightnessValue(20)
 		}
 
