@@ -219,41 +219,41 @@ struct ShortImageInfoComparator: SortComparator {
 	}
 }
 
-enum SelectedItem: Int, Hashable {
-	case name
-	case os
-	case cpuAndRam
-	case sharing
-	case disk
-	case network
-	case ports
-	case sockets
-}
-
-struct ItemView: Identifiable {
-	var id: SelectedItem
-	var title: String
-	var systemName: String
-
-	init(_ id: SelectedItem, title: String, systemName: String) {
-		self.title = title
-		self.systemName = systemName
-		self.id = id
-	}
-}
-
-private var items: [ItemView] = [
-	ItemView(.name, title: "Name", systemName: "character.cursor.ibeam"),
-	ItemView(.os, title: "Choose OS", systemName: "cloud"),
-	ItemView(.cpuAndRam, title: "CPU & Ram", systemName: "cpu"),
-	ItemView(.sharing, title: "Sharing", systemName: "folder.badge.plus"),
-	ItemView(.disk, title: "Disk", systemName: "externaldrive.badge.plus"),
-	ItemView(.network, title: "Network", systemName: "network"),
-	ItemView(.ports, title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
-	ItemView(.sockets, title: "Sockets", systemName: "powerplug"),
-]
-
 class VirtualMachineWizardStateObject: ObservableObject {
+	enum SelectedItem: Int, Hashable {
+		case name
+		case os
+		case cpuAndRam
+		case sharing
+		case disk
+		case network
+		case ports
+		case sockets
+	}
+
+	struct ItemView: Identifiable {
+		var id: SelectedItem
+		var title: String
+		var systemName: String
+
+		init(_ id: SelectedItem, title: String, systemName: String) {
+			self.title = title
+			self.systemName = systemName
+			self.id = id
+		}
+	}
+
+	static var items: [ItemView] = [
+		ItemView(.name, title: "Name", systemName: "character.cursor.ibeam"),
+		ItemView(.os, title: "Choose OS", systemName: "cloud"),
+		ItemView(.cpuAndRam, title: "CPU & Ram", systemName: "cpu"),
+		ItemView(.sharing, title: "Sharing", systemName: "folder.badge.plus"),
+		ItemView(.disk, title: "Disk", systemName: "externaldrive.badge.plus"),
+		ItemView(.network, title: "Network", systemName: "network"),
+		ItemView(.ports, title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
+		ItemView(.sockets, title: "Sockets", systemName: "powerplug"),
+	]
+
 	@Published var currentStep: SelectedItem
 	@Published var hoverStep: SelectedItem? = nil
 	@Published var pressedStep: SelectedItem? = nil
@@ -371,7 +371,7 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
-	func fillToolbarColor(_ item: SelectedItem) -> Color {
+	func fillToolbarColor(_ item: VirtualMachineWizardStateObject.SelectedItem) -> Color {
 		if item == self.model.currentStep {
 			return Color.systemGray2
 		}
@@ -383,7 +383,7 @@ struct VirtualMachineWizard: View {
 		return Color.red.opacity(0.0)
 	}
 
-	func foregroundToolbarColor(_ item: SelectedItem) -> Color {
+	func foregroundToolbarColor(_ item: VirtualMachineWizardStateObject.SelectedItem) -> Color {
 		if item == self.model.currentStep {
 			return Color.accentColor
 		}
@@ -446,7 +446,7 @@ struct VirtualMachineWizard: View {
 		}
 		.toolbar {
 			ToolbarItemGroup(placement: .principal) {
-				ForEach(items) { item in
+				ForEach(VirtualMachineWizardStateObject.items) { item in
 					RoundedRectangle(cornerRadius: 10)
 						.fill(self.fillToolbarColor(item.id))
 					.overlay(
@@ -1086,7 +1086,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep = SelectedItem(rawValue: self.model.currentStep.rawValue - 1)!
+		self.model.currentStep = VirtualMachineWizardStateObject.SelectedItem(rawValue: self.model.currentStep.rawValue - 1)!
 	}
 
 	func nextStep() {
@@ -1095,7 +1095,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep = SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
+		self.model.currentStep = VirtualMachineWizardStateObject.SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
 	}
 }
 
