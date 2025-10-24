@@ -344,6 +344,8 @@ struct PressActions: ViewModifier {
 struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
+	@Environment(\.colorScheme) var colorScheme
+
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
 	@StateObject private var appState = AppState.shared
@@ -444,6 +446,7 @@ struct VirtualMachineWizard: View {
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
+		.colorSchemeForColor(self.colorScheme)
 		.toolbar {
 			ToolbarItemGroup(placement: .principal) {
 				ForEach(VirtualMachineWizardStateObject.items) { item in

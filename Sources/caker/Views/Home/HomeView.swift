@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
+	@Environment(\.colorScheme) var colorScheme
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
 	@State var columns: NavigationSplitViewVisibility = .all
@@ -29,6 +30,7 @@ struct HomeView: View {
 				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel)
 			}
 		}
+		.colorSchemeForColor(self.colorScheme)
 		.frame(minWidth: 500, minHeight: 400)
 	}
 }
