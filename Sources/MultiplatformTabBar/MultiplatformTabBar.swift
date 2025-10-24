@@ -11,41 +11,7 @@ import SwiftletUtilities
 
 /// Extends color to support the `MultiplatformTabBar`.
 extension Color {
-
-	public static var toolbarForegroundColor: Color {
-		
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "9d9b9aFF")!
-		default:
-			return Color.primary
-		}
-		
-	}
-
-	public static var toolbarPressedColor: Color {
-		
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "eeeeeeff")!
-		default:
-			return Color(fromHex: "202020ff")!
-		}
-		
-	}
-
-	public static var toolbarFillColor: Color {
-		
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "494543FF")!
-		default:
-			return Color(fromHex: "e6e4e1ff")!
-		}
-		
-	}
-
-#if os(macOS)
+	#if os(macOS)
 		/// Holds the standard window background color.
 		static let backgroundColor = Color(NSColor.windowBackgroundColor)
 
