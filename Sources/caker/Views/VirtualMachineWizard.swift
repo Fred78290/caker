@@ -231,7 +231,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		case sockets
 	}
 
-	struct ItemView: Identifiable {
+	struct ItemView: ToolbarSettingItem {
 		var id: SelectedItem
 		var title: String
 		var systemName: String
@@ -255,8 +255,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	]
 
 	@Published var currentStep: SelectedItem
-	@Published var hoverStep: SelectedItem? = nil
-	@Published var pressedStep: SelectedItem? = nil
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -300,47 +298,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	}
 }
 
-struct ToolbarButton: View {
-	let systemName: String
-	let label: String
-
-	init(_ label: String, systemName: String) {
-		self.label = label
-		self.systemName = systemName
-	}
-
-	var body: some View {
-		VStack {
-			Image(systemName: systemName)
-			.resizable()
-			.aspectRatio(contentMode: .fit)
-			.frame(width: 24, height: 24, alignment: .center)
-			
-			Text(label)
-				.font(.footnote)
-		}
-		.background(Color.red.opacity(0.0))
-	}
-}
-
-struct PressActions: ViewModifier {
-	var onPress: () -> Void
-	var onRelease: () -> Void = { }
-
-	func body(content: Content) -> some View {
-		content
-			.simultaneousGesture(
-				DragGesture(minimumDistance: 0)
-					.onChanged({ _ in
-						onPress()
-					})
-					.onEnded({ _ in
-						onRelease()
-					})
-			)
-	}
-}
-
 struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
@@ -373,30 +330,6 @@ struct VirtualMachineWizard: View {
 		}
 	}
 
-	func fillToolbarColor(_ item: VirtualMachineWizardStateObject.SelectedItem) -> Color {
-		if item == self.model.currentStep {
-			return Color.systemGray2
-		}
-
-		if item == self.model.hoverStep {
-			return Color.systemGray2
-		}
-		
-		return Color.red.opacity(0.0)
-	}
-
-	func foregroundToolbarColor(_ item: VirtualMachineWizardStateObject.SelectedItem) -> Color {
-		if item == self.model.currentStep {
-			return Color.accentColor
-		}
-
-		if item == self.model.pressedStep {
-			return Color.black
-		}
-		
-		return Color.primary
-	}
-
 	var body: some View {
 		VStack(spacing: 12) {
 			Content()
@@ -411,6 +344,10 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
+		}
+		.colorSchemeForColor(self.colorScheme)
+		.onChange(of: self.colorScheme) { _, newValue in
+			Color.colorScheme = newValue
 		}
 		.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {
@@ -446,34 +383,8 @@ struct VirtualMachineWizard: View {
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
-		.colorSchemeForColor(self.colorScheme)
 		.toolbar {
-			ToolbarItemGroup(placement: .principal) {
-				ForEach(VirtualMachineWizardStateObject.items) { item in
-					RoundedRectangle(cornerRadius: 10)
-						.fill(self.fillToolbarColor(item.id))
-					.overlay(
-						ToolbarButton(item.title, systemName: item.systemName)
-					)
-					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 65)
-					.padding(0)
-					.foregroundColor(foregroundToolbarColor(item.id))
-					.labelStyle(.titleOnly)
-					.onHover { hover in
-						self.model.hoverStep = hover ? item.id : nil
-					}
-					.gesture(
-						DragGesture(minimumDistance: 0)
-							.onChanged({ _ in
-								self.model.pressedStep = item.id
-							})
-							.onEnded({ _ in
-								self.model.pressedStep = nil
-								self.model.currentStep = item.id
-							})
-					)
-				}
-			}
+			ToolbarSettings(VirtualMachineWizardStateObject.items, placement: .principal, currentItem: $model.currentStep)
 		}
 		.toolbarTitleDisplayMode(.inlineLarge)
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
