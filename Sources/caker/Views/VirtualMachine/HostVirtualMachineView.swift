@@ -140,7 +140,11 @@ struct HostVirtualMachineView: View {
 					handleExternalModeChangedNotification(newValue)
 				}.onChange(of: self.launchVMExternally) { _, newValue in
 					self.launchExternally = self.document.isLaunchVMExternally
-				}.toolbar {
+				}
+				.onChange(of: self.colorScheme) { _, newValue in
+					Color.colorScheme = newValue
+				}
+				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
 						if document.status == .stopping {
 							Button("Force stop", systemImage: "power") {
