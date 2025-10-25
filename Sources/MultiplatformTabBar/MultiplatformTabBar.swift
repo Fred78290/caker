@@ -53,6 +53,78 @@ fileprivate extension Color {
 	#endif
 }
 
+fileprivate struct TabBarButton: View {
+	let tab: MultiplatformTab
+	let id: Int
+	@Binding public var selection: Int
+	@Binding var hoveredItem: Int?
+	@Binding var pressedItem: Int?
+
+	init(_ tab: MultiplatformTab, id: Int, selection: Binding<Int>, pressedItem: Binding<Int?>, hoveredItem: Binding<Int?>) {
+		self.tab = tab
+		self.id = id
+		self._selection = selection
+		self._hoveredItem = hoveredItem
+		self._pressedItem = pressedItem
+	}
+
+	var fillToolbarColor: Color {
+		if self.id == self.pressedItem {
+			return Color.secondary.opacity(0.30)
+		}
+
+		if self.id == self.selection || self.id == self.hoveredItem {
+			return Color.secondary.opacity(0.10)
+		}
+
+		return Color.white.opacity(0.0)
+	}
+
+	var foregroundToolbarColor: Color {
+		if self.id == self.selection {
+			return Color.accentColor
+		}
+
+		return Color.toolbarForegroundColor
+	}
+
+	var body: some View {
+		let foregroundColor = self.foregroundToolbarColor
+
+		VStack(alignment: .center) {
+			tab.icon
+				.resizable()
+				.aspectRatio(contentMode: .fit)
+				.foregroundStyle(foregroundColor)
+				.frame(width: 24, height: 24, alignment: .center)
+			Text(tab.title)
+				.font(.footnote)
+				.foregroundStyle(foregroundColor)
+		}.overlay {
+			RoundedRectangle(cornerRadius: 6)
+				.fill(self.fillToolbarColor)
+				.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
+		}
+		.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
+		.padding(0)
+		.cornerRadius(6)
+		.fixedSize(horizontal: true, vertical: true)
+		.onHover { hover in
+			self.hoveredItem = hover ? self.id : nil
+		}
+		.gesture(
+			DragGesture(minimumDistance: 0)
+				.onChanged({ _ in
+					self.pressedItem = self.id
+				})
+				.onEnded({ _ in
+					self.pressedItem = nil
+					self.selection = self.id
+				})
+		)
+	}
+}
+
 /// Creates a common Tab Bar control that runs and looks the same across multiple devices and OS (iOS, iPadOS, macOS & tvOS).
 ///
 /// ## Example:
@@ -96,7 +168,7 @@ public struct MultiplatformTabBar: View {
 
 	// MARK: - Initializers
 
-	@State var hoverItem: Int? = nil
+	@State var hoveredItem: Int? = nil
 	@State var pressedItem: Int? = nil
 
 	/// Creates a new instance of the object.
@@ -117,61 +189,6 @@ public struct MultiplatformTabBar: View {
 		self._selection = selection
 	}
 
-	private func fillToolbarColor(_ item: Int) -> Color {
-		if item == self.selection || item == self.hoverItem {
-			return Color.toolbarFillColor
-		}
-
-		return Color.red.opacity(0.0)
-	}
-
-	private func foregroundToolbarColor(_ item: Int) -> Color {
-		if item == self.pressedItem && item == self.selection {
-			return Color.accentColor.withBrightnessValue(20)
-		}
-
-		if item == self.pressedItem {
-			return Color.toolbarPressedColor
-		}
-		
-		if item == self.selection {
-			return Color.accentColor
-		}
-
-		return Color.toolbarForegroundColor
-	}
-
-	private func gesture(_ index: Int) -> some Gesture {
-		DragGesture(minimumDistance: 0)
-			.onChanged({ _ in
-				if tabSet.tabs[index].disabled == false {
-					self.pressedItem = index
-				}
-			})
-			.onEnded({ _ in
-				self.pressedItem = nil
-				if tabSet.tabs[index].disabled == false {
-					self.selection = index
-				}
-			})
-	}
-
-	@ViewBuilder
-	private func tabContent(_ tab: MultiplatformTab, foregroundColor: Color) -> some View {
-		VStack {
-			tab.icon
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.foregroundStyle(tab.disabled ? .gray : foregroundColor)
-				.frame(width: 24, height: 24, alignment: .center)
-
-			Text(tab.title)
-				.font(.footnote)
-				.foregroundStyle(tab.disabled ? .gray : foregroundColor)
-		}
-		.background(Color.red.opacity(0.0))
-	}
-
 	// MARK: - Functions
 	/// Generates a horizontal Tab Bar.
 	private var barHorizontal: some View {
@@ -181,25 +198,13 @@ public struct MultiplatformTabBar: View {
 					Spacer()
 				}
 				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
-					let foregroundColor = self.foregroundToolbarColor(index)
-
-					RoundedRectangle(cornerRadius: 10)
-						.fill(self.fillToolbarColor(index))
-						.overlay(
-							tabContent(tabSet.tabs[index], foregroundColor: foregroundColor)
-						)
-						.frame(width: 65, height: 65)
-						.padding(0)
-						.foregroundColor(foregroundColor)
-						.onHover { hover in
-							self.hoverItem = hover ? index : nil
-						}
-						.gesture(gesture(index))
-				}
+					TabBarButton(tabSet.tabs[index], id: index, selection: $selection, pressedItem: $pressedItem, hoveredItem: $hoveredItem)
+				}.padding(0)
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .left {
 					Spacer()
 				}
 			}
+			.fixedSize(horizontal: false, vertical: true)
 
 			Divider()
 		}
@@ -212,20 +217,7 @@ public struct MultiplatformTabBar: View {
 			VStack {
 				Spacer()
 				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
-					let foregroundColor = self.foregroundToolbarColor(index)
-
-					RoundedRectangle(cornerRadius: 10)
-						.fill(self.fillToolbarColor(index))
-						.overlay(
-							tabContent(tabSet.tabs[index], foregroundColor: foregroundColor)
-						)
-						.frame(width: 65, height: 65)
-						.padding(0)
-						.foregroundColor(foregroundColor)
-						.onHover { hover in
-							self.hoverItem = hover ? index : nil
-						}
-						.gesture(gesture(index))
+					TabBarButton(tabSet.tabs[index], id: index, selection: $selection, pressedItem: $pressedItem, hoveredItem: $hoveredItem)
 				}
 				Spacer()
 			}

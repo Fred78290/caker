@@ -28,22 +28,18 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent {
 	}
 
 	private func fillToolbarColor(_ item: Item.ID) -> Color {
-		if item == self.currentItem || item == self.hoveredItem {
-			return Color.toolbarFillColor
+		if item == self.pressedItem {
+			return Color.secondary.opacity(0.30)
 		}
 
-		return Color.red.opacity(0.0)
+		if item == self.currentItem || item == self.hoveredItem {
+			return Color.secondary.opacity(0.10)
+		}
+
+		return Color.white.opacity(0.0)
 	}
 
 	private func foregroundToolbarColor(_ item: Item.ID) -> Color {
-		if item == self.pressedItem && item == self.currentItem {
-			return Color.accentColor.withBrightnessValue(20)
-		}
-
-		if item == self.pressedItem {
-			return Color.toolbarPressedColor
-		}
-		
 		if item == self.currentItem {
 			return Color.accentColor
 		}
@@ -56,25 +52,24 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent {
 			ForEach(self.items) { item in
 				let foregroundColor = self.foregroundToolbarColor(item.id)
 
-				RoundedRectangle(cornerRadius: 10)
-					.fill(self.fillToolbarColor(item.id))
-				.overlay(
-					VStack {
-						Image(systemName: item.systemName)
-							.resizable()
-							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(foregroundColor)
-							.frame(width: 24, height: 24, alignment: .center)
-
-						Text(item.title)
-							.font(.footnote)
-							.foregroundStyle(foregroundColor)
-					}
-					.background(Color.red.opacity(0.0))
-				)
-				.frame(minWidth: 65, maxWidth: .infinity, minHeight: 65)
+				VStack(alignment: .center) {
+					Image(systemName: item.systemName)
+						.resizable()
+						.aspectRatio(contentMode: .fit)
+						.foregroundStyle(foregroundColor)
+						.frame(width: 24, height: 24, alignment: .center)
+					Text(item.title)
+						.font(.footnote)
+						.foregroundStyle(foregroundColor)
+				}.overlay {
+					RoundedRectangle(cornerRadius: 6)
+						.fill(self.fillToolbarColor(item.id))
+						.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
+				}
+				.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
 				.padding(0)
-				.foregroundColor(foregroundColor)
+				.cornerRadius(6)
+				.fixedSize(horizontal: false, vertical: true)
 				.onHover { hover in
 					self.hoveredItem = hover ? item.id : nil
 				}
@@ -91,5 +86,4 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent {
 			}
 		}
 	}
-	
 }

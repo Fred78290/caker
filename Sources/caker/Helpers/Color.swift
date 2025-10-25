@@ -7,25 +7,23 @@
 
 import SwiftUI
 
-extension Color {
-	public static var toolbarForegroundColor: Color {
+public extension Color {
+	static var toolbarForegroundColor: Color {
 		switch colorScheme {
 		case .dark:
 			return Color(fromHex: "9d9b9aFF")!
 		default:
 			return Color.primary
 		}
-		
 	}
 
-	public static var toolbarPressedColor: Color {
+	static var toolbarPressedColor: Color {
 		switch colorScheme {
 		case .dark:
 			return Color(fromHex: "eeeeeeff")!
 		default:
 			return Color(fromHex: "202020ff")!
 		}
-		
 	}
 
 	static var toolbarFillColor: Color {
@@ -35,7 +33,6 @@ extension Color {
 		default:
 			return Color(fromHex: "e6e4e1ff")!
 		}
-		
 	}
 }
 

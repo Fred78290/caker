@@ -168,6 +168,7 @@
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
 		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
+		9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */; };
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
@@ -661,6 +662,7 @@
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
@@ -1162,6 +1164,7 @@
 				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7999062E48A27900147500 /* VNC */,
+				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2116,6 +2119,7 @@
 				9B2BFAC32DFED25E000045C3 /* VirtualMachineSettingsView.swift in Sources */,
 				9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */,
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
+				9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
 				9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
