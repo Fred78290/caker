@@ -30,6 +30,7 @@ struct HomeView: View {
 				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel)
 			}
 		}
+		.frame(minWidth: 500, minHeight: 400)
 		.colorSchemeForColor(self.colorScheme)
 		.frame(minWidth: 500, minHeight: 400)
 	}
