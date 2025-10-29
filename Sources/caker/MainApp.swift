@@ -116,10 +116,8 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
-		.commands {
-			CommandGroup(replacing: .saveItem, addition: {})
-			CommandGroup(replacing: .newItem) {
-				Section {
+		.commandsReplaced {
+			CommandGroup(before: .newItem) {
 					Button("New virtual machine") {
 						openWindow(id: "wizard")
 						//newDocumentWizard()
@@ -127,7 +125,6 @@ struct MainApp: App {
 					Button("Open virtual machine") {
 						open()
 					}.keyboardShortcut(KeyboardShortcut("o"))
-				}
 			}
 			CommandMenu("Control") {
 				Button("Start") {
