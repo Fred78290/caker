@@ -14,13 +14,7 @@ struct SideBarView: View {
 		List(selection: $navigationModel.selectedCategory) {
 			ForEach(navigationModel.categories) { category in
 				NavigationLink(value: category) {
-					Label {
-						Text(category.title).font(.title3)
-					} icon: {
-						Image(systemName: category.iconName)
-							.resizable()
-							.scaledToFit()
-					}.padding(2)
+					Label(category.title, systemImage: category.iconName)
 				}
 			}
 		}
