@@ -11,33 +11,6 @@ import SwiftletUtilities
 
 /// Extends color to support the `MultiplatformTabBar`.
 fileprivate extension Color {
-	static var toolbarForegroundColor: Color {
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "9d9b9aFF")!
-		default:
-			return Color.primary
-		}
-	}
-
-	static var toolbarPressedColor: Color {
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "eeeeeeff")!
-		default:
-			return Color(fromHex: "202020ff")!
-		}
-	}
-
-	static var toolbarFillColor: Color {
-		switch colorScheme {
-		case .dark:
-			return Color(fromHex: "494543FF")!
-		default:
-			return Color(fromHex: "e6e4e1ff")!
-		}
-	}
-
 	#if os(macOS)
 		/// Holds the standard window background color.
 		static let backgroundColor = Color(NSColor.windowBackgroundColor)
@@ -51,78 +24,6 @@ fileprivate extension Color {
 		/// Holds the standard control background color.
 		static let secondaryBackgroundColor = Color(UIColor.secondarySystemBackground)
 	#endif
-}
-
-fileprivate struct TabBarButton: View {
-	let tab: MultiplatformTab
-	let id: Int
-	@Binding public var selection: Int
-	@Binding var hoveredItem: Int?
-	@Binding var pressedItem: Int?
-
-	init(_ tab: MultiplatformTab, id: Int, selection: Binding<Int>, pressedItem: Binding<Int?>, hoveredItem: Binding<Int?>) {
-		self.tab = tab
-		self.id = id
-		self._selection = selection
-		self._hoveredItem = hoveredItem
-		self._pressedItem = pressedItem
-	}
-
-	var fillToolbarColor: Color {
-		if self.id == self.pressedItem {
-			return Color.secondary.opacity(0.30)
-		}
-
-		if self.id == self.selection || self.id == self.hoveredItem {
-			return Color.secondary.opacity(0.10)
-		}
-
-		return Color.white.opacity(0.0)
-	}
-
-	var foregroundToolbarColor: Color {
-		if self.id == self.selection {
-			return Color.accentColor
-		}
-
-		return Color.toolbarForegroundColor
-	}
-
-	var body: some View {
-		let foregroundColor = self.foregroundToolbarColor
-
-		VStack(alignment: .center) {
-			tab.icon
-				.resizable()
-				.aspectRatio(contentMode: .fit)
-				.foregroundStyle(foregroundColor)
-				.frame(width: 24, height: 24, alignment: .center)
-			Text(tab.title)
-				.font(.footnote)
-				.foregroundStyle(foregroundColor)
-		}.overlay {
-			RoundedRectangle(cornerRadius: 6)
-				.fill(self.fillToolbarColor)
-				.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
-		}
-		.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
-		.padding(0)
-		.cornerRadius(6)
-		.fixedSize(horizontal: true, vertical: true)
-		.onHover { hover in
-			self.hoveredItem = hover ? self.id : nil
-		}
-		.gesture(
-			DragGesture(minimumDistance: 0)
-				.onChanged({ _ in
-					self.pressedItem = self.id
-				})
-				.onEnded({ _ in
-					self.pressedItem = nil
-					self.selection = self.id
-				})
-		)
-	}
 }
 
 /// Creates a common Tab Bar control that runs and looks the same across multiple devices and OS (iOS, iPadOS, macOS & tvOS).
@@ -149,6 +50,7 @@ fileprivate struct TabBarButton: View {
 ///
 /// - Remark: This tool works great for creating a **Settings** page for the macOS build of a multiplatform SwiftUI project.
 public struct MultiplatformTabBar: View {
+	@Environment(\.appearsActive) var appearsActive
 	// MARK: - Properties
 
 	/// Defines the location of the Tab Bar.
@@ -189,6 +91,51 @@ public struct MultiplatformTabBar: View {
 		self._selection = selection
 	}
 
+	func buttonState(for id: Int) -> ToolbarLabelStyle.State {
+		if self.selection == id && self.pressedItem == id {
+			return .pressedAndSelected
+		} else if self.selection == id && self.hoveredItem == id {
+			return .hoveredAndSelected
+		} else if self.pressedItem == id {
+			return .pressed
+		} else if self.hoveredItem == id {
+			return .hovered
+		} else if self.selection == id {
+			return .selected
+		} else {
+			return .none
+		}
+	}
+	
+
+	private func barButton(_ index: Int) -> some View {
+		let item = tabSet.tabs[index]
+
+		return Label{
+			Text(item.title)
+		} icon: {
+			item.icon.resizable()
+		}
+		.labelStyle(ToolbarLabelStyle(self.buttonState(for: index), appearsActive: appearsActive))
+		.onContinuousHover { phase in
+			if case .active = phase {
+				self.hoveredItem = index
+			} else {
+				self.hoveredItem = nil
+			}
+		}
+		.gesture(
+			DragGesture(minimumDistance: 0)
+				.onChanged({ _ in
+					self.pressedItem = index
+				})
+				.onEnded({ _ in
+					self.pressedItem = nil
+					self.selection = index
+				})
+		)
+	}
+
 	// MARK: - Functions
 	/// Generates a horizontal Tab Bar.
 	private var barHorizontal: some View {
@@ -197,8 +144,8 @@ public struct MultiplatformTabBar: View {
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .right {
 					Spacer()
 				}
-				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
-					TabBarButton(tabSet.tabs[index], id: index, selection: $selection, pressedItem: $pressedItem, hoveredItem: $hoveredItem)
+				ForEach(0..<tabSet.tabs.count, id:\.self) { index in
+					self.barButton(index)
 				}.padding(0)
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .left {
 					Spacer()
@@ -216,8 +163,8 @@ public struct MultiplatformTabBar: View {
 		HStack {
 			VStack {
 				Spacer()
-				ForEach(0..<tabSet.tabs.count, id: \.self) { index in
-					TabBarButton(tabSet.tabs[index], id: index, selection: $selection, pressedItem: $pressedItem, hoveredItem: $hoveredItem)
+				ForEach(0..<tabSet.tabs.count, id:\.self) { index in
+					self.barButton(index)
 				}
 				Spacer()
 			}

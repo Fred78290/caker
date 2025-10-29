@@ -220,41 +220,7 @@ struct ShortImageInfoComparator: SortComparator {
 }
 
 class VirtualMachineWizardStateObject: ObservableObject {
-	enum SelectedItem: Int, Hashable {
-		case name
-		case os
-		case cpuAndRam
-		case sharing
-		case disk
-		case network
-		case ports
-		case sockets
-	}
-
-	struct ItemView: ToolbarSettingItem {
-		var id: SelectedItem
-		var title: String
-		var systemName: String
-
-		init(_ id: SelectedItem, title: String, systemName: String) {
-			self.title = title
-			self.systemName = systemName
-			self.id = id
-		}
-	}
-
-	static var items: [ItemView] = [
-		ItemView(.name, title: "Name", systemName: "character.cursor.ibeam"),
-		ItemView(.os, title: "Choose OS", systemName: "cloud"),
-		ItemView(.cpuAndRam, title: "CPU & Ram", systemName: "cpu"),
-		ItemView(.sharing, title: "Sharing", systemName: "folder.badge.plus"),
-		ItemView(.disk, title: "Disk", systemName: "externaldrive.badge.plus"),
-		ItemView(.network, title: "Network", systemName: "network"),
-		ItemView(.ports, title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath"),
-		ItemView(.sockets, title: "Sockets", systemName: "powerplug"),
-	]
-
-	@Published var currentStep: SelectedItem
+	@Published var currentStep: WizardModel.SelectedItem
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
@@ -384,7 +350,7 @@ struct VirtualMachineWizard: View {
 			self.validateConfig(config: self.config)
 		}
 		.toolbar {
-			ToolbarSettings(VirtualMachineWizardStateObject.items, placement: .principal, currentItem: $model.currentStep)
+			ToolbarSettings($model.currentStep, items: WizardModel.items, placement: .principal)
 		}
 		.toolbarTitleDisplayMode(.inlineLarge)
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
@@ -1000,7 +966,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep = VirtualMachineWizardStateObject.SelectedItem(rawValue: self.model.currentStep.rawValue - 1)!
+		self.model.currentStep = WizardModel.SelectedItem(rawValue: self.model.currentStep.rawValue - 1)!
 	}
 
 	func nextStep() {
@@ -1009,7 +975,7 @@ struct VirtualMachineWizard: View {
 		}
 
 		validateConfig(config: self.config)
-		self.model.currentStep = VirtualMachineWizardStateObject.SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
+		self.model.currentStep = WizardModel.SelectedItem(rawValue: self.model.currentStep.rawValue + 1)!
 	}
 }
 
