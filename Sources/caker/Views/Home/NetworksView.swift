@@ -15,16 +15,33 @@ struct NetworksView: View {
 	@State private var disabled: Bool = false
 
 	var body: some View {
-		GeometryReader { geometry in
-			EditableList($appState.networks, selection: $selection) { $item in
-				NetworkDetailView(currentItem: $item).padding(5)
-			}.onEditItem(selection: $selection, disabled: $disabled) { editItem in
-				NetworkNewItemView($appState.networks, editItem: editItem)
-			} deleteItem: {
-				appState.networks.removeAll {
-					$0.id == selection
+		GeometryReader { geom in
+			ScrollView {
+				VStack(alignment: .center) {
+					if appState.networks.isEmpty {
+						if #available(macOS 14, *) {
+							VStack(alignment: .center) {
+								ContentUnavailableView("List empty", systemImage: "tray")
+							}.frame(width: geom.size.width)
+						} else {
+							VStack(alignment: .center) {
+								Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
+								Text("List empty").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
+							}.frame(width: geom.size.width)
+						}
+					} else {
+						Table(appState.networks, selection: $navigationModel.selectedNetwork) {
+							
+						}
+						List(selection: $navigationModel.selectedNetwork) {
+							ForEach($appState.networks) { network in
+								HStack {
+								}
+							}
+						}
+					}
 				}
-			}.frame(size: geometry.size)
+			}
 		}
 	}
 }
