@@ -14,11 +14,11 @@ struct HomeView: View {
 	@State var columns: NavigationSplitViewVisibility = .all
 
 	var body: some View {
-		NavigationSplitView {
+		NavigationSplitView(columnVisibility: $navigationModel.navigationSplitViewVisibility, sidebar: {
 			SideBarView(navigationModel: $navigationModel)
 				.frame(minWidth: 200, maxWidth: 200)
 				.navigationSplitViewColumnWidth(200)
-		} detail: {
+		}, content: {
 			switch navigationModel.selectedCategory {
 			case .images:
 				RemotesView(appState: $appState, navigationModel: $navigationModel)
@@ -29,7 +29,9 @@ struct HomeView: View {
 			case .virtualMachine:
 				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel)
 			}
-		}
+		}, detail: {
+			Text("Hello, World!")
+		})
 		.frame(minWidth: 500, minHeight: 400)
 		.colorSchemeForColor(self.colorScheme)
 		.onChange(of: self.colorScheme) { _, newValue in
