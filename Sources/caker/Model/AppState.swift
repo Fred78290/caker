@@ -95,9 +95,6 @@ class AppState: ObservableObject, Observable {
 	@Published var remotes: [RemoteEntry] = []
 	@Published var templates: [TemplateEntry] = []
 	@Published var networks: [BridgedNetwork] = []
-	@Published var selectedRemote: RemoteEntry? = nil
-	@Published var selectedTemplate: TemplateEntry? = nil
-	@Published var selectedNetwork: BridgedNetwork? = nil
 
 	private var virtualMachines: [URL: VirtualMachineDocument] = [:]
 

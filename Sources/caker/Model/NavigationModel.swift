@@ -70,6 +70,11 @@ class NavigationModel: ObservableObject, Observable {
 	@Published var columnVisibility: NavigationSplitViewVisibility = .all
 	@Published var selectedCategory: Category = .images
 	@Published var selectedElement: SelectedElement? = nil
+	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
+	@Published var selectedRemote: RemoteEntry? = nil
+	@Published var selectedTemplate: TemplateEntry? = nil
+	@Published var selectedNetwork: BridgedNetwork? = nil
+	@Published var selectedVirtualMachine: VirtualMachine? = nil
 
 	var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
 }
