@@ -342,12 +342,21 @@ extension String {
 extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
-
+		
 		if socketPath.path.utf8.count < 103 {
 			return URL(string: "unix://\(socketPath.path)")!
 		} else {
 			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
 		}
+	}
+	
+	public func fileSize() throws -> UInt64 {
+		guard self.isFileURL else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: ["description": "not a file url"])
+		}
+		let attrs = try FileManager.default.attributesOfItem(atPath: self.path)
+
+		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
 	}
 }
 
