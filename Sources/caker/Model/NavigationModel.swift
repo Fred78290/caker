@@ -68,7 +68,7 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 
 class NavigationModel: ObservableObject, Observable {
 	@Published var columnVisibility: NavigationSplitViewVisibility = .all
-	@Published var selectedCategory: Category = .images
+	@Published var selectedCategory: Category = .virtualMachine
 	@Published var selectedElement: SelectedElement? = nil
 	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
 	@Published var selectedRemote: RemoteEntry? = nil
