@@ -29,6 +29,7 @@ struct VirtualMachineConfig: Hashable {
 	var attachedDisks: [DiskAttachement] = []
 	var mounts: DirectorySharingAttachments = []
 	var vmname: String! = nil
+	var agent: Bool = false
 
 	var imageName: String
 	var sshAuthorizedKey: String?
@@ -41,6 +42,14 @@ struct VirtualMachineConfig: Hashable {
 	var userData: String? = nil
 	var networkConfig: String? = nil
 	var autoinstall: Bool = false
+
+	var humanReadableDiskSize: String {
+		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize) * 1024 * 1024 * 1024, countStyle: .file)
+	}
+
+	var humanReadableMemorySize: String {
+		ByteCountFormatter.string(fromByteCount: Int64(self.memorySize) * 1024 * 1024, countStyle: .memory)
+	}
 
 	init() {
 		imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
@@ -72,7 +81,9 @@ struct VirtualMachineConfig: Hashable {
 		}
 	}
 
-	init(vmname: String, config: CakeConfig) {
+	init(location: VMLocation) throws {
+		let config = try location.config()
+
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
 		self.cpuCount = config.cpuCount
@@ -89,12 +100,13 @@ struct VirtualMachineConfig: Hashable {
 		self.networks = config.networks
 		self.attachedDisks = config.attachedDisks
 		self.mounts = config.mounts
-		self.vmname = vmname
+		self.vmname = location.name
 		self.configuredUser = config.configuredUser
 		self.configuredPassword = config.configuredPassword
 		self.mainGroup = "adm"
 		self.clearPassword = true
-		self.diskSize = 20
+		self.diskSize = UInt16(try location.diskURL.fileSize() / (1024 * 1024 * 1024))
+		self.agent = config.agent
 	}
 
 	func save() throws {
