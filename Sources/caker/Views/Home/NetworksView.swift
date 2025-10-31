@@ -49,15 +49,14 @@ struct NetworksView: View {
 				}
 			} else {
 				ScrollView {
+					Text("Toto")
 					List(selection: $navigationModel.selectedNetwork) {
 						ForEach(appState.networks) { network in
-							HStack {
-								Label(title: {
-									Text(network.name)
-								}, icon: {
-									network.icon.resizable().scaledToFit()
-								})
-							}.frame(width: geom.size.width)
+							Label(title: {
+								Text(network.name)
+							}, icon: {
+								network.icon.resizable().scaledToFit()
+							})
 						}
 					}
 				}.frame(size: geom.size)

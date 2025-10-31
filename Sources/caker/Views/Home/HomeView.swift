@@ -32,7 +32,6 @@ struct HomeView: View {
 		}, detail: {
 			Text("Hello, World!")
 		})
-		.frame(minWidth: 500, minHeight: 400)
 		.colorSchemeForColor(self.colorScheme)
 		.onChange(of: self.colorScheme) { _, newValue in
 			Color.colorScheme = newValue

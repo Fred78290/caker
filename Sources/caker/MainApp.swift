@@ -90,6 +90,10 @@ struct MainApp: App {
 
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
+
+		DispatchQueue.main.async {
+			EnvironmentValues().openWindow(id: "home")
+		}
 	}
 
 	var body: some Scene {
@@ -172,6 +176,8 @@ struct MainApp: App {
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
 		}
+		.windowResizability(.contentSize)
+		.defaultSize(width: 1280, height: 1080)
 
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()

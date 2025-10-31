@@ -8,25 +8,56 @@
 import SwiftUI
 
 struct VirtualMachineView: View {
-	@Binding var vm: VirtualMachineDocument
+	@State var vm: VirtualMachineDocument
 
 	var body: some View {
-		Group {
-			HStack(alignment: .center) {
-				Circle()
-					.strokeBorder(.gray, lineWidth: 1)
-					.background(Circle().foregroundColor(lightColor()))
-					.frame(width: 15, height: 15)
-				Text("\(vm.name)").font(.title)
-				Spacer()
-				Button(action: action) {
-					Image(systemName: imageName())
-						.frame(width: 15, height: 15).scaledToFill()
+		GeometryReader { geometry in
+			VStack {
+				HStack(alignment: .center) {
+					Circle()
+						.strokeBorder(.gray, lineWidth: 1)
+						.background(Circle().foregroundColor(lightColor()))
+						.frame(width: 12, height: 12)
+					Text("\(vm.name)").font(.headline)
+					Spacer()
+					Button(action: action) {
+						Image(systemName: imageName())
+							.frame(width: 15, height: 15).scaledToFill()
+					}
+					.buttonStyle(.borderless)
+					.labelsHidden()
 				}
-				.buttonStyle(.borderless)
-				.labelsHidden()
+				.padding(4)
+				.frame(width: geometry.size.width)
+				
+				HStack {
+					Spacer()
+					Label("\(vm.virtualMachineConfig.cpuCount)", systemImage: "cpu")
+						.font(.caption)
+						.foregroundStyle(Color.secondary)
+					Label("\(vm.virtualMachineConfig.humanReadableDiskSize)", systemImage: "internaldrive")
+						.font(.caption)
+						.foregroundStyle(Color.secondary)
+					Label("\(vm.virtualMachineConfig.humanReadableMemorySize)", systemImage: "memorychip")
+						.font(.caption)
+						.foregroundStyle(Color.secondary)
+					Spacer()
+				}
+				.frame(width: geometry.size.width, height: 20)
+				
+				HStack {
+					self.vm.screenshot()
+						.scaledToFit()
+				}
+				.padding(10)
+				.background(Color.red)
+				.frame(width: geometry.size.width, height: geometry.size.height * 0.75)
+
 			}
-		}.padding()
+			.background(Color.systemGray6)
+			.clipShape(RoundedRectangle(cornerRadius: 8))
+			.frame(size: geometry.size)
+		}
 	}
 
 	func action() {
@@ -63,5 +94,5 @@ struct VirtualMachineView: View {
 #Preview {
 	let appState = AppState()
 
-	VirtualMachineView(vm: .constant(appState.vms.first!.document))
+	VirtualMachineView(vm: appState.vms.first!.document)
 }
