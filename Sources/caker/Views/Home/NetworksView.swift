@@ -8,6 +8,26 @@
 import GRPCLib
 import SwiftUI
 
+extension BridgedNetwork {
+	var icon: Image {
+		switch self.mode {
+		case .bridged:
+			if self.description.contains("Wi-Fi") {
+				return Image(systemName: "wifi")
+			} else if self.description.contains("Thunderbold") {
+				return Image("thunderbold")
+			} else {
+				return Image("ethernet")
+			}
+		case .host:
+			return Image(systemName: "network.badge.shield.half.filled")
+		case .nat:
+			return Image(systemName: "network")
+		case .shared:
+			return Image(systemName: "link")
+		}
+	}
+}
 struct NetworksView: View {
 	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
@@ -16,31 +36,31 @@ struct NetworksView: View {
 
 	var body: some View {
 		GeometryReader { geom in
-			ScrollView {
-				VStack(alignment: .center) {
-					if appState.networks.isEmpty {
-						if #available(macOS 14, *) {
-							VStack(alignment: .center) {
-								ContentUnavailableView("List empty", systemImage: "tray")
+			if appState.networks.isEmpty {
+				if #available(macOS 14, *) {
+					VStack(alignment: .center) {
+						ContentUnavailableView("List empty", systemImage: "tray")
+					}.frame(width: geom.size.width)
+				} else {
+					VStack(alignment: .center) {
+						Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
+						Text("List empty").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
+					}.frame(width: geom.size.width)
+				}
+			} else {
+				ScrollView {
+					List(selection: $navigationModel.selectedNetwork) {
+						ForEach(appState.networks) { network in
+							HStack {
+								Label(title: {
+									Text(network.name)
+								}, icon: {
+									network.icon.resizable().scaledToFit()
+								})
 							}.frame(width: geom.size.width)
-						} else {
-							VStack(alignment: .center) {
-								Image(systemName: "tray").resizable().scaledToFit().frame(width: 48, height: 48).foregroundStyle(.gray)
-								Text("List empty").font(.largeTitle).fontWeight(.bold).foregroundStyle(.gray).multilineTextAlignment(.center)
-							}.frame(width: geom.size.width)
-						}
-					} else {
-						Table(appState.networks, selection: $navigationModel.selectedNetwork) {
-							
-						}
-						List(selection: $navigationModel.selectedNetwork) {
-							ForEach($appState.networks) { network in
-								HStack {
-								}
-							}
 						}
 					}
-				}
+				}.frame(size: geom.size)
 			}
 		}
 	}
