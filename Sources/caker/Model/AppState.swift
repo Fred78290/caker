@@ -143,16 +143,18 @@ class AppState: ObservableObject, Observable {
 
 		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
 			let storage = StorageLocation(runMode: .app)
-
+			
 			vms.compactMap {
 				if let location = try? storage.find($0.name) {
 					return location
 				}
 
 				return nil
-			}.forEach {
-				names.append($0.name)
-				result[$0.rootURL] = VirtualMachineDocument(name: $0.name)
+			}.forEach { location in
+				if let vm = try? VirtualMachineDocument(location: location) {
+					names.append(location.name)
+					result[location.rootURL] = vm
+				}
 			}
 		}
 
