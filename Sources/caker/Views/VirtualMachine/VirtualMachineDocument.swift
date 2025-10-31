@@ -178,8 +178,13 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.virtualMachineConfig = VirtualMachineConfig()
 	}
 
-	init(name: String) {
+	convenience init(location: VMLocation) throws {
+		self.init(name: location.name, config: try VirtualMachineConfig(location: location))
+	}
+
+	init(name: String, config: VirtualMachineConfig) {
 		self.name = name
+		self.virtualMachineConfig = config
 	}
 
 	required init(configuration: ReadConfiguration) throws {
@@ -299,11 +304,9 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.logger.debug("Load VM from: \(location.rootURL)")
 
 		do {
-			let config = try location.config()
-
-			self.virtualMachineConfig = VirtualMachineConfig(vmname: location.name, config: config)
+			self.virtualMachineConfig = try VirtualMachineConfig(location: location)
 			self.location = location
-			self.agent = config.agent ? .installed : .none
+			self.agent = self.virtualMachineConfig.agent ? .installed : .none
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 
@@ -316,6 +319,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			if externalRunning {
 				retrieveVNCURL()
 			} else {
+				let config = try! location.config()
 				let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
 
 				self.virtualMachine = virtualMachine
@@ -886,6 +890,12 @@ extension VirtualMachineDocument {
 }
 
 extension VirtualMachineDocument {
+	func screenshot() -> some View {
+		Color.black
+	}
+}
+
+extension VirtualMachineDocument {
 	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")
@@ -904,3 +914,4 @@ extension VirtualMachineDocument {
 		return notification.object as? T
 	}
 }
+
