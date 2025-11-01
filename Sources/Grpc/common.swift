@@ -4,6 +4,7 @@ import NIOPortForwarding
 import Security
 import System
 import Virtualization
+import ObjectiveC
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -241,18 +242,17 @@ public struct ClientCertificatesLocation: Codable {
 	}
 }
 
-let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
-let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
-
 extension String {
+	public static let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
+	public static let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
 	public static let grpcSeparator: String = "|"
 
 	public func isFingerPrint() -> Bool {
-		if fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+		if Self.fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
 
-		if fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
+		if Self.fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
 
@@ -352,11 +352,30 @@ extension URL {
 	
 	public func fileSize() throws -> UInt64 {
 		guard self.isFileURL else {
-			throw NSError(domain: NSOSStatusErrorDomain, code: -1, userInfo: ["description": "not a file url"])
+			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.badAddress.rawValue), userInfo: ["description": "not a file url"])
 		}
-		let attrs = try FileManager.default.attributesOfItem(atPath: self.path)
-
+		let attrs = try FileManager.default.attributesOfItem(atPath: self.absoluteURL.path(percentEncoded: false))
+		
 		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
+	}
+	
+	public func fileRefURL() -> String {
+		return getFileRefURL(self)
+	}
+}
+
+extension FileWrapper {
+	public var contentsURL: NSURL? {
+		guard let field = class_getInstanceVariable(FileWrapper.self, "_contentsURL") else {
+			return nil
+		}
+		
+		guard let value = object_getIvar(self, field) as? NSURL else {
+			return nil
+		}
+		
+		
+		return value
 	}
 }
 
