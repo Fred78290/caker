@@ -15,6 +15,7 @@ import GRPCLib
 import NIO
 import SwiftTerm
 import RoyalVNCKit
+import Dynamic
 
 extension VNCConnection.Status: @retroactive CustomStringConvertible {
 	public var description: String {
@@ -194,25 +195,36 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 			throw ServiceError("Internal error")
 		}
 
-		if let fileName = file.filename {
-			let vmName = fileName.deletingPathExtension
-			let location = StorageLocation(runMode: .app).location(vmName)
+		guard let fileName = file.filename else {
+			throw ServiceError("Internal error")
+		}
 
-			if file.matchesContents(of: location.rootURL) {
-				func loadVM() throws {
-					if loadVirtualMachine(from: location.rootURL) == false {
-						throw ServiceError("Unable to load virtual machine")
-					} else {
-						AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
-					}
-				}
+		guard let vmURL = file.contentsURL?.absoluteURL else {
+			throw ServiceError("Unable to get URL for \(fileName)")
+		}
 
-				if Thread.isMainThread {
-					try loadVM()
+		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
+			self = existingDocument
+			return
+		}
+
+		let vmName = fileName.deletingPathExtension
+		let location = VMLocation(rootURL: vmURL)
+
+		if file.matchesContents(of: location.rootURL) {
+			func loadVM() throws {
+				if loadVirtualMachine(from: location.rootURL) == false {
+					throw ServiceError("Unable to load virtual machine")
 				} else {
-					try DispatchQueue.main.sync {
-						try loadVM()
-					}
+					AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
+				}
+			}
+
+			if Thread.isMainThread {
+				try loadVM()
+			} else {
+				try DispatchQueue.main.sync {
+					try loadVM()
 				}
 			}
 		}
