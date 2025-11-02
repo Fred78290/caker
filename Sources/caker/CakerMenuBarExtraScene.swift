@@ -30,12 +30,13 @@ struct CakerMenuBarExtraScene: Scene {
 			}.keyboardShortcut("N")
 				.help("Create a new virtual machine.")
 
-			if appState.names.isEmpty {
+			if appState.virtualMachines.isEmpty {
 				Text("No virtual machines found.")
 			} else {
 				Menu("Virtual machines") {
-					ForEach(appState.vms) { vm in
-						VMMenuItem(url: vm.id, vm: vm.document, appState: appState).environmentObject(appState)
+					ForEach(appState.virtualMachines.vms) { vm in
+						VMMenuItem(url: vm.id, vm: vm.document, appState: appState)
+							.environmentObject(appState)
 					}
 				}
 			}

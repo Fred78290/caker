@@ -68,15 +68,37 @@ enum Category: Int, CaseIterable, Codable, Identifiable {
 
 class NavigationModel: ObservableObject, Observable {
 	@Published var columnVisibility: NavigationSplitViewVisibility = .all
-	@Published var selectedCategory: Category = .virtualMachine
 	@Published var selectedElement: SelectedElement? = nil
 	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
+	@Published var navigationSplitViewColumn: NavigationSplitViewColumn = .content
 	@Published var selectedRemote: RemoteEntry? = nil
 	@Published var selectedTemplate: TemplateEntry? = nil
 	@Published var selectedNetwork: BridgedNetwork? = nil
 	@Published var selectedVirtualMachine: VirtualMachine? = nil
+	@Published var selectedCategory: Category {
+		didSet {
+			switch selectedCategory {
+			case .virtualMachine:
+				self.navigationSplitViewColumn = .detail
+				self.navigationSplitViewVisibility = .doubleColumn
+			case .networks:
+				self.navigationSplitViewColumn = .sidebar
+				self.navigationSplitViewVisibility = .all
+			case .templates:
+				self.navigationSplitViewColumn = .sidebar
+				self.navigationSplitViewVisibility = .all
+			case .images:
+				self.navigationSplitViewColumn = .sidebar
+				self.navigationSplitViewVisibility = .all
+			}
+		}
+	}
 
 	var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
+	
+	init() {
+		self.selectedCategory = .virtualMachine
+	}
 }
 
 extension NavigationModel: Equatable {

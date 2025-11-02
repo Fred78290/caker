@@ -111,8 +111,10 @@ struct MainApp: App {
 					.windowToolbarFullScreenVisibility(.onHover)
 					.restorationState(.disabled)
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
+					.containerBackground(.windowBackground, for: .window)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
+					.containerBackground(.windowBackground, for: .window)
 					.colorSchemeForColor()
 					.restorationState(.disabled)
 					.frame(size: initialSize)
@@ -176,13 +178,13 @@ struct MainApp: App {
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
 				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
 		}
 		.windowResizability(.contentSize)
 		.defaultSize(width: 1280, height: 1080)
 
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
-				.restorationState(.disabled)
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.expanded)
@@ -194,6 +196,7 @@ struct MainApp: App {
 		Settings {
 			SettingsView()
 				.colorSchemeForColor()
+				.containerBackground(.windowBackground, for: .window)
 		}.restorationState(.disabled)
 	}
 
@@ -210,6 +213,7 @@ struct MainApp: App {
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
 			.colorSchemeForColor()
+			.restorationState(.disabled)
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
 	}
 }

@@ -13,10 +13,6 @@ class BridgeVirtualDocument: FileDocument {
 
 	var attachedVirtualDocument: VirtualMachineDocument
 
-	init() {
-		self.attachedVirtualDocument = VirtualMachineDocument()
-	}
-
 	required init(configuration: ReadConfiguration) throws {
 		let file = configuration.file
 
@@ -35,18 +31,15 @@ class BridgeVirtualDocument: FileDocument {
 		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
 			self.attachedVirtualDocument = existingDocument
 		} else {
-			let location = VMLocation(rootURL: vmURL)
-
-			try location.validatate(userFriendlyName: location.name)
-
-			self.attachedVirtualDocument = try .init(location: location)
-			AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self.attachedVirtualDocument)
+			self.attachedVirtualDocument = try .init(location: try VMLocation(rootURL: vmURL).validate())
 		}
 
 		func loadVM() throws {
 			if self.attachedVirtualDocument.loadVirtualMachine() == nil {
 				throw ServiceError("Unable to load virtual machine")
 			}
+
+			AppState.shared.replaceVirtualMachineDocument(self.attachedVirtualDocument.location.rootURL, with: self.attachedVirtualDocument)
 		}
 
 		if Thread.isMainThread {

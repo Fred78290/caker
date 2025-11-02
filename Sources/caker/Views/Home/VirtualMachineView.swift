@@ -14,15 +14,18 @@ struct VirtualMachineView: View {
 		GeometryReader { geometry in
 			VStack {
 				HStack(alignment: .center) {
-					Circle()
-						.strokeBorder(.gray, lineWidth: 1)
-						.background(Circle().foregroundColor(lightColor()))
-						.frame(width: 12, height: 12)
-					Text("\(vm.name)").font(.headline)
+					Image(systemName: "circle.fill")
+						.font(.headline)
+						.foregroundColor(lightColor())
+					
+					Text("\(vm.name)")
+						.font(.headline)
+					
 					Spacer()
+					
 					Button(action: action) {
 						Image(systemName: imageName())
-							.frame(width: 15, height: 15).scaledToFill()
+							.font(.headline)
 					}
 					.buttonStyle(.borderless)
 					.labelsHidden()
@@ -46,15 +49,13 @@ struct VirtualMachineView: View {
 				.frame(width: geometry.size.width, height: 20)
 				
 				HStack {
-					self.vm.screenshot()
-						.scaledToFit()
+					self.vm.screenshot.image
 				}
 				.padding(10)
-				.background(Color.red)
 				.frame(width: geometry.size.width, height: geometry.size.height * 0.75)
 
 			}
-			.background(Color.systemGray6)
+			.background(Material.bar)
 			.clipShape(RoundedRectangle(cornerRadius: 8))
 			.frame(size: geometry.size)
 		}
@@ -86,7 +87,7 @@ struct VirtualMachineView: View {
 		case .paused, .pausing:
 			return Color.yellow
 		default:
-			return Color(red: 192, green: 192, blue: 192)
+			return Color.systemGray3
 		}
 	}
 }
@@ -94,5 +95,5 @@ struct VirtualMachineView: View {
 #Preview {
 	let appState = AppState()
 
-	VirtualMachineView(vm: appState.vms.first!.document)
+	VirtualMachineView(vm: appState.virtualMachines.first!.value)
 }

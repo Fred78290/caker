@@ -4,6 +4,16 @@ import GRPC
 import GRPCLib
 import SwiftUI
 
+typealias VirtualMachineDocumentByURL = [URL: VirtualMachineDocument]
+
+extension VirtualMachineDocumentByURL {
+	var vms: [PairedVirtualMachineDocument] {
+		self.compactMap {
+			PairedVirtualMachineDocument(id: $0.key, name: $0.value.name, document: $0.value)
+		}.sorted(using: PairedVirtualMachineDocumentComparator())
+	}
+}
+
 struct RemoteHandlerComparator: SortComparator {
 	var order: SortOrder = .forward
 
@@ -91,24 +101,15 @@ class AppState: ObservableObject, Observable {
 	@Published var isSuspendable: Bool = false
 	@Published var isRunning: Bool = false
 	@Published var isPaused: Bool = false
-	@Published var names: [String] = []
 	@Published var remotes: [RemoteEntry] = []
 	@Published var templates: [TemplateEntry] = []
 	@Published var networks: [BridgedNetwork] = []
-
-	private var virtualMachines: [URL: VirtualMachineDocument] = [:]
-
-	var vms: [PairedVirtualMachineDocument] {
-		self.virtualMachines.compactMap {
-			PairedVirtualMachineDocument(id: $0.key, name: $0.value.name, document: $0.value)
-		}.sorted(using: PairedVirtualMachineDocumentComparator())
-	}
+	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
 
 	init() {
 		let machines = Self.loadVirtualMachines()
 
-		self.virtualMachines = machines.0
-		self.names = machines.1
+		self.virtualMachines = machines
 		self.networks = Self.loadNetworks()
 		self.remotes = Self.loadRemotes()
 		self.templates = Self.loadTemplates()
@@ -137,9 +138,8 @@ class AppState: ObservableObject, Observable {
 		return []
 	}
 
-	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument], [String]) {
+	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument]) {
 		var result: [URL: VirtualMachineDocument] = [:]
-		var names: [String] = []
 
 		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
 			let storage = StorageLocation(runMode: .app)
@@ -152,13 +152,12 @@ class AppState: ObservableObject, Observable {
 				return nil
 			}.forEach { location in
 				if let vm = try? VirtualMachineDocument(location: location) {
-					names.append(location.name)
 					result[location.rootURL] = vm
 				}
 			}
 		}
 
-		return (result, names)
+		return result
 	}
 
 	func reloadNetworks() throws {
@@ -178,14 +177,15 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func removeVirtualMachineDocument(_ url: URL) {
-		if let vm = self.virtualMachines[url] {
-			self.names.removeAll { $0 == vm.name }
+		if let _ = self.virtualMachines[url] {
 			self.virtualMachines.removeValue(forKey: url)
 		}
 	}
 
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
-		self.virtualMachines[url] = document
+		DispatchQueue.main.async {
+			self.virtualMachines[url] = document
+		}
 	}
 
 	func createTemplate(document vm: VirtualMachineDocument) {
@@ -249,3 +249,4 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 }
+
