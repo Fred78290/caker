@@ -7,11 +7,6 @@
 import SwiftUI
 
 extension View {
-	func colorSchemeForColor(_ scheme: ColorScheme) -> some View {
-		Color.colorScheme = scheme
-		return self
-	}
-
 	func onReceive(
 		_ name: Notification.Name,
 		center: NotificationCenter = .default,

@@ -105,6 +105,7 @@ struct MainApp: App {
 			
 			if document.loadVirtualMachine() != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
+					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
 					.windowResizeBehavior(.enabled)
 					.windowFullScreenBehavior(.enabled)
@@ -113,6 +114,7 @@ struct MainApp: App {
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
 			} else {
 				LabelView("Unable to load virtual machine \(document.name)")
+					.colorSchemeForColor()
 					.restorationState(.disabled)
 					.frame(size: initialSize)
 			}
@@ -175,6 +177,7 @@ struct MainApp: App {
 
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
+				.colorSchemeForColor()
 		}
 		.windowResizability(.contentSize)
 		.defaultSize(width: 1280, height: 1080)
@@ -192,6 +195,7 @@ struct MainApp: App {
 
 		Settings {
 			SettingsView()
+				.colorSchemeForColor()
 		}.restorationState(.disabled)
 	}
 
@@ -211,6 +215,7 @@ struct MainApp: App {
 
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
+			.colorSchemeForColor()
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
 	}
 }

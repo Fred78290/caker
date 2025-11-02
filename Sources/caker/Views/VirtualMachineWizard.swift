@@ -267,7 +267,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Environment(\.openDocument) private var openDocument
-	@Environment(\.colorScheme) var colorScheme
 
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
@@ -310,10 +309,6 @@ struct VirtualMachineWizard: View {
 					}
 				}
 			}
-		}
-		.colorSchemeForColor(self.colorScheme)
-		.onChange(of: self.colorScheme) { _, newValue in
-			Color.colorScheme = newValue
 		}
 		.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {

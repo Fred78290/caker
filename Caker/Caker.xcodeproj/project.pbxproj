@@ -214,6 +214,7 @@
 		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE9BCFB2EB6211D00220700 /* GRPCLib-Bridging-Header.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BE9BCFA2EB6211D00220700 /* GRPCLib-Bridging-Header.h */; };
+		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
 		9BEBC6D02DF4400A0092B196 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B32DF4400A0092B196 /* CloneHandler.swift */; };
@@ -703,6 +704,7 @@
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
 		9BE9BCFA2EB6211D00220700 /* GRPCLib-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRPCLib-Bridging-Header.h"; sourceTree = "<group>"; };
+		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
 		9BEBC68E2DF43FEE0092B196 /* caked */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = caked; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BEBC6952DF4400A0092B196 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9BEBC6972DF4400A0092B196 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -1143,6 +1145,7 @@
 			children = (
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
+				9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */,
 				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
@@ -1151,12 +1154,12 @@
 				9B1501382E6C2AE000B23147 /* LabelView.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
+				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
 				9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */,
 				9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */,
 				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
 				9B7999062E48A27900147500 /* VNC */,
-				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -2068,6 +2071,7 @@
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
+				9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */,
 				9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */,
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,

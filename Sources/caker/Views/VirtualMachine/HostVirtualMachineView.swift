@@ -57,7 +57,6 @@ struct HostVirtualMachineView: View {
 	@Environment(\.scenePhase) var scenePhase
 	@Environment(\.openWindow) private var openWindow
 	@Environment(\.dismiss) var dismiss
-	@Environment(\.colorScheme) var colorScheme
 
 	@Binding var appState: AppState
 	@StateObject var document: VirtualMachineDocument
@@ -111,7 +110,6 @@ struct HostVirtualMachineView: View {
 				}
 				.frame(size: geom.size)
 				.presentedWindowToolbarStyle(.unifiedCompact)
-				.colorSchemeForColor(self.colorScheme)
 				.onAppear {
 					handleAppear()
 				}.onDisappear {
@@ -140,9 +138,6 @@ struct HostVirtualMachineView: View {
 					handleExternalModeChangedNotification(newValue)
 				}.onChange(of: self.launchVMExternally) { _, newValue in
 					self.launchExternally = self.document.isLaunchVMExternally
-				}
-				.onChange(of: self.colorScheme) { _, newValue in
-					Color.colorScheme = newValue
 				}
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
