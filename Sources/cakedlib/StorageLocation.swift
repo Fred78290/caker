@@ -51,7 +51,7 @@ public struct StorageLocation {
 	public func find(_ name: String) throws -> VMLocation {
 		let location = self.location(name)
 
-		try location.validatate(userFriendlyName: name).rootURL.updateAccessDate()
+		try location.validate().rootURL.updateAccessDate()
 
 		return location
 	}
