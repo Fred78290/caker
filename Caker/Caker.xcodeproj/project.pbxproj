@@ -185,6 +185,7 @@
 		9BA326152EB24D6E00A438A8 /* MultiplatformTabBarVerticalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EA2E37D9C2004D07EB /* MultiplatformTabBarVerticalAlignment.swift */; };
 		9BA326162EB24D6E00A438A8 /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7895EC2E37D9C2004D07EB /* MultiplatformTabViewPosition.swift */; };
 		9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */; };
+		9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
@@ -675,6 +676,7 @@
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
 		9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardModel.swift; sourceTree = "<group>"; };
+		9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeVirtualDocument.swift; sourceTree = "<group>"; };
 		9BB3BE092DB3F17500799A6A /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureOptions.swift; sourceTree = "<group>"; };
@@ -1175,6 +1177,7 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
@@ -2048,6 +2051,7 @@
 				9B2BFABF2DFED25E000045C3 /* HostVirtualMachineView.swift in Sources */,
 				9B3602452E2273C700889BFD /* Extensions.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
+				9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */,
 				9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,

@@ -99,11 +99,11 @@ struct MainApp: App {
 	var body: some Scene {
 		CakerMenuBarExtraScene(appState: appState)
 
-		DocumentGroup(viewing: VirtualMachineDocument.self) { file in
-			let document = file.document
+		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
+			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.size
 			
-			if file.document.loadVirtualMachine(from: file.fileURL!) {
+			if document.loadVirtualMachine() != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.windowMinimizeBehavior(.enabled)
 					.windowResizeBehavior(.enabled)

@@ -58,14 +58,12 @@ extension UTType {
 	}
 }
 
-class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChangeDelegate, ObservableObject, Equatable, Identifiable {
+final class VirtualMachineDocument: VirtualMachineDelegate, FileDidChangeDelegate, Sendable, ObservableObject, Equatable, Identifiable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.virtualMachine == rhs.virtualMachine
 	}
-
-	static var readableContentTypes: [UTType] { [.virtualMachine] }
 
 	enum AgentStatus: Int {
 		case none = 0
@@ -179,55 +177,15 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		self.virtualMachineConfig = VirtualMachineConfig()
 	}
 
-	convenience init(location: VMLocation) throws {
-		self.init(name: location.name, config: try VirtualMachineConfig(location: location))
+	init(location: VMLocation) throws {
+		self.name = location.name
+		self.location = location
+		self.virtualMachineConfig = try VirtualMachineConfig(location: location)
 	}
 
 	init(name: String, config: VirtualMachineConfig) {
 		self.name = name
 		self.virtualMachineConfig = config
-	}
-
-	required init(configuration: ReadConfiguration) throws {
-		let file = configuration.file
-
-		guard file.isDirectory else {
-			throw ServiceError("Internal error")
-		}
-
-		guard let fileName = file.filename else {
-			throw ServiceError("Internal error")
-		}
-
-		guard let vmURL = file.contentsURL?.absoluteURL else {
-			throw ServiceError("Unable to get URL for \(fileName)")
-		}
-
-		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
-			self = existingDocument
-			return
-		}
-
-		let vmName = fileName.deletingPathExtension
-		let location = VMLocation(rootURL: vmURL)
-
-		if file.matchesContents(of: location.rootURL) {
-			func loadVM() throws {
-				if loadVirtualMachine(from: location.rootURL) == false {
-					throw ServiceError("Unable to load virtual machine")
-				} else {
-					AppState.shared.replaceVirtualMachineDocument(location.rootURL, with: self)
-				}
-			}
-
-			if Thread.isMainThread {
-				try loadVM()
-			} else {
-				try DispatchQueue.main.sync {
-					try loadVM()
-				}
-			}
-		}
 	}
 
 	func close() {
@@ -254,10 +212,6 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 				self.stream = nil
 			}
 		}
-	}
-
-	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-		throw ServiceError("Unimplemented")
 	}
 
 	@MainActor
@@ -312,7 +266,7 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		}
 	}
 
-	func loadVirtualMachine(from location: VMLocation) -> URL? {
+	private func loadVirtualMachine(from location: VMLocation) -> URL? {
 		self.logger.debug("Load VM from: \(location.rootURL)")
 
 		do {
@@ -358,28 +312,12 @@ class VirtualMachineDocument: FileDocument, VirtualMachineDelegate, FileDidChang
 		return nil
 	}
 
-	func loadVirtualMachine(from fileURL: URL) -> Bool {
-		if inited {
-			return true
-		}
-
-		defer {
-			inited = true
-		}
-
-		do {
-			return self.loadVirtualMachine(from: try VMLocation(rootURL: fileURL, template: false).validatate(userFriendlyName: fileURL.lastPathComponent)) != nil
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
-
-		return false
-	}
-
 	func loadVirtualMachine() -> URL? {
 		guard let virtualMachine = self.virtualMachine else {
+			if let location = self.location {
+				return self.loadVirtualMachine(from: location)
+			}
+
 			if let location = try? StorageLocation(runMode: .app).find(name) {
 				return self.loadVirtualMachine(from: location)
 			}
