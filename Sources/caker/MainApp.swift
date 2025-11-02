@@ -82,7 +82,6 @@ struct MainAppParseArgument: ParsableCommand {
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	@Environment(\.newDocument) private var newDocument
 	@State var appState = AppState.shared
 	@State var createTemplate = false
 
@@ -126,7 +125,6 @@ struct MainApp: App {
 			CommandGroup(before: .newItem) {
 					Button("New virtual machine") {
 						openWindow(id: "wizard")
-						//newDocumentWizard()
 					}.keyboardShortcut(KeyboardShortcut("N"))
 					Button("Open virtual machine") {
 						open()
@@ -197,10 +195,6 @@ struct MainApp: App {
 			SettingsView()
 				.colorSchemeForColor()
 		}.restorationState(.disabled)
-	}
-
-	private func newDocumentWizard() {
-		newDocument(VirtualMachineDocument())
 	}
 
 	private func open() {
