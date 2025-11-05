@@ -35,8 +35,7 @@ struct VirtualMachineView: View {
 		
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
-				//.fill(.gray.opacity(0.1))
-				.fill(.black.opacity(0.1), strokeBorder: .white, lineWidth: 0.2)
+				.fill(Color(nsColor: NSColor.secondarySystemFill), strokeBorder: .white, lineWidth: 0.2)
 				.overlay {
 					VStack {
 						HStack(alignment: .center) {
