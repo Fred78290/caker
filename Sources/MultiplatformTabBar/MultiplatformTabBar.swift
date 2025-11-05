@@ -49,7 +49,7 @@ fileprivate extension Color {
 /// ```
 ///
 /// - Remark: This tool works great for creating a **Settings** page for the macOS build of a multiplatform SwiftUI project.
-public struct MultiplatformTabBar: View {
+public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 	@Environment(\.appearsActive) var appearsActive
 	// MARK: - Properties
 
@@ -63,18 +63,18 @@ public struct MultiplatformTabBar: View {
 	public var barHorizontalAlignment: MultiplatformTabBarHorizontalAlignment = .center
 
 	/// Holds the currently selected tab bar.
-	@Binding public var selection: Int
+	@Binding public var selection: ID
 
 	/// Holds the collection of tabs being presented.
-	@ObservedObject public var tabSet: MultiplatformTabCollection = MultiplatformTabCollection()
+	@ObservedObject public var tabSet: MultiplatformTabCollection = MultiplatformTabCollection<ID>()
 
 	// MARK: - Initializers
 
-	@State var hoveredItem: Int? = nil
-	@State var pressedItem: Int? = nil
+	@State var hoveredItem: ID? = nil
+	@State var pressedItem: ID? = nil
 
 	/// Creates a new instance of the object.
-	public init(selection: Binding<Int>) {
+	public init(selection: Binding<ID>) {
 		self._selection = selection
 	}
 
@@ -83,7 +83,7 @@ public struct MultiplatformTabBar: View {
 	///   - tabPosition: The Tab Bar position.
 	///   - barVerticalAlignment: The Tab Bar's vertical alignment.
 	///   - barHorizontalAlignment: The Tab Bar's horizontal alignment.
-	public init(selection: Binding<Int>, tabPosition: MultiplatformTabViewPosition = .top, barVerticalAlignment: MultiplatformTabBarVerticalAlignment = .center, barHorizontalAlignment: MultiplatformTabBarHorizontalAlignment = .center) {
+	public init(selection: Binding<ID>, tabPosition: MultiplatformTabViewPosition = .top, barVerticalAlignment: MultiplatformTabBarVerticalAlignment = .center, barHorizontalAlignment: MultiplatformTabBarHorizontalAlignment = .center) {
 		// Initialize
 		self.tabPosition = tabPosition
 		self.barVerticalAlignment = barVerticalAlignment
@@ -91,7 +91,7 @@ public struct MultiplatformTabBar: View {
 		self._selection = selection
 	}
 
-	func buttonState(for id: Int) -> ToolbarLabelStyle.State {
+	func buttonState(for id: ID) -> ToolbarLabelStyle.State {
 		if self.selection == id && self.pressedItem == id {
 			return .pressedAndSelected
 		} else if self.selection == id && self.hoveredItem == id {
@@ -106,17 +106,16 @@ public struct MultiplatformTabBar: View {
 			return .none
 		}
 	}
-	
 
-	private func barButton(_ index: Int) -> some View {
-		let item = tabSet.tabs[index]
+	private func barButton(_ index: ID) -> some View {
+		let item = tabSet[index]!
 
 		return Label{
 			Text(item.title)
 		} icon: {
 			item.icon.resizable()
 		}
-		.labelStyle(ToolbarLabelStyle(self.buttonState(for: index), appearsActive: appearsActive))
+		.labelStyle(ToolbarLabelStyle(self.buttonState(for: index)))
 		.onContinuousHover { phase in
 			if case .active = phase {
 				self.hoveredItem = index
@@ -144,13 +143,14 @@ public struct MultiplatformTabBar: View {
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .right {
 					Spacer()
 				}
-				ForEach(0..<tabSet.tabs.count, id:\.self) { index in
+				ForEach(tabSet.ids) { index in
 					self.barButton(index)
 				}.padding(0)
 				if barHorizontalAlignment == .center || barHorizontalAlignment == .left {
 					Spacer()
 				}
 			}
+			.padding(10)
 			.fixedSize(horizontal: false, vertical: true)
 
 			Divider()
@@ -163,11 +163,13 @@ public struct MultiplatformTabBar: View {
 		HStack {
 			VStack {
 				Spacer()
-				ForEach(0..<tabSet.tabs.count, id:\.self) { index in
+				ForEach(tabSet.ids) { index in
 					self.barButton(index)
 				}
 				Spacer()
 			}
+			.padding(10)
+
 			Divider()
 		}
 		.padding(0)
@@ -175,15 +177,14 @@ public struct MultiplatformTabBar: View {
 
 	/// Generates the body of the Tab Bar and the contents of the currently selected tab.
 	public var body: some View {
-
 		switch tabPosition {
 		case .top:
 			VStack(spacing: 0) {
 				barHorizontal
 					.padding(.top, 5)
 
-				if tabSet.tabs.count > 0 {
-					tabSet.tabs[selection].contents
+				if tabSet.isEmpty == false {
+					tabSet[selection].contents
 						.padding(0)
 						.frame(maxWidth: .infinity, maxHeight: .infinity)
 				}
@@ -191,8 +192,8 @@ public struct MultiplatformTabBar: View {
 			.padding(0)
 		case .bottom:
 			VStack(spacing: 0) {
-				if tabSet.tabs.count > 0 {
-					tabSet.tabs[selection].contents
+				if tabSet.isEmpty == false {
+					tabSet[selection].contents
 						.padding(0)
 						.frame(maxWidth: .infinity, maxHeight: .infinity)
 				}
@@ -206,8 +207,8 @@ public struct MultiplatformTabBar: View {
 				barVertical
 					.padding(.leading, 5)
 
-				if tabSet.tabs.count > 0 {
-					tabSet.tabs[selection].contents
+				if tabSet.isEmpty == false {
+					tabSet[selection].contents
 						.padding(0)
 						.frame(maxWidth: .infinity, maxHeight: .infinity)
 				}
@@ -215,8 +216,8 @@ public struct MultiplatformTabBar: View {
 			.padding(0)
 		case .right:
 			HStack(spacing: 0) {
-				if tabSet.tabs.count > 0 {
-					tabSet.tabs[selection].contents
+				if tabSet.isEmpty == false {
+					tabSet[selection].contents
 						.padding(0)
 						.frame(maxWidth: .infinity, maxHeight: .infinity)
 				}
@@ -231,10 +232,10 @@ public struct MultiplatformTabBar: View {
 	/// Adds a new tab to the Tab Bar.
 	/// - Parameter newTab: The new tab to add as a `MultiplatformTab`.
 	/// - Returns: The parent `MultiplatformTabBar`.
-	@discardableResult public func tab(_ newTab: MultiplatformTab) -> MultiplatformTabBar {
+	@discardableResult public func tab(_ newTab: MultiplatformTab<ID>) -> MultiplatformTabBar {
 
 		// Add tab to collection
-		tabSet.tabs.append(newTab)
+		tabSet[newTab.tag] = newTab
 
 		// Return self so the definitions can be chained.
 		return self
@@ -247,13 +248,10 @@ public struct MultiplatformTabBar: View {
 	///   - tag: An optional tag for the tab.
 	///   - content: The body of the page that will be displayed when the tab is selected in SwiftUI.
 	/// - Returns: The parent `MultiplatformTabBar`.
-	@discardableResult public func tab<Content: View>(title: String, icon: Image, tag: String = "", disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
+	@discardableResult public func tab<Content: View>(title: String, icon: Image, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
 
 		// Add tab to collection
-		tabSet.tabs.append(MultiplatformTab(title: title, icon: icon, tag: tag, disabled: disabled, contents: AnyView(content())))
-
-		// Return self so the definitions can be chained.
-		return self
+		return self.tab(MultiplatformTab(title: title, icon: icon, tag: tag, disabled: disabled, contents: AnyView(content())))
 	}
 
 	/// Adds a new tab to the bar with the given properties.
@@ -263,12 +261,9 @@ public struct MultiplatformTabBar: View {
 	///   - tag: An optional tag for the tab.
 	///   - content: The body of the page that will be displayed when the tab is selected in SwiftUI.
 	/// - Returns: The parent `MultiplatformTabBar`.
-	@discardableResult public func tab<Content: View>(title: String, systemName: String, tag: String = "", disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
+	@discardableResult public func tab<Content: View>(title: String, systemName: String, tag: ID, disabled: Bool = false, @ViewBuilder content: () -> Content) -> MultiplatformTabBar {
 
 		// Add tab to collection
-		tabSet.tabs.append(MultiplatformTab(title: title, icon: Image(systemName: systemName), tag: tag, disabled: disabled, contents: AnyView(content())))
-
-		// Return self so the definitions can be chained.
-		return self
+		return self.tab(MultiplatformTab(title: title, icon: Image(systemName: systemName), tag: tag, disabled: disabled, contents: AnyView(content())))
 	}
 }

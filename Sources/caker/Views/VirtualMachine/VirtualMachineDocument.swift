@@ -95,7 +95,7 @@ struct ScreenshotLoader: Hashable, Identifiable {
 	}
 }
 
-final class VirtualMachineDocument: @unchecked Sendable, VirtualMachineDelegate, ObservableObject, Equatable, Identifiable {
+final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 	
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
@@ -177,6 +177,8 @@ final class VirtualMachineDocument: @unchecked Sendable, VirtualMachineDelegate,
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 	
+	let id = UUID().uuidString
+	
 	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
@@ -217,14 +219,14 @@ final class VirtualMachineDocument: @unchecked Sendable, VirtualMachineDelegate,
 	
 	init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(location: location)
-
+		
 		self.name = location.name
 		self.location = location
 		self.virtualMachineConfig = config
 		self.screenshot = .init(screenshotURL: location.screenshotURL)
 		self.agent = config.agent ? AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-
+		
 		if self.externalRunning {
 			self.documentSize = self.getVncScreenSize()
 		} else {
@@ -596,7 +598,9 @@ final class VirtualMachineDocument: @unchecked Sendable, VirtualMachineDelegate,
 			return .init(name: name, created: false, reason: error.description)
 		}
 	}
-	
+}
+
+extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		let virtualMachine = vm.virtualMachine
 		
@@ -616,6 +620,10 @@ final class VirtualMachineDocument: @unchecked Sendable, VirtualMachineDelegate,
 		self.agent = vm.config.agent ? .installed : .none
 		self.status = status
 	}
+	
+	func didScreenshot(_ vm: CakedLib.VirtualMachine, data: NSImage) {
+		try? vm.saveScreenshot()
+	}
 }
 
 extension VirtualMachineDocument: FileDidChangeDelegate {
@@ -623,7 +631,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 		guard let location = self.location, self.externalRunning else {
 			return
 		}
-
+		
 		let check: (URL) -> Void = { file in
 			if file.lastPathComponent == location.pidFile.lastPathComponent {
 				DispatchQueue.main.async {
@@ -639,7 +647,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 				}
 			}
 		}
-
+		
 		switch event {
 		case .added(let file):
 			check(file)

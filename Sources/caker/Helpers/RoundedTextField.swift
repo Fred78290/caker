@@ -11,8 +11,8 @@ extension View {
 	public func rounded(_ alignment: TextAlignment) -> some View {
 		multilineTextAlignment(alignment)
 		.textFieldStyle(.roundedBorder)
-		.background(.white)
+		.backgroundStyle(.windowBackground)
 		.labelsHidden()
-		.clipShape(RoundedRectangle(cornerRadius: 6))
+		.clipShape(RoundedRectangle(cornerRadius: 4))
 	}
 }

@@ -22,12 +22,12 @@ struct ToolbarLabelStyle: LabelStyle {
 		case pressedAndSelected
 	}
 
-	private var appearsActive: Bool = true
+	@Environment(\.colorScheme) private var colorScheme
+	@Environment(\.appearsActive) private var appearsActive
 	private var state: State = .none
 
-	init(_ state: State, appearsActive: Bool) {
+	init(_ state: State) {
 		self.state = state
-		self.appearsActive = appearsActive
 	}
 
 	private var foregroundColor: Color {
@@ -47,17 +47,32 @@ struct ToolbarLabelStyle: LabelStyle {
 	}
 
 	private var fillColor: Color {
-		switch state {
-		case .pressed, .pressedAndSelected:
-			return Color.secondary.opacity(0.30)
-		case .hovered:
-			return Color.secondary.opacity(0.10)
-		case .hoveredAndSelected:
-			return Color.secondary.opacity(0.10)
-		case .selected:
-			return Color.secondary.opacity(0.10)
-		default:
-			return Color.white.opacity(0.0)
+		if self.colorScheme == .dark {
+			switch state {
+			case .pressed, .pressedAndSelected:
+				return Color.white.opacity(0.30)
+			case .hovered:
+				return Color.white.opacity(0.10)
+			case .hoveredAndSelected:
+				return Color.white.opacity(0.40)
+			case .selected:
+				return Color.white.opacity(0.10)
+			default:
+				return Color.white.opacity(0.0)
+			}
+		} else {
+			switch state {
+			case .pressed, .pressedAndSelected:
+				return Color.secondary.opacity(0.30)
+			case .hovered:
+				return Color.secondary.opacity(0.10)
+			case .hoveredAndSelected:
+				return Color.secondary.opacity(0.40)
+			case .selected:
+				return Color.secondary.opacity(0.10)
+			default:
+				return Color.secondary.opacity(0.0)
+			}
 		}
 	}
 
@@ -66,8 +81,8 @@ struct ToolbarLabelStyle: LabelStyle {
 	private var glassEffect: Glass {
 		guard self.appearsActive else { return .identity }
 		switch state {
-		case .selected, .pressed, .pressedAndSelected, .hoveredAndSelected:
-			return .regular.interactive(true).tint(.white)
+		case .selected, .pressed, .pressedAndSelected, .hoveredAndSelected, .hovered:
+			return .regular.interactive(true).tint(self.fillColor)
 		default:
 			return .identity
 		}
@@ -189,7 +204,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 					} icon: {
 						Image(systemName: item.systemImage).resizable()
 					}
-					.labelStyle(ToolbarLabelStyle(self.buttonState(for: item.id), appearsActive: appearsActive))
+					.labelStyle(ToolbarLabelStyle(self.buttonState(for: item.id)))
 					.onContinuousHover { phase in
 						if case .active = phase {
 							self.hoveredItem = item.id
@@ -211,6 +226,12 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 			}
 			.padding(0)
 			.navigationTitle(self.maps[self.selectedItem]?.title ?? "")
+			//.onAppear {
+			//   if let window = NSApp.mainWindow {
+				   // Set the desired position of the window
+			//	   window.setFrameOrigin(NSPoint(x: desiredX, y: desiredY))
+			//   }
+			//}
 		}.backgroundVisibility(false)
 	}
 }

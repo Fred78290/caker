@@ -16,9 +16,27 @@ struct VirtualMachineSettingsView: View {
 
 	@Environment(\.dismiss) var dismiss
 
+	enum SettingsTab: Int, MultiplatformTabIdentifier {
+		static func < (lhs: VirtualMachineSettingsView.SettingsTab, rhs: VirtualMachineSettingsView.SettingsTab) -> Bool {
+			lhs.rawValue < rhs.rawValue
+		}
+		
+		var id: Int {
+			self.rawValue
+		}
+		
+		case account
+		case general
+		case network
+		case ports
+		case sockets
+		case sharing
+		case storage
+	}
+
 	@Binding var config: VirtualMachineConfig
 	@State var configChanged = false
-	@State var selectedTab = 0
+	@State var selectedTab: SettingsTab = .account
 	@State var showPassword = false
 	@State var userPassword: String
 
@@ -30,25 +48,25 @@ struct VirtualMachineSettingsView: View {
 	var body: some View {
 		VStack {
 			MultiplatformTabBar(selection: $selectedTab, tabPosition: .top, barHorizontalAlignment: .center)
-				.tab(title: "Account", systemName: "person.badge.key") {
+				.tab(title: "Account", systemName: "person.badge.key", tag: .account) {
 					self.userSettings()
 				}
-				.tab(title: "General", systemName: "cpu") {
+				.tab(title: "General", systemName: "cpu", tag: .general) {
 					self.generalSettings()
 				}
-				.tab(title: "Network", systemName: "network") {
+				.tab(title: "Network", systemName: "network", tag: .network) {
 					self.networksView()
 				}
-				.tab(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath") {
+				.tab(title: "Ports", systemName: "point.bottomleft.forward.to.point.topright.scurvepath", tag: .ports) {
 					self.forwardPortsView()
 				}
-				.tab(title: "Sockets", systemName: "powerplug") {
+				.tab(title: "Sockets", systemName: "powerplug", tag: .sockets) {
 					self.socketsView()
 				}
-				.tab(title: "Sharing", systemName: "folder.badge.plus") {
+				.tab(title: "Sharing", systemName: "folder.badge.plus", tag: .sharing) {
 					self.mountsView()
 				}
-				.tab(title: "Disk", systemName: "externaldrive.badge.plus") {
+				.tab(title: "Disk", systemName: "externaldrive.badge.plus", tag: .storage) {
 					self.diskAttachementView()
 				}
 

@@ -18,7 +18,7 @@ import SwiftUI
 ///  }
 /// }
 /// ```
-public struct MultiplatformTab {
+public struct MultiplatformTab<ID: MultiplatformTabIdentifier> {
 
 	/// The title of the tab.
 	public var title: String = ""
@@ -27,7 +27,7 @@ public struct MultiplatformTab {
 	public var icon: Image = Image("")
 
 	/// An optional, unique tag for the tab.
-	public var tag: String = ""
+	public var tag: ID
 
 	/// The SwiftUI content for the page body displayed when this tab is selected.
 	public var contents: AnyView
@@ -41,7 +41,7 @@ public struct MultiplatformTab {
 	///   - icon: The icon for the tab.
 	///   - tag: An optional tag for the tab.
 	///   - contents: The SwiftUI content for the page body displayed when this tab is selected.
-	public init(title: String, icon: Image, tag: String = "", disabled: Bool = false, contents: AnyView) {
+	public init(title: String, icon: Image, tag: ID, disabled: Bool = false, contents: AnyView) {
 		self.title = title
 		self.icon = icon
 		self.tag = tag

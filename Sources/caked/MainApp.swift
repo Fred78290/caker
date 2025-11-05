@@ -189,6 +189,10 @@ struct MainApp: App, VirtualMachineDelegate {
 		self.appState.update(vm: vm)
 	}
 
+	func didScreenshot(_ vm: CakedLib.VirtualMachine, data: NSImage) {
+		try? vm.saveScreenshot()
+	}
+	
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
 		MainApp.virtualMachine = vm.getVM()

@@ -271,11 +271,15 @@ struct VirtualMachineWizard: View {
 	@State private var config: VirtualMachineConfig = .init()
 	@StateObject private var model = VirtualMachineWizardStateObject()
 	@StateObject private var appState = AppState.shared
+	@State var currentTab: Int = 0
+
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
+	var sheet: Bool = false
+
 	@ViewBuilder
-	func Content() -> some View {
-		switch (self.model.currentStep) {
+	func Content(currentStep: WizardModel.SelectedItem) -> some View {
+		switch (currentStep) {
 		case .name:
 			chooseVMName()
 		case .os:
@@ -296,21 +300,17 @@ struct VirtualMachineWizard: View {
 	}
 
 	var body: some View {
-		VStack(spacing: 12) {
-			Content()
-			Footer()
-
-			if #unavailable(macOS 15.0) {
-				HostingWindowFinder { window in
-					if let window = window {
-						window.standardWindowButton(.zoomButton)?.isEnabled = self.model.createVM == false
-						window.standardWindowButton(.closeButton)?.isEnabled = self.model.createVM == false
-						window.standardWindowButton(.miniaturizeButton)?.isEnabled = self.model.createVM == false
-					}
+		if #unavailable(macOS 15.0) {
+			HostingWindowFinder { window in
+				if let window = window {
+					window.standardWindowButton(.zoomButton)?.isEnabled = self.model.createVM == false
+					window.standardWindowButton(.closeButton)?.isEnabled = self.model.createVM == false
+					window.standardWindowButton(.miniaturizeButton)?.isEnabled = self.model.createVM == false
 				}
 			}
 		}
-		.onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
+
+		self.Body().onReceive(VirtualMachineDocument.ProgressCreateVirtualMachine) { notification in
 			if let fractionCompleted = notification.object as? Double {
 				self.model.fractionCompleted = fractionCompleted
 			}
@@ -344,13 +344,40 @@ struct VirtualMachineWizard: View {
 		.onAppear {
 			self.validateConfig(config: self.config)
 		}
-		.toolbar {
-			ToolbarSettings($model.currentStep, items: WizardModel.items, placement: .principal)
-		}
-		.toolbarTitleDisplayMode(.inlineLarge)
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
 		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
 			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+	}
+
+	func TabBar() -> some View {
+		let tabBar = MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
+		
+		WizardModel.items.forEach { item in
+			tabBar.tab(title: item.title, systemName: item.systemImage, tag: item.id) {
+				self.Content(currentStep: item.id)
+			}
+		}
+
+		return tabBar
+	}
+
+	@ViewBuilder
+	func Body() -> some View {
+		if self.sheet {
+			VStack(spacing: 12) {
+				TabBar()
+				Footer()
+			}
+		} else {
+			VStack(spacing: 12) {
+				Content(currentStep: self.model.currentStep)
+				Footer()
+			}
+			.toolbar {
+				ToolbarSettings($model.currentStep, items: WizardModel.items, placement: .principal)
+			}
+			.toolbarTitleDisplayMode(.inlineLarge)
+		}
 	}
 
 	func Middle() -> some View {
@@ -414,6 +441,14 @@ struct VirtualMachineWizard: View {
 
 				HStack {
 					Spacer()
+
+					if self.sheet {
+						Button {
+							self.dismiss()
+						} label: {
+							Text("Cancel").frame(width: 80)
+						}
+					}
 
 					AsyncButton { done in
 						await openVirtualMachine(done)

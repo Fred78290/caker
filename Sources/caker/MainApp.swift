@@ -180,7 +180,7 @@ struct MainApp: App {
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}
-		.windowResizability(.contentSize)
+		.windowResizability(.contentMinSize)
 		.defaultSize(width: 1280, height: 1080)
 
 		Window("Create new virtual machine", id: "wizard") {

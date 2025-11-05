@@ -12,6 +12,7 @@ private let kScreenshotPeriodSeconds = 5.0
 
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
+	func didScreenshot(_ vm: VirtualMachine, data: NSImage)
 }
 
 extension SSHError.Kind {
@@ -989,7 +990,7 @@ extension VirtualMachine {
 		return timer
 	}
 	
-	func saveScreenshot() throws {
+	public func saveScreenshot() throws {
 		guard isScreenshotSaveEnabled else {
 			return
 		}
@@ -1008,6 +1009,9 @@ extension VirtualMachine {
 	@MainActor func takeScreenshot() async {
 		if let vzMachineView = self.env.vzMachineView {
 			self.env.screenshot = vzMachineView.image()
+			if let screenshot = self.env.screenshot {
+				self.delegate?.didScreenshot(self, data: screenshot)
+			}
 		}
 	}
 }

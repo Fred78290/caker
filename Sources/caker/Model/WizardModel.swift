@@ -6,7 +6,15 @@
 //
 
 struct WizardModel {
-	enum SelectedItem: Int, Hashable {
+	enum SelectedItem: Int, Hashable, Comparable, Identifiable {
+		static func < (lhs: WizardModel.SelectedItem, rhs: WizardModel.SelectedItem) -> Bool {
+			return lhs.rawValue < rhs.rawValue
+		}
+		
+		var id: Int {
+			self.rawValue
+		}
+
 		case name
 		case os
 		case cpuAndRam
