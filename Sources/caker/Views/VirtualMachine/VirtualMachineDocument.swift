@@ -84,7 +84,9 @@ struct ScreenshotLoader: Hashable, Identifiable {
 					.overlay {
 						Image(nsImage: image)
 							.resizable()
+							.blur(radius: 8)
 							.aspectRatio(contentMode: .fit)
+							.frame(size: geom.size)
 					}
 			} else {
 				Rectangle()
