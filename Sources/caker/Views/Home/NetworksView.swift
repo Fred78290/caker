@@ -28,6 +28,7 @@ extension BridgedNetwork {
 		}
 	}
 }
+
 struct NetworksView: View {
 	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
@@ -49,7 +50,6 @@ struct NetworksView: View {
 				}
 			} else {
 				ScrollView {
-					Text("Toto")
 					List(selection: $navigationModel.selectedNetwork) {
 						ForEach(appState.networks) { network in
 							Label(title: {
