@@ -25,8 +25,8 @@ struct VirtualMachinesView: View {
 	}
 
 	var body: some View {
-		ScrollView {
-			GeometryReader { geometry in
+		GeometryReader { geometry in
+			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
 					ForEach(appState.virtualMachines.vms) { vm in
 						VirtualMachineView(vm: vm.document)
@@ -42,7 +42,7 @@ struct VirtualMachinesView: View {
 				.padding(Self.cellSpacing)
 			}
 		}
-		.frame(minWidth: Self.cellWidth + Self.cellSpacing, maxWidth: .infinity)
+		.frame(minWidth: Self.cellWidth + Self.cellSpacing, maxWidth: .infinity, minHeight: Self.cellWidth + Self.cellSpacing, maxHeight: .infinity)
 		.onGeometryChange(for: CGRect.self) { proxy in
 			proxy.frame(in: .global)
 		} action: { newValue in
