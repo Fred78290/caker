@@ -167,7 +167,7 @@
 				"ubuntu-desktop",
 				"ubuntu-desktop",
 				"--user=fboltz",
-				"--ssh-key=~/.ssh/id_rsa",
+				"--ssh-key=~/.ssh/id_rsa"
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked convert ubuntu-desktop",
