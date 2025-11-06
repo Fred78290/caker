@@ -86,8 +86,9 @@ struct ScreenshotLoader: Hashable, Identifiable {
 							.resizable()
 							.blur(radius: 8)
 							.aspectRatio(contentMode: .fit)
-							.frame(size: geom.size)
+							.scaledToFit()
 					}
+					.clipped()
 			} else {
 				Rectangle()
 					.fill(.black)
