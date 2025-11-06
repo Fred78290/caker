@@ -51,7 +51,6 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
-		//.package(url: "https://github.com/Appracatappra/MultiplatformTabBar.git", exact: "1.0.6"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"),
@@ -121,7 +120,6 @@ let package = Package(
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "CakedLib"),
-			.target(name: "MultiplatformTabBar"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
