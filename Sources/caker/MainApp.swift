@@ -181,6 +181,7 @@ struct MainApp: App {
 				.containerBackground(.windowBackground, for: .window)
 		}
 		.windowResizability(.contentMinSize)
+		.windowToolbarStyle(.unifiedCompact)
 		.defaultSize(width: 1280, height: 1080)
 
 		Window("Create new virtual machine", id: "wizard") {
