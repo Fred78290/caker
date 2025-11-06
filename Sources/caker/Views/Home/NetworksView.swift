@@ -15,7 +15,7 @@ extension BridgedNetwork {
 			if self.description.contains("Wi-Fi") {
 				return Image(systemName: "wifi")
 			} else if self.description.contains("Thunderbold") {
-				return Image("thunderbold")
+				return Image(systemName: "bolt")
 			} else {
 				return Image("ethernet")
 			}
@@ -49,17 +49,19 @@ struct NetworksView: View {
 					}.frame(width: geom.size.width)
 				}
 			} else {
-				ScrollView {
-					List(selection: $navigationModel.selectedNetwork) {
-						ForEach(appState.networks) { network in
-							Label(title: {
-								Text(network.name)
-							}, icon: {
-								network.icon.resizable().scaledToFit()
-							})
-						}
-					}
-				}.frame(size: geom.size)
+				List(appState.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
+					Label(title: {
+						Text(network.name)
+					}, icon: {
+						network.icon
+							.resizable()
+							.aspectRatio(contentMode: .fit)
+							.foregroundStyle(Color.primary)
+					}).font(.headline)
+				}
+				.listStyle(.inset(alternatesRowBackgrounds: true))
+//				.listStyle(.bordered(alternatesRowBackgrounds: true))
+				.frame(size: geom.size)
 			}
 		}
 	}

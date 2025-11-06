@@ -1,5 +1,5 @@
 //
-//  HomeView.swift
+//  HomeViewTabView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 13/07/2025.
@@ -8,42 +8,26 @@
 import SwiftUI
 import GRPCLib
 
-struct HomeView: View {
+struct HomeViewTabView: View {
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
 	@State var presented: Bool = false
-	@State var mustShowDetailView: Bool?
-	@State var window: NSWindow? = nil
+	@State var mustShowDetailView: Bool = true
 
 	var body: some View {
-		self.navigationView
-		.toolbar {
-			if navigationModel.selectedCategory == .virtualMachine {
-				ToolbarItem(placement: .navigation) {
-					Button("Plus", systemImage: "plus") {
-						self.actionPlus()
-					}
+		TabView(selection: $navigationModel.selectedCategory) {
+			
+		}
+		self.navigationView.toolbar {
+			ToolbarItem(placement: .navigation) {
+				Button("Plus", systemImage: "plus") {
+					self.actionPlus()
 				}
-			} else {
-				ToolbarItem(placement: .navigation) {
-					Button("Plus", systemImage: "plus") {
-						self.actionPlus()
-					}
-				}
+			}
 
-				ToolbarItem(placement: .primaryAction) {
-					Button("Detail", systemImage: "sidebar.squares.right") {
-						var newValue = false
-
-						if let mustShowDetailView = self.mustShowDetailView {
-							newValue = mustShowDetailView
-							newValue.toggle()
-						}
-
-						withAnimation(.easeInOut) {
-							self.mustShowDetailView = newValue
-						}
-					}
+			ToolbarItem(placement: .primaryAction) {
+				Button("Detail", systemImage: "sidebar.squares.right") {
+					self.mustShowDetailView.toggle()
 				}
 			}
 		}
@@ -65,22 +49,14 @@ struct HomeView: View {
 			.navigationSplitViewStyle(.prominentDetail)
 			.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
 				self.selectedCategoryDidChanged(oldValue, newValue)
-			}.windowAccessor($window) {
-				if let window = $0 {
-					window.titlebarAppearsTransparent = true
-				}
 			}
 		} else {
 			NavigationSplitView(columnVisibility: $navigationModel.navigationSplitViewVisibility) {
 				self.sidebar
 			} detail: {
-				self.content.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize).navigationTransition(.automatic)
+				self.content.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 			}.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
 				self.selectedCategoryDidChanged(oldValue, newValue)
-			}.windowAccessor($window) {
-				if let window = $0 {
-					window.titlebarAppearsTransparent = true
-				}
 			}
 		}
 	}
@@ -104,11 +80,7 @@ struct HomeView: View {
 	}
 
 	var showDetailView: Bool {
-		guard navigationModel.selectedCategory != .virtualMachine else {
-			return false
-		}
-
-		guard let mustShowDetailView else {
+		guard mustShowDetailView else {
 			switch navigationModel.selectedCategory {
 			case .virtualMachine:
 				return false
@@ -121,7 +93,7 @@ struct HomeView: View {
 			}
 		}
 
-		return mustShowDetailView
+		return navigationModel.selectedCategory != .virtualMachine
 	}
 
 	var minContentSize: CGFloat? {
