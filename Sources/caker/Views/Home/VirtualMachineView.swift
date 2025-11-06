@@ -76,13 +76,13 @@ struct VirtualMachineView: View {
 						HStack {
 							Spacer()
 							Label("\(vm.virtualMachineConfig.cpuCount)", systemImage: "cpu")
-								.font(.caption)
+								.font(.headline)
 								.foregroundStyle(Color.secondary)
 							Label("\(vm.virtualMachineConfig.humanReadableDiskSize)", systemImage: "internaldrive")
-								.font(.caption)
+								.font(.headline)
 								.foregroundStyle(Color.secondary)
 							Label("\(vm.virtualMachineConfig.humanReadableMemorySize)", systemImage: "memorychip")
-								.font(.caption)
+								.font(.headline)
 								.foregroundStyle(Color.secondary)
 							Spacer()
 						}
