@@ -91,7 +91,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 		self._selection = selection
 	}
 
-	func buttonState(for id: ID) -> ToolbarLabelStyle.State {
+	func buttonState(for id: ID) -> ToolbarSettingLabelStyle.State {
 		if self.selection == id && self.pressedItem == id {
 			return .pressedAndSelected
 		} else if self.selection == id && self.hoveredItem == id {
@@ -115,7 +115,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 		} icon: {
 			item.icon.resizable()
 		}
-		.labelStyle(ToolbarLabelStyle(self.buttonState(for: index)))
+		.labelStyle(ToolbarSettingLabelStyle(self.buttonState(for: index)))
 		.onContinuousHover { phase in
 			if case .active = phase {
 				self.hoveredItem = index

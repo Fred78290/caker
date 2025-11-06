@@ -12,7 +12,7 @@ protocol ToolbarSettingItem<ID>: Identifiable where ID: Hashable {
 	var systemImage: String { get }
 }
 
-struct ToolbarLabelStyle: LabelStyle {
+struct ToolbarSettingLabelStyle: LabelStyle {
 	enum State {
 		case none
 		case pressed
@@ -179,7 +179,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 		}
 	}
 	
-	func buttonState(for id: ID) -> ToolbarLabelStyle.State {
+	func buttonState(for id: ID) -> ToolbarSettingLabelStyle.State {
 		if self.selectedItem == id && self.pressedItem == id {
 			return .pressedAndSelected
 		} else if self.selectedItem == id && self.hoveredItem == id {
@@ -204,7 +204,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 					} icon: {
 						Image(systemName: item.systemImage).resizable()
 					}
-					.labelStyle(ToolbarLabelStyle(self.buttonState(for: item.id)))
+					.labelStyle(ToolbarSettingLabelStyle(self.buttonState(for: item.id)))
 					.onContinuousHover { phase in
 						if case .active = phase {
 							self.hoveredItem = item.id
