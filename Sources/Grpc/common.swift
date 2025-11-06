@@ -5,6 +5,7 @@ import Security
 import System
 import Virtualization
 import ObjectiveC
+import ObjcWrapper
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 

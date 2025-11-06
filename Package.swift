@@ -13,7 +13,7 @@ let package = Package(
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
-		.library(name: "MultiplatformTabBar", targets: ["MultiplatformTabBar"])
+		.library(name: "ObjcWrapper", targets: ["ObjcWrapper"]),
 	],
 	dependencies: [
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
@@ -60,6 +60,7 @@ let package = Package(
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
 		.target(name: "GRPCLib", dependencies: [
+			.target(name: "ObjcWrapper"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
@@ -67,12 +68,12 @@ let package = Package(
 		],
 		path: "Sources/grpc",
 		exclude: [
+			"helpers",
 			"generate.sh",
 			"service.proto",
 		]),
 		.target(
-			name: "MultiplatformTabBar",
-			dependencies: ["SwiftletUtilities"],
+			name: "ObjcWrapper",
 		),
 		.target(name: "CakedLib", dependencies: [
 			.target(name: "GRPCLib"),
@@ -128,6 +129,7 @@ let package = Package(
 			.product(name: "SwiftTerm", package: "SwiftTerm"),
 			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
+			.product(name: "SwiftletUtilities", package: "SwiftletUtilities")
 		]),
 		.executableTarget(name: "caked", dependencies: [
 			.target(name: "CakedLib"),
