@@ -5,7 +5,7 @@ import Security
 import System
 import Virtualization
 import ObjectiveC
-import ObjcWrapper
+import Dynamic
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -360,8 +360,15 @@ extension URL {
 		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
 	}
 	
-	public func fileRefURL() -> String {
-		return getFileRefURL(self)
+	public func fileReference() -> String? {
+		guard self.isFileURL else {
+			return nil
+		}
+
+		let url: NSURL = NSURL(fileURLWithPath: self.absoluteURL.path(percentEncoded: false))
+		let dyn = Dynamic(url, memberName: "fileReferenceURL")
+
+		return dyn.asString
 	}
 }
 
