@@ -23,14 +23,17 @@ struct NetworkWizard: View {
 			Divider()
 			HStack {
 				Spacer()
-				Button("Cancel") {
-					dismiss()
-				}
 				Button("Create") {
 					createNetwork()
 				}.disabled(vzNetwork == nil)
+				Button("Cancel") {
+					dismiss()
+				}.buttonStyle(.borderedProminent)
+				Spacer()
 			}
-		}.onChange(of: currentItem) {
+		}
+		.padding()
+		.onChange(of: currentItem) {
 			self.vzNetwork = self.validate()
 		}
     }
