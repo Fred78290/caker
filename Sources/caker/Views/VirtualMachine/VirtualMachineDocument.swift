@@ -915,6 +915,52 @@ extension VirtualMachineDocument {
 }
 
 extension VirtualMachineDocument {
+	var osImage: some View {
+		var name = "linux"
+
+		if self.virtualMachineConfig.os == .darwin {
+			name = "mac"
+		} else if let config = try? self.location.config(), let osName = config.osName {
+			let osNames = [
+				"almalinux",
+				"alpine",
+				"arch-linux",
+				"backtrack",
+				"centos",
+				"debian",
+				"elementary-os",
+				"fedora",
+				"gentoo",
+				"knoppix",
+				"kubuntu",
+				"linux",
+				"lubuntu",
+				"mac",
+				"mandriva",
+				"mint",
+				"openwrt",
+				"pop-os",
+				"red-hat",
+				"slackware",
+				"suse",
+				"syllable",
+				"ubuntu",
+				"webos",
+				"xubuntu"]
+
+			for value in osNames {
+				if osName.lowercased().contains(value) {
+					name = value
+					break
+				}
+			}
+		}
+			
+		return Image(name).resizable().aspectRatio(contentMode: .fit)
+	}
+}
+
+extension VirtualMachineDocument {
 	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
 	static let StartVirtualMachine = NSNotification.Name("StartVirtualMachine")

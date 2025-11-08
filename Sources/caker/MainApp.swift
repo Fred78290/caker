@@ -179,10 +179,10 @@ struct MainApp: App {
 			HomeView(appState: $appState)
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
+				.frame(size: CGSize(width: 1200, height: 800))
 		}
-		.windowResizability(.contentMinSize)
+		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
-		.defaultSize(width: 1280, height: 1080)
 
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
@@ -212,7 +212,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard()
+		VirtualMachineWizard(appState: $appState)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)

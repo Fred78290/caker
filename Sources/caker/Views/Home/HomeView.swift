@@ -18,14 +18,36 @@ struct HomeView: View {
 	var body: some View {
 		self.navigationView
 		.toolbar {
-			if navigationModel.selectedCategory == .virtualMachine {
+			if navigationModel.selectedCategory == .templates {
+				ToolbarItem(placement: .navigation) {
+					Button("Delete", systemImage: "trash") {
+						self.actionDelete()
+					}.disabled(navigationModel.selectedTemplate == nil)
+				}
+			} else if navigationModel.selectedCategory == .virtualMachine {
+				ToolbarItem(placement: .navigation) {
+					Button("Delete", systemImage: "trash") {
+						self.actionDelete()
+					}.disabled(navigationModel.selectedVirtualMachine == nil)
+				}
+
 				ToolbarItem(placement: .navigation) {
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
 					}
 				}
 			} else {
-				ToolbarItem(placement: .navigation) {
+				ToolbarItemGroup(placement: .navigation) {
+					if navigationModel.selectedCategory == .networks {
+						Button("Delete", systemImage: "trash") {
+							self.actionDelete()
+						}.disabled(navigationModel.selectedNetwork == nil)
+					} else {
+						Button("Delete", systemImage: "trash") {
+							self.actionPlus()
+						}.disabled(navigationModel.selectedRemote == nil)
+					}
+
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
 					}
@@ -33,15 +55,10 @@ struct HomeView: View {
 
 				ToolbarItem(placement: .primaryAction) {
 					Button("Detail", systemImage: "sidebar.squares.right") {
-						var newValue = false
-
-						if let mustShowDetailView = self.mustShowDetailView {
-							newValue = mustShowDetailView
-							newValue.toggle()
-						}
-
-						withAnimation(.easeInOut) {
-							self.mustShowDetailView = newValue
+						if self.mustShowDetailView == nil {
+							mustShowDetailView = false
+						} else {
+							self.mustShowDetailView?.toggle()
 						}
 					}
 				}
@@ -58,29 +75,15 @@ struct HomeView: View {
 			NavigationSplitView(columnVisibility: $navigationModel.navigationSplitViewVisibility) {
 				self.sidebar
 			} content: {
-				self.content.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
+				self.content
 			} detail: {
-				self.detail.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)
-			}
-			.navigationSplitViewStyle(.prominentDetail)
-			.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
-				self.selectedCategoryDidChanged(oldValue, newValue)
-			}.windowAccessor($window) {
-				if let window = $0 {
-					window.titlebarAppearsTransparent = true
-				}
+				self.detail
 			}
 		} else {
 			NavigationSplitView(columnVisibility: $navigationModel.navigationSplitViewVisibility) {
 				self.sidebar
 			} detail: {
-				self.content.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize).navigationTransition(.automatic)
-			}.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
-				self.selectedCategoryDidChanged(oldValue, newValue)
-			}.windowAccessor($window) {
-				if let window = $0 {
-					window.titlebarAppearsTransparent = true
-				}
+				self.content
 			}
 		}
 	}
@@ -181,6 +184,15 @@ struct HomeView: View {
 		SideBarView(navigationModel: $navigationModel)
 			.frame(minWidth: 200, maxWidth: 200)
 			.navigationSplitViewColumnWidth(200)
+			.navigationSplitViewStyle(.prominentDetail)
+			.onChange(of: navigationModel.selectedCategory) { oldValue, newValue in
+				self.selectedCategoryDidChanged(oldValue, newValue)
+			}
+			.windowAccessor($window) {
+				if let window = $0 {
+					window.titlebarAppearsTransparent = true
+				}
+			}
 	}
 
 	@ViewBuilder
@@ -196,38 +208,61 @@ struct HomeView: View {
 			case .virtualMachine:
 				VirtualMachinesView(appState: $appState, navigationModel: $navigationModel, size: geometry.size)
 			}
-		}
+		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
 	
 	@ViewBuilder
 	var detail: some View {
-		switch navigationModel.selectedCategory {
-		case .virtualMachine:
-			Text("Hello, VM!")
-		case .networks:
-			if let selectedNetwork = navigationModel.selectedNetwork {
-				NetworkDetailView(State(wrappedValue: selectedNetwork))
-			} else {
-				NetworkDetailView(State(wrappedValue: BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", interfaceID: "nat", endpoint: "")))
+		GeometryReader { geometry in
+			switch navigationModel.selectedCategory {
+			case .virtualMachine:
+				Text("Hello, VM!")
+			case .networks:
+				if navigationModel.selectedNetwork != nil {
+					NetworkDetailView(Binding<BridgedNetwork>(
+						get: {
+							navigationModel.selectedNetwork!
+						},
+						set: { newValue in
+							navigationModel.selectedNetwork = newValue
+						}
+					)).background(Color(NSColor.tertiarySystemFill))
+				} else {
+					EmptyView()
+				}
+			case .images:
+				Text("Hello, Remote!")
+			case .templates:
+				Text("Hello, Template!")
 			}
-		case .images:
-			Text("Hello, Remote!")
-		case .templates:
-			Text("Hello, Template!")
 		}
+		.navigationSplitViewColumnWidth(min: self.idealDetailSize, ideal: self.idealDetailSize, max: self.idealDetailSize)
 	}
 
 	@ViewBuilder
 	var sheet: some View {
 		switch navigationModel.selectedCategory {
 		case .virtualMachine:
-			VirtualMachineWizard(sheet: true)
+			VirtualMachineWizard(appState: _appState, sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)
+		case .networks:
+			NetworkWizard(appState: _appState)
+				.colorSchemeForColor()
+				.restorationState(.disabled)
+				.frame(size: CGSize(width: 300, height: 250))
+		case .images:
+			RemoteWizard()
+				.colorSchemeForColor()
+				.restorationState(.disabled)
 		default:
 			Text("Hello, World!")
 		}
+	}
+
+	func actionDelete() {
+		
 	}
 
 	func actionPlus() {

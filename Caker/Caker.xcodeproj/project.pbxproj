@@ -27,7 +27,6 @@
 /* Begin PBXBuildFile section */
 		9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */; };
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
-		9B0202752EA8D67900053712 /* NetworkNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202742EA8D67900053712 /* NetworkNewItemView.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
@@ -79,6 +78,8 @@
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
 		9B3602452E2273C700889BFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3602442E2273C200889BFD /* Extensions.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
+		9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
+		9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */; };
 		9B464B5F2D5A3E7F00164BF5 /* CakeProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A872D5A3E0300164BF5 /* CakeProvider.swift */; };
 		9B464B602D5A3E7F00164BF5 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A882D5A3E0300164BF5 /* Client.swift */; };
 		9B464B612D5A3E8900164BF5 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A782D5A3E0300164BF5 /* Login.swift */; };
@@ -531,7 +532,6 @@
 /* Begin PBXFileReference section */
 		9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkDetailView.swift; sourceTree = "<group>"; };
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
-		9B0202742EA8D67900053712 /* NetworkNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkNewItemView.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
@@ -582,6 +582,8 @@
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
 		9B3602442E2273C200889BFD /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
+		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -1350,12 +1352,13 @@
 				9B9C4E5E2E23BCA300C13D23 /* HomeView.swift */,
 				9B0202702EA8CBDD00053712 /* NetworkDetailView.swift */,
 				9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */,
+				9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */,
 				9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */,
+				9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */,
 				9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */,
 				9B9C4E922E23C92900C13D23 /* TemplatesView.swift */,
 				9B9C4E582E23BC8B00C13D23 /* VirtualMachinesView.swift */,
 				9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */,
-				9B0202742EA8D67900053712 /* NetworkNewItemView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -2054,8 +2057,8 @@
 				9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */,
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
+				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
 				9B79990D2E48A36C00147500 /* VNCFramebufferView.swift in Sources */,
-				9B0202752EA8D67900053712 /* NetworkNewItemView.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
@@ -2085,6 +2088,7 @@
 				9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
 				9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */,
+				9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
 				9B215B752E0C391500AFC89D /* NetworkAttachementDetailView.swift in Sources */,
 				9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */,

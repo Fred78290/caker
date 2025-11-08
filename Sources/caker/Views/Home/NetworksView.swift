@@ -17,7 +17,7 @@ extension BridgedNetwork {
 			} else if self.description.contains("Thunderbold") {
 				return Image(systemName: "bolt")
 			} else {
-				return Image("ethernet")
+				return Image("ethernet").renderingMode(.template)
 			}
 		case .host:
 			return Image(systemName: "network.badge.shield.half.filled")
@@ -56,7 +56,7 @@ struct NetworksView: View {
 						network.icon
 							.resizable()
 							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(Color.primary)
+							.foregroundStyle(.white)
 					}).font(.headline)
 				}
 				.listStyle(.inset(alternatesRowBackgrounds: true))

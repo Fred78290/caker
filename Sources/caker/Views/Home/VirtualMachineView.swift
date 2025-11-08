@@ -12,12 +12,12 @@ extension Shape {
 		if #available(macOS 26.0, *) {
 			return self
 				.fill(fillStyle)
-				.background(.red.opacity(0))
+				.background(fillStyle)
 		} else {
 			return self
 				.fill(fillStyle)
 				.stroke(strokeStyle, lineWidth: lineWidth)
-				.background(.red.opacity(0))
+				.background(fillStyle)
 		}
 	}
 }
@@ -26,16 +26,18 @@ struct VirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
+	@State var selected: Bool = false
 	@StateObject var vm: VirtualMachineDocument
 	private let radius: CGFloat = 12
+	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
 
 	var body: some View {
 		let lightColor = self.lightColor(vm.status)
 		let imageName = self.imageName(vm.status)
-		
+
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
-				.fill(Color(nsColor: NSColor.secondarySystemFill), strokeBorder: .white, lineWidth: 0.2)
+				.fill(self.selected ? Color.red : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
 				.overlay {
 					VStack {
 						HStack(alignment: .center) {
@@ -58,9 +60,7 @@ struct VirtualMachineView: View {
 									)
 							}
 							
-							Text("\(vm.name)")
-								.font(.headline)
-							
+							Text("\(vm.name)").font(.headline)
 							Spacer()
 							
 							Button(action: action) {
@@ -90,6 +90,8 @@ struct VirtualMachineView: View {
 						
 						HStack {
 							self.vm.screenshot.image
+						}.overlay {
+							self.vm.osImage.frame(size: CGSize(width: 64, height: 64))
 						}
 						.padding(10)
 						.frame(width: geometry.size.width, height: geometry.size.height * 0.75)

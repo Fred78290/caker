@@ -7,64 +7,106 @@
 
 import GRPCLib
 import SwiftUI
+import CakedLib
 
 struct NetworkDetailView: View {
-	@State var currentItem: BridgedNetwork
+	@Binding var currentItem: BridgedNetwork
 	var forEditing: Bool = false
+	@State var dhcpStart: TextFieldStore<String, RegexParseableFormatStyle>
+	@State var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
+	@State var netmask: TextFieldStore<String, RegexParseableFormatStyle>
 
-	init(_ currentItem: State<BridgedNetwork>, forEditing: Bool = false) {
+	init(_ currentItem: Binding<BridgedNetwork>, forEditing: Bool = false) {
 		self._currentItem = currentItem
+		self.dhcpStart = .init(value: currentItem.wrappedValue.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
+		self.dhcpEnd = .init(value: currentItem.wrappedValue.dhcpEnd.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
+		self.netmask = .init(value: currentItem.wrappedValue.gateway.stringAfter(after: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
 	}
 
 	var body: some View {
 		GeometryReader { geometry in
-				VStack {
+			let contentWidth = geometry.size.width - 120
+
+			Form {
+				Section {
 					LabeledContent("Mode") {
-						Picker("Mode", selection: $currentItem.mode) {
-							ForEach(BridgedNetworkMode.allCases, id: \.self) { mode in
-								Text(mode.rawValue).tag(mode)
+						HStack {
+							Picker("Mode", selection: $currentItem.mode) {
+								ForEach(BridgedNetworkMode.allCases, id: \.self) { mode in
+									Text(mode.rawValue).tag(mode)
+								}
 							}
+							.menuStyle(.button)
+							.pickerStyle(.menu)
+							.allowsHitTesting(forEditing)
+							.labelsHidden()
+							Spacer()
 						}
-						.allowsHitTesting(forEditing)
-						.labelsHidden()
-						.frame(width: 100)
-					}.frame(width: geometry.size.width)
+					}
 					
 					LabeledContent("Name") {
 						TextField("", text: $currentItem.name)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
-							.frame(width: 200)
-					}.frame(width: geometry.size.width)
+							.frame(width: contentWidth)
+					}
 					
-					LabeledContent("Gateway") {
-						TextField("", text: $currentItem.gateway)
+					LabeledContent("DHCP Start") {
+						TextField("", text: $dhcpStart.text)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
-							.frame(width: 200)
-					}.frame(width: geometry.size.width)
+							.frame(width: contentWidth)
+					}
+					.formatAndValidate($dhcpStart)
+					.onChange(of: dhcpStart.value) { _, newValue in
+						let cidr = self.netmask.value.netmaskToCidr()
+						self.currentItem.gateway = "\(newValue)/\(cidr)"
+					}
 					
 					LabeledContent("DHCP End") {
-						TextField("", text: $currentItem.dhcpEnd)
+						TextField("", text: $dhcpEnd.text)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
-							.frame(width: 200)
-					}.frame(width: geometry.size.width)
+							.frame(width: contentWidth)
+					}
+					.formatAndValidate($dhcpEnd)
+					.onChange(of: dhcpEnd.value) { _, newValue in
+						let cidr = self.netmask.value.netmaskToCidr()
+						self.currentItem.dhcpEnd = "\(newValue)/\(cidr)"
+					}
+					
+					LabeledContent("DHCP Lease") {
+						TextField("", text: $currentItem.dhcpLease)
+							.rounded(.leading)
+							.allowsHitTesting(forEditing)
+							.frame(width: contentWidth)
+					}
+					
+					LabeledContent("Netmask") {
+						TextField("", text: $netmask.text)
+							.rounded(.leading)
+							.allowsHitTesting(forEditing)
+							.frame(width: contentWidth)
+					}
+					.formatAndValidate($netmask)
+					.onChange(of: netmask.value) { _, newValue in
+						let cidr = newValue.netmaskToCidr()
+						self.currentItem.gateway = "\(self.dhcpStart.value)/\(cidr)"
+						self.currentItem.dhcpEnd = "\(self.dhcpEnd.value)/\(cidr)"
+					}
 					
 					LabeledContent("Interface ID") {
 						TextField("", text: $currentItem.interfaceID)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
-							.frame(width: 200)
-					}.frame(width: geometry.size.width)
-					Spacer()
+							.frame(width: contentWidth)
+					}
 				}
-				.frame(width: geometry.size.width)
-				.background(.green)
+			}.padding()
 		}
 	}
 }
 
 #Preview {
-	NetworkDetailView(State(wrappedValue: BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", interfaceID: "nat", endpoint: "")))
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "")), forEditing: true)
 }

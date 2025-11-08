@@ -13,6 +13,6 @@ extension View {
 		.textFieldStyle(.roundedBorder)
 		.backgroundStyle(.windowBackground)
 		.labelsHidden()
-		.clipShape(RoundedRectangle(cornerRadius: 4))
+		//.clipShape(RoundedRectangle(cornerRadius: 4))
 	}
 }

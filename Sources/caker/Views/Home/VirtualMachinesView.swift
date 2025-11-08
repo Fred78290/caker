@@ -13,6 +13,7 @@ struct VirtualMachinesView: View {
 	static let cellSpacing: CGFloat = 10
 
 	@Environment(\.openDocument) private var openDocument
+	@Environment(\.appearsActive) private var appearsActive
 
 	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
@@ -24,20 +25,36 @@ struct VirtualMachinesView: View {
 		self.columns = Self.buildColumns(size)
 	}
 
+	@ViewBuilder
+	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
+		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
+
+		if self.appearsActive {
+			VirtualMachineView(selected: selected, vm: document)
+				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+				.animation(.easeInOut, value: self.columns.count)
+		} else {
+			VirtualMachineView(selected: selected, vm: document)
+				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+		}
+	}
+
 	var body: some View {
 		GeometryReader { geometry in
 			ScrollView {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
 					ForEach(appState.virtualMachines.vms) { vm in
-						VirtualMachineView(vm: vm.document)
-							.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+						self.virtualMachineView(vm.document)
 							.onTapGesture {
+								self.navigationModel.selectedVirtualMachine = vm.document
+								print("selected: \(vm.document.name)")
+							}
+							.onTapGesture(count: 2) {
 								Task {
 									try? await self.openDocument(at: vm.document.location.rootURL)
 								}
 							}
 					}
-					.animation(.easeInOut, value: self.columns.count)
 				}
 				.padding(Self.cellSpacing)
 			}
@@ -52,7 +69,7 @@ struct VirtualMachinesView: View {
 	
 	static func buildColumns(_ size: CGSize) -> [GridItem] {
 		let numOfColums = max(Int(size.width) / Int(cellWidth - cellSpacing), 1)
-
+		print("buildColumns: \(size) -> \(numOfColums)")
 		return Array(repeating: GridItem(.fixed(cellWidth)), count: numOfColums)
 	}
 }

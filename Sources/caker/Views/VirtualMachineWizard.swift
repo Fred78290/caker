@@ -269,12 +269,12 @@ struct VirtualMachineWizard: View {
 	@Environment(\.openDocument) private var openDocument
 
 	@State private var config: VirtualMachineConfig = .init()
+	@State private var currentTab: Int = 0
 	@StateObject private var model = VirtualMachineWizardStateObject()
-	@StateObject private var appState = AppState.shared
-	@State var currentTab: Int = 0
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
+	@Binding var appState: AppState
 	var sheet: Bool = false
 
 	@ViewBuilder
@@ -1010,5 +1010,5 @@ struct VirtualMachineWizard: View {
 }
 
 #Preview {
-	VirtualMachineWizard()
+	VirtualMachineWizard(appState: .constant(AppState.shared))
 }

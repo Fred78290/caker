@@ -288,20 +288,39 @@ public final class SudoCaked {
 }
 
 public struct NetworksHandler {
+	private static let InternetSharingPrefs = "/Library/Preferences/SystemConfiguration/com.apple.InternetSharing.default.plist" as CFString
+	private static let BootpD = "bootpd" as CFString
+	private static let DHCPLeaseTimeSecs = "DHCPLeaseTimeSecs"
+
+	public static func getDHCPLease(runMode: Utils.RunMode) throws -> Int32 {
+		guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, InternetSharingPrefs) else {
+			throw ServiceError("Unable to create SCPreferences")
+		}
+
+		guard let props = SCPreferencesGetValue(ref, BootpD) as? NSDictionary else {
+			throw ServiceError("Unable to load SCPreferences")
+		}
+
+		guard let lease = props["DHCPLeaseTimeSecs"] as? Int32 else {
+			throw ServiceError("Unable to load SCPreferences")
+		}
+
+		return lease
+	}
+
 	public static func setDHCPLease(leaseTime: Int32, runMode: Utils.RunMode) throws -> String {
 		if geteuid() == 0 {
-			guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, "com.apple.InternetSharing.default.plist" as CFString) else {
+			guard let ref = SCPreferencesCreate(nil, Home.cakedCommandName as CFString, InternetSharingPrefs) else {
 				throw ServiceError("Unable to create SCPreferences")
 			}
 
 			Logger(self).debug("Set DHCP lease time to \(leaseTime) seconds")
 
-			let lease =
-				[
-					"DHCPLeaseTimeSecs" as CFString: leaseTime as CFNumber
+			let lease = [
+					DHCPLeaseTimeSecs: leaseTime as CFNumber
 				] as CFDictionary
 
-			SCPreferencesSetValue(ref, "bootpd" as CFString, lease)
+			SCPreferencesSetValue(ref, BootpD, lease)
 			SCPreferencesCommitChanges(ref)
 			SCPreferencesApplyChanges(ref)
 		} else if try SudoCaked(arguments: ["networks", "set-dhcp-lease", "\(leaseTime)"], runMode: runMode).runAndWait() != 0 {
@@ -953,11 +972,11 @@ public struct NetworksHandler {
 	}
 
 	public static func networks(runMode: Utils.RunMode) throws -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", interfaceID: "nat", endpoint: "")]
+		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "")]
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 
-		let createBridgedNetwork: (_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String) throws -> BridgedNetwork = { (name, mode, description, uuid, gateway, dhcpEnd) in
+		let createBridgedNetwork: (_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork = { (name, mode, description, uuid, gateway, dhcpEnd, dhcpLease) in
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 			let endpoint: String
 
@@ -967,13 +986,16 @@ public struct NetworksHandler {
 				endpoint = ""
 			}
 
-			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
+			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
 		}
 
 		try networks.append(
 			contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-				return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "")
+				return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
 			})
+
+		let value = try? Self.getDHCPLease(runMode: runMode)
+		let dhcpLease = value != nil ? "\(value!)" : ""
 
 		return try networkConfig.sharedNetworks.reduce(into: networks) {
 			let cidr = $1.value.netmask.netmaskToCidr()
@@ -981,13 +1003,13 @@ public struct NetworksHandler {
 			let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 			let uuid = $1.value.interfaceID
 
-			$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode == .host ? "Hosted network" : "Shared network", uuid, gateway, dhcpEnd))
+			$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode == .host ? "Hosted network" : "Shared network", uuid, gateway, dhcpEnd, dhcpLease))
 		}
 	}
 
 	public static func status(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork {
 		if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
-			return BridgedNetwork(name: networkName, mode: .bridged, description: inf.localizedDisplayName ?? inf.identifier, gateway: "", dhcpEnd: "", interfaceID: inf.identifier, endpoint: "")
+			return BridgedNetwork(name: networkName, mode: .bridged, description: inf.localizedDisplayName ?? inf.identifier, gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: inf.identifier, endpoint: "")
 		} else {
 			let home: Home = try Home(runMode: runMode)
 			let networkConfig = try home.sharedNetworks()
@@ -1002,6 +1024,8 @@ public struct NetworksHandler {
 			let uuid = network.interfaceID
 			let gateway = network.dhcpStart
 			let dhcpEnd = network.dhcpEnd
+			let value = try? Self.getDHCPLease(runMode: runMode)
+			let dhcpLease = value != nil ? "\(value!)" : ""
 			let endpoint: String
 
 			if try socketURL.0.exists() {
@@ -1010,7 +1034,7 @@ public struct NetworksHandler {
 				endpoint = ""
 			}
 
-			return BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, interfaceID: uuid, endpoint: endpoint)
+			return BridgedNetwork(name: networkName, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
 		}
 	}
 }

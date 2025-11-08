@@ -288,8 +288,8 @@ extension String {
 		}
 	}
 
-	public func stringAfterLast(before: Character) -> String {
-		if let r = self.lastIndex(of: before) {
+	public func stringAfterLast(after: Character) -> String {
+		if let r = self.lastIndex(of: after) {
 			guard let start = self.index(r, offsetBy: 1, limitedBy: self.endIndex) else {
 				return ""
 			}

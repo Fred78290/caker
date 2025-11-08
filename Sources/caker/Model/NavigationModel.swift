@@ -74,7 +74,7 @@ class NavigationModel: ObservableObject, Observable {
 	@Published var selectedRemote: RemoteEntry? = nil
 	@Published var selectedTemplate: TemplateEntry? = nil
 	@Published var selectedNetwork: BridgedNetwork? = nil
-	@Published var selectedVirtualMachine: VirtualMachine? = nil
+	@Published var selectedVirtualMachine: VirtualMachineDocument? = nil
 	@Published var selectedCategory: Category {
 		didSet {
 			switch selectedCategory {

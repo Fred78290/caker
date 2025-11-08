@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import GRPCLib
 
 public struct VZSharedNetwork: Codable, Equatable {
 	public let mode: VMNetMode
@@ -9,6 +10,19 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public let dhcpLease: Int32?
 	public let interfaceID: String
 	public let nat66Prefix: String?
+
+	public func toBridgedNetwork(name: String) -> BridgedNetwork {
+		let cidr = self.netmask.netmaskToCidr()
+
+		return BridgedNetwork(name: name,
+							  mode: .init(from: self.mode),
+							  description: self.mode == .host ? "Hosted network" : "Shared network",
+							  gateway: "\(self.dhcpStart)/\(cidr)",
+							  dhcpEnd: "\(self.dhcpEnd)/\(cidr)",
+							  dhcpLease: self.dhcpLease != nil ? "\(self.dhcpLease!)" : "",
+							  interfaceID: self.interfaceID,
+							  endpoint: "")
+	}
 
 	public init(
 		mode: VMNetMode = .bridged,
@@ -186,6 +200,12 @@ extension String {
 		value = 0xFFFF_FFFF ^ ((1 << (32 - value)) - 1)
 
 		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
+	}
+
+	public func toIPV4() -> (address: IP.V4?, netmask: IP.V4?) {
+		let parts = self.split(separator: "/")
+		
+		return (IP.V4(parts[0]), (parts.count > 1 ? IP.V4(String(parts[1]).cidrToNetmask()) : nil))
 	}
 
 	public func IPToInt() -> Int {
