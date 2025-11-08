@@ -251,7 +251,7 @@ struct HomeView: View {
 			NetworkWizard(appState: _appState)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
-				.frame(size: CGSize(width: 300, height: 250))
+				.frame(size: CGSize(width: 600, height: 400))
 		case .images:
 			RemoteWizard()
 				.colorSchemeForColor()

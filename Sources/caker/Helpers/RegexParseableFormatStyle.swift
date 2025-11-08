@@ -31,7 +31,7 @@ struct RegexParseableFormatStyle: ParseableFormatStyle {
 	}
 
 	func format(_ value: String) -> String {
-		return ""
+		return value
 	}
 }
 
