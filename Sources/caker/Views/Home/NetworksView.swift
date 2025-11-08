@@ -30,6 +30,7 @@ extension BridgedNetwork {
 }
 
 struct NetworksView: View {
+	@Environment(\.colorScheme) var colorScheme: ColorScheme
 	@Binding var appState: AppState
 	@Binding var navigationModel: NavigationModel
 	@State private var selection: BridgedNetwork.ID? = nil
@@ -56,7 +57,7 @@ struct NetworksView: View {
 						network.icon
 							.resizable()
 							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(.white)
+							.foregroundStyle(self.colorScheme == .dark ? .white : .primary)
 					}).font(.headline)
 				}
 				.listStyle(.inset(alternatesRowBackgrounds: true))
