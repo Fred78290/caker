@@ -20,7 +20,7 @@ struct NetworkDetailView: View {
 		self._currentItem = currentItem
 		self.dhcpStart = .init(value: currentItem.wrappedValue.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
 		self.dhcpEnd = .init(value: currentItem.wrappedValue.dhcpEnd.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
-		self.netmask = .init(value: currentItem.wrappedValue.gateway.stringAfter(after: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
+		self.netmask = .init(value: currentItem.wrappedValue.gateway.stringAfter(after: "/").cidrToNetmask(), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
 	}
 
 	var body: some View {
