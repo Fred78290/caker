@@ -13,70 +13,93 @@ import ArgumentParser
 struct NetworkWizard: View {
 	@Environment(\.dismiss) private var dismiss
 	@Binding var appState: AppState
-	@State private var vzNetwork: VZSharedNetwork? = nil
-	@State private var currentItem = BridgedNetwork(name: "New hosted network", mode: .host, description: "Hosted network", gateway: "192.168.1.1/24", dhcpEnd: "192.168.1.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "")
+	@State private var vzNetwork: VZSharedNetwork?
+	@State private var currentItem: BridgedNetwork
+	@State private var reason: String?
+
+	init(appState: Binding<AppState>) {
+		let network = BridgedNetwork(name: "host", mode: .host, description: "Hosted network", gateway: "192.168.1.1/24", dhcpEnd: "192.168.1.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "")
+
+		self._appState = appState
+		self.currentItem = network
+		(self.vzNetwork, self.reason) = Self.validate(network)
+	}
 
 	var body: some View {
 		VStack {
 			NetworkDetailView($currentItem, forEditing: true)
 			Spacer()
 			Divider()
-			HStack {
-				Spacer()
-				Button("Create") {
-					createNetwork()
-				}.disabled(vzNetwork == nil)
-				Button("Cancel") {
-					dismiss()
-				}.buttonStyle(.borderedProminent)
-				Spacer()
+			VStack {
+				HStack {
+					Spacer()
+					Button("Create") {
+						createNetwork()
+					}.disabled(vzNetwork == nil)
+					Button("Cancel") {
+						dismiss()
+					}.buttonStyle(.borderedProminent)
+					Spacer()
+				}
+				if let reason = self.reason {
+					Text(reason).font(.callout)
+				}
 			}
 		}
 		.padding()
-		.onChange(of: currentItem) {
-			self.vzNetwork = self.validate()
+		.onChange(of: currentItem) { _, newValue in
+			(self.vzNetwork, self.reason) = Self.validate(newValue)
 		}
     }
 	
-	func validate() -> VZSharedNetwork? {
+	static func validate(_ network: BridgedNetwork) -> (VZSharedNetwork?, String?) {
 		do {
-			let gateway = self.currentItem.gateway.toIPV4()
-			let dhcpEnd = self.currentItem.dhcpEnd.toIPV4()
+			let gateway = network.gateway.toIPV4()
+			let dhcpEnd = network.dhcpEnd.toIPV4()
 
 			guard let dhcpStart = gateway.address, let netmask = gateway.netmask else {
-				throw ValidationError("Invalid address \(self.currentItem.gateway)")
+				throw ValidationError("Invalid address \(network.gateway)")
 			}
 
 			guard let dhcpEnd = dhcpEnd.address else {
-				throw ValidationError("Invalid address \(self.currentItem.dhcpEnd)")
+				throw ValidationError("Invalid address \(network.dhcpEnd)")
 			}
 
 			let home: Home = try Home(runMode: .app)
 			let networkConfig = try home.sharedNetworks()
 
-			if networkConfig.sharedNetworks[self.currentItem.name] != nil {
-				throw ValidationError("Network \(self.currentItem.name) already exist")
+			if networkConfig.sharedNetworks[network.name] != nil {
+				throw ValidationError("Network \(network.name) already exist")
 			}
 
-			if CakedLib.NetworksHandler.isPhysicalInterface(name: self.currentItem.name) {
-				throw ValidationError("Network \(self.currentItem.name) is a physical interface")
+			if CakedLib.NetworksHandler.isPhysicalInterface(name: network.name) {
+				throw ValidationError("Network \(network.name) is a physical interface")
 			}
 			
 			let network = VZSharedNetwork(
-				mode: self.currentItem.mode == .shared ? .shared : .host,
+				mode: network.mode == .shared ? .shared : .host,
 				netmask: netmask.description,
 				dhcpStart: dhcpStart.description,
 				dhcpEnd: dhcpEnd.description,
 				dhcpLease: nil,
-				interfaceID: self.currentItem.interfaceID,
+				interfaceID: network.interfaceID,
 				nat66Prefix: nil
 			)
 
 			try network.validate()
 			
-			return network
+			return (network, nil)
 		} catch {
-			return nil
+			print(error)
+			if let error = error as? ValidationError {
+				return (nil, error.description)
+			}
+
+			if let error = error as? ServiceError {
+				return (nil, error.description)
+			}
+
+			return (nil, error.localizedDescription)
 		}
 	}
 

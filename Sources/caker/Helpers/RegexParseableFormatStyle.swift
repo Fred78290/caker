@@ -16,7 +16,8 @@ struct RegexParseableFormatStyle: ParseableFormatStyle {
 		}
 
 		func parse(_ value: String) throws -> String {
-			if try Regex<Substring>(self.regex).wholeMatch(in: value) == nil {
+			
+			guard value.range(of: self.regex, options: .regularExpression) != nil else {
 				return ""
 			}
 

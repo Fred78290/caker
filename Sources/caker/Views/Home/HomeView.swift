@@ -116,7 +116,7 @@ struct HomeView: View {
 			case .virtualMachine:
 				return false
 			case .networks:
-				return navigationModel.selectedNetwork != nil
+				return true
 			case .images:
 				return navigationModel.selectedRemote != nil
 			case .templates:

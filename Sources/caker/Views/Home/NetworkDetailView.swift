@@ -9,30 +9,45 @@ import GRPCLib
 import SwiftUI
 import CakedLib
 
+class NetworkDetailViewModel: ObservableObject, Observable {
+	static var dhcpLeaseRange = RangeIntegerStyle(range: 60...86400)
+
+	@Published var dhcpStart: TextFieldStore<String, RegexParseableFormatStyle>
+	@Published var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
+	@Published var netmask: TextFieldStore<String, RegexParseableFormatStyle>
+	@Published var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
+	
+	init(network: BridgedNetwork) {
+		self.dhcpLease = TextFieldStore(value: Int(network.dhcpLease) ?? 86400, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: Self.dhcpLeaseRange)
+		self.dhcpStart = .init(value: network.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
+		self.dhcpEnd = .init(value: network.dhcpEnd.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
+		self.netmask = .init(value: network.gateway.stringAfter(after: "/").cidrToNetmask(), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
+	}
+}
+
 struct NetworkDetailView: View {
-	@Binding var currentItem: BridgedNetwork
-	var forEditing: Bool = false
-	@State var dhcpStart: TextFieldStore<String, RegexParseableFormatStyle>
-	@State var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
-	@State var netmask: TextFieldStore<String, RegexParseableFormatStyle>
+	@Binding private var currentItem: BridgedNetwork
+	@State private var model: NetworkDetailViewModel
+	private var forEditing: Bool
 
 	init(_ currentItem: Binding<BridgedNetwork>, forEditing: Bool = false) {
+		self.forEditing = forEditing
 		self._currentItem = currentItem
-		self.dhcpStart = .init(value: currentItem.wrappedValue.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
-		self.dhcpEnd = .init(value: currentItem.wrappedValue.dhcpEnd.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
-		self.netmask = .init(value: currentItem.wrappedValue.gateway.stringAfter(after: "/").cidrToNetmask(), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
+		self.model = NetworkDetailViewModel(network: currentItem.wrappedValue)
 	}
 
 	var body: some View {
 		GeometryReader { geometry in
-			let contentWidth = geometry.size.width - 120
+			let contentWidth = geometry.size.width - 160
 
 			Form {
 				Section {
-					LabeledContent("Mode") {
+					LabeledContent("Network mode") {
+						let modes = self.forEditing ? [BridgedNetworkMode.shared, BridgedNetworkMode.host] : BridgedNetworkMode.allCases
+						
 						HStack {
 							Picker("Mode", selection: $currentItem.mode) {
-								ForEach(BridgedNetworkMode.allCases, id: \.self) { mode in
+								ForEach(modes, id: \.self) { mode in
 									Text(mode.rawValue).tag(mode)
 								}
 							}
@@ -40,59 +55,72 @@ struct NetworkDetailView: View {
 							.pickerStyle(.menu)
 							.allowsHitTesting(forEditing)
 							.labelsHidden()
+
 							Spacer()
 						}
 					}
 					
-					LabeledContent("Name") {
+					LabeledContent("Network name") {
 						TextField("", text: $currentItem.name)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
 							.frame(width: contentWidth)
 					}
 					
-					LabeledContent("DHCP Start") {
-						TextField("", text: $dhcpStart.text)
+					LabeledContent("DHCP Lease") {
+						TextField("", text: $model.dhcpLease.text)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
 							.frame(width: contentWidth)
 					}
-					.formatAndValidate($dhcpStart)
-					.onChange(of: dhcpStart.value) { _, newValue in
-						let cidr = self.netmask.value.netmaskToCidr()
+					.formatAndValidate($model.dhcpLease) {
+						NetworkDetailViewModel.dhcpLeaseRange.outside($0)
+					}
+					.onChange(of: model.dhcpLease.value) { _, newValue in
+						self.currentItem.dhcpLease = "\(newValue)"
+					}
+
+					LabeledContent("Network start") {
+						TextField("", text: $model.dhcpStart.text)
+							.rounded(.leading)
+							.allowsHitTesting(forEditing)
+							.frame(width: contentWidth)
+					}
+					.formatAndValidate($model.dhcpStart) { value in
+						value.isValidIP() == false
+					}
+					.onChange(of: model.dhcpStart.value) { _, newValue in
+						let cidr = model.netmask.value.netmaskToCidr()
 						self.currentItem.gateway = "\(newValue)/\(cidr)"
 					}
 					
-					LabeledContent("DHCP End") {
-						TextField("", text: $dhcpEnd.text)
+					LabeledContent("Network end") {
+						TextField("", text: $model.dhcpEnd.text)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
 							.frame(width: contentWidth)
 					}
-					.formatAndValidate($dhcpEnd)
-					.onChange(of: dhcpEnd.value) { _, newValue in
-						let cidr = self.netmask.value.netmaskToCidr()
+					.formatAndValidate($model.dhcpEnd) { value in
+						value.isValidIP() == false
+					}
+					.onChange(of: model.dhcpEnd.value) { _, newValue in
+						let cidr = self.model.netmask.value.netmaskToCidr()
 						self.currentItem.dhcpEnd = "\(newValue)/\(cidr)"
 					}
 					
-					LabeledContent("DHCP Lease") {
-						TextField("", text: $currentItem.dhcpLease)
-							.rounded(.leading)
-							.allowsHitTesting(forEditing)
-							.frame(width: contentWidth)
-					}
-					
 					LabeledContent("Netmask") {
-						TextField("", text: $netmask.text)
+						TextField("", text: $model.netmask.text)
 							.rounded(.leading)
 							.allowsHitTesting(forEditing)
 							.frame(width: contentWidth)
 					}
-					.formatAndValidate($netmask)
-					.onChange(of: netmask.value) { _, newValue in
+					.formatAndValidate($model.netmask){ value in
+						value.isValidNetmask() == false
+					}
+					.onChange(of: model.netmask.value) { _, newValue in
 						let cidr = newValue.netmaskToCidr()
-						self.currentItem.gateway = "\(self.dhcpStart.value)/\(cidr)"
-						self.currentItem.dhcpEnd = "\(self.dhcpEnd.value)/\(cidr)"
+						self.currentItem.gateway = "\(self.model.dhcpStart.value)/\(cidr)"
+						self.currentItem.dhcpEnd = "\(self.model.dhcpEnd.value)/\(cidr)"
 					}
 					
 					LabeledContent("Interface ID") {

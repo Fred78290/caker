@@ -29,14 +29,18 @@ struct VirtualMachinesView: View {
 	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
 		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
 
-		if self.appearsActive {
-			VirtualMachineView(selected: selected, vm: document)
-				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-				.animation(.easeInOut, value: self.columns.count)
-		} else {
-			VirtualMachineView(selected: selected, vm: document)
-				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-		}
+		VirtualMachineView(selected: selected, vm: document)
+			.log("VirtualMachineView", text: "selected: \(selected)")
+			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+
+//		if self.appearsActive {
+//			VirtualMachineView(selected: selected, vm: document)
+//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+//				.animation(.easeInOut, value: self.columns.count)
+//		} else {
+//			VirtualMachineView(selected: selected, vm: document)
+//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+//		}
 	}
 
 	var body: some View {

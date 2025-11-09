@@ -26,7 +26,7 @@ struct VirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
-	@State var selected: Bool = false
+	var selected: Bool
 	@StateObject var vm: VirtualMachineDocument
 	private let radius: CGFloat = 12
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
@@ -37,7 +37,7 @@ struct VirtualMachineView: View {
 
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
-				.fill(self.selected ? Color.red : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
+				.fill(self.selected ? Color.secondary : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
 				.overlay {
 					VStack {
 						HStack(alignment: .center) {
@@ -150,5 +150,5 @@ struct VirtualMachineView: View {
 #Preview {
 	let appState = AppState()
 
-	VirtualMachineView(vm: appState.virtualMachines.first!.value)
+	VirtualMachineView(selected: false, vm: appState.virtualMachines.first!.value)
 }

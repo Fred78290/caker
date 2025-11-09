@@ -52,7 +52,12 @@ struct NetworksView: View {
 			} else {
 				List(appState.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
 					Label(title: {
-						Text(network.name)
+						HStack {
+							Text("\(network.name)")
+								.frame(width: 60, alignment: .leading)
+							Text("\(network.description)")
+								//.frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
+						}
 					}, icon: {
 						network.icon
 							.resizable()
