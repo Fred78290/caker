@@ -18,32 +18,32 @@ struct NetworkWizard: View {
 	@State private var reason: String?
 
 	init(appState: Binding<AppState>) {
-		let network = BridgedNetwork(name: "host", mode: .host, description: "Hosted network", gateway: "192.168.1.1/24", dhcpEnd: "192.168.1.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "")
+		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "")
+		let valid = Self.validate(network)
 
+		self.vzNetwork = valid.0
+		self.reason = valid.1
 		self._appState = appState
 		self.currentItem = network
-		(self.vzNetwork, self.reason) = Self.validate(network)
 	}
 
 	var body: some View {
 		VStack {
 			NetworkDetailView($currentItem, forEditing: true)
 			Spacer()
+			if let reason = self.reason {
+				Text(reason).font(.callout)
+			}
 			Divider()
-			VStack {
-				HStack {
-					Spacer()
-					Button("Create") {
-						createNetwork()
-					}.disabled(vzNetwork == nil)
-					Button("Cancel") {
-						dismiss()
-					}.buttonStyle(.borderedProminent)
-					Spacer()
-				}
-				if let reason = self.reason {
-					Text(reason).font(.callout)
-				}
+			HStack {
+				Spacer()
+				Button("Create") {
+					createNetwork()
+				}.disabled(vzNetwork == nil)
+				Button("Cancel") {
+					dismiss()
+				}.buttonStyle(.borderedProminent)
+				Spacer()
 			}
 		}
 		.padding()
@@ -86,7 +86,7 @@ struct NetworkWizard: View {
 				nat66Prefix: nil
 			)
 
-			try network.validate()
+			try network.validate(runMode: .app)
 			
 			return (network, nil)
 		} catch {
