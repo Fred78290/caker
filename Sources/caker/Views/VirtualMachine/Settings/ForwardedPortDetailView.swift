@@ -136,6 +136,9 @@ struct ForwardedPortDetailView: View {
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
+					.onChange(of: model.mode) { _, newValue in
+						self.currentItem.oneOf = model.tunnelAttachement.oneOf
+					}
 				}.frame(width: 150)
 			}
 
@@ -149,6 +152,9 @@ struct ForwardedPortDetailView: View {
 					}
 					.allowsHitTesting(readOnly == false)
 					.labelsHidden()
+					.onChange(of: model.selectedProtocol) { _, newValue in
+						self.currentItem.oneOf = model.tunnelAttachement.oneOf
+					}
 				}.frame(width: 150)
 			}
 
@@ -191,7 +197,9 @@ struct ForwardedPortDetailView: View {
 						TextField("Host path", value: $model.hostPath, format: .optional)
 							.rounded(.leading)
 							.allowsHitTesting(readOnly == false)
-
+							.onChange(of: model.hostPath) { _, newValue in
+								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							}
 						if readOnly == false {
 							Button(action: {
 								chooseSocketFile()
@@ -207,6 +215,9 @@ struct ForwardedPortDetailView: View {
 						TextField("Guest path", value: $model.guestPath, format: .optional)
 							.rounded(.leading)
 							.allowsHitTesting(readOnly == false)
+							.onChange(of: model.guestPath) { _, newValue in
+								self.currentItem.oneOf = model.tunnelAttachement.oneOf
+							}
 					}.frame(width: readOnly ? 450 : 350)
 				}
 			}
