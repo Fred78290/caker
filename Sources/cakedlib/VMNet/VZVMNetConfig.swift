@@ -79,7 +79,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 			throw ServiceError("dhcp end \(dhcpEnd) is not in the range of the network \(network.description)")
 		}
 
-		let networks = Self.networkInterfaces(runMode: runMode).map {
+		let networks = Self.networkInterfaces(includeSharedNetworks: true, runMode: runMode).map {
 			$0.value.network
 		}
 
@@ -94,7 +94,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
-	public static func networkInterfaces(runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
+	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
 		var ipAddresses: [String:IP.Block<IP.V4>] = [:]
 		var addrList: UnsafeMutablePointer<ifaddrs>? = nil
 
@@ -128,7 +128,8 @@ public struct VZSharedNetwork: Codable, Equatable {
 							}
 
 							if let ip: IP.Block<IP.V4> = .init(addrStr) {
-								let ifname = String(cString: hostname)
+								let ifname = String(cString: cursor.pointee.ifa_name)
+
 								ipAddresses[ifname] = ip
 							}
 						}
@@ -137,10 +138,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 			}
 		}
 
-		if let networkConfig = try? Home(runMode: runMode).sharedNetworks() {
-			networkConfig.sharedNetworks.forEach {
-				if let ip: IP.Block<IP.V4> = .init($0.value.dhcpStart) {
-					ipAddresses[$0.key] = ip
+		if includeSharedNetworks {
+			if let networkConfig = try? Home(runMode: runMode).sharedNetworks() {
+				networkConfig.sharedNetworks.forEach {
+					if let ip: IP.Block<IP.V4> = .init($0.value.dhcpStart) {
+						ipAddresses[$0.key] = ip
+					}
 				}
 			}
 		}
@@ -148,8 +151,8 @@ public struct VZSharedNetwork: Codable, Equatable {
 		return ipAddresses
 	}
 
-	public static func freeIP(_ segment: String, runMode: Utils.RunMode) throws -> (String, String) {
-		let networks = Self.networkInterfaces(runMode: runMode).map {
+	public static func freeIP(_ segment: String, includeSharedNetworks: Bool, runMode: Utils.RunMode) throws -> (String, String) {
+		let networks = Self.networkInterfaces(includeSharedNetworks: includeSharedNetworks, runMode: runMode).map {
 			$0.value.network
 		}
 
@@ -173,7 +176,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	}
 
 	public static func createNetwork(mode: VMNetMode, baseAddress: String, cidr: Int, runMode: Utils.RunMode) throws -> VZSharedNetwork {
-		let (gateway, dhcpEnd) = try freeIP(baseAddress, runMode: runMode)
+		let (gateway, dhcpEnd) = try freeIP(baseAddress, includeSharedNetworks: false, runMode: runMode)
 
 		return .init(mode: mode, netmask: "\(cidr)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: 300, interfaceID: UUID().uuidString, nat66Prefix: nil)
 	}
@@ -196,6 +199,10 @@ extension String {
 		let octets: [Int] = self.split(separator: ".").map({ Int($0)! })
 		var cidr: Int = 0
 
+		guard octets.count == 4 else {
+			return 0
+		}
+
 		for i in 0..<4 {
 			cidr += (octets[i] == 255) ? 8 : (octets[i] == 254) ? 7 : (octets[i] == 252) ? 6 : (octets[i] == 248) ? 5 : (octets[i] == 240) ? 4 : (octets[i] == 224) ? 3 : (octets[i] == 192) ? 2 : (octets[i] == 128) ? 1 : (octets[i] == 0) ? 0 : -1
 		}
@@ -213,7 +220,29 @@ extension String {
 	public func toIPV4() -> (address: IP.V4?, netmask: IP.V4?) {
 		let parts = self.split(separator: "/")
 		
+		guard parts.count > 0 else {
+			return (nil, nil)
+		}
+
 		return (IP.V4(parts[0]), (parts.count > 1 ? IP.V4(String(parts[1]).cidrToNetmask()) : nil))
+	}
+
+	public func toNetwork() -> IP.Block<IP.V4>? {
+		let parts = self.split(separator: "/")
+
+		guard parts.count > 0 else {
+			return nil
+		}
+
+		if let ip = IP.V4(parts[0]) {
+			if parts.count > 1, let cidr = UInt8(parts[1]) {
+				return IP.Block<IP.V4>(base: ip, bits: cidr).network
+			}
+			
+			return IP.Block<IP.V4>(base: ip, bits: 24).network
+		}
+
+		return nil
 	}
 
 	public func IPToInt() -> Int {

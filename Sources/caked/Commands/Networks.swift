@@ -212,6 +212,7 @@ struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(
 		abstract: "Manage host network devices",
 		subcommands: [
+			Networks.NatInfos.self,
 			Networks.Infos.self,
 			Networks.List.self,
 			Networks.Create.self,
@@ -295,6 +296,25 @@ struct Networks: ParsableCommand {
 			try socketURL.1.waitPID()
 
 			return "Network \(options.networkName) started"
+		}
+	}
+
+	struct NatInfos: ParsableCommand {
+		static let configuration = CommandConfiguration(commandName: "nat-infos", abstract: "default nat network address", discussion: "This command is used retrieve the default nat network address", shouldDisplay: false)
+
+		@OptionGroup(title: "Global options")
+		var common: CommonOptions
+
+		func validate() throws {
+			Logger.setLevel(self.common.logLevel)
+
+			if geteuid() != 0 {
+				throw ValidationError("This command must be run as root not as user \(geteuid())")
+			}
+		}
+
+		func run() throws {
+			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.natNetworkInfos(runMode: self.common.runMode)))
 		}
 	}
 

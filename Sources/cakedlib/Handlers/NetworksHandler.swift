@@ -116,15 +116,15 @@ public struct UsedNetworkConfig {
 
 public final class SudoCaked {
 	let process: Process
-	var stdout: Data?
-	var stderr: Data?
+	var stdout: Data!
+	var stderr: Data!
 
-	public convenience init(arguments: [String], runMode: Utils.RunMode, log: FileHandle) throws {
-		try self.init(arguments: arguments, runMode: runMode, standardOutput: log, standardError: log)
+	public convenience init(arguments: [String], runMode: Utils.RunMode, log: FileHandle? = nil) throws {
+		try self.init(command: Home.cakedCommandName, arguments: arguments, runMode: runMode, standardOutput: log, standardError: log)
 	}
 
-	public init(arguments: [String], runMode: Utils.RunMode, standardOutput: FileHandle? = nil, standardError: FileHandle? = nil) throws {
-		let (sudoable, sudoURL, executableURL) = try Self.checkIfSudoable()
+	public init(command: String, arguments: [String], runMode: Utils.RunMode, standardOutput: FileHandle? = nil, standardError: FileHandle? = nil) throws {
+		let (sudoable, sudoURL, executableURL) = try Self.checkIfSudoable(command: command)
 
 		guard sudoable else {
 			throw ServiceError("\(executableURL.lastPathComponent) is not sudoable")
@@ -144,20 +144,23 @@ public final class SudoCaked {
 		process.environment = try Utilities.environment(runMode: runMode)
 		process.standardInput = FileHandle.nullDevice
 
+		self.stdout = Data()
+		self.stderr = Data()
+		self.process = process
+
 		if let standardOutput = standardOutput {
 			process.standardOutput = standardOutput
 			self.stdout = nil
 		} else {
 			let outputPipe = Pipe()
-			var stdout = Data()
 
-			self.stdout = stdout
 			outputPipe.fileHandleForReading.readabilityHandler = { handler in
-				stdout.append(handler.availableData)
+				if handler.availableData.isEmpty == false {
+					self.stdout.append(handler.availableData)
+				}
 			}
 
 			process.standardOutput = outputPipe
-
 		}
 
 		if let standardError = standardError {
@@ -165,18 +168,15 @@ public final class SudoCaked {
 			self.stderr = nil
 		} else {
 			let errorPipe = Pipe()
-			var stderr = Data()
-
-			self.stderr = stderr
 
 			errorPipe.fileHandleForReading.readabilityHandler = { handler in
-				stderr.append(handler.availableData)
+				if handler.availableData.isEmpty == false {
+					self.stderr.append(handler.availableData)
+				}
 			}
 
 			process.standardError = errorPipe
 		}
-
-		self.process = process
 	}
 
 	public func run() throws -> Self {
@@ -243,9 +243,9 @@ public final class SudoCaked {
 		self.process.terminationReason
 	}
 
-	public static func checkIfSudoable() throws -> (Bool, URL, URL) {
-		guard let binary = URL.binary(Home.cakedCommandName) else {
-			throw ServiceError("caked not found in path")
+	public static func checkIfSudoable(command: String) throws -> (Bool, URL, URL) {
+		guard let binary = URL.binary(command) else {
+			throw ServiceError("\(command) not found in path")
 		}
 
 		guard let sudoURL = URL.binary(SUDO) else {
@@ -253,6 +253,10 @@ public final class SudoCaked {
 		}
 
 		return (try checkIfSudoable(sudoURL: sudoURL, binary: binary), sudoURL, binary)
+	}
+
+	public static func checkIfSudoable() throws -> (Bool, URL, URL) {
+		return try checkIfSudoable(command: Home.cakedCommandName)
 	}
 
 	public static func checkIfSudoable(sudoURL: URL, binary: URL) throws -> Bool {
@@ -971,8 +975,47 @@ public struct NetworksHandler {
 		return "Network \(networkName) stopped"
 	}
 
+	public static func natNetworkInfos(runMode: Utils.RunMode) throws -> String {
+		let address = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
+		let netmask = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
+
+		return "\(address)/\(netmask.netmaskToCidr())"
+	}
+	
+	public static func defaultNatNetwork(runMode: Utils.RunMode) -> BridgedNetwork {
+		var dhcpStart = ""
+		var dhcpEnd = ""
+		var dhcpLease = ""
+
+		if let lease = try? getDHCPLease(runMode: runMode) {
+			dhcpLease = "\(lease)"
+		}
+
+		do {
+			if geteuid() == 0 {
+				dhcpStart = try natNetworkInfos(runMode: runMode)
+			} else {
+				let sudo = try SudoCaked(arguments: ["networks", "nat-infos", "--text"], runMode: runMode)
+
+				if try sudo.runAndWait() == 0 {
+					dhcpStart = sudo.standardOutput
+				}
+			}
+
+			if dhcpStart.isEmpty == false {
+				if let network = dhcpStart.toNetwork() {
+					dhcpEnd = "\(network.range.upperBound.description)/\(network.bits)"
+				}
+			}
+		} catch {
+			Logger("NetworksHandler").error("Unable to get nat infos: \(error)")
+		}
+
+		return BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: "")
+	}
+
 	public static func networks(runMode: Utils.RunMode) throws -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = [BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "")]
+		var networks: [BridgedNetwork] = [Self.defaultNatNetwork(runMode: runMode)]
 		let home: Home = try Home(runMode: runMode)
 		let networkConfig = try home.sharedNetworks()
 
@@ -989,9 +1032,15 @@ public struct NetworksHandler {
 			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
 		}
 
+		let networkInterfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
+
 		try networks.append(
-			contentsOf: VZBridgedNetworkInterface.networkInterfaces.map { inf in
-				return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
+			contentsOf: VZBridgedNetworkInterface.networkInterfaces.compactMap { inf in
+				if let address = networkInterfaces[inf.identifier] {
+					return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", address.network.description, address.range.upperBound.description, "")
+				} else {
+					return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
+				}
 			})
 
 		let value = try? Self.getDHCPLease(runMode: runMode)

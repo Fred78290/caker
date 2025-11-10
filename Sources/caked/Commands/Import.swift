@@ -68,7 +68,7 @@ struct Import: ParsableCommand {
 				arguments.append("--ssh-passphrase=\(sshPrivateKeyPassphrase)")
 			}
 
-			let exitCode = try SudoCaked(arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
+			let exitCode = try SudoCaked(command: Home.cakedCommandName, arguments: arguments, runMode: runMode, standardOutput: FileHandle.standardOutput, standardError: FileHandle.standardError).runAndWait()
 
 			if exitCode != 0 {
 				Foundation.exit(Int32(exitCode))
