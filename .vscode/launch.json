@@ -568,6 +568,19 @@
 			"request": "launch",
 			"args": [
 				"networks",
+				"list",
+				"--log-level=debug"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked networks list",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
+			"preLaunchTask": "Build signed caked"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"networks",
 				"start",
 				"en0"
 			],
