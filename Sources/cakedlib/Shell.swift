@@ -56,6 +56,23 @@ public struct Shell {
 		)
 	}
 
+	@discardableResult static public func command(
+		_ command: String,
+		arguments: [String],
+		process: Process = .init(),
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+	) throws -> String {
+		return try process.command(
+			command,
+			arguments: arguments,
+			input: input,
+			outputHandle: outputHandle,
+			errorHandle: errorHandle
+		)
+	}
+
 	@discardableResult public static func runTart(
 		command: String, arguments: [String],
 		direct: Bool = false,
@@ -137,6 +154,97 @@ extension FileHandle {
 }
 
 extension Process {
+	@discardableResult fileprivate func command(
+		_ command: String,
+		arguments: [String],
+		input: String? = nil,
+		outputHandle: FileHandle? = nil,
+		errorHandle: FileHandle? = nil,
+		environment: [String: String]? = nil
+	) throws -> String {
+		self.executableURL = URL(fileURLWithPath: command)
+		self.arguments = arguments
+
+		if environment != nil {
+			self.environment = environment
+		}
+
+		// Because FileHandle's readabilityHandler might be called from a
+		// different queue from the calling queue, avoid a data race by
+		// protecting reads and writes to outputData and errorData on
+		// a single dispatch queue.
+		let outputQueue = DispatchQueue(label: "sudo-output-queue")
+
+		var outputData = Data()
+		var errorData = Data()
+
+		let outputPipe = Pipe()
+		standardOutput = outputPipe
+
+		let errorPipe = Pipe()
+		standardError = errorPipe
+
+		outputPipe.fileHandleForReading.readabilityHandler = { handler in
+			let data = handler.availableData
+			outputQueue.async {
+				outputData.append(data)
+				outputHandle?.write(data)
+			}
+		}
+
+		errorPipe.fileHandleForReading.readabilityHandler = { handler in
+			let data = handler.availableData
+			outputQueue.async {
+				errorData.append(data)
+				errorHandle?.write(data)
+			}
+		}
+
+		if var input = input {
+			input = input + "\n"
+			let inputPipe = Pipe()
+
+			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
+				handler.write(input.data(using: .utf8)!)
+			}
+
+			self.standardInput = inputPipe
+		}
+
+		if #available(OSX 10.13, *) {
+			try self.run()
+		} else {
+			self.launch()
+		}
+
+		waitUntilExit()
+
+		if let handle = outputHandle, !handle.isStandard {
+			handle.closeFile()
+		}
+
+		if let handle = errorHandle, !handle.isStandard {
+			handle.closeFile()
+		}
+
+		outputPipe.fileHandleForReading.readabilityHandler = nil
+		errorPipe.fileHandleForReading.readabilityHandler = nil
+
+		// Block until all writes have occurred to outputData and errorData,
+		// and then read the data back out.
+		return try outputQueue.sync {
+			if terminationStatus != 0 {
+				throw ShellError(
+					terminationStatus: terminationStatus,
+					error: errorData.toString(),
+					message: outputData.toString()
+				)
+			}
+
+			return outputData.toString()
+		}
+	}
+
 	@discardableResult fileprivate func sudo(
 		with command: String,
 		input: String? = nil,
