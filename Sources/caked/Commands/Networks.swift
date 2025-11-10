@@ -427,7 +427,7 @@ struct Networks: ParsableCommand {
 				nat66Prefix: self.options.nat66Prefix
 			)
 
-			try network.validate()
+			try network.validate(runMode: common.runMode)
 			self.createdNetwork = network
 		}
 
@@ -472,7 +472,7 @@ struct Networks: ParsableCommand {
 			)
 
 			if existing != changed {
-				try changed.validate()
+				try changed.validate(runMode: common.runMode)
 			}
 
 			self.changedNetwork = changed

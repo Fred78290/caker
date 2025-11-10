@@ -726,7 +726,7 @@ public struct NetworksHandler {
 		)
 
 		if changed != exisiting {
-			try changed.validate()
+			try changed.validate(runMode: runMode)
 			networkConfig.sharedNetworks[network.networkName] = changed
 			try home.setSharedNetworks(networkConfig)
 
@@ -748,7 +748,7 @@ public struct NetworksHandler {
 				throw ServiceError("Network \(networkName) doesn't exists")
 			}
 
-			try sharedNetwork.validate()
+			try sharedNetwork.validate(runMode: runMode)
 
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
