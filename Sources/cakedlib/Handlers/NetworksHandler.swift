@@ -116,8 +116,12 @@ public struct UsedNetworkConfig {
 
 public final class SudoCaked {
 	let process: Process
+	let outputQueue = DispatchQueue(label: UUID().uuidString)
+
 	var stdout: Data!
 	var stderr: Data!
+	var outputPipe: Foundation.Pipe!
+	var errorPipe: Foundation.Pipe!
 
 	public convenience init(arguments: [String], runMode: Utils.RunMode, log: FileHandle? = nil) throws {
 		try self.init(command: Home.cakedCommandName, arguments: arguments, runMode: runMode, standardOutput: log, standardError: log)
@@ -131,6 +135,7 @@ public final class SudoCaked {
 		}
 
 		let process = Process()
+
 		var runningArguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", executableURL.path]
 
 		if runMode.isSystem {
@@ -154,9 +159,16 @@ public final class SudoCaked {
 		} else {
 			let outputPipe = Pipe()
 
+			self.outputPipe = outputPipe
+
+			outputPipe.fileHandleForReading.readabilityHandler = nil
 			outputPipe.fileHandleForReading.readabilityHandler = { handler in
-				if handler.availableData.isEmpty == false {
-					self.stdout.append(handler.availableData)
+				let data = handler.availableData
+
+				if data.isEmpty == false {
+					self.outputQueue.async {
+						self.stdout.append(data)
+					}
 				}
 			}
 
@@ -169,9 +181,16 @@ public final class SudoCaked {
 		} else {
 			let errorPipe = Pipe()
 
+			self.errorPipe = errorPipe
+
+			errorPipe.fileHandleForReading.readabilityHandler = nil
 			errorPipe.fileHandleForReading.readabilityHandler = { handler in
-				if handler.availableData.isEmpty == false {
-					self.stderr.append(handler.availableData)
+				let data = handler.availableData
+
+				if data.isEmpty == false {
+					self.outputQueue.async {
+						self.stderr.append(data)
+					}
 				}
 			}
 
@@ -188,7 +207,9 @@ public final class SudoCaked {
 	public func waitUntilExit() -> Int32 {
 		self.process.waitUntilExit()
 
-		return self.process.terminationStatus
+		return outputQueue.sync {
+			return self.process.terminationStatus
+		}
 	}
 
 	public func runAndWait() throws -> Int32 {
@@ -998,7 +1019,7 @@ public struct NetworksHandler {
 				let sudo = try SudoCaked(arguments: ["networks", "nat-infos", "--text"], runMode: runMode)
 
 				if try sudo.runAndWait() == 0 {
-					dhcpStart = sudo.standardOutput
+					dhcpStart = sudo.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
 				}
 			}
 
