@@ -426,10 +426,44 @@ message Caked {
 				repeated NetworkInfo networks = 1;
 			}
 			
+			message StartedNetworkReply {
+				string name = 1;
+				bool started = 2;
+				optional string reason = 3;
+			}
+
+			message StoppedNetworkReply {
+				string name = 1;
+				bool stopped = 2;
+				optional string reason = 3;
+			}
+
+			message CreatedNetworkReply {
+				string name = 1;
+				bool created = 2;
+				optional string reason = 3;
+			}
+
+			message ConfiguredNetworkReply {
+				string name = 1;
+				bool configured = 2;
+				optional string reason = 3;
+			}
+
+			message DeleteNetworkReply {
+				string name = 1;
+				bool deleted = 2;
+				optional string reason = 3;
+			}
+
 			oneof response {
 				ListNetworksReply list = 1;
 				NetworkInfo status = 2;
-				string message = 3;
+				CreatedNetworkReply created = 3;
+				ConfiguredNetworkReply configured = 4;
+				DeleteNetworkReply delete = 5;
+				StartedNetworkReply started = 6;
+				StoppedNetworkReply stopped = 7;
 			}
 		}
 		

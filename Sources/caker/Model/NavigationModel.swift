@@ -71,10 +71,10 @@ class NavigationModel: ObservableObject, Observable {
 	@Published var selectedElement: SelectedElement? = nil
 	@Published var navigationSplitViewVisibility: NavigationSplitViewVisibility = .all
 	@Published var navigationSplitViewColumn: NavigationSplitViewColumn = .content
-	@Published var selectedRemote: RemoteEntry? = nil
-	@Published var selectedTemplate: TemplateEntry? = nil
-	@Published var selectedNetwork: BridgedNetwork? = nil
-	@Published var selectedVirtualMachine: VirtualMachineDocument? = nil
+	@Published var selectedRemote: RemoteEntry! = nil
+	@Published var selectedTemplate: TemplateEntry! = nil
+	@Published var selectedNetwork: BridgedNetwork! = nil
+	@Published var selectedVirtualMachine: VirtualMachineDocument! = nil
 	@Published var selectedCategory: Category {
 		didSet {
 			switch selectedCategory {

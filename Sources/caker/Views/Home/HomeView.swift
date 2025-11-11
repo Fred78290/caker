@@ -262,7 +262,16 @@ struct HomeView: View {
 	}
 
 	func actionDelete() {
-		
+		switch navigationModel.selectedCategory {
+		case .virtualMachine:
+			self.appState.deleteVirtualMachine(document: navigationModel.selectedVirtualMachine)
+		case .networks:
+			self.appState.deleteNetwork(name: navigationModel.selectedNetwork.name)
+		case .images:
+			print("todo")
+		case .templates:
+			self.appState.deleteTemplate(name: navigationModel.selectedTemplate.name)
+		}
 	}
 
 	func actionPlus() {

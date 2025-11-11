@@ -98,14 +98,17 @@ public struct CreateTemplateReply: Codable, Hashable {
 public struct DeleteTemplateReply: Codable {
 	public let name: String
 	public let deleted: Bool
+	public let reason: String
 
-	public init(name: String, deleted: Bool) {
+	public init(name: String, deleted: Bool, reason: String) {
 		self.name = name
 		self.deleted = deleted
+		self.reason = reason
 	}
 
 	public init(from: Caked_DeleteTemplateReply) {
 		self.name = from.name
 		self.deleted = from.deleted
+		self.reason = from.reason
 	}
 }

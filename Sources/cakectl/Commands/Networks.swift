@@ -46,7 +46,7 @@ struct Networks: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.created)
 		}
 	}
 
@@ -63,7 +63,7 @@ struct Networks: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.configured)
 		}
 	}
 
@@ -80,7 +80,7 @@ struct Networks: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.delete)
 		}
 	}
 
@@ -97,7 +97,7 @@ struct Networks: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.started)
 		}
 	}
 
@@ -114,7 +114,7 @@ struct Networks: ParsableCommand {
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.message
+			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().successfull().networks.stopped)
 		}
 	}
 

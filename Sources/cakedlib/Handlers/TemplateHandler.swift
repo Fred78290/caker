@@ -89,9 +89,9 @@ public struct TemplateHandler {
 		let doIt: (VMLocation) -> DeleteTemplateReply = { location in
 			if location.status != .running {
 				try? FileManager.default.removeItem(at: location.rootURL)
-				return .init(name: location.name, deleted: true)
+				return .init(name: location.name, deleted: true, reason: "")
 			} else {
-				return .init(name: location.name, deleted: false)
+				return .init(name: location.name, deleted: false, reason: "Template \(templateName) is running")
 			}
 		}
 
@@ -107,7 +107,7 @@ public struct TemplateHandler {
 			return doIt(location)
 		}
 
-		return .init(name: templateName, deleted: false)
+		return .init(name: templateName, deleted: false, reason: "Template \(templateName) not found")
 	}
 
 	public static func exists(name: String, runMode: Utils.RunMode) -> Bool {

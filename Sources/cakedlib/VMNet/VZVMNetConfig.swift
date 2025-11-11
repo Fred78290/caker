@@ -102,42 +102,50 @@ public struct VZSharedNetwork: Codable, Equatable {
 		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: "")
 	}
 
-	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
+	public static func networkInterfaces(networkConfig: VZVMNetConfig? = nil) -> [String:IP.Block<IP.V4>] {
 		var ipAddresses: [String:IP.Block<IP.V4>] = [:]
 		var addrList: UnsafeMutablePointer<ifaddrs>? = nil
-
+		
+		if let networkConfig = networkConfig {
+			networkConfig.sharedNetworks.forEach {
+				if let ip: IP.Block<IP.V4> = .init("\($0.value.dhcpStart)/\($0.value.netmask.netmaskToCidr())") {
+					ipAddresses[$0.key] = ip
+				}
+			}
+		}
+		
 		guard getifaddrs(&addrList) == 0, let firstAddr = addrList else {
 			return [:]
 		}
-
+		
 		defer {
 			freeifaddrs(addrList)
 		}
-
+		
 		for cursor in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
 			let addrStr: String
-
+			
 			if let addr = cursor.pointee.ifa_addr, let netmask = cursor.pointee.ifa_netmask {
 				let flags = Int32(cursor.pointee.ifa_flags)
 				let interface = addr.pointee
 				let addrFamily = interface.sa_family
-
+				
 				if (flags & (IFF_UP | IFF_RUNNING | IFF_LOOPBACK)) == (IFF_UP | IFF_RUNNING) {
 					var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-
+					
 					if addrFamily == UInt8(AF_INET) {
 						if getnameinfo(addr, socklen_t(interface.sa_len), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 							var netmaskName = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-
+							
 							if getnameinfo(netmask, socklen_t(netmask.pointee.sa_len), &netmaskName, socklen_t(netmaskName.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 								addrStr = "\(String(cString: hostname))/\(String(cString: netmaskName).netmaskToCidr())"
 							} else {
 								addrStr = String(cString: hostname)
 							}
-
+							
 							if let ip: IP.Block<IP.V4> = .init(addrStr) {
 								let ifname = String(cString: cursor.pointee.ifa_name)
-
+								
 								ipAddresses[ifname] = ip
 							}
 						}
@@ -145,18 +153,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 				}
 			}
 		}
-
-		if includeSharedNetworks {
-			if let networkConfig = try? Home(runMode: runMode).sharedNetworks() {
-				networkConfig.sharedNetworks.forEach {
-					if let ip: IP.Block<IP.V4> = .init($0.value.dhcpStart) {
-						ipAddresses[$0.key] = ip
-					}
-				}
-			}
-		}
-
+		
 		return ipAddresses
+	}
+
+	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
+		return Self.networkInterfaces(networkConfig: includeSharedNetworks ? try? Home(runMode: runMode).sharedNetworks() : nil)
 	}
 
 	public static func freeIP(_ segment: String, includeSharedNetworks: Bool, runMode: Utils.RunMode) throws -> (String, String) {

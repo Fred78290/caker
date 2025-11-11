@@ -18,7 +18,7 @@ class NetworkDetailViewModel: ObservableObject, Observable {
 	@Published var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
 	
 	init(network: BridgedNetwork) {
-		self.dhcpLease = TextFieldStore(value: Int(network.dhcpLease) ?? 86400, text: "", type: .int, maxLength: 5, allowNegative: false, formatter: Self.dhcpLeaseRange)
+		self.dhcpLease = TextFieldStore(value: Int(network.dhcpLease) ?? 86400, text: network.dhcpLease, type: .int, maxLength: 5, allowNegative: false, formatter: Self.dhcpLeaseRange)
 		self.dhcpStart = .init(value: network.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
 		self.dhcpEnd = .init(value: network.dhcpEnd.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
 		self.netmask = .init(value: network.gateway.stringAfter(after: "/").cidrToNetmask(), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$"))
@@ -27,7 +27,7 @@ class NetworkDetailViewModel: ObservableObject, Observable {
 
 struct NetworkDetailView: View {
 	@Binding private var currentItem: BridgedNetwork
-	@State private var model: NetworkDetailViewModel
+	private var model: NetworkDetailViewModel
 	private var forEditing: Bool
 
 	init(_ currentItem: Binding<BridgedNetwork>, forEditing: Bool = false) {
@@ -37,6 +37,8 @@ struct NetworkDetailView: View {
 	}
 
 	var body: some View {
+		@Bindable var model = self.model
+
 		GeometryReader { geometry in
 			let contentWidth = geometry.size.width - 160
 

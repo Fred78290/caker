@@ -84,3 +84,134 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		}
 	}
 }
+
+public struct StartedNetworkReply: Codable {
+	public let name: String
+	public let started: Bool
+	public let reason: String
+
+	public var caked: Caked_StartedNetworkReply {
+		Caked_StartedNetworkReply.with {
+			$0.name = self.name
+			$0.started = self.started
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, started: Bool, reason: String) {
+		self.name = name
+		self.started = started
+		self.reason = reason
+	}
+
+	public init(from: Caked_StartedNetworkReply) {
+		self.name = from.name
+		self.started = from.started
+		self.reason = from.reason
+	}
+}
+
+public struct StoppedNetworkReply: Codable {
+	public let name: String
+	public let stopped: Bool
+	public let reason: String
+
+	public var caked: Caked_StoppedNetworkReply {
+		Caked_StoppedNetworkReply.with {
+			$0.name = self.name
+			$0.stopped = self.stopped
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, stopped: Bool, reason: String) {
+		self.name = name
+		self.stopped = stopped
+		self.reason = reason
+	}
+
+	public init(from: Caked_StoppedNetworkReply) {
+		self.name = from.name
+		self.stopped = from.stopped
+		self.reason = from.reason
+	}
+}
+
+public struct CreatedNetworkReply: Codable {
+	public let name: String
+	public let created: Bool
+	public let reason: String
+
+	public var caked: Caked_CreatedNetworkReply {
+		Caked_CreatedNetworkReply.with {
+			$0.name = self.name
+			$0.created = self.created
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, created: Bool, reason: String) {
+		self.name = name
+		self.created = created
+		self.reason = reason
+	}
+
+	public init(from: Caked_CreatedNetworkReply) {
+		self.name = from.name
+		self.created = from.created
+		self.reason = from.reason
+	}
+}
+
+public struct ConfiguredNetworkReply: Codable {
+	public let name: String
+	public let configured: Bool
+	public let reason: String
+
+	public var caked: Caked_ConfiguredNetworkReply {
+		Caked_ConfiguredNetworkReply.with {
+			$0.name = name
+			$0.configured = configured
+			$0.reason = reason
+		}
+	}
+
+	public init(name: String, configured: Bool, reason: String) {
+		self.name = name
+		self.configured = configured
+		self.reason = reason
+	}
+
+	public init(from: Caked_ConfiguredNetworkReply) {
+		self.name = from.name
+		self.configured = from.configured
+		self.reason = from.reason
+	}
+
+}
+
+public struct DeleteNetworkReply: Codable {
+	public let name: String
+	public let deleted: Bool
+	public let reason: String
+
+	public var caked: Caked_DeleteNetworkReply {
+		Caked_DeleteNetworkReply.with {
+			$0.name = self.name
+			$0.deleted = self.deleted
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, deleted: Bool, reason: String) {
+		self.name = name
+		self.deleted = deleted
+		self.reason = reason
+	}
+
+	public init(from: Caked_DeleteNetworkReply) {
+		self.name = from.name
+		self.deleted = from.deleted
+		self.reason = from.reason
+	}
+}

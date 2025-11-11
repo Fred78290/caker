@@ -122,7 +122,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
 		if try socketURL.0.exists() == false && (VMRunHandler.launchedFromService || runMode == .app) {
-			socketURL = try NetworksHandler.start(networkName: networkName, runMode: runMode)
+			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 		}
 
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)

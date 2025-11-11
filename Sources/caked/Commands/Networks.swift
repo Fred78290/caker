@@ -452,7 +452,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.create(networkName: self.options.name, network: self.createdNetwork!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -533,7 +533,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.delete(networkName: self.name, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.delete(networkName: self.name, runMode: self.common.runMode)))
 		}
 	}
 
@@ -607,7 +607,7 @@ struct Networks: ParsableCommand {
 			if let pidFile {
 				Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
-				Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
+				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
 			} else {
 				throw ValidationError("No network name provided")
 			}

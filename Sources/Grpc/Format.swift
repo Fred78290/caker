@@ -426,6 +426,46 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		return self.render(data.networks.map { BridgedNetwork(from: $0) })
 	}
 
+	public func render(_ data: CreatedNetworkReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_CreatedNetworkReply) -> String {
+		return self.render(CreatedNetworkReply(from: data))
+	}
+
+	public func render(_ data: ConfiguredNetworkReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_ConfiguredNetworkReply) -> String {
+		return self.render(ConfiguredNetworkReply(from: data))
+	}
+
+	public func render(_ data: DeleteNetworkReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_DeleteNetworkReply) -> String {
+		return self.render(DeleteNetworkReply(from: data))
+	}
+
+	public func render(_ data: StartedNetworkReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_StartedNetworkReply) -> String {
+		return self.render(StartedNetworkReply(from: data))
+	}
+
+	public func render(_ data: StoppedNetworkReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_StoppedNetworkReply) -> String {
+		return self.render(StoppedNetworkReply(from: data))
+	}
+
 	public func render(_ data: [RemoteEntry]) -> String {
 		return self.renderList(data)
 	}

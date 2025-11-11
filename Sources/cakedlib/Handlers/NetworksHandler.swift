@@ -226,7 +226,7 @@ public struct NetworksHandler {
 			return
 		}
 
-		_ = try Self.start(networkName: networkName, runMode: runMode)
+		_ = try Self.startNetwork(networkName: networkName, runMode: runMode)
 	}
 
 	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> ProcessWithSharedFileHandle {
@@ -528,44 +528,62 @@ public struct NetworksHandler {
 		return try self.restartNetworkService(networkName: networkName, runMode: runMode)
 	}
 
-	public static func configure(network: UsedNetworkConfig, runMode: Utils.RunMode) throws -> String {
-		let home: Home = try Home(runMode: runMode)
-		var networkConfig = try home.sharedNetworks()
-
-		guard network.networkName != "" else {
-			throw ServiceError("Network name is required")
-		}
-
-		guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
-			throw ServiceError("Network \(network.networkName) is a physical interface")
-		}
-
-		guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
-			throw ServiceError("Network \(network.networkName) doesn't exists")
-		}
-
-		let changed = VZSharedNetwork(
-			mode: exisiting.mode,
-			netmask: network.netmask ?? exisiting.netmask,
-			dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
-			dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
-			dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
-			interfaceID: network.interfaceID ?? exisiting.interfaceID,
-			nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
-		)
-
-		if changed != exisiting {
-			try changed.validate(runMode: runMode)
-			networkConfig.userNetworks[network.networkName] = changed
-			try home.setSharedNetworks(networkConfig)
-
-			return try self.restartNetworkService(networkName: network.networkName, runMode: runMode)
-		} else {
-			return "Network \(network.networkName) unchanged"
+	public static func configure(network: UsedNetworkConfig, runMode: Utils.RunMode) -> ConfiguredNetworkReply {
+		do {
+			let home: Home = try Home(runMode: runMode)
+			var networkConfig = try home.sharedNetworks()
+			
+			guard network.networkName != "" else {
+				return ConfiguredNetworkReply(name: "", configured: false, reason: "Network name is required")
+			}
+			
+			guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) is a physical interface")
+			}
+			
+			guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) doesn't exists")
+			}
+			
+			let changed = VZSharedNetwork(
+				mode: exisiting.mode,
+				netmask: network.netmask ?? exisiting.netmask,
+				dhcpStart: network.dhcpStart ?? exisiting.dhcpStart,
+				dhcpEnd: network.dhcpEnd ?? exisiting.dhcpEnd,
+				dhcpLease: network.dhcpLease ?? exisiting.dhcpLease,
+				interfaceID: network.interfaceID ?? exisiting.interfaceID,
+				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
+			)
+			
+			if changed != exisiting {
+				try changed.validate(runMode: runMode)
+				networkConfig.userNetworks[network.networkName] = changed
+				try home.setSharedNetworks(networkConfig)
+				
+				do {
+					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: try self.restartNetworkService(networkName: network.networkName, runMode: runMode))
+				} catch {
+					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: "\(error)")
+				}
+			} else {
+				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) unchanged")
+			}
+		} catch {
+			return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "\(error)")
 		}
 	}
 
-	public static func start(networkName: String, runMode: Utils.RunMode) throws -> (URL, URL) {
+	public static func start(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
+		do {
+			_ = try startNetwork(networkName: networkName, runMode: runMode)
+			
+			return StartedNetworkReply(name: networkName, started: true, reason: "Network \(networkName) started")
+		} catch {
+			return StartedNetworkReply(name: networkName, started: false, reason: "\(error)")
+		}
+	}
+
+	public static func startNetwork(networkName: String, runMode: Utils.RunMode) throws -> (URL, URL) {
 		let home: Home = try Home(runMode: runMode)
 		let sharedNetworks = try home.sharedNetworks().sharedNetworks
 		let socketURL: (URL, URL)
@@ -700,40 +718,48 @@ public struct NetworksHandler {
 		return socketURL
 	}
 
-	public static func create(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> String {
-		let home: Home = try Home(runMode: runMode)
-		var networkConfig = try home.sharedNetworks()
+	public static func create(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) -> CreatedNetworkReply {
+		do {
+			let home: Home = try Home(runMode: runMode)
+			var networkConfig = try home.sharedNetworks()
 
-		if networkConfig.sharedNetworks[networkName] != nil {
-			throw ServiceError("Network \(networkName) already exists")
+			if networkConfig.sharedNetworks[networkName] != nil {
+				return CreatedNetworkReply(name: networkName, created: false, reason: "Network \(networkName) already exists")
+			}
+
+			networkConfig.userNetworks[networkName] = network
+
+			try home.setSharedNetworks(networkConfig)
+
+			return CreatedNetworkReply(name: networkName, created: true, reason: "Network \(networkName) created")
+		} catch {
+			return CreatedNetworkReply(name: networkName, created: false, reason: "\(error)")
 		}
-
-		networkConfig.userNetworks[networkName] = network
-
-		try home.setSharedNetworks(networkConfig)
-
-		return "Network \(networkName) created"
 	}
 
-	public static func delete(networkName: String, runMode: Utils.RunMode) throws -> String {
-		let home: Home = try Home(runMode: runMode)
-		var networkConfig = try home.sharedNetworks()
-
-		if networkConfig.sharedNetworks[networkName] == nil {
-			throw ServiceError("Network \(networkName) doesn't exists")
+	public static func delete(networkName: String, runMode: Utils.RunMode) -> DeleteNetworkReply {
+		do {
+			let home: Home = try Home(runMode: runMode)
+			var networkConfig = try home.sharedNetworks()
+			
+			guard networkConfig.sharedNetworks[networkName] != nil else {
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) doesn't exists")
+			}
+			
+			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
+			
+			if socketURL.1.isCakedRunning() {
+				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) is running")
+			}
+			
+			networkConfig.userNetworks.removeValue(forKey: networkName)
+			
+			try home.setSharedNetworks(networkConfig)
+			
+			return DeleteNetworkReply(name: networkName, deleted: true, reason: "Network \(networkName) deleted")
+		} catch {
+			return DeleteNetworkReply(name: networkName, deleted: false, reason: "\(error)")
 		}
-
-		let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
-
-		if socketURL.1.isCakedRunning() {
-			throw ServiceError("Network \(networkName) is running")
-		}
-
-		networkConfig.userNetworks.removeValue(forKey: networkName)
-
-		try home.setSharedNetworks(networkConfig)
-
-		return "Network \(networkName) deleted"
 	}
 
 	public static func vmnetFileLog(networkName: String, runMode: Utils.RunMode) throws -> FileHandle {
@@ -773,7 +799,15 @@ public struct NetworksHandler {
 		return "PID \(pidURL.path) stopped"
 	}
 
-	public static func stop(networkName: String, runMode: Utils.RunMode) throws -> String {
+	public static func stop(networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
+		do {
+			return StoppedNetworkReply(name: networkName, stopped: true, reason: try stopNetwork(networkName: networkName, runMode: runMode))
+		} catch {
+			return StoppedNetworkReply(name: networkName, stopped: false, reason: "\(error)")
+		}
+	}
+
+	public static func stopNetwork(networkName: String, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
 		if geteuid() == 0 {

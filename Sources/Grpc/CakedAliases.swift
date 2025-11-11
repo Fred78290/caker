@@ -36,6 +36,11 @@ public typealias Caked_MountVirtioFSReply = Caked.Reply.MountReply.MountVirtioFS
 public typealias Caked_NetworksReply = Caked.Reply.NetworksReply
 public typealias Caked_ListNetworksReply = Caked.Reply.NetworksReply.ListNetworksReply
 public typealias Caked_NetworkInfo = Caked.Reply.NetworksReply.NetworkInfo
+public typealias Caked_DeleteNetworkReply = Caked.Reply.NetworksReply.DeleteNetworkReply
+public typealias Caked_ConfiguredNetworkReply = Caked.Reply.NetworksReply.ConfiguredNetworkReply
+public typealias Caked_CreatedNetworkReply = Caked.Reply.NetworksReply.CreatedNetworkReply
+public typealias Caked_StartedNetworkReply = Caked.Reply.NetworksReply.StartedNetworkReply
+public typealias Caked_StoppedNetworkReply = Caked.Reply.NetworksReply.StoppedNetworkReply
 
 public typealias Caked_RemoteReply = Caked.Reply.RemoteReply
 public typealias Caked_ListRemoteReply = Caked.Reply.RemoteReply.ListRemoteReply

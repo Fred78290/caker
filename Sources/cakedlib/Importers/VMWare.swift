@@ -556,8 +556,8 @@ struct VMWareImporter: Importer {
 			return nil
 		}
 
-		try createIt.forEach { network in
-			logger.info(try NetworksHandler.create(networkName: network.name, network: network.network, runMode: runMode))
+		createIt.forEach { network in
+			logger.info(NetworksHandler.create(networkName: network.name, network: network.network, runMode: runMode).reason)
 		}
 	}
 
