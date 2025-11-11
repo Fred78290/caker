@@ -94,6 +94,15 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
+	public static func defaultNatNetwork(runMode: Utils.RunMode) -> VZSharedNetwork {
+		let network = NetworksHandler.defaultNatNetwork(runMode: runMode)
+		let dhcpStart = network.dhcpStart.toIPV4()
+		let dhcpEnd = network.dhcpEnd.toIPV4()
+
+		return VZSharedNetwork(
+			netmask: dhcpStart.address!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0)
+	}
+
 	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
 		var ipAddresses: [String:IP.Block<IP.V4>] = [:]
 		var addrList: UnsafeMutablePointer<ifaddrs>? = nil
@@ -140,6 +149,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 
 		if includeSharedNetworks {
 			if let networkConfig = try? Home(runMode: runMode).sharedNetworks() {
+				let nat = NetworksHandler.defaultNatNetwork(runMode: runMode)
+
+				if let natNetwork = nat.gateway.toNetwork() {
+					ipAddresses["nat"] = natNetwork
+				}
+
 				networkConfig.sharedNetworks.forEach {
 					if let ip: IP.Block<IP.V4> = .init($0.value.dhcpStart) {
 						ipAddresses[$0.key] = ip
