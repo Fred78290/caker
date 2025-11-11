@@ -94,13 +94,12 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
-	public static func defaultNatNetwork(runMode: Utils.RunMode) -> VZSharedNetwork {
-		let network = NetworksHandler.defaultNatNetwork(runMode: runMode)
-		let dhcpStart = network.dhcpStart.toIPV4()
+	public static func defaultNatNetwork() -> VZSharedNetwork {
+		let network = NetworksHandler.defaultNatNetwork()
+		let dhcpStart = network.gateway.toIPV4()
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 
-		return VZSharedNetwork(
-			netmask: dhcpStart.address!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0)
+		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: "")
 	}
 
 	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
@@ -149,12 +148,6 @@ public struct VZSharedNetwork: Codable, Equatable {
 
 		if includeSharedNetworks {
 			if let networkConfig = try? Home(runMode: runMode).sharedNetworks() {
-				let nat = NetworksHandler.defaultNatNetwork(runMode: runMode)
-
-				if let natNetwork = nat.gateway.toNetwork() {
-					ipAddresses["nat"] = natNetwork
-				}
-
 				networkConfig.sharedNetworks.forEach {
 					if let ip: IP.Block<IP.V4> = .init($0.value.dhcpStart) {
 						ipAddresses[$0.key] = ip
@@ -273,18 +266,36 @@ extension String {
 }
 
 public struct VZVMNetConfig: Codable {
-	public var sharedNetworks: [String: VZSharedNetwork]
+	public var userNetworks: [String: VZSharedNetwork]
+	public var defaultNatNetwork: VZSharedNetwork
+
+	public var sharedNetworks: [String: VZSharedNetwork] {
+		var result: [String: VZSharedNetwork] = [:]
+		
+		self.userNetworks.forEach { key, value in
+			result[key] = value
+		}
+
+		result["nat"] = self.defaultNatNetwork
+
+		return result
+	}
 
 	public var sharedNetworkNames: [String] {
-		return Array(sharedNetworks.keys)
+		var result: [String] = Array(userNetworks.keys)
+			
+		result.append("nat")
+		
+		return result
 	}
 
 	private enum CodingKeys: String, CodingKey {
-		case sharedNetworks = "networks"
+		case userNetworks = "networks"
 	}
 
 	public init() throws {
-		self.sharedNetworks = [
+		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork()
+		self.userNetworks = [
 			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24, runMode: .user),
 			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24, runMode: .user),
 		]
@@ -300,13 +311,15 @@ public struct VZVMNetConfig: Codable {
 
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
-		self.sharedNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .sharedNetworks) ?? [:]
+
+		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork()
+		self.userNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .userNetworks) ?? [:]
 	}
 
 	public func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
-		try container.encodeIfPresent(sharedNetworks, forKey: .sharedNetworks)
+		try container.encodeIfPresent(userNetworks, forKey: .userNetworks)
 	}
 
 	public func save(toURL: URL) throws {

@@ -113,7 +113,7 @@ struct NetworkWizard: View {
 	}
 	
 	static func getDhcpLease() -> String {
-		guard let dhcpLease = try? NetworksHandler.getDHCPLease(runMode: .app) else {
+		guard let dhcpLease = try? NetworksHandler.getDHCPLease() else {
 			return ""
 		}
 		

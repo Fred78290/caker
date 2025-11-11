@@ -314,7 +314,7 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.natNetworkInfos(runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.natNetworkInfos()))
 		}
 	}
 
