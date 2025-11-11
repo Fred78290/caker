@@ -474,6 +474,22 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		return self.render(data.remotes.map { RemoteEntry(from: $0) })
 	}
 
+	public func render(_ data: CreateRemoteReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_CreateRemoteReply) -> String {
+		return self.render(CreateRemoteReply(from: data))
+	}
+
+	public func render(_ data: DeleteRemoteReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_DeleteRemoteReply) -> String {
+		return self.render(DeleteRemoteReply(from: data))
+	}
+
 	public func render(_ data: CreateTemplateReply) -> String {
 		return self.renderSingle(data)
 	}

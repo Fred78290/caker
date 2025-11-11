@@ -39,75 +39,83 @@ public struct TemplateHandler {
 		return location
 	}
 
-	public static func createTemplate(on: EventLoop, sourceName: String, templateName: String, runMode: Utils.RunMode) throws -> CreateTemplateReply {
-		let storage = StorageLocation(runMode: runMode, template: true)
-		var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
-
-		if storage.exists(templateName) {
-			throw ServiceError("template \(templateName) already exists")
-		}
-
-		if source.status != .running {
-			let lock: FileLock = try FileLock(lockURL: storage.rootURL)
-			let config = try source.config()
-			let templateLocation = storage.location(templateName)
-
-			try lock.lock()
-
-			defer {
-				try? lock.unlock()
+	public static func createTemplate(on: EventLoop, sourceName: String, templateName: String, runMode: Utils.RunMode) -> CreateTemplateReply {
+		do {
+			let storage = StorageLocation(runMode: runMode, template: true)
+			var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
+			
+			if storage.exists(templateName) {
+				return CreateTemplateReply(name: templateName, created: false, reason: "template \(templateName) already exists")
 			}
-
-			Logger(self).info("Creating template \(templateName) from \(sourceName)")
-
-			do {
-				if config.os == .linux && config.useCloudInit {
-					source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+			
+			if source.status != .running {
+				let lock: FileLock = try FileLock(lockURL: storage.rootURL)
+				let config = try source.config()
+				let templateLocation = storage.location(templateName)
+				
+				try lock.lock()
+				
+				defer {
+					try? lock.unlock()
 				}
-
-				try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
-				try source.templateTo(templateLocation)
-
-				return CreateTemplateReply(name: templateName, created: true, reason: "template created")
-			} catch {
-				Logger(self).error(error)
-
-				if let exists = try? templateLocation.rootURL.exists(), exists {
-					try? FileManager.default.removeItem(at: templateLocation.rootURL)
+				
+				Logger(self).info("Creating template \(templateName) from \(sourceName)")
+				
+				do {
+					if config.os == .linux && config.useCloudInit {
+						source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+					}
+					
+					try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
+					try source.templateTo(templateLocation)
+					
+					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
+				} catch {
+					Logger(self).error(error)
+					
+					if let exists = try? templateLocation.rootURL.exists(), exists {
+						try? FileManager.default.removeItem(at: templateLocation.rootURL)
+					}
+					
+					return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
 				}
-
-				throw error
+			} else {
+				return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(sourceName) is running")
 			}
-		} else {
-			return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(sourceName) is running")
+		} catch {
+			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
 		}
 	}
 
-	public static func deleteTemplate(templateName: String, runMode: Utils.RunMode) throws -> DeleteTemplateReply {
-		let storage = StorageLocation(runMode: runMode, template: true)
-		let lock = try FileLock(lockURL: storage.rootURL)
-		let doIt: (VMLocation) -> DeleteTemplateReply = { location in
-			if location.status != .running {
-				try? FileManager.default.removeItem(at: location.rootURL)
-				return .init(name: location.name, deleted: true, reason: "")
-			} else {
-				return .init(name: location.name, deleted: false, reason: "Template \(templateName) is running")
+	public static func deleteTemplate(templateName: String, runMode: Utils.RunMode) -> DeleteTemplateReply {
+		do {
+			let storage = StorageLocation(runMode: runMode, template: true)
+			let lock = try FileLock(lockURL: storage.rootURL)
+			let doIt: (VMLocation) -> DeleteTemplateReply = { location in
+				if location.status != .running {
+					try? FileManager.default.removeItem(at: location.rootURL)
+					return DeleteTemplateReply(name: location.name, deleted: true, reason: "")
+				} else {
+					return DeleteTemplateReply(name: location.name, deleted: false, reason: "Template \(templateName) is running")
+				}
 			}
+			
+			try lock.lock()
+			
+			defer {
+				try? lock.unlock()
+			}
+			
+			if let location: VMLocation = try? storage.find(templateName) {
+				return doIt(location)
+			} else if let u = URL(string: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
+				return doIt(location)
+			}
+			
+			return DeleteTemplateReply(name: templateName, deleted: false, reason: "Template \(templateName) not found")
+		} catch {
+			return DeleteTemplateReply(name: templateName, deleted: false, reason: "\(error)")
 		}
-
-		try lock.lock()
-
-		defer {
-			try? lock.unlock()
-		}
-
-		if let location: VMLocation = try? storage.find(templateName) {
-			return doIt(location)
-		} else if let u = URL(string: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
-			return doIt(location)
-		}
-
-		return .init(name: templateName, deleted: false, reason: "Template \(templateName) not found")
 	}
 
 	public static func exists(name: String, runMode: Utils.RunMode) -> Bool {

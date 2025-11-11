@@ -509,23 +509,29 @@ public struct NetworksHandler {
 		}
 	}
 
-	public static func configure(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> String {
-		let home: Home = try Home(runMode: runMode)
-		var networkConfig = try home.sharedNetworks()
-
-		guard let existing = networkConfig.sharedNetworks[networkName] else {
-			throw ServiceError("Network \(networkName) doesn't exists")
+	public static func configure(networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) -> ConfiguredNetworkReply {
+		do {
+			let home: Home = try Home(runMode: runMode)
+			var networkConfig = try home.sharedNetworks()
+			
+			guard let existing = networkConfig.sharedNetworks[networkName] else {
+				throw ServiceError("Network \(networkName) doesn't exists")
+			}
+			
+			if existing == network {
+				return ConfiguredNetworkReply(name: networkName, configured: false, reason: "Network \(networkName) unchanged")
+			}
+			
+			networkConfig.userNetworks[networkName] = network
+						
+			do {
+				return ConfiguredNetworkReply(name: networkName, configured: true, reason: try self.restartNetworkService(networkName: networkName, runMode: runMode))
+			} catch {
+				return ConfiguredNetworkReply(name: networkName, configured: true, reason: "\(error)")
+			}
+		} catch {
+			return ConfiguredNetworkReply(name: networkName, configured: false, reason: "\(error)")
 		}
-
-		if existing == network {
-			return "Network \(networkName) unchanged"
-		}
-
-		networkConfig.userNetworks[networkName] = network
-
-		try home.setSharedNetworks(networkConfig)
-
-		return try self.restartNetworkService(networkName: networkName, runMode: runMode)
 	}
 
 	public static func configure(network: UsedNetworkConfig, runMode: Utils.RunMode) -> ConfiguredNetworkReply {

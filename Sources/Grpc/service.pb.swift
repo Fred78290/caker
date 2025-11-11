@@ -2142,19 +2142,28 @@ public struct Caked_Caked: Sendable {
         set {response = .list(newValue)}
       }
 
-      public var message: String {
+      public var deleted: Caked_Caked.Reply.RemoteReply.DeleteRemoteReply {
         get {
-          if case .message(let v)? = response {return v}
-          return String()
+          if case .deleted(let v)? = response {return v}
+          return Caked_Caked.Reply.RemoteReply.DeleteRemoteReply()
         }
-        set {response = .message(newValue)}
+        set {response = .deleted(newValue)}
+      }
+
+      public var created: Caked_Caked.Reply.RemoteReply.CreateRemoteReply {
+        get {
+          if case .created(let v)? = response {return v}
+          return Caked_Caked.Reply.RemoteReply.CreateRemoteReply()
+        }
+        set {response = .created(newValue)}
       }
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public enum OneOf_Response: Equatable, Sendable {
         case list(Caked_Caked.Reply.RemoteReply.ListRemoteReply)
-        case message(String)
+        case deleted(Caked_Caked.Reply.RemoteReply.DeleteRemoteReply)
+        case created(Caked_Caked.Reply.RemoteReply.CreateRemoteReply)
 
       }
 
@@ -2182,6 +2191,56 @@ public struct Caked_Caked: Sendable {
         }
 
         public init() {}
+      }
+
+      public struct DeleteRemoteReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var deleted: Bool = false
+
+        public var reason: String {
+          get {return _reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {return self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
+      }
+
+      public struct CreateRemoteReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var created: Bool = false
+
+        public var reason: String {
+          get {return _reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {return self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
       }
 
       public init() {}
@@ -6483,7 +6542,7 @@ extension Caked_Caked.Reply.NetworksReply.DeleteNetworkReply: SwiftProtobuf.Mess
 
 extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".RemoteReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}message\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}deleted\0\u{1}created\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6505,11 +6564,29 @@ extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._M
         }
       }()
       case 2: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+        var v: Caked_Caked.Reply.RemoteReply.DeleteRemoteReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .deleted(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
-          self.response = .message(v)
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .deleted(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.Reply.RemoteReply.CreateRemoteReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .created(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .created(v)
         }
       }()
       default: break
@@ -6527,9 +6604,13 @@ extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._M
       guard case .list(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
     }()
-    case .message?: try {
-      guard case .message(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    case .deleted?: try {
+      guard case .deleted(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .created?: try {
+      guard case .created(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case nil: break
     }
@@ -6603,6 +6684,94 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry: SwiftProtob
   public static func ==(lhs: Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry, rhs: Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.url != rhs.url {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.RemoteReply.DeleteRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".DeleteRemoteReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}deleted\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.deleted) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.deleted != false {
+      try visitor.visitSingularBoolField(value: self.deleted, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.RemoteReply.DeleteRemoteReply, rhs: Caked_Caked.Reply.RemoteReply.DeleteRemoteReply) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.deleted != rhs.deleted {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.RemoteReply.CreateRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".CreateRemoteReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}created\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.created) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.created != false {
+      try visitor.visitSingularBoolField(value: self.created, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.RemoteReply.CreateRemoteReply, rhs: Caked_Caked.Reply.RemoteReply.CreateRemoteReply) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.created != rhs.created {return false}
+    if lhs._reason != rhs._reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -591,15 +591,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			return .init(name: name, created: false, reason: "VM is running")
 		}
 		
-		do {
-			return try TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.location.name, templateName: name, runMode: .app)
-		} catch {
-			guard let error = error as? ServiceError else {
-				return .init(name: name, created: false, reason: error.localizedDescription)
-			}
-			
-			return .init(name: name, created: false, reason: error.description)
-		}
+		return TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.location.name, templateName: name, runMode: .app)
 	}
 }
 

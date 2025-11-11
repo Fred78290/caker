@@ -34,3 +34,55 @@ public struct RemoteEntry: Identifiable, Equatable, Hashable, Codable {
 		}
 	}
 }
+
+public struct CreateRemoteReply: Codable {
+	public let name: String
+	public let created: Bool
+	public let reason: String
+
+	public var caked: Caked_CreateRemoteReply {
+		Caked_CreateRemoteReply.with {
+			$0.name = self.name
+			$0.created = self.created
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, created: Bool, reason: String) {
+		self.name = name
+		self.created = created
+		self.reason = reason
+	}
+
+	public init(from: Caked_CreateRemoteReply) {
+		self.name = from.name
+		self.created = from.created
+		self.reason = from.reason
+	}
+}
+
+public struct DeleteRemoteReply: Codable {
+	public let name: String
+	public let deleted: Bool
+	public let reason: String
+
+	public var caked: Caked_DeleteRemoteReply {
+		Caked_DeleteRemoteReply.with {
+			$0.name = self.name
+			$0.deleted = self.deleted
+			$0.reason = self.reason
+		}
+	}
+
+	public init(name: String, deleted: Bool, reason: String) {
+		self.name = name
+		self.deleted = deleted
+		self.reason = reason
+	}
+
+	public init(from: Caked_DeleteRemoteReply) {
+		self.name = from.name
+		self.deleted = from.deleted
+		self.reason = from.reason
+	}
+}

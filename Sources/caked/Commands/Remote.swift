@@ -26,7 +26,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(CakedLib.RemoteHandler.addRemote(name: self.remote, url: URL(string: self.url)!, runMode: self.common.runMode)))
 		}
 	}
 
@@ -44,7 +44,7 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.deleteRemote(name: remote, runMode: self.common.runMode)))
+			Logger.appendNewLine(self.common.format.render(CakedLib.RemoteHandler.deleteRemote(name: remote, runMode: self.common.runMode)))
 		}
 	}
 

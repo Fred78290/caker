@@ -477,9 +477,22 @@ message Caked {
 				repeated RemoteEntry remotes = 1;
 			}
 			
+			message DeleteRemoteReply {
+				string name = 1;
+				bool deleted = 2;
+				optional string reason = 3;
+			}
+
+			message CreateRemoteReply {
+				string name = 1;
+				bool created = 2;
+				optional string reason = 3;
+			}
+
 			oneof response {
 				ListRemoteReply list = 1;
-				string message = 2;
+				DeleteRemoteReply deleted = 2;
+				CreateRemoteReply created = 3;
 			}
 		}
 		

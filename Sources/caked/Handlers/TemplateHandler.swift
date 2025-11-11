@@ -12,7 +12,7 @@ struct TemplateHandler: CakedCommand {
 	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
 		switch request.command {
 		case .add:
-			let result = try CakedLib.TemplateHandler.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode)
+			let result = CakedLib.TemplateHandler.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_Caked.Reply.TemplateReply.with {
@@ -21,7 +21,7 @@ struct TemplateHandler: CakedCommand {
 			}
 
 		case .delete:
-			let result = try CakedLib.TemplateHandler.deleteTemplate(templateName: request.deleteRequest, runMode: runMode)
+			let result = CakedLib.TemplateHandler.deleteTemplate(templateName: request.deleteRequest, runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.templates = Caked_TemplateReply.with {

@@ -268,7 +268,7 @@ struct HomeView: View {
 		case .networks:
 			self.appState.deleteNetwork(name: navigationModel.selectedNetwork.name)
 		case .images:
-			print("todo")
+			self.appState.deleteRemote(name: navigationModel.selectedRemote.name)
 		case .templates:
 			self.appState.deleteTemplate(name: navigationModel.selectedTemplate.name)
 		}

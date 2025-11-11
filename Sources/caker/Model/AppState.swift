@@ -160,7 +160,7 @@ class AppState: ObservableObject, Observable {
 		return result
 	}
 	
-	func reloadNetworks() throws {
+	func reloadNetworks() {
 		self.networks = Self.loadNetworks()
 	}
 	
@@ -259,13 +259,13 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: "Cancel")
 		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			do {
-				_ = NetworksHandler.delete(networkName: name, runMode: .app)
-				
-				try self.reloadNetworks()
-			} catch {
+			let result = NetworksHandler.delete(networkName: name, runMode: .app)
+			
+			if result.deleted {
+				self.reloadNetworks()
+			} else {
 				DispatchQueue.main.async {
-					alertError(error)
+					alertError(ServiceError(result.reason))
 				}
 			}
 		}
@@ -281,20 +281,35 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: "Cancel")
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			do {
-				let result = try TemplateHandler.deleteTemplate(templateName: name, runMode: .app)
-				
-				if result.deleted {
-					self.reloadTemplates()
-				} else {
-					DispatchQueue.main.async {
-						alertError(ServiceError(result.reason))
-					}
-				}
-
-			} catch {
+			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: .app)
+			
+			if result.deleted {
+				self.reloadTemplates()
+			} else {
 				DispatchQueue.main.async {
-					alertError(error)
+					alertError(ServiceError(result.reason))
+				}
+			}
+		}
+	}
+	
+	func deleteRemote(name: String) {
+		let alert = NSAlert()
+
+		alert.messageText = "Delete remote"
+		alert.informativeText = "Are you sure you want to delete remote \(name)? This action cannot be undone."
+		alert.alertStyle = .critical
+		alert.addButton(withTitle: "Delete")
+		alert.addButton(withTitle: "Cancel")
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			let result = RemoteHandler.deleteRemote(name: name, runMode: .app)
+			
+			if result.deleted {
+				self.reloadTemplates()
+			} else {
+				DispatchQueue.main.async {
+					alertError(ServiceError(result.reason))
 				}
 			}
 		}

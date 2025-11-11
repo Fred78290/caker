@@ -23,6 +23,8 @@ public typealias Caked_RemoteRequest = Caked.RemoteRequest
 public typealias Caked_RemoteCommand = Caked.RemoteRequest.RemoteCommand
 public typealias Caked_Reply = Caked.Reply
 public typealias Caked_Error = Caked.Reply.Error
+public typealias Caked_DeleteRemoteReply = Caked.Reply.RemoteReply.DeleteRemoteReply
+public typealias Caked_CreateRemoteReply = Caked.Reply.RemoteReply.CreateRemoteReply
 
 public typealias Caked_ImageReply = Caked.Reply.ImageReply
 public typealias Caked_ImageInfo = Caked.Reply.ImageReply.ImageInfo
