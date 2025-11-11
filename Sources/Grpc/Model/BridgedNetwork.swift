@@ -12,7 +12,11 @@ public enum BridgedNetworkMode: String, Codable, CaseIterable {
 	case host
 }
 
-public struct BridgedNetwork: Codable, Hashable, Identifiable {
+public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
+	public static func < (lhs: BridgedNetwork, rhs: BridgedNetwork) -> Bool {
+		return lhs.id < rhs.id
+	}
+	
 	public typealias ID = String
 
 	public var name: String
@@ -25,7 +29,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable {
 	public var endpoint: String = ""
 
 	public var id: String {
-		self.name
+		"\(self.mode).\(self.name)"
 	}
 
 	public var dhcpStart: String {
