@@ -189,6 +189,7 @@
 		9BAF74B92EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B12EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift */; };
 		9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */; };
 		9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B02EBBD7CC0036CE1B /* MultiplatformTabBar.swift */; };
+		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
@@ -672,6 +673,7 @@
 		9BAF74B22EBBD7CC0036CE1B /* MultiplatformTabBarVerticalAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabBarVerticalAlignment.swift; sourceTree = "<group>"; };
 		9BAF74B32EBBD7CC0036CE1B /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
+		9BB144D32EC33A320094D950 /* Sudo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudo.swift; sourceTree = "<group>"; };
 		9BB3BE092DB3F17500799A6A /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureOptions.swift; sourceTree = "<group>"; };
@@ -1631,6 +1633,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9BB144D32EC33A320094D950 /* Sudo.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -2316,6 +2319,7 @@
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
+				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B62DF440720092B196 /* CakedTCPPortForwardingServer.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
