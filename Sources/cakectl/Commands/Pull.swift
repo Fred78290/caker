@@ -14,6 +14,6 @@ struct Pull: GrpcParsableCommand {
 	var pull: PullOptions
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.cakeCommand(Caked_CakedCommandRequest(command: "pull", arguments: pull.arguments()), callOptions: callOptions).response.wait().successfull().tart.message
+		return try client.cakeCommand(Caked_CakedCommandRequest(command: "pull", arguments: pull.arguments()), callOptions: callOptions).response.wait().tart.message
 	}
 }

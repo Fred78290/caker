@@ -12,7 +12,10 @@ struct Start: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
+	@Flag(help: "Output format: text or json")
+	var format: Format = .text
+
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.start(Caked_StartRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.message
+		return self.format.render(try client.start(Caked_StartRequest(command: self), callOptions: callOptions).response.wait().vms.started)
 	}
 }

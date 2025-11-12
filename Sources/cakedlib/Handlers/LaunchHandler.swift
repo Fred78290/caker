@@ -3,18 +3,22 @@ import GRPCLib
 import NIOCore
 
 public struct LaunchHandler {
-	private static func launch(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> String {
-		let location = try StorageLocation(runMode: runMode).find(options.name)
-		let config = try location.config()
+	public static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async -> LaunchReply {
+		do {
+			let location = try StorageLocation(runMode: runMode).find(options.name)
+			let config = try location.config()
 
-		return try StartHandler.startVM(on: Utilities.group.next(), location: location, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)
-	}
+			let build = await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
-	public static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async throws -> String {
-		try await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+			if build.builded {
+				let reply = StartHandler.startVM(on: Utilities.group.next(), location: location, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)
 
-		let runningIP = try Self.launch(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode)
+				return LaunchReply(name: reply.name, ip: reply.ip, launched: reply.started, reason: reply.reason)
+			}
 
-		return "VM launched \(options.name) with IP: \(runningIP)"
+			return LaunchReply(name: options.name, ip: "", launched: false, reason: build.reason)
+		} catch {
+			return LaunchReply(name: options.name, ip: "", launched: false, reason: "\(error)")
+		}
 	}
 }

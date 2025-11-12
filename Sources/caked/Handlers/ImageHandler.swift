@@ -6,6 +6,14 @@ import NIOCore
 struct ImageHandler: CakedCommandAsync {
 	var request: Caked_ImageRequest
 
+	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+		return Caked_Reply.with {
+			$0.images = Caked_ImageReply.with {
+				$0.failed = "\(error)"
+			}
+		}
+	}
+	
 	func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
 		switch command {
 		case .info:

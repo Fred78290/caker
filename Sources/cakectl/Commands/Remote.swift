@@ -24,7 +24,7 @@ struct Remote: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().successfull().remotes.created)
+			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.created)
 		}
 	}
 
@@ -41,7 +41,7 @@ struct Remote: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().successfull().remotes.deleted)
+			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.deleted)
 		}
 	}
 
@@ -55,7 +55,7 @@ struct Remote: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().successfull().remotes.list)
+			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.list)
 		}
 	}
 }

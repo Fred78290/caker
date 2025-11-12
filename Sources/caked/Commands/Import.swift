@@ -31,7 +31,7 @@ struct Import: ParsableCommand {
 	@Option(help: .hidden)
 	public var gid: UInt32 = getegid()
 
-	@Argument(help: "The name virtual machine to convert from or abolsute path to the directory containing the VMs.")
+	@Argument(help: "The name virtual machine to convert from or absolute path to the directory containing the VMs.")
 	var source: String
 
 	@Argument(help: "The name of the virtual machine to create.")
@@ -74,13 +74,7 @@ struct Import: ParsableCommand {
 				Foundation.exit(Int32(exitCode))
 			}
 		} else {
-			let result = try ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)
-
-			if case let .error(err) = result.response {
-				throw ServiceError(err.reason, err.code)
-			} else {
-				Logger.appendNewLine(self.common.format.render(result.vms.message))
-			}
+			Logger.appendNewLine(self.common.format.render(ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
 		}
 	}
 }

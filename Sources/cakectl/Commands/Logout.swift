@@ -14,6 +14,6 @@ struct Logout: GrpcParsableCommand {
 	var host: String
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.logout(Caked_LogoutRequest(command: self), callOptions: callOptions).response.wait().successfull().tart.message
+		return try client.logout(Caked_LogoutRequest(command: self), callOptions: callOptions).response.wait().tart.message
 	}
 }

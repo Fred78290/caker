@@ -3,16 +3,20 @@ import Foundation
 import GRPCLib
 
 public struct RenameHandler {
-	public static func rename(oldname: String, newname: String, runMode: Utils.RunMode) throws -> String {
-		let storage = StorageLocation(runMode: runMode)
-		let location = try storage.find(oldname)
-
-		if location.status == .running {
-			throw ValidationError("VM \(oldname) is running")
+	public static func rename(oldname: String, newname: String, runMode: Utils.RunMode) -> RenameReply {
+		do {
+			let storage = StorageLocation(runMode: runMode)
+			let location = try storage.find(oldname)
+			
+			if location.status == .running {
+				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM is running")
+			}
+			
+			try storage.relocate(newname, from: location)
+			
+			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM renamed")
+		} catch {
+			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "\(error)")
 		}
-
-		try storage.relocate(newname, from: location)
-
-		return "VM renamed from (\(oldname)) to (\(newname))"
 	}
 }

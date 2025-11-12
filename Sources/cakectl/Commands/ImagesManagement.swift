@@ -21,7 +21,7 @@ struct ImagesManagement: ParsableCommand {
 		var name: String
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().successfull().images.list.infos)
+			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.list.infos)
 		}
 	}
 
@@ -38,7 +38,7 @@ struct ImagesManagement: ParsableCommand {
 		var name: String
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().successfull().images.infos)
+			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.infos)
 		}
 	}
 
@@ -55,7 +55,7 @@ struct ImagesManagement: ParsableCommand {
 		var name: String
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().successfull().images.pull)
+			return self.format.render(try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.pull)
 		}
 	}
 }

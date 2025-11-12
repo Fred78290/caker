@@ -57,6 +57,6 @@ class GrpcTestCase {
 
 		let reply = serviceNIOClient.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
 
-		print(Format.text.render(try reply.response.wait().successfull().vms.list))
+		print(Format.text.render(try reply.response.wait().vms.list))
 	}
 }

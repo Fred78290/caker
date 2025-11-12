@@ -9,7 +9,7 @@ import Semaphore
 import SwiftASN1
 import X509
 
-extension Caked.Reply {
+extension Caked_MountReply {
 	func toCaked() -> Vmrun_MountReply {
 		.init(self)
 	}
@@ -35,11 +35,12 @@ extension Vmrun_MountVirtioFSReply {
 	func toMountVirtioFS() -> MountVirtioFS {
 		MountVirtioFS.with {
 			$0.name = self.name
-
 			if case let .error(value) = self.response {
-				$0.response = .error(value)
-			} else if case let .success(value) = self.response {
-				$0.response = .success(value)
+				$0.reason = value
+				$0.mounted = false
+			} else {
+				$0.reason = ""
+				$0.mounted = true
 			}
 		}
 	}
@@ -49,12 +50,15 @@ extension Vmrun_MountReply {
 	func toMountInfos() -> MountInfos {
 		if case let .error(value) = self.response {
 			return MountInfos.with {
-				$0.response = .error(value)
+				$0.success = false
+				$0.reason = value
+				$0.mounts = self.mounts.map { $0.toMountVirtioFS() }
 			}
 		}
 		
 		return MountInfos.with {
-			$0.response = .success(true)
+			$0.success = true
+			$0.reason = "Success"
 			$0.mounts = self.mounts.map { $0.toMountVirtioFS() }
 		}
 	}
@@ -84,21 +88,21 @@ extension Vmrun_MountRequest {
 }
 
 extension Vmrun_MountReply {
-	init(_ from: Caked.Reply) {
+	init(_ from: Caked_MountReply) {
 		self = Vmrun_MountReply.with { mountReply in
-			if case let .error(value) = from.response {
-				mountReply.response = .error(value.reason)
-			} else {
+			if from.mounted {
 				mountReply.response = .success(true)
+			} else {
+				mountReply.response = .error(from.reason)
 			}
 
-			mountReply.mounts = from.mounts.mounts.map { mountVirtioFSReply in
+			mountReply.mounts = from.mounts.map { mountVirtioFSReply in
 				Vmrun_MountVirtioFSReply.with {
 					$0.name = mountVirtioFSReply.name
-					if case let .error(value) = mountVirtioFSReply.response {
-						$0.error = value
-					} else if case let .success(value) = mountVirtioFSReply.response {
-						$0.success = value
+					if mountVirtioFSReply.mounted {
+						$0.success = true
+					} else {
+						$0.error = mountVirtioFSReply.reason
 					}
 				}
 			}

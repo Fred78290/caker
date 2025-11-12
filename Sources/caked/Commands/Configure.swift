@@ -18,6 +18,6 @@ struct Configure: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.ConfigureHandler.configure(name: self.options.name, options: options, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(CakedLib.ConfigureHandler.configure(name: self.options.name, options: options, runMode: self.common.runMode)))
 	}
 }

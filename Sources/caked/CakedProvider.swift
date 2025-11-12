@@ -10,6 +10,7 @@ import NIOPosix
 
 public protocol CakedCommand {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply
+	func replyError(error: Error) -> Caked_Reply
 }
 
 public protocol CakedCommandAsync: CakedCommand {
@@ -229,15 +230,6 @@ extension Caked_SuspendRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_Error {
-	init(code: Int32, reason: String) {
-		self.init()
-
-		self.code = code
-		self.reason = reason
-	}
-}
-
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -264,7 +256,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				return try command.run(on: eventLoop, runMode: self.runMode)
 			}
 		} catch {
-			return Caked_Reply.with { reply in
+			return command.replyError(error: error)
+/*			return Caked_Reply.with { reply in
 				if let shellError = error as? ShellError {
 					reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
 				} else if let serviceError = error as? ServiceError {
@@ -272,7 +265,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 				} else {
 					reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
 				}
-			}
+			}*/
 		}
 	}
 

@@ -12,7 +12,10 @@ struct Purge: GrpcParsableCommand {
 	@OptionGroup(title: "Purge options")
 	var purge: PurgeOptions
 
+	@Flag(help: "Output format: text or json")
+	var format: Format = .text
+
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.purge(Caked_PurgeRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.message
+		return self.format.render(try client.purge(Caked_PurgeRequest(command: self), callOptions: callOptions).response.wait().vms.purged)
 	}
 }

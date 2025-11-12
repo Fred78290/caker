@@ -6,42 +6,48 @@ import SwiftDate
 
 public struct PurgeHandler {
 	@discardableResult
-	public static func purge(direct: Bool, runMode: Utils.RunMode, options: PurgeOptions) throws -> String {
-		var arguments: [String] = ["--entries=\(options.entries)"]
-
-		if let olderThan = options.olderThan {
-			arguments.append("--older-than=\(olderThan)")
-		}
-
-		if let spaceBudget = options.spaceBudget {
-			arguments.append("--space-budget=\(spaceBudget)")
-		}
-
-		if options.entries == "caches" {
-			let purgeableStorages = [
-				try OCIImageCache(runMode: runMode),
-				try CloudImageCache(runMode: runMode),
-				try RawImageCache(runMode: runMode),
-				try SimpleStreamsImageCache(name: "", runMode: runMode),
-			]
-
-			if let olderThan = options.olderThan {
-				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
-				let olderThanDate = Date() - olderThanInterval
-
-				try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
+	public static func purge(direct: Bool, runMode: Utils.RunMode, options: PurgeOptions) -> PurgeReply {
+		do {
+			var result = "Purged"
+			
+			if options.entries == "caches" {
+				let purgeableStorages = [
+					try OCIImageCache(runMode: runMode),
+					try CloudImageCache(runMode: runMode),
+					try RawImageCache(runMode: runMode),
+					try SimpleStreamsImageCache(name: "", runMode: runMode),
+				]
+				
+				if let olderThan = options.olderThan {
+					let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
+					let olderThanDate = Date() - olderThanInterval
+					
+					try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
+				}
+				
+				if let spaceBudget = options.spaceBudget {
+					try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
+				}
 			}
-
-			if let spaceBudget = options.spaceBudget {
-				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
+			
+			if Utilities.checkIfTartPresent() {
+				var arguments: [String] = ["--entries=\(options.entries)"]
+				
+				if let olderThan = options.olderThan {
+					arguments.append("--older-than=\(olderThan)")
+				}
+				
+				if let spaceBudget = options.spaceBudget {
+					arguments.append("--space-budget=\(spaceBudget)")
+				}
+				
+				result = try Shell.runTart(command: "prune", arguments: arguments, direct: direct, runMode: runMode)
 			}
+			
+			return PurgeReply(purged: true, reason: result)
+		} catch {
+			return PurgeReply(purged: false, reason: "\(error)")
 		}
-
-		if Utilities.checkIfTartPresent() {
-			return try Shell.runTart(command: "prune", arguments: arguments, direct: direct, runMode: runMode)
-		}
-
-		return ""
 	}
 
 	static func purgeOlderThan(purgeableStorages: [PurgeableStorage], olderThanDate: Date) throws {

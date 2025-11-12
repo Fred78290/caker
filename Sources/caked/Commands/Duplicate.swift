@@ -40,7 +40,7 @@ struct Duplicate: ParsableCommand {
 	func run() throws {
 		Logger.appendNewLine(
 			self.common.format.render(
-				try CakedLib.DuplicateHandler.duplicate(
+				CakedLib.DuplicateHandler.duplicate(
 					from: self.duplicate.from,
 					to: self.duplicate.to,
 					resetMacAddress: self.duplicate.resetMacAddress,

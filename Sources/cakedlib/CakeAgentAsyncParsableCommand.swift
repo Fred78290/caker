@@ -32,14 +32,21 @@ extension CakeAgentAsyncParsableCommand {
 		CallOptions(timeLimit: .none)
 	}
 
-	public func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, runMode: Utils.RunMode) throws {
-		let location = try StorageLocation(runMode: runMode).find(name)
+	public func startVM(on: EventLoop, name: String, waitIPTimeout: Int, foreground: Bool = false, runMode: Utils.RunMode) -> StartedReply {
+		do {
+			let location = try StorageLocation(runMode: runMode).find(name)
+			
+			if location.status != .running {
+				Logger(self).info("Starting VM \(name)")
+				let config = try location.config()
+				
+				return StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, runMode: runMode)
+			}
 
-		if location.status != .running {
-			Logger(self).info("Starting VM \(name)")
-			let config = try location.config()
+			return StartedReply(name: name, ip: try location.waitIP(wait: waitIPTimeout, runMode: runMode), started: true, reason: "VM running")
 
-			let _ = try StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: foreground ? .foreground : .background, runMode: runMode)
+		} catch {
+			return StartedReply(name: name, ip: "", started: false, reason: "\(error)")
 		}
 	}
 

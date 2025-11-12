@@ -17,6 +17,6 @@ struct List: GrpcParsableCommand {
 	var format: Format = .text
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.list(Caked_ListRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.list)
+		return self.format.render(try client.list(Caked_ListRequest(command: self), callOptions: callOptions).response.wait().vms.list)
 	}
 }

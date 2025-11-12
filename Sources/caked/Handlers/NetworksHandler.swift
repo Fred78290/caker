@@ -14,6 +14,10 @@ import vmnet
 struct NetworksHandler: CakedCommandAsync {
 	var request: Caked_NetworkRequest
 
+	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+		<#code#>
+	}
+	
 	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
 		on.submit {
 			let networkReply: Caked_NetworksReply

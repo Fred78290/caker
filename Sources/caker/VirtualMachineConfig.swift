@@ -180,22 +180,21 @@ struct VirtualMachineConfig: Hashable {
 	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
 		await withTaskCancellationHandler(
 			operation: {
-				do {
-					let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
-					var ipswQueue: DispatchQueue!
+				let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
+				var ipswQueue: DispatchQueue!
 
-					#if arch(arm64)
-					if imageSource == .ipsw {
-						ipswQueue = DispatchQueue(label: "IPSWQueue")
-					}
-					#endif
+				#if arch(arm64)
+				if imageSource == .ipsw {
+					ipswQueue = DispatchQueue(label: "IPSWQueue")
+				}
+				#endif
 
-					try await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-						progressHandler(result)
-					}
+				let build = await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+					progressHandler(result)
+				}
 
-				} catch {
-					progressHandler(.terminated(.failure(error)))
+				if build.builded == false {
+					progressHandler(.terminated(.failure(ServiceError(build.reason))))
 				}
 			},
 			onCancel: {

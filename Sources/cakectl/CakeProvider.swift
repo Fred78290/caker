@@ -9,16 +9,6 @@ import Semaphore
 
 typealias CakeAgentClient = Caked_ServiceNIOClient
 
-extension Caked_Reply {
-	func successfull() throws -> Caked_Reply {
-		if case .error(let errorMessage) = self.response {
-			throw GrpcError(code: Int(errorMessage.code), reason: errorMessage.reason)
-		}
-
-		return self
-	}
-}
-
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()

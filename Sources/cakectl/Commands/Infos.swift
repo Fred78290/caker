@@ -18,6 +18,6 @@ struct Infos: GrpcParsableCommand {
 	var name: String
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.info(Caked_InfoRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.infos)
+		return self.format.render(try client.info(Caked_InfoRequest(command: self), callOptions: callOptions).response.wait().vms.infos)
 	}
 }

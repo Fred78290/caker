@@ -28,6 +28,6 @@ struct Launch: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background)))
+		Logger.appendNewLine(self.common.format.render(await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: self.common.runMode, options: options, waitIPTimeout: self.waitIPTimeout, startMode: self.foreground ? .foreground : .background)))
 	}
 }

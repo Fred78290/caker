@@ -126,7 +126,7 @@ struct NetworkWizard: View {
 
 			networkConfig.userNetworks[name] = self.vzNetwork!
 			try home.setSharedNetworks(networkConfig)
-			try appState.reloadNetworks()
+			appState.reloadNetworks()
 		} catch {
 			alertError(error)
 		}

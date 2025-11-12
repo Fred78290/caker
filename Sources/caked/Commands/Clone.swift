@@ -20,7 +20,7 @@ struct Clone: ParsableCommand {
 	func run() throws {
 		Logger.appendNewLine(
 			self.common.format.render(
-				try CakedLib.CloneHandler.clone(
+				CakedLib.CloneHandler.clone(
 					name: self.clone.newName,
 					from: self.clone.sourceName,
 					concurrency: self.clone.concurrency,

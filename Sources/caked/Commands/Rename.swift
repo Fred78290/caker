@@ -17,6 +17,6 @@ struct Rename: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.RenameHandler.rename(oldname: self.rename.name, newname: self.rename.newName, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(CakedLib.RenameHandler.rename(oldname: self.rename.name, newname: self.rename.newName, runMode: self.common.runMode)))
 	}
 }

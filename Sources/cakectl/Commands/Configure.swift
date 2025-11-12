@@ -12,8 +12,11 @@ struct Configure: AsyncParsableCommand {
 	@OptionGroup(title: "Configure VM options")
 	var configure: ConfigureOptions
 
+	@Flag(help: "Output format: text or json")
+	var format: Format = .text
+
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.configure(Caked_ConfigureRequest(options: self.configure), callOptions: callOptions).response.wait().successfull().vms.message
+		return self.format.render(try client.configure(Caked_ConfigureRequest(options: self.configure), callOptions: callOptions).response.wait().vms.configured)
 	}
 
 }

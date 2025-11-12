@@ -12,6 +12,9 @@ struct Build: GrpcParsableCommand {
 	@OptionGroup(title: "Build VM options")
 	var buildOptions: BuildOptions
 
+	@Flag(help: "Output format: text or json")
+	var format: Format = .text
+
 	mutating func validate() throws {
 		try buildOptions.validate()
 
@@ -21,6 +24,6 @@ struct Build: GrpcParsableCommand {
 	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.build(Caked_BuildRequest(buildOptions: self.buildOptions), callOptions: callOptions).response.wait().successfull().vms.message
+		return self.format.render(try client.build(Caked_BuildRequest(buildOptions: self.buildOptions), callOptions: callOptions).response.wait().vms.builded)
 	}
 }

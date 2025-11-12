@@ -103,12 +103,12 @@ public struct StartHandler {
 					Task {
 						Logger(self).info("VM \(name) starting")
 
-						do {
-							let runningIP = try StartHandler.startVM(on: on, location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: runMode)
+						let reply = StartHandler.startVM(on: on, location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: runMode)
 
-							Logger(self).info("VM \(name) started with IP \(runningIP)")
-						} catch {
-							Logger(self).error(error)
+						if reply.started {
+							Logger(self).info("VM \(name) started with IP \(reply.ip)")
+						} else {
+							Logger(self).error("VM \(name) failed to start: \(reply.reason)")
 						}
 					}
 				}
@@ -165,7 +165,7 @@ public struct StartHandler {
 		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise, extras: extras)
 	}
 
-	public static func startVM(on: EventLoop, location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) throws -> String {
+	public static func startVM(on: EventLoop, location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) -> StartedReply {
 		let promise: EventLoopPromise<String> = on.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
@@ -177,19 +177,27 @@ public struct StartHandler {
 			}
 		}
 
-		return try startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+		return startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
-	public static func startVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
-		if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
-			throw ServiceError("VM does not exist")
-		}
+	public static func startVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
+		do {
+			if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
+				return StartedReply(name: location.name, ip: "", started: false, reason: "VM not found")
+			}
 
-		if location.status == .running {
-			return try location.waitIP(wait: 180, runMode: runMode)
-		}
+			var ip: String
 
-		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+			if location.status == .running {
+				ip = try location.waitIP(wait: 180, runMode: runMode)
+			} else {
+				ip = try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+			}
+			
+			return StartedReply(name: location.name, ip: ip, started: true, reason: "VM started")
+		} catch {
+			return StartedReply(name: location.name, ip: "", started: false, reason: "\(error)")
+		}
 	}
 
 }

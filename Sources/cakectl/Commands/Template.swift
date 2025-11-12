@@ -21,7 +21,7 @@ struct Template: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.create)
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().templates.create)
 		}
 	}
 
@@ -38,7 +38,7 @@ struct Template: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.delete)
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().templates.delete)
 		}
 	}
 
@@ -52,7 +52,7 @@ struct Template: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().successfull().templates.list)
+			return self.format.render(try client.template(Caked_TemplateRequest(command: self), callOptions: callOptions).response.wait().templates.list)
 		}
 	}
 }

@@ -294,7 +294,7 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
-						_ = try? StartHandler.startVM(location: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
+						_ = StartHandler.startVM(location: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
 					}
 				}
 			}
@@ -315,8 +315,10 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 					$0.vmname = self.name
 				})
 		} else {
-			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
-				let ssh = try SSH(host: ip)
+			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
+
+			if reply.success {
+				let ssh = try SSH(host: reply.ip)
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
 				try ssh.execute("sudo reboot")
 			} else {
@@ -371,8 +373,10 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 			
 			try client.shutdown().log()
 		} else {
-			if let ip: String = try? WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode) {
-				let ssh = try SSH(host: ip)
+			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
+			
+			if reply.success {
+				let ssh = try SSH(host: reply.ip)
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
 				try ssh.execute("sudo shutdown now")
 			} else {

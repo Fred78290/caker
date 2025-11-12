@@ -25,6 +25,6 @@ struct Build: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		try await CakedLib.BuildHandler.build(name: self.options.name, options: self.options, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)
+		Logger.appendNewLine(self.common.format.render(await CakedLib.BuildHandler.build(name: self.options.name, options: self.options, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
 	}
 }

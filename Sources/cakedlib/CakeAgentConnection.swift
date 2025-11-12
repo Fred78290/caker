@@ -154,9 +154,10 @@ extension CakeAgentClient {
 						$0.name = mount.name
 
 						if case CakeAgent.MountReply.MountVirtioFSReply.OneOf_Response.error(let v)? = mount.response {
-							$0.error = v
-						} else if case CakeAgent.MountReply.MountVirtioFSReply.OneOf_Response.success(let v)? = mount.response {
-							$0.success = v
+							$0.reason = v
+							$0.mounted = false
+						} else if case CakeAgent.MountReply.MountVirtioFSReply.OneOf_Response.success(_)? = mount.response {
+							$0.mounted = true
 						}
 					}
 				}
@@ -187,9 +188,9 @@ extension CakeAgentClient {
 						$0.name = mount.name
 
 						if case CakeAgent.MountReply.MountVirtioFSReply.OneOf_Response.error(let v)? = mount.response {
-							$0.error = v
+							$0.reason = v
 						} else if case CakeAgent.MountReply.MountVirtioFSReply.OneOf_Response.success(let v)? = mount.response {
-							$0.success = v
+							$0.mounted = v
 						}
 					}
 				}

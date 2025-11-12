@@ -26,6 +26,6 @@ struct Start: ParsableCommand {
 		let location = try StorageLocation(runMode: self.common.runMode).find(name)
 		let config = try location.config()
 
-		Logger.appendNewLine(self.common.format.render(try CakedLib.StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
+		Logger.appendNewLine(self.common.format.render(CakedLib.StartHandler.startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: self.foreground ? .foreground : .background, runMode: self.common.runMode)))
 	}
 }

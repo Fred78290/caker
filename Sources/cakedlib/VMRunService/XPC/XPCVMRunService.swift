@@ -34,41 +34,26 @@ extension DirectorySharingAttachment {
 
 extension MountVirtioFS {
 	init(from: CakeAgent.MountReply.MountVirtioFSReply) {
-		self.init()
-
-		self.name = from.name
+		var mounted: Bool = false
+		var reason: String = ""
 
 		if case let .error(error) = from.response {
-			self.response = .error(error)
+			reason = error
 		} else {
-			self.response = .success(true)
+			mounted = true
 		}
-	}
 
-	enum OneOf_Response: Equatable, Codable {
-		case error(String)
-		case success(Bool)
+		self.init(mounted: mounted, name: from.name, reason: reason)
 	}
 }
 
 extension MountInfos {
 	init(request: MountRequest, error: Error) {
-		self.init()
-
-		self.response = .error(error.localizedDescription)
-		self.mounts = request.mounts.map { MountVirtioFS(name: $0.name, error: error) }
+		self.init(success: false, reason: "\(error)", mounts: request.mounts.map { MountVirtioFS(name: $0.name, error: error) })
 	}
 
-	init(_ from: Caked.Reply) {
-		self.init()
-
-		if case let .error(value) = from.response {
-			self.response = .error(value.reason)
-		} else {
-			self.response = .success(true)
-		}
-
-		self.mounts = from.mounts.mounts.map { GRPCLib.MountVirtioFS(from: $0) }
+	init(_ from: Caked_MountReply) {
+		self.init(success: from.mounted, reason: from.reason, mounts: from.mounts.map { GRPCLib.MountVirtioFS(from: $0) })
 	}
 }
 
@@ -173,7 +158,7 @@ struct XPCMountVirtioFS: Codable {
 	}
 }
 
-extension Caked.Reply {
+extension Caked_MountReply {
 	func toXPC() -> MountInfos {
 		MountInfos(self)
 	}
@@ -474,12 +459,12 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 			}
 			
 			return MountInfos.with {
-				$0.response = .error("Unexpected reply from VMRunService \(reply)")
+				$0.reason = "Unexpected reply from VMRunService \(reply)"
 			}
 		}
 		
 		return MountInfos.with {
-			$0.response = .error("Timeout")
+			$0.reason = "Timeout"
 		}
 	}
 	

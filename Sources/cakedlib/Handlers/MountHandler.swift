@@ -11,11 +11,20 @@ public struct MountHandler {
 		return try createVMRunServiceClient(mode, location: location, runMode: runMode).vncURL()
 	}
 
-	public static func Mount(_ mode: VMRunServiceMode, location: VMLocation, mounts: DirectorySharingAttachments, runMode: Utils.RunMode) throws -> MountInfos {
-		return try createVMRunServiceClient(mode, location: location, runMode: runMode).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+	public static func Mount(_ mode: VMRunServiceMode, location: VMLocation, mounts: DirectorySharingAttachments, runMode: Utils.RunMode) -> MountInfos {
+		do {
+			return try createVMRunServiceClient(mode, location: location, runMode: runMode).mount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+
+		} catch {
+			return MountInfos(success: false, reason: "\(error)", mounts: [])
+		}
 	}
 
-	public static func Umount(_ mode: VMRunServiceMode, location: VMLocation, mounts: DirectorySharingAttachments, runMode: Utils.RunMode) throws -> MountInfos {
-		return try createVMRunServiceClient(mode, location: location, runMode: runMode).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+	public static func Umount(_ mode: VMRunServiceMode, location: VMLocation, mounts: DirectorySharingAttachments, runMode: Utils.RunMode) -> MountInfos {
+		do {
+			return try createVMRunServiceClient(mode, location: location, runMode: runMode).umount(mounts: mounts).withDirectorySharingAttachment(directorySharingAttachment: mounts)
+		} catch {
+			return MountInfos(success: false, reason: "\(error)", mounts: [])
+		}
 	}
 }

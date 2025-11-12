@@ -36,13 +36,15 @@ extension VMRunServiceClient {
 				return try self.share(mounts: valided)
 			} else {
 				return MountInfos.with {
-					$0.response = .error("VM is not running")
+					$0.success = false
+					$0.reason = "VM is not running"
 				}
 			}
 		}
 
 		return MountInfos.with {
-			$0.response = .error("No new mounts")
+			$0.success = false
+			$0.reason = "No new mounts"
 		}
 	}
 
@@ -64,13 +66,15 @@ extension VMRunServiceClient {
 				return try self.unshare(mounts: valided)
 			} else {
 				return MountInfos.with {
-					$0.response = .error("VM is not running")
+					$0.success = false
+					$0.reason = "VM is not running"
 				}
 			}
 		}
 
 		return MountInfos.with {
-			$0.response = .error("No umounts")
+			$0.success = false
+			$0.reason = "No umounts"
 		}
 	}
 }
@@ -119,12 +123,12 @@ class VMRunService: NSObject {
 			retries: retries)
 	}
 	
-	func mount(request: Caked.MountRequest, umount: Bool) -> Caked.Reply {
+	func mount(request: Caked.MountRequest, umount: Bool) -> Caked_MountReply {
 		guard request.mounts.isEmpty == false else {
-			return Caked.Reply.with {
-				$0.error = .with {
-					$0.reason = "No mounts specified"
-				}
+			return Caked_MountReply.with {
+				$0.mounted = false
+				$0.mounts = []
+				$0.reason = "No mounts specified"
 			}
 		}
 		
@@ -133,23 +137,23 @@ class VMRunService: NSObject {
 
 			if config.os == .darwin {
 				guard try vm.mountShares(config: config) else {
-					return Caked.Reply.with {
-						$0.error = .with {
-							$0.reason = "No shared devices"
-						}
+					return Caked_MountReply.with {
+						$0.mounted = false
+						$0.mounts = []
+						$0.reason = "No shared devices"
 					}
 				}
-				
-				return Caked.Reply.with {
-					$0.response = .mounts(.with {
-						$0.response = .success(true)
-						$0.mounts = request.mounts.map { mount in
-							.with {
-								 $0.name = mount.name
-								 $0.response = .success(true)
-							}
+
+				return Caked_MountReply.with {
+					$0.mounted = true
+					$0.reason = ""
+					$0.mounts = request.mounts.map { mount in
+						.with {
+							$0.mounted = true
+							$0.name = mount.name
+							$0.reason = ""
 						}
-					})
+					}
 				}
 			}
 			
@@ -183,27 +187,36 @@ class VMRunService: NSObject {
 				reply = try conn.mount(request: request)
 			}
 
-			return Caked.Reply.with {
+			return Caked_MountReply.with {
 				if case let .error(value) = reply.response {
-					$0.error = .with {
-						$0.reason = value
+					$0.mounted = false
+					$0.reason = value
+					$0.mounts = request.mounts.map { mount in
+						.with {
+							$0.name = mount.name
+							$0.mounted = false
+						}
 					}
 				} else {
-					$0.response = .mounts(.with {
-						$0.response = .success(true)
-						$0.mounts = request.mounts.map { mount in
-								.with {
-									$0.name = mount.name
-									$0.response = .success(true)
-								}
+					$0.mounted = true
+					$0.reason = "Success"
+					$0.mounts = request.mounts.map { mount in
+						.with {
+							$0.name = mount.name
+							$0.mounted = true
 						}
-					})
+					}
 				}
 			}
 		} catch {
-			return Caked.Reply.with {
-				$0.error = .with {
-					$0.reason = error.localizedDescription
+			return Caked_MountReply.with {
+				$0.mounted = false
+				$0.reason = "\(error)"
+				$0.mounts = request.mounts.map { mount in
+					.with {
+						$0.name = mount.name
+						$0.mounted = false
+					}
 				}
 			}
 		}

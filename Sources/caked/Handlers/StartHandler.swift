@@ -37,12 +37,21 @@ struct StartHandler: CakedCommand {
 		self.startMode = startMode
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		let message = try CakedLib.StartHandler.startVM(on: on, location: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode)
-
+	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {
-				$0.message = message
+				$0.started = .with {
+					$0.started = false
+					$0.reason = "\(error)"
+				}
+			}
+		}
+	}
+	
+	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+		return Caked_Reply.with { reply in
+			reply.vms = Caked_VirtualMachineReply.with {
+				$0.started = CakedLib.StartHandler.startVM(on: on, location: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode).caked
 			}
 		}
 	}

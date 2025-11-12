@@ -16,6 +16,6 @@ struct Suspend: GrpcParsableCommand {
 	var format: Format = .text
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.suspend(Caked_SuspendRequest(command: self), callOptions: callOptions).response.wait().successfull().vms.suspend)
+		return self.format.render(try client.suspend(Caked_SuspendRequest(command: self), callOptions: callOptions).response.wait().vms.suspend)
 	}
 }
