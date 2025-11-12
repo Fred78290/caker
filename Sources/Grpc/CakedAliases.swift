@@ -22,7 +22,6 @@ public typealias Caked_PurgeRequest = Caked.PurgeRequest
 public typealias Caked_RemoteRequest = Caked.RemoteRequest
 public typealias Caked_RemoteCommand = Caked.RemoteRequest.RemoteCommand
 public typealias Caked_Reply = Caked.Reply
-public typealias Caked_Error = Caked.Reply.Error
 public typealias Caked_DeleteRemoteReply = Caked.Reply.RemoteReply.DeleteRemoteReply
 public typealias Caked_CreateRemoteReply = Caked.Reply.RemoteReply.CreateRemoteReply
 
@@ -61,8 +60,18 @@ public typealias Caked_VirtualMachineReply = Caked.Reply.VirtualMachineReply
 public typealias Caked_DeleteReply = Caked.Reply.VirtualMachineReply.DeleteReply
 public typealias Caked_DeletedObject = Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject
 public typealias Caked_InfoReply = Caked.Reply.VirtualMachineReply.InfoReply
+public typealias Caked_BuildedReply = Caked.Reply.VirtualMachineReply.BuildedReply
+public typealias Caked_ConfiguredReply = Caked.Reply.VirtualMachineReply.ConfiguredReply
+public typealias Caked_LaunchReply = Caked.Reply.VirtualMachineReply.LaunchReply
+public typealias Caked_StartedReply = Caked.Reply.VirtualMachineReply.StartedReply
 public typealias Caked_StopReply = Caked.Reply.VirtualMachineReply.StopReply
+public typealias Caked_ClonedReply = Caked.Reply.VirtualMachineReply.ClonedReply
+public typealias Caked_DuplicatedReply = Caked.Reply.VirtualMachineReply.DuplicatedReply
+public typealias Caked_ImportedReply = Caked.Reply.VirtualMachineReply.ImportedReply
 public typealias Caked_SuspendReply = Caked.Reply.VirtualMachineReply.SuspendReply
+public typealias Caked_WaitIPReply = Caked.Reply.VirtualMachineReply.WaitIPReply
+public typealias Caked_PurgeReply = Caked.Reply.VirtualMachineReply.PurgeReply
+public typealias Caked_RenameReply = Caked.Reply.VirtualMachineReply.RenameReply
 public typealias Caked_StoppedObject = Caked.Reply.VirtualMachineReply.StopReply.StoppedObject
 public typealias Caked_SuspendedObject = Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject
 public typealias Caked_VirtualMachineInfoReply = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply
@@ -155,6 +164,8 @@ public struct VMInformations: Sendable, Codable {
 	
 	public func toCaked_InfoReply() -> Caked_InfoReply {
 		Caked_InfoReply.with { reply in
+			reply.success = true
+			reply.reason = "Success"
 			reply.name = self.name
 			reply.diskInfos = self.diskInfos.map { diskInfos in
 				Caked_InfoReply.DiskInfo.with {

@@ -107,6 +107,289 @@ public struct DeleteReply: Codable {
 	}
 }
 
+public struct LaunchReply: Codable {
+	public let name: String
+	public let ip: String
+	public let launched: Bool
+	public let reason: String
+	
+	public init(from: Caked_LaunchReply) {
+		self.name = from.name
+		self.ip = from.address
+		self.launched = from.launched
+		self.reason = from.reason
+	}
+
+	public init(name: String, ip: String, launched: Bool, reason: String) {
+		self.name = name
+		self.ip = ip
+		self.launched = launched
+		self.reason = reason
+	}
+
+	public var caked: Caked_LaunchReply {
+		Caked_LaunchReply.with { object in
+			object.name = name
+			object.launched = launched
+			object.reason = reason
+		}
+	}
+}
+
+public struct StartedReply: Codable {
+	public let name: String
+	public let ip: String
+	public let started: Bool
+	public let reason: String
+	
+	public init(from: Caked_StartedReply) {
+		self.name = from.name
+		self.ip = from.address
+		self.started = from.started
+		self.reason = from.reason
+	}
+
+	public init(name: String, ip: String, started: Bool, reason: String) {
+		self.name = name
+		self.ip = ip
+		self.started = started
+		self.reason = reason
+	}
+
+	public var caked: Caked_StartedReply {
+		Caked_StartedReply.with { object in
+			object.name = name
+			object.address = ip
+			object.started = started
+			object.reason = reason
+		}
+	}
+}
+
+public struct BuildedReply: Codable {
+	public let name: String
+	public let builded: Bool
+	public let reason: String
+	
+	public init(from: Caked_BuildedReply) {
+		self.name = from.name
+		self.builded = from.builded
+		self.reason = from.reason
+	}
+
+	public init(name: String, builded: Bool, reason: String) {
+		self.name = name
+		self.builded = builded
+		self.reason = reason
+	}
+
+	public var caked: Caked_BuildedReply {
+		Caked_BuildedReply.with { object in
+			object.name = name
+			object.builded = builded
+			object.reason = reason
+		}
+	}
+}
+
+public struct ClonedReply: Codable {
+	public let sourceName: String
+	public let targetName: String
+	public let cloned: Bool
+	public let reason: String
+	
+	public init(from: Caked_ClonedReply) {
+		self.sourceName = from.sourceName
+		self.targetName = from.targetName
+		self.cloned = from.cloned
+		self.reason = from.reason
+	}
+
+	public init(sourceName: String, targetName: String, cloned: Bool, reason: String) {
+		self.sourceName = sourceName
+		self.targetName = targetName
+		self.cloned = cloned
+		self.reason = reason
+	}
+
+	public var caked: Caked_ClonedReply {
+		Caked_ClonedReply.with { object in
+			object.sourceName = sourceName
+			object.targetName = targetName
+			object.cloned = cloned
+			object.reason = reason
+		}
+	}
+}
+
+public struct ConfiguredReply: Codable {
+	public let name: String
+	public let configured: Bool
+	public let reason: String
+	
+	public init(from: Caked_ConfiguredReply) {
+		self.name = from.name
+		self.configured = from.configured
+		self.reason = from.reason
+	}
+
+	public init(name: String, configured: Bool, reason: String) {
+		self.name = name
+		self.configured = configured
+		self.reason = reason
+	}
+
+	public var caked: Caked_ConfiguredReply {
+		Caked_ConfiguredReply.with { object in
+			object.name = name
+			object.configured = configured
+			object.reason = reason
+		}
+	}
+}
+
+public struct DuplicatedReply: Codable {
+	public let from: String
+	public let to: String
+	public let duplicated: Bool
+	public let reason: String
+	
+	public init(from: Caked_DuplicatedReply) {
+		self.from = from.from
+		self.to = from.to
+		self.duplicated = from.duplicated
+		self.reason = from.reason
+	}
+
+	public init(from: String, to: String, duplicated: Bool, reason: String) {
+		self.from = from
+		self.to = to
+		self.duplicated = duplicated
+		self.reason = reason
+	}
+
+	public var caked: Caked_DuplicatedReply {
+		Caked_DuplicatedReply.with { object in
+			object.from = from
+			object.to = to
+			object.duplicated = duplicated
+			object.reason = reason
+		}
+	}
+}
+
+public struct ImportedReply: Codable {
+	public let source: String
+	public let name: String
+	public let imported: Bool
+	public let reason: String
+	
+	public init(from: Caked_ImportedReply) {
+		self.source = from.source
+		self.name = from.name
+		self.imported = from.imported
+		self.reason = from.reason
+	}
+
+	public init(source: String, name: String, imported: Bool, reason: String) {
+		self.source = source
+		self.name = name
+		self.imported = imported
+		self.reason = reason
+	}
+
+	public var caked: Caked_ImportedReply {
+		Caked_ImportedReply.with { object in
+			object.name = name
+			object.source = source
+			object.imported = imported
+			object.reason = reason
+		}
+	}
+}
+
+public struct WaitIPReply: Codable {
+	public let name: String
+	public let ip: String
+	public let success: Bool
+	public let reason: String
+	
+	public init(from: Caked_WaitIPReply) {
+		self.name = from.name
+		self.ip = from.ip
+		self.success = from.success
+		self.reason = from.reason
+	}
+
+	public init(name: String, ip: String, success: Bool, reason: String) {
+		self.name = name
+		self.ip = ip
+		self.success = success
+		self.reason = reason
+	}
+
+	public var caked: Caked_WaitIPReply {
+		Caked_WaitIPReply.with { object in
+			object.name = name
+			object.ip = ip
+			object.success = success
+			object.reason = reason
+		}
+	}
+}
+
+public struct PurgeReply: Codable {
+	public let purged: Bool
+	public let reason: String
+	
+	public init(from: Caked_PurgeReply) {
+		self.purged = from.purged
+		self.reason = from.reason
+	}
+
+	public init(purged: Bool, reason: String) {
+		self.purged = purged
+		self.reason = reason
+	}
+
+	public var caked: Caked_PurgeReply {
+		Caked_PurgeReply.with { object in
+			object.purged = purged
+			object.reason = reason
+		}
+	}
+}
+
+public struct RenameReply: Codable {
+	public let newName: String
+	public let oldName: String
+	public let renamed: Bool
+	public let reason: String
+	
+	public init(from: Caked_RenameReply) {
+		self.oldName = from.oldName
+		self.newName = from.newName
+		self.renamed = from.renamed
+		self.reason = from.reason
+	}
+
+	public init(oldName: String, newName: String, renamed: Bool, reason: String) {
+		self.oldName = oldName
+		self.newName = newName
+		self.renamed = renamed
+		self.reason = reason
+	}
+
+	public var caked: Caked_RenameReply {
+		Caked_RenameReply.with { object in
+			object.oldName = oldName
+			object.newName = newName
+			object.renamed = renamed
+			object.reason = reason
+		}
+	}
+}
+
 public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public typealias ID = String
 

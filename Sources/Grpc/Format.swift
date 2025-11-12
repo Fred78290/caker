@@ -360,6 +360,86 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		return self.render(data.objects.map { StopReply(from: $0) })
 	}
 
+	public func render(_ data: LaunchReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_LaunchReply) -> String {
+		return self.render(LaunchReply(from: data))
+	}
+
+	public func render(_ data: StartedReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_StartedReply) -> String {
+		return self.render(StartedReply(from: data))
+	}
+
+	public func render(_ data: BuildedReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_BuildedReply) -> String {
+		return self.render(BuildedReply(from: data))
+	}
+
+	public func render(_ data: ClonedReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_ClonedReply) -> String {
+		return self.render(ClonedReply(from: data))
+	}
+
+	public func render(_ data: ConfiguredReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_ConfiguredReply) -> String {
+		return self.render(ConfiguredReply(from: data))
+	}
+
+	public func render(_ data: DuplicatedReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_DuplicatedReply) -> String {
+		return self.render(DuplicatedReply(from: data))
+	}
+
+	public func render(_ data: ImportedReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_ImportedReply) -> String {
+		return self.render(ImportedReply(from: data))
+	}
+
+	public func render(_ data: WaitIPReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_WaitIPReply) -> String {
+		return self.render(WaitIPReply(from: data))
+	}
+
+	public func render(_ data: PurgeReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_PurgeReply) -> String {
+		return self.render(PurgeReply(from: data))
+	}
+
+	public func render(_ data: RenameReply) -> String {
+		return self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_RenameReply) -> String {
+		return self.render(RenameReply(from: data))
+	}
+
 	public func render(_ data: VirtualMachineInfos) -> String {
 		if self == .json {
 			return self.renderList(data)
