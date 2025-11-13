@@ -1,5 +1,5 @@
 {
-  "originHash" : "8d303f4a8f76327df77bc184212bce91984664bd19bc5e13a394c46c11a383d4",
+  "originHash" : "5d5eb258707befdb744c7d9ee1a33e2772065fc77195137cbf9e1d782ece4d80",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "cc82115a4e7f53d71d9d905caa2c2dfa4da58899",
         "version" : "4.13.2"
+      }
+    },
+    {
+      "identity" : "async-http-client",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swift-server/async-http-client.git",
+      "state" : {
+        "revision" : "b2faff932b956df50668241d14f1b42f7bae12b4",
+        "version" : "1.30.0"
       }
     },
     {
@@ -33,6 +42,15 @@
       "location" : "https://github.com/utmapp/CocoaSpice.git",
       "state" : {
         "revision" : "ac641bd7b88e14b4107dcdb508d9779c49b69617"
+      }
+    },
+    {
+      "identity" : "containerization",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/containerization",
+      "state" : {
+        "revision" : "bec1008f4de1e416ea0e112b57b2357875ec7d25",
+        "version" : "0.13.0"
       }
     },
     {
@@ -214,6 +232,15 @@
       }
     },
     {
+      "identity" : "swift-distributed-tracing",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-distributed-tracing.git",
+      "state" : {
+        "revision" : "baa932c1336f7894145cbaafcd34ce2dd0b77c97",
+        "version" : "1.3.1"
+      }
+    },
+    {
       "identity" : "swift-http-structured-headers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-http-structured-headers.git",
@@ -327,6 +354,15 @@
       "state" : {
         "revision" : "df9d7b185d2e433147ec0083a73c257e665eea0d",
         "version" : "0.2.4"
+      }
+    },
+    {
+      "identity" : "swift-service-context",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-service-context.git",
+      "state" : {
+        "revision" : "1983448fefc717a2bc2ebde5490fe99873c5b8a6",
+        "version" : "1.2.1"
       }
     },
     {
