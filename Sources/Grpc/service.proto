@@ -262,17 +262,16 @@ message Caked {
 				
 				repeated DeletedObject objects = 1;
 				optional string reason = 2;
-				bool deleted = 3;
+				bool success = 3;
 			}
 			
 			message StopReply {
 				message StoppedObject {
 					string name = 1;
-					string status = 2;
-					bool stopped = 3;
-					string reason = 4;
+					bool stopped = 2;
+					string reason = 3;
 				}
-				bool stopped = 1;
+				bool success = 1;
 				optional string reason = 2;
 				repeated StoppedObject objects = 3;
 			}
@@ -280,93 +279,98 @@ message Caked {
 			message SuspendReply {
 				message SuspendedObject {
 					string name = 1;
-					string status = 2;
-					bool suspended = 3;
-					string reason = 4;
+					bool suspended = 2;
+					string reason = 3;
 				}
 				
 				repeated SuspendedObject objects = 1;
 				optional string reason = 2;
-				bool suspended = 3;
+				bool success = 3;
 			}
 
-			message InfoReply {
-				message MemoryInfo {
-					uint64 total = 1;
-					optional uint64 free = 2;
-					optional uint64 used = 3;
-				}
-			
-				message DiskInfo {
-					string device = 1;
-					string mount = 2;
-					string fsType = 3;
-					uint64 size = 4;
-					uint64 used = 5;
-					uint64 free = 6;
-				}
-			
-				message AttachedNetwork {
-					string network = 1;
-					optional string mode = 2;
-					optional string macAddress = 3;
-				}
-
-				message TunnelInfo {
-					enum Protocol {
-						tcp = 0;
-						udp = 1;
+			message StatusReply {
+				message InfoReply {
+					message MemoryInfo {
+						uint64 total = 1;
+						optional uint64 free = 2;
+						optional uint64 used = 3;
+					}
+				
+					message DiskInfo {
+						string device = 1;
+						string mount = 2;
+						string fsType = 3;
+						uint64 size = 4;
+						uint64 used = 5;
+						uint64 free = 6;
+					}
+				
+					message AttachedNetwork {
+						string network = 1;
+						optional string mode = 2;
+						optional string macAddress = 3;
 					}
 
-					message ForwardedPort {
-						Protocol protocol = 1;
-						int32 host = 2;
-						int32 guest = 3;
+					message TunnelInfo {
+						enum Protocol {
+							tcp = 0;
+							udp = 1;
+						}
+
+						message ForwardedPort {
+							Protocol protocol = 1;
+							int32 host = 2;
+							int32 guest = 3;
+						}
+
+						message Tunnel {
+							Protocol protocol = 1;
+							string host = 2;
+							string guest = 3;
+						}
+
+						oneof tunnel {
+							ForwardedPort forward = 1;
+							Tunnel unixDomain = 2;
+						}
 					}
 
-					message Tunnel {
-						Protocol protocol = 1;
+					message SocketInfo {
+						enum Mode {
+							bind = 0;
+							connect = 1;
+							tcp = 2;
+							udp = 3;
+						}
+
+						Mode mode = 1;
 						string host = 2;
-						string guest = 3;
+						int32 port = 3;
 					}
 
-					oneof tunnel {
-						ForwardedPort forward = 1;
-						Tunnel unixDomain = 2;
-					}
+					optional string version = 1;
+					optional uint64 uptime = 2;
+					MemoryInfo memory = 3;
+					int32 cpuCount = 4;
+					repeated DiskInfo diskInfos = 5;
+					repeated string ipaddresses = 6;
+					string osname = 7;
+					optional string hostname = 8;
+					optional string release = 9;
+					string status = 10;
+					repeated string mounts = 11;
+					string name = 12;
+					repeated AttachedNetwork networks = 13;
+					repeated TunnelInfo tunnels = 14;
+					repeated SocketInfo sockets = 15;
+					optional string vncURL = 17;
+					optional string reason = 18;
+					bool success = 19;
 				}
 
-				message SocketInfo {
-					enum Mode {
-						bind = 0;
-						connect = 1;
-						tcp = 2;
-						udp = 3;
-					}
-
-					Mode mode = 1;
-					string host = 2;
-					int32 port = 3;
-				}
-
-				optional string version = 1;
-				optional uint64 uptime = 2;
-				MemoryInfo memory = 3;
-				int32 cpuCount = 4;
-				repeated DiskInfo diskInfos = 5;
-				repeated string ipaddresses = 6;
-				string osname = 7;
-				optional string hostname = 8;
-				optional string release = 9;
-				string status = 10;
-				repeated string mounts = 11;
-				string name = 12;
-				repeated AttachedNetwork networks = 13;
-				repeated TunnelInfo tunnels = 14;
-				repeated SocketInfo sockets = 15;
-				optional string vncURL = 17;
-				optional string reason = 18;
-				bool success = 19;
+				optional InfoReply status = 2;
+				optional string reason = 3;
+				bool success = 4;
 			}
 			
 			message LaunchReply {
@@ -440,7 +444,7 @@ message Caked {
 				DeleteReply delete = 2;
 				StopReply stop = 3;
 				SuspendReply suspend = 4;
-				InfoReply infos = 5;
+				StatusReply status = 5;
 				LaunchReply launched = 6;
 				StartedReply started = 7;
 				BuildedReply builded = 8;
@@ -455,10 +459,6 @@ message Caked {
 		}	
 
 		message ImageReply {
-			message ListImagesInfoReply {
-				repeated ImageInfo infos = 1;
-			}
-			
 			message ImageInfo {
 				repeated string aliases = 1;
 				string architecture = 2;
@@ -472,21 +472,38 @@ message Caked {
 				optional string uploaded = 10;
 				map<string,string> properties = 11;
 			}
-		
-			message PulledImageInfo {
-				optional string alias = 1;
-				string path = 2;
-				uint64 size = 3;
-				string fingerprint = 4;
-				string remoteName = 5;
-				string description = 6;
+
+			message ListImagesInfoReply {
+				bool success = 1;
+				optional string reason = 2;
+				repeated ImageInfo infos = 3;
+			}
+
+			message ImageInfoReply {
+				optional ImageInfo info = 1;
+				optional string reason = 2;
+				bool success = 3;
+			}
+	
+			message PulledImageInfoReply {
+				message PulledImageInfo {
+					optional string alias = 1;
+					string path = 2;
+					uint64 size = 3;
+					string fingerprint = 4;
+					string remoteName = 5;
+					string description = 6;
+				}
+
+				optional PulledImageInfo info = 1;
+				optional string reason = 2;
+				bool success = 3;
 			}
 
 			oneof response {
-				ImageInfo infos = 1;
-				PulledImageInfo pull = 2;
+				ImageInfoReply infos = 1;
+				PulledImageInfoReply pull = 2;
 				ListImagesInfoReply list = 3;
-				string failed = 4;
 			}
 		}
 			
@@ -633,7 +650,7 @@ message Caked {
 				string path = 4;
 			}
 
-			bool mounted = 1;
+			bool success = 1;
 			optional string reason = 2;
 			repeated MountVirtioFSReply mounts = 3;
 		}

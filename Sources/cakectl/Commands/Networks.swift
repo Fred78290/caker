@@ -134,7 +134,13 @@ struct Networks: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.list)
+			let result = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.list
+			
+			if result.success {
+				return self.format.render(result.networks)
+			} else {
+				return self.format.render(result.reason)
+			}
 		}
 	}
 }

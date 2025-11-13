@@ -7,29 +7,21 @@ import NIOCore
 struct SuspendHandler: CakedCommand {
 	var request: Caked_SuspendRequest
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
-		return Caked_Reply.with { reply in
-			reply.vms = Caked_VirtualMachineReply.with {
+	func replyError(error: any Error) -> Caked_Reply {
+		return Caked_Reply.with {
+			$0.vms = Caked_VirtualMachineReply.with {
 				$0.suspend = Caked_SuspendReply.with {
-					$0.suspended = false
+					$0.success = false
 					$0.reason = "\(error)"
 				}
 			}
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		let result = try CakedLib.SuspendHandler.suspendVMs(names: self.request.names, runMode: runMode)
-
-		return Caked_Reply.with { reply in
-			reply.vms = Caked_VirtualMachineReply.with {
-				$0.suspend = Caked_SuspendReply.with {
-					$0.suspended = false
-					$0.reason = "Success"
-					$0.objects = result.map {
-						$0.toCaked_SuspendedObject()
-					}
-				}
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		return Caked_Reply.with {
+			$0.vms = Caked_VirtualMachineReply.with {
+				$0.suspend = CakedLib.SuspendHandler.suspendVMs(names: self.request.names, runMode: runMode).caked
 			}
 		}
 	}

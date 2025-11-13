@@ -9,13 +9,13 @@ import GRPCLib
 import NIO
 
 public struct DeleteHandler {
-	static func tryDeleteLocal(name: String, runMode: Utils.RunMode) -> DeleteReply? {
-		let doIt: (VMLocation) -> DeleteReply = { location in
+	static func tryDeleteLocal(name: String, runMode: Utils.RunMode) -> DeletedObject? {
+		let doIt: (VMLocation) -> DeletedObject = { location in
 			if location.status != .running {
 				try? FileManager.default.removeItem(at: location.rootURL)
-				return DeleteReply(source: "vm", name: location.name, deleted: true, reason: "")
+				return DeletedObject(source: "vm", name: location.name, deleted: true, reason: "")
 			} else {
-				return DeleteReply(source: "vm", name: location.name, deleted: false, reason: "VM is running")
+				return DeletedObject(source: "vm", name: location.name, deleted: false, reason: "VM is running")
 			}
 		}
 
@@ -28,7 +28,7 @@ public struct DeleteHandler {
 		return nil
 	}
 
-	public static func delete(names: [String], runMode: Utils.RunMode) throws -> [DeleteReply] {
+	public static func delete(names: [String], runMode: Utils.RunMode) throws -> [DeletedObject] {
 		return try names.compactMap { name in
 			guard let result = tryDeleteLocal(name: name, runMode: runMode) else {
 				if let u = URL(string: name) {
@@ -51,30 +51,34 @@ public struct DeleteHandler {
 
 						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
-							return DeleteReply(source: cache.location, name: purgeable.name(), deleted: true, reason: "")
+							return DeletedObject(source: cache.location, name: purgeable.name(), deleted: true, reason: "")
 						}
-						return DeleteReply(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
+						return DeletedObject(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
 					} else if let scheme = u.scheme {
-						return DeleteReply(source: scheme, name: name, deleted: false, reason: "Unsupported URL scheme")
+						return DeletedObject(source: scheme, name: name, deleted: false, reason: "Unsupported URL scheme")
 					} else {
-						return DeleteReply(source: "vm", name: name, deleted: false, reason: "VM not found")
+						return DeletedObject(source: "vm", name: name, deleted: false, reason: "VM not found")
 					}
 				}
 
-				return DeleteReply(source: "unknown", name: name, deleted: false, reason: "Unsupported URL")
+				return DeletedObject(source: "unknown", name: name, deleted: false, reason: "Unsupported URL")
 			}
 
 			return result
 		}
 	}
 
-	public static func delete(all: Bool, names: [String], runMode: Utils.RunMode) throws -> [DeleteReply] {
+	public static func delete(all: Bool, names: [String], runMode: Utils.RunMode) -> DeleteReply {
 		var names = names
 
-		if all {
-			names = try StorageLocation(runMode: runMode).list().map { $0.key }
-		}
+		do {
+			if all {
+				names = try StorageLocation(runMode: runMode).list().map { $0.key }
+			}
 
-		return try DeleteHandler.delete(names: names, runMode: runMode)
+			return DeleteReply(objects: try DeleteHandler.delete(names: names, runMode: runMode), success: true, reason: "Success")
+		} catch {
+			return DeleteReply(objects: [], success: false, reason: "\(error)")
+		}
 	}
 }

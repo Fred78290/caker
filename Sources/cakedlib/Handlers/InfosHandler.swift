@@ -5,6 +5,14 @@ import GRPCLib
 import NIO
 
 public struct InfosHandler {
+	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) -> VirtualMachineStatusReply {
+		do {
+			return VirtualMachineStatusReply(status: try self.infos(name: name, runMode: runMode, client: client, callOptions: callOptions), success: true, reason: "Success")
+		} catch {
+			return VirtualMachineStatusReply(status: VMInformations(), success: false, reason: "\(error)")
+		}
+	}
+
 	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> VMInformations {
 		let location = try StorageLocation(runMode: runMode).find(name)
 		let config: CakeConfig = try location.config()

@@ -779,30 +779,34 @@ public struct NetworksHandler {
 		return try FileHandle(forWritingTo: logURL)
 	}
 
-	public static func stop(pidURL: URL, runMode: Utils.RunMode) throws -> String {
-		guard try pidURL.exists() else {
-			throw ServiceError("PID file \(pidURL.path) doesn't exists")
-		}
-
-		guard pidURL.isCakedRunning() else {
-			Logger(self).debug("PID \(pidURL.path) is not running")
-			return "PID \(pidURL.path) is not running"
-		}
-
-		if geteuid() == 0 {
-			// We are running as root, so we can just kill the process
-			if pidURL.killPID(SIGTERM) < 0 {
-				throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
-			} else {
-				Logger(self).debug("PID \(pidURL.path) stopped")
+	public static func stop(pidURL: URL, runMode: Utils.RunMode) -> String {
+		do {
+			guard try pidURL.exists() else {
+				throw ServiceError("PID file \(pidURL.path) doesn't exists")
 			}
-		} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path)"], runMode: runMode).runAndWait() != 0 {
-			throw ServiceError("Failed to kill process \(pidURL.path)")
-		} else {
-			try pidURL.waitStopped()
+			
+			guard pidURL.isCakedRunning() else {
+				Logger(self).debug("PID \(pidURL.path) is not running")
+				return "PID \(pidURL.path) is not running"
+			}
+			
+			if geteuid() == 0 {
+				// We are running as root, so we can just kill the process
+				if pidURL.killPID(SIGTERM) < 0 {
+					throw ServiceError("Failed to kill process \(pidURL.path): \(String(cString: strerror(errno)))")
+				} else {
+					Logger(self).debug("PID \(pidURL.path) stopped")
+				}
+			} else if try SudoCaked(arguments: ["networks", "stop", "--pidfile=\(pidURL.path)"], runMode: runMode).runAndWait() != 0 {
+				throw ServiceError("Failed to kill process \(pidURL.path)")
+			} else {
+				try pidURL.waitStopped()
+			}
+			
+			return "PID \(pidURL.path) stopped"
+		} catch {
+			return "\(error)"
 		}
-
-		return "PID \(pidURL.path) stopped"
 	}
 
 	public static func stop(networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
@@ -879,86 +883,96 @@ public struct NetworksHandler {
 		return BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: "")
 	}
 
-	public static func networks(runMode: Utils.RunMode) throws -> [BridgedNetwork] {
-		var networks: [BridgedNetwork] = []
-		let home: Home = try Home(runMode: runMode)
-		let networkConfig = try home.sharedNetworks()
-
-		let createBridgedNetwork: (_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork = { (name, mode, description, uuid, gateway, dhcpEnd, dhcpLease) in
-			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
-			let endpoint: String
-
-			if try socketURL.0.exists() {
-				endpoint = socketURL.0.path
-			} else {
-				endpoint = ""
+	public static func networks(runMode: Utils.RunMode) -> ListNetworksReply {
+		do {
+			var networks: [BridgedNetwork] = []
+			let home: Home = try Home(runMode: runMode)
+			let networkConfig = try home.sharedNetworks()
+			
+			let createBridgedNetwork: (_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork = { (name, mode, description, uuid, gateway, dhcpEnd, dhcpLease) in
+				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
+				let endpoint: String
+				
+				if try socketURL.0.exists() {
+					endpoint = socketURL.0.path
+				} else {
+					endpoint = ""
+				}
+				
+				return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
+			}
+			
+			let networkInterfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
+			
+			try networks.append(
+				contentsOf: VZBridgedNetworkInterface.networkInterfaces.compactMap { inf in
+					if let address = networkInterfaces[inf.identifier] {
+						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", address.network.description, "\(address.range.upperBound.description)/\(address.network.bits)", "")
+					} else {
+						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
+					}
+				})
+			
+			let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : ""
+			
+			networks = try networkConfig.sharedNetworks.reduce(into: networks) {
+				let cidr = $1.value.netmask.netmaskToCidr()
+				let gateway = "\($1.value.dhcpStart)/\(cidr)"
+				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
+				let uuid = $1.value.interfaceID
+				
+				$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
+			}.sorted {
+				$0 < $1
 			}
 
-			return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
-		}
-
-		let networkInterfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
-
-		try networks.append(
-			contentsOf: VZBridgedNetworkInterface.networkInterfaces.compactMap { inf in
-				if let address = networkInterfaces[inf.identifier] {
-					return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", address.network.description, "\(address.range.upperBound.description)/\(address.network.bits)", "")
-				} else {
-					return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
-				}
-			})
-
-		let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : ""
-		
-		return try networkConfig.sharedNetworks.reduce(into: networks) {
-			let cidr = $1.value.netmask.netmaskToCidr()
-			let gateway = "\($1.value.dhcpStart)/\(cidr)"
-			let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
-			let uuid = $1.value.interfaceID
-
-			$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
-		}.sorted {
-			$0 < $1
+			return ListNetworksReply(networks: [], success: false, reason: "Success")
+		} catch {
+			return ListNetworksReply(networks: [], success: false, reason: "\(error)")
 		}
 	}
 	
-	public static func status(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork {
-		if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
-			let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
-			var dhcpEnd: String = ""
-			var gateway: String = ""
-			
-			if let network = interfaces[networkName] {
-				gateway = network.network.description
-				dhcpEnd = "\(network.range.upperBound.description)/\(network.network.bits)"
-			}
-
-			return BridgedNetwork(name: networkName, mode: .bridged, description: inf.localizedDisplayName ?? inf.identifier, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: "", interfaceID: inf.identifier, endpoint: "")
-		} else {
-			let home: Home = try Home(runMode: runMode)
-			let networkConfig = try home.sharedNetworks()
-			let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-
-			guard let network = networkConfig.sharedNetworks[networkName] else {
-				throw ServiceError("Network \(networkName) doesn't exists")
-			}
-
-			let mode: BridgedNetworkMode = .init(from: network.mode)
-			let uuid = network.interfaceID
-			let cidr = network.netmask.netmaskToCidr()
-			let gateway = "\(network.dhcpStart)/\(cidr)"
-			let dhcpEnd = "\(network.dhcpEnd)/\(cidr)"
-			let value = try? Self.getDHCPLease()
-			let dhcpLease = value != nil ? "\(value!)" : ""
-			let endpoint: String
-
-			if try socketURL.0.exists() {
-				endpoint = socketURL.0.path
+	public static func status(networkName: String, runMode: Utils.RunMode) -> NetworkInfoReply {
+		do {
+			if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
+				let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
+				var dhcpEnd: String = ""
+				var gateway: String = ""
+				
+				if let network = interfaces[networkName] {
+					gateway = network.network.description
+					dhcpEnd = "\(network.range.upperBound.description)/\(network.network.bits)"
+				}
+				
+				return NetworkInfoReply(info: BridgedNetwork(name: networkName, mode: .bridged, description: inf.localizedDisplayName ?? inf.identifier, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: "", interfaceID: inf.identifier, endpoint: ""), success: true, reason: "Success")
 			} else {
-				endpoint = ""
-			}
+				let home: Home = try Home(runMode: runMode)
+				let networkConfig = try home.sharedNetworks()
+				let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
+				
+				guard let network = networkConfig.sharedNetworks[networkName] else {
+					throw ServiceError("Network \(networkName) doesn't exists")
+				}
+				
+				let mode: BridgedNetworkMode = .init(from: network.mode)
+				let uuid = network.interfaceID
+				let cidr = network.netmask.netmaskToCidr()
+				let gateway = "\(network.dhcpStart)/\(cidr)"
+				let dhcpEnd = "\(network.dhcpEnd)/\(cidr)"
+				let value = try? Self.getDHCPLease()
+				let dhcpLease = value != nil ? "\(value!)" : ""
+				let endpoint: String
+				
+				if try socketURL.0.exists() {
+					endpoint = socketURL.0.path
+				} else {
+					endpoint = ""
+				}
 
-			return BridgedNetwork(name: networkName, mode: mode, description: network.mode.description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint)
+				return NetworkInfoReply(info: BridgedNetwork(name: networkName, mode: mode, description: network.mode.description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint), success: true, reason: "Success")
+			}
+		} catch {
+			return NetworkInfoReply(info: BridgedNetwork(name: "", mode: .nat, description: "", gateway: "", dhcpLease: "", interfaceID: "", endpoint: ""), success: false, reason: "\(error)")
 		}
 	}
 }

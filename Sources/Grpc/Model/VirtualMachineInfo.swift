@@ -6,6 +6,7 @@
 //
 import Foundation
 import TextTable
+import CakeAgentLib
 
 public typealias VirtualMachineInfos = [VirtualMachineInfo]
 
@@ -17,67 +18,292 @@ extension VirtualMachineInfos {
 	}
 }
 
-public struct SuspendReply: Codable {
+public struct VMInformations: Sendable, Codable {
+	public var name: String
+	public var version: String?
+	public var uptime: UInt64?
+	public var memory: InfoReply.MemoryInfo?
+	public var cpuCount: Int32
+	public var diskInfos: [DiskInfo]
+	public var ipaddresses: [String]
+	public var osname: String
+	public var hostname: String?
+	public var release: String?
+	public var mounts: [String]?
+	public var status: Status
+	public var attachedNetworks: [AttachedNetwork]?
+	public var tunnelInfos: [TunnelInfo]?
+	public var socketInfos: [SocketInfo]?
+	public var vncURL: String?
+	
+	public static func with(
+		_ populator: (inout Self) throws -> Void
+	) rethrows -> Self {
+		var message = Self()
+		try populator(&message)
+		return message
+	}
+	
+	public init() {
+		self.name = ""
+		self.version = nil
+		self.uptime = 0
+		self.memory = nil
+		self.cpuCount = 0
+		self.diskInfos = []
+		self.ipaddresses = []
+		self.osname = ""
+		self.hostname = nil
+		self.release = nil
+		self.status = .stopped
+		self.mounts = nil
+		self.attachedNetworks = nil
+		self.tunnelInfos = nil
+		self.socketInfos = nil
+	}
+	
+	public init(from: InfoReply) {
+		self.name = from.name
+		self.version = from.version
+		self.uptime = from.uptime
+		self.memory = from.memory
+		self.cpuCount = from.cpuCount
+		self.diskInfos = from.diskInfos
+		self.ipaddresses = from.ipaddresses
+		self.osname = from.osname
+		self.hostname = from.hostname
+		self.release = from.release
+		self.mounts = from.mounts
+		self.status = .running
+		self.attachedNetworks = nil
+		self.tunnelInfos = nil
+		self.socketInfos = nil
+	}
+	
+	public init(from: Caked_InfoReply) {
+		self.name = from.name
+		self.version = from.version
+		self.uptime = from.uptime
+		self.cpuCount = from.cpuCount
+		self.ipaddresses = from.ipaddresses
+		self.osname = from.osname
+		self.hostname = from.hostname
+		self.release = from.release
+		self.mounts = from.mounts
+		self.status = .running
+
+		self.attachedNetworks = from.networks.map {
+			AttachedNetwork(network: $0.network, mode: $0.mode, macAddress: $0.macAddress)
+		}
+
+		self.tunnelInfos = from.tunnels.compactMap {
+			switch $0.tunnel {
+			case .forward(let v):
+				TunnelInfo(forward: .init(proto: v.protocol.mappedPort, host: Int(v.host), guest: Int(v.guest)))
+			case .unixDomain(let v):
+				TunnelInfo(unixDomain: .init(proto: v.protocol.mappedPort, host: v.host, guest: v.guest))
+			case .none:
+				nil
+			}
+		}
+
+		self.socketInfos = from.sockets.map {
+			SocketInfo(mode: .init(rawValue: $0.mode.rawValue)!, host: $0.host, port: $0.port)
+		}
+
+		self.diskInfos = from.diskInfos.map {
+			DiskInfo(device: $0.device, mount: $0.mount, fsType: $0.fsType, total: $0.size, free: $0.free, used: $0.used)
+		}
+
+		self.memory = .with {
+			$0.total = from.memory.total
+			$0.free = from.memory.free
+			$0.used = from.memory.used
+		}
+	}
+
+	public var caked: Caked_InfoReply {
+		Caked_InfoReply.with { reply in
+			reply.success = true
+			reply.reason = "Success"
+			reply.name = self.name
+			reply.diskInfos = self.diskInfos.map { diskInfos in
+				Caked_InfoReply.DiskInfo.with {
+					$0.device = diskInfos.device
+					$0.mount = diskInfos.mount
+					$0.fsType = diskInfos.fsType
+					$0.size = diskInfos.total
+					$0.free = diskInfos.free
+					$0.used = diskInfos.used
+				}
+			}
+
+			if let version = self.version {
+				reply.version = version
+			}
+
+			if let uptime = self.uptime {
+				reply.uptime = uptime
+			}
+
+			if let memory = self.memory {
+				reply.memory = Caked_InfoReply.MemoryInfo.with {
+					if let total = memory.total {
+						$0.total = total
+					}
+
+					if let free = memory.free {
+						$0.free = free
+					}
+
+					if let used = memory.used {
+						$0.used = used
+					}
+				}
+			}
+
+			reply.cpuCount = self.cpuCount
+			reply.ipaddresses = self.ipaddresses
+			reply.osname = self.osname
+
+			if let release = self.release {
+				reply.release = release
+			}
+
+			if let hostname = self.hostname {
+				reply.hostname = hostname
+			}
+
+			if let mounts = self.mounts {
+				reply.mounts = mounts
+			}
+
+			reply.status = self.status.rawValue
+
+			if let attachedNetworks = self.attachedNetworks {
+				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }
+			}
+
+			if let tunnelInfos = self.tunnelInfos {
+				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
+			}
+
+			if let sockets = self.socketInfos {
+				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo(from: $0) }
+			}
+
+			if let vncURL = self.vncURL {
+				reply.vncURL = vncURL
+			}
+		}
+	}
+}
+
+public struct SuspendedObject: Codable {
 	public let name: String
-	public let status: String
 	public let suspended: Bool
 	public let reason: String
 
 	public init(from: Caked_SuspendedObject) {
 		self.name = from.name
-		self.status = from.status
 		self.suspended = from.suspended
 		self.reason = from.reason
 	}
 
-	public init(name: String, status: String, suspended: Bool, reason: String) {
+	public init(name: String, suspended: Bool, reason: String) {
 		self.name = name
-		self.status = status
 		self.suspended = suspended
 		self.reason = reason
 	}
 
-	public func toCaked_SuspendedObject() -> Caked_SuspendedObject {
+	public var caked: Caked_SuspendedObject {
 		Caked_SuspendedObject.with { object in
 			object.name = name
-			object.status = status
 			object.suspended = suspended
 			object.reason = reason
 		}
 	}
 }
 
-public struct StopReply: Codable {
+public struct SuspendReply: Codable {
+	public let objects: [SuspendedObject]
+	public let success: Bool
+	public let reason: String
+	
+	public init (objects: [SuspendedObject], success: Bool, reason: String) {
+		self.objects = objects
+		self.reason = reason
+		self.success = success
+	}
+	
+	public init(from: Caked_SuspendReply) {
+		self.objects = from.objects.map(SuspendedObject.init(from:))
+		self.success = from.success
+		self.reason = from.reason
+	}
+	
+	public var caked: Caked_SuspendReply {
+		Caked_SuspendReply.with { object in
+			object.objects = self.objects.map(\.caked)
+			object.success = self.success
+			object.reason = self.reason
+		}
+	}
+}
+
+public struct StoppedObject: Codable {
 	public let name: String
-	public let status: String
 	public let stopped: Bool
 	public let reason: String
 
 	public init(from: Caked_StoppedObject) {
 		self.name = from.name
-		self.status = from.status
 		self.stopped = from.stopped
 		self.reason = from.reason
 	}
 
-	public init(name: String, status: String, stopped: Bool, reason: String) {
+	public init(name: String, stopped: Bool, reason: String) {
 		self.name = name
-		self.status = status
 		self.stopped = stopped
 		self.reason = reason
 	}
 
-	public func toCaked_StoppedObject() -> Caked_StoppedObject {
+	public var caked: Caked_StoppedObject {
 		Caked_StoppedObject.with { object in
 			object.name = name
-			object.status = status
 			object.stopped = stopped
 			object.reason = reason
 		}
 	}
 }
 
-public struct DeleteReply: Codable {
+public struct StopReply: Codable {
+	public let objects: [StoppedObject]
+	public let success: Bool
+	public let reason: String
+	
+	public init (objects: [StoppedObject], success: Bool, reason: String) {
+		self.objects = objects
+		self.reason = reason
+		self.success = success
+	}
+	
+	public init(from: Caked_StopReply) {
+		self.objects = from.objects.map(StoppedObject.init(from:))
+		self.success = from.success
+		self.reason = from.reason
+	}
+	
+	public var caked: Caked_StopReply {
+		Caked_StopReply.with { object in
+			object.objects = self.objects.map(\.caked)
+			object.success = self.success
+			object.reason = self.reason
+		}
+	}
+}
+
+public struct DeletedObject: Codable {
 	public let source: String
 	public let name: String
 	public let deleted: Bool
@@ -97,12 +323,38 @@ public struct DeleteReply: Codable {
 		self.reason = reason
 	}
 
-	public func toCaked_DeletedObject() -> Caked_DeletedObject {
+	public var caked: Caked_DeletedObject {
 		Caked_DeletedObject.with { object in
 			object.source = source
 			object.name = name
 			object.deleted = deleted
 			object.reason = reason
+		}
+	}
+}
+
+public struct DeleteReply: Codable {
+	public let objects: [DeletedObject]
+	public let success: Bool
+	public let reason: String
+	
+	public init (objects: [DeletedObject], success: Bool, reason: String) {
+		self.objects = objects
+		self.success = success
+		self.reason = reason
+	}
+	
+	public init(from: Caked_DeleteReply) {
+		self.success = from.success
+		self.reason = from.reason
+		self.objects = from.objects.map(DeletedObject.init(from:))
+	}
+	
+	public var caked: Caked_DeleteReply {
+		Caked_DeleteReply.with { object in
+			object.success = success
+			object.reason = reason
+			object.objects = objects.map(\.caked)
 		}
 	}
 }
@@ -421,7 +673,16 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fingerprint = from.fingerprint
 	}
 
-	public init(type: String, source: String, name: String, fqn: [String], instanceID: String?, diskSize: Int, totalSize: Int, state: String, ip: String?, fingerprint: String?) {
+	public init(type: String = "",
+				source: String = "",
+				name: String = "",
+				fqn: [String] = [],
+				instanceID: String? = nil,
+				diskSize: Int = 0,
+				totalSize: Int = 0,
+				state: String = "unknown",
+				ip: String? = nil,
+				fingerprint: String? = nil) {
 		self.type = type
 		self.source = source
 		self.name = name
@@ -434,7 +695,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fingerprint = fingerprint
 	}
 
-	public func toCaked_VirtualMachineInfo() -> Caked_VirtualMachineInfo {
+	public var caked: Caked_VirtualMachineInfo {
 		Caked_VirtualMachineInfo.with { info in
 			info.type = self.type
 			info.source = self.source
@@ -480,5 +741,57 @@ public struct ShortVirtualMachineInfo: Codable {
 		self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
 		self.state = from.state
 		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : ""
+	}
+}
+
+public struct VirtualMachineStatusReply: Codable {
+	public let status: VMInformations
+	public let success: Bool
+	public let reason: String
+	
+	public init(status: VMInformations, success: Bool, reason: String) {
+		self.status = status
+		self.success = success
+		self.reason = reason
+	}
+	
+	public init(from: Caked_VirtualMachineStatusReply) throws {
+		self.success = from.success
+		self.reason = from.reason
+		self.status = VMInformations(from: from.status)
+	}
+	
+	public var caked: Caked_VirtualMachineStatusReply {
+		Caked_VirtualMachineStatusReply.with {
+			$0.status = self.status.caked
+			$0.success = self.success
+			$0.reason = self.reason
+		}
+	}
+}
+
+public struct VirtualMachineInfoReply: Codable {
+	public let infos: [VirtualMachineInfo]
+	public let success: Bool
+	public let reason: String
+	
+	public init(infos: [VirtualMachineInfo], success: Bool, reason: String) {
+		self.infos = infos
+		self.success = success
+		self.reason = reason
+	}
+	
+	public init(from: Caked_VirtualMachineInfoReply) throws {
+		self.success = from.success
+		self.reason = from.reason
+		self.infos = from.infos.map(VirtualMachineInfo.init(from:))
+	}
+	
+	public var caked: Caked_VirtualMachineInfoReply {
+		Caked_VirtualMachineInfoReply.with {
+			$0.infos = self.infos.map(\.caked)
+			$0.success = self.success
+			$0.reason = self.reason
+		}
 	}
 }

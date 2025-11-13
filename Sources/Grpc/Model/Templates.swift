@@ -95,6 +95,32 @@ public struct CreateTemplateReply: Codable, Hashable {
 	}
 }
 
+public struct ListTemplateReply: Codable {
+	public let templates: [TemplateEntry]
+	public let success: Bool
+	public let reason: String
+
+	public var caked: Caked_ListTemplatesReply {
+		Caked_ListTemplatesReply.with {
+			$0.templates = self.templates.map(\.caked)
+			$0.success = self.success
+			$0.reason = self.reason
+		}
+	}
+
+	public init(templates: [TemplateEntry], success: Bool, reason: String) {
+		self.templates = templates
+		self.success = success
+		self.reason = reason
+	}
+
+	public init(from: Caked_ListTemplatesReply) {
+		self.templates = from.templates.map(TemplateEntry.init(from:))
+		self.success = from.success
+		self.reason = from.reason
+	}
+}
+
 public struct DeleteTemplateReply: Codable {
 	public let name: String
 	public let deleted: Bool

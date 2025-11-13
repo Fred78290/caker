@@ -7,7 +7,7 @@ import NIOCore
 struct RenameHandler: CakedCommand {
 	let request: Caked_RenameRequest
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.renamed = .with {
@@ -20,7 +20,7 @@ struct RenameHandler: CakedCommand {
 		}
 	}
 	
-	mutating func run(on: any EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+	mutating func run(on: any EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.renamed = CakedLib.RenameHandler.rename(oldname: self.request.oldname, newname: self.request.newname, runMode: runMode).caked

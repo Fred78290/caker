@@ -13,7 +13,7 @@ import GRPCLib
 import NIO
 
 struct ExecuteHandler: CakedCommandAsync {
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with { _ in
 		}
 	}
@@ -36,7 +36,7 @@ struct ExecuteHandler: CakedCommandAsync {
 		self.vmname = vmname
 	}
 
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return CakedLib.ExecuteHandler.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
 	}
 }

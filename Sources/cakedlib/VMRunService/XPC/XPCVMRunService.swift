@@ -53,7 +53,7 @@ extension MountInfos {
 	}
 
 	init(_ from: Caked_MountReply) {
-		self.init(success: from.mounted, reason: from.reason, mounts: from.mounts.map { GRPCLib.MountVirtioFS(from: $0) })
+		self.init(success: from.success, reason: from.reason, mounts: from.mounts.map { GRPCLib.MountVirtioFS(from: $0) })
 	}
 }
 

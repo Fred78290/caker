@@ -23,7 +23,13 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.listImage(remote: self.name, runMode: self.common.runMode)))
+			let result = await CakedLib.ImageHandler.listImage(remote: self.name, runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.infos))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 
@@ -41,7 +47,13 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.info(name: self.name, runMode: self.common.runMode)))
+			let result = await CakedLib.ImageHandler.info(name: self.name, runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.info))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 
@@ -59,7 +71,13 @@ struct ImagesManagement: ParsableCommand {
 		}
 
 		func run() async throws {
-			Logger.appendNewLine(self.common.format.render(try await CakedLib.ImageHandler.pull(name: self.name, runMode: self.common.runMode)))
+			let result = await CakedLib.ImageHandler.pull(name: self.name, runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.info))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 }

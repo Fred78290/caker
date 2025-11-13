@@ -7,7 +7,7 @@ import NIOCore
 struct PurgeHandler: CakedCommand {
 	var options: PurgeOptions
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.purged = .with {
@@ -18,7 +18,7 @@ struct PurgeHandler: CakedCommand {
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.purged = CakedLib.PurgeHandler.purge(direct: runMode.isSystem, runMode: runMode, options: self.options).caked

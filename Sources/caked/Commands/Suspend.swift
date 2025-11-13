@@ -17,6 +17,12 @@ struct Suspend: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.SuspendHandler.suspendVMs(names: self.names, runMode: self.common.runMode)))
+		let result = CakedLib.SuspendHandler.suspendVMs(names: self.names, runMode: self.common.runMode)
+
+		if result.success {
+			Logger.appendNewLine(self.common.format.render(result.objects))
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.reason))
+		}
 	}
 }

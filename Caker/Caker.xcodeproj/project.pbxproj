@@ -190,6 +190,7 @@
 		9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */; };
 		9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B02EBBD7CC0036CE1B /* MultiplatformTabBar.swift */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
+		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
@@ -1062,6 +1063,7 @@
 				9BEBC7CD2DF440BF0092B196 /* Semaphore in Frameworks */,
 				9BEBC7E52DF440BF0092B196 /* NIOEmbedded in Frameworks */,
 				9BEBC7D12DF440BF0092B196 /* XAttr in Frameworks */,
+				9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */,
 				9BEBC7D92DF440BF0092B196 /* Crypto in Frameworks */,
 				9BEBC7EF2DF440BF0092B196 /* NIOWebSocket in Frameworks */,
 				9BEBC7F12DF440BF0092B196 /* NIOHTTP2 in Frameworks */,
@@ -1905,6 +1907,7 @@
 				9BEBC7FE2DF440BF0092B196 /* ArgumentParser */,
 				9BEBC8002DF440BF0092B196 /* Multipart */,
 				9BEBC8022DF440BF0092B196 /* CakeAgentLib */,
+				9BB148962EC622ED0094D950 /* ContainerizationOCI */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -1988,6 +1991,7 @@
 				9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
 				9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */,
 				9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */,
+				9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2983,7 +2987,7 @@
 			repositoryURL = "https://github.com/grpc/grpc-swift.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.25.0;
+				version = 1.26.0;
 			};
 		};
 		9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
@@ -3072,6 +3076,14 @@
 			requirement = {
 				kind = revision;
 				revision = ab423247d2f5ca4608ecb03d0e23d0957ce530c4;
+			};
+		};
+		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/containerization";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.13.0;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
@@ -3272,6 +3284,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B91237F2E29253A006DD682 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
 			productName = SwiftTerm;
+		};
+		9BB148962EC622ED0094D950 /* ContainerizationOCI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationOCI;
 		};
 		9BEBC7B82DF440BF0092B196 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;

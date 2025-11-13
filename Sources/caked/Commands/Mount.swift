@@ -37,7 +37,12 @@ struct Mount: ParsableCommand {
 
 	func run() throws {
 		let location = try StorageLocation(runMode: self.common.runMode).find(self.mount.name)
+		let result = CakedLib.MountHandler.Mount(mode, location: location, mounts: self.mount.mounts, runMode: self.common.runMode)
 
-		Logger.appendNewLine(self.common.format.render(CakedLib.MountHandler.Mount(mode, location: location, mounts: self.mount.mounts, runMode: self.common.runMode)))
+		if result.success {
+			Logger.appendNewLine(self.common.format.render(result.mounts))
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.reason))
+		}
 	}
 }

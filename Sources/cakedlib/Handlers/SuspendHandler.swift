@@ -6,20 +6,24 @@ import Shout
 import SystemConfiguration
 
 public struct SuspendHandler {
-	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendReply {
+	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendedObject {
 		let location = try StorageLocation(runMode: runMode).find(name)
 
 		if location.status == .running {
 			try location.suspendVirtualMachine(runMode: runMode)
-			return SuspendReply(name: name, status: "VM \(name) suspended", suspended: true, reason: "")
+			return SuspendedObject(name: name, suspended: true, reason: "VM Suspended")
 		}
 
-		return SuspendReply(name: name, status: "VM \(name) is not running", suspended: false, reason: "VM is not running")
+		return SuspendedObject(name: name, suspended: false, reason: "VM is not running")
 	}
 
-	public static func suspendVMs(names: [String], runMode: Utils.RunMode) throws -> [SuspendReply] {
-		return try names.compactMap {
-			try SuspendHandler.suspendVM(name: $0, runMode: runMode)
+	public static func suspendVMs(names: [String], runMode: Utils.RunMode) -> SuspendReply {
+		do {
+			return SuspendReply(objects: try names.compactMap {
+				try SuspendHandler.suspendVM(name: $0, runMode: runMode)
+			}, success: true, reason: "Success")
+		} catch {
+			return SuspendReply(objects: [], success: false, reason: "\(error)")
 		}
 	}
 }

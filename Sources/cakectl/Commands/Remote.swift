@@ -55,7 +55,13 @@ struct Remote: ParsableCommand {
 		var format: Format = .text
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.list)
+			let result = try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.list
+			
+			if result.success {
+				return self.format.render(result.remotes)
+			} else {
+				return self.format.render(result.reason)
+			}
 		}
 	}
 }

@@ -90,7 +90,7 @@ extension Vmrun_MountRequest {
 extension Vmrun_MountReply {
 	init(_ from: Caked_MountReply) {
 		self = Vmrun_MountReply.with { mountReply in
-			if from.mounted {
+			if from.success {
 				mountReply.response = .success(true)
 			} else {
 				mountReply.response = .error(from.reason)

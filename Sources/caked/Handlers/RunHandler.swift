@@ -9,7 +9,7 @@ struct RunHandler: CakedCommandAsync {
 	var request: Caked_RunCommand
 	var client: CakeAgentConnection
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.run = .with {
 				$0.exitCode = 1
@@ -18,7 +18,7 @@ struct RunHandler: CakedCommandAsync {
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		on.makeFutureWithTask {
 			let reply = try await CakedLib.RunHandler.run(
 				name: self.request.vmname, command: self.request.command, arguments: self.request.args, input: self.request.hasInput ? self.request.input : nil, client: self.client,

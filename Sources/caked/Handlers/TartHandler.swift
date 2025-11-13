@@ -7,7 +7,7 @@ struct TartHandler: CakedCommand {
 	var command: String
 	var arguments: [String]
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.tart = Caked_TartReply.with {
 				$0.message = "\(error)"
@@ -15,10 +15,18 @@ struct TartHandler: CakedCommand {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		try Caked_Reply.with {
-			$0.tart = try Caked_TartReply.with {
-				$0.message = try Shell.runTart(command: self.command, arguments: self.arguments, runMode: runMode)
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		let message: String
+
+		do {
+			message = try Shell.runTart(command: self.command, arguments: self.arguments, runMode: runMode)
+		} catch {
+			message = "\(error)"
+		}
+
+		return Caked_Reply.with {
+			$0.tart =  Caked_TartReply.with {
+				$0.message = message
 			}
 		}
 	}

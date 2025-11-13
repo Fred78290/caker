@@ -957,29 +957,35 @@ struct VirtualMachineWizard: View {
 	}
 
 	func templates() -> [TemplateEntry] {
-		if let result = try? TemplateHandler.listTemplate(runMode: .app) {
-			return result
+		let result = TemplateHandler.listTemplate(runMode: .app)
+		
+		if result.success {
+			return result.templates
 		}
 
 		return []
 	}
 
 	func remotes() -> [RemoteEntry] {
-		if let result = try? RemoteHandler.listRemote(runMode: .app) {
-			return result
+		let result = RemoteHandler.listRemote(runMode: .app)
+		
+		if result.success {
+			return result.remotes
 		}
 
 		return []
 	}
 
 	func images(remote: String) async -> [ShortImageInfo] {
-		guard let result = try? await ImageHandler.listImage(remote: remote, runMode: .app) else {
-			return []
+		let result = await ImageHandler.listImage(remote: remote, runMode: .app)
+
+		if result.success {
+			return result.infos.compactMap {
+				ShortImageInfo(imageInfo: $0)
+			}.sorted(using: [ShortImageInfoComparator(order: .forward)])
 		}
 
-		return result.compactMap {
-			ShortImageInfo(imageInfo: $0)
-		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
+		return []
 	}
 
 	var hasPrevious: Bool {

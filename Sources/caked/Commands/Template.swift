@@ -25,7 +25,13 @@ struct Template: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.TemplateHandler.listTemplate(runMode: self.common.runMode)))
+			let result = CakedLib.TemplateHandler.listTemplate(runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.templates))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 

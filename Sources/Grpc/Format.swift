@@ -159,7 +159,7 @@ extension InfoReply {
 		}
 	}
 
-	public func toCaked_InfoReply() -> Caked_InfoReply {
+	public var caked: Caked_InfoReply {
 		Caked_InfoReply.with { reply in
 			reply.name = self.name
 			reply.diskInfos = self.diskInfos.map { diskInfos in
@@ -336,28 +336,28 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		return self.render(InfoReply.with(infos: data))
 	}
 
-	public func render(_ data: [DeleteReply]) -> String {
+	public func render(_ data: [DeletedObject]) -> String {
 		return self.renderList(data)
 	}
 
-	public func render(_ data: Caked_DeleteReply) -> String {
-		return self.render(data.objects.map { DeleteReply(from: $0) })
+	public func render(_ data: [Caked_DeletedObject]) -> String {
+		return self.renderList(data.map { DeletedObject(from: $0) })
 	}
 
-	public func render(_ data: [SuspendReply]) -> String {
+	public func render(_ data: [SuspendedObject]) -> String {
 		return self.renderList(data)
 	}
 
-	public func render(_ data: Caked_SuspendReply) -> String {
-		return self.render(data.objects.map { SuspendReply(from: $0) })
+	public func render(_ data: [Caked_SuspendedObject]) -> String {
+		return self.renderList(data.map { SuspendedObject(from: $0) })
 	}
 
-	public func render(_ data: [StopReply]) -> String {
+	public func render(_ data: [StoppedObject]) -> String {
 		return self.renderList(data)
 	}
 
-	public func render(_ data: Caked_StopReply) -> String {
-		return self.render(data.objects.map { StopReply(from: $0) })
+	public func render(_ data: [Caked_StoppedObject]) -> String {
+		return self.renderList(data.map { StoppedObject(from: $0) })
 	}
 
 	public func render(_ data: LaunchReply) -> String {
@@ -365,7 +365,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_LaunchReply) -> String {
-		return self.render(LaunchReply(from: data))
+		return self.renderSingle(LaunchReply(from: data))
 	}
 
 	public func render(_ data: StartedReply) -> String {
@@ -373,7 +373,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_StartedReply) -> String {
-		return self.render(StartedReply(from: data))
+		return self.renderSingle(StartedReply(from: data))
 	}
 
 	public func render(_ data: BuildedReply) -> String {
@@ -381,7 +381,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_BuildedReply) -> String {
-		return self.render(BuildedReply(from: data))
+		return self.renderSingle(BuildedReply(from: data))
 	}
 
 	public func render(_ data: ClonedReply) -> String {
@@ -389,7 +389,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_ClonedReply) -> String {
-		return self.render(ClonedReply(from: data))
+		return self.renderSingle(ClonedReply(from: data))
 	}
 
 	public func render(_ data: ConfiguredReply) -> String {
@@ -397,7 +397,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_ConfiguredReply) -> String {
-		return self.render(ConfiguredReply(from: data))
+		return self.renderSingle(ConfiguredReply(from: data))
 	}
 
 	public func render(_ data: DuplicatedReply) -> String {
@@ -405,7 +405,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_DuplicatedReply) -> String {
-		return self.render(DuplicatedReply(from: data))
+		return self.renderSingle(DuplicatedReply(from: data))
 	}
 
 	public func render(_ data: ImportedReply) -> String {
@@ -413,7 +413,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_ImportedReply) -> String {
-		return self.render(ImportedReply(from: data))
+		return self.renderSingle(ImportedReply(from: data))
 	}
 
 	public func render(_ data: WaitIPReply) -> String {
@@ -421,7 +421,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_WaitIPReply) -> String {
-		return self.render(WaitIPReply(from: data))
+		return self.renderSingle(WaitIPReply(from: data))
 	}
 
 	public func render(_ data: PurgeReply) -> String {
@@ -429,7 +429,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_PurgeReply) -> String {
-		return self.render(PurgeReply(from: data))
+		return self.renderSingle(PurgeReply(from: data))
 	}
 
 	public func render(_ data: RenameReply) -> String {
@@ -437,7 +437,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_RenameReply) -> String {
-		return self.render(RenameReply(from: data))
+		return self.renderSingle(RenameReply(from: data))
 	}
 
 	public func render(_ data: VirtualMachineInfos) -> String {
@@ -474,20 +474,16 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		}
 	}
 
-	public func render(_ data: Caked_VirtualMachineInfoReply) -> String {
-		return self.render(VirtualMachineInfos(from: data.infos))
+	public func render(_ data: [Caked_VirtualMachineInfo]) -> String {
+		return self.render(VirtualMachineInfos(from: data))
 	}
 
 	public func render(_ data: [MountVirtioFS]) -> String {
 		return self.renderList(data)
 	}
 
-	public func render(_ data: MountInfos) -> String {
-		return self.render(data.mounts)
-	}
-
-	public func render(_ data: Caked_MountReply) -> String {
-		return self.render(data.mounts.map { MountVirtioFS(from: $0) })
+	public func render(_ data: [Caked_MountVirtioFSReply]) -> String {
+		return self.renderList(data.map { MountVirtioFS(from: $0) })
 	}
 
 	public func render(_ data: BridgedNetwork) -> String {
@@ -495,15 +491,15 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_NetworkInfo) -> String {
-		return self.render(BridgedNetwork(from: data))
+		return self.renderSingle(BridgedNetwork(from: data))
 	}
 
 	public func render(_ data: [BridgedNetwork]) -> String {
 		return self.renderList(data)
 	}
 
-	public func render(_ data: Caked_ListNetworksReply) -> String {
-		return self.render(data.networks.map { BridgedNetwork(from: $0) })
+	public func render(_ data: [Caked_NetworkInfo]) -> String {
+		return self.renderList(data.map { BridgedNetwork(from: $0) })
 	}
 
 	public func render(_ data: CreatedNetworkReply) -> String {
@@ -511,7 +507,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_CreatedNetworkReply) -> String {
-		return self.render(CreatedNetworkReply(from: data))
+		return self.renderSingle(CreatedNetworkReply(from: data))
 	}
 
 	public func render(_ data: ConfiguredNetworkReply) -> String {
@@ -519,7 +515,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_ConfiguredNetworkReply) -> String {
-		return self.render(ConfiguredNetworkReply(from: data))
+		return self.renderSingle(ConfiguredNetworkReply(from: data))
 	}
 
 	public func render(_ data: DeleteNetworkReply) -> String {
@@ -527,7 +523,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_DeleteNetworkReply) -> String {
-		return self.render(DeleteNetworkReply(from: data))
+		return self.renderSingle(DeleteNetworkReply(from: data))
 	}
 
 	public func render(_ data: StartedNetworkReply) -> String {
@@ -535,7 +531,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_StartedNetworkReply) -> String {
-		return self.render(StartedNetworkReply(from: data))
+		return self.renderSingle(StartedNetworkReply(from: data))
 	}
 
 	public func render(_ data: StoppedNetworkReply) -> String {
@@ -550,8 +546,8 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		return self.renderList(data)
 	}
 
-	public func render(_ data: Caked_ListRemoteReply) -> String {
-		return self.render(data.remotes.map { RemoteEntry(from: $0) })
+	public func render(_ data: [Caked_RemoteEntry]) -> String {
+		return self.render(data.map { RemoteEntry(from: $0) })
 	}
 
 	public func render(_ data: CreateRemoteReply) -> String {
@@ -559,7 +555,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_CreateRemoteReply) -> String {
-		return self.render(CreateRemoteReply(from: data))
+		return self.renderSingle(CreateRemoteReply(from: data))
 	}
 
 	public func render(_ data: DeleteRemoteReply) -> String {
@@ -567,7 +563,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 	}
 
 	public func render(_ data: Caked_DeleteRemoteReply) -> String {
-		return self.render(DeleteRemoteReply(from: data))
+		return self.renderSingle(DeleteRemoteReply(from: data))
 	}
 
 	public func render(_ data: CreateTemplateReply) -> String {

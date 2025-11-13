@@ -44,7 +44,7 @@ public class LinuxContainerImage: Codable {
 		self.description = from.description_p
 	}
 
-	public init(remoteName: String, fingerprint: String, alias: [String]?, description: String, path: URL, size: Int) {
+	public init(remoteName: String = "", fingerprint: String = "", alias: [String]? = nil, description: String = "", path: URL = URL(fileURLWithPath: "/dev/null"), size: Int = 0) {
 		self.alias = alias
 		self.path = path
 		self.size = size
@@ -53,7 +53,7 @@ public class LinuxContainerImage: Codable {
 		self.description = description
 	}
 
-	public func toCaked_PulledImageInfo() -> Caked_PulledImageInfo {
+	public var caked: Caked_PulledImageInfo {
 		Caked_PulledImageInfo.with { image in
 			image.alias = self.alias?.joined(separator: ",") ?? ""
 			image.path = self.path.absoluteURL.path
@@ -99,17 +99,17 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	}
 
 	public init(
-		aliases: Aliases,
-		architecture: String,
-		pub: Bool,
-		fileName: String,
-		fingerprint: String,
-		size: Int,
-		type: String,
-		created: String?,
-		expires: String?,
-		uploaded: String?,
-		properties: [String: String]
+		aliases: Aliases = [],
+		architecture: String = "",
+		pub: Bool = false,
+		fileName: String = "",
+		fingerprint: String = "",
+		size: Int = 0,
+		type: String = "",
+		created: String? = nil,
+		expires: String? = nil,
+		uploaded: String? = nil,
+		properties: [String: String] = [:]
 	) {
 		self.aliases = aliases
 		self.architecture = architecture
@@ -124,7 +124,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		self.properties = properties
 	}
 
-	public func toCaked_ImageInfo() -> Caked_ImageInfo {
+	public var caked: Caked_ImageInfo {
 		Caked_ImageInfo.with { image in
 			image.aliases = self.aliases
 			image.architecture = self.architecture
@@ -149,7 +149,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		}
 	}
 
-	public func toText() -> String {
+	public var text: String {
 		var text = "Fingerprint: \(fingerprint)\n"
 
 		text += "Size: \(Double(size) / 1024 / 1024)MiB\n"
@@ -257,5 +257,93 @@ public struct ShortLinuxContainerImage: Codable {
 		self.fingerprint = image.fingerprint.substring(..<12)
 		self.description = image.description
 		self.size = ByteCountFormatter.string(fromByteCount: Int64(image.size), countStyle: .file)
+	}
+}
+
+public struct ImageInfoReply: Codable {
+	public let info: ImageInfo
+	public let success: Bool
+	public let reason: String
+	
+	public init(info: ImageInfo, success: Bool, reason: String) {
+		self.info = info
+		self.success = success
+		self.reason = reason
+	}
+	
+	public init(from: Caked_ImageInfoReply) {
+		self.info = .init(from: from.info)
+		self.success = from.success
+		self.reason = from.reason
+	}
+	
+	public var caked: Caked_ImageInfoReply {
+		.with {
+			$0.success = self.success
+			$0.reason = self.reason
+			$0.info = self.info.caked
+		}
+	}
+}
+
+public struct ListImagesInfoReply: Codable {
+	public let infos: [ImageInfo]
+	public let success: Bool
+	public let reason: String
+	
+	public init(infos: [ImageInfo], success: Bool, reason: String) {
+		self.infos = infos
+		self.success = success
+		self.reason = reason
+	}
+	
+	public init(from: Caked_ListImagesInfoReply) {
+		self.success = from.success
+		self.reason = from.reason
+		self.infos = from.infos.map{
+			ImageInfo(from: $0)
+		}
+	}
+	
+	public var caked: Caked_ListImagesInfoReply {
+		.with {
+			$0.infos = self.infos.map(\.caked)
+			$0.success = self.success
+			$0.reason = self.reason
+		}
+	}
+}
+
+public struct PulledImageInfoReply: Codable {
+	public let info: LinuxContainerImage
+	public let success: Bool
+	public let reason: String
+	
+	public init(info: LinuxContainerImage, success: Bool, reason: String) {
+		self.info = info
+		self.success = success
+		self.reason = reason
+	}
+
+	public init(from: Caked_PulledImageInfoReply) {
+		self.info = .init(from: from.info)
+		self.success = from.success
+		self.reason = from.reason
+	}
+	
+	public var cached: Caked_PulledImageInfoReply {
+		.with {
+			$0.success = self.success
+			$0.reason = self.reason
+			$0.info = self.info.caked
+		}
+	}
+	
+	public var caked: Caked_PulledImageInfoReply {
+		.with {
+			$0.success = self.success
+			$0.reason = self.reason
+			$0.info = self.info.caked
+		}
 	}
 }

@@ -26,6 +26,12 @@ struct Delete: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.DeleteHandler.delete(all: self.delete.all, names: self.delete.names, runMode: self.common.runMode)))
+		let result = CakedLib.DeleteHandler.delete(all: self.delete.all, names: self.delete.names, runMode: self.common.runMode)
+
+		if result.success {
+			Logger.appendNewLine(self.common.format.render(result.objects))
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.reason))
+		}
 	}
 }

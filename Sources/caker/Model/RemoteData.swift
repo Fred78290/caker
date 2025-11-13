@@ -37,8 +37,10 @@ class RemoteData: ObservableObject, Observable {
 
 	@MainActor
 	func loadImages() async {
-		if let images = try? await ImageHandler.listImage(remote: self.name, runMode: .app) {
-			self.images = images
+		let result = await ImageHandler.listImage(remote: self.name, runMode: .app)
+		
+		if result.success {
+			self.images = result.infos
 		}
 	}
 }

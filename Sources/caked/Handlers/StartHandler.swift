@@ -48,9 +48,9 @@ struct StartHandler: CakedCommand {
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		return Caked_Reply.with { reply in
-			reply.vms = Caked_VirtualMachineReply.with {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		return Caked_Reply.with {
+			$0.vms = Caked_VirtualMachineReply.with {
 				$0.started = CakedLib.StartHandler.startVM(on: on, location: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode).caked
 			}
 		}

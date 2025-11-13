@@ -17,6 +17,12 @@ struct Stop: ParsableCommand {
 	}
 
 	func run() throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, runMode: self.common.runMode)))
+		let result = CakedLib.StopHandler.stopVMs(all: self.stop.all, names: self.stop.names, force: self.stop.force, runMode: self.common.runMode)
+
+		if result.success {
+			Logger.appendNewLine(self.common.format.render(result.objects))
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.reason))
+		}
 	}
 }

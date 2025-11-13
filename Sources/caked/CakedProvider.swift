@@ -9,12 +9,12 @@ import NIOPortForwarding
 import NIOPosix
 
 public protocol CakedCommand {
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply
 	func replyError(error: Error) -> Caked_Reply
 }
 
 public protocol CakedCommandAsync: CakedCommand {
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply>
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply>
 }
 
 extension CakedCommand {
@@ -33,8 +33,8 @@ extension CakedCommand {
 }
 
 extension CakedCommandAsync {
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
-		return try self.run(on: on, runMode: runMode).wait()
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		return try! self.run(on: on, runMode: runMode).wait()
 	}
 }
 
@@ -247,25 +247,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		Logger(self).debug("execute: \(command)")
 
-		do {
-			if var cmd = command as? CakedCommandAsync {
-				let future = try cmd.run(on: eventLoop, runMode: self.runMode)
-
-				return try future.wait()
-			} else {
-				return try command.run(on: eventLoop, runMode: self.runMode)
-			}
-		} catch {
-			return command.replyError(error: error)
-/*			return Caked_Reply.with { reply in
-				if let shellError = error as? ShellError {
-					reply.error = Caked_Error(code: shellError.terminationStatus, reason: shellError.error)
-				} else if let serviceError = error as? ServiceError {
-					reply.error = Caked_Error(code: serviceError.exitCode, reason: serviceError.description)
-				} else {
-					reply.error = Caked_Error(code: -1, reason: error.localizedDescription)
-				}
-			}*/
+		if var cmd = command as? CakedCommandAsync {
+			return try cmd.run(on: eventLoop, runMode: self.runMode).wait()
+		} else {
+			return command.run(on: eventLoop, runMode: self.runMode)
 		}
 	}
 

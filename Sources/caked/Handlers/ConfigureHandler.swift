@@ -7,9 +7,9 @@ import NIOCore
 struct ConfigureHandler: CakedCommandAsync, Sendable {
 	var options: ConfigureOptions
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
-		return Caked_Reply.with { reply in
-			reply.vms = Caked_VirtualMachineReply.with {
+	func replyError(error: any Error) -> Caked_Reply {
+		return Caked_Reply.with {
+			$0.vms = Caked_VirtualMachineReply.with {
 				$0.configured = .with {
 					$0.configured = false
 					$0.reason = "\(error)"
@@ -18,10 +18,10 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.submit {
-			return Caked_Reply.with { reply in
-				reply.vms = Caked_VirtualMachineReply.with {
+			return Caked_Reply.with {
+				$0.vms = Caked_VirtualMachineReply.with {
 					$0.configured = CakedLib.ConfigureHandler.configure(name: self.options.name, options: options, runMode: runMode).caked
 				}
 			}

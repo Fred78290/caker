@@ -6,53 +6,76 @@ import NIOCore
 struct ImageHandler: CakedCommandAsync {
 	var request: Caked_ImageRequest
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
-		return Caked_Reply.with {
-			$0.images = Caked_ImageReply.with {
-				$0.failed = "\(error)"
-			}
-		}
-	}
-	
-	func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
-		switch command {
-		case .info:
-			let result = try await CakedLib.ImageHandler.info(name: name, runMode: runMode)
+	func replyError(error: any Error) -> Caked_Reply {
+		let reply: Caked_ImageReply
 
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.infos = result.toCaked_ImageInfo()
+		switch request.command {
+		case .info:
+			reply = Caked_ImageReply.with {
+				$0.infos = .with {
+					$0.success = false
+					$0.reason = "\(error)"
 				}
 			}
 
 		case .pull:
-			let result = try await CakedLib.ImageHandler.pull(name: name, runMode: runMode)
-
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.pull = result.toCaked_PulledImageInfo()
+			reply = Caked_ImageReply.with {
+				$0.pull = .with {
+					$0.success = false
+					$0.reason = "\(error)"
 				}
 			}
 		case .list:
-			let result = try await CakedLib.ImageHandler.listImage(remote: name, runMode: runMode)
-
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.list = Caked_ListImagesInfoReply.with {
-						$0.infos = result.map {
-							$0.toCaked_ImageInfo()
-						}
-					}
+			reply = Caked_ImageReply.with {
+				$0.list = .with {
+					$0.success = false
+					$0.reason = "\(error)"
 				}
 			}
 		default:
-			throw ServiceError("Unknown command \(command)")
+			fatalError("Unknown command \(request.command)")
+		}
+
+		return Caked_Reply.with {
+			$0.images = reply
+		}
+	}
+	
+	func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async -> Caked_Reply {
+		let reply: Caked_ImageReply
+
+		switch command {
+		case .info:
+			let result = await CakedLib.ImageHandler.info(name: name, runMode: runMode)
+
+			reply = Caked_ImageReply.with {
+				$0.infos = result.caked
+			}
+
+		case .pull:
+			let result = await CakedLib.ImageHandler.pull(name: name, runMode: runMode)
+
+			reply = Caked_ImageReply.with {
+				$0.pull = result.caked
+			}
+		case .list:
+			let result = await CakedLib.ImageHandler.listImage(remote: name, runMode: runMode)
+
+			reply = Caked_ImageReply.with {
+				$0.list = result.caked
+			}
+		default:
+			fatalError("Unknown command \(command)")
+		}
+
+		return Caked_Reply.with {
+			$0.images = reply
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
-			try await self.execute(command: request.command, name: request.name, runMode: runMode)
+			await self.execute(command: request.command, name: request.name, runMode: runMode)
 		}
 	}
 }

@@ -338,7 +338,13 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)))
+			let result = CakedLib.NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)
+			
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.info))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 
@@ -609,7 +615,7 @@ struct Networks: ParsableCommand {
 
 		func run() throws {
 			if let pidFile {
-				Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
+				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(pidURL: URL(fileURLWithPath: pidFile), runMode: self.common.runMode)))
 			} else if let networkName {
 				Logger.appendNewLine(self.common.format.render(CakedLib.NetworksHandler.stop(networkName: networkName, runMode: self.common.runMode)))
 			} else {
@@ -629,7 +635,13 @@ struct Networks: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.NetworksHandler.networks(runMode: self.common.runMode)))
+			let result = CakedLib.NetworksHandler.networks(runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.networks))
+			} else {
+				Logger.appendNewLine(self.common.format.render(result.reason))
+			}
 		}
 	}
 }

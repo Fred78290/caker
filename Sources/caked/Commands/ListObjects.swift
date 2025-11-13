@@ -19,6 +19,12 @@ struct ListObjects: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(try CakedLib.ListHandler.list(vmonly: !all, runMode: self.common.runMode)))
+		let result = CakedLib.ListHandler.list(vmonly: !all, runMode: self.common.runMode)
+
+		if result.success {
+			Logger.appendNewLine(self.common.format.render(result.infos))
+		} else {
+			Logger.appendNewLine(self.common.format.render(result.reason))
+		}
 	}
 }

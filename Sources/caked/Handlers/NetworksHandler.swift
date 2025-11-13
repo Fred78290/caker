@@ -14,13 +14,13 @@ import vmnet
 struct NetworksHandler: CakedCommandAsync {
 	var request: Caked_NetworkRequest
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.networks = Caked_NetworksReply.with {
 				switch self.request.command {
 				case .infos:
-					$0.list = Caked_ListNetworksReply.with {
-						$0.reason = "\(error	)"
+					$0.list = .with {
+						$0.reason = "\(error)"
 					}
 				case .status:
 					$0.status = .with {
@@ -55,57 +55,19 @@ struct NetworksHandler: CakedCommandAsync {
 		}
 	}
 
-	private func networks(runMode: Utils.RunMode) -> Caked_ListNetworksReply {
-		do {
-			let networks = try CakedLib.NetworksHandler.networks(runMode: runMode)
-			
-			return Caked_ListNetworksReply.with {
-				$0.success = true
-				$0.reason = "Success"
-				$0.networks = networks.map {
-					$0.caked
-				}
-			}
-		}
-		catch {
-			return Caked_ListNetworksReply.with {
-				$0.success = false
-				$0.reason = "\(error)"
-			}
-		}
-	}
-
-	private func status(networkName: String, runMode: Utils.RunMode) -> Caked_NetworkInfoReply {
-		do {
-			let status = try CakedLib.NetworksHandler.status(networkName: self.request.name, runMode: runMode)
-
-			return Caked_NetworkInfoReply.with {
-				$0.success = false
-				$0.reason = "Success"
-				$0.info = status.caked
-			}
-
-		} catch {
-			return Caked_NetworkInfoReply.with {
-				$0.success = false
-				$0.reason = "\(error)"
-			}
-		}
-	}
-
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> EventLoopFuture<Caked_Reply> {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		on.submit {
 			let networkReply: Caked_NetworksReply
 
 			switch self.request.command {
 			case .infos:
 				networkReply = Caked_NetworksReply.with {
-					$0.list = self.networks(runMode: runMode)
+					$0.list = CakedLib.NetworksHandler.networks(runMode: runMode).caked
 				}
 
 			case .status:
 				networkReply = Caked_NetworksReply.with {
-					$0.status = self.status(networkName: self.request.name, runMode: runMode)
+					$0.status = CakedLib.NetworksHandler.status(networkName: self.request.name, runMode: runMode).caked
 				}
 
 			case .new:
@@ -130,7 +92,7 @@ struct NetworksHandler: CakedCommandAsync {
 					$0.configured = CakedLib.NetworksHandler.configure(network: self.request.configure.toUsedNetworkConfig(), runMode: runMode).caked
 				}
 			default:
-				throw ServiceError("Unknown command")
+				fatalError("Unknown command")
 			}
 
 			return Caked_Reply.with {

@@ -126,7 +126,7 @@ class VMRunService: NSObject {
 	func mount(request: Caked.MountRequest, umount: Bool) -> Caked_MountReply {
 		guard request.mounts.isEmpty == false else {
 			return Caked_MountReply.with {
-				$0.mounted = false
+				$0.success = false
 				$0.mounts = []
 				$0.reason = "No mounts specified"
 			}
@@ -138,14 +138,14 @@ class VMRunService: NSObject {
 			if config.os == .darwin {
 				guard try vm.mountShares(config: config) else {
 					return Caked_MountReply.with {
-						$0.mounted = false
+						$0.success = false
 						$0.mounts = []
 						$0.reason = "No shared devices"
 					}
 				}
 
 				return Caked_MountReply.with {
-					$0.mounted = true
+					$0.success = true
 					$0.reason = ""
 					$0.mounts = request.mounts.map { mount in
 						.with {
@@ -189,7 +189,7 @@ class VMRunService: NSObject {
 
 			return Caked_MountReply.with {
 				if case let .error(value) = reply.response {
-					$0.mounted = false
+					$0.success = false
 					$0.reason = value
 					$0.mounts = request.mounts.map { mount in
 						.with {
@@ -198,7 +198,7 @@ class VMRunService: NSObject {
 						}
 					}
 				} else {
-					$0.mounted = true
+					$0.success = true
 					$0.reason = "Success"
 					$0.mounts = request.mounts.map { mount in
 						.with {
@@ -210,7 +210,7 @@ class VMRunService: NSObject {
 			}
 		} catch {
 			return Caked_MountReply.with {
-				$0.mounted = false
+				$0.success = false
 				$0.reason = "\(error)"
 				$0.mounts = request.mounts.map { mount in
 					.with {

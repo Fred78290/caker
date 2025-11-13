@@ -116,35 +116,43 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	static func loadNetworks() -> [BridgedNetwork] {
-		if let networks = try? NetworksHandler.networks(runMode: .app) {
-			return networks.sorted(using: BridgedNetworkComparator())
+		let result = NetworksHandler.networks(runMode: .app)
+		
+		if result.success {
+			return result.networks.sorted(using: BridgedNetworkComparator())
 		}
 		
 		return []
 	}
 	
 	static func loadRemotes() -> [RemoteEntry] {
-		if let remotes = try? RemoteHandler.listRemote(runMode: .app) {
-			return remotes.sorted(using: RemoteHandlerComparator())
+		let result = RemoteHandler.listRemote(runMode: .app)
+
+		if result.success {
+			return result.remotes.sorted(using: RemoteHandlerComparator())
 		}
+
 		return []
 	}
 	
 	static func loadTemplates() -> [TemplateEntry] {
-		if let templates = try? TemplateHandler.listTemplate(runMode: .app) {
-			return templates.sorted(using: TemplateEntryComparator())
+		let result = TemplateHandler.listTemplate(runMode: .app)
+
+		if result.success {
+			return result.templates.sorted(using: TemplateEntryComparator())
 		}
 		
 		return []
 	}
 	
 	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument]) {
-		var result: [URL: VirtualMachineDocument] = [:]
-		
-		if let vms = try? ListHandler.list(vmonly: true, runMode: .app) {
+		let result = ListHandler.list(vmonly: true, runMode: .app)
+		var vms: [URL: VirtualMachineDocument] = [:]
+				
+		if result.success {
 			let storage = StorageLocation(runMode: .app)
 			
-			vms.compactMap {
+			result.infos.compactMap {
 				if let location = try? storage.find($0.name) {
 					return location
 				}
@@ -152,12 +160,12 @@ class AppState: ObservableObject, Observable {
 				return nil
 			}.forEach { location in
 				if let vm = try? VirtualMachineDocument(location: location) {
-					result[location.rootURL] = vm
+					vms[location.rootURL] = vm
 				}
 			}
 		}
 		
-		return result
+		return vms
 	}
 	
 	func reloadNetworks() {

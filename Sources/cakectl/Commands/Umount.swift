@@ -17,6 +17,12 @@ struct Umount: GrpcParsableCommand {
 	var format: Format = .text
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.umount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().mounts)
+		let result = try client.umount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().mounts
+		
+		if result.success {
+			return self.format.render(result.mounts)
+		} else {
+			return self.format.render(result.reason)
+		}
 	}
 }

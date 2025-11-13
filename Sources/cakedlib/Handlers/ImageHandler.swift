@@ -88,75 +88,83 @@ public struct ImageHandler {
 		return try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 	}
 
-	public static func listImage(remote: String, runMode: Utils.RunMode) async throws -> [ImageInfo] {
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
-		let images = try await simpleStream.GetImages(runMode: runMode)
-		var result: [ImageInfo] = []
-
-		images.forEach { product in
-			if let image = product.latest() {
-				result.append(ImageInfo(product: product, imageVersion: image.1))
+	public static func listImage(remote: String, runMode: Utils.RunMode) async -> ListImagesInfoReply {
+		do {
+			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+			let images = try await simpleStream.GetImages(runMode: runMode)
+			var result: [ImageInfo] = []
+			
+			images.forEach { product in
+				if let image = product.latest() {
+					result.append(ImageInfo(product: product, imageVersion: image.1))
+				}
 			}
+			
+			return ListImagesInfoReply(infos: result, success: true, reason: "Success")
+		} catch {
+			return ListImagesInfoReply(infos: [], success: false, reason: "\(error)")
 		}
-
-		return result
 	}
 
-	public static func info(name: String, runMode: Utils.RunMode) async throws -> ImageInfo {
-		let split = name.components(separatedBy: ":")
-		let remote = split.count > 1 ? split[0] : ""
-		let imageAlias = split.count > 1 ? split[1] : split[0]
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
-		let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
-
-		return try ImageInfo(product: product)
+	public static func info(name: String, runMode: Utils.RunMode) async -> ImageInfoReply {
+		do {
+			let split = name.components(separatedBy: ":")
+			let remote = split.count > 1 ? split[0] : ""
+			let imageAlias = split.count > 1 ? split[1] : split[0]
+			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+			let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
+			
+			return ImageInfoReply(info: try ImageInfo(product: product), success: true, reason: "Success")
+		} catch {
+			return ImageInfoReply(info: .init(), success: false, reason: "\(error)")
+		}
 	}
 
-	public static func pull(name: String, runMode: Utils.RunMode) async throws -> LinuxContainerImage {
-		let split = name.components(separatedBy: ":")
-		let remote = split.count > 1 ? split[0] : ""
-		let imageAlias = split.count > 1 ? split[1] : split[0]
-		let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
-		let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
-
-		try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: ProgressObserver.progressHandler)
-
-		return image
+	public static func pull(name: String, runMode: Utils.RunMode) async -> PulledImageInfoReply {
+		do {
+			let split = name.components(separatedBy: ":")
+			let remote = split.count > 1 ? split[0] : ""
+			let imageAlias = split.count > 1 ? split[1] : split[0]
+			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
+			
+			try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+			
+			return PulledImageInfoReply(info: image, success: true, reason: "Success")
+		} catch {
+			return PulledImageInfoReply(info: LinuxContainerImage(), success: false, reason: "\(error)")
+		}
 	}
 
 	static func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async throws -> Caked_Reply {
+		let reply: Caked_ImageReply
+
 		switch command {
 		case .info:
-			let result = try await ImageHandler.info(name: name, runMode: runMode)
+			let result = await ImageHandler.info(name: name, runMode: runMode)
 
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.infos = result.toCaked_ImageInfo()
-				}
+			reply = Caked_ImageReply.with {
+				$0.infos = result.caked
 			}
 
 		case .pull:
-			let result = try await ImageHandler.pull(name: name, runMode: runMode)
+			let result = await ImageHandler.pull(name: name, runMode: runMode)
 
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.pull = result.toCaked_PulledImageInfo()
-				}
+			reply = Caked_ImageReply.with {
+				$0.pull = result.caked
 			}
 		case .list:
-			let result = try await ImageHandler.listImage(remote: name, runMode: runMode)
+			let result = await ImageHandler.listImage(remote: name, runMode: runMode)
 
-			return Caked_Reply.with {
-				$0.images = Caked_ImageReply.with {
-					$0.list = Caked_ListImagesInfoReply.with {
-						$0.infos = result.map {
-							$0.toCaked_ImageInfo()
-						}
-					}
-				}
+			reply = Caked_ImageReply.with {
+				$0.list = result.caked
 			}
 		default:
 			throw ServiceError("Unknown command \(command)")
+		}
+
+		return Caked_Reply.with {
+			$0.images = reply
 		}
 	}
 }

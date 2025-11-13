@@ -189,7 +189,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		if let process {
 			if process.isRunning {
 				if geteuid() != 0 {
-					_ = try? NetworksHandler.stop(pidURL: self.pidURL!, runMode: runMode)
+					_ = NetworksHandler.stop(pidURL: self.pidURL!, runMode: runMode)
 				} else {
 					// Otherwise, we can just kill the process directly
 					kill(process.processIdentifier, SIGTERM)

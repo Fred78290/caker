@@ -124,16 +124,21 @@ public struct TemplateHandler {
 		return storage.exists(name)
 	}
 
-	public static func listTemplate(runMode: Utils.RunMode) throws -> [TemplateEntry] {
+	public static func listTemplate(runMode: Utils.RunMode) -> ListTemplateReply {
 		let storage = StorageLocation(runMode: runMode, template: true)
 
-		return try storage.list().map { (key: String, value: VMLocation) in
-			return TemplateEntry(
-				name: key,
-				fqn: "template://\(key)",
-				diskSize: try value.diskSize(),
-				totalSize: try value.allocatedSize()
-			)
+		do {
+			return ListTemplateReply(templates: try storage.list().map { (key: String, value: VMLocation) in
+				return TemplateEntry(
+					name: key,
+					fqn: "template://\(key)",
+					diskSize: try value.diskSize(),
+					totalSize: try value.allocatedSize()
+				)
+			}, success: true, reason: "Success")
+
+		} catch {
+			return ListTemplateReply(templates: [], success: false, reason: "\(error)")
 		}
 	}
 }

@@ -6,7 +6,7 @@ import NIOCore
 struct RemoteHandler: CakedCommand {
 	var request: Caked_RemoteRequest
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		switch request.command {
 		case .list:
 			return Caked_Reply.with {
@@ -40,7 +40,7 @@ struct RemoteHandler: CakedCommand {
 		}
 	}
 	
-	func run(on: EventLoop, runMode: Utils.RunMode) throws -> Caked_Reply {
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		let reply: Caked_RemoteReply
 
 		switch request.command {
@@ -57,7 +57,7 @@ struct RemoteHandler: CakedCommand {
 				$0.deleted = CakedLib.RemoteHandler.deleteRemote(name: request.deleteRequest, runMode: runMode).caked
 			}
 		default:
-			throw ServiceError("Unknown command \(request.command)")
+			fatalError("Unknown command \(request.command)")
 		}
 
 		return Caked_Reply.with {

@@ -40,7 +40,7 @@ let package = Package(
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
 		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
-		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.25.0"),
+		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.26.0"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),
@@ -54,7 +54,8 @@ let package = Package(
 		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0"),
-		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857")
+		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
+		.package(url: "https://github.com/apple/containerization", exact: "0.13.0"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
@@ -108,7 +109,8 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
 			.product(name: "Multipart", package: "multipart"),
-		],
+			.product(name: "ContainerizationOCI", package: "containerization"),
+			],
 		path: "Sources/cakedlib",
 		exclude: [
 			"VMRunService/GRPC/generate.sh",

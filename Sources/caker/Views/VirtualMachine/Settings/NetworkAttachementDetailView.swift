@@ -11,7 +11,7 @@ import SwiftUI
 import Virtualization
 
 struct NetworkAttachementDetailView: View {
-	private let names: [String] = try! NetworksHandler.networks(runMode: .app).map { $0.name }
+	private let names: [String] = Self.networks.map { $0.name }
 
 	private class BridgeAttachementModel: ObservableObject, Observable {
 		@Published var network: String
@@ -28,6 +28,16 @@ struct NetworkAttachementDetailView: View {
 	@Binding private var currentItem: BridgeAttachement
 	@StateObject private var model: BridgeAttachementModel
 	private var readOnly: Bool
+
+	static var networks: [BridgedNetwork] {
+		let result = NetworksHandler.networks(runMode: .app)
+
+		if result.success {
+			return result.networks
+		}
+		
+		return []
+	}
 
 	init(currentItem: Binding<BridgeAttachement>, readOnly: Bool = true) {
 		_currentItem = currentItem

@@ -50,19 +50,24 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async throws {
+	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
 		let result = startVM(on: on.next(), name: self.execute.name, waitIPTimeout: self.execute.waitIPTimeout, foreground: self.execute.foreground, runMode: self.common.runMode)
 
 		if result.started {
 			var arguments = self.execute.arguments
 			let command = arguments.remove(at: 0)
-			let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
 			
-			if exitCode != 0 {
-				throw CakedLib.ExitCode(exitCode)
+			do {
+				let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
+				
+				if exitCode != 0 {
+					throw CakedLib.ExitCode(exitCode)
+				}
+			} catch {
+				Logger.appendNewLine(self.common.format.render("\(error)"))
 			}
 		} else {
-			throw ServiceError(result.reason)
+			Logger.appendNewLine(self.common.format.render(result.reason))
 		}
 	}
 }
