@@ -926,7 +926,7 @@ public struct NetworksHandler {
 				$0 < $1
 			}
 
-			return ListNetworksReply(networks: [], success: false, reason: "Success")
+			return ListNetworksReply(networks: networks, success: true, reason: "Success")
 		} catch {
 			return ListNetworksReply(networks: [], success: false, reason: "\(error)")
 		}
