@@ -42,11 +42,15 @@ public struct RemoteHandler {
 		}
 	}
 
-	public static func listRemote(runMode: Utils.RunMode) throws -> [RemoteEntry] {
-		let remoteDb = try Home(runMode: runMode).remoteDatabase()
+	public static func listRemote(runMode: Utils.RunMode) -> ListRemoteReply {
+		do {
+			let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
-		return try remoteDb.map { (key: String, value: String) in
-			RemoteEntry(name: key, url: value)
+			return ListRemoteReply(remotes: try remoteDb.map { (key: String, value: String) in
+				RemoteEntry(name: key, url: value)
+			}, success: true, reason: "Success")
+		} catch {
+			return ListRemoteReply(remotes: [], success: false ,reason: "\(error)")
 		}
 	}
 }

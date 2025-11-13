@@ -42,6 +42,8 @@ public typealias Caked_ConfiguredNetworkReply = Caked.Reply.NetworksReply.Config
 public typealias Caked_CreatedNetworkReply = Caked.Reply.NetworksReply.CreatedNetworkReply
 public typealias Caked_StartedNetworkReply = Caked.Reply.NetworksReply.StartedNetworkReply
 public typealias Caked_StoppedNetworkReply = Caked.Reply.NetworksReply.StoppedNetworkReply
+public typealias Caked_NetworkInfoReply = Caked.Reply.NetworksReply.NetworkInfoReply
+
 
 public typealias Caked_RemoteReply = Caked.Reply.RemoteReply
 public typealias Caked_ListRemoteReply = Caked.Reply.RemoteReply.ListRemoteReply

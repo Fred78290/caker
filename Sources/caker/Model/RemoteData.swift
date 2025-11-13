@@ -20,7 +20,14 @@ class RemoteData: ObservableObject, Observable {
 	}
 
 	convenience init(remote: String) {
-		guard let entry = try? RemoteHandler.listRemote(runMode: .app).first(where: { $0.name == remote }) else {
+		let remotes = RemoteHandler.listRemote(runMode: .app)
+
+		guard remotes.success else {
+			self.init(name: remote, url: "")
+			return
+		}
+
+		guard let entry = remotes.remotes.first(where: { $0.name == remote }) else {
 			self.init(name: remote, url: "")
 			return
 		}

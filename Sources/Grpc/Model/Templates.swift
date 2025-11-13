@@ -35,7 +35,7 @@ public struct TemplateEntry: Codable, Identifiable, Hashable {
 		self.totalSize = Int(from.totalSize)
 	}
 
-	public func toCaked_TemplateEntry() -> Caked_TemplateEntry {
+	public var caked: Caked_TemplateEntry {
 		Caked_TemplateEntry.with {
 			$0.name = self.name
 			$0.fqn = self.fqn
@@ -83,7 +83,7 @@ public struct CreateTemplateReply: Codable, Hashable {
 		self.reason = from.reason
 	}
 
-	public func toCaked_CreateTemplateReply() -> Caked_CreateTemplateReply {
+	public var caked: Caked_CreateTemplateReply {
 		Caked_CreateTemplateReply.with {
 			$0.name = self.name
 			$0.created = self.created
@@ -99,6 +99,14 @@ public struct DeleteTemplateReply: Codable {
 	public let name: String
 	public let deleted: Bool
 	public let reason: String
+
+	public var caked: Caked_DeleteTemplateReply {
+		Caked_DeleteTemplateReply.with {
+			$0.name = self.name
+			$0.deleted = self.deleted
+			$0.reason = self.reason
+		}
+	}
 
 	public init(name: String, deleted: Bool, reason: String) {
 		self.name = name

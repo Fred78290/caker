@@ -27,7 +27,7 @@ public struct RemoteEntry: Identifiable, Equatable, Hashable, Codable {
 		self.url = from.url
 	}
 
-	public func toCaked_RemoteEntry() -> Caked_RemoteEntry {
+	public var caked: Caked_RemoteEntry {
 		Caked_RemoteEntry.with {
 			$0.name = name
 			$0.url = url
@@ -86,3 +86,31 @@ public struct DeleteRemoteReply: Codable {
 		self.reason = from.reason
 	}
 }
+
+public struct ListRemoteReply: Codable {
+	public let remotes: [RemoteEntry]
+	public let success: Bool
+	public let reason: String
+
+	public var caked: Caked_ListRemoteReply {
+		Caked_ListRemoteReply.with {
+			$0.success = self.success
+			$0.reason = self.reason
+			$0.remotes = self.remotes.map(\.caked)
+		}
+	}
+
+	public init(remotes: [RemoteEntry], success: Bool, reason: String) {
+		self.remotes = remotes
+		self.success = success
+		self.reason = reason
+	}
+
+	public init(from: Caked_ListRemoteReply) {
+		self.remotes = from.remotes.map { .init(from: $0) }
+		self.success = from.success
+		self.reason = from.reason
+	}
+}
+
+

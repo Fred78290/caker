@@ -59,7 +59,13 @@ struct Remote: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(try CakedLib.RemoteHandler.listRemote(runMode: self.common.runMode)))
+			let result = CakedLib.RemoteHandler.listRemote(runMode: self.common.runMode)
+
+			if result.success {
+				Logger.appendNewLine(self.common.format.render(result.remotes))
+			} else {
+				Logger.appendNewLine(result.reason)
+			}
 		}
 	}
 }

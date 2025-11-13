@@ -29,7 +29,13 @@ struct Networks: ParsableCommand {
 		var name: String = "shared"
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-			return self.format.render(try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.status)
+			let status = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.status
+			
+			if status.success {
+				return self.format.render(status.info)
+			} else {
+				throw GrpcError(code: 1, reason: status.reason)
+			}
 		}
 	}
 

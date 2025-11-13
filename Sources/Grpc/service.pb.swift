@@ -2631,6 +2631,17 @@ public struct Caked_Caked: Sendable {
 
         public var remotes: [Caked_Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry] = []
 
+        public var success: Bool = false
+
+        public var reason: String {
+          get {return _reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {return self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public struct RemoteEntry: Sendable {
@@ -2648,6 +2659,8 @@ public struct Caked_Caked: Sendable {
         }
 
         public init() {}
+
+        fileprivate var _reason: String? = nil
       }
 
       public struct DeleteRemoteReply: Sendable {
@@ -2750,6 +2763,17 @@ public struct Caked_Caked: Sendable {
 
         public var templates: [Caked_Caked.Reply.TemplateReply.ListTemplatesReply.TemplateEntry] = []
 
+        public var success: Bool = false
+
+        public var reason: String {
+          get {return _reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {return self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public struct TemplateEntry: Sendable {
@@ -2771,6 +2795,8 @@ public struct Caked_Caked: Sendable {
         }
 
         public init() {}
+
+        fileprivate var _reason: String? = nil
       }
 
       public struct CreateTemplateReply: Sendable {
@@ -7777,7 +7803,7 @@ extension Caked_Caked.Reply.RemoteReply: SwiftProtobuf.Message, SwiftProtobuf._M
 
 extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.RemoteReply.protoMessageName + ".ListRemoteReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}remotes\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}remotes\0\u{1}success\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7786,20 +7812,34 @@ extension Caked_Caked.Reply.RemoteReply.ListRemoteReply: SwiftProtobuf.Message, 
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.remotes) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.remotes.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.remotes, fieldNumber: 1)
     }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.Reply.RemoteReply.ListRemoteReply, rhs: Caked_Caked.Reply.RemoteReply.ListRemoteReply) -> Bool {
     if lhs.remotes != rhs.remotes {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -8014,7 +8054,7 @@ extension Caked_Caked.Reply.TemplateReply: SwiftProtobuf.Message, SwiftProtobuf.
 
 extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.TemplateReply.protoMessageName + ".ListTemplatesReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}templates\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}templates\0\u{1}success\0\u{1}reason\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -8023,20 +8063,34 @@ extension Caked_Caked.Reply.TemplateReply.ListTemplatesReply: SwiftProtobuf.Mess
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedMessageField(value: &self.templates) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.templates.isEmpty {
       try visitor.visitRepeatedMessageField(value: self.templates, fieldNumber: 1)
     }
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.Reply.TemplateReply.ListTemplatesReply, rhs: Caked_Caked.Reply.TemplateReply.ListTemplatesReply) -> Bool {
     if lhs.templates != rhs.templates {return false}
+    if lhs.success != rhs.success {return false}
+    if lhs._reason != rhs._reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

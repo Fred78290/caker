@@ -72,7 +72,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.endpoint = from.endpoint
 	}
 
-	public func toCaked_NetworkInfo() -> Caked_NetworkInfo {
+	public var caked: Caked_NetworkInfo {
 		Caked_NetworkInfo.with {
 			$0.name = self.name
 			$0.mode = self.mode.rawValue

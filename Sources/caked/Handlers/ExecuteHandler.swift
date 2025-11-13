@@ -13,6 +13,11 @@ import GRPCLib
 import NIO
 
 struct ExecuteHandler: CakedCommandAsync {
+	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+		return Caked_Reply.with { _ in
+		}
+	}
+	
 	let requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>
 	let responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>
 	let vmname: String

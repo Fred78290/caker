@@ -921,7 +921,7 @@ public struct NetworksHandler {
 			$0 < $1
 		}
 	}
-
+	
 	public static func status(networkName: String, runMode: Utils.RunMode) throws -> BridgedNetwork {
 		if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
 			let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)

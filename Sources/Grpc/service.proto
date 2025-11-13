@@ -563,6 +563,8 @@ message Caked {
 				}
 			
 				repeated RemoteEntry remotes = 1;
+				bool success = 2;
+				optional string reason = 3;
 			}
 			
 			message DeleteRemoteReply {
@@ -594,6 +596,8 @@ message Caked {
 				}
 		
 				repeated TemplateEntry templates = 1;
+				bool success = 2;
+				optional string reason = 3;
 			}
 			
 			message CreateTemplateReply {
