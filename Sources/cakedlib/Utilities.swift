@@ -390,7 +390,8 @@ extension Socket {
 
 public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-
+	public static let keychainID = "com.aldunelabs.caker"
+	
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
