@@ -15,32 +15,7 @@ import UniformTypeIdentifiers
 typealias OptionalVMLocation = VMLocation?
 
 enum OSCloudImage: Int, CaseIterable {
-	/*static var allCases: [String] = [
-		"Ubuntu 25.04",
-		"Ubuntu 24.04",
-		"Ubuntu 22.04",
-		"Ubuntu 20.04",
-	
-		"CentOS 10",
-		"CentOS 9",
-	
-		"Fedora 42",
-		"Fedora 41",
-		"Fedora 40",
-	
-		"Debian 12",
-		"Debian 11",
-		"Debian 10",
-	
-		"OpenSUSE 156",
-		"OpenSUSE 155",
-		"OpenSUSE 154",
-	
-		"Alpine 3.22",
-		"Alpine 3.21",
-		"Alpine 3.20",
-	]*/
-
+	case ubuntu2604LTS
 	case ubuntu2504LTS
 	case ubuntu2404LTS
 	case ubuntu2204LTS
@@ -67,6 +42,7 @@ enum OSCloudImage: Int, CaseIterable {
 
 	var stringValue: String {
 		switch self {
+		case .ubuntu2604LTS: return "Ubuntu 26.04 LTS"
 		case .ubuntu2504LTS: return "Ubuntu 25.04 LTS"
 		case .ubuntu2404LTS: return "Ubuntu 24.04 LTS"
 		case .ubuntu2204LTS: return "Ubuntu 22.04 LTS"
@@ -96,7 +72,7 @@ enum OSCloudImage: Int, CaseIterable {
 	var arch: String {
 		#if arch(arm64)
 			switch self {
-			case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
 				return "arm64"
 
 			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
@@ -104,7 +80,7 @@ enum OSCloudImage: Int, CaseIterable {
 			}
 		#elseif arch(x86_64)
 			switch self {
-			case .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
+			case .ubuntu2604LTS, .ubuntu2504LTS, .ubuntu2404LTS, .ubuntu2204LTS, .ubuntu2004LTS, .debian12, .debian11, .debian10:
 				return "amd64"
 
 			case .centos10, .centos9, .fedora42, .fedora41, .fedora40, .openSUSE156, .openSUSE155, .openSUSE154, .alpine322, .alpine321, .alpine320:
@@ -115,6 +91,7 @@ enum OSCloudImage: Int, CaseIterable {
 
 	var url: URL {
 		switch self {
+		case .ubuntu2604LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/resolute/release/ubuntu-26.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
 		case .ubuntu2504LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/plucky/release/ubuntu-25.04-server-cloudimg-\(self.arch).img")!  // amd64|arm64
 		case .ubuntu2404LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-\(self.arch).img")!
 		case .ubuntu2204LTS: return URL(string: "https://cloud-images.ubuntu.com/releases/jammy/release/ubuntu-22.04-server-cloudimg-\(self.arch).img")!
