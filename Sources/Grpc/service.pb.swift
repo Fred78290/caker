@@ -1108,12 +1108,12 @@ public struct Caked_Caked: Sendable {
       set {response = .mounts(newValue)}
     }
 
-    public var tart: Caked_Caked.Reply.TartReply {
+    public var oci: Caked_Caked.Reply.OCIReply {
       get {
-        if case .tart(let v)? = response {return v}
-        return Caked_Caked.Reply.TartReply()
+        if case .oci(let v)? = response {return v}
+        return Caked_Caked.Reply.OCIReply()
       }
-      set {response = .tart(newValue)}
+      set {response = .oci(newValue)}
     }
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
@@ -1126,7 +1126,7 @@ public struct Caked_Caked: Sendable {
       case templates(Caked_Caked.Reply.TemplateReply)
       case run(Caked_Caked.Reply.RunReply)
       case mounts(Caked_Caked.Reply.MountReply)
-      case tart(Caked_Caked.Reply.TartReply)
+      case oci(Caked_Caked.Reply.OCIReply)
 
     }
 
@@ -3019,14 +3019,110 @@ public struct Caked_Caked: Sendable {
       fileprivate var _reason: String? = nil
     }
 
-    public struct TartReply: Sendable {
+    public struct OCIReply: Sendable {
       // SwiftProtobuf.Message conformance is added in an extension below. See the
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
 
-      public var message: String = String()
+      public var response: Caked_Caked.Reply.OCIReply.OneOf_Response? = nil
+
+      public var login: Caked_Caked.Reply.OCIReply.LoginReply {
+        get {
+          if case .login(let v)? = response {return v}
+          return Caked_Caked.Reply.OCIReply.LoginReply()
+        }
+        set {response = .login(newValue)}
+      }
+
+      public var logout: Caked_Caked.Reply.OCIReply.LogoutReply {
+        get {
+          if case .logout(let v)? = response {return v}
+          return Caked_Caked.Reply.OCIReply.LogoutReply()
+        }
+        set {response = .logout(newValue)}
+      }
+
+      public var pull: Caked_Caked.Reply.OCIReply.PullReply {
+        get {
+          if case .pull(let v)? = response {return v}
+          return Caked_Caked.Reply.OCIReply.PullReply()
+        }
+        set {response = .pull(newValue)}
+      }
+
+      public var push: Caked_Caked.Reply.OCIReply.PushReply {
+        get {
+          if case .push(let v)? = response {return v}
+          return Caked_Caked.Reply.OCIReply.PushReply()
+        }
+        set {response = .push(newValue)}
+      }
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+      public enum OneOf_Response: Equatable, Sendable {
+        case login(Caked_Caked.Reply.OCIReply.LoginReply)
+        case logout(Caked_Caked.Reply.OCIReply.LogoutReply)
+        case pull(Caked_Caked.Reply.OCIReply.PullReply)
+        case push(Caked_Caked.Reply.OCIReply.PushReply)
+
+      }
+
+      public struct PullReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var message: String = String()
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public struct PushReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var message: String = String()
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public struct LoginReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var message: String = String()
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public struct LogoutReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var message: String = String()
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
 
       public init() {}
     }
@@ -3439,20 +3535,6 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct CakedCommandRequest: Sendable {
-    // SwiftProtobuf.Message conformance is added in an extension below. See the
-    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-    // methods supported on all messages.
-
-    public var command: String = String()
-
-    public var arguments: [String] = []
-
-    public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-    public init() {}
-  }
-
   public struct PurgeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -3504,12 +3586,36 @@ public struct Caked_Caked: Sendable {
     fileprivate var _gc: Bool? = nil
   }
 
-  public struct LogoutRequest: Sendable {
+  public struct PushRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
-    public var host: String = String()
+    public var localName: String = String()
+
+    public var remoteNames: [String] = []
+
+    public var insecure: Bool = false
+
+    public var chunkSize: Int32 = 0
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
+  public struct PullRequest: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var name: String = String()
+
+    public var image: String = String()
+
+    public var insecure: Bool = false
+
+    public var deduplicate: Bool = false
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3530,6 +3636,18 @@ public struct Caked_Caked: Sendable {
     public var insecure: Bool = false
 
     public var noValidate: Bool = false
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
+  public struct LogoutRequest: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var host: String = String()
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -5180,7 +5298,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}tart\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5280,16 +5398,16 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
         }
       }()
       case 8: try {
-        var v: Caked_Caked.Reply.TartReply?
+        var v: Caked_Caked.Reply.OCIReply?
         var hadOneofValue = false
         if let current = self.response {
           hadOneofValue = true
-          if case .tart(let m) = current {v = m}
+          if case .oci(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.response = .tart(v)
+          self.response = .oci(v)
         }
       }()
       default: break
@@ -5331,8 +5449,8 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
       guard case .mounts(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
-    case .tart?: try {
-      guard case .tart(let v)? = self.response else { preconditionFailure() }
+    case .oci?: try {
+      guard case .oci(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     }()
     case nil: break
@@ -8585,9 +8703,9 @@ extension Caked_Caked.Reply.MountReply.MountVirtioFSReply: SwiftProtobuf.Message
   }
 }
 
-extension Caked_Caked.Reply.TartReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".TartReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}message\0")
+extension Caked_Caked.Reply.OCIReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".OCIReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}login\0\u{1}logout\0\u{1}pull\0\u{1}push\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -8595,20 +8713,231 @@ extension Caked_Caked.Reply.TartReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      case 1: try {
+        var v: Caked_Caked.Reply.OCIReply.LoginReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .login(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .login(v)
+        }
+      }()
+      case 2: try {
+        var v: Caked_Caked.Reply.OCIReply.LogoutReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .logout(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .logout(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.Reply.OCIReply.PullReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .pull(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .pull(v)
+        }
+      }()
+      case 4: try {
+        var v: Caked_Caked.Reply.OCIReply.PushReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .push(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .push(v)
+        }
+      }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.message.isEmpty {
-      try visitor.visitSingularStringField(value: self.message, fieldNumber: 1)
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.response {
+    case .login?: try {
+      guard case .login(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .logout?: try {
+      guard case .logout(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    }()
+    case .pull?: try {
+      guard case .pull(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .push?: try {
+      guard case .push(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Caked_Caked.Reply.TartReply, rhs: Caked_Caked.Reply.TartReply) -> Bool {
+  public static func ==(lhs: Caked_Caked.Reply.OCIReply, rhs: Caked_Caked.Reply.OCIReply) -> Bool {
+    if lhs.response != rhs.response {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".PullReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    if !self.message.isEmpty {
+      try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.OCIReply.PullReply, rhs: Caked_Caked.Reply.OCIReply.PullReply) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.OCIReply.PushReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".PushReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    if !self.message.isEmpty {
+      try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.OCIReply.PushReply, rhs: Caked_Caked.Reply.OCIReply.PushReply) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.OCIReply.LoginReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".LoginReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    if !self.message.isEmpty {
+      try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.OCIReply.LoginReply, rhs: Caked_Caked.Reply.OCIReply.LoginReply) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.OCIReply.LogoutReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".LogoutReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    if !self.message.isEmpty {
+      try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.OCIReply.LogoutReply, rhs: Caked_Caked.Reply.OCIReply.LogoutReply) -> Bool {
+    if lhs.success != rhs.success {return false}
     if lhs.message != rhs.message {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -8985,41 +9314,6 @@ extension Caked_Caked.RemoteRequest.RemoteRequestAdd: SwiftProtobuf.Message, Swi
   }
 }
 
-extension Caked_Caked.CakedCommandRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CakedCommandRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}command\0\u{1}arguments\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.command) }()
-      case 2: try { try decoder.decodeRepeatedStringField(value: &self.arguments) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.command.isEmpty {
-      try visitor.visitSingularStringField(value: self.command, fieldNumber: 1)
-    }
-    if !self.arguments.isEmpty {
-      try visitor.visitRepeatedStringField(value: self.arguments, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Caked_Caked.CakedCommandRequest, rhs: Caked_Caked.CakedCommandRequest) -> Bool {
-    if lhs.command != rhs.command {return false}
-    if lhs.arguments != rhs.arguments {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PurgeRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}entries\0\u{1}olderThan\0\u{1}spaceBudget\0\u{2}\u{2}gc\0")
@@ -9069,9 +9363,9 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 }
 
-extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LogoutRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0")
+extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PushRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9079,21 +9373,81 @@ extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._Messa
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.host) }()
+      case 1: try { try decoder.decodeSingularStringField(value: &self.localName) }()
+      case 2: try { try decoder.decodeRepeatedStringField(value: &self.remoteNames) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.chunkSize) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.host.isEmpty {
-      try visitor.visitSingularStringField(value: self.host, fieldNumber: 1)
+    if !self.localName.isEmpty {
+      try visitor.visitSingularStringField(value: self.localName, fieldNumber: 1)
+    }
+    if !self.remoteNames.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.remoteNames, fieldNumber: 2)
+    }
+    if self.insecure != false {
+      try visitor.visitSingularBoolField(value: self.insecure, fieldNumber: 3)
+    }
+    if self.chunkSize != 0 {
+      try visitor.visitSingularInt32Field(value: self.chunkSize, fieldNumber: 4)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Caked_Caked.LogoutRequest, rhs: Caked_Caked.LogoutRequest) -> Bool {
-    if lhs.host != rhs.host {return false}
+  public static func ==(lhs: Caked_Caked.PushRequest, rhs: Caked_Caked.PushRequest) -> Bool {
+    if lhs.localName != rhs.localName {return false}
+    if lhs.remoteNames != rhs.remoteNames {return false}
+    if lhs.insecure != rhs.insecure {return false}
+    if lhs.chunkSize != rhs.chunkSize {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.PullRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PullRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}image\0\u{1}insecure\0\u{1}deduplicate\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.image) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.deduplicate) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if !self.image.isEmpty {
+      try visitor.visitSingularStringField(value: self.image, fieldNumber: 2)
+    }
+    if self.insecure != false {
+      try visitor.visitSingularBoolField(value: self.insecure, fieldNumber: 3)
+    }
+    if self.deduplicate != false {
+      try visitor.visitSingularBoolField(value: self.deduplicate, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.PullRequest, rhs: Caked_Caked.PullRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.image != rhs.image {return false}
+    if lhs.insecure != rhs.insecure {return false}
+    if lhs.deduplicate != rhs.deduplicate {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -9144,6 +9498,36 @@ extension Caked_Caked.LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
     if lhs.password != rhs.password {return false}
     if lhs.insecure != rhs.insecure {return false}
     if lhs.noValidate != rhs.noValidate {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.LogoutRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".LogoutRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}host\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.host) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.host.isEmpty {
+      try visitor.visitSingularStringField(value: self.host, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.LogoutRequest, rhs: Caked_Caked.LogoutRequest) -> Bool {
+    if lhs.host != rhs.host {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

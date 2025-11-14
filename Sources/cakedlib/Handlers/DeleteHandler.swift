@@ -51,7 +51,7 @@ public struct DeleteHandler {
 
 						if let purgeable = purgeables.first(where: { cache.fqn($0).contains(u.absoluteString) }) {
 							try purgeable.delete()
-							return DeletedObject(source: cache.location, name: purgeable.name(), deleted: true, reason: "")
+							return DeletedObject(source: cache.location, name: purgeable.name, deleted: true, reason: "")
 						}
 						return DeletedObject(source: cache.location, name: u.lastPathComponent, deleted: false, reason: "Object not found")
 					} else if let scheme = u.scheme {

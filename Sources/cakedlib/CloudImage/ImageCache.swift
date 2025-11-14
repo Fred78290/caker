@@ -4,8 +4,8 @@ import Virtualization
 
 public protocol Purgeable {
 	var url: URL { get }
-	func source() -> String
-	func name() -> String
+	var source: String { get }
+	var name: String { get }
 	func fingerprint() -> String?
 	func delete() throws
 	func accessDate() throws -> Date
@@ -98,7 +98,7 @@ public class CommonCacheImageCache: PurgeableStorage {
 	}
 
 	public func fqn(_ purgeable: Purgeable) -> [String] {
-		["\(self.scheme)://\(purgeable.source())/\(purgeable.name()).\(self.ext)"]
+		["\(self.scheme)://\(purgeable.source)/\(purgeable.name).\(self.ext)"]
 	}
 
 	public func type() -> String {
@@ -329,11 +329,11 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 			self._url
 		}
 
-		func source() -> String {
+		var source:  String {
 			self._source
 		}
 
-		func name() -> String {
+		var name: String {
 			self._fingerprint
 		}
 
@@ -424,11 +424,11 @@ public class OCIImageCache: CommonCacheImageCache {
 			self._url
 		}
 
-		func source() -> String {
+		var source: String {
 			self._source
 		}
 
-		func name() -> String {
+		var name: String {
 			self._name
 		}
 

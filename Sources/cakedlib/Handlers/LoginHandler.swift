@@ -8,7 +8,7 @@ import Synchronization
 
 public struct LoginHandler {
 	@discardableResult
-	public static func login(host: String, username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool, runMode: Utils.RunMode) -> String {
+	public static func login(host: String, username: String, password: String, insecure: Bool, noValidate: Bool, direct: Bool, runMode: Utils.RunMode) async -> LoginReply {
 		let keychain = KeychainHelper(id: Utilities.keychainID)
 		let server = Reference.resolveDomain(domain: host)
 		let scheme = insecure ? "http" : "https"
@@ -24,22 +24,14 @@ public struct LoginHandler {
 				})
 			)
 		)
-		
-		let semaphore = DispatchSemaphore(value: 0)
-		var result = "Login succeeded"
 
-		Task {
-			do {
-				try await client.ping()
-				try keychain.save(domain: server, username: username, password: password)
-				semaphore.signal()
-			} catch {
-				result = "Failed to login: \(error)"
-			}
+		do {
+			try await client.ping()
+			try keychain.save(domain: server, username: username, password: password)
+			
+			return LoginReply(success: true, message: "Login succeeded")
+		} catch {
+			return LoginReply(success: false, message: "\(error)")
 		}
-		
-		semaphore.wait()
-		
-		return result
 	}
 }

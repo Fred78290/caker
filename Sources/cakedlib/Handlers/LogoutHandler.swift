@@ -2,14 +2,19 @@ import ArgumentParser
 import Foundation
 import GRPCLib
 import NIOCore
+import ContainerizationOCI
 
 public struct LogoutHandler {
 	@discardableResult
-	public static func logout(host: String, direct: Bool, runMode: Utils.RunMode) -> String {
+	public static func logout(host: String, direct: Bool, runMode: Utils.RunMode) -> LogoutReply {
 		do {
-			return try Shell.runTart(command: "logout", arguments: [host], direct: direct, runMode: runMode)
+			let keychain = KeychainHelper(id: Utilities.keychainID)
+
+			try keychain.delete(domain: host)
+
+			return LogoutReply(success: true, message: "Logged out")
 		} catch {
-			return "\(error)"
+			return LogoutReply(success: false, message: "\(error)")
 		}
 	}
 }

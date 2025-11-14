@@ -4,7 +4,7 @@ import NIO
 import Shout
 import Virtualization
 
-public struct VMLocation: Hashable, Equatable, Sendable {
+public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
 
 	public enum Status: String {
@@ -15,6 +15,9 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 
 	public var rootURL: URL
 	public let template: Bool
+	public var source: String {
+		self.template ? "template" : "vm"
+	}
 
 	public init(rootURL: URL, template: Bool = false) {
 		self.rootURL = rootURL
@@ -85,20 +88,8 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		try CakeConfig(location: self.rootURL)
 	}
 
-	public func tartRunning() -> Bool {
-		guard let lock = try? PIDLock(lockURL: configURL) else {
-			return false
-		}
-
-		guard let pid = try? lock.pid() else {
-			return false
-		}
-
-		return pid != 0
-	}
-
 	public var status: Status {
-		if isPIDRunning() || tartRunning() {
+		if isPIDRunning() {
 			return .running
 		} else if FileManager.default.fileExists(atPath: stateURL.path) {
 			return .paused
@@ -119,16 +110,36 @@ public struct VMLocation: Hashable, Equatable, Sendable {
 		rootURL.appendingPathComponent("run.pid")
 	}
 
+	public func accessDate() throws -> Date {
+		try self.rootURL.accessDate()
+	}
+
+	public func sizeBytes() throws -> Int {
+		try self.diskSize()
+	}
+	
+	public func allocatedSizeBytes() throws -> Int {
+		try self.allocatedSize()
+	}
+	
 	public func diskSize() throws -> Int {
-		try self.diskURL.sizeBytes()
+		var sizeBytes = 0
+
+		try FileManager.default.contentsOfDirectory( at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
+			sizeBytes += try $0.sizeBytes()
+		}
+
+		return sizeBytes
 	}
 
 	public func allocatedSize() throws -> Int {
-		if self.template {
-			return try diskSize()
+		var allocatedSize = 0
+
+		try FileManager.default.contentsOfDirectory( at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
+			allocatedSize += try $0.allocatedSizeBytes()
 		}
 
-		return try diskSize() + nvramURL.sizeBytes() + configURL.sizeBytes()
+		return allocatedSize
 	}
 
 	public func lock() -> Bool {

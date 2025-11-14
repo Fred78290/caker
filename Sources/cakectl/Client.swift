@@ -218,13 +218,10 @@ struct Client: AsyncParsableCommand {
 			Mount.self,
 			Umount.self,
 
-			Clone.self,
 			Login.self,
 			Logout.self,
 			Pull.self,
-			Push.self,
-			Import.self,
-			Export.self,
+			Push.self
 		])
 
 	static func createClient(
@@ -329,19 +326,6 @@ struct Client: AsyncParsableCommand {
 		// Parse and run command
 		do {
 			guard let command = try Self.parse() else {
-				if let commandName = self.options.commandName {
-					let command: any GrpcParsableCommand = Cake(command: commandName)
-					let response = try self.options.execute(command: command, arguments: self.options.arguments)
-
-					if response.count > 0 {
-						print(response)
-					}
-				} else {
-					let usage = Self.usageString() + "\n"
-
-					FileHandle.standardError.write(usage.data(using: .utf8)!)
-				}
-
 				Foundation.exit(-1)
 			}
 

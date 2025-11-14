@@ -13,11 +13,14 @@ struct Login: GrpcParsableCommand {
 	@OptionGroup(title: "Login options")
 	var login: LoginOptions
 
+	@Flag(help: "Output format: text or json")
+	var format: Format = .text
+
 	func run() async throws {
 		throw GrpcError(code: 0, reason: "nothing here")
 	}
 
 	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait().tart.message
+		return self.format.render(try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait().oci.login)
 	}
 }

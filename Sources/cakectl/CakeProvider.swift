@@ -47,11 +47,23 @@ extension Caked_ListRequest {
 	}
 }
 
-extension Caked_CakedCommandRequest {
-	init(command: String, arguments: [String]) {
+extension Caked_PullRequest {
+	init(command: Pull) {
 		self.init()
-		self.command = command
-		self.arguments = arguments
+		self.name = command.pull.name
+		self.image = command.pull.image
+		self.insecure = command.pull.insecure
+		self.deduplicate = command.pull.deduplicate
+	}
+}
+
+extension Caked_PushRequest {
+	init(command: Push) {
+		self.init()
+		self.localName = command.push.localName
+		self.remoteNames = command.push.remoteNames
+		self.insecure = command.push.insecure
+		self.chunkSize = Int32(command.push.chunkSize)
 	}
 }
 
@@ -134,17 +146,6 @@ extension Caked_BuildRequest {
 	}
 }
 
-extension Caked_CloneRequest {
-	init(command: Clone) {
-		self.init()
-		self.sourceName = command.clone.sourceName
-		self.targetName = command.clone.newName
-		self.insecure = command.clone.insecure
-		self.concurrency = UInt32(command.clone.concurrency)
-		self.deduplicate = command.clone.deduplicate
-	}
-}
-
 extension Caked_LaunchRequest {
 	init(command: Launch) throws {
 		self.init()
@@ -185,7 +186,7 @@ extension Caked_SuspendRequest {
 extension Caked_PurgeRequest {
 	init(command: Purge) {
 		self.init()
-		self.entries = command.purge.entries
+		self.entries = command.purge.entries.rawValue
 
 		if let olderThan = command.purge.olderThan {
 			self.olderThan = Int32(olderThan)

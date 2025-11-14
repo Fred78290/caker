@@ -259,20 +259,12 @@ public struct VMBuilder {
 		} else if scheme == "cloud" {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else if scheme == "oci" || scheme == "ocis" {
-			if Utilities.checkIfTartPresent() == false {
-				throw ServiceError("tart is not installed")
-			}
-
 			let ociImage = options.image.stringAfter(after: "//")
-			let arguments: [String]
+			let pulled = await PullHandler.pull(location: location, image: ociImage, insecure: scheme == "oci", runMode: runMode, progressHandler: progressHandler)
 
-			if scheme == "oci" {
-				arguments = [ociImage, vmName, "--insecure"]
-			} else {
-				arguments = [ociImage, vmName]
+			if pulled.success == false {
+				throw ServiceError(pulled.message)
 			}
-
-			try Shell.runTart(command: "clone", arguments: arguments, runMode: runMode)
 
 			sourceImage = .oci
 		} else if scheme == "iso" {

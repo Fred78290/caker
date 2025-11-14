@@ -5,7 +5,7 @@ import GRPCLib
 import Logging
 
 struct Import: ParsableCommand {
-	static var configuration = CommandConfiguration(commandName: "convert", abstract: "Import an external VM from a file or URL.")
+	static var configuration = CommandConfiguration(commandName: "import", abstract: "Import an external VM from a file or URL.")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

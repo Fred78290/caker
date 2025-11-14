@@ -9,16 +9,19 @@ struct LogoutHandler: CakedCommand {
 
 	func replyError(error: any Error) -> Caked_Reply {
 		Caked_Reply.with {
-			$0.tart = Caked_TartReply.with {
-				$0.message = "\(error)"
+			$0.oci = Caked_OCIReply.with {
+				$0.logout = Caked_LogoutReply.with {
+					$0.success = false
+					$0.message = "\(error)"
+				}
 			}
 		}
 	}
 	
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
-			$0.tart = Caked_TartReply.with {
-				$0.message = CakedLib.LogoutHandler.logout(host: self.request.host, direct: false, runMode: runMode)
+			$0.oci = Caked_OCIReply.with {
+				$0.logout = CakedLib.LogoutHandler.logout(host: self.request.host, direct: false, runMode: runMode).caked
 			}
 		}
 	}

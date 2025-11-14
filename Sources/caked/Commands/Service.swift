@@ -192,7 +192,7 @@ extension Service {
 	}
 
 	struct Listen: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "tart daemon listening")
+		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "caked daemon listening")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info

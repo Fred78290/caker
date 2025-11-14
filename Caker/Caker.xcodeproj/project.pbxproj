@@ -88,8 +88,6 @@
 		9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6E2D5A3E0300164BF5 /* Exec.swift */; };
 		9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6B2D5A3E0300164BF5 /* Configure.swift */; };
 		9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7F2D5A3E0300164BF5 /* Rename.swift */; };
-		9B464B682D5A3E8900164BF5 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6A2D5A3E0300164BF5 /* Clone.swift */; };
-		9B464B692D5A3E8900164BF5 /* Export.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6F2D5A3E0300164BF5 /* Export.swift */; };
 		9B464B6A2D5A3E8900164BF5 /* Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7E2D5A3E0300164BF5 /* Remote.swift */; };
 		9B464B6B2D5A3E8900164BF5 /* List.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A772D5A3E0300164BF5 /* List.swift */; };
 		9B464B6C2D5A3E8900164BF5 /* Launch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A762D5A3E0300164BF5 /* Launch.swift */; };
@@ -98,12 +96,10 @@
 		9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A812D5A3E0300164BF5 /* Sh.swift */; };
 		9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7B2D5A3E0300164BF5 /* Pull.swift */; };
 		9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7C2D5A3E0300164BF5 /* Purge.swift */; };
-		9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A692D5A3E0300164BF5 /* Cake.swift */; };
 		9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A7A2D5A3E0300164BF5 /* Networks.swift */; };
 		9B464B752D5A3E8900164BF5 /* Build.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A682D5A3E0300164BF5 /* Build.swift */; };
 		9B464B762D5A3E8900164BF5 /* Stop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A832D5A3E0300164BF5 /* Stop.swift */; };
 		9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6D2D5A3E0300164BF5 /* Delete.swift */; };
-		9B464B782D5A3E8900164BF5 /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A732D5A3E0300164BF5 /* Import.swift */; };
 		9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A742D5A3E0300164BF5 /* Infos.swift */; };
 		9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */; };
 		9B464B7F2D5A3E9000164BF5 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A662D5A3E0300164BF5 /* CI.swift */; };
@@ -191,8 +187,13 @@
 		9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74B02EBBD7CC0036CE1B /* MultiplatformTabBar.swift */; };
 		9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB144D32EC33A320094D950 /* Sudo.swift */; };
 		9BB148972EC622ED0094D950 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB148962EC622ED0094D950 /* ContainerizationOCI */; };
+		9BB149182EC74B830094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149172EC74B7F0094D950 /* PullHandler.swift */; };
+		9BB1491A2EC74B8B0094D950 /* PushHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149192EC74B880094D950 /* PushHandler.swift */; };
+		9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB1491B2EC74B9B0094D950 /* PullHandler.swift */; };
+		9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB1491D2EC74BA30094D950 /* PushHandler.swift */; };
+		9BB149202EC760F70094D950 /* Pull.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB1491F2EC760F20094D950 /* Pull.swift */; };
+		9BB149222EC760FE0094D950 /* Push.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB149212EC760FC0094D950 /* Push.swift */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
-		9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
 		9BB3BE202DB3F17500799A6A /* LoginOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0F2DB3F17500799A6A /* LoginOptions.swift */; };
 		9BB3BE212DB3F17500799A6A /* BuildOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE092DB3F17500799A6A /* BuildOptions.swift */; };
@@ -221,7 +222,6 @@
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
-		9BEBC6D02DF4400A0092B196 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B32DF4400A0092B196 /* CloneHandler.swift */; };
 		9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */; };
 		9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6C12DF4400A0092B196 /* RemoteHandler.swift */; };
 		9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BD2DF4400A0092B196 /* LogoutHandler.swift */; };
@@ -229,7 +229,6 @@
 		9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69F2DF4400A0092B196 /* Infos.swift */; };
 		9BEBC6D72DF4400A0092B196 /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B92DF4400A0092B196 /* InfosHandler.swift */; };
 		9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6972DF4400A0092B196 /* Build.swift */; };
-		9BEBC6D92DF4400A0092B196 /* Clone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6992DF4400A0092B196 /* Clone.swift */; };
 		9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6C02DF4400A0092B196 /* PurgeHandler.swift */; };
 		9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6A62DF4400A0092B196 /* Purge.swift */; };
 		9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */; };
@@ -239,7 +238,6 @@
 		9BEBC6E02DF4400A0092B196 /* VMRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6AF2DF4400A0092B196 /* VMRun.swift */; };
 		9BEBC6E12DF4400A0092B196 /* Stop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6AC2DF4400A0092B196 /* Stop.swift */; };
 		9BEBC6E22DF4400A0092B196 /* ImageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B82DF4400A0092B196 /* ImageHandler.swift */; };
-		9BEBC6E32DF4400A0092B196 /* TartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6C62DF4400A0092B196 /* TartHandler.swift */; };
 		9BEBC6E42DF4400A0092B196 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BF2DF4400A0092B196 /* NetworksHandler.swift */; };
 		9BEBC6E52DF4400A0092B196 /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */; };
 		9BEBC6E62DF4400A0092B196 /* Start.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6AB2DF4400A0092B196 /* Start.swift */; };
@@ -319,7 +317,6 @@
 		9BEBC79B2DF440720092B196 /* Certificate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7102DF440720092B196 /* Certificate.swift */; };
 		9BEBC79C2DF440720092B196 /* VirtualMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7662DF440720092B196 /* VirtualMachine.swift */; };
 		9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC74F2DF440720092B196 /* VZVMNetFileHandle.swift */; };
-		9BEBC79E2DF440720092B196 /* CloneHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7172DF440720092B196 /* CloneHandler.swift */; };
 		9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */; };
 		9BEBC7A12DF440720092B196 /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7162DF440720092B196 /* BuildHandler.swift */; };
 		9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7142DF440720092B196 /* SimpleStreams.swift */; };
@@ -589,14 +586,10 @@
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
-		9B464A692D5A3E0300164BF5 /* Cake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cake.swift; sourceTree = "<group>"; };
-		9B464A6A2D5A3E0300164BF5 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9B464A6B2D5A3E0300164BF5 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9B464A6D2D5A3E0300164BF5 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
 		9B464A6E2D5A3E0300164BF5 /* Exec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exec.swift; sourceTree = "<group>"; };
-		9B464A6F2D5A3E0300164BF5 /* Export.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Export.swift; sourceTree = "<group>"; };
 		9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesManagement.swift; sourceTree = "<group>"; };
-		9B464A732D5A3E0300164BF5 /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B464A742D5A3E0300164BF5 /* Infos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Infos.swift; sourceTree = "<group>"; };
 		9B464A762D5A3E0300164BF5 /* Launch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Launch.swift; sourceTree = "<group>"; };
 		9B464A772D5A3E0300164BF5 /* List.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = List.swift; sourceTree = "<group>"; };
@@ -675,8 +668,13 @@
 		9BAF74B32EBBD7CC0036CE1B /* MultiplatformTabCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabCollection.swift; sourceTree = "<group>"; };
 		9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTabViewPosition.swift; sourceTree = "<group>"; };
 		9BB144D32EC33A320094D950 /* Sudo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sudo.swift; sourceTree = "<group>"; };
+		9BB149172EC74B7F0094D950 /* PullHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullHandler.swift; sourceTree = "<group>"; };
+		9BB149192EC74B880094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
+		9BB1491B2EC74B9B0094D950 /* PullHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PullHandler.swift; sourceTree = "<group>"; };
+		9BB1491D2EC74BA30094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
+		9BB1491F2EC760F20094D950 /* Pull.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pull.swift; sourceTree = "<group>"; };
+		9BB149212EC760FC0094D950 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
 		9BB3BE092DB3F17500799A6A /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
-		9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateOptions.swift; sourceTree = "<group>"; };
@@ -705,7 +703,6 @@
 		9BEBC6952DF4400A0092B196 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9BEBC6972DF4400A0092B196 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
-		9BEBC6992DF4400A0092B196 /* Clone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clone.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9BEBC69B2DF4400A0092B196 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
 		9BEBC69C2DF4400A0092B196 /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
@@ -729,7 +726,6 @@
 		9BEBC6AF2DF4400A0092B196 /* VMRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMRun.swift; sourceTree = "<group>"; };
 		9BEBC6B02DF4400A0092B196 /* WaitIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIP.swift; sourceTree = "<group>"; };
 		9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
-		9BEBC6B32DF4400A0092B196 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
 		9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
 		9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteHandler.swift; sourceTree = "<group>"; };
 		9BEBC6B62DF4400A0092B196 /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
@@ -748,7 +744,6 @@
 		9BEBC6C32DF4400A0092B196 /* RunHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunHandler.swift; sourceTree = "<group>"; };
 		9BEBC6C42DF4400A0092B196 /* StartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartHandler.swift; sourceTree = "<group>"; };
 		9BEBC6C52DF4400A0092B196 /* StopHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopHandler.swift; sourceTree = "<group>"; };
-		9BEBC6C62DF4400A0092B196 /* TartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TartHandler.swift; sourceTree = "<group>"; };
 		9BEBC6C72DF4400A0092B196 /* TemplateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateHandler.swift; sourceTree = "<group>"; };
 		9BEBC6C82DF4400A0092B196 /* WaitIPHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPHandler.swift; sourceTree = "<group>"; };
 		9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedProvider.swift; sourceTree = "<group>"; };
@@ -761,7 +756,6 @@
 		9BEBC7132DF440720092B196 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		9BEBC7142DF440720092B196 /* SimpleStreams.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleStreams.swift; sourceTree = "<group>"; };
 		9BEBC7162DF440720092B196 /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
-		9BEBC7172DF440720092B196 /* CloneHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloneHandler.swift; sourceTree = "<group>"; };
 		9BEBC7182DF440720092B196 /* ConfigureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureHandler.swift; sourceTree = "<group>"; };
 		9BEBC7192DF440720092B196 /* DeleteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteHandler.swift; sourceTree = "<group>"; };
 		9BEBC71A2DF440720092B196 /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
@@ -1253,15 +1247,11 @@
 			isa = PBXGroup;
 			children = (
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
-				9B464A692D5A3E0300164BF5 /* Cake.swift */,
-				9B464A6A2D5A3E0300164BF5 /* Clone.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
 				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
 				9B464A6E2D5A3E0300164BF5 /* Exec.swift */,
-				9B464A6F2D5A3E0300164BF5 /* Export.swift */,
 				9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */,
-				9B464A732D5A3E0300164BF5 /* Import.swift */,
 				9B464A742D5A3E0300164BF5 /* Infos.swift */,
 				9B464A762D5A3E0300164BF5 /* Launch.swift */,
 				9B464A772D5A3E0300164BF5 /* List.swift */,
@@ -1396,7 +1386,6 @@
 			isa = PBXGroup;
 			children = (
 				9BB3BE092DB3F17500799A6A /* BuildOptions.swift */,
-				9BB3BE0A2DB3F17500799A6A /* CloneOptions.swift */,
 				9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */,
 				9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */,
 				9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */,
@@ -1429,9 +1418,10 @@
 		9BEBC6B12DF4400A0092B196 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
+				9BB149212EC760FC0094D950 /* Push.swift */,
+				9BB1491F2EC760F20094D950 /* Pull.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
-				9BEBC6992DF4400A0092B196 /* Clone.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
 				9BEBC69B2DF4400A0092B196 /* Delete.swift */,
 				9BEBC69C2DF4400A0092B196 /* Duplicate.swift */,
@@ -1465,27 +1455,27 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC6B22DF4400A0092B196 /* BuildHandler.swift */,
-				9BEBC6B32DF4400A0092B196 /* CloneHandler.swift */,
 				9BEBC6B42DF4400A0092B196 /* ConfigureHandler.swift */,
 				9BEBC6B52DF4400A0092B196 /* DeleteHandler.swift */,
+				9BEBC6B62DF4400A0092B196 /* DuplicateHandler.swift */,
 				9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */,
 				9BEBC6B82DF4400A0092B196 /* ImageHandler.swift */,
 				9BEBC6B92DF4400A0092B196 /* InfosHandler.swift */,
 				9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */,
-				9BEBC6B62DF4400A0092B196 /* DuplicateHandler.swift */,
 				9BEBC6BB2DF4400A0092B196 /* ListHandler.swift */,
 				9BEBC6BC2DF4400A0092B196 /* LoginHandler.swift */,
 				9BEBC6BD2DF4400A0092B196 /* LogoutHandler.swift */,
 				9BEBC6BE2DF4400A0092B196 /* MountHandler.swift */,
 				9BEBC6BF2DF4400A0092B196 /* NetworksHandler.swift */,
+				9BB149172EC74B7F0094D950 /* PullHandler.swift */,
 				9BEBC6C02DF4400A0092B196 /* PurgeHandler.swift */,
+				9BB149192EC74B880094D950 /* PushHandler.swift */,
 				9BEBC6C12DF4400A0092B196 /* RemoteHandler.swift */,
 				9BEBC6C22DF4400A0092B196 /* RenameHandler.swift */,
 				9BEBC6C32DF4400A0092B196 /* RunHandler.swift */,
 				9BEBC6C42DF4400A0092B196 /* StartHandler.swift */,
 				9BEBC6C52DF4400A0092B196 /* StopHandler.swift */,
 				9B1500BC2E6B067200B23147 /* SuspendHandler.swift */,
-				9BEBC6C62DF4400A0092B196 /* TartHandler.swift */,
 				9BEBC6C72DF4400A0092B196 /* TemplateHandler.swift */,
 				9BEBC6C82DF4400A0092B196 /* WaitIPHandler.swift */,
 			);
@@ -1521,7 +1511,6 @@
 			isa = PBXGroup;
 			children = (
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
-				9BEBC7172DF440720092B196 /* CloneHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
 				9BEBC71A2DF440720092B196 /* DuplicateHandler.swift */,
@@ -1535,7 +1524,9 @@
 				9BEBC7212DF440720092B196 /* LogoutHandler.swift */,
 				9BEBC7222DF440720092B196 /* MountHandler.swift */,
 				9BEBC7232DF440720092B196 /* NetworksHandler.swift */,
+				9BB1491B2EC74B9B0094D950 /* PullHandler.swift */,
 				9BEBC7242DF440720092B196 /* PurgeHandler.swift */,
+				9BB1491D2EC74BA30094D950 /* PushHandler.swift */,
 				9BEBC7252DF440720092B196 /* RemoteHandler.swift */,
 				9BEBC7262DF440720092B196 /* RenameHandler.swift */,
 				9BEBC7272DF440720092B196 /* RunHandler.swift */,
@@ -2115,8 +2106,6 @@
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
 				9B464B662D5A3E8900164BF5 /* Rename.swift in Sources */,
-				9B464B682D5A3E8900164BF5 /* Clone.swift in Sources */,
-				9B464B692D5A3E8900164BF5 /* Export.swift in Sources */,
 				9B464B6A2D5A3E8900164BF5 /* Remote.swift in Sources */,
 				9B464B6B2D5A3E8900164BF5 /* List.swift in Sources */,
 				9B464B6C2D5A3E8900164BF5 /* Launch.swift in Sources */,
@@ -2129,12 +2118,10 @@
 				9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */,
 				9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */,
 				9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */,
-				9B464B732D5A3E8900164BF5 /* Cake.swift in Sources */,
 				9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */,
 				9B464B752D5A3E8900164BF5 /* Build.swift in Sources */,
 				9B464B762D5A3E8900164BF5 /* Stop.swift in Sources */,
 				9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */,
-				9B464B782D5A3E8900164BF5 /* Import.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
 				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
@@ -2157,7 +2144,6 @@
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */,
 				9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */,
-				9BB3BE1E2DB3F17500799A6A /* CloneOptions.swift in Sources */,
 				9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */,
 				9BB3BE202DB3F17500799A6A /* LoginOptions.swift in Sources */,
 				9BB3BE212DB3F17500799A6A /* BuildOptions.swift in Sources */,
@@ -2182,10 +2168,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9BB149202EC760F70094D950 /* Pull.swift in Sources */,
+				9BB149222EC760FE0094D950 /* Push.swift in Sources */,
 				9B9711C02DFF3284005B161B /* Import.swift in Sources */,
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
-				9BEBC6D02DF4400A0092B196 /* CloneHandler.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
@@ -2193,7 +2180,6 @@
 				9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */,
 				9BEBC6D72DF4400A0092B196 /* InfosHandler.swift in Sources */,
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
-				9BEBC6D92DF4400A0092B196 /* Clone.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
 				9BEBC6DC2DF4400A0092B196 /* DeleteHandler.swift in Sources */,
@@ -2205,7 +2191,6 @@
 				9BEBC6E12DF4400A0092B196 /* Stop.swift in Sources */,
 				9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC6E22DF4400A0092B196 /* ImageHandler.swift in Sources */,
-				9BEBC6E32DF4400A0092B196 /* TartHandler.swift in Sources */,
 				9BEBC6E42DF4400A0092B196 /* NetworksHandler.swift in Sources */,
 				9BEBC6E52DF4400A0092B196 /* BuildHandler.swift in Sources */,
 				9BEBC6E62DF4400A0092B196 /* Start.swift in Sources */,
@@ -2218,6 +2203,7 @@
 				9BEBC6ED2DF4400A0092B196 /* StartHandler.swift in Sources */,
 				9BEBC6EE2DF4400A0092B196 /* Login.swift in Sources */,
 				9BEBC6EF2DF4400A0092B196 /* RenameHandler.swift in Sources */,
+				9BB1491A2EC74B8B0094D950 /* PushHandler.swift in Sources */,
 				9BEBC6F02DF4400A0092B196 /* DuplicateHandler.swift in Sources */,
 				9BEBC6F12DF4400A0092B196 /* Logout.swift in Sources */,
 				9BEBC6F22DF4400A0092B196 /* ConfigureHandler.swift in Sources */,
@@ -2235,6 +2221,7 @@
 				9BEBC6FD2DF4400A0092B196 /* StopHandler.swift in Sources */,
 				9BEBC6FE2DF4400A0092B196 /* Certificates.swift in Sources */,
 				9BEBC6FF2DF4400A0092B196 /* LoginHandler.swift in Sources */,
+				9BB149182EC74B830094D950 /* PullHandler.swift in Sources */,
 				9BEBC7002DF4400A0092B196 /* Rename.swift in Sources */,
 				9BEBC7012DF4400A0092B196 /* Remote.swift in Sources */,
 				9BEBC7022DF4400A0092B196 /* Duplicate.swift in Sources */,
@@ -2299,7 +2286,6 @@
 				9BEBC79B2DF440720092B196 /* Certificate.swift in Sources */,
 				9BEBC79C2DF440720092B196 /* VirtualMachine.swift in Sources */,
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,
-				9BEBC79E2DF440720092B196 /* CloneHandler.swift in Sources */,
 				9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */,
 				9BEBC7A12DF440720092B196 /* BuildHandler.swift in Sources */,
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,
@@ -2312,8 +2298,10 @@
 				9BEBC7A92DF440720092B196 /* VirtualSocketDevices.swift in Sources */,
 				9BEBC7AA2DF440720092B196 /* CakeAgentClientInterceptorFactory.swift in Sources */,
 				9BEBC7AB2DF440720092B196 /* mount.grpc.swift in Sources */,
+				9BB1491C2EC74B9F0094D950 /* PullHandler.swift in Sources */,
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
+				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,
 				9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */,
 				9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */,
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,

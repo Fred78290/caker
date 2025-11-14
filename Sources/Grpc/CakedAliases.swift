@@ -3,12 +3,13 @@ import GRPC
 
 public typealias Caked = Caked_Caked
 
-public typealias Caked_CakedCommandRequest = Caked.CakedCommandRequest
 public typealias Caked_ImageRequest = Caked.ImageRequest
 public typealias Caked_ImageCommand = Caked.ImageRequest.ImageCommand
 
 public typealias Caked_LoginRequest = Caked.LoginRequest
 public typealias Caked_LogoutRequest = Caked.LogoutRequest
+public typealias Caked_PullRequest = Caked.PullRequest
+public typealias Caked_PushRequest = Caked.PushRequest
 
 public typealias Caked_MountRequest = Caked.MountRequest
 public typealias Caked_MountVirtioFS = Caked.MountRequest.MountVirtioFS
@@ -51,7 +52,12 @@ public typealias Caked_ListRemoteReply = Caked.Reply.RemoteReply.ListRemoteReply
 public typealias Caked_RemoteEntry = Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry
 
 public typealias Caked_RunReply = Caked.Reply.RunReply
-public typealias Caked_TartReply = Caked.Reply.TartReply
+public typealias Caked_OCIReply = Caked.Reply.OCIReply
+public typealias Caked_LoginReply = Caked.Reply.OCIReply.LoginReply
+public typealias Caked_LogoutReply = Caked.Reply.OCIReply.LogoutReply
+public typealias Caked_PushReply = Caked.Reply.OCIReply.PushReply
+public typealias Caked_PullReply = Caked.Reply.OCIReply.PullReply
+
 
 public typealias Caked_TemplateReply = Caked.Reply.TemplateReply
 public typealias Caked_CreateTemplateReply = Caked.Reply.TemplateReply.CreateTemplateReply
@@ -82,7 +88,6 @@ public typealias Caked_VirtualMachineInfo = Caked.Reply.VirtualMachineReply.Virt
 public typealias Caked_VirtualMachineStatusReply = Caked.Reply.VirtualMachineReply.StatusReply
 
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
-public typealias Caked_CloneRequest = Caked.VMRequest.CloneRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest
 public typealias Caked_ScreenSize = Caked.VMRequest.CommonBuildRequest.ScreenSize
 public typealias Caked_ConfigureRequest = Caked.VMRequest.ConfigureRequest

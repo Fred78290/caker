@@ -300,6 +300,38 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 		}
 	}
 
+	public func render(_ data: LoginReply) -> String {
+		self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_LoginReply) -> String {
+		self.renderSingle(LoginReply(from: data))
+	}
+
+	public func render(_ data: LogoutReply) -> String {
+		self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_LogoutReply) -> String {
+		self.renderSingle(LogoutReply(from: data))
+	}
+
+	public func render(_ data: PullReply) -> String {
+		self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_PullReply) -> String {
+		self.renderSingle(PullReply(from: data))
+	}
+
+	public func render(_ data: PushReply) -> String {
+		self.renderSingle(data)
+	}
+
+	public func render(_ data: Caked_PushReply) -> String {
+		self.renderSingle(PushReply(from: data))
+	}
+
 	public func render(_ data: Caked_ImageInfo) -> String {
 		self.render(ImageInfo(from: data))
 	}

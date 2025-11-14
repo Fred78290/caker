@@ -283,11 +283,11 @@ extension URL: Purgeable {
 		}.first
 	}
 
-	public func source() -> String {
+	public var source: String {
 		self.deletingLastPathComponent().lastPathComponent
 	}
 
-	public func name() -> String {
+	public var name: String {
 		self.lastPathComponent.stringBeforeLast(before: ".")
 	}
 
@@ -471,14 +471,6 @@ public struct Utilities {
 		}
 
 		return environment
-	}
-
-	public static func checkIfTartPresent() -> Bool {
-		guard URL.binary("tart") != nil else {
-			return false
-		}
-
-		return true
 	}
 }
 

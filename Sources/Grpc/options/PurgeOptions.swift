@@ -4,13 +4,19 @@ import Foundation
 public struct PurgeOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
 
-	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs."))
-	public var entries: String = "caches"
+	public enum PurgeEntry: String, ExpressibleByArgument, CaseIterable {
+		case both
+		case caches
+		case vms
+	}
+
+	@Option(help: ArgumentHelp("Entries to remove: \"caches\" targets caches and \"vms\" targets local VMs or boths."))
+	public var entries: PurgeEntry = .caches
 
 	@Option(
 		help: ArgumentHelp(
 			"Remove entries that were last accessed more than n days ago",
-			discussion: "For example, --older-than=7 will remove entries that weren't accessed by Tart in the last 7 days.",
+			discussion: "For example, --older-than=7 will remove entries that weren't accessed by caked in the last 7 days.",
 			valueName: "n"))
 	public var olderThan: UInt? = nil
 

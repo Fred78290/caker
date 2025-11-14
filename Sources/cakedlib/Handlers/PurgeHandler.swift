@@ -8,43 +8,39 @@ public struct PurgeHandler {
 	@discardableResult
 	public static func purge(direct: Bool, runMode: Utils.RunMode, options: PurgeOptions) -> PurgeReply {
 		do {
-			var result = "Purged"
-			
-			if options.entries == "caches" {
-				let purgeableStorages = [
+			let purgeableStorages: [PurgeableStorage]
+
+			if options.entries == .caches {
+				purgeableStorages = [
 					try OCIImageCache(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
 				]
+			} else if options.entries == .vms {
+				purgeableStorages = [StorageLocation(runMode: runMode)]
+			} else {
+				purgeableStorages = [
+					StorageLocation(runMode: runMode),
+					try OCIImageCache(runMode: runMode),
+					try CloudImageCache(runMode: runMode),
+					try RawImageCache(runMode: runMode),
+					try SimpleStreamsImageCache(name: "", runMode: runMode),
+				]
+			}
+
+			if let olderThan = options.olderThan {
+				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
+				let olderThanDate = Date() - olderThanInterval
 				
-				if let olderThan = options.olderThan {
-					let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
-					let olderThanDate = Date() - olderThanInterval
-					
-					try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
-				}
-				
-				if let spaceBudget = options.spaceBudget {
-					try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
-				}
+				try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
 			}
 			
-			if Utilities.checkIfTartPresent() {
-				var arguments: [String] = ["--entries=\(options.entries)"]
-				
-				if let olderThan = options.olderThan {
-					arguments.append("--older-than=\(olderThan)")
-				}
-				
-				if let spaceBudget = options.spaceBudget {
-					arguments.append("--space-budget=\(spaceBudget)")
-				}
-				
-				result = try Shell.runTart(command: "prune", arguments: arguments, direct: direct, runMode: runMode)
+			if let spaceBudget = options.spaceBudget {
+				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
 			}
 			
-			return PurgeReply(purged: true, reason: result)
+			return PurgeReply(purged: true, reason: "Purged")
 		} catch {
 			return PurgeReply(purged: false, reason: "\(error)")
 		}

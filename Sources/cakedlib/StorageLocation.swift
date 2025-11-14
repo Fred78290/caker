@@ -92,3 +92,11 @@ public struct StorageLocation {
 		_ = try FileManager.default.replaceItemAt(vmURL(name), withItemAt: from.rootURL)
 	}
 }
+
+extension StorageLocation: PurgeableStorage {
+	func purgeables() throws -> [any Purgeable] {
+		return try self.list().map { $1 }.filter { $0.isPIDRunning() == false }
+	}
+	
+	
+}

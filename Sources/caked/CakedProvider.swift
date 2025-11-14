@@ -62,12 +62,6 @@ extension Caked_InfoRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_CloneRequest: CreateCakedCommand {
-	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return CloneHandler(request: self)
-	}
-}
-
 extension Caked_MountRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) -> CakedCommand {
 		return MountHandler(request: self)
@@ -98,18 +92,6 @@ extension Caked_RenameRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_CakedCommandRequest: CreateCakedCommand {
-	init(command: String, arguments: [String]) {
-		self.init()
-		self.command = command
-		self.arguments = arguments
-	}
-
-	func createCommand(provider: CakedProvider) -> CakedCommand {
-		return TartHandler(command: self.command, arguments: self.arguments)
-	}
-}
-
 extension Caked_CommonBuildRequest {
 	func buildOptions() throws -> BuildOptions {
 		try BuildOptions(request: self)
@@ -132,8 +114,12 @@ extension Caked_PurgeRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		var options = PurgeOptions()
 
+		options.entries = .caches
+
 		if self.hasEntries {
-			options.entries = self.entries
+			if let entries = PurgeOptions.PurgeEntry(rawValue: self.entries) {
+				options.entries = entries
+			}
 		}
 
 		if self.hasOlderThan {
@@ -191,6 +177,18 @@ extension Caked_LoginRequest: CreateCakedCommand {
 extension Caked_LogoutRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return LogoutHandler(request: self)
+	}
+}
+
+extension Caked_PullRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
+		return PullHandler(request: self)
+	}
+}
+
+extension Caked_PushRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> CakedCommand {
+		return PushHandler(request: self)
 	}
 }
 
@@ -258,15 +256,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		try self.execute(command: command.createCommand(provider: self))
 	}
 
-	func cakeCommand(request: Caked_CakedCommandRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
-	}
-
 	func build(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
-	}
-
-	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 
@@ -302,6 +292,14 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
+	func pull(request: Caked_PullRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+	
+	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+	
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}

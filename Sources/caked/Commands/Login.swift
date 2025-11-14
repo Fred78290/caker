@@ -21,6 +21,6 @@ struct Login: AsyncParsableCommand {
 
 		Logger.appendNewLine(
 			self.common.format.render(
-				CakedLib.LoginHandler.login(host: self.login.host, username: self.login.username!, password: self.login.password!, insecure: self.login.insecure, noValidate: self.login.noValidate, direct: true, runMode: self.common.runMode)))
+				await CakedLib.LoginHandler.login(host: self.login.host, username: self.login.username!, password: self.login.password!, insecure: self.login.insecure, noValidate: self.login.noValidate, direct: true, runMode: self.common.runMode)))
 	}
 }

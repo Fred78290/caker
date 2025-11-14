@@ -73,56 +73,6 @@ public struct Shell {
 		)
 	}
 
-	@discardableResult public static func runTart(
-		command: String, arguments: [String],
-		direct: Bool = false,
-		input: String? = nil,
-		sharedFileHandles: [FileHandle]? = nil,
-		runMode: Utils.RunMode
-	) throws -> String {
-		var args: [String] = []
-		var outputData: Data = Data()
-		let outputPipe = Pipe()
-		let errorPipe: Pipe = direct ? Pipe() : outputPipe
-		let cakeHomeDir = try Utils.getHome(runMode: runMode)
-
-		if command.count > 0 {
-			args.append(command)
-		}
-
-		args += arguments
-
-		outputPipe.fileHandleForReading.readabilityHandler = { handler in
-			if direct {
-				try? FileHandle.standardOutput.write(contentsOf: handler.availableData)
-			} else {
-				outputData.append(handler.availableData)
-			}
-		}
-
-		if direct {
-			errorPipe.fileHandleForReading.readabilityHandler = { handler in
-				try? FileHandle.standardError.write(contentsOf: handler.availableData)
-			}
-		}
-
-		var environment = ProcessInfo.processInfo.environment
-
-		environment["TART_HOME"] = cakeHomeDir.path
-
-		Logger(self).debug("Executing tart \(args.joined(separator: " "))")
-
-		let _ = try Self.bash(
-			to: "tart", arguments: args,
-			input: input,
-			outputHandle: outputPipe.fileHandleForWriting,
-			errorHandle: errorPipe.fileHandleForWriting,
-			environment: environment,
-			sharedFileHandles: sharedFileHandles)
-
-		return String(data: outputData, encoding: .utf8)!.trimmingCharacters(in: .whitespacesAndNewlines)
-	}
-
 	@discardableResult static public func bash(
 		to command: String,
 		arguments: [String] = [],

@@ -49,8 +49,8 @@ public struct ListHandler {
 						vmInfos.append(
 							VirtualMachineInfo(
 								type: imageCache.type(),
-								source: purgeable.source(),
-								name: purgeable.name(),
+								source: purgeable.source,
+								name: purgeable.name,
 								fqn: imageCache.fqn(purgeable),
 								instanceID: "",
 								diskSize: try purgeable.allocatedSizeBytes(),

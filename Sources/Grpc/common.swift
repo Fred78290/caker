@@ -17,7 +17,6 @@ internal let cloudimage_help =
 	  - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
 	  - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 	  - lxc images: images:ubuntu/noble/cloud, see remote command for detail
-	If tart is installed, you can use tart images:
 	  - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
 	  - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
 
@@ -74,9 +73,9 @@ internal let socket_help =
 internal let console_help =
 	"""
 
-	  - --console=unix — use a Unix socket for the serial console located at ~/.tart/vms/<vm-name>/console.sock
+	  - --console=unix — use a Unix socket for the serial console located at ~/.caked/vms/<vm-name>/console.sock
 	  - --console=unix:/tmp/serial.sock — use a Unix socket for the serial console located at the specified path
-	  - --console=file — use a simple file for the serial console located at ~/.tart/vms/<vm-name>/console.log
+	  - --console=file — use a simple file for the serial console located at ~/.caked/vms/<vm-name>/console.log
 	  - --console=fd://0,1 — use file descriptors for the serial console. The first file descriptor is for reading, the second is for writing
 	    ** INFO: The console doesn't work on MacOS sonoma and earlier  **
 

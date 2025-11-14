@@ -7,13 +7,6 @@ import GRPCLib
 import Logging
 import NIO
 
-let delegatedCommand: [String] = [
-	"pull",
-	"push",
-	"import",
-	"export",
-]
-
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
@@ -34,7 +27,6 @@ struct CommonOptions: ParsableArguments {
 
 @main
 struct Root: ParsableCommand {
-	static let tartIsPresent = checkIfTartPresent()
 	static let sigintSrc: any DispatchSourceSignal = {
 		signal(SIGINT, SIG_IGN)
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
@@ -86,6 +78,10 @@ struct Root: ParsableCommand {
 				VMRun.self,
 				WaitIP.self,
 				Import.self,
+				Login.self,
+				Logout.self,
+				Push.self,
+				Pull.self
 			])
 
 	static func vmrunAvailable() -> Bool {
@@ -107,14 +103,6 @@ struct Root: ParsableCommand {
 		}
 	}
 
-	private static func checkIfTartPresent() -> Bool {
-		guard URL.binary("tart") != nil else {
-			return false
-		}
-
-		return true
-	}
-
 	public static func main() async throws {
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in
@@ -126,30 +114,6 @@ struct Root: ParsableCommand {
 
 		// Parse and run command
 		do {
-			if Self.tartIsPresent {
-				configuration.subcommands.append(Clone.self)
-				configuration.subcommands.append(Login.self)
-				configuration.subcommands.append(Logout.self)
-
-				var commandName: String?
-				var arguments: [String] = []
-				for argument in CommandLine.arguments.dropFirst() {
-					if argument.hasPrefix("-") || commandName != nil {
-						arguments.append(argument)
-					} else if commandName == nil {
-						commandName = argument
-					}
-				}
-
-				if let commandName = commandName {
-					if delegatedCommand.contains(commandName) {
-						try Shell.runTart(command: commandName, arguments: arguments, direct: true, runMode: geteuid() == 0 ? .system : .user)
-						try? await Utilities.group.shutdownGracefully()
-						return
-					}
-				}
-			}
-
 			var command = try parseAsRoot()
 
 			if var asyncCommand = command as? AsyncParsableCommand {

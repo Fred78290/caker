@@ -10,7 +10,6 @@ package caked;
 
 service Service {
 	rpc Build (Caked.VMRequest.BuildRequest) returns (Caked.Reply) {}
-	rpc Clone (Caked.VMRequest.CloneRequest) returns (Caked.Reply) {}
 	rpc Configure (Caked.VMRequest.ConfigureRequest) returns (Caked.Reply) {}
 	rpc Delete(Caked.VMRequest.DeleteRequest) returns (Caked.Reply) {}
 	rpc Duplicate (Caked.VMRequest.DuplicateRequest) returns (Caked.Reply) {}
@@ -26,9 +25,10 @@ service Service {
 	rpc Template(Caked.VMRequest.TemplateRequest) returns (Caked.Reply) {}
 	rpc WaitIP (Caked.VMRequest.WaitIPRequest) returns (Caked.Reply) {}
 	rpc Image(Caked.ImageRequest) returns (Caked.Reply) {}
-	rpc CakeCommand (Caked.CakedCommandRequest) returns (Caked.Reply) {}
 	rpc Login (Caked.LoginRequest) returns (Caked.Reply) {}
 	rpc Logout (Caked.LogoutRequest) returns (Caked.Reply) {}
+	rpc Pull (Caked.PullRequest) returns (Caked.Reply) {}
+	rpc Push (Caked.PushRequest) returns (Caked.Reply) {}
 	rpc Purge (Caked.PurgeRequest) returns (Caked.Reply) {}
 	rpc Remote(Caked.RemoteRequest) returns (Caked.Reply) {}
 	rpc Networks(Caked.NetworkRequest) returns (Caked.Reply) {}
@@ -654,11 +654,36 @@ message Caked {
 			optional string reason = 2;
 			repeated MountVirtioFSReply mounts = 3;
 		}
-		
-		message TartReply {
-			string message = 1;
+
+		message OCIReply {
+			message PullReply {
+				bool success = 1;
+				string message = 2;
+			}
+
+			message PushReply {
+				bool success = 1;
+				string message = 2;
+			}
+
+			message LoginReply {
+				bool success = 1;
+				string message = 2;
+			}
+			
+			message LogoutReply {
+				bool success = 1;
+				string message = 2;
+			}
+
+			oneof response {
+				LoginReply login = 1;
+				LogoutReply logout = 2;
+				PullReply pull = 3;
+				PushReply push = 4;
+			}
 		}
-		
+
 		oneof response {
 			VirtualMachineReply vms = 1;
 			ImageReply images = 2;
@@ -667,7 +692,7 @@ message Caked {
 			TemplateReply templates = 5;
 			RunReply run = 6;
 			MountReply mounts = 7;
-			TartReply tart = 8;
+			OCIReply oci = 8;
 		}
 	}
 
@@ -749,11 +774,6 @@ message Caked {
 		}
 	}
 
-	message CakedCommandRequest {
-		string command = 1;
-		repeated string arguments = 2;
-	}
-
 	message PurgeRequest {
 		optional string entries = 1;
 		optional int32 olderThan = 2;
@@ -761,8 +781,18 @@ message Caked {
 		optional bool gc = 5;
 	}
 
-	message LogoutRequest {
-		string host = 1;
+	message PushRequest {
+		string localName = 1;
+		repeated string remoteNames = 2;
+		bool insecure = 3;
+		int32 chunkSize = 4;
+	}
+
+	message PullRequest {
+		string name = 1;
+		string image = 2;
+		bool insecure = 3;
+		bool deduplicate = 4;
 	}
 
 	message LoginRequest {
@@ -771,6 +801,10 @@ message Caked {
 		string password = 3;
 		bool insecure = 4;
 		bool noValidate = 5;
+	}
+
+	message LogoutRequest {
+		string host = 1;
 	}
 
 	message MountRequest {
