@@ -1,5 +1,5 @@
 #!/bin/bash
-swift build
+/usr/bin/swift build
 
 pushd "$(dirname $0)/.." >/dev/null
 PKGDIR=${PWD}/dist/Caker.app

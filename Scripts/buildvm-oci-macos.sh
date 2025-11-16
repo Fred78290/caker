@@ -1,5 +1,5 @@
 #!/bin/bash
-swift build
+/usr/bin/swift build
 
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caker
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
@@ -19,7 +19,7 @@ cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 cp -c Resources/menubar.png ${PKGDIR}/Contents/Resources/MenuBarIcon.png
 cp -c Resources/Icons/*.png ${PKGDIR}/Contents/Resources/Icons
 
-BIN_PATH=$(swift build --show-bin-path)
+BIN_PATH=$(/usr/bin/swift build --show-bin-path)
 BIN_PATH=${PKGDIR}/Contents/MacOS
 
 OCI_IMAGE=ocis://ghcr.io/cirruslabs/macos-sequoia-vanilla:latest

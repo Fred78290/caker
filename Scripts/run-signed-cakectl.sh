@@ -15,7 +15,7 @@ ASSETS=${BUILDDIR}/assets
 
 [ -f *.swiftdeps ] && sudo rm -rf ${CURDIR}/.build ${CURDIR}/*.o ${CURDIR}/*.d ${CURDIR}/*.swiftdeps ${CURDIR}/*.swiftdeps~
 
-swift build
+/usr/bin/swift build
 
 source ${CURDIR}/Scripts/build.inc.sh
 

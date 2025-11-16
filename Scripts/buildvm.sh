@@ -14,7 +14,7 @@ if [ -z "$VMNAME" ]; then
     VMNAME=linux
 fi
 
-swift build
+/usr/bin/swift build
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caker
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/cakectl

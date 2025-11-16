@@ -21,12 +21,12 @@ protoc=$(which protoc)
 build_dir=$(mktemp -d)
 
 # Checkout and build the plugins.
-git clone https://github.com/grpc/grpc-swift -b "release/1.x" --depth 1 "$build_dir"
-swift build --package-path "$build_dir" --product protoc-gen-swift
-swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
+git clone https://github.com/grpc/grpc-/usr/bin/swift -b "release/1.x" --depth 1 "$build_dir"
+/usr/bin/swift build --package-path "$build_dir" --product protoc-gen-swift
+/usr/bin/swift build --package-path "$build_dir" --product protoc-gen-grpc-swift
 
 # Grab the plugin paths.
-bin_path=$(swift build --package-path "$build_dir" --show-bin-path)
+bin_path=$(/usr/bin/swift build --package-path "$build_dir" --show-bin-path)
 protoc_gen_swift="$bin_path/protoc-gen-swift"
 protoc_gen_grpc_swift="$bin_path/protoc-gen-grpc-swift"
 

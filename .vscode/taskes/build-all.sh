@@ -1,7 +1,7 @@
 #!/bin/bash
 CURDIR=$1
 
-swift build -Xswiftc -diagnostic-style=llvm
+/usr/bin/swift build -Xswiftc -diagnostic-style=llvm
 
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/cakectl
 codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked

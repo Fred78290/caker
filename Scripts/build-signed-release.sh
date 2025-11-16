@@ -15,7 +15,7 @@ ASSETS=${BUILDDIR}/assets
 
 sudo rm -rf ${CURDIR}/.build ${CURDIR}/*.o ${CURDIR}/*.d ${CURDIR}/*.swiftdeps ${CURDIR}/*.swiftdeps~
 
-swift build -c release --arch x86_64
-swift build -c release --arch arm64
+/usr/bin/swift build -c release --arch x86_64
+/usr/bin/swift build -c release --arch arm64
 
 source ${CURDIR}/Scripts/build.inc.sh
