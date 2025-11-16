@@ -13,9 +13,6 @@ public struct PushOptions: ParsableArguments {
 	@Flag(help: "Connect to the OCI registry via insecure HTTP protocol")
 	public var insecure: Bool = false
 
-	@Option(help: "Network concurrency to use when pushing a local VM to the OCI-compatible registry")
-	public var concurrency: UInt = 4
-
 	@Option(
 		help: ArgumentHelp(
 			"Chunk size in MB if registry supports chunked uploads",
@@ -26,46 +23,6 @@ public struct PushOptions: ParsableArguments {
 				"""))
 	public var chunkSize: Int = 0
 
-	@Option(help: .hidden)
-	public var diskFormat: String = "v2"
-
-	@Flag(
-		help: ArgumentHelp(
-			"Cache pushed images locally",
-			discussion: "Increases disk usage, but saves time if you're going to pull the pushed images later."))
-	public var populateCache: Bool = false
-
 	public init() {
-	}
-
-	public func arguments() -> [String] {
-		var args: [String] = [localName]
-
-		args.append(contentsOf: remoteNames)
-
-		if insecure {
-			args.append("--insecure")
-		}
-
-		if concurrency > 0 {
-			args.append("--concurrency")
-			args.append("\(concurrency)")
-		}
-
-		if chunkSize > 0 {
-			args.append("--chunk-size")
-			args.append("\(chunkSize)")
-		}
-
-		if diskFormat != "v2" {
-			args.append("--disk-format")
-			args.append(diskFormat)
-		}
-
-		if populateCache {
-			args.append("--populate-cache")
-		}
-
-		return args
 	}
 }

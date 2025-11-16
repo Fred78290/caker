@@ -22,11 +22,9 @@ public struct BuildHandler {
 			try await withTaskCancellationHandler(
 				operation: {
 					do {
-						if try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler) == .oci {
-							try tempVMLocation.delete()
-						} else {
-							try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
-						}
+						_ = try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+
+						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
 						
 						progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))))
 					} catch {

@@ -260,7 +260,7 @@ public struct VMBuilder {
 			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
 		} else if scheme == "oci" || scheme == "ocis" {
 			let ociImage = options.image.stringAfter(after: "//")
-			let pulled = await PullHandler.pull(location: location, image: ociImage, insecure: scheme == "oci", runMode: runMode, progressHandler: progressHandler)
+			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: scheme == "oci", runMode: runMode, progressHandler: progressHandler)
 
 			if pulled.success == false {
 				throw ServiceError(pulled.message)
@@ -296,18 +296,7 @@ public struct VMBuilder {
 	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> ImageSource {
 		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
 
-		if sourceImage == .oci {
-			let location = try StorageLocation(runMode: runMode).find(vmName)
-
-			do {
-				try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
-			} catch {
-				try? location.delete()
-				throw error
-			}
-		} else {
-			try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
-		}
+		try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 		return sourceImage
 	}
