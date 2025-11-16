@@ -423,6 +423,7 @@
 		9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
+		9BFE81A82EC8F8D900767615 /* manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* manager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -828,6 +829,7 @@
 		9BEBC7662DF440720092B196 /* VirtualMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachine.swift; sourceTree = "<group>"; };
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
+		9BFE81A72EC8F8CF00767615 /* manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = manager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -1634,6 +1636,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9BFE81A62EC8F8C500767615 /* OCI */,
 				9BB144D32EC33A320094D950 /* Sudo.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
@@ -1671,6 +1674,14 @@
 				9BEBC73C2DF440720092B196 /* VMRunService */,
 			);
 			path = cakedlib;
+			sourceTree = "<group>";
+		};
+		9BFE81A62EC8F8C500767615 /* OCI */ = {
+			isa = PBXGroup;
+			children = (
+				9BFE81A72EC8F8CF00767615 /* manager.swift */,
+			);
+			path = OCI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2319,6 +2330,7 @@
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
+				9BFE81A82EC8F8D900767615 /* manager.swift in Sources */,
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
@@ -3080,10 +3092,10 @@
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/containerization";
+			repositoryURL = "https://github.com/Fred78290/containerization";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.13.0;
+				branch = main;
+				kind = branch;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
