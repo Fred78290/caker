@@ -57,7 +57,7 @@ public struct ListHandler {
 								totalSize: try purgeable.allocatedSizeBytes(),
 								state: "cached",
 								ip: nil,
-								fingerprint: purgeable.fingerprint()
+								fingerprint: purgeable.fingerprint
 							)
 						)
 					}

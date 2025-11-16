@@ -6,17 +6,11 @@ public protocol Purgeable {
 	var url: URL { get }
 	var source: String { get }
 	var name: String { get }
-	func fingerprint() -> String?
+	var fingerprint: String? { get }
 	func delete() throws
 	func accessDate() throws -> Date
 	func sizeBytes() throws -> Int
 	func allocatedSizeBytes() throws -> Int
-}
-
-extension Purgeable {
-	public func fingerprint() -> String? {
-		nil
-	}
 }
 
 protocol PurgeableStorage {
@@ -337,7 +331,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 			self._fingerprint
 		}
 
-		func fingerprint() -> String? {
+		var fingerprint: String? {
 			self._fingerprint
 		}
 
@@ -448,7 +442,7 @@ public class OCIImageCache: CommonCacheImageCache {
 			try self._url.allocatedSizeBytes()
 		}
 
-		func fingerprint() -> String? {
+		var fingerprint: String? {
 			String(self._sha256.dropFirst("sha256:".count))
 		}
 

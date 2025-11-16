@@ -12,7 +12,7 @@ public struct PurgeHandler {
 
 			if options.entries == .caches {
 				purgeableStorages = [
-					try OCIImageCache(runMode: runMode),
+					try PurgeableContentStore(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
@@ -22,7 +22,7 @@ public struct PurgeHandler {
 			} else {
 				purgeableStorages = [
 					StorageLocation(runMode: runMode),
-					try OCIImageCache(runMode: runMode),
+					try PurgeableContentStore(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),

@@ -150,6 +150,10 @@ public func processExist(_ runningPID: pid_t) throws -> (Bool, String, pid_t) {
 }
 
 extension URL: Purgeable {
+	public var fingerprint: String? {
+		nil
+	}
+
 	public var url: URL {
 		self
 	}

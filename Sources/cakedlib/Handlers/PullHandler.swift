@@ -13,7 +13,7 @@ import ContainerizationOCI
 import Foundation
 
 public struct PullHandler {
-	private static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T?) async throws -> T? {
+	private static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T) async throws -> T {
 		let ref = try Reference.parse(ref)
 
 		guard let host = ref.resolvedDomain else {
@@ -26,7 +26,7 @@ public struct PullHandler {
 		return try await body(authentication)
 	}
 
-	public static func pull(location: VMLocation, image: String, insecure: Bool, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PullReply {
+	public static func pull(location: VMLocation?, image: String, insecure: Bool, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PullReply {
 		do {
 			let imageStore = try Home(runMode: runMode).imageStore
 			let reference = try Reference.parse(image)
@@ -37,7 +37,32 @@ public struct PullHandler {
 			let image = try await Self.withAuthentication(ref: normalizedReference) { auth in
 				try await imageStore.pull(reference: normalizedReference, platform: nil, insecure: insecure, auth: auth)
 			}
-			
+
+			let context = ProgressObserver.ProgressHandlerContext()
+
+			if let location {
+				try await image.unpack(location) { event in
+					var totalSize: Int64? = nil
+					var addSize: Int64? = nil
+
+					event.forEach {
+						if $0.event == "add-size" {
+							addSize = $0.value as? Int64
+						} else if $0.event == "total-size" {
+							totalSize = $0.value as? Int64
+						}
+					}
+					
+					if let totalSize, let addSize {
+						let fractionCompleted = (Double(addSize) / Double(totalSize)) * 100.0
+						
+						if context.oldFractionCompleted != fractionCompleted {
+							progressHandler(.progress(context, fractionCompleted))
+							context.oldFractionCompleted = fractionCompleted
+						}
+					}
+				}
+			}
 			return PullReply(success: true, message: "Success")
 		} catch {
 			return PullReply(success: false, message: "\(error)")

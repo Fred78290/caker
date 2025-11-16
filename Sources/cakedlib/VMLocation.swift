@@ -76,6 +76,10 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		rootURL
 	}
 
+	public var fingerprint: String? {
+		nil
+	}
+
 	public var inited: Bool {
 		if self.template {
 			return FileManager.default.fileExists(atPath: diskURL.path)
