@@ -252,7 +252,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 	func stopVMRunService() {
 		if let service = self.vmrunService {
-			Logger(self).info("Stopping mount service for VM \(self.location.name)...")
+			Logger(self).info("Stopping infos service for VM \(self.location.name)...")
 			service.stop()
 		}
 	}
