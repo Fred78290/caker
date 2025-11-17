@@ -11,6 +11,7 @@ import ContainerizationError
 import ContainerizationExtras
 import ContainerizationOCI
 import Foundation
+import Virtualization
 
 public struct PullHandler {
 	private static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T) async throws -> T {
@@ -88,10 +89,45 @@ public struct PullHandler {
 				operation: {
 					do {
 						let result = try await Self.pull(location: tempVMLocation, image: image, insecure: insecure, runMode: runMode, progressHandler: progressHandler)
+						
 						try storageLocation.relocate(name, from: tempVMLocation)
 						
-						let location = try StorageLocation(runMode: runMode).find(name)
-						let config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
+						let location = try storageLocation.find(name)
+						let config: CakeConfig
+
+						if result.imageType == .tart {
+							config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
+
+							if config.os == .darwin {
+					#if arch(arm64)
+								config.ecid = VZMacMachineIdentifier()
+					#else
+								throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+					#endif
+							}
+
+						} else {
+							config = CakeConfig(
+								location: location.rootURL,
+								os: .linux,
+								autostart: false,
+								configuredUser: "root",
+								configuredPassword: nil,
+								displayRefit: true,
+								cpuCountMin: Int(1),
+								memorySizeMin: 2 * 1024 * 1024,
+								screenSize: .init(width: 1024, height: 768))
+
+							if try location.nvramURL.exists() == false {
+								_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
+							}
+						}
+
+						config.useCloudInit = false
+						config.agent = false
+						config.macAddress = VZMACAddress.randomLocallyAdministered()
+						config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
+						config.source = .oci
 
 						try config.save()
 
