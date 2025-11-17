@@ -10,6 +10,14 @@ public struct ConfigureHandler {
 			let location = try StorageLocation(runMode: runMode).find(name)
 			let config = try location.config()
 			
+			if let user = options.user {
+				config.configuredUser = user
+			}
+
+			if let password = options.password {
+				config.configuredPassword = password
+			}
+
 			if let cpu = options.cpu {
 				config.cpuCount = Int(cpu)
 			}

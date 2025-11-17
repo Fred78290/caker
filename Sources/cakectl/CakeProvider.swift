@@ -231,6 +231,14 @@ extension Caked_ConfigureRequest {
 		self.init()
 		self.name = options.name
 
+		if let user = options.user {
+			self.user = user
+		}
+
+		if let password = options.password {
+			self.password = password
+		}
+
 		if let cpu = options.cpu {
 			self.cpu = Int32(cpu)
 		}

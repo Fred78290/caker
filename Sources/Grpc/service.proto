@@ -118,6 +118,8 @@ message Caked {
 			optional bool dynamicPortForwarding = 15;
 			optional bool suspendable = 16;
 			optional CommonBuildRequest.ScreenSize screenSize = 17;
+			optional string user = 18;
+			optional string password = 19;
 		}
 
 		message WaitIPRequest {

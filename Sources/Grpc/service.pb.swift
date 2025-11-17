@@ -583,6 +583,24 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
       public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
 
+      public var user: String {
+        get {return _storage._user ?? String()}
+        set {_uniqueStorage()._user = newValue}
+      }
+      /// Returns true if `user` has been explicitly set.
+      public var hasUser: Bool {return _storage._user != nil}
+      /// Clears the value of `user`. Subsequent reads from it will return its default value.
+      public mutating func clearUser() {_uniqueStorage()._user = nil}
+
+      public var password: String {
+        get {return _storage._password ?? String()}
+        set {_uniqueStorage()._password = newValue}
+      }
+      /// Returns true if `password` has been explicitly set.
+      public var hasPassword: Bool {return _storage._password != nil}
+      /// Clears the value of `password`. Subsequent reads from it will return its default value.
+      public mutating func clearPassword() {_uniqueStorage()._password = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
@@ -4294,7 +4312,7 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ConfigureRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}diskSize\0\u{1}displayRefit\0\u{1}autostart\0\u{1}nested\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}randomMAC\0\u{1}forwardedPort\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}suspendable\0\u{1}screenSize\0\u{1}user\0\u{1}password\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -4314,6 +4332,8 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     var _dynamicPortForwarding: Bool? = nil
     var _suspendable: Bool? = nil
     var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
+    var _user: String? = nil
+    var _password: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -4341,6 +4361,8 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
       _dynamicPortForwarding = source._dynamicPortForwarding
       _suspendable = source._suspendable
       _screenSize = source._screenSize
+      _user = source._user
+      _password = source._password
     }
   }
 
@@ -4376,6 +4398,8 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
         case 15: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
         case 16: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
         case 17: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
+        case 18: try { try decoder.decodeSingularStringField(value: &_storage._user) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._password) }()
         default: break
         }
       }
@@ -4439,6 +4463,12 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
       try { if let v = _storage._screenSize {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
       } }()
+      try { if let v = _storage._user {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 18)
+      } }()
+      try { if let v = _storage._password {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 19)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4465,6 +4495,8 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
         if _storage._dynamicPortForwarding != rhs_storage._dynamicPortForwarding {return false}
         if _storage._suspendable != rhs_storage._suspendable {return false}
         if _storage._screenSize != rhs_storage._screenSize {return false}
+        if _storage._user != rhs_storage._user {return false}
+        if _storage._password != rhs_storage._password {return false}
         return true
       }
       if !storagesAreEqual {return false}

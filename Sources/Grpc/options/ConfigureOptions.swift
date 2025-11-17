@@ -8,6 +8,12 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Argument(help: "VM name")
 	public var name: String
 
+	@Option(name: [.long, .customShort("u")], help: "Reconfigure the login user")
+	public var user: String? = nil
+
+	@Option(name: [.long, .customShort("w")], help: "Reconfigure the login password")
+	public var password: String? = nil
+
 	@Option(name: [.customLong("cpus"), .customShort("c")], help: ArgumentHelp("Number of VM CPUs", valueName: "num"))
 	public var cpu: UInt16? = nil
 
@@ -63,6 +69,18 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	public init(request: Caked_ConfigureRequest) {
 		self.name = request.name
 		self.displayRefit = false
+
+		if request.hasUser {
+			self.user = request.user
+		} else {
+			self.user = nil
+		}
+
+		if request.hasPassword {
+			self.password = request.password
+		} else {
+			self.password = nil
+		}
 
 		if request.hasCpu {
 			self.cpu = UInt16(request.cpu)
