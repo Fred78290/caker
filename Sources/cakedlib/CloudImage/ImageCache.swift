@@ -33,7 +33,7 @@ public class CommonCacheImageCache: PurgeableStorage {
 	public let name: String
 	public let location: String
 	public let runMode: Utils.RunMode
-	private let ext: String
+	internal let ext: String
 
 	public init(scheme: String, location: String, name: String, ext: String = "img", root: URL? = nil, runMode: Utils.RunMode) throws {
 		self.scheme = scheme
@@ -104,13 +104,17 @@ public class CommonCacheImageCache: PurgeableStorage {
 
 public class TemplateImageCache: CommonCacheImageCache {
 	static let scheme = "template"
-
+	
 	public convenience init(runMode: Utils.RunMode) throws {
 		try self.init(name: "", runMode: runMode)
 	}
-
+	
 	public init(name: String, runMode: Utils.RunMode) throws {
-		try super.init(scheme: Self.scheme, location: "templates", name: name, root: try Home(runMode: runMode).cakeHomeDirectory, runMode: runMode)
+		try super.init(scheme: Self.scheme, location: "templates", name: name, ext: "cakedvm", root: try Home(runMode: runMode).cakeHomeDirectory, runMode: runMode)
+	}
+	
+	override public func fqn(_ purgeable: Purgeable) -> [String] {
+		["\(self.scheme)://\(purgeable.name).\(self.ext)"]
 	}
 }
 
@@ -261,7 +265,7 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 	}
 
 	public override func type() -> String {
-		"stream"
+		"simplestream"
 	}
 
 	public override func fqn(_ purgeable: Purgeable) -> [String] {
