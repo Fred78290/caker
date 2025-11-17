@@ -316,19 +316,47 @@ extension URL: Purgeable {
 	}
 
 	public func sizeBytes() throws -> Int {
-		guard let totalFileSize = try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize else {
-			return 0
-		}
+		if self.isDirectory {
+			var totalFileSize: Int = 0
 
-		return totalFileSize
+			if let fileURLs: FileManager.DirectoryEnumerator = FileManager.default.enumerator(at: self, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles) {
+				for case let fileURL as URL in fileURLs {
+					totalFileSize += try fileURL.sizeBytes()
+				}
+			}
+
+			return totalFileSize
+		} else if self.isFileURL {
+			guard let totalFileSize = try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize else {
+				return 0
+			}
+			
+			return totalFileSize
+		} else {
+			throw ServiceError("Not a file URL: \(self.absoluteString)")
+		}
 	}
 
 	public func allocatedSizeBytes() throws -> Int {
-		guard let totalFileAllocatedSize = try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize else {
-			return 0
-		}
+		if self.isDirectory {
+			var totalFileAllocatedSize = 0
 
-		return totalFileAllocatedSize
+			if let fileURLs: FileManager.DirectoryEnumerator = FileManager.default.enumerator(at: self, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles) {
+				for case let fileURL as URL in fileURLs {
+					totalFileAllocatedSize += try fileURL.allocatedSizeBytes()
+				}
+			}
+
+			return totalFileAllocatedSize
+		} else if self.isFileURL {
+			guard let totalFileAllocatedSize = try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize else {
+				return 0
+			}
+			
+			return totalFileAllocatedSize
+		} else {
+			throw ServiceError("Not a file URL: \(self.absoluteString)")
+		}
 	}
 
 	public func accessDate() throws -> Date {
