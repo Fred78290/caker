@@ -55,7 +55,7 @@ let package = Package(
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0"),
 		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
-		.package(url: "https://github.com/Fred78290/containerization", branch: "main"),
+		.package(url: "https://github.com/Fred78290/containerization", revision: "6af98c0bd2635bc209541626f087f712df400834"),
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),

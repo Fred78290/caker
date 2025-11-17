@@ -3102,8 +3102,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/containerization";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = revision;
+				revision = 6af98c0bd2635bc209541626f087f712df400834;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
