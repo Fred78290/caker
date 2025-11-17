@@ -789,6 +789,7 @@ message Caked {
 		repeated string remoteNames = 2;
 		bool insecure = 3;
 		int32 chunkSize = 4;
+		int32 concurrency = 5;
 	}
 
 	message CloneRequest {

@@ -13,6 +13,9 @@ public struct PushOptions: ParsableArguments {
 	@Flag(help: "Connect to the OCI registry via insecure HTTP protocol")
 	public var insecure: Bool = false
 
+	@Option(help: "Network concurrency to use when pushing a local VM to the OCI-compatible registry")
+	public var concurrency: UInt = 4
+
 	@Option(
 		help: ArgumentHelp(
 			"Chunk size in MB if registry supports chunked uploads",

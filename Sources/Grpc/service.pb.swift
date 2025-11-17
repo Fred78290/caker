@@ -3619,6 +3619,8 @@ public struct Caked_Caked: Sendable {
 
     public var chunkSize: Int32 = 0
 
+    public var concurrency: Int32 = 0
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public init() {}
@@ -9402,7 +9404,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
 
 extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PushRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}localName\0\u{1}remoteNames\0\u{1}insecure\0\u{1}chunkSize\0\u{1}concurrency\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9414,6 +9416,7 @@ extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 2: try { try decoder.decodeRepeatedStringField(value: &self.remoteNames) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.chunkSize) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self.concurrency) }()
       default: break
       }
     }
@@ -9432,6 +9435,9 @@ extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     if self.chunkSize != 0 {
       try visitor.visitSingularInt32Field(value: self.chunkSize, fieldNumber: 4)
     }
+    if self.concurrency != 0 {
+      try visitor.visitSingularInt32Field(value: self.concurrency, fieldNumber: 5)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9440,6 +9446,7 @@ extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     if lhs.remoteNames != rhs.remoteNames {return false}
     if lhs.insecure != rhs.insecure {return false}
     if lhs.chunkSize != rhs.chunkSize {return false}
+    if lhs.concurrency != rhs.concurrency {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
