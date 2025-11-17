@@ -27,7 +27,7 @@ public class PurgeableContentStore: PurgeableStorage {
 			self.name = image.reference
 			self.url = imageStore.path.appendingPathComponent("blobs/sha256").appendingPathComponent(image.digest)
 			self.imageStore = imageStore
-			self.fingerprint = image.digest
+			self.fingerprint = image.digest.stringAfter(after: ":")
 			self.totalSize = totalSize
 		}
 
