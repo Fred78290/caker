@@ -12,8 +12,8 @@ import SystemPackage
 import Compression
 
 struct RawDisk: FileSystemProtocol {
-	private static let bufferSizeBytes = 4 * 1024 * 1024
-	private static let layerLimitBytes = 500 * 1000 * 1000
+	static let bufferSizeBytes = 4 * 1024 * 1024
+	static let layerLimitBytes = 500 * 1000 * 1000
 
 	private var handle: FileHandle
 

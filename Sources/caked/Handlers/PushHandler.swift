@@ -13,7 +13,7 @@ struct PushHandler: CakedCommandAsync {
 
 	func run(on: any EventLoop, runMode: Utils.RunMode) -> NIOCore.EventLoopFuture<GRPCLib.Caked_Reply> {
 		return on.makeFutureWithTask {
-			let result = await CakedLib.PushHandler.push(localName: self.request.localName, remoteNames: self.request.remoteNames, insecure: self.request.insecure, chunkSize: Int(self.request.chunkSize), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+			let result = await CakedLib.PushHandler.push(localName: self.request.localName, remoteNames: self.request.remoteNames, insecure: self.request.insecure, chunkSizeInMB: Int(self.request.chunkSize), concurrency: UInt(self.request.concurrency), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 			return Caked_Reply.with {
 				$0.oci = .with {

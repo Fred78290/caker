@@ -14,7 +14,7 @@ import Foundation
 import Virtualization
 
 public struct PullHandler {
-	private static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T) async throws -> T {
+	static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T) async throws -> T {
 		let ref = try Reference.parse(ref)
 
 		guard let host = ref.resolvedDomain else {
@@ -43,18 +43,18 @@ public struct PullHandler {
 		if let location {
 			let imageType = try await image.unpack(location) { event in
 				var totalSize: Int64? = nil
-				var addSize: Int64? = nil
+				var currentSize: Int64? = nil
 
 				event.forEach {
-					if $0.event == "add-size" {
-						addSize = $0.value as? Int64
+					if $0.event == "current-size" {
+						currentSize = $0.value as? Int64
 					} else if $0.event == "total-size" {
 						totalSize = $0.value as? Int64
 					}
 				}
 				
-				if let totalSize, let addSize {
-					let fractionCompleted = (Double(addSize) / Double(totalSize)) * 100.0
+				if let totalSize, let currentSize {
+					let fractionCompleted = (Double(currentSize) / Double(totalSize))
 					
 					if context.oldFractionCompleted != fractionCompleted {
 						progressHandler(.progress(context, fractionCompleted))
