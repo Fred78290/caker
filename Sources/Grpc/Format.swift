@@ -492,7 +492,7 @@ public enum Format: String, ExpressibleByArgument, CaseIterable, Sendable, Codab
 											fqn: [$0],
 											instanceID: vm.instanceID,
 											diskSize: vm.diskSize,
-											totalSize: vm.totalSize,
+											sizeOnDisk: vm.sizeOnDisk,
 											state: vm.state,
 											ip: vm.ip,
 											fingerprint: vm.fingerprint

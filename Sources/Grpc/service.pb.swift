@@ -1322,7 +1322,7 @@ public struct Caked_Caked: Sendable {
 
           public var diskSize: UInt64 = 0
 
-          public var totalSize: UInt64 = 0
+          public var sizeOnDisk: UInt64 = 0
 
           public var state: String = String()
 
@@ -5797,7 +5797,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}totalSize\0\u{1}state\0\u{1}ip\0\u{1}fingerprint\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}ip\0\u{1}fingerprint\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5811,7 +5811,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
       case 4: try { try decoder.decodeRepeatedStringField(value: &self.fqn) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self._instanceID) }()
       case 6: try { try decoder.decodeSingularUInt64Field(value: &self.diskSize) }()
-      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.totalSize) }()
+      case 7: try { try decoder.decodeSingularUInt64Field(value: &self.sizeOnDisk) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.state) }()
       case 9: try { try decoder.decodeSingularStringField(value: &self._ip) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
@@ -5843,8 +5843,8 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     if self.diskSize != 0 {
       try visitor.visitSingularUInt64Field(value: self.diskSize, fieldNumber: 6)
     }
-    if self.totalSize != 0 {
-      try visitor.visitSingularUInt64Field(value: self.totalSize, fieldNumber: 7)
+    if self.sizeOnDisk != 0 {
+      try visitor.visitSingularUInt64Field(value: self.sizeOnDisk, fieldNumber: 7)
     }
     if !self.state.isEmpty {
       try visitor.visitSingularStringField(value: self.state, fieldNumber: 8)
@@ -5865,7 +5865,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     if lhs.fqn != rhs.fqn {return false}
     if lhs._instanceID != rhs._instanceID {return false}
     if lhs.diskSize != rhs.diskSize {return false}
-    if lhs.totalSize != rhs.totalSize {return false}
+    if lhs.sizeOnDisk != rhs.sizeOnDisk {return false}
     if lhs.state != rhs.state {return false}
     if lhs._ip != rhs._ip {return false}
     if lhs._fingerprint != rhs._fingerprint {return false}

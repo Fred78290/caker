@@ -316,11 +316,19 @@ extension URL: Purgeable {
 	}
 
 	public func sizeBytes() throws -> Int {
-		try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize!
+		guard let totalFileSize = try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize else {
+			return 0
+		}
+
+		return totalFileSize
 	}
 
 	public func allocatedSizeBytes() throws -> Int {
-		try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize!
+		guard let totalFileAllocatedSize = try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize else {
+			return 0
+		}
+
+		return totalFileAllocatedSize
 	}
 
 	public func accessDate() throws -> Date {

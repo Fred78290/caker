@@ -241,7 +241,7 @@ message Caked {
 					repeated string fqn = 4;
 					optional string instanceID = 5;
 					uint64 diskSize = 6;
-					uint64 totalSize = 7;
+					uint64 sizeOnDisk = 7;
 					string state = 8;
 					optional string ip = 9;
 					optional string fingerprint = 10;

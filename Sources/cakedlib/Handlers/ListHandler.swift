@@ -18,7 +18,7 @@ public struct ListHandler {
 					fqn: ["vm://\(name)"],
 					instanceID: config.instanceID,
 					diskSize: try location.diskSize(),
-					totalSize: try location.allocatedSize(),
+					sizeOnDisk: try location.allocatedSize(),
 					state: status.rawValue,
 					ip: status == .running ? config.runningIP : nil,
 					fingerprint: nil
@@ -53,8 +53,8 @@ public struct ListHandler {
 								name: purgeable.name,
 								fqn: imageCache.fqn(purgeable),
 								instanceID: "",
-								diskSize: try purgeable.allocatedSizeBytes(),
-								totalSize: try purgeable.allocatedSizeBytes(),
+								diskSize: try purgeable.sizeBytes(),
+								sizeOnDisk: try purgeable.allocatedSizeBytes(),
 								state: "cached",
 								ip: nil,
 								fingerprint: purgeable.fingerprint

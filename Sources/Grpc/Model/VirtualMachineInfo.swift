@@ -651,7 +651,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let fqn: [String]
 	public let instanceID: String?
 	public let diskSize: Int
-	public let totalSize: Int
+	public let sizeOnDisk: Int
 	public let state: String
 	public let ip: String?
 	public let fingerprint: String?
@@ -667,7 +667,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fqn = from.fqn
 		self.instanceID = from.instanceID
 		self.diskSize = Int(from.diskSize)
-		self.totalSize = Int(from.totalSize)
+		self.sizeOnDisk = Int(from.sizeOnDisk)
 		self.state = from.state
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
@@ -679,7 +679,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 				fqn: [String] = [],
 				instanceID: String? = nil,
 				diskSize: Int = 0,
-				totalSize: Int = 0,
+				sizeOnDisk: Int = 0,
 				state: String = "unknown",
 				ip: String? = nil,
 				fingerprint: String? = nil) {
@@ -689,7 +689,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.fqn = fqn
 		self.instanceID = instanceID
 		self.diskSize = diskSize
-		self.totalSize = totalSize
+		self.sizeOnDisk = sizeOnDisk
 		self.state = state
 		self.ip = ip
 		self.fingerprint = fingerprint
@@ -702,7 +702,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			info.name = self.name
 			info.fqn = self.fqn
 			info.diskSize = UInt64(self.diskSize)
-			info.totalSize = UInt64(self.totalSize)
+			info.sizeOnDisk = UInt64(self.sizeOnDisk)
 			info.state = self.state
 
 			if let instanceID: String = self.instanceID {
@@ -727,7 +727,7 @@ public struct ShortVirtualMachineInfo: Codable {
 	public let instanceID: String
 	public let ip: String
 	public let diskSize: String
-	public let totalSize: String
+	public let sizeOnDisk: String
 	public let state: String
 	public let fingerprint: String
 
@@ -738,7 +738,7 @@ public struct ShortVirtualMachineInfo: Codable {
 		self.ip = from.ip ?? ""
 		self.instanceID = from.instanceID ?? ""
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
-		self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
+		self.sizeOnDisk = ByteCountFormatter.string(fromByteCount: Int64(from.sizeOnDisk), countStyle: .file)
 		self.state = from.state
 		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : ""
 	}
