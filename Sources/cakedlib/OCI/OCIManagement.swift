@@ -14,14 +14,6 @@ import SystemPackage
 import Compression
 
 extension Home {
-	var contentStore: LocalContentStore {
-		try! LocalContentStore(path: cacheDirectory.appendingPathComponent("OCIs"))
-	}
-
-	var imageStore: ImageStore {
-		try! ImageStore(path: cacheDirectory, contentStore: self.contentStore)
-	}
-}
 
 extension MediaTypes {
 	/// The Tart media type used by tart layers referenced by an image manifest.

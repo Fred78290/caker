@@ -1,5 +1,7 @@
 import Foundation
 import GRPCLib
+import ContainerizationOCI
+import Containerization
 
 public let defaultRemotes: [String: String] = [
 	"images": "https://images.linuxcontainers.org/",
@@ -77,6 +79,8 @@ public struct Home {
 	public let remoteDb: URL
 	public let sshPrivateKey: URL
 	public let sshPublicKey: URL
+	public let contentStore: LocalContentStore
+	public let imageStore: ImageStore
 
 	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
 		self.cakeHomeDirectory = try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists)
@@ -85,6 +89,8 @@ public struct Home {
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
+		self.contentStore = try LocalContentStore(path: cacheDirectory.appendingPathComponent("OCIs"))
+		self.imageStore = try ImageStore(path: cacheDirectory, contentStore: self.contentStore)
 
 		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
