@@ -63,6 +63,7 @@ extension Caked_PushRequest {
 		self.remoteNames = command.push.remoteNames
 		self.insecure = command.push.insecure
 		self.chunkSize = Int32(command.push.chunkSize)
+		self.concurrency = Int32(command.push.concurrency)
 	}
 }
 
