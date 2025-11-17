@@ -94,6 +94,14 @@ public struct StorageLocation {
 }
 
 extension StorageLocation: PurgeableStorage {
+	func type() -> String {
+		"file"
+	}
+	
+	func fqn(_ purgeable: any Purgeable) -> [String] {
+		[purgeable.url.absoluteString]
+	}
+	
 	func purgeables() throws -> [any Purgeable] {
 		return try self.list().map { $1 }.filter { $0.isPIDRunning() == false }
 	}

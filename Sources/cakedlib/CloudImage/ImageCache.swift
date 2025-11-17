@@ -14,6 +14,8 @@ public protocol Purgeable {
 }
 
 protocol PurgeableStorage {
+	func type() -> String
+	func fqn(_ purgeable: Purgeable) -> [String]
 	func purgeables() throws -> [Purgeable]
 }
 

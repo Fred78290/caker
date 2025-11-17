@@ -56,6 +56,14 @@ public class PurgeableContentStore: PurgeableStorage {
 		self.imageStore = try Home(runMode: runMode).imageStore
 	}
 
+	func type() -> String {
+		"oci"
+	}
+	
+	func fqn(_ purgeable: any Purgeable) -> [String] {
+		return ["oci://\(purgeable.name)"]
+	}
+	
 	func purgeables() throws -> [any Purgeable] {
 		let on = Utilities.group.next()
 
