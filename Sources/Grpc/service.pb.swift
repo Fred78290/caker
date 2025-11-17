@@ -3095,6 +3095,8 @@ public struct Caked_Caked: Sendable {
 
         public var message: String = String()
 
+        public var imageType: String = String()
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
@@ -8836,7 +8838,7 @@ extension Caked_Caked.Reply.OCIReply: SwiftProtobuf.Message, SwiftProtobuf._Mess
 
 extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.OCIReply.protoMessageName + ".PullReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0\u{1}imageType\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -8846,6 +8848,7 @@ extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProt
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.imageType) }()
       default: break
       }
     }
@@ -8858,12 +8861,16 @@ extension Caked_Caked.Reply.OCIReply.PullReply: SwiftProtobuf.Message, SwiftProt
     if !self.message.isEmpty {
       try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
     }
+    if !self.imageType.isEmpty {
+      try visitor.visitSingularStringField(value: self.imageType, fieldNumber: 3)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.Reply.OCIReply.PullReply, rhs: Caked_Caked.Reply.OCIReply.PullReply) -> Bool {
     if lhs.success != rhs.success {return false}
     if lhs.message != rhs.message {return false}
+    if lhs.imageType != rhs.imageType {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

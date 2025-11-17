@@ -45,20 +45,15 @@ extension Manifest {
 		MediaTypes.dockerImageLayerGzip
 	]
 
-	enum ImageType: String, CaseIterable, Codable {
+	public enum ImageType: String, CaseIterable, Codable {
 		case docker
-		case tartV1
-		case tartV2
+		case tart
 		case unknown
 	}
 	
-	func imageType() async throws -> ImageType {
-		if self.layers.first(where: {$0.mediaType == MediaTypes.tartDiskV1Layer }) != nil {
-			return .tartV1
-		}
-
-		if self.layers.first(where: {$0.mediaType == MediaTypes.tartDiskV2Layer }) != nil {
-			return .tartV2
+	public  func imageType() async throws -> ImageType {
+		if self.layers.first(where: { $0.mediaType == MediaTypes.tartDiskV1Layer || $0.mediaType == MediaTypes.tartDiskV2Layer }) != nil {
+			return .tart
 		}
 
 		if self.layers.first(where: { Self.dockerLayers.contains($0.mediaType) }) != nil {
@@ -87,17 +82,16 @@ extension Containerization.Image {
 		return manifest.layers.reduce(0) { $0 + $1.size }
 	}
 
-	public func unpack(_ location: VMLocation, for platform: Platform = .current, progress: ProgressHandler? = nil) async throws {
+	public func unpack(_ location: VMLocation, for platform: Platform = .current, progress: ProgressHandler? = nil) async throws -> Manifest.ImageType {
 		let manifest = try await self.manifest(for: platform)
 		let cleanedPath = location.diskURL.absolutePath()
 		let filesystem: FileSystemProtocol
+		let imageType = try await manifest.imageType()
 
-		switch try await manifest.imageType() {
+		switch imageType {
 		case .docker:
 			filesystem = try EXT4.Formatter(FilePath(cleanedPath))
-		case .tartV1:
-			filesystem = try RawDisk(FilePath(cleanedPath))
-		case .tartV2:
+		case .tart:
 			filesystem = try RawDisk(FilePath(cleanedPath))
 		case .unknown:
 			throw ServiceError("Unsupported image type")
@@ -143,5 +137,7 @@ extension Containerization.Image {
 				])
 			}
 		}
+
+		return imageType
 	}
 }

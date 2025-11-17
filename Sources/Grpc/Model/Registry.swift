@@ -50,21 +50,35 @@ public struct LogoutReply: Codable {
 }
 
 public struct PullReply: Codable {
+	public enum ImageTypeEnum: String, Codable, Equatable, CustomStringConvertible {
+		case docker
+		case tart
+		case unknown
+
+		public var description: String {
+			self.rawValue
+		}
+	}
+
 	public var message: String
 	public var success: Bool
-	
-	public init(success: Bool, message: String) {
+	public var imageType: ImageTypeEnum
+
+	public init(_ imageType: ImageTypeEnum, success: Bool, message: String) {
+		self.imageType = imageType
 		self.message = message
 		self.success = success
 	}
 	
 	public init(from: Caked_PullReply) {
+		self.imageType = ImageTypeEnum(rawValue: from.imageType)!
 		self.message = from.message
 		self.success = from.success
 	}
 	
 	public var caked: Caked_PullReply {
 		Caked_PullReply.with {
+			$0.imageType = self.imageType.rawValue
 			$0.success = success
 			$0.message = message
 		}

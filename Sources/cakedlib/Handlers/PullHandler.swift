@@ -40,7 +40,7 @@ public struct PullHandler {
 		let context = ProgressObserver.ProgressHandlerContext()
 
 		if let location {
-			try await image.unpack(location) { event in
+			let imageType = try await image.unpack(location) { event in
 				var totalSize: Int64? = nil
 				var addSize: Int64? = nil
 
@@ -61,14 +61,20 @@ public struct PullHandler {
 					}
 				}
 			}
+
+			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: "Success")
+		} else {
+			let imageType = try await image.manifest(for: .current).imageType()
+
+			return PullReply(.init(rawValue: imageType.rawValue)!, success: true, message: "Success")
 		}
-		return PullReply(success: true, message: "Success")
+
 	}
 
 	public static func pull(name: String, image: String, insecure: Bool, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PullReply {
 		do {
 			if StorageLocation(runMode: runMode).exists(name) {
-				return PullReply(success: false, message: "VM already exists")
+				return PullReply(.unknown, success: false, message: "VM already exists")
 			}
 			
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
@@ -78,10 +84,10 @@ public struct PullHandler {
 			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 			try tmpVMDirLock.lock()
 
-			try await withTaskCancellationHandler(
+			let reply = try await withTaskCancellationHandler(
 				operation: {
 					do {
-						_ = try await Self.pull(location: tempVMLocation, image: image, insecure: insecure, runMode: runMode, progressHandler: progressHandler)
+						let result = try await Self.pull(location: tempVMLocation, image: image, insecure: insecure, runMode: runMode, progressHandler: progressHandler)
 						try storageLocation.relocate(name, from: tempVMLocation)
 						
 						let location = try StorageLocation(runMode: runMode).find(name)
@@ -90,6 +96,8 @@ public struct PullHandler {
 						try config.save()
 
 						progressHandler(.terminated(.success(location)))
+
+						return result
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 						
@@ -102,9 +110,9 @@ public struct PullHandler {
 					try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 				})
 
-			return PullReply(success: true, message: "Success")
+			return PullReply(reply.imageType, success: true, message: "Success")
 		} catch {
-			return PullReply(success: false, message: "\(error)")
+			return PullReply(.unknown, success: false, message: "\(error)")
 		}
 	}
 }

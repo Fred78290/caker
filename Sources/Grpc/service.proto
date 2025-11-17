@@ -661,6 +661,7 @@ message Caked {
 			message PullReply {
 				bool success = 1;
 				string message = 2;
+				string imageType = 3;
 			}
 
 			message PushReply {
