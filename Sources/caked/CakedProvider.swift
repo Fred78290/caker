@@ -180,7 +180,7 @@ extension Caked_LogoutRequest: CreateCakedCommand {
 	}
 }
 
-extension Caked_PullRequest: CreateCakedCommand {
+extension Caked_CloneRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		return PullHandler(request: self)
 	}
@@ -292,7 +292,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
-	func pull(request: Caked_PullRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 	

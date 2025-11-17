@@ -111,8 +111,8 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 		[CakeAgentClientInterceptor<Caked_LogoutRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
-	func makePullInterceptors() -> [ClientInterceptor<Caked_PullRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_PullRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>] {
+		[CakeAgentClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
 	func makePushInterceptors() -> [ClientInterceptor<Caked_PushRequest, Caked_Reply>] {

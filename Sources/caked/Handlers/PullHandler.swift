@@ -9,7 +9,7 @@ import NIOCore
 import CakedLib
 
 struct PullHandler: CakedCommandAsync {
-	var request: Caked_PullRequest
+	var request: Caked_CloneRequest
 	
 	func run(on: any EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {

@@ -3604,7 +3604,7 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
-  public struct PullRequest: Sendable {
+  public struct CloneRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
@@ -3614,8 +3614,6 @@ public struct Caked_Caked: Sendable {
     public var image: String = String()
 
     public var insecure: Bool = false
-
-    public var deduplicate: Bool = false
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -9408,9 +9406,9 @@ extension Caked_Caked.PushRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
   }
 }
 
-extension Caked_Caked.PullRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".PullRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}image\0\u{1}insecure\0\u{1}deduplicate\0")
+extension Caked_Caked.CloneRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".CloneRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}image\0\u{1}insecure\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9421,7 +9419,6 @@ extension Caked_Caked.PullRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.image) }()
       case 3: try { try decoder.decodeSingularBoolField(value: &self.insecure) }()
-      case 4: try { try decoder.decodeSingularBoolField(value: &self.deduplicate) }()
       default: break
       }
     }
@@ -9437,17 +9434,13 @@ extension Caked_Caked.PullRequest: SwiftProtobuf.Message, SwiftProtobuf._Message
     if self.insecure != false {
       try visitor.visitSingularBoolField(value: self.insecure, fieldNumber: 3)
     }
-    if self.deduplicate != false {
-      try visitor.visitSingularBoolField(value: self.deduplicate, fieldNumber: 4)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Caked_Caked.PullRequest, rhs: Caked_Caked.PullRequest) -> Bool {
+  public static func ==(lhs: Caked_Caked.CloneRequest, rhs: Caked_Caked.CloneRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.image != rhs.image {return false}
     if lhs.insecure != rhs.insecure {return false}
-    if lhs.deduplicate != rhs.deduplicate {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

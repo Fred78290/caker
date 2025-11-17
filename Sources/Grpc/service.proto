@@ -27,7 +27,7 @@ service Service {
 	rpc Image(Caked.ImageRequest) returns (Caked.Reply) {}
 	rpc Login (Caked.LoginRequest) returns (Caked.Reply) {}
 	rpc Logout (Caked.LogoutRequest) returns (Caked.Reply) {}
-	rpc Pull (Caked.PullRequest) returns (Caked.Reply) {}
+	rpc Clone (Caked.CloneRequest) returns (Caked.Reply) {}
 	rpc Push (Caked.PushRequest) returns (Caked.Reply) {}
 	rpc Purge (Caked.PurgeRequest) returns (Caked.Reply) {}
 	rpc Remote(Caked.RemoteRequest) returns (Caked.Reply) {}
@@ -788,11 +788,10 @@ message Caked {
 		int32 chunkSize = 4;
 	}
 
-	message PullRequest {
+	message CloneRequest {
 		string name = 1;
 		string image = 2;
 		bool insecure = 3;
-		bool deduplicate = 4;
 	}
 
 	message LoginRequest {

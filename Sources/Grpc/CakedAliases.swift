@@ -8,7 +8,7 @@ public typealias Caked_ImageCommand = Caked.ImageRequest.ImageCommand
 
 public typealias Caked_LoginRequest = Caked.LoginRequest
 public typealias Caked_LogoutRequest = Caked.LogoutRequest
-public typealias Caked_PullRequest = Caked.PullRequest
+public typealias Caked_CloneRequest = Caked.CloneRequest
 public typealias Caked_PushRequest = Caked.PushRequest
 
 public typealias Caked_MountRequest = Caked.MountRequest

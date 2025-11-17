@@ -47,13 +47,12 @@ extension Caked_ListRequest {
 	}
 }
 
-extension Caked_PullRequest {
+extension Caked_CloneRequest {
 	init(command: Pull) {
 		self.init()
 		self.name = command.pull.name
 		self.image = command.pull.image
 		self.insecure = command.pull.insecure
-		self.deduplicate = command.pull.deduplicate
 	}
 }
 

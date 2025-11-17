@@ -3,7 +3,8 @@ import Foundation
 
 public struct PullOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(
-		abstract: "Pull a VM from a registry",
+		commandName: "clone",
+		abstract: "Clone a VM from a registry",
 		discussion: """
 			Pulls a virtual machine from a remote OCI-compatible registry. Supports authorization via Keychain (see "login --help"),
 			"""

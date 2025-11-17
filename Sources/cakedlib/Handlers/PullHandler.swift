@@ -72,7 +72,8 @@ public struct PullHandler {
 			}
 			
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
-			
+			let storageLocation = StorageLocation(runMode: runMode)
+
 			// Lock the temporary VM directory to prevent it's garbage collection
 			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 			try tmpVMDirLock.lock()
@@ -81,9 +82,14 @@ public struct PullHandler {
 				operation: {
 					do {
 						_ = try await Self.pull(location: tempVMLocation, image: image, insecure: insecure, runMode: runMode, progressHandler: progressHandler)
-						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
+						try storageLocation.relocate(name, from: tempVMLocation)
 						
-						progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))))
+						let location = try StorageLocation(runMode: runMode).find(name)
+						let config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
+
+						try config.save()
+
+						progressHandler(.terminated(.success(location)))
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 						

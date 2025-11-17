@@ -15,11 +15,11 @@ import Compression
 
 extension Home {
 	var contentStore: LocalContentStore {
-		try! LocalContentStore(path: cakeHomeDirectory.appendingPathComponent("OCIs"))
+		try! LocalContentStore(path: cacheDirectory.appendingPathComponent("OCIs"))
 	}
 
 	var imageStore: ImageStore {
-		try! ImageStore(path: cakeHomeDirectory, contentStore: self.contentStore)
+		try! ImageStore(path: cacheDirectory, contentStore: self.contentStore)
 	}
 }
 

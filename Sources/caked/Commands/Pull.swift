@@ -15,7 +15,7 @@ struct Pull: AsyncParsableCommand {
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions
 
-	@OptionGroup(title: "Pull OCI image options")
+	@OptionGroup(title: "Clone OCI image options")
 	var options: PullOptions
 
 	mutating func validate() throws {

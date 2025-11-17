@@ -106,10 +106,10 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply>
 
-  func pull(
-    _ request: Caked_Caked.PullRequest,
+  func clone(
+    _ request: Caked_Caked.CloneRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Caked_Caked.PullRequest, Caked_Caked.Reply>
+  ) -> UnaryCall<Caked_Caked.CloneRequest, Caked_Caked.Reply>
 
   func push(
     _ request: Caked_Caked.PushRequest,
@@ -474,21 +474,21 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Pull
+  /// Unary call to Clone
   ///
   /// - Parameters:
-  ///   - request: Request to send to Pull.
+  ///   - request: Request to send to Clone.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func pull(
-    _ request: Caked_Caked.PullRequest,
+  public func clone(
+    _ request: Caked_Caked.CloneRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_Caked.PullRequest, Caked_Caked.Reply> {
+  ) -> UnaryCall<Caked_Caked.CloneRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.pull.path,
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -752,10 +752,10 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.LogoutRequest, Caked_Caked.Reply>
 
-  func makePullCall(
-    _ request: Caked_Caked.PullRequest,
+  func makeCloneCall(
+    _ request: Caked_Caked.CloneRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.PullRequest, Caked_Caked.Reply>
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CloneRequest, Caked_Caked.Reply>
 
   func makePushCall(
     _ request: Caked_Caked.PushRequest,
@@ -1022,15 +1022,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makePullCall(
-    _ request: Caked_Caked.PullRequest,
+  public func makeCloneCall(
+    _ request: Caked_Caked.CloneRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.PullRequest, Caked_Caked.Reply> {
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.CloneRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.pull.path,
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -1337,15 +1337,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func pull(
-    _ request: Caked_Caked.PullRequest,
+  public func clone(
+    _ request: Caked_Caked.CloneRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.pull.path,
+      path: Caked_ServiceClientMetadata.Methods.clone.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makePullInterceptors() ?? []
+      interceptors: self.interceptors?.makeCloneInterceptors() ?? []
     )
   }
 
@@ -1495,8 +1495,8 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'logout'.
   func makeLogoutInterceptors() -> [ClientInterceptor<Caked_Caked.LogoutRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'pull'.
-  func makePullInterceptors() -> [ClientInterceptor<Caked_Caked.PullRequest, Caked_Caked.Reply>]
+  /// - Returns: Interceptors to use when invoking 'clone'.
+  func makeCloneInterceptors() -> [ClientInterceptor<Caked_Caked.CloneRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'push'.
   func makePushInterceptors() -> [ClientInterceptor<Caked_Caked.PushRequest, Caked_Caked.Reply>]
@@ -1540,7 +1540,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.image,
       Caked_ServiceClientMetadata.Methods.login,
       Caked_ServiceClientMetadata.Methods.logout,
-      Caked_ServiceClientMetadata.Methods.pull,
+      Caked_ServiceClientMetadata.Methods.clone,
       Caked_ServiceClientMetadata.Methods.push,
       Caked_ServiceClientMetadata.Methods.purge,
       Caked_ServiceClientMetadata.Methods.remote,
@@ -1659,9 +1659,9 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let pull = GRPCMethodDescriptor(
-      name: "Pull",
-      path: "/caked.Service/Pull",
+    public static let clone = GRPCMethodDescriptor(
+      name: "Clone",
+      path: "/caked.Service/Clone",
       type: GRPCCallType.unary
     )
 
@@ -1743,7 +1743,7 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   func logout(request: Caked_Caked.LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func pull(request: Caked_Caked.PullRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+  func clone(request: Caked_Caked.CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   func push(request: Caked_Caked.PushRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
@@ -1932,13 +1932,13 @@ extension Caked_ServiceProvider {
         userFunction: self.logout(request:context:)
       )
 
-    case "Pull":
+    case "Clone":
       return UnaryServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.PullRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CloneRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makePullInterceptors() ?? [],
-        userFunction: self.pull(request:context:)
+        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+        userFunction: self.clone(request:context:)
       )
 
     case "Push":
@@ -2098,8 +2098,8 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
-  func pull(
-    request: Caked_Caked.PullRequest,
+  func clone(
+    request: Caked_Caked.CloneRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
@@ -2315,13 +2315,13 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.logout(request: $0, context: $1) }
       )
 
-    case "Pull":
+    case "Clone":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.PullRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CloneRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makePullInterceptors() ?? [],
-        wrapping: { try await self.pull(request: $0, context: $1) }
+        interceptors: self.interceptors?.makeCloneInterceptors() ?? [],
+        wrapping: { try await self.clone(request: $0, context: $1) }
       )
 
     case "Push":
@@ -2458,9 +2458,9 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeLogoutInterceptors() -> [ServerInterceptor<Caked_Caked.LogoutRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when handling 'pull'.
+  /// - Returns: Interceptors to use when handling 'clone'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makePullInterceptors() -> [ServerInterceptor<Caked_Caked.PullRequest, Caked_Caked.Reply>]
+  func makeCloneInterceptors() -> [ServerInterceptor<Caked_Caked.CloneRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'push'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2510,7 +2510,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.image,
       Caked_ServiceServerMetadata.Methods.login,
       Caked_ServiceServerMetadata.Methods.logout,
-      Caked_ServiceServerMetadata.Methods.pull,
+      Caked_ServiceServerMetadata.Methods.clone,
       Caked_ServiceServerMetadata.Methods.push,
       Caked_ServiceServerMetadata.Methods.purge,
       Caked_ServiceServerMetadata.Methods.remote,
@@ -2629,9 +2629,9 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let pull = GRPCMethodDescriptor(
-      name: "Pull",
-      path: "/caked.Service/Pull",
+    public static let clone = GRPCMethodDescriptor(
+      name: "Clone",
+      path: "/caked.Service/Clone",
       type: GRPCCallType.unary
     )
 
