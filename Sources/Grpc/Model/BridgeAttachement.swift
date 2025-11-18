@@ -104,6 +104,14 @@ public struct BridgeAttachement: CustomStringConvertible, ExpressibleByArgument,
 		self.mode = mode
 	}
 
+	public func clone() -> BridgeAttachement {
+		if macAddress != nil {
+			return .init(network: network, mode: mode, macAddress: VZMACAddress.randomLocallyAdministered().string)
+		}
+
+		return .init(network: network, mode: mode, macAddress: nil)
+	}
+
 	public func isNAT() -> Bool {
 		return self.network == "nat" || self.network == "NAT shared network"
 	}
