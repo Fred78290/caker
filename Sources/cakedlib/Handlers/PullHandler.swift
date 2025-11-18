@@ -94,6 +94,7 @@ public struct PullHandler {
 						
 						let location = try storageLocation.find(name)
 						let config: CakeConfig
+						let macAddress = VZMACAddress.randomLocallyAdministered()
 
 						if result.imageType == .tart {
 							config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
@@ -106,7 +107,7 @@ public struct PullHandler {
 					#endif
 							}
 
-						} else {
+						} else if try tempVMLocation.configURL.exists() == false {
 							config = CakeConfig(
 								location: location.rootURL,
 								os: .linux,
@@ -118,26 +119,39 @@ public struct PullHandler {
 								memorySizeMin: 2 * 1024 * 1024,
 								screenSize: .init(width: 1024, height: 768))
 
+							config.useCloudInit = false
+							config.agent = false
+
 							if try location.nvramURL.exists() == false {
 								_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 							}
+						} else {
+							config = try tempVMLocation.config()
+							
+							config.vncPassword = UUID().uuidString
+							
+							config.networks = config.networks.map {
+								if $0.isNAT() {
+									return .init(network: $0.network, mode: $0.mode, macAddress: macAddress.string)
+								} else {
+									return $0.clone()
+								}
+							}
 						}
 
-						config.useCloudInit = false
-						config.agent = false
-						config.macAddress = VZMACAddress.randomLocallyAdministered()
+						config.macAddress = macAddress
 						config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 						config.source = .oci
 
 						try config.save()
 
-						progressHandler(.terminated(.success(location)))
+						progressHandler(.terminated(.success(location), "Pull terminated successfully"))
 
 						return result
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 						
-						progressHandler(.terminated(.failure(error)))
+						progressHandler(.terminated(.failure(error), "Pull failed"))
 						
 						throw error
 					}
