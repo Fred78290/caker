@@ -110,10 +110,22 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "networks"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "list"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "push"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "devregistry.aldunelabs.com:1.0"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
