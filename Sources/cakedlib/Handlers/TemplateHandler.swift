@@ -52,11 +52,16 @@ public struct TemplateHandler {
 				let lock: FileLock = try FileLock(lockURL: storage.rootURL)
 				let config = try source.config()
 				let templateLocation = storage.location(templateName)
-				
+				var delete = false
+
 				try lock.lock()
 				
 				defer {
 					try? lock.unlock()
+					
+					if delete {
+						try? source.delete()
+					}
 				}
 				
 				Logger(self).info("Creating template \(templateName) from \(sourceName)")
@@ -64,6 +69,7 @@ public struct TemplateHandler {
 				do {
 					if config.os == .linux && config.useCloudInit {
 						source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+						delete = true
 					}
 					
 					try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
