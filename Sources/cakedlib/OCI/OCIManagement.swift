@@ -297,7 +297,9 @@ extension InitImage {
 
 			let configDescriptor = Descriptor(mediaType: ContainerizationOCI.MediaTypes.imageConfig, digest: layer.digest.digestString, size: layer.size)
 
-			let manifest = Manifest(config: configDescriptor, layers: layersDescriptors)
+			let manifest = Manifest(config: configDescriptor, layers: layersDescriptors, annotations: [
+				"com.apple.containerization.index.indirect": "true"
+			])
 
 			layer = try writer.create(from: manifest)
 
