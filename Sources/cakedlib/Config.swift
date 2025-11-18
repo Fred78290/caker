@@ -241,6 +241,21 @@ public final class CakeConfig {
 		get { self.cake["configuredPassword"] as? String }
 	}
 
+	public var configuredGroup: String {
+		set { self.cake["configuredGroup"] = newValue }
+		get { self.cake["configuredGroup"] as? String ?? "adm" }
+	}
+
+	public var configuredPlatform: SupportedPlatform {
+		set { self.cake["configuredPlatform"] = newValue }
+		get { self.cake["configuredPlatform"] as? SupportedPlatform ?? SupportedPlatform.unknown }
+	}
+
+	public var ifname: Bool {
+		set { self.cake["ifname"] = newValue }
+		get { self.cake["ifname"] as? Bool ?? false }
+	}
+
 	public var autostart: Bool {
 		set { self.cake["autostart"] = newValue }
 		get { self.cake["autostart"] as? Bool ?? false }
@@ -428,7 +443,10 @@ public final class CakeConfig {
 		autostart: Bool,
 		configuredUser: String,
 		configuredPassword: String?,
+		configuredGroup: String,
+		configuredPlatform: SupportedPlatform,
 		displayRefit: Bool,
+		ifname: Bool,
 		cpuCountMin: Int,
 		memorySizeMin: UInt64,
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
@@ -447,17 +465,21 @@ public final class CakeConfig {
 		self.displayRefit = displayRefit
 		self.configuredUser = configuredUser
 		self.configuredPassword = configuredPassword
+		self.configuredGroup = configuredGroup
+		self.configuredPlatform = configuredPlatform
+		self.ifname = ifname
 		self.autostart = autostart
 		self.display = DisplaySize(width: screenSize.width, height: screenSize.height)
 		self.vncPassword = UUID().uuidString
 	}
 
-	public init(location: URL, configuredUser: String, configuredPassword: String) throws {
+	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String) throws {
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
-		self.configuredUser = "admin"
-		self.configuredPassword = "admin"
+		self.configuredUser = configuredUser
+		self.configuredPassword = configuredPassword
+		self.configuredGroup = configuredGroup
 		self.autostart = false
 		self.vncPassword = UUID().uuidString
 
@@ -491,6 +513,9 @@ public final class CakeConfig {
 
 		self.configuredUser = options.user
 		self.configuredPassword = options.password
+		self.configuredGroup = options.mainGroup
+		self.configuredPlatform = SupportedPlatform(rawValue: options.image)
+		self.ifname = options.netIfnames
 		self.autostart = options.autostart
 		self.displayRefit = options.displayRefit
 		self.autostart = autostart
