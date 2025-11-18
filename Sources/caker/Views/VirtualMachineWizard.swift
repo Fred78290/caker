@@ -884,7 +884,7 @@ struct VirtualMachineWizard: View {
 				case .progress(_, let fractionCompleted):
 					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressCreateVirtualMachine, object: fractionCompleted)
 
-				case .terminated(let result):
+				case .terminated(let result, let message):
 					if case let .failure(error) = result {
 						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error)
 					} else if case let .success(location) = result {

@@ -22,15 +22,16 @@ public struct BuildHandler {
 			try await withTaskCancellationHandler(
 				operation: {
 					do {
+						let location = try StorageLocation(runMode: runMode).find(name)
 						_ = try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 						try StorageLocation(runMode: runMode).relocate(name, from: tempVMLocation)
 						
-						progressHandler(.terminated(.success(try StorageLocation(runMode: runMode).find(name))))
+						progressHandler(.terminated(.success(location), "Build VM finished successfully"))
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 						
-						progressHandler(.terminated(.failure(error)))
+						progressHandler(.terminated(.failure(error), "Build VM failed"))
 						
 						throw error
 					}

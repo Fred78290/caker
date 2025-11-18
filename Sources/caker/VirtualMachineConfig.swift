@@ -194,11 +194,11 @@ struct VirtualMachineConfig: Hashable {
 				}
 
 				if build.builded == false {
-					progressHandler(.terminated(.failure(ServiceError(build.reason))))
+					progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
 				}
 			},
 			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError("Cancelled"))))
+				progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
 			})
 	}
 }

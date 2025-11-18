@@ -148,7 +148,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 	public enum ProgressValue: Sendable {
 		case progress(ProgressHandlerContext, Double)
 		case step(String)
-		case terminated(Result<VMLocation, any Error>)
+		case terminated(Result<VMLocation, any Error>, String?)
 	}
 
 	public final class ProgressHandlerContext: @unchecked Sendable {
@@ -193,13 +193,17 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 					fflush(stdout)
 				}
 			}
-		} else if case let .terminated(result) = result {
+		} else if case let .terminated(result, message) = result {
 			let logger = Logger("BuildHandler")
 
 			if case let .failure(error) = result {
-				logger.error("Installation failed: \(error)")
+				if let message {
+					logger.error("\(message): \(error)")
+				} else {
+					logger.error("Installation failed: \(error)")
+				}
 			} else {
-				logger.info("Installation succeeded")
+				logger.info(message ?? "Installation succeeded")
 			}
 		} else if case let .step(message) = result {
 			Logger(self).info(message)
