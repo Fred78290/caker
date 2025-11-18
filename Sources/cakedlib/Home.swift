@@ -79,8 +79,11 @@ public struct Home {
 	public let remoteDb: URL
 	public let sshPrivateKey: URL
 	public let sshPublicKey: URL
-	public let contentStore: LocalContentStore
-	public let imageStore: ImageStore
+	public let contentStoreURL: URL
+	public let imageStoreURL: URL
+
+	public let contentStore: LocalContentStore!
+	public let imageStore: ImageStore!
 
 	public init(runMode: Utils.RunMode, createItIfNotExists: Bool = true) throws {
 		self.cakeHomeDirectory = try Utils.getHome(runMode: runMode, createItIfNotExists: createItIfNotExists)
@@ -89,8 +92,16 @@ public struct Home {
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
-		self.contentStore = try LocalContentStore(path: cacheDirectory.appendingPathComponent("oci/storage"))
-		self.imageStore = try ImageStore(path: cacheDirectory.appendingPathComponent("oci"), contentStore: self.contentStore)
+		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
+		self.imageStoreURL = cacheDirectory.appendingPathComponent("oci")
+
+		if createItIfNotExists {
+			self.contentStore = try LocalContentStore(path: self.contentStoreURL)
+			self.imageStore = try ImageStore(path: self.imageStoreURL, contentStore: self.contentStore)
+		} else {
+			self.contentStore = nil
+			self.imageStore = nil
+		}
 
 		self.sshPrivateKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.sshPublicKey = self.cakeHomeDirectory.appendingPathComponent("cake_rsa.pub", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
