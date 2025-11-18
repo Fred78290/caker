@@ -859,6 +859,7 @@ public enum SupportedPlatform: String, CaseIterable {
 	case windows
 	case debian
 	case fedora
+	case redhat
 	case openSUSE
 	case alpine
 	case unknown
@@ -1331,7 +1332,7 @@ class CloudInit {
 				return InputStream(data: emptyCloudInit)
 			})
 
-		if config.source == .iso && (self.platform == .ubuntu || self.platform == .fedora || self.platform == .debian) {
+		if config.source == .iso && (self.platform == .ubuntu || self.platform == .fedora || self.platform == .debian || self.platform == .redhat || self.platform == .centos) {
 			let certificates = try CertificatesLocation.createAgentCertificats(runMode: self.runMode)
 
 			if self.platform != .ubuntu {
@@ -1343,7 +1344,7 @@ class CloudInit {
 
 			if self.platform == .ubuntu {
 				seed["/user-data"] = try createSeed(config: config, writer: writer, path: "user-data", configData: self.createAutoInstallData(config: config))
-			} else if self.platform == .fedora {
+			} else if self.platform == .fedora || self.platform == .redhat || self.platform == .centos {
 				seed["/ks.cfg"] = try createSeed(config: config, writer: writer, path: "ks.cfg", configData: self.createKickStartData(config: config))
 			} else if self.platform == .debian {
 				seed["/preseed.cfg"] = try createSeed(config: config, writer: writer, path: "preseed.cfg", configData: self.createPreseedData(config: config))
