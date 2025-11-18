@@ -28,14 +28,14 @@ public struct PullHandler {
 	}
 
 	public static func pull(location: VMLocation?, image: String, insecure: Bool, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> PullReply {
-		let imageStore = try Home(runMode: runMode).imageStore
+		let home = try Home(runMode: runMode)
 		let reference = try Reference.parse(image)
 
 		reference.normalize()
 
 		let normalizedReference = reference.description
 		let image = try await Self.withAuthentication(ref: normalizedReference) { auth in
-			try await imageStore.pull(reference: normalizedReference, platform: nil, insecure: insecure, auth: auth)
+			try await home.imageStore.pull(reference: normalizedReference, platform: nil, insecure: insecure, auth: auth)
 		}
 
 		let context = ProgressObserver.ProgressHandlerContext()

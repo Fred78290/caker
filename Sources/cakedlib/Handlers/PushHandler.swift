@@ -13,7 +13,6 @@ public struct PushHandler {
 	public static func push(localName: String, remoteNames: [String], insecure: Bool, chunkSizeInMB: Int, concurrency: UInt, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PushReply {
 		do {
 			let home = try Home(runMode: runMode)
-			let imageStore = home.imageStore
 			let storage = StorageLocation(runMode: runMode)
 			let chunkSize = chunkSizeInMB == 0 ? RawDisk.bufferSizeBytes : chunkSizeInMB * 1024 * 1024
 
@@ -84,7 +83,7 @@ public struct PushHandler {
 				let currentSize: Atomic<Int64> = Atomic(0)
 
 				try await PullHandler.withAuthentication(ref: normalizedReference) { auth in
-					try await imageStore.push(reference: normalizedReference, platform: .current, insecure: insecure, auth: auth) { events in
+					try await home.imageStore.push(reference: normalizedReference, platform: .current, insecure: insecure, auth: auth) { events in
 						var addSize: Int64? = nil
 
 						events.forEach {
