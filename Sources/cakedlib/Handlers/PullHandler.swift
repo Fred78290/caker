@@ -114,7 +114,10 @@ public struct PullHandler {
 								autostart: false,
 								configuredUser: "root",
 								configuredPassword: nil,
+								configuredGroup: "adm",
+								configuredPlatform: .unknown,
 								displayRefit: true,
+								ifname: false,
 								cpuCountMin: Int(1),
 								memorySizeMin: 2 * 1024 * 1024,
 								screenSize: .init(width: 1024, height: 768))
@@ -136,6 +139,23 @@ public struct PullHandler {
 								} else {
 									return $0.clone()
 								}
+							}
+
+							if config.os == .linux && config.useCloudInit {
+								let cloudInit = try CloudInit(
+									plateform: config.configuredPlatform,
+									userName: config.configuredUser,
+									password: config.configuredPassword,
+									mainGroup: config.configuredGroup,
+									clearPassword: config.configuredPassword != nil,
+									sshAuthorizedKeyPath: nil,
+									vendorDataPath: nil,
+									userDataPath: nil,
+									networkConfigPath: nil,
+									netIfnames: config.ifname,
+									runMode: runMode)
+
+								try cloudInit.createDefaultCloudInit(config: config, name: name, cdromURL: URL(fileURLWithPath: cloudInitIso, relativeTo: location.diskURL))
 							}
 						}
 
