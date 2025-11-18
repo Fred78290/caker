@@ -305,7 +305,10 @@ struct MultipassImporter: Importer {
 			autostart: false,
 			configuredUser: userName,
 			configuredPassword: password,
+			configuredGroup: "adm",
+			configuredPlatform: .ubuntu,
 			displayRefit: true,
+			ifname: false,
 			cpuCountMin: instance.numCores,
 			memorySizeMin: memorySize,
 			screenSize: .standard
@@ -319,7 +322,6 @@ struct MultipassImporter: Importer {
 			let keyModel = try PrivateKeyModel(from: URL(fileURLWithPath: multipass_ssh_key_path))
 
 			try keyModel.save(privateURL: location.rootURL.appendingPathComponent("id_rsa"), publicURL: location.rootURL.appendingPathComponent("id_rsa.pub"))
-			//try FileManager.default.copyItem(at: URL(fileURLWithPath: multipass_ssh_key_path), to: location.rootURL.appendingPathComponent("id_rsa"))
 		}
 
 		config.sshPrivateKeyPassphrase = passphrase

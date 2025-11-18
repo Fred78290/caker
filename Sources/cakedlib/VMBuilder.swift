@@ -110,7 +110,10 @@ public struct VMBuilder {
 					autostart: options.autostart,
 					configuredUser: options.user,
 					configuredPassword: options.password,
+					configuredGroup: options.mainGroup,
+					configuredPlatform: .unknown,
 					displayRefit: options.displayRefit,
+					ifname: options.netIfnames,
 					cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
 					memorySizeMin: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024),
 					screenSize: options.screenSize
@@ -154,7 +157,10 @@ public struct VMBuilder {
 					autostart: options.autostart,
 					configuredUser: options.user,
 					configuredPassword: options.password,
+					configuredGroup: options.mainGroup,
+					configuredPlatform: SupportedPlatform(rawValue: options.image),
 					displayRefit: options.displayRefit,
+					ifname: options.netIfnames,
 					cpuCountMin: Int(options.cpu),
 					memorySizeMin: options.memory * 1024 * 1024,
 					screenSize: options.screenSize)

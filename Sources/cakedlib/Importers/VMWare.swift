@@ -328,7 +328,10 @@ struct VMWareImporter: Importer {
 			autostart: false,
 			configuredUser: userName,
 			configuredPassword: password,
+			configuredGroup: "adm",
+			configuredPlatform: .unknown,
 			displayRefit: true,
+			ifname: false,
 			cpuCountMin: vmxMap.cpuCount,
 			memorySizeMin: vmxMap.memorySize,
 			screenSize: .standard
