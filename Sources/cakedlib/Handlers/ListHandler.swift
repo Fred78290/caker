@@ -33,6 +33,7 @@ public struct ListHandler {
 				let purgeableStorages: [PurgeableStorage] = [
 					try TemplateImageCache(runMode: runMode),
 					try PurgeableContentStore(runMode: runMode),
+					try OCIImageCache(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
