@@ -886,14 +886,15 @@ struct VirtualMachineWizard: View {
 
 				case .terminated(let result, let message):
 					if case let .failure(error) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error)
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? ""])
 					} else if case let .success(location) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: location)
+						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: location, userInfo: ["message": message ?? ""])
 					} else {
-						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"))
+						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"), userInfo: ["message": message ?? ""])
 					}
 
 					done()
+					
 				case .step(let message):
 					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressMessageCreateVirtualMachine, object: message)
 				}
