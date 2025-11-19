@@ -432,17 +432,19 @@ public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	public static let keychainID = "com.aldunelabs.caker"
 	
-	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String) throws -> CakeAgentClient {
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
 
 		return try CakeAgentHelper.createClient(
 			on: on,
 			listeningAddress: listeningAddress,
-			connectionTimeout: 30,
+			connectionTimeout: connectionTimeout,
 			caCert: certificates.caCertURL.path,
 			tlsCert: certificates.clientCertURL.path,
-			tlsKey: certificates.clientKeyURL.path)
+			tlsKey: certificates.clientKeyURL.path,
+			retries: retries
+		)
 	}
 
 	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool{
