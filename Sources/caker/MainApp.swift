@@ -102,7 +102,7 @@ struct MainApp: App {
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.size
 			
-			if document.loadVirtualMachine() != nil {
+			if document.location != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)

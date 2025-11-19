@@ -214,7 +214,17 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
 	@Published var screenshot: ScreenshotLoader!
-	
+
+	deinit {
+		if let monitor = self.monitor {
+			monitor.stop()
+		}
+
+		if let client = self.client {
+			_ = client.close()
+		}
+	}
+
 	init() {
 		self.virtualMachine = nil
 		self.virtualMachineConfig = VirtualMachineConfig()
@@ -222,20 +232,22 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	
 	init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(location: location)
-		
+		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
+
 		self.name = location.name
 		self.location = location
 		self.virtualMachineConfig = config
 		self.screenshot = .init(screenshotURL: location.screenshotURL)
 		self.agent = config.agent ? AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-		
+		self.monitor = monitor
+
 		if self.externalRunning {
 			self.documentSize = self.getVncScreenSize()
 		} else {
 			self.documentSize = ViewSize(size: config.display.size)
 		}
-		
+					
 		switch location.status {
 		case .running:
 			self.status = .running
@@ -244,6 +256,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case .paused:
 			self.status = .paused
 		}
+
+		try monitor.start()
 	}
 	
 	init(name: String, config: VirtualMachineConfig) {
@@ -255,26 +269,19 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.logger.debug("Closing \(self.name)")
 		self.virtualMachine = nil
 		self.inited = false
-		self.status = .none
-		self.agent = .none
 		self.vncView = nil
 		self.vncURL = nil
 		self.vncStatus = .disconnected
 		
-		if let monitor = self.monitor {
-			monitor.stop()
+		if self.externalRunning == false {
+			self.status = .stopped
 		}
 		
 		if let connection = self.connection {
 			connection.disconnect()
 		}
 		
-		if self.client != nil {
-			self.client.close().whenComplete { _ in
-				self.client = nil
-				self.stream = nil
-			}
-		}
+		self.closeShell()
 	}
 	
 	@MainActor
@@ -324,11 +331,20 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
 			
 			self.documentSize = size
-			//self.virtualMachineConfig.display.width = Int(size.width)
-			//self.virtualMachineConfig.display.height = Int(size.height)
 		}
 	}
 	
+	private func createVirtualMachine() throws {
+		let config = try! location.config()
+		let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
+		
+		self.virtualMachine = virtualMachine
+		self.vncURL = nil
+		self.didChangedState(virtualMachine)
+		
+		virtualMachine.delegate = self
+	}
+
 	private func loadVirtualMachine(from location: VMLocation) -> URL? {
 		self.logger.debug("Load VM from: \(location.rootURL)")
 		
@@ -347,15 +363,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			
 			if externalRunning {
 				retrieveVNCURL()
-			} else {
-				let config = try! location.config()
-				let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
-				
-				self.virtualMachine = virtualMachine
-				self.vncURL = nil
-				self.didChangedState(virtualMachine)
-				
-				virtualMachine.delegate = self
+			} else if self.virtualMachine == nil {
+				try createVirtualMachine()
 			}
 			
 			if monitor == nil {
@@ -502,8 +511,12 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		} else {
 			self.externalRunning = false
 			
+			if self.virtualMachine == nil {
+				try? createVirtualMachine()
+			}
+
 			if let virtualMachine = self.virtualMachine {
-				self.setState(suspendable: false, status: .starting)
+				self.setState(suspendable: virtualMachineConfig.suspendable, status: .starting)
 				
 				virtualMachine.startFromUI()
 			}
@@ -623,17 +636,24 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 
 extension VirtualMachineDocument: FileDidChangeDelegate {
 	func fileDidChanged(event: FileChangeEvent) {
-		guard let location = self.location, self.externalRunning else {
+		guard let location = self.location else {
 			return
 		}
 		
 		let check: (URL) -> Void = { file in
 			if file.lastPathComponent == location.pidFile.lastPathComponent {
 				DispatchQueue.main.async {
-					if location.pidFile.isPIDRunning(Home.cakedCommandName) {
+					let running = location.pidFile.isPIDRunning()
+
+					if running.running == false {
+						self.externalRunning = false
+						self.setStateAsStopped()
+					} else if running.processName.contains(Home.cakedCommandName){
+						self.externalRunning = true
 						self.retrieveVNCURL()
 					} else {
-						self.setStateAsStopped()
+						self.externalRunning = false
+						self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 					}
 				}
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
@@ -872,18 +892,59 @@ extension VirtualMachineDocument {
 	}
 
 	func closeShell(_ completionHandler: (() -> Void)? = nil) {
-		if self.stream == nil {
-			return
-		}
+		func closeClient() {
+			if let client {
+				self.client = nil
 
-		self.client.close().whenComplete { _ in
-			DispatchQueue.main.async {
-				completionHandler?()
+				client.close().whenComplete { _ in
+					DispatchQueue.main.async {
+						completionHandler?()
+					}
+				}
 			}
 		}
 
-		self.client = nil
+		guard let stream else {
+			closeClient()
+			return
+		}
+
 		self.stream = nil
+
+		let promise = stream.eventLoop.makePromise(of: Void.self)
+		
+		promise.futureResult.whenComplete { _ in
+			closeClient()
+		}
+
+		stream.cancel(promise: promise)
+	}
+
+	func heartBeatShell(rows: Int, cols: Int) {
+		if let infoClient = try? Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name, connectionTimeout: 1, retries: .upTo(1)) {
+			infoClient.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(1)))).whenComplete { result in
+				if case .success(let reply) = result {
+					if case .success = reply {
+						DispatchQueue.main.sync {
+							self.stream = self.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
+								self.shellHandlerResponse(response)
+							}
+							
+							self.stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+							self.stream.sendShell()
+						}
+					} else {
+						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+							self.heartBeatShell(rows: rows, cols: cols)
+						}
+					}
+				} else {
+					DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+						self.heartBeatShell(rows: rows, cols: cols)
+					}
+				}
+			}
+		}
 	}
 
 	func startShell(rows: Int, cols: Int, handler: @escaping (Cakeagent_CakeAgent.ExecuteResponse) -> Void) throws {
@@ -897,12 +958,7 @@ extension VirtualMachineDocument {
 			self.client = try Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name)
 		}
 
-		self.stream = client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-			self.shellHandlerResponse(response)
-		}
-
-		stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-		stream.sendShell()
+		self.heartBeatShell(rows: rows, cols: cols)
 	}
 }
 
