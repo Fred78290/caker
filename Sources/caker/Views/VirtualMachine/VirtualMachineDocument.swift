@@ -77,7 +77,11 @@ struct ScreenshotLoader: Hashable, Identifiable {
 	@ViewBuilder
 	var image: some View {
 		GeometryReader { geom in
-			if let image = NSImage(contentsOfFile: screenshotURL.path) {
+			if let exist = try? screenshotURL.exists(), exist == false {
+				Rectangle()
+					.fill(.black)
+					.frame(size: geom.size)
+			} else if let image = NSImage(contentsOfFile: screenshotURL.path) {
 				Rectangle()
 					.fill(.black)
 					.frame(size: geom.size)
