@@ -123,6 +123,10 @@ struct VMRun: AsyncParsableCommand {
 		let vncPassword = self.vncPassword ?? config.vncPassword
 		let displaySize: CGSize
 
+		if location.isPIDRunning() {
+			throw ServiceError("The VM is already running")
+		}
+
 		if let screenSize = self.screenSize {
 			displaySize = .init(width: screenSize.width, height: screenSize.height)
 		} else {
