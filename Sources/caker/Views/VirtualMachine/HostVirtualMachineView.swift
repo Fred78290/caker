@@ -493,7 +493,9 @@ struct HostVirtualMachineView: View {
 					ToolbarItem(placement: .secondaryAction) {
 						Picker("Mode", selection: $externalModeView) {
 							Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-							Image(systemName: "play.display").tag(ExternalModeView.vnc)
+							if self.document.vncURL != nil {
+								Image(systemName: "play.display").tag(ExternalModeView.vnc)
+							}
 						}.pickerStyle(.segmented).labelsHidden()
 					}
 				}
