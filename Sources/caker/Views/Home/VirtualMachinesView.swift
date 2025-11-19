@@ -30,7 +30,6 @@ struct VirtualMachinesView: View {
 		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
 
 		VirtualMachineView(selected: selected, vm: document)
-			.log("VirtualMachineView", text: "selected: \(selected)")
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
 
 //		if self.appearsActive {
@@ -73,7 +72,6 @@ struct VirtualMachinesView: View {
 	
 	static func buildColumns(_ size: CGSize) -> [GridItem] {
 		let numOfColums = max(Int(size.width) / Int(cellWidth - cellSpacing), 1)
-		print("buildColumns: \(size) -> \(numOfColums)")
 		return Array(repeating: GridItem(.fixed(cellWidth)), count: numOfColums)
 	}
 }

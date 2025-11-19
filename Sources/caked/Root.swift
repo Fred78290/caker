@@ -84,12 +84,6 @@ struct Root: ParsableCommand {
 				Pull.self
 			])
 
-	static func vmrunAvailable() -> Bool {
-		Self.configuration.subcommands.first { cmd in
-			cmd.configuration.commandName == "vmrun"
-		} != nil
-	}
-
 	static func parse() throws -> ParsableCommand? {
 		do {
 			return try parseAsRoot()
