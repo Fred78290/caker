@@ -292,16 +292,16 @@ extension InitImage {
 				])
 			})
 
-			if try location.cdromISO.exists() {
-				let cdromLayers = try await writer.createChunked(from: location.cdromISO, chunkSize: chunkSize, concurrency: concurrency)
-
-				layersDescriptors.append(contentsOf: cdromLayers.map {
-					Descriptor(mediaType: MediaTypes.cakedCdRomLayer, digest: $0.digest.digestString, size: $0.size, annotations: [
-						MediaTypes.uncompressedContentDigestAnnotation : $0.uncompressedDigest.digestString,
-						MediaTypes.uncompressedSizeAnnotation : "\($0.uncompressedSize)"
-					])
-				})
-			}
+//			if try location.cdromISO.exists() {
+//				let cdromLayers = try await writer.createChunked(from: location.cdromISO, chunkSize: chunkSize, concurrency: concurrency)
+//
+//				layersDescriptors.append(contentsOf: cdromLayers.map {
+//					Descriptor(mediaType: MediaTypes.cakedCdRomLayer, digest: $0.digest.digestString, size: $0.size, annotations: [
+//						MediaTypes.uncompressedContentDigestAnnotation : $0.uncompressedDigest.digestString,
+//						MediaTypes.uncompressedSizeAnnotation : "\($0.uncompressedSize)"
+//					])
+//				})
+//			}
 
 			let manifest = Manifest(config: configDescriptor, layers: layersDescriptors, annotations: [
 				MediaTypes.uncompressedDiskSizeAnnotation: "\(diskSize)",
