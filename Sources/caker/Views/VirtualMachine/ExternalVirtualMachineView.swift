@@ -51,7 +51,9 @@ extension SwiftTerm.Color {
 }
 
 class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
-	var document: VirtualMachineDocument!
+	private var document: VirtualMachineDocument!
+	private let dismiss: DismissAction!
+	
 	var fontColor: SwiftTerm.Color {
 		get {
 			self.terminal.foregroundColor
@@ -61,9 +63,9 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		}
 	}
 
-	init(document: VirtualMachineDocument, frame: CGRect, font: NSFont, color: SwiftTerm.Color) {
+	init(document: VirtualMachineDocument, frame: CGRect, font: NSFont, color: SwiftTerm.Color, dismiss: DismissAction) {
 		self.document = document
-
+		self.dismiss = dismiss
 		super.init(frame: frame, font: font)
 
 		self.terminal.foregroundColor = color
@@ -71,6 +73,8 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	}
 
 	public required init?(coder: NSCoder) {
+		self.dismiss = nil
+
 		super.init(coder: coder)
 		self.terminalDelegate = self
 	}
@@ -107,6 +111,45 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		print("terminalViewDidChangeSize")
 	}
 
+	override func viewDidMoveToWindow() {
+		super.viewDidMoveToWindow()
+
+		if self.window != nil {
+			let display: (Data) -> Void = { datas in
+				var converted: [UInt8] = []
+
+				datas.forEach {
+					if $0 == 0x0a {
+						converted.append(0x0d)
+					}
+
+					converted.append($0)
+				}
+
+				DispatchQueue.main.async {
+					self.feed(byteArray: converted[...])
+				}
+			}
+
+			try? self.document.startShell(rows: self.getTerminal().rows, cols: self.getTerminal().cols) { response in
+				if case let .exitCode(code) = response.response {
+					Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
+
+					self.document.closeShell {
+						DispatchQueue.main.async {
+							self.dismiss()
+						}
+					}
+				} else if case let .stdout(datas) = response.response {
+					display(datas)
+				} else if case let .stderr(datas) = response.response {
+					display(datas)
+				}
+			}
+		} else {
+			self.document.closeShell()
+		}
+	}
 }
 
 struct ColorWell: NSViewRepresentable {
@@ -153,7 +196,6 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 
 	private let document: VirtualMachineDocument
 	private var fontPickerDelegate: FontPickerDelegate!
-	private let dismiss: DismissAction
 	private let fontManager = NSFontManager.shared
 	private let terminalView: NSViewType
 
@@ -208,8 +250,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 
 	init(document: VirtualMachineDocument, size: CGSize, dismiss: DismissAction) {
 		self.document = document
-		self.dismiss = dismiss
-		self.terminalView = NSViewType(document: document, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
+		self.terminalView = NSViewType(document: document, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
 
@@ -218,39 +259,7 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 	}
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		let display: (Data) -> Void = { datas in
-			var converted: [UInt8] = []
-
-			datas.forEach {
-				if $0 == 0x0a {
-					converted.append(0x0d)
-				}
-
-				converted.append($0)
-			}
-
-			DispatchQueue.main.async {
-				nsView.feed(byteArray: converted[...])
-			}
-		}
-
 		self.fontPickerDelegate.terminalView = nsView
-
-		try? self.document.startShell(rows: nsView.getTerminal().rows, cols: nsView.getTerminal().cols) { response in
-			if case let .exitCode(code) = response.response {
-				Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
-
-				self.document.closeShell {
-					DispatchQueue.main.async {
-						dismiss()
-					}
-				}
-			} else if case let .stdout(datas) = response.response {
-				display(datas)
-			} else if case let .stderr(datas) = response.response {
-				display(datas)
-			}
-		}
 	}
 
 	func setTerminalColor(_ color: SwiftUI.Color) {
