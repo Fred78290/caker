@@ -1,10 +1,12 @@
 import CakeAgentLib
 import Foundation
+import GRPC
 import GRPCLib
 import NIO
 import System
 import Virtualization
 import Socket
+
 public enum Architecture: String, Codable, CustomStringConvertible {
 	public var description: String {
 		switch self {
@@ -103,7 +105,7 @@ extension Date {
 	}
 }
 
-public func processExist(_ runningPID: pid_t) throws -> (Bool, String, pid_t) {
+public func processExist(_ runningPID: pid_t) throws -> (running: Bool, processName: String, pid: pid_t) {
 	// Requesting the pid of 0 from systcl will return all pids
 	var mib = [CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0]
 	var bufferSize = 0
@@ -188,7 +190,7 @@ extension URL: Purgeable {
 		return kill(pid, SIGTERM)
 	}
 
-	public func isPIDRunning() -> (Bool, String, Int32?) {
+	public func isPIDRunning() -> (running: Bool, processName: String, pid: Int32?) {
 		if let pid = readPID() {
 			do {
 				return try processExist(pid_t(pid))
