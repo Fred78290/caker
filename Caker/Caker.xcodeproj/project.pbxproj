@@ -161,6 +161,7 @@
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
 		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
+		9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A602ECF854E0017791D /* GlossyCircle.swift */; };
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
 		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
@@ -649,6 +650,7 @@
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
 		9B91177B2ECA05800017791D /* PurgeableContentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurgeableContentStore.swift; sourceTree = "<group>"; };
 		9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceHandler.swift; sourceTree = "<group>"; };
+		9B911A602ECF854E0017791D /* GlossyCircle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlossyCircle.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
@@ -1146,7 +1148,6 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */,
@@ -1154,6 +1155,8 @@
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
 				9B3602442E2273C200889BFD /* Extensions.swift */,
+				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
+				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
 				9B1501382E6C2AE000B23147 /* LabelView.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
@@ -2078,6 +2081,7 @@
 				9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */,
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
+				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
 				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,
 				9B7999072E48A27900147500 /* NSVNCView.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,

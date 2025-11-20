@@ -41,24 +41,8 @@ struct VirtualMachineView: View {
 				.overlay {
 					VStack {
 						HStack(alignment: .center) {
-							ZStack {
-								Circle()
-									.fill(lightColor)
-									.frame(width: 14, height: 14)
-									.overlay(
-										Circle()
-											.stroke(.white, lineWidth: 0.5)
-											.fill(
-												RadialGradient(
-													gradient: Gradient(colors: [Color.white.opacity(0.85), Color.white.opacity(0.0)]),
-													center: .topLeading,
-													startRadius: 0,
-													endRadius: 16
-												)
-											)
-											.blendMode(.screen)
-									)
-							}
+							GlossyCircle(color: lightColor)
+								.frame(width: 14, height: 14)
 							
 							Text("\(vm.name)").font(.headline)
 							Spacer()
