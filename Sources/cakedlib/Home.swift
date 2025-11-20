@@ -72,6 +72,7 @@ public struct Home {
 	public static let cakedCommandName = "caked"
 
 	public let cakeHomeDirectory: URL
+	public let agentPID: URL
 	public let networkDirectory: URL
 	public let cacheDirectory: URL
 	public let agentDirectory: URL
@@ -90,6 +91,7 @@ public struct Home {
 		self.networkDirectory = self.cakeHomeDirectory.appendingPathComponent("networks", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.cacheDirectory = self.cakeHomeDirectory.appendingPathComponent("cache", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.agentDirectory = self.cakeHomeDirectory.appendingPathComponent("agent", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
+		self.agentPID = self.agentDirectory.appendingPathComponent("agent.pid", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.temporaryDirectory = self.cakeHomeDirectory.appendingPathComponent("tmp", isDirectory: true).absoluteURL.resolvingSymlinksInPath()
 		self.remoteDb = self.cakeHomeDirectory.appendingPathComponent("remote.json", isDirectory: false).absoluteURL.resolvingSymlinksInPath()
 		self.contentStoreURL = self.cacheDirectory.appendingPathComponent("oci/storage")
