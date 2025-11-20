@@ -226,6 +226,21 @@ struct HomeView: View {
 						set: { newValue in
 							navigationModel.selectedNetwork = newValue
 						}
+					), reloadNetwork: Binding<Bool>(
+						get: {
+							false
+						},
+						set: { newValue in
+							if newValue {
+								DispatchQueue.main.async {
+									self.appState.reloadNetworks()
+									
+									navigationModel.selectedNetwork = self.appState.networks.first {
+										$0.id == navigationModel.selectedNetwork!.id
+									}
+								}
+							}
+						}
 					)).background(Color(NSColor.tertiarySystemFill))
 				} else {
 					EmptyView()

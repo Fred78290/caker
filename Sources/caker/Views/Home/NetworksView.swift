@@ -51,22 +51,28 @@ struct NetworksView: View {
 				}
 			} else {
 				List(appState.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
-					Label(title: {
-						HStack {
+					GeometryReader { geom in
+						HStack{
+							network.icon
+								.resizable()
+								.aspectRatio(contentMode: .fit)
+								.foregroundStyle(self.colorScheme == .dark ? .white : .primary)
+								.frame(size: CGSize(width: geom.size.height, height: geom.size.height))
+							
 							Text("\(network.name)")
+								.font(.headline)
 								.frame(width: 60, alignment: .leading)
+
 							Text("\(network.description)")
-								//.frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
+								.font(.headline)
+
+							Spacer()
+							GlossyCircle(color: network.endpoint.isEmpty ? .red : .green)
+								.frame(size: CGSize(width: geom.size.height, height: geom.size.height))
 						}
-					}, icon: {
-						network.icon
-							.resizable()
-							.aspectRatio(contentMode: .fit)
-							.foregroundStyle(self.colorScheme == .dark ? .white : .primary)
-					}).font(.headline)
+					}
 				}
 				.listStyle(.inset(alternatesRowBackgrounds: true))
-//				.listStyle(.bordered(alternatesRowBackgrounds: true))
 				.frame(size: geom.size)
 			}
 		}

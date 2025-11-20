@@ -32,7 +32,18 @@ struct NetworkWizard: View {
 
 	var body: some View {
 		VStack {
-			NetworkDetailView($currentItem, forEditing: true)
+			NetworkDetailView($currentItem, reloadNetwork: Binding<Bool>(
+				get: {
+						  false
+					  },
+					  set: { newValue in
+						  if newValue {
+							  DispatchQueue.main.async {
+								  self.appState.reloadNetworks()
+							  }
+						  }
+					  }
+				  ), forEditing: true)
 			Spacer()
 			if let reason = self.reason {
 				Text(reason).font(.callout)
