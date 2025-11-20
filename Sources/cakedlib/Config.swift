@@ -299,13 +299,25 @@ public final class CakeConfig {
 	}
 
 	public var networks: [BridgeAttachement] {
-		set { self.cake["networks"] = newValue.map { $0.description } }
+		set {
+			self.cake["networks"] = newValue.map(\.description)
+		}
 		get {
 			guard let networks: [String] = self.cake["networks"] as? [String] else {
 				return []
 			}
 
-			return networks.compactMap { BridgeAttachement(argument: $0) }
+			return networks.compactMap {
+				guard var network = BridgeAttachement(argument: $0) else {
+					return nil
+				}
+
+				if network.isNAT() {
+					network.macAddress = self.macAddress?.string
+				}
+
+				return network
+			}
 		}
 	}
 
