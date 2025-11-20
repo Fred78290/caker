@@ -181,7 +181,7 @@ public struct NetworksHandler {
 		return VZBridgedNetworkInterface.networkInterfaces.first(where: { $0.identifier == name })
 	}
 
-	public static func vmnetEndpoint(networkName: String, runMode: Utils.RunMode) throws -> (URL, URL) {
+	public static func vmnetEndpoint(networkName: String, runMode: Utils.RunMode) throws -> (socket: URL, pidFile: URL) {
 		let createIfNotExists: Bool = runMode.isSystem ? geteuid() == 0 : true
 		let home = try Home.init(runMode: runMode, createItIfNotExists: createIfNotExists)
 		let networkDirectory = home.networkDirectory.appendingPathComponent(networkName, isDirectory: true)
