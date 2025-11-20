@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import NIO
 import Virtualization
+import vmnet
 
 public var phUseLimaVMNet = false
 
@@ -70,7 +71,76 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	}
 
 	public func attachment(location: VMLocation, runMode: Utils.RunMode) throws -> (VZMACAddress, VZNetworkDeviceAttachment) {
+		if #available(macOS 26.0, *), networkConfig != nil {
+			return (macAddress, VZVmnetNetworkDeviceAttachment(network: try self.createVMNetwork()))
+		}
 		return (macAddress, VZFileHandleNetworkDeviceAttachment(fileHandle: try self.open(location: location, runMode: runMode)))
+	}
+
+	@available(macOS 26.0, *)
+	private func createVMNetwork() throws -> vmnet_network_ref {
+		guard let networkConfig else {
+			throw ServiceError("Unable to configure network")
+		}
+
+		let status = UnsafeMutablePointer<vmnet_return_t>.allocate(capacity: 1)
+
+		guard let network_configuration = vmnet_network_configuration_create(mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, status) else {
+			throw ServiceError("Can't create vmnet configuration: \(status.pointee.description)")
+		}
+
+		guard let networkString = networkConfig.dhcpStart.toNetwork()?.base.description else {
+			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
+		}
+
+		guard var addr = networkString.to_in_addr() else {
+			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
+		}
+
+		guard var netmask = networkConfig.netmask.to_in_addr() else {
+			throw ServiceError("Bad network mask \(networkConfig.netmask)")
+		}
+
+		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &netmask)
+
+		guard result == .VMNET_SUCCESS else {
+			throw ServiceError("Failed to reconfigure network: \(result.description)")
+		}
+
+		if let nat66Prefix = networkConfig.nat66Prefix {
+			let parts = nat66Prefix.split(separator: "/")
+			
+			guard let prefixStr = parts.first else {
+				throw ServiceError("Invalid NAT66 prefix \(nat66Prefix)")
+			}
+			
+			let prefixLen = parts.count > 1 ? UInt8(parts[1]) ?? 64 : 64
+
+			guard let parsed = String(prefixStr).to_in6_addr() else {
+				throw ServiceError("Bad NAT66 prefix \(nat66Prefix)")
+			}
+
+			var ipv6Prefix = parsed
+
+			let result = withUnsafePointer(to: &ipv6Prefix) { ptr in
+				vmnet_network_configuration_set_ipv6_prefix(network_configuration, UnsafeMutablePointer(mutating: ptr), prefixLen)
+			}
+
+			guard result == .VMNET_SUCCESS else {
+				throw ServiceError("Failed to set NAT66 prefix (\(result.description))")
+			}
+		}
+
+		if mode == .host {
+			vmnet_network_configuration_disable_nat44(network_configuration)
+			vmnet_network_configuration_disable_nat66(network_configuration)
+		}
+
+		guard let network = vmnet_network_create(network_configuration, status) else {
+			throw ServiceError("Can't create vmnet network: \(status.pointee.description)")
+		}
+
+		return network
 	}
 
 	public func closed(side: VZVMNetHandlerClient.HandlerSide) {
@@ -104,18 +174,28 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		}
 	}
 
-	internal func vmnetEndpoint(runMode: Utils.RunMode) throws -> (URL, URL) {
+	internal func vmnetEndpoint(runMode: Utils.RunMode) throws -> (socket: URL, pidFile: URL) {
+		let result: (socket: URL, pidFile: URL)
+
 		if runMode.isSystem {
-			return try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
+			result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		} else {
 			let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: .system)
 
 			if try systemSocketURL.0.exists() == false {
-				return try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
+				result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 			} else {
-				return systemSocketURL
+				result = systemSocketURL
 			}
 		}
+
+		// Clear socket
+		if try result.socket.exists() && result.pidFile.isPIDRunning().running == false {
+			try? FileManager.default.removeItem(at: result.socket)
+			try? FileManager.default.removeItem(at: result.pidFile)
+		}
+
+		return result
 	}
 
 	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
