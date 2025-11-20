@@ -173,6 +173,28 @@ struct MainApp: App {
 					CreateTemplateView(appState: $appState)
 				}
 			}
+
+			CommandMenu("Service") {
+				if self.appState.cakedServiceInstalled {
+					Button("Remove service") {
+						self.appState.removeCakedService()
+					}
+				} else {
+					Button("Install service") {
+						self.appState.installCakedService()
+					}
+				}
+
+				if self.appState.cakedServiceRunning {
+					Button("Stop service") {
+						self.appState.stopCakedService()
+					}
+				} else {
+					Button("Start service") {
+						self.appState.startCakedService()
+					}
+				}
+			}
 		}
 
 		Window("Home", id: "home") {
@@ -227,6 +249,14 @@ struct MainApp: App {
 
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
+		}
+	}
+
+	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+		if AppState.shared.haveVirtualMachinesRunning() {
+			return .terminateLater
+		} else {
+			return .terminateNow
 		}
 	}
 

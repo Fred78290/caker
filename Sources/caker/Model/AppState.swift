@@ -91,10 +91,14 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
+    private var agentStatusTimer: Timer?
+
 	static var shared = AppState()
 	
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
 	
+	@Published var cakedServiceInstalled: Bool = false
+	@Published var cakedServiceRunning: Bool = false
 	@Published var currentDocument: VirtualMachineDocument!
 	@Published var isAgentInstalling: Bool = false
 	@Published var isStopped: Bool = true
@@ -106,6 +110,10 @@ class AppState: ObservableObject, Observable {
 	@Published var networks: [BridgedNetwork] = []
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
 	
+	deinit {
+		agentStatusTimer?.invalidate()
+	}
+
 	init() {
 		let machines = Self.loadVirtualMachines()
 		
@@ -113,6 +121,24 @@ class AppState: ObservableObject, Observable {
 		self.networks = Self.loadNetworks()
 		self.remotes = Self.loadRemotes()
 		self.templates = Self.loadTemplates()
+		self.cakedServiceInstalled = ServiceHandler.isAgentInstalled
+		self.cakedServiceRunning = ServiceHandler.isAgentRunning
+
+		// Start polling agent running status every second
+		self.agentStatusTimer?.invalidate()
+		self.agentStatusTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+			guard let self = self else { return }
+
+			let running = ServiceHandler.isAgentRunning
+			let installed = ServiceHandler.isAgentInstalled
+
+			if self.cakedServiceInstalled != installed || self.cakedServiceRunning != running {
+				DispatchQueue.main.async {
+					self.cakedServiceInstalled = installed
+					self.cakedServiceRunning = running
+				}
+			}
+		}
 	}
 	
 	static func loadNetworks() -> [BridgedNetwork] {
@@ -127,17 +153,17 @@ class AppState: ObservableObject, Observable {
 	
 	static func loadRemotes() -> [RemoteEntry] {
 		let result = RemoteHandler.listRemote(runMode: .app)
-
+		
 		if result.success {
 			return result.remotes.sorted(using: RemoteHandlerComparator())
 		}
-
+		
 		return []
 	}
 	
 	static func loadTemplates() -> [TemplateEntry] {
 		let result = TemplateHandler.listTemplate(runMode: .app)
-
+		
 		if result.success {
 			return result.templates.sorted(using: TemplateEntryComparator())
 		}
@@ -148,7 +174,7 @@ class AppState: ObservableObject, Observable {
 	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument]) {
 		let result = ListHandler.list(vmonly: true, runMode: .app)
 		var vms: [URL: VirtualMachineDocument] = [:]
-				
+		
 		if result.success {
 			let storage = StorageLocation(runMode: .app)
 			
@@ -188,6 +214,12 @@ class AppState: ObservableObject, Observable {
 		if let _ = self.virtualMachines[url] {
 			self.virtualMachines.removeValue(forKey: url)
 		}
+	}
+	
+	func haveVirtualMachinesRunning() -> Bool {
+		return virtualMachines.values.first { vm in
+			vm.status == .running && vm.externalRunning == false
+		} != nil
 	}
 	
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
@@ -281,13 +313,13 @@ class AppState: ObservableObject, Observable {
 	
 	func deleteTemplate(name: String) {
 		let alert = NSAlert()
-
+		
 		alert.messageText = "Delete template"
 		alert.informativeText = "Are you sure you want to delete template \(name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-
+		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: .app)
 			
@@ -303,13 +335,13 @@ class AppState: ObservableObject, Observable {
 	
 	func deleteRemote(name: String) {
 		let alert = NSAlert()
-
+		
 		alert.messageText = "Delete remote"
 		alert.informativeText = "Are you sure you want to delete remote \(name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-
+		
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = RemoteHandler.deleteRemote(name: name, runMode: .app)
 			
@@ -322,5 +354,20 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
+	
+	func installCakedService() {
+		
+	}
+	
+	func removeCakedService() {
+		
+	}
+	
+	func stopCakedService() {
+		
+	}
+	
+	func startCakedService() {
+		
+	}
 }
-

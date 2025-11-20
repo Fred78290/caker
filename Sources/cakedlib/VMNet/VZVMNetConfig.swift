@@ -95,7 +95,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 	}
 
 	public static func defaultNatNetwork() -> VZSharedNetwork {
-		let network = NetworksHandler.defaultNatNetwork()
+		let network = NetworksHandler.defaultNatNetwork
 		let dhcpStart = network.gateway.toIPV4()
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 

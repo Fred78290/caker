@@ -851,7 +851,13 @@ public struct NetworksHandler {
 		return "\(address)/\(netmask.netmaskToCidr())"
 	}
 	
-	public static func defaultNatNetwork() -> BridgedNetwork {
+	private static var _defaultNatNetwork: BridgedNetwork?
+
+	public static var defaultNatNetwork: BridgedNetwork {
+		if let _defaultNatNetwork = self._defaultNatNetwork {
+			return _defaultNatNetwork
+		}
+
 		var dhcpStart = ""
 		var dhcpEnd = ""
 		var dhcpLease = ""
@@ -880,7 +886,12 @@ public struct NetworksHandler {
 			Logger("NetworksHandler").error("Unable to get nat infos: \(error)")
 		}
 
-		return BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: "")
+		let defaultNatNetwork = BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: dhcpStart, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: "nat", endpoint: "")
+
+
+		self._defaultNatNetwork = defaultNatNetwork
+
+		return defaultNatNetwork
 	}
 
 	public static func networks(runMode: Utils.RunMode) -> ListNetworksReply {
