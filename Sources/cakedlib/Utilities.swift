@@ -167,6 +167,10 @@ extension URL: Purgeable {
 	}
 
 	public func readPID() -> Int32? {
+		if FileManager.default.fileExists(atPath: self.absoluteURL.path) == false {
+			return nil
+		}
+
 		guard let pid = try? String(contentsOf: self, encoding: .ascii) else {
 			return nil
 		}
@@ -179,6 +183,10 @@ extension URL: Purgeable {
 	}
 
 	public func killPID(_ signal: Int32) -> Int32 {
+		if FileManager.default.fileExists(atPath: self.absoluteURL.path) == false {
+			return ENODATA
+		}
+
 		guard let pid = try? String(contentsOf: self, encoding: .ascii) else {
 			return ENODATA
 		}
