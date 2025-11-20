@@ -83,25 +83,21 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			throw ServiceError("Unable to configure network")
 		}
 
+		let dhcpStart = "\(networkConfig.dhcpStart)/\(networkConfig.netmask.netmaskToCidr())".toIPV4()
+
+		guard let network = dhcpStart.address, let netmask = dhcpStart.netmask else {
+			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
+		}
+
+		var addr = in_addr(s_addr: in_addr_t(network.storage))
+		var mask = in_addr(s_addr: in_addr_t(netmask.storage))
 		let status = UnsafeMutablePointer<vmnet_return_t>.allocate(capacity: 1)
 
 		guard let network_configuration = vmnet_network_configuration_create(mode == .shared ? .VMNET_SHARED_MODE : .VMNET_HOST_MODE, status) else {
 			throw ServiceError("Can't create vmnet configuration: \(status.pointee.description)")
 		}
 
-		guard let networkString = networkConfig.dhcpStart.toNetwork()?.base.description else {
-			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
-		}
-
-		guard var addr = networkString.to_in_addr() else {
-			throw ServiceError("Bad network configuration \(networkConfig.dhcpStart)")
-		}
-
-		guard var netmask = networkConfig.netmask.to_in_addr() else {
-			throw ServiceError("Bad network mask \(networkConfig.netmask)")
-		}
-
-		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &netmask)
+		let result = vmnet_network_configuration_set_ipv4_subnet(network_configuration, &addr, &mask)
 
 		guard result == .VMNET_SUCCESS else {
 			throw ServiceError("Failed to reconfigure network: \(result.description)")
@@ -182,7 +178,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		} else {
 			let systemSocketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: .system)
 
-			if try systemSocketURL.0.exists() == false {
+			if try systemSocketURL.socket.exists() == false {
 				result = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 			} else {
 				result = systemSocketURL
@@ -201,11 +197,11 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
-		if try socketURL.0.exists() == false && (VMRunHandler.launchedFromService || runMode == .app) {
+		if try socketURL.socket.exists() == false && (VMRunHandler.launchedFromService || runMode == .app) {
 			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 		}
 
-		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.0.path)
+		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path)
 
 		(self.vmfd, self.hostfd) = try socketAddress.withSockAddr { _, len in
 			let fds: UnsafeMutablePointer<Int32> = UnsafeMutablePointer<Int32>.allocate(capacity: MemoryLayout<Int>.stride * 2)
@@ -224,8 +220,8 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			return (fds[0], fds[1])
 		}
 
-		if try socketURL.0.exists() {
-			Logger(self).info("Use VZVMNet at: \(socketURL.0.path)")
+		if try socketURL.socket.exists() {
+			Logger(self).info("Use VZVMNet at: \(socketURL.socket.path)")
 
 			let client = ClientBootstrap(group: Utilities.group)
 				.channelInitializer { inboundChannel in
@@ -247,9 +243,9 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 			futureChannel.whenComplete { result in
 				switch result {
 				case .success:
-					Logger(self).info("Network file handle connected to \(socketURL.0.path)")
+					Logger(self).info("Network file handle connected to \(socketURL.socket.path)")
 				case .failure(let error):
-					Logger(self).error("Network file handle failed to connect to \(socketURL.0.path), \(error)")
+					Logger(self).error("Network file handle failed to connect to \(socketURL.socket.path), \(error)")
 				}
 			}
 
