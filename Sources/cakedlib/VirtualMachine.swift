@@ -937,7 +937,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	public func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
 		Logger(self).error(error)
-		self.didChangedStateOnStop()
 	}
 
 	func didChangedStateOnStop() {
