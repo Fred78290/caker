@@ -196,45 +196,65 @@ extension String {
 	public func isValidMAcAddress() -> Bool {
 		self.range(of: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$", options: .regularExpression) != nil
 	}
-
+	
 	public func isValidIP() -> Bool {
 		self.range(of: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", options: .regularExpression) != nil
 	}
-
+	
 	public func isValidNetmask() -> Bool {
 		self.range(of: "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$", options: .regularExpression) != nil
 	}
-
+	
 	public func netmaskToCidr() -> Int {
 		let octets: [Int] = self.split(separator: ".").map({ Int($0)! })
 		var cidr: Int = 0
-
+		
 		guard octets.count == 4 else {
 			return 0
 		}
-
+		
 		for i in 0..<4 {
 			cidr += (octets[i] == 255) ? 8 : (octets[i] == 254) ? 7 : (octets[i] == 252) ? 6 : (octets[i] == 248) ? 5 : (octets[i] == 240) ? 4 : (octets[i] == 224) ? 3 : (octets[i] == 192) ? 2 : (octets[i] == 128) ? 1 : (octets[i] == 0) ? 0 : -1
 		}
-
+		
 		return cidr
 	}
-
+	
 	public func cidrToNetmask() -> String {
 		var value = Int(self) ?? 0
 		value = 0xFFFF_FFFF ^ ((1 << (32 - value)) - 1)
-
+		
 		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
 	}
-
+	
 	public func toIPV4() -> (address: IP.V4?, netmask: IP.V4?) {
 		let parts = self.split(separator: "/")
 		
 		guard parts.count > 0 else {
 			return (nil, nil)
 		}
-
+		
 		return (IP.V4(parts[0]), (parts.count > 1 ? IP.V4(String(parts[1]).cidrToNetmask()) : nil))
+	}
+	
+	public func to_in6_addr() -> in6_addr? {
+		var addr = in6_addr()
+
+		let res = self.withCString { cstr in
+			inet_pton(AF_INET6, cstr, &addr)
+		}
+
+		return res == 1 ? addr : nil
+	}
+
+	public func to_in_addr() -> in_addr? {
+		var addr = in_addr()
+
+		let result = self.withCString { cstr in
+			inet_pton(AF_INET, cstr, &addr)
+		}
+
+		return result == 1 ? addr : nil
 	}
 
 	public func toNetwork() -> IP.Block<IP.V4>? {
