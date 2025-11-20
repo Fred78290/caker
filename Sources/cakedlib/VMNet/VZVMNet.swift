@@ -7,7 +7,37 @@ import vmnet
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
 extension vmnet_return_t {
-	var stringValue: String {
+	public var description: String {
+		switch self
+		{
+		case .VMNET_SUCCESS:
+			return "Success"
+		case .VMNET_FAILURE:
+			return "Failure"
+		case .VMNET_MEM_FAILURE:
+			return "Memory failure"
+		case .VMNET_INVALID_ARGUMENT:
+			return "Invalid argument"
+		case .VMNET_SETUP_INCOMPLETE:
+			return "Setup incomplete"
+		case .VMNET_INVALID_ACCESS:
+			return "Invalid access"
+		case .VMNET_PACKET_TOO_BIG:
+			return "Packet too big"
+		case .VMNET_BUFFER_EXHAUSTED:
+			return "Buffer exhausted"
+		case .VMNET_TOO_MANY_PACKETS:
+			return "To many packets"
+		case .VMNET_SHARING_SERVICE_BUSY:
+			return "Service is busy"
+		case .VMNET_NOT_AUTHORIZED:
+			return "Not authorized"
+		default:
+			return "(unknown status \(self))"
+		}
+	}
+
+	public var stringValue: String {
 		switch self
 		{
 		case .VMNET_SUCCESS:
@@ -28,8 +58,12 @@ extension vmnet_return_t {
 			return "VMNET_BUFFER_EXHAUSTED"
 		case .VMNET_TOO_MANY_PACKETS:
 			return "VMNET_TOO_MANY_PACKETS"
+		case .VMNET_SHARING_SERVICE_BUSY:
+			return "VMNET_SHARING_SERVICE_BUSY"
+		case .VMNET_NOT_AUTHORIZED:
+			return "VMNET_NOT_AUTHORIZED"
 		default:
-			return "(unknown status)"
+			return "(unknown status \(self))"
 		}
 	}
 }
