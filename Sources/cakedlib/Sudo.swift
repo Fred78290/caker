@@ -196,9 +196,15 @@ public final class SudoCaked {
 		process.environment = try Utilities.environment(runMode: .user)
 		process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path, "--help"]
 		process.standardInput = nil
+
+		#if DEBUG
+		process.standardOutput = FileHandle.standardOutput
+		process.standardError = FileHandle.standardError
+		#else
 		process.standardOutput = nil
 		process.standardError = nil
-
+		#endif
+		
 		try process.run()
 
 		process.waitUntilExit()
