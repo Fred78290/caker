@@ -11,6 +11,7 @@ struct VMSettingsView: View {
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
 	@AppStorage("NoScreenshot") var isNoScreenshot = false
 	@AppStorage("NoSaveScreenshot") var isNoSaveScreenshot = false
+	@AppStorage("NoShutdownVMOnClose") var isNoShutdownVMOnClose = false
 
 	var body: some View {
 		Form {
@@ -44,6 +45,17 @@ struct VMSettingsView: View {
 			).onChange(of: isNoSaveScreenshot) { _, newValue in
 				if newValue {
 					isNoSaveScreenshot = newValue
+				}
+			}
+
+			Toggle(
+				isOn: $isNoShutdownVMOnClose.inverted,
+				label: {
+					Text("Shutdown VM on window close")
+				}
+			).onChange(of: isNoShutdownVMOnClose) { _, newValue in
+				if newValue {
+					isNoShutdownVMOnClose = newValue
 				}
 			}
 		}.formStyle(.grouped)

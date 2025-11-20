@@ -52,6 +52,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
+	@AppStorage("NoShutdownVMOnClose") var isNoShutdownVMOnClose = false
 
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.scenePhase) var scenePhase
@@ -324,7 +325,7 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleWillCloseNotification(_ notification: Notification) {
-		if self.document.externalRunning == false {
+		if self.document.externalRunning == false && self.isNoShutdownVMOnClose == false {
 			if isMyWindowKey(notification) {
 				if document.status == .running {
 					document.stopFromUI(force: false)
