@@ -23,56 +23,10 @@ struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
 		abstract: "caked as launchctl agent",
 		subcommands: [Install.self, Listen.self, Show.self])
-	static let SyncSemaphore = DispatchSemaphore(value: 0)
-
 }
 
 extension Service {
-	static func findMe() throws -> String {		
-		guard let url = URL.binary(Home.cakedCommandName) else {
-			return try Shell.execute(to: "command", arguments: ["-v", Home.cakedCommandName])
-		}
-
-		return url.path
-	}
-
-	struct LaunchAgent: Codable {
-		let label: String
-		let programArguments: [String]
-		let keepAlive: [String: Bool]
-		let runAtLoad: Bool
-		let abandonProcessGroup: Bool
-		let softResourceLimits: [String: Int]
-		let environmentVariables: [String: String]
-		let standardErrorPath: String
-		let standardOutPath: String
-		let processType: String
-
-		enum CodingKeys: String, CodingKey {
-			case label = "Label"
-			case programArguments = "ProgramArguments"
-			case keepAlive = "KeepAlive"
-			case runAtLoad = "RunAtLoad"
-			case abandonProcessGroup = "AbandonProcessGroup"
-			case softResourceLimits = "SoftResourceLimits"
-			case environmentVariables = "EnvironmentVariables"
-			case standardErrorPath = "StandardErrorPath"
-			case standardOutPath = "StandardOutPath"
-			case processType = "ProcessType"
-		}
-
-		func write(to: URL) throws {
-			let encoder = PropertyListEncoder()
-			encoder.outputFormat = .xml
-
-			let data = try encoder.encode(self)
-			try data.write(to: to)
-		}
-	}
-
-	struct Install: ParsableCommand {
-		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
-
+	struct ServiceOptions: ParsableArguments {
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
@@ -80,7 +34,7 @@ extension Service {
 		var asSystem: Bool = false
 
 		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
-		var address: String?
+		var address: [String] = []
 
 		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
 		var insecure: Bool = false
@@ -97,6 +51,32 @@ extension Service {
 		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
 		var mode: VMRunServiceMode = .grpc
 
+		var runMode: Utils.RunMode {
+			self.asSystem ? .system : .user
+		}
+
+		func validate() throws {
+			Logger.setLevel(self.logLevel)
+
+			VMRunHandler.serviceMode = mode
+
+			if self.insecure == false {
+				if let caCert, let tlsCert, let tlsKey {
+					if FileManager.default.fileExists(atPath: caCert) == false {
+						throw ServiceError("Root certificate file not found: \(caCert)")
+					}
+					
+					if FileManager.default.fileExists(atPath: tlsCert) == false {
+						throw ServiceError("TLS certificate file not found: \(tlsCert)")
+					}
+					
+					if FileManager.default.fileExists(atPath: tlsKey) == false {
+						throw ServiceError("TLS key file not found: \(tlsKey)")
+					}
+				}
+			}
+		}
+
 		func getCertificats() throws -> Certs {
 			if self.tlsCert == nil && self.tlsKey == nil {
 				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
@@ -107,87 +87,38 @@ extension Service {
 			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
 		}
 
-		func getListenAddress() throws -> String {
-			if let address = self.address {
-				return address
+		func getListenAddress() throws -> [String] {
+			if self.address.isEmpty {
+				return [try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
 			}
 
-			return try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)
+			return address
 		}
+	}
 
-		func validate() throws {
-			Logger.setLevel(self.logLevel)
-		}
+	struct Install: ParsableCommand {
+		static let configuration = CommandConfiguration(abstract: "Install caked daemon as launchctl agent")
+
+		@OptionGroup(title: "Agent common options")
+		var options: ServiceOptions
 
 		func run() throws {
-			let runMode: Utils.RunMode = self.asSystem ? .system : .user
-			let listenAddress: String = try getListenAddress()
-			let outputLog: String = Utils.getOutputLog(runMode: runMode)
-			let cakeHome: URL = try Utils.getHome(runMode: runMode)
-			let cakedSignature = Utils.cakerSignature
+			let runMode: Utils.RunMode = self.options.runMode
+			let listenAddress = try self.options.getListenAddress()
 
-			var arguments: [String] = [
-				try Service.findMe(),
-				"service",
-				"listen",
-				"--log-level=\(self.logLevel.rawValue)",
-				"--address=\(listenAddress)",
-			]
+			var caCert: String? = nil
+			var tlsCert: String? = nil
+			var tlsKey: String? = nil
 
-			if self.mode == .grpc {
-				arguments.append("--grpc")
-			} else {
-				arguments.append("--xpc")
+			if self.options.insecure == false {
+				let certs = try self.options.getCertificats()
+
+				caCert = certs.ca
+				tlsKey = certs.key
+				tlsCert = certs.cert
 			}
 
-			if self.asSystem {
-				arguments.append("--system")
-			}
-
-			if self.insecure == false {
-				let certs = try getCertificats()
-
-				if let ca = certs.ca {
-					arguments.append("--ca-cert=\(ca)")
-				}
-
-				if let key = certs.key {
-					arguments.append("--tls-key=\(key)")
-				}
-
-				if let cert = certs.cert {
-					arguments.append("--tls-cert=\(cert)")
-				}
-			}
-
-			let agent = LaunchAgent(
-				label: cakedSignature,
-				programArguments: arguments,
-				keepAlive: [
-					"SuccessfulExit": false
-				],
-				runAtLoad: true,
-				abandonProcessGroup: true,
-				softResourceLimits: [
-					"NumberOfFiles": 4096
-				],
-				environmentVariables: [
-					"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-					"CAKE_HOME": cakeHome.path,
-				],
-				standardErrorPath: outputLog,
-				standardOutPath: outputLog,
-				processType: "Background")
-
-			let agentURL: URL
-
-			if self.asSystem {
-				agentURL = URL(fileURLWithPath: "/Library/LaunchDaemons/\(cakedSignature).plist")
-			} else {
-				agentURL = URL(fileURLWithPath: "\(NSHomeDirectory())/Library/LaunchAgents/\(cakedSignature).plist")
-			}
-
-			try agent.write(to: agentURL)
+			try ServiceHandler.installAgent(listenAddress: listenAddress, insecure: self.options.insecure, caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey, runMode: runMode)
 		}
 	}
 
@@ -197,39 +128,24 @@ extension Service {
 		@Option(name: [.customLong("log-level")], help: "Log level")
 		var logLevel: Logging.Logger.Level = .info
 
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Run caked as system agent, need sudo")
-		var asSystem: Bool = false
-
 		@Flag(help: .hidden)
 		var secure: Bool = false
 
-		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
-		var address: [String] = []
-
-		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
-		var caCert: String?
-
-		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Server TLS certificate")
-		var tlsCert: String?
-
-		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Server private key")
-		var tlsKey: String?
-
-		@Flag(help: ArgumentHelp("Service endpoint", discussion: "This option allow mode to connect to a VMRun service endpoint"))
-		var mode: VMRunServiceMode = .grpc
+		@OptionGroup(title: "Agent common options")
+		var options: ServiceOptions
 
 		mutating func validate() throws {
+			let runMode: Utils.RunMode = self.options.runMode
+			
 			Logger.setLevel(self.logLevel)
 
-			VMRunHandler.serviceMode = mode
-
 			if self.secure {
-				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
+				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
 
-				self.caCert = certs.caCertURL.path
-				self.tlsCert = certs.serverCertURL.path
-				self.tlsKey = certs.serverKeyURL.path
-			} else if let caCert = self.caCert, let tlsCert = self.tlsCert, let tlsKey = self.tlsKey {
+				self.options.caCert = certs.caCertURL.path
+				self.options.tlsCert = certs.serverCertURL.path
+				self.options.tlsKey = certs.serverKeyURL.path
+			} else if let caCert = self.options.caCert, let tlsCert = self.options.tlsCert, let tlsKey = self.options.tlsKey {
 				if FileManager.default.fileExists(atPath: caCert) == false {
 					throw ServiceError("Root certificate file not found: \(caCert)")
 				}
@@ -241,84 +157,35 @@ extension Service {
 				if FileManager.default.fileExists(atPath: tlsKey) == false {
 					throw ServiceError("TLS key file not found: \(tlsKey)")
 				}
-			} else if (self.tlsKey != nil || self.tlsCert != nil) && (self.tlsKey == nil || self.tlsCert == nil) {
+			} else if (self.options.tlsKey != nil || self.options.tlsCert != nil) && (self.options.tlsKey == nil || self.options.tlsCert == nil) {
 				throw ServiceError("Some cert files not provided")
 			}
 		}
 
-		private func getServerAddress() throws -> [String] {
-			if self.address.isEmpty {
-				return try [Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)]
-			} else {
-				return self.address
-			}
-		}
-
-		static func createServer(
-			eventLoopGroup: EventLoopGroup,
-			runMode: Utils.RunMode,
-			listeningAddress: URL?,
-			caCert: String?,
-			tlsCert: String?,
-			tlsKey: String?
-		) throws -> EventLoopFuture<Server> {
-
-			if let listeningAddress = listeningAddress {
-				let target: ConnectionTarget
-
-				if listeningAddress.isFileURL || listeningAddress.scheme == "unix" {
-					try listeningAddress.deleteIfFileExists()
-					target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
-				} else if listeningAddress.scheme == "tcp" {
-					target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
-				} else {
-					throw ServiceError("unsupported listening address scheme: \(String(describing: listeningAddress.scheme))")
-				}
-
-				var serverConfiguration = Server.Configuration.default(
-					target: target,
-					eventLoopGroup: eventLoopGroup,
-					serviceProviders: [try CakedProvider(group: eventLoopGroup, runMode: runMode)])
-
-				if let tlsCert = tlsCert, let tlsKey = tlsKey {
-					let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
-					let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
-					let trustRoots: NIOSSLTrustRoots
-
-					if let caCert: String = caCert {
-						trustRoots = .certificates([try NIOSSLCertificate(file: caCert, format: .pem)])
-					} else {
-						trustRoots = NIOSSLTrustRoots.default
-					}
-
-					serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
-						certificateChain: [.certificate(tlsCert)],
-						privateKey: .privateKey(tlsKey),
-						trustRoots: trustRoots,
-						certificateVerification: CertificateVerification.none,
-						requireALPN: false)
-				}
-
-				return Server.start(configuration: serverConfiguration)
-			}
-
-			throw ServiceError("connection address must be specified")
-		}
-
 		func run() async throws {
-			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: self.asSystem ? .system : .user)
+			let runMode: Utils.RunMode = self.options.runMode
+			let home = try Home(runMode: runMode)
 
-			let listenAddress = try self.getServerAddress()
+			try home.agentPID.writePID()
 
+			defer {
+				try? home.agentPID.delete()
+			}
+
+			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: runMode)
+
+			let listenAddress = try self.options.getListenAddress()
+			let eventLoopGroup = Utilities.group
 			let servers: [Server] = try listenAddress.map { address in
 				Logger(self).info("Start listening on \(address)")
-				return try Self.createServer(
-					eventLoopGroup: Utilities.group,
-					runMode: self.asSystem ? .system : .user,
+				return try ServiceHandler.createServer(
+					eventLoopGroup: eventLoopGroup,
+					runMode: runMode,
 					listeningAddress: URL(string: address),
-					caCert: self.caCert,
-					tlsCert: self.tlsCert,
-					tlsKey: self.tlsKey
+					serviceProviders: [try CakedProvider(group: eventLoopGroup, runMode: runMode)],
+					caCert: self.options.caCert,
+					tlsCert: self.options.tlsCert,
+					tlsKey: self.options.tlsKey
 				).wait()
 			}
 
@@ -358,66 +225,29 @@ extension Service {
 	struct Show: ParsableCommand {
 		static let configuration = CommandConfiguration(abstract: "Help to run caked daemon")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
-
-		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
-		var asSystem: Bool = false
-
-		@Option(name: [.customLong("address"), .customShort("l")], help: "Listen on address")
-		var address: String?
-
-		@Flag(name: [.customLong("insecure"), .customShort("i")], help: "don't use TLS")
-		var insecure: Bool = false
-
-		@Option(name: [.customLong("ca-cert"), .customShort("c")], help: "CA TLS certificate")
-		var caCert: String?
-
-		@Option(name: [.customLong("tls-cert"), .customShort("t")], help: "Client TLS certificate")
-		var tlsCert: String?
-
-		@Option(name: [.customLong("tls-key"), .customShort("k")], help: "Client private key")
-		var tlsKey: String?
-
-		func getCertificats() throws -> Certs {
-			if self.tlsCert == nil && self.tlsKey == nil {
-				let certs = try CertificatesLocation.createCertificats(runMode: self.asSystem ? .system : .user)
-
-				return Certs(ca: certs.caCertURL.path, key: certs.serverKeyURL.path, cert: certs.serverCertURL.path)
-			}
-
-			return Certs(ca: self.caCert, key: self.tlsKey, cert: self.tlsCert)
-		}
-
-		func getListenAddress() throws -> String {
-			if let address = self.address {
-				return address
-			}
-
-			return try Utils.getDefaultServerAddress(runMode: self.asSystem ? .system : .user)
-		}
-
-		mutating func validate() throws {
-			Logger.setLevel(self.logLevel)
-		}
+		@OptionGroup(title: "Agent common options")
+		var options: ServiceOptions
 
 		mutating func run() throws {
-			let listenAddress: String = try getListenAddress()
+			let listenAddress = try self.options.getListenAddress()
 
 			var arguments: [String] = [
-				try Service.findMe(),
+				try ServiceHandler.findMe(),
 				"service",
 				"listen",
-				"--log-level=\(self.logLevel.rawValue)",
-				"--address=\(listenAddress)",
+				"--log-level=\(self.options.logLevel.rawValue)"
 			]
 
-			if self.asSystem {
+			listenAddress.forEach {
+				arguments.append("--address=\($0)")
+			}
+
+			if self.options.asSystem {
 				arguments.append("--system")
 			}
 
-			if self.insecure == false {
-				let certs = try getCertificats()
+			if self.options.insecure == false {
+				let certs = try self.options.getCertificats()
 
 				if let ca = certs.ca {
 					arguments.append("--ca-cert=\(ca)")

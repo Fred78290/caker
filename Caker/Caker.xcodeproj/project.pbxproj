@@ -160,6 +160,7 @@
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
 		9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91177B2ECA05800017791D /* PurgeableContentStore.swift */; };
+		9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */; };
 		9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */; };
 		9B91237E2E290442006DD682 /* InternalVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */; };
 		9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = 9B9123802E29253A006DD682 /* SwiftTerm */; };
@@ -647,6 +648,7 @@
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
 		9B91177B2ECA05800017791D /* PurgeableContentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurgeableContentStore.swift; sourceTree = "<group>"; };
+		9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceHandler.swift; sourceTree = "<group>"; };
 		9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolbarSettings.swift; sourceTree = "<group>"; };
@@ -1544,6 +1546,7 @@
 				9BEBC7252DF440720092B196 /* RemoteHandler.swift */,
 				9BEBC7262DF440720092B196 /* RenameHandler.swift */,
 				9BEBC7272DF440720092B196 /* RunHandler.swift */,
+				9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */,
 				9BEBC7282DF440720092B196 /* StartHandler.swift */,
 				9BEBC7292DF440720092B196 /* StopHandler.swift */,
 				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
@@ -2274,6 +2277,7 @@
 				9BEBC7752DF440720092B196 /* CakedPortForwarder.swift in Sources */,
 				9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */,
 				9BEBC7772DF440720092B196 /* Curl.swift in Sources */,
+				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
 				9BEBC77A2DF440720092B196 /* VZVMNetSocket.swift in Sources */,
 				9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */,
