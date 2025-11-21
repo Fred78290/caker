@@ -19,7 +19,7 @@ struct NetworkWizard: View {
 	private var networkConfig: VZVMNetConfig
 
 	init(appState: Binding<AppState>) {
-		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "")
+		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "", usedBy: 0)
 		let networkConfig = try! Home(runMode: .app).sharedNetworks()
 		let valid = Self.validate(network, networkConfig: networkConfig)
 
