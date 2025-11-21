@@ -81,8 +81,8 @@ public struct VZSharedNetwork: Codable, Equatable {
 		}
 	}
 
-	public static func defaultNatNetwork() -> VZSharedNetwork {
-		let network = NetworksHandler.defaultNatNetwork
+	public static var defaultNatNetwork: VZSharedNetwork {
+		let network = NetworksHandler.defaultNatNetwork(runMode: geteuid() == 0 ? .system : .user)
 		let dhcpStart = network.gateway.toIPV4()
 		let dhcpEnd = network.dhcpEnd.toIPV4()
 
@@ -303,7 +303,7 @@ public struct VZVMNetConfig: Codable {
 	}
 
 	public init() throws {
-		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork()
+		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
 		self.userNetworks = [
 			"shared": try VZSharedNetwork.createNetwork(mode: .shared, baseAddress: "192.168", cidr: 24, runMode: .user),
 			"host": try VZSharedNetwork.createNetwork(mode: .host, baseAddress: "172.\(Int.random(in: 16...31))", cidr: 24, runMode: .user),
@@ -321,7 +321,7 @@ public struct VZVMNetConfig: Codable {
 	public init(from decoder: Decoder) throws {
 		let container = try decoder.container(keyedBy: CodingKeys.self)
 
-		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork()
+		self.defaultNatNetwork = VZSharedNetwork.defaultNatNetwork
 		self.userNetworks = try container.decodeIfPresent([String: VZSharedNetwork].self, forKey: .userNetworks) ?? [:]
 	}
 
