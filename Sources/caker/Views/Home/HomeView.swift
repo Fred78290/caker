@@ -11,48 +11,47 @@ import GRPCLib
 struct HomeView: View {
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
-	@State var presented: Bool = false
-	@State var mustShowDetailView: Bool?
-	@State var window: NSWindow? = nil
+	@State private var presented: Bool = false
+	@State private var mustShowDetailView: Bool?
+	@State private var window: NSWindow? = nil
+
+	private var deleteButtonDisabled: Bool {
+		switch navigationModel.selectedCategory {
+		case .templates:
+			return navigationModel.selectedTemplate == nil
+		case .virtualMachine:
+			guard let vm = navigationModel.selectedVirtualMachine else {
+				return true
+			}
+			
+			return vm.status == .running
+		case .networks:
+			guard let network = navigationModel.selectedNetwork else {
+				return true
+			}
+
+			return network.usedBy != 0 || [.nat, .bridged].contains(network.mode)
+		case .images:
+			return navigationModel.selectedTemplate == nil
+		}
+	}
 
 	var body: some View {
 		self.navigationView
 		.toolbar {
-			if navigationModel.selectedCategory == .templates {
-				ToolbarItem(placement: .navigation) {
-					Button("Delete", systemImage: "trash") {
-						self.actionDelete()
-					}.disabled(navigationModel.selectedTemplate == nil)
-				}
-			} else if navigationModel.selectedCategory == .virtualMachine {
-				ToolbarItem(placement: .navigation) {
-					Button("Delete", systemImage: "trash") {
-						self.actionDelete()
-					}.disabled(navigationModel.selectedVirtualMachine == nil)
-				}
+			ToolbarItem(placement: .navigation) {
+				Button("Delete", systemImage: "trash") {
+					self.actionDelete()
+				}.disabled(self.deleteButtonDisabled)
+			}
 
-				ToolbarItem(placement: .navigation) {
-					Button("Plus", systemImage: "plus") {
-						self.actionPlus()
-					}
+			ToolbarItem(placement: .navigation) {
+				Button("Plus", systemImage: "plus") {
+					self.actionPlus()
 				}
-			} else {
-				ToolbarItemGroup(placement: .navigation) {
-					if navigationModel.selectedCategory == .networks {
-						Button("Delete", systemImage: "trash") {
-							self.actionDelete()
-						}.disabled(navigationModel.selectedNetwork == nil)
-					} else {
-						Button("Delete", systemImage: "trash") {
-							self.actionPlus()
-						}.disabled(navigationModel.selectedRemote == nil)
-					}
+			}
 
-					Button("Plus", systemImage: "plus") {
-						self.actionPlus()
-					}
-				}
-
+			if self.showDetailView {
 				ToolbarItem(placement: .primaryAction) {
 					Button("Detail", systemImage: "sidebar.squares.right") {
 						if self.mustShowDetailView == nil {

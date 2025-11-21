@@ -146,6 +146,12 @@ struct NetworkDetailView: View {
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
 						}
+
+						if forEditing == false {
+							LabeledContent("Used by") {
+								Text("\(currentItem.usedBy) instances")
+							}
+						}
 					}
 					
 				}.padding()
@@ -183,5 +189,5 @@ struct NetworkDetailView: View {
 }
 
 #Preview {
-	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "")), reloadNetwork: .constant(false), forEditing: true)
+	NetworkDetailView(.constant(BridgedNetwork(name: "nat", mode: .nat, description: "NAT shared network", gateway: "", dhcpEnd: "", dhcpLease: "", interfaceID: "nat", endpoint: "", usedBy: 0)), reloadNetwork: .constant(false), forEditing: true)
 }
