@@ -45,7 +45,11 @@ public struct ServiceHandler {
 		}
 	}
 	
-	public static func findMe() throws -> String {
+	public static func findMe() throws -> String {		
+		if let caked = Bundle.main.path(forAuxiliaryExecutable: Home.cakedCommandName) {
+			return caked
+		}
+
 		guard let url = URL.binary(Home.cakedCommandName) else {
 			return try Shell.execute(to: "command", arguments: ["-v", Home.cakedCommandName])
 		}
@@ -104,7 +108,13 @@ public struct ServiceHandler {
 		
 		throw ServiceError("connection address must be specified")
 	}
-	
+
+	public static func installAgent(mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
+		let certs = try CertificatesLocation.createCertificats(runMode: runMode)
+
+		return try self.installAgent(listenAddress: [try Utils.getDefaultServerAddress(runMode: runMode)], insecure: false, caCert: certs.caCertURL.path, tlsCert: certs.serverCertURL.path, tlsKey: certs.serverKeyURL.path, runMode: runMode)
+	}
+
 	public static func installAgent(listenAddress: [String], insecure: Bool, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
 		let cakeHome: URL = try Utils.getHome(runMode: runMode)
 		let outputLog: String = Utils.getOutputLog(runMode: runMode)
@@ -174,6 +184,10 @@ public struct ServiceHandler {
 	}
 	
 	public static func uninstallAgent(runMode: Utils.RunMode) throws {
+		if self.isAgentRunning(runMode: runMode) {
+			try self.stopAgent(runMode: runMode)
+		}
+
 		try self.agentLaunchURL(runMode: runMode).delete()
 	}
 	
@@ -244,12 +258,20 @@ public struct ServiceHandler {
 		return false
 	}
 	
+	public static func isAgentRunning(runMode: Utils.RunMode) -> Bool {
+		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
+			if home.agentPID.isPIDRunning().running {
+				return true
+			}
+		}
+
+		return false
+	}
+
 	public static var isAgentRunning: Bool {
 		for runMode in [Utils.RunMode.system, .user] {
-			if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
-				if home.agentPID.isPIDRunning().running {
-					return true
-				}
+			if self.isAgentRunning(runMode: runMode) {
+				return true
 			}
 		}
 
