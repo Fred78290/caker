@@ -356,18 +356,42 @@ class AppState: ObservableObject, Observable {
 	}
 	
 	func installCakedService() {
-		
+		do {
+			try ServiceHandler.installAgent(runMode: .app)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 	
 	func removeCakedService() {
-		
+		do {
+			try ServiceHandler.uninstallAgent(runMode: .app)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 	
 	func stopCakedService() {
-		
+		do {
+			try ServiceHandler.stopAgent(runMode: .app)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 	
 	func startCakedService() {
-		
+		do {
+			try ServiceHandler.launchAgent(runMode: .app)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 }
