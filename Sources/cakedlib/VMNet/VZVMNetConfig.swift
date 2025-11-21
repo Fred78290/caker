@@ -11,19 +11,6 @@ public struct VZSharedNetwork: Codable, Equatable {
 	public let interfaceID: String
 	public let nat66Prefix: String?
 
-	public func toBridgedNetwork(name: String) -> BridgedNetwork {
-		let cidr = self.netmask.netmaskToCidr()
-
-		return BridgedNetwork(name: name,
-							  mode: .init(from: self.mode),
-							  description: self.mode == .host ? "Hosted network" : "Shared network",
-							  gateway: "\(self.dhcpStart)/\(cidr)",
-							  dhcpEnd: "\(self.dhcpEnd)/\(cidr)",
-							  dhcpLease: self.dhcpLease != nil ? "\(self.dhcpLease!)" : "",
-							  interfaceID: self.interfaceID,
-							  endpoint: "")
-	}
-
 	public init(
 		mode: VMNetMode = .bridged,
 		netmask: String,
