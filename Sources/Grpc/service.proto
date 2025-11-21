@@ -292,6 +292,34 @@ message Caked {
 
 			message StatusReply {
 				message InfoReply {
+					message CpuCoreInfo {
+						int32 core_id = 1;
+						double usage_percent = 2;
+						double user = 3;
+						double system = 4;
+						double idle = 5;
+						double iowait = 6;
+						double irq = 7;
+						double softirq = 8;
+						double steal = 9;
+						double guest = 10;
+						double guestNice = 11;
+					}
+
+					message CpuInfo {
+						double total_usage_percent = 1;
+						double user = 2;
+						double system = 3;
+						double idle = 4;
+						double iowait = 5;
+						double irq = 6;
+						double softirq = 7;
+						double steal = 8;
+						double guest = 9;
+						double guestNice = 10;
+						repeated CpuCoreInfo cores = 11;
+					}
+
 					message MemoryInfo {
 						uint64 total = 1;
 						optional uint64 free = 2;
@@ -365,6 +393,7 @@ message Caked {
 					repeated AttachedNetwork networks = 13;
 					repeated TunnelInfo tunnels = 14;
 					repeated SocketInfo sockets = 15;
+					CpuInfo cpu = 16;
 					optional string vncURL = 17;
 					optional string reason = 18;
 					bool success = 19;
@@ -519,6 +548,7 @@ message Caked {
 				string netmask = 6;
 				string interfaceID = 7;
 				string endpoint = 8;
+				int32 used = 9;
 			}
 			
 			message NetworkInfoReply {

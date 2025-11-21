@@ -1628,6 +1628,15 @@ public struct Caked_Caked: Sendable {
             set {_uniqueStorage()._sockets = newValue}
           }
 
+          public var cpu: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo {
+            get {return _storage._cpu ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo()}
+            set {_uniqueStorage()._cpu = newValue}
+          }
+          /// Returns true if `cpu` has been explicitly set.
+          public var hasCpu: Bool {return _storage._cpu != nil}
+          /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
+          public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
+
           public var vncURL: String {
             get {return _storage._vncURL ?? String()}
             set {_uniqueStorage()._vncURL = newValue}
@@ -1652,6 +1661,70 @@ public struct Caked_Caked: Sendable {
           }
 
           public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+          public struct CpuCoreInfo: Sendable {
+            // SwiftProtobuf.Message conformance is added in an extension below. See the
+            // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+            // methods supported on all messages.
+
+            public var coreID: Int32 = 0
+
+            public var usagePercent: Double = 0
+
+            public var user: Double = 0
+
+            public var system: Double = 0
+
+            public var idle: Double = 0
+
+            public var iowait: Double = 0
+
+            public var irq: Double = 0
+
+            public var softirq: Double = 0
+
+            public var steal: Double = 0
+
+            public var guest: Double = 0
+
+            public var guestNice: Double = 0
+
+            public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+            public init() {}
+          }
+
+          public struct CpuInfo: Sendable {
+            // SwiftProtobuf.Message conformance is added in an extension below. See the
+            // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+            // methods supported on all messages.
+
+            public var totalUsagePercent: Double = 0
+
+            public var user: Double = 0
+
+            public var system: Double = 0
+
+            public var idle: Double = 0
+
+            public var iowait: Double = 0
+
+            public var irq: Double = 0
+
+            public var softirq: Double = 0
+
+            public var steal: Double = 0
+
+            public var guest: Double = 0
+
+            public var guestNice: Double = 0
+
+            public var cores: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo] = []
+
+            public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+            public init() {}
+          }
 
           public struct MemoryInfo: Sendable {
             // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -2509,6 +2582,8 @@ public struct Caked_Caked: Sendable {
         public var interfaceID: String = String()
 
         public var endpoint: String = String()
+
+        public var used: Int32 = 0
 
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -6213,7 +6288,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{2}\u{2}vncURL\0\u{1}reason\0\u{1}success\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}reason\0\u{1}success\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -6231,6 +6306,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
     var _networks: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNetwork] = []
     var _tunnels: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo] = []
     var _sockets: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo] = []
+    var _cpu: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo? = nil
     var _vncURL: String? = nil
     var _reason: String? = nil
     var _success: Bool = false
@@ -6259,6 +6335,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       _networks = source._networks
       _tunnels = source._tunnels
       _sockets = source._sockets
+      _cpu = source._cpu
       _vncURL = source._vncURL
       _reason = source._reason
       _success = source._success
@@ -6295,6 +6372,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         case 13: try { try decoder.decodeRepeatedMessageField(value: &_storage._networks) }()
         case 14: try { try decoder.decodeRepeatedMessageField(value: &_storage._tunnels) }()
         case 15: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
+        case 16: try { try decoder.decodeSingularMessageField(value: &_storage._cpu) }()
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._vncURL) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._reason) }()
         case 19: try { try decoder.decodeSingularBoolField(value: &_storage._success) }()
@@ -6355,6 +6433,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       if !_storage._sockets.isEmpty {
         try visitor.visitRepeatedMessageField(value: _storage._sockets, fieldNumber: 15)
       }
+      try { if let v = _storage._cpu {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+      } }()
       try { if let v = _storage._vncURL {
         try visitor.visitSingularStringField(value: v, fieldNumber: 17)
       } }()
@@ -6388,6 +6469,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         if _storage._networks != rhs_storage._networks {return false}
         if _storage._tunnels != rhs_storage._tunnels {return false}
         if _storage._sockets != rhs_storage._sockets {return false}
+        if _storage._cpu != rhs_storage._cpu {return false}
         if _storage._vncURL != rhs_storage._vncURL {return false}
         if _storage._reason != rhs_storage._reason {return false}
         if _storage._success != rhs_storage._success {return false}
@@ -6395,6 +6477,166 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".CpuCoreInfo"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}core_id\0\u{3}usage_percent\0\u{1}user\0\u{1}system\0\u{1}idle\0\u{1}iowait\0\u{1}irq\0\u{1}softirq\0\u{1}steal\0\u{1}guest\0\u{1}guestNice\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt32Field(value: &self.coreID) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.usagePercent) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.user) }()
+      case 4: try { try decoder.decodeSingularDoubleField(value: &self.system) }()
+      case 5: try { try decoder.decodeSingularDoubleField(value: &self.idle) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.iowait) }()
+      case 7: try { try decoder.decodeSingularDoubleField(value: &self.irq) }()
+      case 8: try { try decoder.decodeSingularDoubleField(value: &self.softirq) }()
+      case 9: try { try decoder.decodeSingularDoubleField(value: &self.steal) }()
+      case 10: try { try decoder.decodeSingularDoubleField(value: &self.guest) }()
+      case 11: try { try decoder.decodeSingularDoubleField(value: &self.guestNice) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.coreID != 0 {
+      try visitor.visitSingularInt32Field(value: self.coreID, fieldNumber: 1)
+    }
+    if self.usagePercent.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.usagePercent, fieldNumber: 2)
+    }
+    if self.user.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.user, fieldNumber: 3)
+    }
+    if self.system.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.system, fieldNumber: 4)
+    }
+    if self.idle.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.idle, fieldNumber: 5)
+    }
+    if self.iowait.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.iowait, fieldNumber: 6)
+    }
+    if self.irq.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.irq, fieldNumber: 7)
+    }
+    if self.softirq.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.softirq, fieldNumber: 8)
+    }
+    if self.steal.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.steal, fieldNumber: 9)
+    }
+    if self.guest.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.guest, fieldNumber: 10)
+    }
+    if self.guestNice.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.guestNice, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo, rhs: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo) -> Bool {
+    if lhs.coreID != rhs.coreID {return false}
+    if lhs.usagePercent != rhs.usagePercent {return false}
+    if lhs.user != rhs.user {return false}
+    if lhs.system != rhs.system {return false}
+    if lhs.idle != rhs.idle {return false}
+    if lhs.iowait != rhs.iowait {return false}
+    if lhs.irq != rhs.irq {return false}
+    if lhs.softirq != rhs.softirq {return false}
+    if lhs.steal != rhs.steal {return false}
+    if lhs.guest != rhs.guest {return false}
+    if lhs.guestNice != rhs.guestNice {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.protoMessageName + ".CpuInfo"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}total_usage_percent\0\u{1}user\0\u{1}system\0\u{1}idle\0\u{1}iowait\0\u{1}irq\0\u{1}softirq\0\u{1}steal\0\u{1}guest\0\u{1}guestNice\0\u{1}cores\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.totalUsagePercent) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.user) }()
+      case 3: try { try decoder.decodeSingularDoubleField(value: &self.system) }()
+      case 4: try { try decoder.decodeSingularDoubleField(value: &self.idle) }()
+      case 5: try { try decoder.decodeSingularDoubleField(value: &self.iowait) }()
+      case 6: try { try decoder.decodeSingularDoubleField(value: &self.irq) }()
+      case 7: try { try decoder.decodeSingularDoubleField(value: &self.softirq) }()
+      case 8: try { try decoder.decodeSingularDoubleField(value: &self.steal) }()
+      case 9: try { try decoder.decodeSingularDoubleField(value: &self.guest) }()
+      case 10: try { try decoder.decodeSingularDoubleField(value: &self.guestNice) }()
+      case 11: try { try decoder.decodeRepeatedMessageField(value: &self.cores) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.totalUsagePercent.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.totalUsagePercent, fieldNumber: 1)
+    }
+    if self.user.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.user, fieldNumber: 2)
+    }
+    if self.system.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.system, fieldNumber: 3)
+    }
+    if self.idle.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.idle, fieldNumber: 4)
+    }
+    if self.iowait.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.iowait, fieldNumber: 5)
+    }
+    if self.irq.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.irq, fieldNumber: 6)
+    }
+    if self.softirq.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.softirq, fieldNumber: 7)
+    }
+    if self.steal.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.steal, fieldNumber: 8)
+    }
+    if self.guest.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.guest, fieldNumber: 9)
+    }
+    if self.guestNice.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.guestNice, fieldNumber: 10)
+    }
+    if !self.cores.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.cores, fieldNumber: 11)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo, rhs: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo) -> Bool {
+    if lhs.totalUsagePercent != rhs.totalUsagePercent {return false}
+    if lhs.user != rhs.user {return false}
+    if lhs.system != rhs.system {return false}
+    if lhs.idle != rhs.idle {return false}
+    if lhs.iowait != rhs.iowait {return false}
+    if lhs.irq != rhs.irq {return false}
+    if lhs.softirq != rhs.softirq {return false}
+    if lhs.steal != rhs.steal {return false}
+    if lhs.guest != rhs.guest {return false}
+    if lhs.guestNice != rhs.guestNice {return false}
+    if lhs.cores != rhs.cores {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -7721,7 +7963,7 @@ extension Caked_Caked.Reply.NetworksReply: SwiftProtobuf.Message, SwiftProtobuf.
 
 extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.NetworksReply.protoMessageName + ".NetworkInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}mode\0\u{1}description\0\u{1}gateway\0\u{1}dhcpEnd\0\u{1}netmask\0\u{1}interfaceID\0\u{1}endpoint\0\u{1}used\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7737,6 +7979,7 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, Sw
       case 6: try { try decoder.decodeSingularStringField(value: &self.netmask) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.interfaceID) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.endpoint) }()
+      case 9: try { try decoder.decodeSingularInt32Field(value: &self.used) }()
       default: break
       }
     }
@@ -7767,6 +8010,9 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, Sw
     if !self.endpoint.isEmpty {
       try visitor.visitSingularStringField(value: self.endpoint, fieldNumber: 8)
     }
+    if self.used != 0 {
+      try visitor.visitSingularInt32Field(value: self.used, fieldNumber: 9)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -7779,6 +8025,7 @@ extension Caked_Caked.Reply.NetworksReply.NetworkInfo: SwiftProtobuf.Message, Sw
     if lhs.netmask != rhs.netmask {return false}
     if lhs.interfaceID != rhs.interfaceID {return false}
     if lhs.endpoint != rhs.endpoint {return false}
+    if lhs.used != rhs.used {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

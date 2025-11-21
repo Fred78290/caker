@@ -34,7 +34,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.31.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/DimaRU/Shout.git", branch: "master"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "dc3e771bd2351b8773bc874cf9892dc127e4d294"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "fe815927233671cdcb32f9c2a364ffb5761adea8"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "be52cbd79902a3b74f5b13d69a13bc32953c2c69"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),

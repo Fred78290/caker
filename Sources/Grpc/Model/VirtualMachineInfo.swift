@@ -18,6 +18,40 @@ extension VirtualMachineInfos {
 	}
 }
 
+extension Caked_InfoReplyCpuCoreInfo {
+	var asCakeAgentLib: CpuInformations.CpuCoreInfo {
+		CpuInformations.CpuCoreInfo(
+			coreID: self.coreID,
+			usagePercent: self.usagePercent,
+			user: self.user,
+			system: self.system,
+			idle: self.idle,
+			iowait: self.iowait,
+			irq: self.irq,
+			softirq: self.softirq,
+			steal: self.steal,
+			guest: self.guest,
+			guestNice: self.guestNice)
+	}
+}
+
+extension Caked_InfoReplyCpuInfo {
+	var asCakeAgentLib: CpuInformations {
+		CpuInformations(
+			totalUsagePercent: self.totalUsagePercent,
+			user: self.user,
+			system: self.system,
+			idle: self.idle,
+			iowait: self.iowait,
+			irq: self.irq,
+			softirq: self.softirq,
+			steal: self.steal,
+			guest: self.guest,
+			guestNice: self.guestNice,
+			cores: self.cores.map(\.asCakeAgentLib))
+	}
+}
+
 public struct VMInformations: Sendable, Codable {
 	public var name: String
 	public var version: String?
@@ -35,7 +69,8 @@ public struct VMInformations: Sendable, Codable {
 	public var tunnelInfos: [TunnelInfo]?
 	public var socketInfos: [SocketInfo]?
 	public var vncURL: String?
-	
+	public var cpuInfos: CpuInformations?
+
 	public static func with(
 		_ populator: (inout Self) throws -> Void
 	) rethrows -> Self {
@@ -60,6 +95,7 @@ public struct VMInformations: Sendable, Codable {
 		self.attachedNetworks = nil
 		self.tunnelInfos = nil
 		self.socketInfos = nil
+		self.cpuInfos = nil
 	}
 	
 	public init(from: InfoReply) {
@@ -78,6 +114,7 @@ public struct VMInformations: Sendable, Codable {
 		self.attachedNetworks = nil
 		self.tunnelInfos = nil
 		self.socketInfos = nil
+		self.cpuInfos = from.cpuInfo
 	}
 	
 	public init(from: Caked_InfoReply) {
@@ -119,6 +156,10 @@ public struct VMInformations: Sendable, Codable {
 			$0.total = from.memory.total
 			$0.free = from.memory.free
 			$0.used = from.memory.used
+		}
+
+		if from.hasCpu {
+			self.cpuInfos = from.cpu.asCakeAgentLib
 		}
 	}
 
@@ -194,6 +235,36 @@ public struct VMInformations: Sendable, Codable {
 
 			if let vncURL = self.vncURL {
 				reply.vncURL = vncURL
+			}
+
+			if let cpuInfos = self.cpuInfos {
+				reply.cpu = .with {
+					$0.totalUsagePercent = cpuInfos.totalUsagePercent
+					$0.user = cpuInfos.user
+					$0.system = cpuInfos.system
+					$0.idle = cpuInfos.idle
+					$0.iowait = cpuInfos.iowait
+					$0.irq = cpuInfos.irq
+					$0.softirq = cpuInfos.softirq
+					$0.steal = cpuInfos.steal
+					$0.guest = cpuInfos.guest
+					$0.guestNice = cpuInfos.guestNice
+					$0.cores = cpuInfos.cores.map { core in
+						.with {
+							$0.coreID = core.coreID
+							$0.usagePercent = core.usagePercent
+							$0.user = core.user
+							$0.system = core.system
+							$0.idle = core.idle
+							$0.iowait = core.iowait
+							$0.irq = core.irq
+							$0.softirq = core.softirq
+							$0.steal = core.steal
+							$0.guest = core.guest
+							$0.guestNice = core.guestNice
+						}
+					}
+				}
 			}
 		}
 	}
