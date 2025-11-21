@@ -197,7 +197,7 @@ public final class SudoCaked {
 		process.arguments = ["--non-interactive", "--preserve-env=CAKE_HOME", "--user=root", "--group=#\(getegid())", "--", binary.path, "--help"]
 		process.standardInput = nil
 
-		#if DEBUG
+		#if XDEBUG
 		process.standardOutput = FileHandle.standardOutput
 		process.standardError = FileHandle.standardError
 		#else
