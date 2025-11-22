@@ -3060,7 +3060,7 @@
 		};
 		9B464BF82D5A41CF00164BF5 /* XCRemoteSwiftPackageReference "Shout" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/DimaRU/Shout";
+			repositoryURL = "https://github.com/Fred78290/Shout";
 			requirement = {
 				branch = master;
 				kind = branch;
@@ -3127,7 +3127,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = fe815927233671cdcb32f9c2a364ffb5761adea8;
+				revision = 3c1e53f55b768ff5750a80edd2c3b1007ad4bd5d;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
