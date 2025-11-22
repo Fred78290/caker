@@ -122,15 +122,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "clone"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ghcr.io/cirruslabs/ubuntu:latest"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "push"
@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "devregistry.aldunelabs.com/linux:1.0"
@@ -146,7 +146,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ui"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
