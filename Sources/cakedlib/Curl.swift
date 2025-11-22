@@ -69,7 +69,7 @@ class Curl {
 		self.fromURL = fromURL
 	}
 
-	func fetch(request: URLRequest, progressObserver: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {
+	func fetch(request: URLRequest, progressObserver: ProgressObserver? = nil) async throws -> (channel: AsyncThrowingStream<Data, Error>, response: HTTPURLResponse) {
 		let delegate = DownloadDelegate()
 		let task = self.urlSession.dataTask(with: request)
 
@@ -87,9 +87,13 @@ class Curl {
 			delegate.response = continuation
 
 			task.resume()
+		} as! HTTPURLResponse
+
+		if response.statusCode != 200 {
+			throw URLError(.init(rawValue: response.statusCode))
 		}
 
-		return (channel, response as! HTTPURLResponse)
+		return (channel, response)
 	}
 
 	func head(observer: ProgressObserver? = nil) async throws -> (AsyncThrowingStream<Data, Error>, HTTPURLResponse) {
@@ -97,7 +101,7 @@ class Curl {
 	}
 
 	func get(store: URL, observer: ProgressObserver? = nil) async throws {
-		let channel = try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
+		let result = try await self.fetch(request: URLRequest(url: self.fromURL), progressObserver: observer)
 
 		FileManager.default.createFile(atPath: store.path, contents: nil)
 
@@ -106,7 +110,7 @@ class Curl {
 
 		let fileHandle = try FileHandle(forWritingTo: store)
 
-		for try await chunk in channel.0 {
+		for try await chunk in result.channel {
 			let chunkAsData = Data(chunk)
 			fileHandle.write(chunkAsData)
 		}
