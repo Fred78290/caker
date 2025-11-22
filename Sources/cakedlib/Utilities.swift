@@ -442,6 +442,23 @@ public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	public static let keychainID = "com.aldunelabs.caker"
 	
+	public static func cakeagentBinary(os: VirtualizedOS, runMode: Utils.RunMode, observer: ProgressObserver? = nil) async throws -> URL {
+		let arch = Architecture.current().rawValue
+		let os = os.rawValue
+		let home: Home = try Home(runMode: runMode)
+		let localAgent = home.agentDirectory.appendingPathComponent("cakeagent-\(CAKEAGENT_SNAPSHOT)-\(os)-\(arch)", isDirectory: false)
+
+		if FileManager.default.fileExists(atPath: localAgent.path) == false {
+			guard let remoteURL = URL(string: "https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-\(os)-\(arch)") else {
+				throw ServiceError("unable to get remote cakeagent")
+			}
+
+			try await Curl(fromURL: remoteURL).get(store: localAgent)
+		}
+
+		return localAgent
+	}
+
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
@@ -524,6 +541,43 @@ public struct Utilities {
 
 		return environment
 	}
+
+    // MARK: - Async helpers
+    /// Load raw Data from a URL. If the URL is a file URL, it uses async file IO; otherwise it performs a network request.
+    @discardableResult
+    public static func loadData(from url: URL, timeout: TimeInterval = 60) async throws -> Data {
+        if url.isFileURL {
+            // Async file read on a background thread
+            return try await withCheckedThrowingContinuation { continuation in
+                DispatchQueue.global(qos: .utility).async {
+                    do {
+                        let data = try Data(contentsOf: url)
+                        continuation.resume(returning: data)
+                    } catch {
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
+        } else {
+            var request = URLRequest(url: url)
+            request.timeoutInterval = timeout
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                throw ServiceError("HTTP error: \(http.statusCode) for URL: \(url.absoluteString)")
+            }
+            return data
+        }
+    }
+
+    /// Decode JSON from a URL into a Decodable type using `loadData(from:)`.
+    public static func loadJSON<T: Decodable>(from url: URL, as type: T.Type = T.self, decoder: JSONDecoder = JSONDecoder()) async throws -> T {
+        let data = try await loadData(from: url)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw ServiceError("JSON decode failed for URL: \(url.absoluteString) with error: \(error)")
+        }
+    }
 }
 
 extension Thread {
@@ -531,3 +585,4 @@ extension Thread {
 		Thread.current
 	}
 }
+
