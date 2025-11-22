@@ -95,6 +95,16 @@ struct MainApp: App {
 		}
 	}
 
+	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
+		let title = "Install agent"
+
+		guard let document = appState.currentDocument else {
+			return (title, false, true)
+		}
+
+		return document.agentCondition
+	}
+
 	var body: some Scene {
 		CakerMenuBarExtraScene(appState: appState)
 
@@ -161,14 +171,16 @@ struct MainApp: App {
 				
 				Divider()
 
-				Button("Install agent") {
+				let agentCondition = self.agentCondition
+
+				Button(agentCondition.title) {
 					appState.isAgentInstalling = true
 
-					appState.currentDocument.installAgent {
+					appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) {
 						appState.isAgentInstalling = false
 					}
 				}
-				.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
+				.disabled(agentCondition.disabled)
 				.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView(appState: $appState)
 				}

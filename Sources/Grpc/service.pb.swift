@@ -1646,6 +1646,11 @@ public struct Caked_Caked: Sendable {
           /// Clears the value of `vncURL`. Subsequent reads from it will return its default value.
           public mutating func clearVncURL() {_uniqueStorage()._vncURL = nil}
 
+          public var agentVersion: String {
+            get {return _storage._agentVersion}
+            set {_uniqueStorage()._agentVersion = newValue}
+          }
+
           public var reason: String {
             get {return _storage._reason ?? String()}
             set {_uniqueStorage()._reason = newValue}
@@ -6288,7 +6293,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}reason\0\u{1}success\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0\u{1}reason\0\u{1}success\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -6308,6 +6313,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
     var _sockets: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo] = []
     var _cpu: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo? = nil
     var _vncURL: String? = nil
+    var _agentVersion: String = String()
     var _reason: String? = nil
     var _success: Bool = false
 
@@ -6337,6 +6343,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       _sockets = source._sockets
       _cpu = source._cpu
       _vncURL = source._vncURL
+      _agentVersion = source._agentVersion
       _reason = source._reason
       _success = source._success
     }
@@ -6374,8 +6381,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         case 15: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
         case 16: try { try decoder.decodeSingularMessageField(value: &_storage._cpu) }()
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._vncURL) }()
-        case 18: try { try decoder.decodeSingularStringField(value: &_storage._reason) }()
-        case 19: try { try decoder.decodeSingularBoolField(value: &_storage._success) }()
+        case 18: try { try decoder.decodeSingularStringField(value: &_storage._agentVersion) }()
+        case 19: try { try decoder.decodeSingularStringField(value: &_storage._reason) }()
+        case 20: try { try decoder.decodeSingularBoolField(value: &_storage._success) }()
         default: break
         }
       }
@@ -6439,11 +6447,14 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       try { if let v = _storage._vncURL {
         try visitor.visitSingularStringField(value: v, fieldNumber: 17)
       } }()
+      if !_storage._agentVersion.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._agentVersion, fieldNumber: 18)
+      }
       try { if let v = _storage._reason {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 18)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 19)
       } }()
       if _storage._success != false {
-        try visitor.visitSingularBoolField(value: _storage._success, fieldNumber: 19)
+        try visitor.visitSingularBoolField(value: _storage._success, fieldNumber: 20)
       }
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -6471,6 +6482,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         if _storage._sockets != rhs_storage._sockets {return false}
         if _storage._cpu != rhs_storage._cpu {return false}
         if _storage._vncURL != rhs_storage._vncURL {return false}
+        if _storage._agentVersion != rhs_storage._agentVersion {return false}
         if _storage._reason != rhs_storage._reason {return false}
         if _storage._success != rhs_storage._success {return false}
         return true

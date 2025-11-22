@@ -70,6 +70,7 @@ public struct VMInformations: Sendable, Codable {
 	public var socketInfos: [SocketInfo]?
 	public var vncURL: String?
 	public var cpuInfos: CpuInformations?
+	public var agentVersion: String?
 
 	public static func with(
 		_ populator: (inout Self) throws -> Void
@@ -96,6 +97,7 @@ public struct VMInformations: Sendable, Codable {
 		self.tunnelInfos = nil
 		self.socketInfos = nil
 		self.cpuInfos = nil
+		self.agentVersion = nil
 	}
 	
 	public init(from: InfoReply) {
@@ -115,6 +117,7 @@ public struct VMInformations: Sendable, Codable {
 		self.tunnelInfos = nil
 		self.socketInfos = nil
 		self.cpuInfos = from.cpuInfo
+		self.agentVersion = from.agentVersion
 	}
 	
 	public init(from: Caked_InfoReply) {
@@ -128,6 +131,7 @@ public struct VMInformations: Sendable, Codable {
 		self.release = from.release
 		self.mounts = from.mounts
 		self.status = .running
+		self.agentVersion = from.agentVersion
 
 		self.attachedNetworks = from.networks.map {
 			AttachedNetwork(network: $0.network, mode: $0.mode, macAddress: $0.macAddress)

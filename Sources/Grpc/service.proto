@@ -395,8 +395,9 @@ message Caked {
 					repeated SocketInfo sockets = 15;
 					CpuInfo cpu = 16;
 					optional string vncURL = 17;
-					optional string reason = 18;
-					bool success = 19;
+					string agentVersion = 18;
+					optional string reason = 19;
+					bool success = 20;
 				}
 
 				optional InfoReply status = 2;

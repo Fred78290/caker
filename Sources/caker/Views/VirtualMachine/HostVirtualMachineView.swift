@@ -88,6 +88,22 @@ struct HostVirtualMachineView: View {
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 	}
 
+	private var installAgentDisabled: (title: String, disabled: Bool) {
+		let title = "Install agent into virtual machine"
+
+		if self.appState.isStopped {
+			return (title, true)
+		}
+
+		if let agentVersion = self.document.vmInfos?.agentVersion {
+			if agentVersion != CAKEAGENT_SNAPSHOT {
+				return ("Update agent into virtual machine", false)
+			}
+		}
+
+		return (title, self.document.agent != .none)
+	}
+
 	var body: some View {
 		GeometryReader { geom in
 			let view = vmView(geom.size)
@@ -202,22 +218,26 @@ struct HostVirtualMachineView: View {
 							}
 						}
 
+						let agentCondition = self.document.agentCondition
+
 						Button(action: {
 							self.appState.isAgentInstalling = true
 							
-							self.document.installAgent {
+							self.document.installAgent(updateAgent: agentCondition.needUpdate) {
 								self.appState.isAgentInstalling = false
 							}
 						}, label: {
 							ZStack {
-								Image(systemName:"person.badge.plus").opacity(self.appState.isAgentInstalling ? 0 : 1)
+								Image(systemName:agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
+									.opacity(self.appState.isAgentInstalling ? 0 : 1)
+								
 								if self.appState.isAgentInstalling {
 									ProgressView().frame(height: 10).scaleEffect(0.5)
 								}
 							}
 						})
-						.help("Install agent into virtual machine")
-						.disabled(self.appState.isStopped || self.document.agent != .none)
+						.help(agentCondition.title)
+						.disabled(agentCondition.disabled)
 						
 						Button("Delete", systemImage: "trash") {
 							self.appState.deleteVirtualMachine(document: self.document)
@@ -225,8 +245,16 @@ struct HostVirtualMachineView: View {
 						.help("Delete virtual machine")
 						.disabled(self.appState.isRunning || self.appState.isPaused)
 					}
-					
+
+					if let vmInfos = document.vmInfos, vmInfos.cpuInfos != nil {
+						ToolbarItemGroup(placement: .status) {
+							// CPU Usage Status Bar
+							CPUUsageView(vmInfos: vmInfos)
+						}
+					}
+
 					ToolbarItemGroup(placement: .primaryAction) {
+						
 						Button("Settings", systemImage: "gear") {
 							displaySettings = true
 						}
@@ -547,6 +575,86 @@ struct HostVirtualMachineView: View {
 
 	func promptToSave() {
 
+	}
+}
+
+// MARK: - CPU Usage View Component
+struct CPUUsageView: View {
+	let vmInfos: VMInformations
+	
+	var body: some View {
+		Group {
+			if let cpuInfos = vmInfos.cpuInfos {
+				HStack(spacing: 2) {
+					if let firstIP = vmInfos.ipaddresses.first {
+						Image(systemName: "network")
+							.foregroundColor(.secondary)
+							.font(.caption)
+						Text(firstIP)
+							.foregroundColor(.secondary)
+							.font(.caption)
+					}
+					Image(systemName: "cpu")
+						.foregroundColor(.secondary)
+						.font(.caption)
+					
+					// Vertical bars for each CPU core
+					HStack(spacing: 1) {
+						ForEach(Array(cpuInfos.cores.enumerated()), id: \.offset) { index, core in
+							VStack(spacing: 0) {
+								Spacer()
+								
+								Rectangle()
+									.frame(width: 8, height: max(2, core.usagePercent / 100.0 * 16))
+									.foregroundColor(cpuUsageColor(core.usagePercent))
+								
+								Rectangle()
+									.frame(width: 8, height: max(0, 16 - (core.usagePercent / 100.0 * 16)))
+									.foregroundColor(Color.clear)
+							}
+							.frame(height: 16)
+							.help("Core \(index): \(Int(core.usagePercent))%\nUser: \(String(format: "%.1f", core.user))%\nSystem: \(String(format: "%.1f", core.system))%\nIdle: \(String(format: "%.1f", core.idle))%")
+						}
+					}
+				}
+				.padding(.horizontal, 6)
+				.padding(.vertical, 4)
+				.background(Color.secondary.opacity(0.1))
+				.cornerRadius(4)
+				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
+			} else {
+				HStack(spacing: 4) {
+					Image(systemName: "cpu")
+						.foregroundColor(.secondary)
+						.font(.caption)
+					
+					// Placeholder bars when no data
+					HStack(spacing: 1) {
+						ForEach(0..<4, id: \.self) { _ in
+							Rectangle()
+								.frame(width: 4, height: 16)
+								.foregroundColor(.secondary.opacity(0.3))
+						}
+					}
+				}
+				.padding(.horizontal, 6)
+				.padding(.vertical, 4)
+				.help("CPU usage unavailable")
+			}
+		}
+	}
+	
+	private func cpuUsageColor(_ usage: Double) -> Color {
+		switch usage {
+		case 0..<30:
+			return .green
+		case 30..<70:
+			return .yellow
+		case 70..<90:
+			return .orange
+		default:
+			return .red
+		}
 	}
 }
 
