@@ -587,7 +587,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		return [sharedPublicKey]
 	}
 
-	public func installAgent(config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) throws -> Bool {
+	public func installAgent(updateAgent: Bool, config: CakeConfig, runningIP: String, timeout: UInt = 120, runMode: Utils.RunMode) async throws -> Bool {
 		Logger(self).info("Installing agent on \(self.name)")
 
 		let imageSource = config.source
@@ -620,8 +620,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					;;
 			esac
 
-			AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
-
 			if test "${OSDISTRO}" = "darwin"
 			then
 				CERTS="/Library/Application Support/CakeAgent/certs"
@@ -636,54 +634,80 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			CA="${CERTS}/ca.pem"
 			SERVER="${CERTS}/server.pem"
 			KEY="${CERTS}/server.key"
+			UPDATE=0
 
 			mkdir -p /usr/local/bin ${SSHDIR}
 
 			if test -f /usr/local/bin/cakeagent
 			then
-				echo "CakeAgent already installed, skipping"
-				exit 0
+				if test -n "$(/usr/local/bin/cakeagent --version|grep \(CAKEAGENT_SNAPSHOT))"
+				then
+					echo "CakeAgent already installed, skipping"
+					exit 0
+				else
+					echo "CakeAgent already installed, updating"
+					/usr/local/bin/cakeagent --stop
+					UPDATE=1
+				fi
 			fi
 
-			echo "Downloading CakeAgent from ${AGENT_URL}"
-			if test -n "$(command -v curl)"
+			if test ! -f /tmp/cakeagent
 			then
-				curl -L "${AGENT_URL}" -o /usr/local/bin/cakeagent
-			elif test -n "$(command -v wget)"
-			then
-				wget "${AGENT_URL}" -O /usr/local/bin/cakeagent
-			else
-				echo "No curl or wget found, cannot download CakeAgent"
-				exit 1
+				echo "Downloading CakeAgent from ${AGENT_URL}"
+				AGENT_URL="https://github.com/Fred78290/cakeagent/releases/download/SNAPSHOT-\(CAKEAGENT_SNAPSHOT)/cakeagent-${OSDISTRO}-${ARCH}"
+				
+				if test -n "$(command -v curl)"; then
+					curl -L "${AGENT_URL}" -o /tmp/cakeagent
+				elif test -n "$(command -v wget)"
+				then
+					wget "${AGENT_URL}" -O /tmp/cakeagent
+				else
+					echo "No curl or wget found, cannot download CakeAgent"
+					exit 1
+				fi
 			fi
 
-			if test ! -f /usr/local/bin/cakeagent
+			if test ! -f /tmp/cakeagent
 			then
 				echo "Failed to download CakeAgent, exiting"
 				exit 1
 			fi
-			echo "Downloaded CakeAgent, setting permissions"
-			curl -L $AGENT_URL -o /usr/local/bin/cakeagent
 
-			echo "\(sshPublicKeys)" >> "${SSHDIR}/authorized_keys"
-			chown -R \(config.configuredUser) "${SSHDIR}"
-			chmod 600 "${SSHDIR}/authorized_keys"
+			echo "Install CakeAgent, setting permissions"
+			mv /tmp/cakeagent /usr/local/bin/cakeagent
 
+			touch ${SSHDIR}/authorized_keys
+
+			if test -z "$(grep '\(sshPublicKeys)' ${SSHDIR}/authorized_keys)"
+			then
+				echo "\(sshPublicKeys)" >> "${SSHDIR}/authorized_keys"
+				chown -R \(config.configuredUser) "${SSHDIR}"
+				chmod 600 "${SSHDIR}/authorized_keys"
+			fi
+
+			if test ! -f "${CA}"
+			then
 			echo "Creating CA certificate file at ${CA}"
 			cat <<'EOF' > "${CA}"
 			\(caCert)
 			EOF
+			fi
 
+			if test ! -f "${SERVER}"
+			then
 			echo "Creating server certificate file at ${SERVER}"
 			cat <<'EOF' > "${SERVER}"
 			\(serverPem)
 			EOF
+			fi
 
+			if test ! -f "${KEY}"
 			echo "Creating server key file at ${KEY}"
 			cat <<'EOF' > "${KEY}"
 			\(serverKey)
 			EOF
-
+			fi
+			
 			chmod -R 600 "${CERTS}"
 
 			if test "${OSDISTRO}" = "darwin"
@@ -699,11 +723,16 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			chmod 755 /usr/local/bin/cakeagent
 
-			/usr/local/bin/cakeagent --install \\
-				--listen="vsock://any:5000" \\
-				--ca-cert="${CA}" \\
-				--tls-cert="${SERVER}" \\
-				--tls-key="${KEY}" \(config.linuxMounts)
+			if $UPDATE -eq 1
+			then
+				/usr/local/bin/cakeagent --start
+			else
+				/usr/local/bin/cakeagent --install \\
+					--listen="vsock://any:5000" \\
+					--ca-cert="${CA}" \\
+					--tls-cert="${SERVER}" \\
+					--tls-key="${KEY}" \(config.linuxMounts)
+			fi
 
 			if test "${OSDISTRO}" = "linux"
 			then
@@ -713,6 +742,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			"""
 
 		try install_agent.write(to: tempFileURL, atomically: true, encoding: .utf8)
+
+		let agentBinary = try await Utilities.cakeagentBinary(os: config.os, runMode: runMode)
 
 #if arch(arm64)
 		if imageSource == .ipsw {
@@ -729,7 +760,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
 		}
 #endif
-		
+
+		_ = try ssh.sendFile(localURL: agentBinary, remotePath: "/tmp/cakeagent", permissions: .init(rawValue: 0o755))
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
 
 		try tempFileURL.delete()

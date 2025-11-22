@@ -784,31 +784,29 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func installAgent(timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
+	public func installAgent(updateAgent: Bool, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
 		return try await withCheckedThrowingContinuation { continuation in
 			do {
-				let response = try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode)
+				try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode).flatMapWithEventLoop{ runningIP, eventLoop in
+					eventLoop.makeFutureWithTask {
+						let config = self.config
 
-				response.whenSuccess { runningIP in
-					let config = self.config
+						guard let runningIP = runningIP else {
+							Logger(self).error("VM \(self.location.name) failed to get primary IP")
+							return false
+						}
 
-					guard let runningIP = runningIP else {
-						Logger(self).error("VM \(self.location.name) failed to get primary IP")
-						continuation.resume(with: .success(false))
-						return
-					}
-
-					do {
-						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
+						config.agent = try await self.location.installAgent(updateAgent: updateAgent, config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
 						config.runningIP = runningIP
 						config.firstLaunch = false
 
 						try config.save()
-
-						continuation.resume(with: .success(true))
-					} catch {
-						Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
-
+						return true
+					}
+				}.whenComplete { result in
+					if case .success(let success) = result {
+						continuation.resume(with: .success(success))
+					} else if case let .failure(error) = result {
 						if let err = error as? SSHError {
 							continuation.resume(with: .failure(ServiceError(err.kind.description)))
 						} else if let err = error as? Socket.Error {
@@ -836,30 +834,29 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 
 		let config = self.config
-		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode)
+		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
+			return eventLoop.makeFutureWithTask {
+				if let runningIP = runningIP, config.agent == false {
+					if config.installAgent {
+						do {
+							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
+						} catch {
+							Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
+						}
+					}
+				}
+
+				return runningIP
+			}
+		}
 
 		response.whenSuccess { runningIP in
 			if let promise = promise {
 				promise.succeed(runningIP)
 			}
 
-			guard let runningIP = runningIP else {
-				Logger(self).error("VM \(self.location.name) failed to get primary IP")
-				return
-			}
-
-			Logger(self).info("VM \(self.location.name) started with primary IP: \(runningIP)")
-
-			self.env.runningIP = runningIP
-
-			if config.agent == false {
-				if config.installAgent {
-					do {
-						config.agent = try self.location.installAgent(config: config, runningIP: runningIP, runMode: runMode)
-					} catch {
-						Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
-					}
-				}
+			if let runningIP {
+				self.env.runningIP = runningIP
 			}
 
 			config.runningIP = runningIP
@@ -883,7 +880,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				try? config.save()
 				self.didChangedState()
 			}
-
 		}
 
 		response.whenFailure { error in
