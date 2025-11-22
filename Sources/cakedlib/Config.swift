@@ -247,8 +247,8 @@ public final class CakeConfig {
 	}
 
 	public var configuredPlatform: SupportedPlatform {
-		set { self.cake["configuredPlatform"] = newValue }
-		get { self.cake["configuredPlatform"] as? SupportedPlatform ?? SupportedPlatform.unknown }
+		set { self.cake["configuredPlatform"] = newValue.rawValue }
+		get { SupportedPlatform(stringValue: self.cake["configuredPlatform"] as? String) }
 	}
 
 	public var ifname: Bool {

@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-let CAKEAGENT_SNAPSHOT = "b175708d"
+public let CAKEAGENT_SNAPSHOT = "9ae2bd75"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
@@ -863,15 +863,23 @@ public enum SupportedPlatform: String, CaseIterable {
 	case openSUSE
 	case alpine
 	case unknown
-
+	
 	public init(rawValue: String) {
 		let rawValue = rawValue.lowercased()
 		let value = Self.allCases.first {
 			rawValue.contains($0.rawValue)
 		}
-
+		
 		if let value = value {
 			self = value
+		} else {
+			self = .unknown
+		}
+	}
+	
+	public init(stringValue: String?) {
+		if let rawValue = stringValue {
+			self.init(rawValue: rawValue)
 		} else {
 			self = .unknown
 		}
