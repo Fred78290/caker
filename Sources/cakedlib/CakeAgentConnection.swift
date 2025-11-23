@@ -34,6 +34,87 @@ extension Caked_RunReply {
 	}
 }
 
+extension Cakeagent_CakeAgent.InfoReply.CpuCoreInfo {
+	var caked: Caked_InfoReply.CpuCoreInfo {
+		.with {
+			$0.coreID = self.coreID
+			$0.usagePercent = self.usagePercent
+			$0.user = self.user
+			$0.system = self.system
+			$0.idle = self.idle
+			$0.iowait = self.iowait
+			$0.irq = self.irq
+			$0.softirq = self.softirq
+			$0.steal = self.steal
+			$0.guest = self.guest
+			$0.guestNice = self.guestNice
+		}
+	}
+}
+
+extension Cakeagent_CakeAgent.InfoReply.CpuInfo {
+	var caked: Caked_InfoReply.CpuInfo {
+		.with {
+			$0.totalUsagePercent = self.totalUsagePercent
+			$0.user = self.user
+			$0.system = self.system
+			$0.idle = self.idle
+			$0.iowait = self.iowait
+			$0.steal = self.steal
+			$0.irq = self.irq
+			$0.softirq = self.softirq
+			$0.guest = self.guest
+			$0.guestNice = self.guestNice
+			$0.cores = self.cores.map(\.caked)
+		}
+	}
+}
+
+extension Cakeagent_CakeAgent.InfoReply.DiskInfo {
+	var caked: Caked_InfoReply.DiskInfo {
+		.with {
+			$0.device = self.device
+			$0.mount = self.mount
+			$0.fsType = self.fsType
+			$0.size = self.size
+			$0.used = self.used
+			$0.free = self.free
+		}
+	}
+}
+
+extension Cakeagent_CakeAgent.InfoReply {
+	var caked: Caked_InfoReply {
+		.with {
+			$0.version = self.version
+			$0.uptime = self.uptime
+			$0.cpuCount = self.cpuCount
+			$0.ipaddresses = self.ipaddresses
+			$0.osname = self.osname
+			$0.release = self.release
+			$0.diskInfos = self.diskInfos.map(\.caked)
+			
+			if self.hasCpu {
+				let cpu = self.cpu
+				
+				$0.cpu = cpu.caked
+			}
+
+			if self.hasMemory {
+				let mem = self.memory
+				$0.memory = .with { memory in
+					memory.total = mem.total
+					memory.free = mem.free
+					memory.used = mem.used
+				}
+			}
+			
+			$0.success = true
+			$0.reason = "Success"
+		}
+	}
+}
+
 extension CakeAgentClient {
 	static func log(_ error: Error) {
 		if let err = error as? GRPCStatus {
@@ -49,24 +130,7 @@ extension CakeAgentClient {
 		let response = self.info(.init(), callOptions: callOptions).response
 
 		return response.flatMapThrowing { response in
-			return .success(
-				Caked_InfoReply.with {
-					$0.version = response.version
-					$0.uptime = response.uptime
-					$0.cpuCount = response.cpuCount
-					$0.ipaddresses = response.ipaddresses
-					$0.osname = response.osname
-					$0.release = response.release
-
-					if response.hasMemory {
-						let mem = response.memory
-						$0.memory = .with { memory in
-							memory.total = mem.total
-							memory.free = mem.free
-							memory.used = mem.used
-						}
-					}
-				})
+			return .success(response.caked)
 		}.flatMapErrorWithEventLoop { error, eventLoop in
 			Self.log(error)
 
