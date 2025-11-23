@@ -180,6 +180,10 @@ struct ColorWell: NSViewRepresentable {
 		NSViewType()
 	}
 
+	func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSColorWell, context: Context) -> CGSize? {
+		CGSize(width: 20, height: 20)
+	}
+
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if #available(macOS 14.0, *) {
 			nsView.supportsAlpha = false
@@ -334,6 +338,7 @@ struct ColorWellModifier: ViewModifier {
 		}.toolbar {
 			ToolbarItem(placement: placement) {
 				ColorWell(selection: self.$color)
+					.frame(size: .init(width: 10, height: 10))
 			}
 		}
 	}
