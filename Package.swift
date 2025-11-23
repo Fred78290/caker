@@ -13,6 +13,7 @@ let package = Package(
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
+		.library(name: "SpiceLib", targets: ["SpiceLib"]),
 	],
 	dependencies: [
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
@@ -34,7 +35,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.31.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "210eb110c1129682566a8293e48f064bf98fc53e"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "352249d56eefb4de4962455d48dc6ad27bf1f20e"),
 		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "be52cbd79902a3b74f5b13d69a13bc32953c2c69"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
@@ -59,6 +60,7 @@ let package = Package(
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
+		.target(name: "SpiceLib", path: "Sources/spice"),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),

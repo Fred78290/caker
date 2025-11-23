@@ -88,6 +88,10 @@ final class CakeAgentClientInterceptorFactory: CakeAgentServiceClientInterceptor
 		[CakeAgentClientInterceptor()]
 	}
 
+	func makePingInterceptors() -> [ClientInterceptor<CakeAgent.PingRequest, CakeAgent.PingReply>] {
+		[CakeAgentClientInterceptor()]
+	}
+	
 	func makeShutdownInterceptors() -> [ClientInterceptor<CakeAgent.Empty, CakeAgent.RunReply>] {
 		[CakeAgentClientInterceptor()]
 	}

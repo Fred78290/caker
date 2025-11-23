@@ -13,7 +13,7 @@ public class VNCServer {
 	private let vnc: Dynamic
 	private let password: String // = UUID().uuidString
 
-	public init(_ virtualMachine: VZVirtualMachine, password: String, port: Int, queue: dispatch_queue_t) {
+	public init(_ virtualMachine: VZVirtualMachine, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) {
 		let securityConfiguration = Dynamic._VZVNCAuthenticationSecurityConfiguration(password: password)
 		//let securityConfiguration = Dynamic._VZVNCNoSecuritySecurityConfiguration()
 		self.password = password

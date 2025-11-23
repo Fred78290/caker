@@ -1,5 +1,5 @@
 {
-  "originHash" : "82c78e62537934ffc80a535b0bbd062747bc27f68b1ab997f0afdeb7e314a3ef",
+  "originHash" : "4f1752dd58d30702eeb92bc79ee431bb617c88ecb4eb7335a21a1ec529588406",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -33,7 +33,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
-        "revision" : "3c1e53f55b768ff5750a80edd2c3b1007ad4bd5d"
+        "revision" : "352249d56eefb4de4962455d48dc6ad27bf1f20e"
       }
     },
     {
@@ -145,8 +145,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/Shout.git",
       "state" : {
-        "branch" : "master",
-        "revision" : "7aa5090f3664963b21b5290791ef778b4ae0e0fb"
+        "revision" : "9bd074b3d0943e391021cf7a86360fd5f82268cc"
       }
     },
     {

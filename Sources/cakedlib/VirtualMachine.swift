@@ -486,7 +486,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			vzMachineView.autoresizingMask = [.width, .height]
 			vzMachineView.automaticallyReconfiguresDisplay = true
 
-			self.env.vncServer =  VNCServer(self.virtualMachine, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vncServer =  VNCServer(self.virtualMachine, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
 			self.env.vzMachineView = vzMachineView
 		}
 

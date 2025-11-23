@@ -220,6 +220,16 @@
 		9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */; };
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
 		9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */; };
+		9BCEAE1E2ED37F4700B29B70 /* SPICEServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE1C2ED37F4700B29B70 /* SPICEServer.swift */; };
+		9BCEAE1F2ED37F4700B29B70 /* SPICEProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE1B2ED37F4700B29B70 /* SPICEProtocol.swift */; };
+		9BCEAE202ED37F4700B29B70 /* SPICEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE132ED37F4700B29B70 /* SPICEClient.swift */; };
+		9BCEAE252ED37F4700B29B70 /* SPICEExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE142ED37F4700B29B70 /* SPICEExtensions.swift */; };
+		9BCEAE262ED37F4700B29B70 /* SPICEManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE1A2ED37F4700B29B70 /* SPICEManager.swift */; };
+		9BCEAE2D2ED389CB00B29B70 /* SPICEViewCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE292ED389CB00B29B70 /* SPICEViewCapture.swift */; };
+		9BCEAE2E2ED389CB00B29B70 /* SPICEShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE282ED389CB00B29B70 /* SPICEShared.swift */; };
+		9BCEAE2F2ED389CB00B29B70 /* SPICEViewIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE2A2ED389CB00B29B70 /* SPICEViewIntegration.swift */; };
+		9BCEAE302ED389CB00B29B70 /* SPICEViewServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE2C2ED389CB00B29B70 /* SPICEViewServer.swift */; };
+		9BCEAE312ED389CB00B29B70 /* SPICEViewRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEAE2B2ED389CB00B29B70 /* SPICEViewRenderer.swift */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
@@ -707,6 +717,18 @@
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
+		9BCEAE092ED37F2000B29B70 /* libspice.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libspice.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BCEAE122ED37F4700B29B70 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9BCEAE132ED37F4700B29B70 /* SPICEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEClient.swift; sourceTree = "<group>"; };
+		9BCEAE142ED37F4700B29B70 /* SPICEExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEExtensions.swift; sourceTree = "<group>"; };
+		9BCEAE1A2ED37F4700B29B70 /* SPICEManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEManager.swift; sourceTree = "<group>"; };
+		9BCEAE1B2ED37F4700B29B70 /* SPICEProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEProtocol.swift; sourceTree = "<group>"; };
+		9BCEAE1C2ED37F4700B29B70 /* SPICEServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEServer.swift; sourceTree = "<group>"; };
+		9BCEAE282ED389CB00B29B70 /* SPICEShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEShared.swift; sourceTree = "<group>"; };
+		9BCEAE292ED389CB00B29B70 /* SPICEViewCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEViewCapture.swift; sourceTree = "<group>"; };
+		9BCEAE2A2ED389CB00B29B70 /* SPICEViewIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEViewIntegration.swift; sourceTree = "<group>"; };
+		9BCEAE2B2ED389CB00B29B70 /* SPICEViewRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEViewRenderer.swift; sourceTree = "<group>"; };
+		9BCEAE2C2ED389CB00B29B70 /* SPICEViewServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SPICEViewServer.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
@@ -936,6 +958,11 @@
 			path = Caker;
 			sourceTree = "<group>";
 		};
+		9BCEAE0A2ED37F2000B29B70 /* spice */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = spice;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -997,6 +1024,13 @@
 				9B30992B2DE4DC0C00231C1E /* CakeAgentLib in Frameworks */,
 				9B6ECD942E22B5400003ACED /* TextTable in Frameworks */,
 				9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BCEAE072ED37F2000B29B70 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1237,6 +1271,7 @@
 			isa = PBXGroup;
 			children = (
 				9B464A562D5A3DA000164BF5 /* Caker */,
+				9BCEAE0A2ED37F2000B29B70 /* spice */,
 				9B464C042D5A426200164BF5 /* Frameworks */,
 				9B464A552D5A3DA000164BF5 /* Products */,
 				9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */,
@@ -1253,6 +1288,7 @@
 				9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */,
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
+				9BCEAE092ED37F2000B29B70 /* libspice.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1331,6 +1367,7 @@
 		9B464ADD2D5A3E0300164BF5 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				9BCEAE1D2ED37F4700B29B70 /* spice */,
 				9B464A892D5A3E0300164BF5 /* cakectl */,
 				9BEBC6CD2DF4400A0092B196 /* caked */,
 				9BEBC7692DF440720092B196 /* cakedlib */,
@@ -1427,6 +1464,24 @@
 				9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */,
 			);
 			path = options;
+			sourceTree = "<group>";
+		};
+		9BCEAE1D2ED37F4700B29B70 /* spice */ = {
+			isa = PBXGroup;
+			children = (
+				9BCEAE122ED37F4700B29B70 /* README.md */,
+				9BCEAE132ED37F4700B29B70 /* SPICEClient.swift */,
+				9BCEAE142ED37F4700B29B70 /* SPICEExtensions.swift */,
+				9BCEAE1A2ED37F4700B29B70 /* SPICEManager.swift */,
+				9BCEAE1B2ED37F4700B29B70 /* SPICEProtocol.swift */,
+				9BCEAE1C2ED37F4700B29B70 /* SPICEServer.swift */,
+				9BCEAE282ED389CB00B29B70 /* SPICEShared.swift */,
+				9BCEAE292ED389CB00B29B70 /* SPICEViewCapture.swift */,
+				9BCEAE2A2ED389CB00B29B70 /* SPICEViewIntegration.swift */,
+				9BCEAE2B2ED389CB00B29B70 /* SPICEViewRenderer.swift */,
+				9BCEAE2C2ED389CB00B29B70 /* SPICEViewServer.swift */,
+			);
+			path = spice;
 			sourceTree = "<group>";
 		};
 		9BEBC6962DF4400A0092B196 /* CI */ = {
@@ -1709,6 +1764,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9BCEAE052ED37F2000B29B70 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9BEBC7032DF440560092B196 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -1821,6 +1883,28 @@
 			);
 			productName = GRPCLib;
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		9BCEAE082ED37F2000B29B70 /* spice */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BCEAE0F2ED37F2000B29B70 /* Build configuration list for PBXNativeTarget "spice" */;
+			buildPhases = (
+				9BCEAE052ED37F2000B29B70 /* Headers */,
+				9BCEAE062ED37F2000B29B70 /* Sources */,
+				9BCEAE072ED37F2000B29B70 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9BCEAE0A2ED37F2000B29B70 /* spice */,
+			);
+			name = spice;
+			packageProductDependencies = (
+			);
+			productName = spice;
+			productReference = 9BCEAE092ED37F2000B29B70 /* libspice.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 		9BEBC68D2DF43FEE0092B196 /* caked */ = {
@@ -1963,6 +2047,9 @@
 						CreatedOnToolsVersion = 16.2;
 						LastSwiftMigration = 2600;
 					};
+					9BCEAE082ED37F2000B29B70 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					9BDD955E2DB8D41B00E46244 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -2033,6 +2120,7 @@
 				9BEBC68D2DF43FEE0092B196 /* caked */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
+				9BCEAE082ED37F2000B29B70 /* spice */,
 			);
 		};
 /* End PBXProject section */
@@ -2201,6 +2289,23 @@
 				9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */,
 				9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */,
 				9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BCEAE062ED37F2000B29B70 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9BCEAE2D2ED389CB00B29B70 /* SPICEViewCapture.swift in Sources */,
+				9BCEAE2E2ED389CB00B29B70 /* SPICEShared.swift in Sources */,
+				9BCEAE2F2ED389CB00B29B70 /* SPICEViewIntegration.swift in Sources */,
+				9BCEAE302ED389CB00B29B70 /* SPICEViewServer.swift in Sources */,
+				9BCEAE312ED389CB00B29B70 /* SPICEViewRenderer.swift in Sources */,
+				9BCEAE1E2ED37F4700B29B70 /* SPICEServer.swift in Sources */,
+				9BCEAE1F2ED37F4700B29B70 /* SPICEProtocol.swift in Sources */,
+				9BCEAE202ED37F4700B29B70 /* SPICEClient.swift in Sources */,
+				9BCEAE252ED37F4700B29B70 /* SPICEExtensions.swift in Sources */,
+				9BCEAE262ED37F4700B29B70 /* SPICEManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2693,6 +2798,32 @@
 			};
 			name = Release;
 		};
+		9BCEAE102ED37F2000B29B70 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9BCEAE112ED37F2000B29B70 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = LE7988HTRN;
+				EXECUTABLE_PREFIX = lib;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		9BDD95602DB8D41B00E46244 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2812,6 +2943,15 @@
 			buildConfigurations = (
 				9B464C632D5A459B00164BF5 /* Debug */,
 				9B464C642D5A459B00164BF5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9BCEAE0F2ED37F2000B29B70 /* Build configuration list for PBXNativeTarget "spice" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BCEAE102ED37F2000B29B70 /* Debug */,
+				9BCEAE112ED37F2000B29B70 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3131,7 +3271,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 210eb110c1129682566a8293e48f064bf98fc53e;
+				revision = 352249d56eefb4de4962455d48dc6ad27bf1f20e;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
