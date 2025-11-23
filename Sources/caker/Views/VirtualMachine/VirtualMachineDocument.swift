@@ -103,6 +103,7 @@ struct ScreenshotLoader: Hashable, Identifiable {
 	}
 }
 
+// MARK: - VirtualMachineDocument
 final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
 	
@@ -178,7 +179,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case restoring = 9
 	}
 	
-	private var client: CakeAgentClient!
+	private var _infosClient: CakeAgentHelper!
+	private var shellClient: CakeAgentClient!
 	private var stream: CakeAgentExecuteStream!
 	private var shellHandlerResponse: ShellHandlerResponse!
 	private var monitor: FileMonitor?
@@ -226,6 +228,50 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var agentMonitorTimer: Timer?
 	private var isMonitoringAgent: Bool = false
 
+	var osImage: some View {
+		var name = "linux"
+
+		if self.virtualMachineConfig.os == .darwin {
+			name = "mac"
+		} else if let config = try? self.location.config(), let osName = config.osName {
+			let osNames = [
+				"almalinux",
+				"alpine",
+				"arch-linux",
+				"backtrack",
+				"centos",
+				"debian",
+				"elementary-os",
+				"fedora",
+				"gentoo",
+				"knoppix",
+				"kubuntu",
+				"linux",
+				"lubuntu",
+				"mac",
+				"mandriva",
+				"mint",
+				"openwrt",
+				"pop-os",
+				"red-hat",
+				"slackware",
+				"suse",
+				"syllable",
+				"ubuntu",
+				"webos",
+				"xubuntu"]
+
+			for value in osNames {
+				if osName.lowercased().contains(value) {
+					name = value
+					break
+				}
+			}
+		}
+			
+		return Image(name).resizable().aspectRatio(contentMode: .fit)
+	}
+
 	deinit {
 		stopAgentMonitoring()
 		
@@ -233,7 +279,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			monitor.stop()
 		}
 
-		if let client = self.client {
+		if let client = self.shellClient {
 			_ = client.close()
 		}
 	}
@@ -639,6 +685,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 }
 
+// MARK: - VirtualMachineDelegate
 extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		let virtualMachine = vm.virtualMachine
@@ -665,6 +712,7 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 	}
 }
 
+// MARK: - FileDidChangeDelegate
 extension VirtualMachineDocument: FileDidChangeDelegate {
 	func fileDidChanged(event: FileChangeEvent) {
 		guard let location = self.location else {
@@ -705,6 +753,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 	}
 }
 
+// MARK: - VNCConnectionDelegate
 extension VirtualMachineDocument: VNCConnectionDelegate {
 	func setVncScreenSize(_ screenSize: ViewSize) {
 		if self.externalRunning && self.status == .running {
@@ -903,6 +952,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	
 }
 
+// MARK: - Shell
 extension VirtualMachineDocument {
 	func sendTerminalSize(rows: Int, cols: Int) {
 		if let stream = self.stream {
@@ -924,10 +974,10 @@ extension VirtualMachineDocument {
 
 	func closeShell(_ completionHandler: (() -> Void)? = nil) {
 		func closeClient() {
-			if let client {
-				self.client = nil
+			if let shellClient {
+				self.shellClient = nil
 
-				client.close().whenComplete { _ in
+				shellClient.close().whenComplete { _ in
 					DispatchQueue.main.async {
 						completionHandler?()
 					}
@@ -951,32 +1001,23 @@ extension VirtualMachineDocument {
 		stream.cancel(promise: promise)
 	}
 
+	@MainActor
 	func heartBeatShell(rows: Int, cols: Int) {
-		if let infoClient = try? Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name, connectionTimeout: 1, retries: .upTo(1)) {
-			infoClient.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(1)))).whenComplete { result in
-				if case .success(let reply) = result {
-					if case .success = reply {
-						DispatchQueue.main.sync {
-							self.stream = self.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-								self.shellHandlerResponse(response)
-							}
-							
-							self.stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-							self.stream.sendShell()
-						}
-					} else {
-						DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-							self.heartBeatShell(rows: rows, cols: cols)
-						}
-					}
-				} else {
-					DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-						self.heartBeatShell(rows: rows, cols: cols)
-					}
+		do {
+			_ = try self.infosClient().info()
+			
+			DispatchQueue.main.async {
+				self.stream = self.shellClient.execute(callOptions: CallOptions(timeLimit: .none)) { response in
+					self.shellHandlerResponse(response)
 				}
+				
+				self.stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+				self.stream.sendShell()
 			}
-
-			_ = infoClient.close()
+		} catch {
+			DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+				self.heartBeatShell(rows: rows, cols: cols)
+			}
 		}
 	}
 
@@ -987,62 +1028,53 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		if self.client == nil {
-			self.client = try Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name)
+		if self.shellClient == nil {
+			self.shellClient = try Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name)
 		}
 
-		self.heartBeatShell(rows: rows, cols: cols)
-	}
-}
-
-extension VirtualMachineDocument {
-	var osImage: some View {
-		var name = "linux"
-
-		if self.virtualMachineConfig.os == .darwin {
-			name = "mac"
-		} else if let config = try? self.location.config(), let osName = config.osName {
-			let osNames = [
-				"almalinux",
-				"alpine",
-				"arch-linux",
-				"backtrack",
-				"centos",
-				"debian",
-				"elementary-os",
-				"fedora",
-				"gentoo",
-				"knoppix",
-				"kubuntu",
-				"linux",
-				"lubuntu",
-				"mac",
-				"mandriva",
-				"mint",
-				"openwrt",
-				"pop-os",
-				"red-hat",
-				"slackware",
-				"suse",
-				"syllable",
-				"ubuntu",
-				"webos",
-				"xubuntu"]
-
-			for value in osNames {
-				if osName.lowercased().contains(value) {
-					name = value
-					break
-				}
-			}
+		Task { [weak self] in
+			await self?.heartBeatShell(rows: rows, cols: cols)
 		}
-			
-		return Image(name).resizable().aspectRatio(contentMode: .fit)
 	}
 }
 
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
+	@MainActor
+	private func infosClient() throws -> CakeAgentHelper {
+		if _infosClient == nil {
+			// Create a short-lived client for the health check
+			let eventLoop = Utilities.group.next()
+			let client = try Utilities.createCakeAgentClient(
+				on: eventLoop,
+				runMode: .app,
+				name: self.name,
+				connectionTimeout: 5,
+				retries: .upTo(1)
+			)
+			
+			self._infosClient = CakeAgentHelper(on: eventLoop, client: client)
+		}
+		
+		return _infosClient
+	}
+
+	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
+		let title = "Install agent"
+
+		if self.status != .running {
+			return (title, false, true)
+		}
+
+		if let agentVersion = self.vmInfos?.agentVersion {
+			if agentVersion.isEmpty == false && agentVersion.contains(CAKEAGENT_SNAPSHOT) {
+				return ("Update agent", true, false)
+			}
+		}
+
+		return (title, false, self.agent != .none)
+	}
+
 	private func startAgentMonitoring() {
 		guard !isMonitoringAgent, agent == .installed, status == .running else {
 			return
@@ -1088,30 +1120,14 @@ extension VirtualMachineDocument {
 	
 	private func performAgentHealthCheck() async {
 		do {
-			// Create a short-lived client for the health check
-			let agentClient = try Utilities.createCakeAgentClient(
-				on: Utilities.group.next(),
-				runMode: .app,
-				name: self.name,
-				connectionTimeout: 5,
-				retries: .upTo(1)
-			)
-			
-			defer {
-				_ = agentClient.close()
-			}
-
 			// Perform info request with short timeout
 			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
-			let info = try await agentClient.info(callOptions: callOptions).get()
+			let infos = try await self.infosClient().info(callOptions: callOptions)
 			
-			if case .success(let infos) = info {
-				self.logger.debug("Agent health check successful for VM: \(self.name)")
-				DispatchQueue.main.async {
-					self.handleAgentHealthCheckSuccess(info: infos)
-				}
-			} else if case .failure(let error) = info {
-				self.handleAgentHealthCheckFailure(error: error)
+			self.logger.debug("Agent health check successful for VM: \(self.name)")
+
+			DispatchQueue.main.async {
+				self.handleAgentHealthCheckSuccess(info: infos)
 			}
 		} catch {
 			self.logger.error("Failed to create agent client for health check: \(error)")
@@ -1119,10 +1135,10 @@ extension VirtualMachineDocument {
 		}
 	}
 	
-	private func handleAgentHealthCheckSuccess(info: Caked_InfoReply) {
+	private func handleAgentHealthCheckSuccess(info: InfoReply) {
 		// Agent is responding - optionally update VM info if needed
 		// For example, you could update IP addresses or system info
-		self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime)s")
+		self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
 
 		self.vmInfos = .init(from: info)
 
@@ -1151,26 +1167,15 @@ extension VirtualMachineDocument {
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
 		}
+
+		if let infosClient = self._infosClient {
+			_ = infosClient.close()
+			self._infosClient = nil
+		}
 	}
 }
 
-extension VirtualMachineDocument {
-	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
-		let title = "Install agent"
-
-		if self.status != .running {
-			return (title, false, true)
-		}
-
-		if let agentVersion = self.vmInfos?.agentVersion {
-			if agentVersion != CAKEAGENT_SNAPSHOT {
-				return ("Update agent", true, false)
-			}
-		}
-
-		return (title, false, self.agent != .none)
-	}
-}
+// MARK: - Notification messagge
 extension VirtualMachineDocument {
 	static let NewVirtualMachine = NSNotification.Name("NewVirtualMachine")
 	static let OpenVirtualMachine = NSNotification.Name("OpenVirtualMachine")
