@@ -646,7 +646,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					exit 0
 				else
 					echo "CakeAgent already installed, updating"
-					/usr/local/bin/cakeagent --stop
+					/usr/local/bin/cakeagent service stop
 					UPDATE=1
 				fi
 			fi
@@ -726,9 +726,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			if $UPDATE -eq 1
 			then
-				/usr/local/bin/cakeagent --start
+				/usr/local/bin/cakeagent service start
 			else
-				/usr/local/bin/cakeagent --install \\
+				/usr/local/bin/cakeagent service install \\
 					--listen="vsock://any:5000" \\
 					--ca-cert="${CA}" \\
 					--tls-cert="${SERVER}" \\
