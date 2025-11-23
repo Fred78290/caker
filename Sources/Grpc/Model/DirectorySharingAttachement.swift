@@ -81,20 +81,16 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	public var options: [String] {
 		var options: [String] = []
 
-		if readOnly {
-			options.append("ro")
-		}
-
-		if let name = _name {
-			options.append("name=\(name)")
-		}
-
 		if let uid = _uid {
 			options.append("uid=\(uid)")
 		}
 
 		if let gid = _gid {
 			options.append("gid=\(gid)")
+		}
+
+		if readOnly {
+			options.append("ro")
 		}
 
 		return options
