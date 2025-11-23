@@ -1,5 +1,5 @@
 {
-  "originHash" : "7a0a0f28e98ba6944aba5c281ce7ed243404db0ee19c46da76270eb91bdcf93b",
+  "originHash" : "82c78e62537934ffc80a535b0bbd062747bc27f68b1ab997f0afdeb7e314a3ef",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -143,7 +143,7 @@
     {
       "identity" : "shout",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/DimaRU/Shout.git",
+      "location" : "https://github.com/Fred78290/Shout.git",
       "state" : {
         "branch" : "master",
         "revision" : "7aa5090f3664963b21b5290791ef778b4ae0e0fb"

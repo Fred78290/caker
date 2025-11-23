@@ -3062,8 +3062,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Fred78290/Shout";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = revision;
+				revision = 9bd074b3d0943e391021cf7a86360fd5f82268cc;
 			};
 		};
 		9B464BFB2D5A41E600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-portforwarding" */ = {

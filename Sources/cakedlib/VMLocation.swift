@@ -702,6 +702,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			fi
 
 			if test ! -f "${KEY}"
+			then
 			echo "Creating server key file at ${KEY}"
 			cat <<'EOF' > "${KEY}"
 			\(serverKey)
@@ -770,6 +771,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
+			#if DEBUG
+			print(result.status)
+			#endif
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
 			

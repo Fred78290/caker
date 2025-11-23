@@ -88,22 +88,6 @@ struct HostVirtualMachineView: View {
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 	}
 
-	private var installAgentDisabled: (title: String, disabled: Bool) {
-		let title = "Install agent into virtual machine"
-
-		if self.appState.isStopped {
-			return (title, true)
-		}
-
-		if let agentVersion = self.document.vmInfos?.agentVersion {
-			if agentVersion != CAKEAGENT_SNAPSHOT {
-				return ("Update agent into virtual machine", false)
-			}
-		}
-
-		return (title, self.document.agent != .none)
-	}
-
 	var body: some View {
 		GeometryReader { geom in
 			let view = vmView(geom.size)
