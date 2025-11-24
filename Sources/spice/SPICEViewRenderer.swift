@@ -183,7 +183,130 @@ public class SPICEViewRenderer {
     }
     
     private func renderViewToMetalTexture(_ view: NSView, encoder: MTLRenderCommandEncoder) {
-        // Approche hybride avec Core Graphics pour capturer la NSView
+        // Try direct Metal capture first, fallback to Core Graphics if needed
+        if !captureViewDirectlyWithMetal(view, encoder: encoder) {
+            captureViewWithCoreGraphicsToMetal(view)
+        }
+    }
+    
+    /// Direct Metal capture of NSView using CAMetalLayer if available
+    private func captureViewDirectlyWithMetal(_ view: NSView, encoder: MTLRenderCommandEncoder) -> Bool {
+        // Check if the view has a Metal-compatible layer
+        if let metalLayer = findMetalLayer(in: view) {
+            return captureFromMetalLayer(metalLayer, encoder: encoder)
+        }
+        
+        // Try to create a temporary Metal layer for the view
+        if let metalLayer = createTemporaryMetalLayer(for: view) {
+            let success = captureFromMetalLayer(metalLayer, encoder: encoder)
+            // Clean up temporary layer
+            metalLayer.removeFromSuperlayer()
+            return success
+        }
+        
+        return false
+    }
+    
+    /// Find existing CAMetalLayer in view hierarchy
+    private func findMetalLayer(in view: NSView) -> CAMetalLayer? {
+        // Check if the view itself has a Metal layer
+        if let metalLayer = view.layer as? CAMetalLayer {
+            return metalLayer
+        }
+        
+        // Recursively search subviews
+        for subview in view.subviews {
+            if let metalLayer = findMetalLayer(in: subview) {
+                return metalLayer
+            }
+        }
+        
+        // Check sublayers
+        if let sublayers = view.layer?.sublayers {
+            for sublayer in sublayers {
+                if let metalLayer = sublayer as? CAMetalLayer {
+                    return metalLayer
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Create temporary CAMetalLayer for view capture
+    private func createTemporaryMetalLayer(for view: NSView) -> CAMetalLayer? {
+        guard let device = metalDevice else { return nil }
+        
+        let metalLayer = CAMetalLayer()
+        metalLayer.device = device
+        metalLayer.pixelFormat = .bgra8Unorm
+        metalLayer.frame = view.bounds
+        metalLayer.drawableSize = CGSize(
+            width: view.bounds.width * configuration.scaleFactor,
+            height: view.bounds.height * configuration.scaleFactor
+        )
+        
+        // Enable layer-backed view temporarily if needed
+        let wasLayerBacked = view.wantsLayer
+        if !wasLayerBacked {
+            DispatchQueue.main.sync {
+                view.wantsLayer = true
+            }
+        }
+        
+        // Add metal layer as sublayer
+        DispatchQueue.main.sync {
+            view.layer?.addSublayer(metalLayer)
+            // Force immediate display
+            view.displayIfNeeded()
+        }
+        
+        // Restore original layer backing state
+        if !wasLayerBacked {
+            DispatchQueue.main.sync {
+                view.wantsLayer = wasLayerBacked
+            }
+        }
+        
+        return metalLayer
+    }
+    
+    /// Capture from existing CAMetalLayer
+    private func captureFromMetalLayer(_ metalLayer: CAMetalLayer, encoder: MTLRenderCommandEncoder) -> Bool {
+        guard let drawable = metalLayer.nextDrawable() else { return false }
+        
+        // Copy drawable texture to our render target
+        guard let blitEncoder = encoder.commandBuffer.makeBlitCommandEncoder() else { return false }
+        
+        let sourceTexture = drawable.texture
+        guard let destinationTexture = renderTargetTexture else { return false }
+        
+        // Ensure textures have compatible dimensions
+        let sourceSize = MTLSize(width: sourceTexture.width, height: sourceTexture.height, depth: 1)
+        let destSize = MTLSize(width: min(destinationTexture.width, sourceTexture.width),
+                              height: min(destinationTexture.height, sourceTexture.height),
+                              depth: 1)
+        
+        blitEncoder.copy(from: sourceTexture,
+                        sourceSlice: 0,
+                        sourceLevel: 0,
+                        sourceOrigin: MTLOrigin(x: 0, y: 0, z: 0),
+                        sourceSize: destSize,
+                        to: destinationTexture,
+                        destinationSlice: 0,
+                        destinationLevel: 0,
+                        destinationOrigin: MTLOrigin(x: 0, y: 0, z: 0))
+        
+        blitEncoder.endEncoding()
+        
+        // Present the drawable
+        encoder.commandBuffer.present(drawable)
+        
+        return true
+    }
+    
+    /// Fallback Core Graphics capture to Metal texture
+    private func captureViewWithCoreGraphicsToMetal(_ view: NSView) {
         let bounds = view.bounds
         let width = Int(bounds.width * configuration.scaleFactor)
         let height = Int(bounds.height * configuration.scaleFactor)
@@ -201,10 +324,10 @@ public class SPICEViewRenderer {
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         ) else { return }
         
-        // Appliquer la transformation d'échelle
+        // Apply scale transformation
         context.scaleBy(x: configuration.scaleFactor, y: configuration.scaleFactor)
         
-        // Capturer la view
+        // Capture view content
         DispatchQueue.main.sync {
             if let layer = view.layer {
                 CATransaction.begin()
@@ -212,7 +335,7 @@ public class SPICEViewRenderer {
                 layer.render(in: context)
                 CATransaction.commit()
             } else {
-                // Fallback pour les vues sans layer backing
+                // Fallback for non-layer-backed views
                 let nsGraphicsContext = NSGraphicsContext(cgContext: context, flipped: false)
                 NSGraphicsContext.saveGraphicsState()
                 NSGraphicsContext.current = nsGraphicsContext
@@ -223,7 +346,7 @@ public class SPICEViewRenderer {
             }
         }
         
-        // Copier les données dans la texture Metal
+        // Copy data to Metal texture
         guard let texture = renderTargetTexture else { return }
         
         let region = MTLRegion(origin: MTLOrigin(x: 0, y: 0, z: 0),
