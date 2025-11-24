@@ -5,14 +5,16 @@ A complete VNC server library in Swift for macOS, based on NSView, designed to r
 ## Features
 
 - **Complete VNC server**: RFB 3.8 protocol implementation
-- **Real-time capture**: Automatic capture of NSView content
+- **Real-time capture**: Automatic capture of NSView content with Metal or Core Graphics
+- **Hardware acceleration**: Metal-based GPU acceleration for high performance
 - **Automatic resizing**: Handles source view size changes
 - **Complete input support**:
   - Keyboard with AZERTY/QWERTY mapping
   - Mouse (clicks, movements, wheel)
   - Bidirectional clipboard
 - **Thread-safe**: Optimized asynchronous architecture
-- **High performance**: 30 FPS updates
+- **High performance**: Up to 60 FPS updates with Metal acceleration
+- **Performance monitoring**: Built-in render statistics and profiling
 
 ## Installation
 
@@ -92,6 +94,22 @@ do {
 
 // Stop server
 vncServer?.stop()
+```
+
+### Metal Acceleration
+
+```swift
+// Use Metal acceleration for better performance
+let metalServer = VNCServer(sourceView: myView, port: 5900, captureMethod: .metal)
+
+// Monitor performance
+vncServer.onPerformanceUpdate = { renderFPS, networkFPS in
+    print("Render FPS: \(String(format: "%.1f", renderFPS))")
+    print("Network FPS: \(String(format: "%.1f", networkFPS))")
+}
+
+// Fallback to Core Graphics if Metal fails
+let adaptiveServer = VNCServer(sourceView: myView, port: 5900, captureMethod: .coreGraphics)
 ```
 
 ## Architecture

@@ -24,5 +24,7 @@ import Foundation
 public typealias VNCServer = VNCLib.VNCServer
 public typealias VNCServerDelegate = VNCLib.VNCServerDelegate
 public typealias VNCFramebuffer = VNCLib.VNCFramebuffer
+public typealias VNCMetalFramebuffer = VNCLib.VNCMetalFramebuffer
 public typealias VNCInputHandler = VNCLib.VNCInputHandler
 public typealias VNCKeyMapper = VNCLib.VNCKeyMapper
+public typealias VNCCaptureMethod = VNCLib.VNCCaptureMethod

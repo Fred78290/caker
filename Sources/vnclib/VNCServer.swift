@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import Network
 import Darwin
+import Metal
 
 public protocol VNCServerDelegate: AnyObject {
     func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String)
@@ -29,6 +30,7 @@ public class VNCServer: NSObject {
     public private(set) var port: UInt16
     public private(set) var isRunning = false
     public var allowRemoteInput = true // Controls if remote inputs are accepted
+    public let captureMethod: VNCCaptureMethod
     
     private var listener: NWListener?
     private var connections: [VNCConnection] = []
@@ -36,8 +38,10 @@ public class VNCServer: NSObject {
     private var updateTimer: Timer?
     private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
     
-    public init(sourceView: NSView, port: UInt16 = 5900) {
+    public init(sourceView: NSView, port: UInt16 = 5900, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
         self.sourceView = sourceView
+        self.captureMethod = captureMethod
+        
         if port == 0 {
             self.port = Self.findAvailablePort(in: 30000...32767) ?? UInt16.random(in: 30000...32767)
         } else {
@@ -45,7 +49,19 @@ public class VNCServer: NSObject {
         }
         super.init()
         
-        self.framebuffer = VNCFramebuffer(view: sourceView)
+        // Create appropriate framebuffer based on capture method
+        switch captureMethod {
+        case .metal:
+            if MTLCreateSystemDefaultDevice() != nil {
+                self.framebuffer = VNCMetalFramebuffer(view: sourceView, captureMethod: .metal, metalConfig: metalConfig)
+            } else {
+                print("Metal not available, falling back to Core Graphics")
+                self.framebuffer = VNCFramebuffer(view: sourceView)
+            }
+        case .coreGraphics:
+            self.framebuffer = VNCFramebuffer(view: sourceView)
+        }
+        
         setupViewObservers()
     }
     
@@ -180,6 +196,24 @@ public class VNCServer: NSObject {
                 connection.sendFramebufferUpdate()
             }
         }
+    }
+    
+    // MARK: - Performance Monitoring
+    
+    /// Get render performance statistics
+    public var renderStats: String? {
+        if let metalFramebuffer = framebuffer as? VNCMetalFramebuffer {
+            return metalFramebuffer.renderStats
+        }
+        return nil
+    }
+    
+    /// Get average render time in milliseconds
+    public var averageRenderTime: TimeInterval {
+        if let metalFramebuffer = framebuffer as? VNCMetalFramebuffer {
+            return metalFramebuffer.averageRenderTime * 1000 // Convert to ms
+        }
+        return 0
     }
     
     deinit {
