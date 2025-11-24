@@ -83,8 +83,8 @@ public class VNCInputHandler {
     
     private func postMouseEvent(type: NSEvent.EventType, at screenPoint: NSPoint) {
         guard let view = targetView, let window = view.window else { return }
-        
-        let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
+
+		let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
         let viewPoint = view.convert(windowPoint, from: nil)
         
         let event = NSEvent.mouseEvent(
@@ -108,19 +108,19 @@ public class VNCInputHandler {
     
     private func postScrollEvent(deltaY: CGFloat, at screenPoint: NSPoint) {
         guard let view = targetView, let window = view.window else { return }
-        
-        let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
-        
-        let event = NSEvent.scrollWheel(
-            with: .scrollWheel,
+
+		let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
+
+		let event = NSEvent.mouseEvent(
+            with: NSEvent.EventType.scrollWheel,
             location: windowPoint,
-            modifierFlags: [],
+            modifierFlags: NSEvent.ModifierFlags(),
             timestamp: ProcessInfo.processInfo.systemUptime,
             windowNumber: window.windowNumber,
-            context: nil,
-            scrollingDeltaX: 0,
-            scrollingDeltaY: deltaY,
-            phase: .began
+            context: NSGraphicsContext.current,
+			eventNumber: 0,
+			clickCount: Int(deltaY),
+			pressure: 0
         )
         
         if let event = event {

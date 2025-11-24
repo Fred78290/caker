@@ -1,13 +1,8 @@
 import Foundation
 import AppKit
-import Metal
 import MetalKit
+import Metal
 import CoreGraphics
-
-public enum VNCCaptureMethod {
-    case coreGraphics
-    case metal
-}
 
 public class VNCMetalFramebuffer: VNCFramebuffer {
     private let metalDevice: MTLDevice?
@@ -54,9 +49,6 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
             metalDevice = MTLCreateSystemDefaultDevice()
             metalCommandQueue = metalDevice?.makeCommandQueue()
             
-            if let device = metalDevice {
-                setupMetalTextureCache(device: device)
-            }
         } else {
             metalDevice = nil
             metalCommandQueue = nil
@@ -64,9 +56,10 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
         
         super.init(view: view)
         
-        if captureMethod == .metal && metalDevice != nil {
-            setupRenderTarget()
-        }
+		if let device = metalDevice {
+			setupMetalTextureCache(device: device)
+			setupRenderTarget()
+		}
     }
     
     // MARK: - Metal Setup

@@ -4,6 +4,11 @@ import Network
 import Darwin
 import Metal
 
+public enum VNCCaptureMethod {
+    case coreGraphics
+    case metal
+}
+
 public protocol VNCServerDelegate: AnyObject {
     func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String)
     func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String)
@@ -173,8 +178,8 @@ public class VNCServer: NSObject {
         
         connection.start()
         
-        if let endpoint = nwConnection.endpoint,
-           case .hostPort(let host, _) = endpoint {
+        let endpoint = nwConnection.endpoint
+        if case .hostPort(let host, _) = endpoint {
             DispatchQueue.main.async {
                 self.delegate?.vncServer(self, clientDidConnect: "\(host)")
             }
@@ -237,7 +242,7 @@ public class VNCServer: NSObject {
         let addrSize = MemoryLayout<sockaddr_in>.size
         let bindResult = withUnsafePointer(to: &addr) { ptr in
             ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { sockPtr in
-                bind(socketFD, sockPtr, socklen_t(addrSize))
+                Darwin.bind(socketFD, sockPtr, socklen_t(addrSize))
             }
         }
         
@@ -318,7 +323,7 @@ extension VNCServer: VNCInputDelegate {
         guard allowRemoteInput else { return }
         
         DispatchQueue.main.async {
-            self.delegate?.vncServer(self, didReceiveMouseEvent: x, y: buttonMask)
+            self.delegate?.vncServer(self, didReceiveMouseEvent: x, y: Int(buttonMask), buttonMask: buttonMask)
         }
     }
 }

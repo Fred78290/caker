@@ -2,15 +2,15 @@ import Foundation
 import AppKit
 
 public class VNCFramebuffer {
-    public private(set) var width: Int
-    public private(set) var height: Int
-    public private(set) var pixelData: Data
-    public private(set) var hasChanges = false
-    public private(set) var sizeChanged = false
+    public internal(set) var width: Int
+    public internal(set) var height: Int
+    public internal(set) var pixelData: Data
+    public internal(set) var hasChanges = false
+    public internal(set) var sizeChanged = false
     
     public weak var sourceView: NSView?
-    private var previousPixelData: Data?
-    private let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
+    internal var previousPixelData: Data?
+    internal let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
     
     public init(view: NSView) {
         self.sourceView = view
@@ -52,7 +52,7 @@ public class VNCFramebuffer {
         }
     }
     
-    private func captureViewContent(view: NSView, bounds: NSRect) {
+    internal func captureViewContent(view: NSView, bounds: NSRect) {
         // Create image from view
         let image = NSImage(size: bounds.size)
         image.lockFocus()
