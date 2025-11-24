@@ -74,7 +74,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
         )
         
         if result != kCVReturnSuccess {
-            print("Failed to create Metal texture cache: \(result)")
+            Logger(self).error("Failed to create Metal texture cache: \(result)")
         }
     }
     
@@ -231,7 +231,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
             // For simplicity, we'll copy the texture data directly
             
         } catch {
-            print("Failed to create texture from CGImage: \(error)")
+            Logger(self).error("Failed to create texture from CGImage: \(error)")
         }
     }
     

@@ -68,7 +68,7 @@ public class VNCServer: NSObject, VZVNCServer {
             if MTLCreateSystemDefaultDevice() != nil {
                 self.framebuffer = VNCMetalFramebuffer(view: sourceView, captureMethod: .metal, metalConfig: metalConfig)
             } else {
-                print("Metal not available, falling back to Core Graphics")
+                Logger(self).error("Metal not available, falling back to Core Graphics")
                 self.framebuffer = VNCFramebuffer(view: sourceView)
             }
         case .coreGraphics:
