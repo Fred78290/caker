@@ -208,7 +208,7 @@ public struct NetworksHandler {
 	// Must be run as root
 	public static func restartNetworkService(networkName: String, runMode: Utils.RunMode) throws -> String {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-		let pidURL = socketURL.1
+		let pidURL = socketURL.pid
 
 		guard pidURL.isCakedRunning() else {
 			Logger(self).info("Network \(networkName) is not running")
@@ -233,7 +233,7 @@ public struct NetworksHandler {
 	public static func startNetworkService(networkName: String, runMode: Utils.RunMode) throws {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
-		if socketURL.1.isCakedRunning() {
+		if socketURL.pid.isCakedRunning() {
 			Logger(self).info("Network \(networkName) is already running")
 			return
 		}
@@ -363,7 +363,7 @@ public struct NetworksHandler {
 			socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkConfig.networkName, runMode: runMode)
 		}
 
-		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.0.path)")
+		Logger(self).info("Start VMNet mode: \(mode.rawValue) Using socket: \(socketURL.socket.path)")
 
 		if useLimaVMNet {
 
@@ -403,8 +403,8 @@ public struct NetworksHandler {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.1.path)")
-			arguments.append(socketURL.0.path)
+			arguments.append("--pidfile=\(socketURL.pid.path)")
+			arguments.append(socketURL.socket.path)
 		} else if let caker = URL.binary(Home.cakedCommandName) {
 			executableURL = caker
 
@@ -445,17 +445,17 @@ public struct NetworksHandler {
 				}
 			}
 
-			arguments.append("--pidfile=\(socketURL.1.path)")
-			arguments.append(socketURL.0.path)
+			arguments.append("--pidfile=\(socketURL.pid.path)")
+			arguments.append(socketURL.socket.path)
 		} else {
 			throw ServiceError("caked not found in path")
 		}
 
-		if socketURL.1.isCakedRunning() {
+		if socketURL.pid.isCakedRunning() {
 			throw ServiceError("\(executableURL.path) is already running")
 		}
 
-		try? socketURL.0.delete()
+		try? socketURL.socket.delete()
 
 		let process = Process()
 		var runningArguments: [String]
@@ -497,7 +497,7 @@ public struct NetworksHandler {
 			process.standardOutput = FileHandle.standardOutput
 			process.standardError = FileHandle.standardError
 		} else {
-			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
+			let logURL = socketURL.socket.deletingPathExtension().appendingPathExtension("log")
 
 			if try logURL.exists() == false {
 				FileManager.default.createFile(atPath: logURL.path, contents: nil)
@@ -510,7 +510,7 @@ public struct NetworksHandler {
 		}
 
 		try process.run()
-		try socketURL.1.waitPID {
+		try socketURL.pid.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
 					throw ServiceError("Network \(networkConfig.networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
@@ -618,11 +618,11 @@ public struct NetworksHandler {
 			socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 		}
 
-		if socketURL.1.isCakedRunning() {
-			throw ServiceError("Network \(networkName) already running \(socketURL.1.path)")
+		if socketURL.pid.isCakedRunning() {
+			throw ServiceError("Network \(networkName) already running \(socketURL.pid.path)")
 		}
 
-		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.0.path)")
+		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")
 
 		guard let executableURL = URL.binary(Home.cakedCommandName) else {
 			throw ServiceError("caked not found in path")
@@ -641,7 +641,7 @@ public struct NetworksHandler {
 			arguments.append("--system")
 		}
 
-		try? socketURL.0.delete()
+		try? socketURL.socket.delete()
 
 		if geteuid() == 0 {
 			process.executableURL = executableURL
@@ -683,7 +683,7 @@ public struct NetworksHandler {
 			process.standardOutput = FileHandle.standardOutput
 			process.standardError = FileHandle.standardError
 		} else {
-			let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
+			let logURL = socketURL.socket.deletingPathExtension().appendingPathExtension("log")
 
 			if try logURL.exists() == false {
 				FileManager.default.createFile(atPath: logURL.path, contents: nil)
@@ -697,7 +697,7 @@ public struct NetworksHandler {
 
 		try process.run()
 
-		try socketURL.1.waitPID {
+		try socketURL.pid.waitPID {
 			if process.isRunning == false {
 				if process.terminationReason == .uncaughtSignal {
 					throw ServiceError("Network \(networkName) failed to start: \(process.terminationStatus), \(process.terminationReason)")
@@ -731,7 +731,7 @@ public struct NetworksHandler {
 			networkConfig = UsedNetworkConfig(name: networkName, config: network)
 		}
 
-		try Self.run(mode: mode, networkConfig: networkConfig, socketPath: socketURL.0, pidFile: socketURL.1, runMode: runMode)
+		try Self.run(mode: mode, networkConfig: networkConfig, socketPath: socketURL.socket, pidFile: socketURL.pid, runMode: runMode)
 
 		return socketURL
 	}
@@ -766,7 +766,7 @@ public struct NetworksHandler {
 			
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
 			
-			if socketURL.1.isCakedRunning() {
+			if socketURL.pid.isCakedRunning() {
 				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) is running")
 			}
 			
@@ -782,7 +782,7 @@ public struct NetworksHandler {
 
 	public static func vmnetFileLog(networkName: String, runMode: Utils.RunMode) throws -> FileHandle {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-		let logURL = socketURL.0.deletingPathExtension().appendingPathExtension("log")
+		let logURL = socketURL.socket.deletingPathExtension().appendingPathExtension("log")
 
 		if try logURL.exists() == false {
 			FileManager.default.createFile(atPath: logURL.path, contents: nil)
@@ -833,7 +833,7 @@ public struct NetworksHandler {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
 		if geteuid() == 0 {
-			let pidURL = socketURL.1
+			let pidURL = socketURL.pid
 
 			guard pidURL.isCakedRunning() else {
 				Logger(self).info("Network \(networkName) is not running")
@@ -850,7 +850,7 @@ public struct NetworksHandler {
 			throw ServiceError("Failed to kill network process \(networkName)")
 		} else {
 			// Wait for the process to exit
-			try socketURL.1.waitStopped()
+			try socketURL.pid.waitStopped()
 		}
 
 		return "Network \(networkName) stopped"
@@ -945,8 +945,8 @@ public struct NetworksHandler {
 				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 				let endpoint: String
 				
-				if try socketURL.0.exists() {
-					endpoint = socketURL.0.path
+				if try socketURL.socket.exists() {
+					endpoint = socketURL.socket.path
 				} else {
 					endpoint = ""
 				}

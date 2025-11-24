@@ -174,19 +174,19 @@ struct Networks: ParsableCommand {
 					_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 				}
 
-				if try socketURL.0.exists() == false {
+				if try socketURL.socket.exists() == false {
 					let vzvmnet = VZVMNetSocket(
 						on: Utilities.group.next(),
-						socketPath: socketURL.0,
+						socketPath: socketURL.socket,
 						socketGroup: grp.pointee.gr_gid,
 						networkName: self.networkName,
 						networkConfig: network,
-						pidFile: socketURL.1
+						pidFile: socketURL.pid
 					)
 
-					return (socketURL.1, vzvmnet)
+					return (socketURL.pid, vzvmnet)
 				} else {
-					throw ServiceError("Socket file already exists at \(socketURL.0.path)")
+					throw ServiceError("Socket file already exists at \(socketURL.socket.path)")
 				}
 			}
 
@@ -241,7 +241,7 @@ struct Networks: ParsableCommand {
 		do {
 			let socketURL = try options.vmnetEndpoint(runMode: runMode)
 			
-			if socketURL.1.isCakedRunning() {
+			if socketURL.pid.isCakedRunning() {
 				return StartedNetworkReply(name: options.networkName, started: false, reason: "Network already running")
 			}
 			
@@ -294,7 +294,7 @@ struct Networks: ParsableCommand {
 			} else {
 				let socketURL = try options.vmnetEndpoint(runMode: runMode)
 				
-				try socketURL.1.waitPID()
+				try socketURL.pid.waitPID()
 				
 				return StartedNetworkReply(name: options.networkName, started: true, reason: "Network \(options.networkName) started")
 			}
@@ -382,11 +382,11 @@ struct Networks: ParsableCommand {
 
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
-			if socketURL.1.isCakedRunning() {
+			if socketURL.pid.isCakedRunning() {
 				throw ValidationError("Network \(self.name) already running")
 			}
 
-			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
 				throw ValidationError("Network \(self.name) already running")
 			}
 		}
@@ -412,7 +412,7 @@ struct Networks: ParsableCommand {
 
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
-			if FileManager.default.fileExists(atPath: socketURL.0.path) == false {
+			if FileManager.default.fileExists(atPath: socketURL.socket.path) == false {
 				throw ValidationError("Network \(self.name) is not running")
 			}
 		}
@@ -529,7 +529,7 @@ struct Networks: ParsableCommand {
 			let networkConfig = try home.sharedNetworks()
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: self.name, runMode: self.common.runMode)
 
-			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
 				throw ValidationError("Unable to delete running network \(self.name)")
 			}
 
@@ -561,7 +561,7 @@ struct Networks: ParsableCommand {
 
 			let socketURL = try self.options.vmnetEndpoint(runMode: self.common.runMode)
 
-			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
 				throw ValidationError("Network already running")
 			}
 
@@ -569,7 +569,7 @@ struct Networks: ParsableCommand {
 				throw ValidationError("This command must be run as root not as user \(geteuid())")
 			}
 
-			if FileManager.default.fileExists(atPath: socketURL.0.path) {
+			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
 				throw ValidationError("Network already running")
 			}
 
