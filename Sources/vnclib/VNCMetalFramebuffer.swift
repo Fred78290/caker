@@ -146,7 +146,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
     private func captureViewContentWithMetal(view: NSView, bounds: NSRect) {
         let startTime = CACurrentMediaTime()
         
-        guard let device = metalDevice,
+        guard let _ = metalDevice,
               let commandQueue = metalCommandQueue,
               let renderTarget = renderTargetTexture else {
             // Fallback to Core Graphics
@@ -222,7 +222,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
         let textureLoader = MTKTextureLoader(device: device)
         
         do {
-            let texture = try textureLoader.newTexture(cgImage: cgImage, options: [
+            _ = try textureLoader.newTexture(cgImage: cgImage, options: [
                 .textureUsage: MTLTextureUsage.shaderRead.rawValue,
                 .textureStorageMode: MTLStorageMode.managed.rawValue
             ])
