@@ -2,160 +2,337 @@ import Foundation
 import AppKit
 import Carbon
 
+extension NSView {
+	func postMouseEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
+		return NSEvent.mouseEvent(
+			with: type,
+			location: viewPoint,
+			modifierFlags: modifierFlags,
+			timestamp: ProcessInfo.processInfo.systemUptime,
+			windowNumber: self.window?.windowNumber ?? 0,
+			context: nil,
+			eventNumber: 0,
+			clickCount: type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown ? 1 : 0,
+			pressure: type.rawValue >= NSEvent.EventType.leftMouseDown.rawValue && type.rawValue <= NSEvent.EventType.otherMouseDragged.rawValue ? 1.0 : 0.0
+		)
+	}
+	
+	func postScrollEvent(deltaY: CGFloat, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
+		return NSEvent.mouseEvent(
+			with: NSEvent.EventType.scrollWheel,
+			location: viewPoint,
+			modifierFlags: modifierFlags,
+			timestamp: ProcessInfo.processInfo.systemUptime,
+			windowNumber: self.window?.windowNumber ?? 0,
+			context: NSGraphicsContext.current,
+			eventNumber: 0,
+			clickCount: Int(deltaY),
+			pressure: 0
+		)
+	}
+}
+
 public class VNCInputHandler {
-    private weak var targetView: NSView?
+	private enum CurrentButton: Int {
+		case none = 0
+		case leftButton = 1
+		case rightButton = 2
+		case middleButton = 3
+	}
+
+	private enum ButtonState: Int {
+		case none = 0
+		case up = 1
+		case down = 2
+	}
+
+    private weak var targetView: NSView!
     private var mouseButtonState: UInt8 = 0
+	private var isDragging: Bool = false
     private var lastMousePosition = NSPoint.zero
     private let keyMapper = VNCKeyMapper()
-    
+	private var keyCode: UInt16 = 0
+	private var modifiers: NSEvent.ModifierFlags = []
+	private var characters: String = ""
+	
+    // MARK: - First Responder
+	@discardableResult
+    private func ensureFirstResponder() -> Bool {
+        guard let view = targetView else { return false }
+        // If the view is not already first responder, ask the window to make it so
+        if view.window?.firstResponder !== view {
+            return view.window?.makeFirstResponder(view) ?? false
+        }
+
+		return false
+	}
+	
     init(targetView: NSView?) {
         self.targetView = targetView
+        // Attempt to make the target view the first responder if it is in a window
+        ensureFirstResponder()
     }
     
     // MARK: - Mouse Events
     
     func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
-        guard let view = targetView, let window = view.window else { return }
+		guard let view = targetView else {
+			return
+		}
+        // Ensure the view is first responder when pointer interaction begins
+        ensureFirstResponder()
         
         // Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
         let viewBounds = view.bounds
         let nsPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
-        
-        // Convert to window coordinates
-        let windowPoint = view.convert(nsPoint, to: nil)
-        
-        // Convert to screen coordinates
-        let screenPoint = window.convertToScreen(NSRect(origin: windowPoint, size: .zero)).origin
-        
-        // Handle mouse buttons
-        handleMouseButtons(buttonMask: buttonMask, at: screenPoint)
-        
-        // Handle mouse movement
-        if nsPoint != lastMousePosition {
-            handleMouseMovement(to: screenPoint)
-            lastMousePosition = nsPoint
-        }
-    }
-    
-    private func handleMouseButtons(buttonMask: UInt8, at screenPoint: NSPoint) {
-        let previousState = mouseButtonState
-        mouseButtonState = buttonMask
-        
-        // Left button (bit 0)
-        if (buttonMask & 0x01) != (previousState & 0x01) {
-            if (buttonMask & 0x01) != 0 {
-                postMouseEvent(type: .leftMouseDown, at: screenPoint)
-            } else {
-                postMouseEvent(type: .leftMouseUp, at: screenPoint)
-            }
-        }
-        
-        // Right button (bit 2)
-        if (buttonMask & 0x04) != (previousState & 0x04) {
-            if (buttonMask & 0x04) != 0 {
-                postMouseEvent(type: .rightMouseDown, at: screenPoint)
-            } else {
-                postMouseEvent(type: .rightMouseUp, at: screenPoint)
-            }
-        }
-        
-        // Middle button (bit 1)
-        if (buttonMask & 0x02) != (previousState & 0x02) {
-            if (buttonMask & 0x02) != 0 {
-                postMouseEvent(type: .otherMouseDown, at: screenPoint)
-            } else {
-                postMouseEvent(type: .otherMouseUp, at: screenPoint)
-            }
-        }
-        
-        // Scroll wheel (bits 3 and 4)
-        if (buttonMask & 0x08) != 0 { // Scroll up
-            postScrollEvent(deltaY: 1, at: screenPoint)
-        }
-        if (buttonMask & 0x10) != 0 { // Scroll down
-            postScrollEvent(deltaY: -1, at: screenPoint)
-        }
-    }
-    
-    private func handleMouseMovement(to screenPoint: NSPoint) {
-        postMouseEvent(type: .mouseMoved, at: screenPoint)
-    }
-    
-    private func postMouseEvent(type: NSEvent.EventType, at screenPoint: NSPoint) {
-        guard let view = targetView, let window = view.window else { return }
+		let moved = nsPoint != lastMousePosition
 
-		let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
-        let viewPoint = view.convert(windowPoint, from: nil)
-        
-        let event = NSEvent.mouseEvent(
-            with: type,
-            location: windowPoint,
-            modifierFlags: [],
-            timestamp: ProcessInfo.processInfo.systemUptime,
-            windowNumber: window.windowNumber,
-            context: nil,
-            eventNumber: 0,
-            clickCount: type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown ? 1 : 0,
-            pressure: type.rawValue >= NSEvent.EventType.leftMouseDown.rawValue && type.rawValue <= NSEvent.EventType.otherMouseDragged.rawValue ? 1.0 : 0.0
-        )
-        
-        if let event = event {
-            DispatchQueue.main.async {
-                NSApp.sendEvent(event)
-            }
-        }
+		lastMousePosition = nsPoint
+
+		// Handle mouse buttons with move
+		if handleMouseButtons(view, buttonMask: buttonMask, at: nsPoint, moved: moved) == false {
+			if moved {
+				// Handle mouse movement
+				handleMouseMovement(view, to: nsPoint)
+			}
+		}
     }
     
-    private func postScrollEvent(deltaY: CGFloat, at screenPoint: NSPoint) {
-        guard let view = targetView, let window = view.window else { return }
+	private func prevDispatchEvent(_ event: NSEvent?, view: NSView, currentButton: CurrentButton, buttonState: ButtonState, moved: Bool) {
+		if let event = event {
+			if ensureFirstResponder() {
+				view.window?.sendEvent(event)
+			} else if event.type == .scrollWheel {
+				view.scrollWheel(with: event)
+			} else if moved {
+				if buttonState == .down {
+					if isDragging == false {
+						switch currentButton {
+						case .leftButton, .rightButton,.middleButton:
+							isDragging = true
+							view.mouseEntered(with: event)
+						case .none:
+							view.mouseMoved(with: event)
+							break
+						}
+					} else {
+						switch currentButton {
+						case .leftButton:
+							view.mouseDragged(with: event)
+						case .rightButton:
+							view.rightMouseDragged(with: event)
+						case .middleButton:
+							view.otherMouseDragged(with: event)
+						case .none:
+							view.mouseExited(with: event)
+							break
+						}
+					}
+				} else if buttonState == .up {
+					if isDragging {
+						isDragging = false
 
-		let windowPoint = window.convertFromScreen(NSRect(origin: screenPoint, size: .zero)).origin
+						switch currentButton {
+						case .leftButton, .rightButton,.middleButton:
+							view.mouseExited(with: event)
+						case .none:
+							view.mouseMoved(with: event)
+							break
+						}
+					} else {
+						view.mouseMoved(with: event)
+					}
+				}
 
-		let event = NSEvent.mouseEvent(
-            with: NSEvent.EventType.scrollWheel,
-            location: windowPoint,
-            modifierFlags: NSEvent.ModifierFlags(),
-            timestamp: ProcessInfo.processInfo.systemUptime,
-            windowNumber: window.windowNumber,
-            context: NSGraphicsContext.current,
-			eventNumber: 0,
-			clickCount: Int(deltaY),
-			pressure: 0
-        )
-        
-        if let event = event {
-            DispatchQueue.main.async {
-                NSApp.sendEvent(event)
-            }
-        }
-    }
+			} else if buttonState == .down {
+				switch currentButton {
+				case .leftButton:
+					view.mouseDown(with: event)
+				case .rightButton:
+					view.rightMouseDown(with: event)
+				case .middleButton:
+					view.otherMouseDown(with: event)
+				case .none:
+					break
+				}
+			} else if buttonState == .up {
+				if isDragging {
+					switch currentButton {
+					case .leftButton:
+						view.mouseUp(with: event)
+					case .rightButton:
+						view.rightMouseUp(with: event)
+					case .middleButton:
+						view.otherMouseUp(with: event)
+					case .none:
+						break
+					}
+				} else {
+					switch currentButton {
+					case .leftButton:
+						view.mouseUp(with: event)
+					case .rightButton:
+						view.rightMouseUp(with: event)
+					case .middleButton:
+						view.otherMouseUp(with: event)
+					case .none:
+						break
+					}
+				}
+			}
+		}
+	}
+
+	private func dispatchEvent(_ event: NSEvent?, view: NSView) {
+		if let event = event {
+			if ensureFirstResponder() {
+				view.window?.sendEvent(event)
+			} else {
+				switch event.type {
+				case .scrollWheel:
+					view.scrollWheel(with: event)
+				case .mouseEntered:
+					isDragging = true
+					view.mouseEntered(with: event)
+				case .mouseExited:
+					isDragging = false
+					view.mouseExited(with: event)
+					
+				case .leftMouseDragged:
+					view.mouseDragged(with: event)
+				case .rightMouseDragged:
+					view.rightMouseDragged(with: event)
+				case .otherMouseDragged:
+					view.otherMouseDragged(with: event)
+					
+				case .leftMouseDown:
+					view.mouseDown(with: event)
+				case .rightMouseDown:
+					view.rightMouseDown(with: event)
+				case .otherMouseDown:
+					view.otherMouseDown(with: event)
+					
+				case .leftMouseUp:
+					view.mouseUp(with: event)
+				case .rightMouseUp:
+					view.rightMouseUp(with: event)
+				case .otherMouseUp:
+					view.otherMouseUp(with: event)
+				default:
+					break
+				}
+			}
+		}
+	}
+	private func handleMouseButtons(_ view: NSView, buttonMask: UInt8, at viewPoint: NSPoint, moved: Bool) -> Bool {
+		let previousState = mouseButtonState
+		var buttonEvent = false
+
+		mouseButtonState = buttonMask
+		
+		// Left button (bit 0)
+		if (buttonMask & 0x01) != (previousState & 0x01) {
+			buttonEvent = true
+
+			if (buttonMask & 0x01) != 0 {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .leftMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .leftMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		} else if (buttonMask & 0x01) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .leftMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		}
+
+		// Right button (bit 2)
+		if (buttonMask & 0x04) != (previousState & 0x04) {
+			buttonEvent = true
+
+			if (buttonMask & 0x04) != 0 {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .rightMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .rightMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		} else if (buttonMask & 0x04) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .rightMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		}
+		
+		// Middle button (bit 1)
+		if (buttonMask & 0x02) != (previousState & 0x02) {
+			buttonEvent = true
+
+			if (buttonMask & 0x02) != 0 {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .otherMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .otherMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		} else if (buttonMask & 0x02) != 0 {
+			buttonEvent = true
+
+			if isDragging {
+				dispatchEvent(view.postMouseEvent(type: .otherMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			} else {
+				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			}
+		}
+
+		// Scroll wheel (bits 3 and 4)
+		if (buttonMask & 0x08) != 0 { // Scroll up
+			dispatchEvent(view.postScrollEvent(deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		if (buttonMask & 0x10) != 0 { // Scroll down
+			dispatchEvent(view.postScrollEvent(deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		return buttonEvent
+	}
     
+	private func handleMouseMovement(_ view: NSView, to viewPoint: NSPoint) {
+		if let event = view.postMouseEvent(type: .mouseMoved, at: viewPoint, modifierFlags: self.modifiers) {
+			view.mouseMoved(with: event)
+		}
+    }
+
     // MARK: - Keyboard Events
     
     func handleKeyEvent(key: UInt32, isDown: Bool) {
-        guard let view = targetView, let window = view.window else { return }
+        guard let view = targetView else { return }
+        // Ensure the view is first responder before delivering key events
+        ensureFirstResponder()
         
-        let (keyCode, modifiers, characters) = keyMapper.mapVNCKey(key)
-        
-        let eventType: NSEvent.EventType = isDown ? .keyDown : .keyUp
-        
+		(self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key)
+
         let event = NSEvent.keyEvent(
-            with: eventType,
+            with: isDown ? .keyDown : .keyUp,
             location: NSPoint.zero,
             modifierFlags: modifiers,
             timestamp: ProcessInfo.processInfo.systemUptime,
-            windowNumber: window.windowNumber,
+			windowNumber: view.window?.windowNumber ?? 0,
             context: nil,
             characters: characters,
             charactersIgnoringModifiers: characters,
             isARepeat: false,
             keyCode: keyCode
         )
-        
+		
         if let event = event {
-            DispatchQueue.main.async {
-                NSApp.sendEvent(event)
-            }
+			if isDown {
+				view.keyUp(with: event)
+			} else {
+				view.keyDown(with: event)
+			}
         }
     }
     
@@ -167,3 +344,4 @@ public class VNCInputHandler {
         pasteboard.setString(text, forType: .string)
     }
 }
+
