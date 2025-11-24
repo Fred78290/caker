@@ -7,6 +7,7 @@ import Virtualization
 import Socket
 import Shout
 import CakeAgentLib
+import VNCLib
 
 private let kScreenshotPeriodSeconds = 5.0
 
@@ -115,7 +116,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
-	var vncServer: VNCServer? = nil
+	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VZVirtualMachineView! = nil
 	var screenshot: NSImage? = nil
 	var timer: Timer? = nil
@@ -359,11 +360,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			return nil
 		}
 
-		guard let u = try? vncServer.waitForURL() else {
-			return nil
-		}
-		
-		return u
+		return vncServer.connectionURL()
 	}
 
 	public var vzMachineView: VZVirtualMachineView? {
@@ -478,7 +475,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func startVncServer(vncPassword: String, port: Int) -> URL {
+	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
 		if self.env.vncServer == nil {
 			let vzMachineView = VZVirtualMachineView(frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
 
@@ -486,11 +483,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			vzMachineView.autoresizingMask = [.width, .height]
 			vzMachineView.automaticallyReconfiguresDisplay = true
 
-			self.env.vncServer =  VNCServer(self.virtualMachine, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vncServer = VNCServer.createServer(self.virtualMachine, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
 			self.env.vzMachineView = vzMachineView
+
+			try self.env.vncServer.start()
 		}
 
-		return self.vncURL!
+		return self.env.vncServer.connectionURL()
 	}
 
 	public func startFromUI() {
@@ -1024,3 +1023,4 @@ extension VirtualMachine {
 		return true
 	}
 }
+

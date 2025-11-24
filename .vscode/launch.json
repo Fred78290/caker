@@ -271,7 +271,7 @@
 				"--log-level=info"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked vmrun linux",
+			"name": "caked vmrun linux --ui",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},
@@ -280,12 +280,12 @@
 			"request": "launch",
 			"args": [
 				"vmrun",
-				"frank-eland",
-				"--ui",
+				"linux",
+				"--vnc",
 				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked vmrun frank-eland",
+			"name": "caked vmrun linux --vnc",
 			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
 			"preLaunchTask": "Build signed caked"
 		},

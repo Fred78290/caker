@@ -7,6 +7,7 @@ A complete VNC server library in Swift for macOS, based on NSView, designed to r
 - **Complete VNC server**: RFB 3.8 protocol implementation
 - **Real-time capture**: Automatic capture of NSView content with Metal or Core Graphics
 - **Hardware acceleration**: Metal-based GPU acceleration for high performance
+- **VNC Authentication**: Support for password-based authentication with DES encryption
 - **Automatic resizing**: Handles source view size changes
 - **Complete input support**:
   - Keyboard with AZERTY/QWERTY mapping
@@ -112,6 +113,26 @@ vncServer.onPerformanceUpdate = { renderFPS, networkFPS in
 let adaptiveServer = VNCServer(sourceView: myView, port: 5900, captureMethod: .coreGraphics)
 ```
 
+### With VNC Authentication
+
+```swift
+// VNC server with password protection
+let secureServer = VNCServer(
+    sourceView: myView, 
+    port: 5900, 
+    captureMethod: .metal,
+    password: "mySecretPassword"
+)
+try secureServer.start()
+
+// No password (no authentication)
+let openServer = VNCServer(sourceView: myView, port: 5901)
+try openServer.start()
+
+// Change password at runtime
+secureServer.password = "newPassword"
+```
+
 ## Architecture
 
 ### Main Classes
@@ -164,9 +185,20 @@ All operations are thread-safe:
 
 ## Security
 
-- **No authentication** by default (for simplicity)
-- **Input control** via `allowRemoteInput`
+### Authentication Methods
+
+- **No Authentication**: Default mode for quick setup
+- **VNC Auth**: Standard VNC password authentication
+  - DES encryption of challenge/response
+  - 8-byte password support (padded/truncated)
+  - Secure challenge generation
+
+### Security Features
+
+- **Input control**: Toggle remote input via `allowRemoteInput`
 - **Network isolation**: Each connection in its own queue
+- **Password protection**: Runtime password changes supported
+- **Connection filtering**: Delegate-based connection approval
 
 ## Supported Protocol
 

@@ -197,8 +197,10 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 	internal func open(location: VMLocation, runMode: Utils.RunMode) throws -> FileHandle {
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
-		if try socketURL.socket.exists() == false && (VMRunHandler.launchedFromService || runMode == .app) {
-			socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+		if VMRunHandler.launchedFromService || runMode == .app {
+			if try socketURL.socket.exists() == false || (try socketURL.socket.exists()  && socketURL.pidFile.isPIDRunning().running == false) {
+				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
+			}
 		}
 
 		let socketAddress = try SocketAddress(unixDomainSocketPath: socketURL.socket.path)

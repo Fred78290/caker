@@ -1,5 +1,7 @@
 import Foundation
 import Network
+import CryptoKit
+import CommonCrypto
 
 protocol VNCConnectionDelegate: AnyObject {
     func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String)
@@ -21,11 +23,20 @@ class VNCConnection {
     private var isAuthenticated = false
     private var clientAddress: String = ""
     private let connectionQueue = DispatchQueue(label: "vnc.connection")
+    private var authChallenge: Data?
+    private let vncPassword: String?
     
-    init(connection: NWConnection, framebuffer: VNCFramebuffer) {
+    // VNC Auth constants
+    private static let VNC_AUTH_NONE: UInt32 = 1
+    private static let VNC_AUTH_VNC: UInt32 = 2
+    private static let VNC_AUTH_OK: UInt32 = 0
+    private static let VNC_AUTH_FAILED: UInt32 = 1
+    
+    init(connection: NWConnection, framebuffer: VNCFramebuffer, password: String? = nil) {
         self.connection = connection
         self.framebuffer = framebuffer
         self.inputHandler = VNCInputHandler(targetView: framebuffer.sourceView)
+        self.vncPassword = password
         
         if case .hostPort(let host, _) = connection.endpoint {
             self.clientAddress = "\(host)"
@@ -74,18 +85,168 @@ class VNCConnection {
                 return
             }
             
-            // Send authentication type (none for simplicity)
-            var authType: UInt32 = 1 // VNC_AUTH_NONE
-            let authData = Data(bytes: &authType, count: 4)
+            // Send authentication methods
+            self.sendAuthenticationMethods()
+        }
+    }
+    
+    private func sendAuthenticationMethods() {
+        if vncPassword == nil {
+            // No password - use no authentication
+            var authCount: UInt8 = 1
+            var authType: UInt32 = Self.VNC_AUTH_NONE.bigEndian
             
-            self.connection.send(content: authData, completion: .contentProcessed { error in
+            var authData = Data()
+            authData.append(Data(bytes: &authCount, count: 1))
+            authData.append(Data(bytes: &authType, count: 4))
+            
+            connection.send(content: authData, completion: .contentProcessed { [weak self] error in
                 if error == nil {
-                    self.isAuthenticated = true
-                    self.sendServerInit()
-                    self.receiveClientMessages()
+                    self?.receiveAuthenticationChoice()
+                }
+            })
+        } else {
+            // Password required - use VNC authentication
+            var authCount: UInt8 = 1
+            var authType: UInt32 = Self.VNC_AUTH_VNC.bigEndian
+            
+            var authData = Data()
+            authData.append(Data(bytes: &authCount, count: 1))
+            authData.append(Data(bytes: &authType, count: 4))
+            
+            connection.send(content: authData, completion: .contentProcessed { [weak self] error in
+                if error == nil {
+                    self?.receiveAuthenticationChoice()
                 }
             })
         }
+    }
+    
+    private func receiveAuthenticationChoice() {
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
+            guard let self = self, let data = data, data.count > 0 else {
+                return
+            }
+            
+            if let error = error {
+                self.delegate?.vncConnection(self, didReceiveError: error)
+                return
+            }
+            
+            let authType = data[0]
+            
+            if authType == UInt8(Self.VNC_AUTH_NONE) {
+                self.sendAuthenticationResult(success: true)
+            } else if authType == UInt8(Self.VNC_AUTH_VNC) {
+                self.sendVNCAuthChallenge()
+            } else {
+                self.sendAuthenticationResult(success: false)
+            }
+        }
+    }
+    
+    private func sendVNCAuthChallenge() {
+        // Generate 16-byte random challenge
+        authChallenge = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
+        
+        connection.send(content: authChallenge!, completion: .contentProcessed { [weak self] error in
+            if error == nil {
+                self?.receiveVNCAuthResponse()
+            }
+        })
+    }
+    
+    private func receiveVNCAuthResponse() {
+        connection.receive(minimumIncompleteLength: 16, maximumLength: 16) { [weak self] data, _, _, error in
+            guard let self = self, let responseData = data, responseData.count == 16 else {
+                return
+            }
+            
+            if let error = error {
+                self.delegate?.vncConnection(self, didReceiveError: error)
+                return
+            }
+            
+            let isValid = self.validateVNCAuthResponse(responseData)
+            self.sendAuthenticationResult(success: isValid)
+        }
+    }
+    
+    private func validateVNCAuthResponse(_ response: Data) -> Bool {
+        guard let password = vncPassword,
+              let challenge = authChallenge else {
+            return false
+        }
+        
+        // Prepare password (pad with zeros to 8 bytes, truncate if longer)
+        var passwordBytes = Array(password.utf8)
+        passwordBytes = Array(passwordBytes.prefix(8))
+        while passwordBytes.count < 8 {
+            passwordBytes.append(0)
+        }
+        
+        // VNC uses DES with bit-reversed key
+        let reversedKey = passwordBytes.map { reverseBits($0) }
+        
+        // Encrypt challenge with DES
+        let expectedResponse = desEncrypt(data: challenge, key: Data(reversedKey))
+        
+        return expectedResponse == response
+    }
+    
+    private func reverseBits(_ byte: UInt8) -> UInt8 {
+        var result: UInt8 = 0
+        var input = byte
+        for _ in 0..<8 {
+            result = (result << 1) | (input & 1)
+            input >>= 1
+        }
+        return result
+    }
+    
+    private func desEncrypt(data: Data, key: Data) -> Data {
+        let keyBytes = [UInt8](key)
+        let dataBytes = [UInt8](data)
+        var outputBytes = [UInt8](repeating: 0, count: data.count)
+        
+        let keyLength = kCCKeySizeDES
+        let algorithm = CCAlgorithm(kCCAlgorithmDES)
+        let options = CCOptions(kCCOptionECBMode)
+        
+        var numBytesEncrypted = 0
+        
+        let cryptStatus = CCCrypt(
+            CCOperation(kCCEncrypt),
+            algorithm,
+            options,
+            keyBytes, keyLength,
+            nil, // IV
+            dataBytes, data.count,
+            &outputBytes, data.count,
+            &numBytesEncrypted
+        )
+        
+        guard cryptStatus == kCCSuccess else {
+            return Data()
+        }
+        
+        return Data(outputBytes.prefix(numBytesEncrypted))
+    }
+    
+    private func sendAuthenticationResult(success: Bool) {
+        var result: UInt32 = success ? Self.VNC_AUTH_OK.bigEndian : Self.VNC_AUTH_FAILED.bigEndian
+        let resultData = Data(bytes: &result, count: 4)
+        
+        connection.send(content: resultData, completion: .contentProcessed { [weak self] error in
+            if error == nil && success {
+                self?.isAuthenticated = true
+                self?.sendServerInit()
+                self?.receiveClientMessages()
+            } else if !success {
+                // Authentication failed - disconnect
+                self?.disconnect()
+            }
+        })
     }
     
     private func sendServerInit() {

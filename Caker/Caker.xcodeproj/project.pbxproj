@@ -135,10 +135,17 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
-		9B4832D82E44F78900EC0697 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4832D72E44F78000EC0697 /* VNC.swift */; };
 		9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
-		9B5A36002ED4A6BF007B59B0 /* libvnclib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BB8DA332ED45D1C00AD4700 /* libvnclib.a */; };
+		9B5A377F2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377B2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift */; };
+		9B5A37802ED4BDA8007B59B0 /* VNCAuthExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37762ED4BDA8007B59B0 /* VNCAuthExample.swift */; };
+		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
+		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
+		9B5A37832ED4BDA8007B59B0 /* VNCConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */; };
+		9B5A37842ED4BDA8007B59B0 /* VNCFramebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */; };
+		9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37752ED4BDA8007B59B0 /* VNC.swift */; };
+		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
+		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
@@ -221,14 +228,6 @@
 		9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */; };
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
 		9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */; };
-		9BC303F82ED45E5B00592298 /* VNCConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F02ED45E5B00592298 /* VNCConnection.swift */; };
-		9BC303F92ED45E5B00592298 /* VNCFramebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F12ED45E5B00592298 /* VNCFramebuffer.swift */; };
-		9BC303FA2ED45E5B00592298 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F22ED45E5B00592298 /* VNCInputHandler.swift */; };
-		9BC303FB2ED45E5B00592298 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F32ED45E5B00592298 /* VNCKeyMapper.swift */; };
-		9BC303FC2ED45E5B00592298 /* VNCLib.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F42ED45E5B00592298 /* VNCLib.swift */; };
-		9BC303FD2ED45E5B00592298 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F52ED45E5B00592298 /* VNCProtocol.swift */; };
-		9BC303FE2ED45E5B00592298 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303F62ED45E5B00592298 /* VNCServer.swift */; };
-		9BC304002ED463FA00592298 /* VNCMetalFramebuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC303FF2ED463FA00592298 /* VNCMetalFramebuffer.swift */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
@@ -483,13 +482,6 @@
 			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
 			remoteInfo = GRPCLib;
 		};
-		9B5A36012ED4A6BF007B59B0 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 9BB8DA322ED45D1C00AD4700;
-			remoteInfo = vnclib;
-		};
 		9BDD95622DB8D43A00E46244 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
@@ -644,9 +636,18 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B4832D72E44F78000EC0697 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowAccessor.swift; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
+		9B5A37742ED4BDA8007B59B0 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		9B5A37762ED4BDA8007B59B0 /* VNCAuthExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCAuthExample.swift; sourceTree = "<group>"; };
+		9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnection.swift; sourceTree = "<group>"; };
+		9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebuffer.swift; sourceTree = "<group>"; };
+		9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInputHandler.swift; sourceTree = "<group>"; };
+		9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeyMapper.swift; sourceTree = "<group>"; };
+		9B5A377B2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCMetalFramebuffer.swift; sourceTree = "<group>"; };
+		9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
+		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
@@ -723,16 +724,6 @@
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
-		9BB8DA332ED45D1C00AD4700 /* libvnclib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libvnclib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9BC303EF2ED45E5B00592298 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		9BC303F02ED45E5B00592298 /* VNCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnection.swift; sourceTree = "<group>"; };
-		9BC303F12ED45E5B00592298 /* VNCFramebuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebuffer.swift; sourceTree = "<group>"; };
-		9BC303F22ED45E5B00592298 /* VNCInputHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInputHandler.swift; sourceTree = "<group>"; };
-		9BC303F32ED45E5B00592298 /* VNCKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeyMapper.swift; sourceTree = "<group>"; };
-		9BC303F42ED45E5B00592298 /* VNCLib.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCLib.swift; sourceTree = "<group>"; };
-		9BC303F52ED45E5B00592298 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
-		9BC303F62ED45E5B00592298 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
-		9BC303FF2ED463FA00592298 /* VNCMetalFramebuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCMetalFramebuffer.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
@@ -1026,13 +1017,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9BB8DA312ED45D1C00AD4700 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9BEBC68B2DF43FEE0092B196 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1086,7 +1070,6 @@
 				9BB149242EC876640094D950 /* Containerization in Frameworks */,
 				9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */,
 				9BEBC7BF2DF440BF0092B196 /* SwiftDate in Frameworks */,
-				9B5A36002ED4A6BF007B59B0 /* libvnclib.a in Frameworks */,
 				9BEBC7D52DF440BF0092B196 /* Yams in Frameworks */,
 				9BEBC8042DF440BF0092B196 /* libGRPCLib.a in Frameworks */,
 				9BEBC7DB2DF440BF0092B196 /* NIOSSL in Frameworks */,
@@ -1287,7 +1270,6 @@
 				9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */,
 				9BEBC68E2DF43FEE0092B196 /* caked */,
 				9BEBC7072DF440560092B196 /* libCakedLib.a */,
-				9BB8DA332ED45D1C00AD4700 /* libvnclib.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1371,7 +1353,6 @@
 				9BEBC7692DF440720092B196 /* cakedlib */,
 				9B2BFAB92DFED25E000045C3 /* caker */,
 				9B464ADB2D5A3E0300164BF5 /* grpc */,
-				9BC303F72ED45E5B00592298 /* vnclib */,
 			);
 			name = Sources;
 			path = ../Sources;
@@ -1386,6 +1367,23 @@
 				9B464C492D5A427100164BF5 /* Virtualization.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
+			isa = PBXGroup;
+			children = (
+				9B5A37742ED4BDA8007B59B0 /* README.md */,
+				9B5A37752ED4BDA8007B59B0 /* VNC.swift */,
+				9B5A37762ED4BDA8007B59B0 /* VNCAuthExample.swift */,
+				9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */,
+				9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */,
+				9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */,
+				9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */,
+				9B5A377B2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift */,
+				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
+				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
+			);
+			path = VNCLib;
 			sourceTree = "<group>";
 		};
 		9B7999062E48A27900147500 /* VNC */ = {
@@ -1463,22 +1461,6 @@
 				9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */,
 			);
 			path = options;
-			sourceTree = "<group>";
-		};
-		9BC303F72ED45E5B00592298 /* vnclib */ = {
-			isa = PBXGroup;
-			children = (
-				9BC303EF2ED45E5B00592298 /* README.md */,
-				9BC303F02ED45E5B00592298 /* VNCConnection.swift */,
-				9BC303F12ED45E5B00592298 /* VNCFramebuffer.swift */,
-				9BC303F22ED45E5B00592298 /* VNCInputHandler.swift */,
-				9BC303F32ED45E5B00592298 /* VNCKeyMapper.swift */,
-				9BC303F42ED45E5B00592298 /* VNCLib.swift */,
-				9BC303FF2ED463FA00592298 /* VNCMetalFramebuffer.swift */,
-				9BC303F52ED45E5B00592298 /* VNCProtocol.swift */,
-				9BC303F62ED45E5B00592298 /* VNCServer.swift */,
-			);
-			path = vnclib;
 			sourceTree = "<group>";
 		};
 		9BEBC6962DF4400A0092B196 /* CI */ = {
@@ -1726,7 +1708,6 @@
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
-				9B4832D72E44F78000EC0697 /* VNC.swift */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
@@ -1737,6 +1718,7 @@
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
+				9B5A377E2ED4BDA8007B59B0 /* VNCLib */,
 			);
 			path = cakedlib;
 			sourceTree = "<group>";
@@ -1755,13 +1737,6 @@
 
 /* Begin PBXHeadersBuildPhase section */
 		9B464C582D5A459B00164BF5 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9BB8DA2F2ED45D1C00AD4700 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1882,25 +1857,6 @@
 			productReference = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		9BB8DA322ED45D1C00AD4700 /* vnclib */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 9BB8DA392ED45D1C00AD4700 /* Build configuration list for PBXNativeTarget "vnclib" */;
-			buildPhases = (
-				9BB8DA2F2ED45D1C00AD4700 /* Headers */,
-				9BB8DA302ED45D1C00AD4700 /* Sources */,
-				9BB8DA312ED45D1C00AD4700 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = vnclib;
-			packageProductDependencies = (
-			);
-			productName = vnclib;
-			productReference = 9BB8DA332ED45D1C00AD4700 /* libvnclib.a */;
-			productType = "com.apple.product-type.library.static";
-		};
 		9BEBC68D2DF43FEE0092B196 /* caked */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9BEBC6922DF43FEE0092B196 /* Build configuration list for PBXNativeTarget "caked" */;
@@ -1970,7 +1926,6 @@
 			);
 			dependencies = (
 				9B2BFA8A2DFED1FE000045C3 /* PBXTargetDependency */,
-				9B5A36022ED4A6BF007B59B0 /* PBXTargetDependency */,
 			);
 			name = CakedLib;
 			packageProductDependencies = (
@@ -2042,9 +1997,6 @@
 						CreatedOnToolsVersion = 16.2;
 						LastSwiftMigration = 2600;
 					};
-					9BB8DA322ED45D1C00AD4700 = {
-						CreatedOnToolsVersion = 26.1.1;
-					};
 					9BDD955E2DB8D41B00E46244 = {
 						CreatedOnToolsVersion = 16.3;
 					};
@@ -2115,7 +2067,6 @@
 				9BEBC68D2DF43FEE0092B196 /* caked */,
 				9B464C5B2D5A459B00164BF5 /* GRPCLib */,
 				9BEBC7062DF440560092B196 /* CakedLib */,
-				9BB8DA322ED45D1C00AD4700 /* vnclib */,
 			);
 		};
 /* End PBXProject section */
@@ -2287,21 +2238,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		9BB8DA302ED45D1C00AD4700 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9BC303F82ED45E5B00592298 /* VNCConnection.swift in Sources */,
-				9BC303F92ED45E5B00592298 /* VNCFramebuffer.swift in Sources */,
-				9BC303FA2ED45E5B00592298 /* VNCInputHandler.swift in Sources */,
-				9BC304002ED463FA00592298 /* VNCMetalFramebuffer.swift in Sources */,
-				9BC303FB2ED45E5B00592298 /* VNCKeyMapper.swift in Sources */,
-				9BC303FC2ED45E5B00592298 /* VNCLib.swift in Sources */,
-				9BC303FD2ED45E5B00592298 /* VNCProtocol.swift in Sources */,
-				9BC303FE2ED45E5B00592298 /* VNCServer.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9BEBC68A2DF43FEE0092B196 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2398,7 +2334,6 @@
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
-				9B4832D82E44F78900EC0697 /* VNC.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
@@ -2442,6 +2377,15 @@
 				9BEBC7AC2DF440720092B196 /* VZVMNet.swift in Sources */,
 				9BEBC7AD2DF440720092B196 /* IP.Block.swift in Sources */,
 				9BB1491E2EC74BA70094D950 /* PushHandler.swift in Sources */,
+				9B5A377F2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift in Sources */,
+				9B5A37802ED4BDA8007B59B0 /* VNCAuthExample.swift in Sources */,
+				9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */,
+				9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */,
+				9B5A37832ED4BDA8007B59B0 /* VNCConnection.swift in Sources */,
+				9B5A37842ED4BDA8007B59B0 /* VNCFramebuffer.swift in Sources */,
+				9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */,
+				9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */,
+				9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */,
 				9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */,
 				9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */,
 				9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */,
@@ -2492,11 +2436,6 @@
 			isa = PBXTargetDependency;
 			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
 			targetProxy = 9B464C8D2D5A491D00164BF5 /* PBXContainerItemProxy */;
-		};
-		9B5A36022ED4A6BF007B59B0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 9BB8DA322ED45D1C00AD4700 /* vnclib */;
-			targetProxy = 9B5A36012ED4A6BF007B59B0 /* PBXContainerItemProxy */;
 		};
 		9BDD95632DB8D43A00E46244 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -2796,32 +2735,6 @@
 			};
 			name = Release;
 		};
-		9BB8DA3A2ED45D1C00AD4700 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = LE7988HTRN;
-				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		9BB8DA3B2ED45D1C00AD4700 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = LE7988HTRN;
-				EXECUTABLE_PREFIX = lib;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
 		9BDD95602DB8D41B00E46244 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2941,15 +2854,6 @@
 			buildConfigurations = (
 				9B464C632D5A459B00164BF5 /* Debug */,
 				9B464C642D5A459B00164BF5 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		9BB8DA392ED45D1C00AD4700 /* Build configuration list for PBXNativeTarget "vnclib" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				9BB8DA3A2ED45D1C00AD4700 /* Debug */,
-				9BB8DA3B2ED45D1C00AD4700 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

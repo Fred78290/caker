@@ -4,6 +4,12 @@ import Network
 import Darwin
 import Metal
 
+public protocol VZVNCServer {
+	func start() throws
+	func stop()
+	func connectionURL() -> URL
+}
+
 public enum VNCCaptureMethod {
     case coreGraphics
     case metal
@@ -23,7 +29,7 @@ public extension VNCServerDelegate {
     func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {}
 }
 
-public class VNCServer: NSObject {
+public class VNCServer: NSObject, VZVNCServer {
     public weak var delegate: VNCServerDelegate?
     public weak var sourceView: NSView? {
         didSet {
@@ -36,6 +42,7 @@ public class VNCServer: NSObject {
     public private(set) var isRunning = false
     public var allowRemoteInput = true // Controls if remote inputs are accepted
     public let captureMethod: VNCCaptureMethod
+    public var password: String? // VNC Auth password
     
     private var listener: NWListener?
     private var connections: [VNCConnection] = []
@@ -43,9 +50,10 @@ public class VNCServer: NSObject {
     private var updateTimer: Timer?
     private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
     
-    public init(sourceView: NSView, port: UInt16 = 5900, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
+    public init(_ sourceView: NSView, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
         self.sourceView = sourceView
         self.captureMethod = captureMethod
+        self.password = password
         
         if port == 0 {
             self.port = Self.findAvailablePort(in: 30000...32767) ?? UInt16.random(in: 30000...32767)
@@ -116,7 +124,15 @@ public class VNCServer: NSObject {
         }
     }
     
-    public func start() throws {
+	public func connectionURL() -> URL {
+		if let password = password {
+			return URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!
+		} else {
+			return URL(string: "vnc://127.0.0.1:\(port)")!
+		}
+	}
+
+	public func start() throws {
         guard !isRunning else { return }
         
         // Check if port is available before starting
@@ -168,7 +184,7 @@ public class VNCServer: NSObject {
     }
     
     private func handleNewConnection(_ nwConnection: NWConnection) {
-        let connection = VNCConnection(connection: nwConnection, framebuffer: framebuffer!)
+        let connection = VNCConnection(connection: nwConnection, framebuffer: framebuffer!, password: password)
         connection.delegate = self
         connection.inputDelegate = self
         

@@ -415,9 +415,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			if case .success = $0 {
 				if display == .vnc {
 					DispatchQueue.main.async {
-						let vncURL = vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+						let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
 						
-						Logger(self).info("VNC server started at \(vncURL)")
+						Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
 					}
 				}
 			}
