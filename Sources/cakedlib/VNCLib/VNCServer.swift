@@ -3,6 +3,7 @@ import AppKit
 import Network
 import Darwin
 import Metal
+import QuartzCore
 
 public protocol VZVNCServer {
 	func start() throws
@@ -31,13 +32,7 @@ public extension VNCServerDelegate {
 
 public class VNCServer: NSObject, VZVNCServer {
     public weak var delegate: VNCServerDelegate?
-    public weak var sourceView: NSView? {
-        didSet {
-            setupViewObservers()
-            framebuffer?.sourceView = sourceView
-        }
-    }
-    
+	public private(set) var sourceView: NSView
     public private(set) var port: UInt16
     public private(set) var isRunning = false
     public var allowRemoteInput = true // Controls if remote inputs are accepted
@@ -46,8 +41,9 @@ public class VNCServer: NSObject, VZVNCServer {
     
     private var listener: NWListener?
     private var connections: [VNCConnection] = []
-    private var framebuffer: VNCFramebuffer?
     private var updateTimer: Timer?
+    private var framebuffer: VNCFramebuffer!
+    private var displayLink: CADisplayLink!
     private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
     
     public init(_ sourceView: NSView, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
@@ -79,27 +75,25 @@ public class VNCServer: NSObject, VZVNCServer {
     }
     
     private func setupViewObservers() {
-        guard let view = sourceView else { return }
-        
-        // Observer for size changes
+		// Observer for size changes
         NotificationCenter.default.removeObserver(self)
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(viewBoundsDidChange),
             name: NSView.boundsDidChangeNotification,
-            object: view
+            object: sourceView
         )
         
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(viewFrameDidChange),
             name: NSView.frameDidChangeNotification,
-            object: view
+            object: sourceView
         )
         
         // Enable notifications
-        view.postsFrameChangedNotifications = true
-        view.postsBoundsChangedNotifications = true
+		sourceView.postsFrameChangedNotifications = true
+		sourceView.postsBoundsChangedNotifications = true
     }
     
     @objc private func viewBoundsDidChange() {
@@ -111,10 +105,10 @@ public class VNCServer: NSObject, VZVNCServer {
     }
     
     private func handleViewSizeChange() {
-        guard let view = sourceView else { return }
-        
         // Update framebuffer with new size
-        framebuffer?.updateSize(width: Int(view.bounds.width), height: Int(view.bounds.height))
+		let bounds = self.sourceView.bounds
+
+		framebuffer?.updateSize(width: Int(bounds.width), height: Int(bounds.height))
         
         // Notify all clients of size change
         connectionQueue.async {
@@ -141,23 +135,29 @@ public class VNCServer: NSObject, VZVNCServer {
         }
         
         let parameters = NWParameters.tcp
-        listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: port))
+        let tcpOptions = NWProtocolTCP.Options()
+
+        parameters.defaultProtocolStack.transportProtocol = tcpOptions
+		parameters.requiredInterfaceType = .loopback
+        
+        listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: self.port))
         
         listener?.newConnectionHandler = { [weak self] connection in
             self?.handleNewConnection(connection)
         }
         
         listener?.stateUpdateHandler = { [weak self] state in
-            switch state {
-            case .ready:
-                self?.isRunning = true
-                self?.startFramebufferUpdates()
-            case .failed(let error):
-                self?.delegate?.vncServer(self!, didReceiveError: error)
-            case .cancelled:
-                self?.isRunning = false
-            default:
-                break
+            if let self = self {
+                switch state {
+                case .ready:
+                    self.startFramebufferUpdates()
+                case .failed(let error):
+                    self.delegate?.vncServer(self!, didReceiveError: error)
+                case .cancelled:
+                    self?.isRunning = false
+                default:
+                    break
+                }
             }
         }
         
@@ -169,6 +169,9 @@ public class VNCServer: NSObject, VZVNCServer {
         
         updateTimer?.invalidate()
         updateTimer = nil
+
+        displayLink?.invalidate()
+        displayLink = nil
         
         listener?.cancel()
         listener = nil
@@ -184,7 +187,7 @@ public class VNCServer: NSObject, VZVNCServer {
     }
     
     private func handleNewConnection(_ nwConnection: NWConnection) {
-        let connection = VNCConnection(connection: nwConnection, framebuffer: framebuffer!, password: password)
+        let connection = VNCConnection(connection: nwConnection, framebuffer: framebuffer, password: password)
         connection.delegate = self
         connection.inputDelegate = self
         
@@ -203,12 +206,29 @@ public class VNCServer: NSObject, VZVNCServer {
     }
     
     private func startFramebufferUpdates() {
+        self.isRunning = true
         DispatchQueue.main.async {
-            self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0/30.0, repeats: true) { _ in
-                self.framebuffer?.updateFromView()
-                self.sendFramebufferUpdates()
+            if self.sourceView.window == nil {
+                self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0/30.0, repeats: true) { _ in
+                    self.updateFramebuffer()
+                }
+            } else {
+                self.displayLink = self.sourceView.displayLink(target: self, selector: #selector(self.updateFramebuffer))
+                
+                // Configure display link for optimal VNC streaming
+                // Limit to 30 FPS for network efficiency while maintaining smoothness
+                self.displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: 15, maximum: 30, preferred: 30)
+                self.displayLink.add(to: .current, forMode: .common)
             }
         }
+    }
+    
+	@objc private func updateFramebuffer() {
+        // Update framebuffer from source view
+        self.framebuffer.updateFromView()
+        
+        // Send updates to all connected clients
+        self.sendFramebufferUpdates()
     }
     
     private func sendFramebufferUpdates() {
@@ -223,18 +243,12 @@ public class VNCServer: NSObject, VZVNCServer {
     
     /// Get render performance statistics
     public var renderStats: String? {
-        if let metalFramebuffer = framebuffer as? VNCMetalFramebuffer {
-            return metalFramebuffer.renderStats
-        }
-        return nil
+        return framebuffer.renderStats()
     }
     
     /// Get average render time in milliseconds
     public var averageRenderTime: TimeInterval {
-        if let metalFramebuffer = framebuffer as? VNCMetalFramebuffer {
-            return metalFramebuffer.averageRenderTime * 1000 // Convert to ms
-        }
-        return 0
+        return framebuffer.averageRenderTime()
     }
     
     deinit {

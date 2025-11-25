@@ -5,37 +5,34 @@ import Metal
 import CoreGraphics
 
 public class VNCMetalFramebuffer: VNCFramebuffer {
+	// Metal configuration
+	public struct MetalConfiguration {
+		let pixelFormat: MTLPixelFormat
+		let colorSpace: CGColorSpace
+		let scaleFactor: CGFloat
+		let enableHDR: Bool
+		
+		public init(pixelFormat: MTLPixelFormat = .bgra8Unorm, colorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB(), scaleFactor: CGFloat = 1.0, enableHDR: Bool = false) {
+			self.pixelFormat = pixelFormat
+			self.colorSpace = colorSpace
+			self.scaleFactor = scaleFactor
+			self.enableHDR = enableHDR
+		}
+		
+		public static let standard = MetalConfiguration()
+
+		public static let highQuality = MetalConfiguration(
+			pixelFormat: .rgba16Float,
+			scaleFactor: 2.0,
+			enableHDR: true
+		)
+	}
+	
     private let metalDevice: MTLDevice?
     private let metalCommandQueue: MTLCommandQueue?
     private var metalTextureCache: CVMetalTextureCache?
     private var renderTargetTexture: MTLTexture?
     private let captureMethod: VNCCaptureMethod
-    
-    // Metal configuration
-    public struct MetalConfiguration {
-        let pixelFormat: MTLPixelFormat
-        let colorSpace: CGColorSpace
-        let scaleFactor: CGFloat
-        let enableHDR: Bool
-        
-        public init(pixelFormat: MTLPixelFormat = .bgra8Unorm,
-                   colorSpace: CGColorSpace = CGColorSpaceCreateDeviceRGB(),
-                   scaleFactor: CGFloat = 1.0,
-                   enableHDR: Bool = false) {
-            self.pixelFormat = pixelFormat
-            self.colorSpace = colorSpace
-            self.scaleFactor = scaleFactor
-            self.enableHDR = enableHDR
-        }
-        
-        public static let standard = MetalConfiguration()
-        public static let highQuality = MetalConfiguration(
-            pixelFormat: .rgba16Float,
-            scaleFactor: 2.0,
-            enableHDR: true
-        )
-    }
-    
     private let metalConfig: MetalConfiguration
     private var renderTimes: [TimeInterval] = []
     private let maxRenderTimesSamples = 60
@@ -48,7 +45,6 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
         if captureMethod == .metal {
             metalDevice = MTLCreateSystemDefaultDevice()
             metalCommandQueue = metalDevice?.makeCommandQueue()
-            
         } else {
             metalDevice = nil
             metalCommandQueue = nil
@@ -117,13 +113,11 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
     }
     
     public override func updateFromView() {
-        guard let view = sourceView else { return }
-        
-        updateQueue.async {
-            let bounds = view.bounds
-            let newWidth = Int(bounds.width * self.metalConfig.scaleFactor)
-            let newHeight = Int(bounds.height * self.metalConfig.scaleFactor)
-            
+		let bounds = self.sourceView.bounds
+		let newWidth = Int(bounds.width * self.metalConfig.scaleFactor)
+		let newHeight = Int(bounds.height * self.metalConfig.scaleFactor)
+
+		updateQueue.async {
             // Check if size has changed
             if self.width != newWidth || self.height != newHeight {
                 self.updateSize(width: newWidth, height: newHeight)
@@ -133,9 +127,9 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
             DispatchQueue.main.sync {
                 switch self.captureMethod {
                 case .metal:
-                    self.captureViewContentWithMetal(view: view, bounds: bounds)
+					self.captureViewContentWithMetal(view: self.sourceView, bounds: bounds)
                 case .coreGraphics:
-                    self.captureViewContent(view: view, bounds: bounds)
+					self.captureViewContent(view: self.sourceView, bounds: bounds)
                 }
             }
         }
@@ -191,10 +185,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
     
     private func renderViewToMetal(view: NSView, encoder: MTLRenderCommandEncoder, bounds: NSRect) {
         // Convert NSView to CGImage first
-        let scaledSize = CGSize(
-            width: bounds.width * metalConfig.scaleFactor,
-            height: bounds.height * metalConfig.scaleFactor
-        )
+        let scaledSize = CGSize(width: bounds.width * metalConfig.scaleFactor, height: bounds.height * metalConfig.scaleFactor)
         
         let image = NSImage(size: scaledSize)
         image.lockFocus()
@@ -270,15 +261,14 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
         }
     }
     
-    // MARK: - Performance Stats
-    
-    public var averageRenderTime: TimeInterval {
+    // MARK: - Performance Stats    
+    public override func averageRenderTime() -> TimeInterval {
         guard !renderTimes.isEmpty else { return 0 }
         return renderTimes.reduce(0, +) / TimeInterval(renderTimes.count)
     }
-    
-    public var renderStats: String {
-        let avgTime = averageRenderTime * 1000 // Convert to ms
+
+    public override func renderStats() -> String {
+		let avgTime = self.averageRenderTime() * 1000 // Convert to ms
         let method = captureMethod == .metal ? "Metal" : "Core Graphics"
         let gpuMemory = calculateGPUMemoryUsage()
         

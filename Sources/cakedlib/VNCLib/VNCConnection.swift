@@ -3,6 +3,12 @@ import Network
 import CryptoKit
 import CommonCrypto
 
+extension Data {
+    func toHexString() -> String {
+        return self.map { String(format: "%02X", $0) }.joined()
+    }
+}
+
 protocol VNCConnectionDelegate: AnyObject {
     func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String)
     func vncConnection(_ connection: VNCConnection, didReceiveError error: Error)
@@ -23,9 +29,12 @@ class VNCConnection {
     private var isAuthenticated = false
     private var clientAddress: String = ""
     private let connectionQueue = DispatchQueue(label: "vnc.connection")
-    private var authChallenge: Data?
+    private var authChallenge: Data!
     private let vncPassword: String?
-    
+    private var majorVersion: Int = 3
+    private var minorVersion: Int = 8
+    private let logger = Logger("VNCConnection")
+
     // VNC Auth constants
     private static let VNC_AUTH_NONE: UInt32 = 1
     private static let VNC_AUTH_VNC: UInt32 = 2
@@ -68,11 +77,13 @@ class VNCConnection {
         let versionData = version.data(using: .ascii)!
         
         connection.send(content: versionData, completion: .contentProcessed { [weak self] error in
-            if let error = error {
-                self?.delegate?.vncConnection(self!, didReceiveError: error)
-                return
+            if let self = self {
+                if let error = error {
+                    self.delegate?.vncConnection(self, didReceiveError: error)
+                    return
+                }
+                self.receiveClientVersion()
             }
-            self?.receiveClientVersion()
         })
     }
     
@@ -85,44 +96,162 @@ class VNCConnection {
                 return
             }
             
-            // Send authentication methods
-            self.sendAuthenticationMethods()
+            guard let data = data, let versionString = String(data: data, encoding: .ascii) else {
+                let invalidVersionError = NSError(domain: "VNCConnectionError", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Invalid client version format"])
+                self.delegate?.vncConnection(self, didReceiveError: invalidVersionError)
+                return
+            }
+            
+            // Parse client version (format: "RFB MMM.mmm\n")
+            let trimmedVersion = versionString.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmedVersion.hasPrefix("RFB ") {
+                let versionPart = String(trimmedVersion.dropFirst(4)) // Remove "RFB "
+                let components = versionPart.components(separatedBy: ".")
+                
+                if components.count == 2, let majorVersion = Int(components[0]), let minorVersion = Int(components[1]) {
+					self.majorVersion = majorVersion
+					self.minorVersion = minorVersion
+
+					self.logger.debug("VNC Client version: \(self.majorVersion).\(self.minorVersion)")
+                    
+                    // Check if we support this version (we support 3.3, 3.7, 3.8)
+                    if self.majorVersion == 3 && (self.minorVersion == 3 || self.minorVersion == 7 || self.minorVersion == 8) {
+                        // Version is supported, proceed with authentication
+                        self.sendAuthenticationMethods()
+                    } else {
+                        // Unsupported version
+                        let unsupportedVersionError = NSError(domain: "VNCConnectionError", code: 1002, 
+                                                            userInfo: [NSLocalizedDescriptionKey: "Unsupported VNC version: \(majorVersion).\(minorVersion)"])
+                        self.delegate?.vncConnection(self, didReceiveError: unsupportedVersionError)
+                        self.disconnect()
+                    }
+                } else {
+                    // Invalid version format
+                    let invalidFormatError = NSError(domain: "VNCConnectionError", code: 1003, 
+                                                   userInfo: [NSLocalizedDescriptionKey: "Invalid version format: \(versionPart)"])
+                    self.delegate?.vncConnection(self, didReceiveError: invalidFormatError)
+                    self.disconnect()
+                }
+            } else {
+                // Not a valid RFB protocol string
+                let invalidProtocolError = NSError(domain: "VNCConnectionError", code: 1004, 
+                                                 userInfo: [NSLocalizedDescriptionKey: "Invalid RFB protocol string: \(trimmedVersion)"])
+                self.delegate?.vncConnection(self, didReceiveError: invalidProtocolError)
+                self.disconnect()
+            }
         }
     }
     
     private func sendAuthenticationMethods() {
+        self.logger.debug("Sending authentication methods for VNC \(majorVersion).\(minorVersion)")
+        
+        // VNC 3.3 uses a different authentication protocol format
+        if majorVersion == 3 && minorVersion == 3 {
+            sendAuthenticationForVersion33()
+        } else {
+            // VNC 3.7+ uses the standard authentication list format
+            sendAuthenticationForVersion37Plus()
+        }
+    }
+    
+    private func sendAuthenticationForVersion33() {
+        // VNC 3.3: Server decides authentication type, no list sent
         if vncPassword == nil {
-            // No password - use no authentication
-            var authCount: UInt8 = 1
+            // Send AUTH_NONE directly (4 bytes, big endian)
             var authType: UInt32 = Self.VNC_AUTH_NONE.bigEndian
-            
-            var authData = Data()
-            authData.append(Data(bytes: &authCount, count: 1))
-            authData.append(Data(bytes: &authType, count: 4))
+            let authData = Data(bytes: &authType, count: 4)
             
             connection.send(content: authData, completion: .contentProcessed { [weak self] error in
                 if error == nil {
-                    self?.receiveAuthenticationChoice()
+                    // For AUTH_NONE in 3.3, proceed directly to client init
+                    self?.isAuthenticated = true
+                    self?.receiveClientInit()
                 }
             })
         } else {
-            // Password required - use VNC authentication
-            var authCount: UInt8 = 1
+            // Send AUTH_VNC directly (4 bytes, big endian)
             var authType: UInt32 = Self.VNC_AUTH_VNC.bigEndian
-            
-            var authData = Data()
-            authData.append(Data(bytes: &authCount, count: 1))
-            authData.append(Data(bytes: &authType, count: 4))
+            let authData = Data(bytes: &authType, count: 4)
             
             connection.send(content: authData, completion: .contentProcessed { [weak self] error in
                 if error == nil {
-                    self?.receiveAuthenticationChoice()
+                    // For AUTH_VNC in 3.3, send challenge immediately
+                    self?.sendVNCAuthChallenge()
                 }
             })
         }
     }
     
+    private func sendAuthenticationForVersion37Plus() {
+        // VNC 3.7+: Send list of supported authentication types
+        var supportedAuthTypes: [UInt32] = []
+        
+        // Always support no authentication if no password set
+        if vncPassword == nil {
+            supportedAuthTypes.append(Self.VNC_AUTH_NONE)
+        } else {
+            supportedAuthTypes.append(Self.VNC_AUTH_VNC)
+        }
+        
+        // If no authentication methods available, send empty list (connection failure)
+        if supportedAuthTypes.isEmpty {
+            var authCount: UInt8 = 0
+            let authData = Data(bytes: &authCount, count: 1)
+            
+            connection.send(content: authData, completion: .contentProcessed { [weak self] error in
+                // Send failure reason
+                let reason = "No supported authentication methods available"
+                let reasonData = reason.data(using: .utf8)!
+                var reasonLength = UInt32(reasonData.count).bigEndian
+                
+                var failureData = Data()
+                failureData.append(Data(bytes: &reasonLength, count: 4))
+                failureData.append(reasonData)
+                
+                self?.connection.send(content: failureData, completion: .contentProcessed { _ in
+                    self?.disconnect()
+                })
+            })
+            return
+        }
+        
+        // Send authentication type list
+        var authCount = UInt8(supportedAuthTypes.count)
+        var authData = Data()
+        authData.append(Data(bytes: &authCount, count: 1))
+        
+        for authType in supportedAuthTypes {
+            var bigEndianAuthType = authType.bigEndian
+            authData.append(Data(bytes: &bigEndianAuthType, count: 4))
+        }
+        
+        connection.send(content: authData, completion: .contentProcessed { [weak self] error in
+            if error == nil {
+                self?.receiveAuthenticationChoice()
+            }
+        })
+    }
+    
+    private func receiveClientInit() {
+        // Receive ClientInit message (1 byte: shared flag)
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                self.delegate?.vncConnection(self, didReceiveError: error)
+                return
+            }
+
+            self.logger.debug("ClientInit received \(data!.toHexString()) starting VNC session")
+
+            // Send ServerInit and start receiving client messages
+            self.sendServerInit()
+            self.receiveClientMessages()
+        }
+    }
+    
     private func receiveAuthenticationChoice() {
+        // Only used for VNC 3.7+ where client chooses from authentication list
         connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
             guard let self = self, let data = data, data.count > 0 else {
                 return
@@ -134,12 +263,17 @@ class VNCConnection {
             }
             
             let authType = data[0]
+            self.logger.debug("Client chose authentication type: \(authType)")
             
             if authType == UInt8(Self.VNC_AUTH_NONE) {
+                // No authentication - proceed to authentication result
                 self.sendAuthenticationResult(success: true)
             } else if authType == UInt8(Self.VNC_AUTH_VNC) {
+                // VNC authentication - send challenge
                 self.sendVNCAuthChallenge()
             } else {
+                // Unsupported authentication type
+                self.logger.error("Client requested unsupported authentication type: \(authType)")
                 self.sendAuthenticationResult(success: false)
             }
         }
@@ -149,6 +283,7 @@ class VNCConnection {
         // Generate 16-byte random challenge
         authChallenge = Data((0..<16).map { _ in UInt8.random(in: 0...255) })
         
+        self.logger.debug("Sending VNC authentication challenge: \(authChallenge.toHexString())")
         connection.send(content: authChallenge!, completion: .contentProcessed { [weak self] error in
             if error == nil {
                 self?.receiveVNCAuthResponse()
@@ -173,11 +308,10 @@ class VNCConnection {
     }
     
     private func validateVNCAuthResponse(_ response: Data) -> Bool {
-        guard let password = vncPassword,
-              let challenge = authChallenge else {
+        guard let password = vncPassword, let challenge = authChallenge else {
             return false
         }
-        
+
         // Prepare password (pad with zeros to 8 bytes, truncate if longer)
         var passwordBytes = Array(password.utf8)
         passwordBytes = Array(passwordBytes.prefix(8))
@@ -191,6 +325,9 @@ class VNCConnection {
         // Encrypt challenge with DES
         let expectedResponse = desEncrypt(data: challenge, key: Data(reversedKey))
         
+        self.logger.debug("Validating VNC authentication received response: \(response.toHexString())")
+        self.logger.debug("Validating VNC authentication expected response: \(expectedResponse.toHexString())")
+
         return expectedResponse == response
     }
     
@@ -234,19 +371,38 @@ class VNCConnection {
     }
     
     private func sendAuthenticationResult(success: Bool) {
-        var result: UInt32 = success ? Self.VNC_AUTH_OK.bigEndian : Self.VNC_AUTH_FAILED.bigEndian
-        let resultData = Data(bytes: &result, count: 4)
-        
-        connection.send(content: resultData, completion: .contentProcessed { [weak self] error in
-            if error == nil && success {
-                self?.isAuthenticated = true
-                self?.sendServerInit()
-                self?.receiveClientMessages()
-            } else if !success {
-                // Authentication failed - disconnect
-                self?.disconnect()
-            }
-        })
+        self.logger.debug("Sending authentication result: \(success ? "SUCCESS" : "FAILED")")
+
+		// VNC 3.3+: Always send authentication result
+		var result: UInt32 = success ? Self.VNC_AUTH_OK.bigEndian : Self.VNC_AUTH_FAILED.bigEndian
+		let resultData = Data(bytes: &result, count: 4)
+		
+		connection.send(content: resultData, completion: .contentProcessed { [weak self] error in
+			if let self {
+				if error == nil && success {
+					// Authentication successful - wait for ClientInit
+					self.isAuthenticated = true
+					self.receiveClientInit()
+				} else if success == false {
+					if self.majorVersion == 3 && self.minorVersion < 8 {
+						self.disconnect()
+					} else {
+						// Send failure reason (mandatory in 3.7+)
+						let reason = "Authentication failed - invalid credentials"
+						let reasonData = reason.data(using: .utf8)!
+						var reasonLength = UInt32(reasonData.count).bigEndian
+						
+						var failureData = Data()
+						failureData.append(Data(bytes: &reasonLength, count: 4))
+						failureData.append(reasonData)
+						
+						self.connection.send(content: failureData, completion: .contentProcessed { _ in
+							self.disconnect()
+						})
+					}
+				}
+			}
+		})
     }
     
     private func sendServerInit() {
@@ -280,33 +436,47 @@ class VNCConnection {
     
     private func receiveClientMessages() {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, isComplete, error in
-            guard let self = self, let data = data, data.count > 0 else {
-                self?.receiveClientMessages()
-                return
-            }
-            
-            let messageType = data[0]
-            self.handleClientMessage(type: messageType)
-            
-            if !isComplete {
-                self.receiveClientMessages()
-            }
+			if let self = self {
+				if let error = error {
+					self.logger.error("Receive error: \(error)")
+					if connection.state != .ready {
+						self.disconnect()
+					}
+
+					return
+				}
+				
+				guard let data = data, data.count > 0 else {
+					self.receiveClientMessages()
+					return
+				}
+				
+				self.handleClientMessage(type: data[0])
+				
+				if isComplete == false {
+					self.receiveClientMessages()
+				}
+			}
         }
     }
     
     private func handleClientMessage(type: UInt8) {
-        switch type {
-        case VNCClientMessageType.setPixelFormat.rawValue:
+        let messageType = VNCClientMessageType(rawValue: type)
+
+		self.logger.debug("Receive message: \(messageType.debugDescription )")
+
+        switch messageType {
+        case .setPixelFormat:
             receiveSetPixelFormat()
-        case VNCClientMessageType.setEncodings.rawValue:
+        case .setEncodings:
             receiveSetEncodings()
-        case VNCClientMessageType.framebufferUpdateRequest.rawValue:
+        case .framebufferUpdateRequest:
             receiveFramebufferUpdateRequest()
-        case VNCClientMessageType.keyEvent.rawValue:
+        case .keyEvent:
             receiveKeyEvent()
-        case VNCClientMessageType.pointerEvent.rawValue:
+        case .pointerEvent:
             receivePointerEvent()
-        case VNCClientMessageType.clientCutText.rawValue:
+        case .clientCutText:
             receiveClientCutText()
         default:
             receiveClientMessages()

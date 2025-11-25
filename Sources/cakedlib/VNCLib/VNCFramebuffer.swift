@@ -8,7 +8,7 @@ public class VNCFramebuffer {
     public internal(set) var hasChanges = false
     public internal(set) var sizeChanged = false
     
-    public weak var sourceView: NSView?
+	internal weak var sourceView: NSView!
     internal var previousPixelData: Data?
     internal let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
     
@@ -19,6 +19,14 @@ public class VNCFramebuffer {
         self.pixelData = Data(count: width * height * 4) // RGBA
     }
     
+    public func renderStats() -> String {
+        return "Framebuffer - Size: \(width)x\(height), Has Changes: \(hasChanges), Size Changed: \(sizeChanged)"
+    }
+
+    public func averageRenderTime() -> TimeInterval {
+        return 0
+    }
+
     public func updateSize(width: Int, height: Int) {
         updateQueue.async {
             guard self.width != width || self.height != height else { return }
