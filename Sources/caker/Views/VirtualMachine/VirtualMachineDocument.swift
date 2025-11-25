@@ -830,7 +830,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
-			let settings = VNCConnection.Settings(isDebugLoggingEnabled: false, //Logger.LoggingLevel() == .debug,
+			let settings = RoyalVNCKit.VNCConnection.Settings(isDebugLoggingEnabled: false, //Logger.LoggingLevel() == .debug,
 												  hostname: vncHost,
 												  port: UInt16(vncPort),
 												  isShared: true,
@@ -840,7 +840,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 												  isClipboardRedirectionEnabled: true,
 												  colorDepth: .depth24Bit,
 												  frameEncodings: .default)
-			let connection = VNCConnection(settings: settings, logger: VNCConnectionLogger())
+			let connection = RoyalVNCKit.VNCConnection(settings: settings, logger: VNCConnectionLogger())
 			
 			self.connection = connection
 			self.vncStatus = .connecting
@@ -856,7 +856,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 	
-	func connection(_ connection: VNCConnection, stateDidChange connectionState: VNCConnection.ConnectionState) {
+	func connection(_ connection: RoyalVNCKit.VNCConnection, stateDidChange connectionState: RoyalVNCKit.VNCConnection.ConnectionState) {
 		self.logger.debug("Connection state changed to \(connectionState.status.description)")
 
 		DispatchQueue.main.async {
@@ -893,7 +893,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 	
-	func connection(_ connection: VNCConnection, credentialFor authenticationType: VNCAuthenticationType, completion: @escaping ((any VNCCredential)?) -> Void) {
+	func connection(_ connection: RoyalVNCKit.VNCConnection, credentialFor authenticationType: VNCAuthenticationType, completion: @escaping ((any VNCCredential)?) -> Void) {
 		self.logger.debug("Connection need credential")
 
 		if let vncURL = self.vncURL {
@@ -915,7 +915,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		completion(nil)
 	}
 	
-	func connection(_ connection: VNCConnection, didCreateFramebuffer framebuffer: VNCFramebuffer) {
+	func connection(_ connection: RoyalVNCKit.VNCConnection, didCreateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		if self.vncStatus != .ready {
 			let size = ViewSize(size: framebuffer.cgSize)
 
@@ -928,7 +928,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 	
-	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
+	func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
 
 		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
@@ -942,7 +942,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 	
-	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
+	func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		vncView?.connection(connection, didUpdateFramebuffer: framebuffer, x: x, y: y, width: width, height: height)
 	}
 
@@ -1130,7 +1130,7 @@ extension VirtualMachineDocument {
 				self.handleAgentHealthCheckSuccess(info: infos)
 			}
 		} catch {
-			self.logger.error("Failed to create agent client for health check: \(error)")
+			self.logger.debug("Failed to create agent client for health check: \(error)")
 			self.handleAgentHealthCheckFailure(error: error)
 		}
 	}
@@ -1152,7 +1152,7 @@ extension VirtualMachineDocument {
 	
 	private func handleAgentHealthCheckFailure(error: Error) {
 		// Agent is not responding - could indicate VM issues
-        self.logger.warn("Agent monitoring: VM \(self.name) agent not responding: \(error)")		// Check if it's a permanent failure (connection refused, etc.)
+        self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")		// Check if it's a permanent failure (connection refused, etc.)
 		
 		if let grpcError = error as? GRPCStatus {
 			switch grpcError.code {
