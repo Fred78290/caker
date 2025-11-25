@@ -35,11 +35,11 @@ public class VNCFramebuffer {
     public func updateFromView() {
         guard let view = sourceView else { return }
         
-        updateQueue.async {
-            let bounds = view.bounds
-            let newWidth = Int(bounds.width)
-            let newHeight = Int(bounds.height)
-            
+		let bounds = view.bounds
+		let newWidth = Int(bounds.width)
+		let newHeight = Int(bounds.height)
+
+		updateQueue.async {            
             // Check if size has changed
             if self.width != newWidth || self.height != newHeight {
                 self.updateSize(width: newWidth, height: newHeight)
