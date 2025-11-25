@@ -13,9 +13,9 @@ public struct RunHandler {
 
 			if StorageLocation(runMode: runMode).exists(vmname) == false {
 				Logger(self).info("Creating primary VM")
-				
+
 				let build = await BuildHandler.build(name: vmname, options: .init(name: vmname), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
-				
+
 				if build.builded == false {
 					throw ServiceError(build.reason)
 				}
@@ -28,7 +28,7 @@ public struct RunHandler {
 			Logger(self).info("Starting \(vmname)")
 
 			let start = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, config: try location.config(), waitIPTimeout: 180, startMode: .background, runMode: runMode)
-			
+
 			if start.started == false {
 				throw ServiceError(start.reason)
 			}

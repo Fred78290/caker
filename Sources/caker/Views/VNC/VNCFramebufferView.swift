@@ -1,3 +1,4 @@
+import Foundation
 //
 //  VNCFramebufferView.swift
 //  Caker
@@ -5,32 +6,36 @@
 //  Created by Frederic BOLTZ on 10/08/2025.
 //
 import RoyalVNCKit
-import Foundation
 
 extension VNCFramebufferView {
 	func frameSizeExceedsFramebufferSize(_ frameSize: CGSize) -> Bool {
-		return frameSize.width >= framebufferSize.width &&
-			   frameSize.height >= framebufferSize.height
+		return frameSize.width >= framebufferSize.width && frameSize.height >= framebufferSize.height
 	}
 
-	func handleScrollWheel(scrollDelta: CGPoint,
-						   hasPreciseScrollingDeltas: Bool,
-						   mousePositionX: UInt16,
-						   mousePositionY: UInt16) {
+	func handleScrollWheel(
+		scrollDelta: CGPoint,
+		hasPreciseScrollingDeltas: Bool,
+		mousePositionX: UInt16,
+		mousePositionY: UInt16
+	) {
 		if hasPreciseScrollingDeltas {
-			handlePreciseScrollingDelta(scrollDelta,
-										mousePositionX: mousePositionX,
-										mousePositionY: mousePositionY)
+			handlePreciseScrollingDelta(
+				scrollDelta,
+				mousePositionX: mousePositionX,
+				mousePositionY: mousePositionY)
 		} else {
-			handleImpreciseScrollingDelta(scrollDelta,
-										  mousePositionX: mousePositionX,
-										  mousePositionY: mousePositionY)
+			handleImpreciseScrollingDelta(
+				scrollDelta,
+				mousePositionX: mousePositionX,
+				mousePositionY: mousePositionY)
 		}
 	}
 
-	func handleImpreciseScrollingDelta(_ scrollDelta: CGPoint,
-									   mousePositionX: UInt16,
-									   mousePositionY: UInt16) {
+	func handleImpreciseScrollingDelta(
+		_ scrollDelta: CGPoint,
+		mousePositionX: UInt16,
+		mousePositionY: UInt16
+	) {
 		guard let connection = self.connection else {
 			return
 		}
@@ -48,15 +53,17 @@ extension VNCFramebufferView {
 		}
 	}
 
-	func handlePreciseScrollingDelta(_ scrollDelta: CGPoint,
-									 mousePositionX: UInt16,
-									 mousePositionY: UInt16) {
+	func handlePreciseScrollingDelta(
+		_ scrollDelta: CGPoint,
+		mousePositionX: UInt16,
+		mousePositionY: UInt16
+	) {
 		accumulatedScrollDeltaX += scrollDelta.x
 		accumulatedScrollDeltaY += scrollDelta.y
 
-//		#if DEBUG
-//		connection.logger.logInfo("Accumulated Scroll Delta: {x: \(accumulatedScrollDeltaX); y: \(accumulatedScrollDeltaY)}")
-//		#endif
+		//		#if DEBUG
+		//		connection.logger.logInfo("Accumulated Scroll Delta: {x: \(accumulatedScrollDeltaX); y: \(accumulatedScrollDeltaY)}")
+		//		#endif
 
 		if abs(accumulatedScrollDeltaX) >= scrollStep {
 			while abs(accumulatedScrollDeltaX) >= scrollStep {

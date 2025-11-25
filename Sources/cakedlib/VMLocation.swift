@@ -121,15 +121,15 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func sizeBytes() throws -> Int {
 		try self.diskSize()
 	}
-	
+
 	public func allocatedSizeBytes() throws -> Int {
 		try self.allocatedSize()
 	}
-	
+
 	public func diskSize() throws -> Int {
 		var sizeBytes = 0
 
-		try FileManager.default.contentsOfDirectory( at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
+		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
 			sizeBytes += try $0.sizeBytes()
 		}
 
@@ -139,7 +139,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func allocatedSize() throws -> Int {
 		var allocatedSize = 0
 
-		try FileManager.default.contentsOfDirectory( at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
+		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
 			allocatedSize += try $0.allocatedSizeBytes()
 		}
 
@@ -349,7 +349,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		}
 
 		let pid = pidFile.isPIDRunning()
-		
+
 		if pid.0 {
 			if pid.1 == Home.cakedCommandName {
 				if let pid = pid.2 {
@@ -363,7 +363,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func stopVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
 		let killVMRun: () -> Void = {
 			let pid = pidFile.isPIDRunning()
-			
+
 			if pid.0 {
 				if pid.1 == Home.cakedCommandName {
 					if let pid = pid.2 {
@@ -373,23 +373,23 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				}
 			}
 		}
-		
+
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
-		
+
 		if self.status != .running {
 			throw ServiceError("vm \(name) is not running")
 		}
-		
+
 		if force || config.agent == false {
 			killVMRun()
 		} else if try self.agentURL.exists() {
 			let client = try CakeAgentConnection.createCakeAgentConnection(on: Utilities.group.next(), listeningAddress: self.agentURL, timeout: 60, runMode: runMode)
-			
+
 			try client.shutdown().log()
 		} else {
 			let reply = WaitIPHandler.waitIP(name: name, wait: 60, runMode: runMode)
-			
+
 			if reply.success {
 				let ssh = try SSH(host: reply.ip)
 				try ssh.authenticate(username: config.configuredUser, privateKey: home.sshPrivateKey.path, publicKey: home.sshPublicKey.path, passphrase: "")
@@ -398,15 +398,18 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				killVMRun()
 			}
 		}
-		
+
 		while self.status == .running {
 			Thread.sleep(forTimeInterval: 1)
 		}
-		
+
 		removePID()
 	}
 
-	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode, completionHandler: StartCompletionHandler? = nil) throws -> (
+	public func startVirtualMachine(
+		_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode,
+		completionHandler: StartCompletionHandler? = nil
+	) throws -> (
 		address: EventLoopFuture<String?>, vm: VirtualMachine
 	) {
 		let vm = try VirtualMachine(location: self, config: config, screenSize: screenSize, runMode: runMode)
@@ -416,7 +419,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				if display == .vnc {
 					DispatchQueue.main.async {
 						let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
-						
+
 						Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
 					}
 				}
@@ -507,7 +510,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			if let infos = try? conn.info().wait() {
 				let infos = infos
 
-				if case let .success(infos) = infos {
+				if case .success(let infos) = infos {
 					if infos.ipaddresses.count > 0, let runningIP = infos.ipaddresses.first {
 						return runningIP
 					}
@@ -708,7 +711,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			\(serverKey)
 			EOF
 			fi
-			
+
 			chmod -R 600 "${CERTS}"
 
 			if test "${OSDISTRO}" = "darwin"
@@ -746,21 +749,21 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		let agentBinary = try await Utilities.cakeagentBinary(os: config.os, runMode: runMode)
 
-#if arch(arm64)
-		if imageSource == .ipsw {
-			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
-		} else {
-			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-		}
-#else
-		if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
-		} else {
-			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-		}
-#endif
+		#if arch(arm64)
+			if imageSource == .ipsw {
+				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+			} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+				try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
+			} else {
+				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+			}
+		#else
+			if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+				try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
+			} else {
+				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+			}
+		#endif
 
 		_ = try ssh.sendFile(localURL: agentBinary, remotePath: "/tmp/cakeagent", permissions: .init(rawValue: 0o755))
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
@@ -772,11 +775,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		if result.status == 0 {
 			Logger(self).info("Agent installed on \(self.name), exit code: \(result.status)")
 			#if DEBUG
-			print(result.status)
+				print(result.status)
 			#endif
 		} else {
 			Logger(self).error("Agent installation failed on \(self.name), exit code: \(result.status)\n\(result.output)")
-			
+
 			throw ServiceError("Agent installation failed on \(self.name)")
 		}
 

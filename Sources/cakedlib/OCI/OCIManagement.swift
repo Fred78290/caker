@@ -1,3 +1,10 @@
+import Compression
+import Containerization
+import ContainerizationArchive
+import ContainerizationEXT4
+import ContainerizationExtras
+import ContainerizationOCI
+import Crypto
 //
 //  manager.swift
 //  Caker
@@ -5,16 +12,9 @@
 //  Created by Frederic BOLTZ on 15/11/2025.
 //
 import Foundation
-import Containerization
-import ContainerizationOCI
-import ContainerizationEXT4
-import ContainerizationExtras
-import ContainerizationArchive
-import SystemPackage
-import Compression
-import Crypto
 import SwiftDate
 import Synchronization
+import SystemPackage
 
 actor AsyncStore<T> {
 	private var _value: T?
@@ -38,16 +38,16 @@ extension MediaTypes {
 	public static let cakedCdRomLayer = "application/vnd.aldunelabs.cdrom.v1"
 
 	public static let tartConfigLayer = "application/vnd.cirruslabs.tart.config.v1"
-	
+
 	/// The Tart media type used by tart layers referenced by an image manifest.
 	public static let tartDiskV2Layer = "application/vnd.cirruslabs.tart.disk.v2"
-	
+
 	/// The Tart media type used by tart layers referenced by an image manifest.
 	public static let tartDiskV1Layer = "application/vnd.cirruslabs.tart.disk.v1"
-	
+
 	/// The Tart media type used by tart layers referenced by an image manifest.
 	public static let tartNVRamLayer = "application/vnd.cirruslabs.tart.nvram.v1"
-	
+
 	public static let diskFormatLabel = "org.cirruslabs.tart.disk.format"
 	public static let uncompressedDiskSizeAnnotation = "org.cirruslabs.tart.uncompressed-disk-size"
 	public static let uploadTimeAnnotation = "org.cirruslabs.tart.upload-time"
@@ -60,7 +60,7 @@ extension Manifest {
 		MediaTypes.imageLayer,
 		MediaTypes.dockerImageLayer,
 		MediaTypes.imageLayerGzip,
-		MediaTypes.dockerImageLayerGzip
+		MediaTypes.dockerImageLayerGzip,
 	]
 
 	public enum ImageType: String, CaseIterable, Codable {
@@ -68,8 +68,8 @@ extension Manifest {
 		case tart
 		case unknown
 	}
-	
-	public  func imageType() async throws -> ImageType {
+
+	public func imageType() async throws -> ImageType {
 		if self.layers.first(where: { $0.mediaType == MediaTypes.tartDiskV1Layer || $0.mediaType == MediaTypes.tartDiskV2Layer }) != nil {
 			return .tart
 		}
@@ -108,7 +108,7 @@ extension ContentWriter {
 	public func create(from url: URL) throws -> ChunkedLayer {
 		let data = try Data(contentsOf: url)
 		let result = try self.write(data)
-		
+
 		return ChunkedLayer(size: result.size, uncompressedSize: Int64(data.count), digest: result.digest, uncompressedDigest: SHA256.hash(data: data))
 	}
 
@@ -138,7 +138,7 @@ extension ContentWriter {
 					if let progress {
 						await progress([
 							ProgressEvent(event: "add-item", value: Int(1)),
-							ProgressEvent(event: "add-total-items", value: Int(chunks.count))
+							ProgressEvent(event: "add-total-items", value: Int(chunks.count)),
 						])
 					}
 
@@ -202,7 +202,7 @@ extension Containerization.Image {
 		if let progress = progress {
 			await progress([
 				ProgressEvent(event: "current-size", value: currentSize),
-				ProgressEvent(event: "total-size", value: totalSize)
+				ProgressEvent(event: "total-size", value: totalSize),
 			])
 		}
 
@@ -238,7 +238,7 @@ extension Containerization.Image {
 			if let progress = progress {
 				await progress([
 					ProgressEvent(event: "current-size", value: currentSize),
-					ProgressEvent(event: "total-size", value: totalSize)
+					ProgressEvent(event: "total-size", value: totalSize),
 				])
 			}
 		}
@@ -249,7 +249,9 @@ extension Containerization.Image {
 
 extension InitImage {
 	@discardableResult
-	public static func create(references: [String], location: VMLocation, platform: Platform = .current, labels: [String: String] = [:], imageStore: ImageStore, contentStore: ContentStore, chunkSize: Int64, concurrency: UInt = 4, progress: ProgressHandler? = nil) async throws -> [InitImage] {
+	public static func create(
+		references: [String], location: VMLocation, platform: Platform = .current, labels: [String: String] = [:], imageStore: ImageStore, contentStore: ContentStore, chunkSize: Int64, concurrency: UInt = 4, progress: ProgressHandler? = nil
+	) async throws -> [InitImage] {
 		let indexDescriptorStore = AsyncStore<Descriptor>()
 		let diskSize = try location.sizeBytes()
 
@@ -263,58 +265,71 @@ extension InitImage {
 			var chunkedLayer: ContentWriter.ChunkedLayer = try writer.create(from: location.configURL)
 			let configDescriptor = Descriptor(mediaType: ContainerizationOCI.MediaTypes.imageConfig, digest: singleLayer.digest.digestString, size: singleLayer.size)
 			var layersDescriptors = [
-				Descriptor(mediaType: MediaTypes.tartConfigLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size, annotations: [
-					MediaTypes.uncompressedContentDigestAnnotation : chunkedLayer.uncompressedDigest.digestString,
-					MediaTypes.uncompressedSizeAnnotation : "\(chunkedLayer.uncompressedSize)"
-				])
+				Descriptor(
+					mediaType: MediaTypes.tartConfigLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size,
+					annotations: [
+						MediaTypes.uncompressedContentDigestAnnotation: chunkedLayer.uncompressedDigest.digestString,
+						MediaTypes.uncompressedSizeAnnotation: "\(chunkedLayer.uncompressedSize)",
+					])
 			]
 
 			chunkedLayer = try writer.create(from: location.cakeURL)
 			layersDescriptors.append(
-				Descriptor(mediaType: MediaTypes.cakedConfigLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size, annotations: [
-					MediaTypes.uncompressedContentDigestAnnotation : chunkedLayer.uncompressedDigest.digestString,
-					MediaTypes.uncompressedSizeAnnotation : "\(chunkedLayer.uncompressedSize)"
-				])
+				Descriptor(
+					mediaType: MediaTypes.cakedConfigLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size,
+					annotations: [
+						MediaTypes.uncompressedContentDigestAnnotation: chunkedLayer.uncompressedDigest.digestString,
+						MediaTypes.uncompressedSizeAnnotation: "\(chunkedLayer.uncompressedSize)",
+					])
 			)
 
 			chunkedLayer = try writer.create(from: location.nvramURL)
 			layersDescriptors.append(
-				Descriptor(mediaType: MediaTypes.tartNVRamLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size, annotations: [
-					MediaTypes.uncompressedContentDigestAnnotation : chunkedLayer.uncompressedDigest.digestString,
-					MediaTypes.uncompressedSizeAnnotation : "\(chunkedLayer.uncompressedSize)"
-				])
+				Descriptor(
+					mediaType: MediaTypes.tartNVRamLayer, digest: chunkedLayer.digest.digestString, size: chunkedLayer.size,
+					annotations: [
+						MediaTypes.uncompressedContentDigestAnnotation: chunkedLayer.uncompressedDigest.digestString,
+						MediaTypes.uncompressedSizeAnnotation: "\(chunkedLayer.uncompressedSize)",
+					])
 			)
 
-			layersDescriptors.append(contentsOf: diskLayers.map {
-				Descriptor(mediaType: MediaTypes.tartDiskV2Layer, digest: $0.digest.digestString, size: $0.size, annotations: [
-					MediaTypes.uncompressedContentDigestAnnotation : $0.uncompressedDigest.digestString,
-					MediaTypes.uncompressedSizeAnnotation : "\($0.uncompressedSize)"
+			layersDescriptors.append(
+				contentsOf: diskLayers.map {
+					Descriptor(
+						mediaType: MediaTypes.tartDiskV2Layer, digest: $0.digest.digestString, size: $0.size,
+						annotations: [
+							MediaTypes.uncompressedContentDigestAnnotation: $0.uncompressedDigest.digestString,
+							MediaTypes.uncompressedSizeAnnotation: "\($0.uncompressedSize)",
+						])
+				})
+
+			//			if try location.cdromISO.exists() {
+			//				let cdromLayers = try await writer.createChunked(from: location.cdromISO, chunkSize: chunkSize, concurrency: concurrency)
+			//
+			//				layersDescriptors.append(contentsOf: cdromLayers.map {
+			//					Descriptor(mediaType: MediaTypes.cakedCdRomLayer, digest: $0.digest.digestString, size: $0.size, annotations: [
+			//						MediaTypes.uncompressedContentDigestAnnotation : $0.uncompressedDigest.digestString,
+			//						MediaTypes.uncompressedSizeAnnotation : "\($0.uncompressedSize)"
+			//					])
+			//				})
+			//			}
+
+			let manifest = Manifest(
+				config: configDescriptor, layers: layersDescriptors,
+				annotations: [
+					MediaTypes.uncompressedDiskSizeAnnotation: "\(diskSize)",
+					MediaTypes.uploadTimeAnnotation: Date.now.toISO(),
 				])
-			})
-
-//			if try location.cdromISO.exists() {
-//				let cdromLayers = try await writer.createChunked(from: location.cdromISO, chunkSize: chunkSize, concurrency: concurrency)
-//
-//				layersDescriptors.append(contentsOf: cdromLayers.map {
-//					Descriptor(mediaType: MediaTypes.cakedCdRomLayer, digest: $0.digest.digestString, size: $0.size, annotations: [
-//						MediaTypes.uncompressedContentDigestAnnotation : $0.uncompressedDigest.digestString,
-//						MediaTypes.uncompressedSizeAnnotation : "\($0.uncompressedSize)"
-//					])
-//				})
-//			}
-
-			let manifest = Manifest(config: configDescriptor, layers: layersDescriptors, annotations: [
-				MediaTypes.uncompressedDiskSizeAnnotation: "\(diskSize)",
-				MediaTypes.uploadTimeAnnotation: Date.now.toISO()
-			])
 
 			singleLayer = try writer.create(from: manifest)
 
 			let manifestDescriptor = Descriptor(mediaType: ContainerizationOCI.MediaTypes.imageManifest, digest: singleLayer.digest.digestString, size: singleLayer.size, platform: platform)
 
-			let index = ContainerizationOCI.Index(manifests: [manifestDescriptor], annotations: [
-				"com.apple.containerization.index.indirect": "true"
-			])
+			let index = ContainerizationOCI.Index(
+				manifests: [manifestDescriptor],
+				annotations: [
+					"com.apple.containerization.index.indirect": "true"
+				])
 
 			singleLayer = try writer.create(from: index)
 

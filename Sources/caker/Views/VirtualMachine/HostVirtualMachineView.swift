@@ -23,10 +23,10 @@ extension View {
 
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
 		Logger(label).debug("frame(minSize: \(minSize), idealSize: \(idealSize))")
-		
+
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
 	}
-	
+
 	func frame(_ label: String = "View", minSize: CGSize) -> some View {
 		Logger(label).debug("frame(minSize: \(minSize)")
 
@@ -165,26 +165,26 @@ struct HostVirtualMachineView: View {
 							.help("Start virtual machine")
 							.disabled(document.status == .starting || document.status == .stopping)
 						}
-						
+
 						Button("Pause", systemImage: "pause") {
 							document.suspendFromUI()
 						}
 						.help("Suspends virtual machine")
 						.disabled(document.suspendable == false || document.agent == .installing)
-						
+
 						Button("Restart", systemImage: "arrow.trianglehead.clockwise") {
 							document.restartFromUI()
 						}
 						.help("Restart virtual machine")
 						.disabled(self.appState.isStopped || document.agent == .installing)
-						
+
 						Button("Create template", systemImage: "archivebox") {
 							createTemplate = true
 						}
 						.help("Create template from virtual machine")
 						.disabled(self.appState.isRunning)
 					}
-					
+
 					ToolbarItemGroup(placement: .primaryAction) {
 						if self.document.status == .stopped {
 							if self.launchExternally {
@@ -204,25 +204,28 @@ struct HostVirtualMachineView: View {
 
 						let agentCondition = self.document.agentCondition
 
-						Button(action: {
-							self.appState.isAgentInstalling = true
-							
-							self.document.installAgent(updateAgent: agentCondition.needUpdate) {
-								self.appState.isAgentInstalling = false
-							}
-						}, label: {
-							ZStack {
-								Image(systemName:agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
-									.opacity(self.appState.isAgentInstalling ? 0 : 1)
-								
-								if self.appState.isAgentInstalling {
-									ProgressView().frame(height: 10).scaleEffect(0.5)
+						Button(
+							action: {
+								self.appState.isAgentInstalling = true
+
+								self.document.installAgent(updateAgent: agentCondition.needUpdate) {
+									self.appState.isAgentInstalling = false
+								}
+							},
+							label: {
+								ZStack {
+									Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
+										.opacity(self.appState.isAgentInstalling ? 0 : 1)
+
+									if self.appState.isAgentInstalling {
+										ProgressView().frame(height: 10).scaleEffect(0.5)
+									}
 								}
 							}
-						})
+						)
 						.help(agentCondition.title)
 						.disabled(agentCondition.disabled)
-						
+
 						Button("Delete", systemImage: "trash") {
 							self.appState.deleteVirtualMachine(document: self.document)
 						}
@@ -238,7 +241,7 @@ struct HostVirtualMachineView: View {
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
-						
+
 						Button("Settings", systemImage: "gear") {
 							displaySettings = true
 						}
@@ -302,7 +305,7 @@ struct HostVirtualMachineView: View {
 	func handleAppear() {
 		NSWindow.allowsAutomaticWindowTabbing = false
 		self.appState.currentDocument = self.document
-		
+
 		if let window = self.window {
 			self.document.setScreenSize(.init(size: window.contentLayoutRect.size))
 		} else {
@@ -342,7 +345,7 @@ struct HostVirtualMachineView: View {
 				if document.status == .running {
 					document.stopFromUI(force: false)
 				}
-				
+
 				DispatchQueue.main.async {
 					self.document.close()
 				}
@@ -358,7 +361,7 @@ struct HostVirtualMachineView: View {
 		guard let document = userInfos["document"] as? String else {
 			return false
 		}
-		
+
 		guard document == self.document.name else {
 			return false
 		}
@@ -402,11 +405,11 @@ struct HostVirtualMachineView: View {
 		if self.appState.currentDocument == self.document {
 			self.appState.currentDocument = nil
 		}
-		
+
 		if document.status == .running {
 			document.stopFromUI(force: false)
 		}
-		
+
 		dismiss()
 	}
 
@@ -496,7 +499,7 @@ struct HostVirtualMachineView: View {
 			}
 		}
 	}
-	
+
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.externalRunning {

@@ -40,7 +40,7 @@ struct ImageHandler: CakedCommandAsync {
 			$0.images = reply
 		}
 	}
-	
+
 	func execute(command: Caked_ImageCommand, name: String, runMode: Utils.RunMode) async -> Caked_Reply {
 		let reply: Caked_ImageReply
 

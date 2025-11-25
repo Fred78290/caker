@@ -32,14 +32,14 @@ struct VirtualMachinesView: View {
 		VirtualMachineView(selected: selected, vm: document)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
 
-//		if self.appearsActive {
-//			VirtualMachineView(selected: selected, vm: document)
-//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-//				.animation(.easeInOut, value: self.columns.count)
-//		} else {
-//			VirtualMachineView(selected: selected, vm: document)
-//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
-//		}
+		//		if self.appearsActive {
+		//			VirtualMachineView(selected: selected, vm: document)
+		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+		//				.animation(.easeInOut, value: self.columns.count)
+		//		} else {
+		//			VirtualMachineView(selected: selected, vm: document)
+		//				.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
+		//		}
 	}
 
 	var body: some View {
@@ -69,7 +69,7 @@ struct VirtualMachinesView: View {
 			self.columns = Self.buildColumns(newValue.size)
 		}
 	}
-	
+
 	static func buildColumns(_ size: CGSize) -> [GridItem] {
 		let numOfColums = max(Int(size.width) / Int(cellWidth - cellSpacing), 1)
 		return Array(repeating: GridItem(.fixed(cellWidth)), count: numOfColums)

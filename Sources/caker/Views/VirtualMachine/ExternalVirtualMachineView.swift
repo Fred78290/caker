@@ -53,7 +53,7 @@ extension SwiftTerm.Color {
 class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	private var document: VirtualMachineDocument!
 	private let dismiss: DismissAction!
-	
+
 	var fontColor: SwiftTerm.Color {
 		get {
 			self.terminal.foregroundColor
@@ -132,7 +132,7 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 			}
 
 			try? self.document.startShell(rows: self.getTerminal().rows, cols: self.getTerminal().cols) { response in
-				if case let .exitCode(code) = response.response {
+				if case .exitCode(let code) = response.response {
 					Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
 
 					self.document.closeShell {
@@ -140,9 +140,9 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 							self.dismiss()
 						}
 					}
-				} else if case let .stdout(datas) = response.response {
+				} else if case .stdout(let datas) = response.response {
 					display(datas)
-				} else if case let .stderr(datas) = response.response {
+				} else if case .stderr(let datas) = response.response {
 					display(datas)
 				}
 			}

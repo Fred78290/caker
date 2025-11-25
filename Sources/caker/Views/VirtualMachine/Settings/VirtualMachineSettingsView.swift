@@ -20,11 +20,11 @@ struct VirtualMachineSettingsView: View {
 		static func < (lhs: VirtualMachineSettingsView.SettingsTab, rhs: VirtualMachineSettingsView.SettingsTab) -> Bool {
 			lhs.rawValue < rhs.rawValue
 		}
-		
+
 		var id: Int {
 			self.rawValue
 		}
-		
+
 		case account
 		case general
 		case network
@@ -116,7 +116,7 @@ struct VirtualMachineSettingsView: View {
 						TextField("User name", text: $config.configuredUser)
 							.rounded(.leading)
 					}
-					
+
 					LabeledContent("Administator password") {
 						HStack {
 							if self.showPassword {

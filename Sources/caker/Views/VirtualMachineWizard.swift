@@ -224,7 +224,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.fractionCompleted = 0
 		self.createVMMessage = ""
 	}
-	
+
 	func reset() {
 		self.currentStep = .name
 		self.configValid = false
@@ -256,7 +256,7 @@ struct VirtualMachineWizard: View {
 
 	@ViewBuilder
 	func Content(currentStep: WizardModel.SelectedItem) -> some View {
-		switch (currentStep) {
+		switch currentStep {
 		case .name:
 			chooseVMName()
 		case .os:
@@ -301,7 +301,7 @@ struct VirtualMachineWizard: View {
 					self.dismiss()
 				}
 			}
-			
+
 			self.config = VirtualMachineConfig()
 			self.model.reset()
 		}
@@ -323,12 +323,12 @@ struct VirtualMachineWizard: View {
 		}
 		.windowMinimizeBehavior(self.model.createVM ? .disabled : .automatic)
 		.windowDismissBehavior(self.model.createVM ? .disabled : .automatic)
-			//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
+		//.windowResizeBehavior(self.model.createVM ? .disabled : .automatic)
 	}
 
 	func TabBar() -> some View {
 		let tabBar = MultiplatformTabBar(selection: $model.currentStep, tabPosition: .top, barHorizontalAlignment: .center)
-		
+
 		WizardModel.items.forEach { item in
 			tabBar.tab(title: item.title, systemName: item.systemImage, tag: item.id) {
 				self.Content(currentStep: item.id)
@@ -359,7 +359,7 @@ struct VirtualMachineWizard: View {
 
 	func Middle() -> some View {
 		VStack {
-			switch (self.model.currentStep) {
+			switch self.model.currentStep {
 			case .name:
 				chooseVMName()
 			case .os:
@@ -670,10 +670,10 @@ struct VirtualMachineWizard: View {
 
 						if platform == .ubuntu {
 							Toggle("Create autoinstall config", isOn: $config.autoinstall).disabled(self.model.createVM)
-//						} else if platform == .fedora {
-//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
-//						} else if platform == .debian {
-//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
+							//						} else if platform == .fedora {
+							//							Toggle("Create kickstart config", isOn: $config.autoinstall).disabled(self.model.createVM)
+							//						} else if platform == .debian {
+							//							Toggle("Create preseed config", isOn: $config.autoinstall).disabled(self.model.createVM)
 						}
 					}
 
@@ -885,16 +885,16 @@ struct VirtualMachineWizard: View {
 					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressCreateVirtualMachine, object: fractionCompleted)
 
 				case .terminated(let result, let message):
-					if case let .failure(error) = result {
+					if case .failure(let error) = result {
 						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? ""])
-					} else if case let .success(location) = result {
+					} else if case .success(let location) = result {
 						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: location, userInfo: ["message": message ?? ""])
 					} else {
 						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"), userInfo: ["message": message ?? ""])
 					}
 
 					done()
-					
+
 				case .step(let message):
 					NotificationCenter.default.post(name: VirtualMachineDocument.ProgressMessageCreateVirtualMachine, object: message)
 				}
@@ -936,7 +936,7 @@ struct VirtualMachineWizard: View {
 
 	func templates() -> [TemplateEntry] {
 		let result = TemplateHandler.listTemplate(runMode: .app)
-		
+
 		if result.success {
 			return result.templates
 		}
@@ -946,7 +946,7 @@ struct VirtualMachineWizard: View {
 
 	func remotes() -> [RemoteEntry] {
 		let result = RemoteHandler.listRemote(runMode: .app)
-		
+
 		if result.success {
 			return result.remotes
 		}

@@ -17,7 +17,7 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.submit {
 			return Caked_Reply.with {

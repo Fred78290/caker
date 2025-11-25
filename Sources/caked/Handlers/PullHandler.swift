@@ -1,3 +1,4 @@
+import CakedLib
 //
 //  PullHandler.swift
 //  Caker
@@ -6,11 +7,10 @@
 //
 import GRPCLib
 import NIOCore
-import CakedLib
 
 struct PullHandler: CakedCommandAsync {
 	var request: Caked_CloneRequest
-	
+
 	func run(on: any EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
 			let result = await CakedLib.PullHandler.pull(name: request.name, image: request.image, insecure: request.insecure, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
@@ -21,7 +21,7 @@ struct PullHandler: CakedCommandAsync {
 			}
 		}
 	}
-	
+
 	func replyError(error: any Error) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.oci = .with {

@@ -1,5 +1,5 @@
 // VNCLib - VNC Server Library for macOS
-// 
+//
 // This library provides a complete VNC server based on NSView
 // to replace the use of the private _VZVNCServer class
 //
@@ -18,8 +18,8 @@
 // try server.start()
 // ```
 
-import Foundation
 import Dynamic
+import Foundation
 import Virtualization
 
 extension VZVNCServer {
@@ -31,7 +31,7 @@ extension VZVNCServer {
 
 class InternalVNCServer: VZVNCServer {
 	private let vnc: Dynamic
-	private let password: String // = UUID().uuidString
+	private let password: String  // = UUID().uuidString
 
 	init(_ virtualMachine: VZVirtualMachine, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) {
 		let securityConfiguration = Dynamic._VZVNCAuthenticationSecurityConfiguration(password: password)

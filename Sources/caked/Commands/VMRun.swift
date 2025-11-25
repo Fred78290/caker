@@ -17,12 +17,12 @@ struct ViewSize: Codable, Identifiable, Hashable, ExpressibleByArgument {
 	var size: CGSize {
 		.init(width: CGFloat(width), height: CGFloat(height))
 	}
-	
+
 	init(width: Int, height: Int) {
 		self.width = width
 		self.height = height
 	}
-	
+
 	init(argument: String) {
 		let parts = argument.components(separatedBy: "x").map {
 			Int($0) ?? 0
@@ -110,7 +110,7 @@ struct VMRun: AsyncParsableCommand {
 		if let console = config.console {
 			try console.validate()
 		}
-		
+
 		if self.launchedFromService {
 			self.display = .vnc
 		}

@@ -23,75 +23,75 @@ struct GlassEffectHelper<S: Shape>: ViewModifier {
 		self.shape = shape
 	}
 
-#if compiler(>=6.2)
-	@available(macOS 26.0, *)
-	private var glassEffect: Glass {
-		guard self.appearsActive else { return .identity }
-		
-		func applyEffect(_ glass: Glass, _ color: Color?, _ interactive: Bool?) -> Glass {
-			var glass = glass
-			
-			if let color = color {
-				glass = glass.tint(color)
-			}
-			
-			if let interactive = interactive {
-				glass = glass.interactive(interactive)
+	#if compiler(>=6.2)
+		@available(macOS 26.0, *)
+		private var glassEffect: Glass {
+			guard self.appearsActive else { return .identity }
+
+			func applyEffect(_ glass: Glass, _ color: Color?, _ interactive: Bool?) -> Glass {
+				var glass = glass
+
+				if let color = color {
+					glass = glass.tint(color)
+				}
+
+				if let interactive = interactive {
+					glass = glass.interactive(interactive)
+				}
+
+				return glass
 			}
 
-			return glass
+			switch self.effect {
+			case .regular(let color, let interactive):
+				return applyEffect(Glass.regular, color, interactive)
+			case .clear(let color, let interactive):
+				return applyEffect(Glass.clear, color, interactive)
+			case .identity(let color, let interactive):
+				return applyEffect(Glass.identity, color, interactive)
+			}
 		}
-
-		switch self.effect {
-		case let .regular(color, interactive):
-			return applyEffect(Glass.regular, color, interactive)
-		case let .clear(color, interactive):
-			return applyEffect(Glass.clear, color, interactive)
-		case let .identity(color, interactive):
-			return applyEffect(Glass.identity, color, interactive)
-		}
-	}
-#endif
+	#endif
 
 	func body(content: Content) -> some View {
-#if compiler(>=6.2)
-		if #available(macOS 26.0, *) {
-			GlassEffectContainer {
-				content.glassEffect(self.glassEffect, in: shape)
+		#if compiler(>=6.2)
+			if #available(macOS 26.0, *) {
+				GlassEffectContainer {
+					content.glassEffect(self.glassEffect, in: shape)
+				}
+			} else {
+				content
 			}
-		} else {
+		#else
 			content
-		}
-#else
-		content
-#endif
+		#endif
 	}
 }
 
 private func defaultShape() -> some Shape {
-#if compiler(>=6.2)
-	if #available(macOS 26.0, *) {
-		return DefaultGlassEffectShape()
-	} else {
-		return Capsule()
-	}
-#else
-	Rectangle()
-#endif
+	#if compiler(>=6.2)
+		if #available(macOS 26.0, *) {
+			return DefaultGlassEffectShape()
+		} else {
+			return Capsule()
+		}
+	#else
+		Rectangle()
+	#endif
 }
 
 extension View {
-#if compiler(>=6.2)
-	func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
-		if #available(macOS 26.0, *) {
-			return modifier(GlassEffectHelper(effect, in: shape))
-		} else {
-			return self
+	#if compiler(>=6.2)
+		func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
+			if #available(macOS 26.0, *) {
+				return modifier(GlassEffectHelper(effect, in: shape))
+			} else {
+				return self
+			}
 		}
-	}
-#else
-	func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
-		modifier(GlassEffectHelper(effect, in: shape))
-	}
+	#else
+		func withGlassEffect(_ effect: GlassEffect = .regular(nil, nil), in shape: some Shape = defaultShape()) -> some View {
+			modifier(GlassEffectHelper(effect, in: shape))
+		}
 	#endif
 }

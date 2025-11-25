@@ -7,13 +7,13 @@ public struct RenameHandler {
 		do {
 			let storage = StorageLocation(runMode: runMode)
 			let location = try storage.find(oldname)
-			
+
 			if location.status == .running {
 				return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM is running")
 			}
-			
+
 			try storage.relocate(newname, from: location)
-			
+
 			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM renamed")
 		} catch {
 			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "\(error)")

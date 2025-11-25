@@ -161,7 +161,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		} else {
 			self.suspendable = nil
 		}
-		
+
 		if request.hasScreenSize {
 			self.screenSize = VMScreenSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
 		} else {

@@ -1,3 +1,4 @@
+import ArgumentParser
 //
 //  ViewSize.swift
 //  Caker
@@ -5,7 +6,6 @@
 //  Created by Frederic BOLTZ on 12/10/2025.
 //
 import Foundation
-import ArgumentParser
 
 public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringConvertible, Hashable, Sendable {
 	public static let standard = VMScreenSize(width: 1024, height: 768)
@@ -22,7 +22,7 @@ public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringCon
 	public var description: String {
 		"\(width)x\(height)"
 	}
-	
+
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)
@@ -30,7 +30,7 @@ public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringCon
 			return nil
 		}
 	}
-	
+
 	public init?(parseFrom: String) throws {
 		let components = parseFrom.split(separator: "x")
 

@@ -17,7 +17,7 @@ struct RunHandler: CakedCommandAsync {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		on.makeFutureWithTask {
 			let reply = try await CakedLib.RunHandler.run(

@@ -253,7 +253,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		// Try to connect to the socket device, if the connection is successful, start nio pipe
 		socketDevice.connect(toPort: UInt32(port)) { result in
 			switch result {
-			case let .success(connection):
+			case .success(let connection):
 
 				guard let socket = self.sockets[port] else {
 					promise.fail(ServiceError("Socket device not found on port:\(port)"))
@@ -299,7 +299,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					// Notify the promise that the connection is failed
 					promise.fail(error)
 				}
-			case let .failure(error):
+			case .failure(let error):
 				if error.isLoggable {
 					Logger(self).error("Failed to connect to socket device on port:\(port), \(error)")
 				}
@@ -390,10 +390,10 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 					channel.whenComplete { result in
 						self.queue.sync {
 							switch result {
-							case let .success(channel):
+							case .success(let channel):
 								self.channels.append(channel)
 								Logger(self).debug("Socket device connected on \(socket.description)")
-							case let .failure(error):
+							case .failure(let error):
 								Logger(self).error("Failed to connect socket device on \(socket.description), \(error)")
 								Foundation.exit(1)
 							}

@@ -1,10 +1,10 @@
+import ArgumentParser
 import CakeAgentLib
 import Foundation
 import GRPC
 import GRPCLib
 import NIO
 import Virtualization
-import ArgumentParser
 
 public protocol VMRunServiceClient {
 	var location: VMLocation { get }
@@ -23,15 +23,15 @@ extension VMRunServiceClient {
 
 		if valided.isEmpty == false {
 			var directorySharingAttachments = config.mounts
-			
+
 			valided.forEach { mount in
 				directorySharingAttachments.removeAll { $0.name == mount.name }
 				directorySharingAttachments.append(mount)
 			}
-			
+
 			config.mounts = directorySharingAttachments
 			try config.save()
-			
+
 			if location.status == .running {
 				return try self.share(mounts: valided)
 			} else {
@@ -51,17 +51,17 @@ extension VMRunServiceClient {
 	func umount(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		let config: CakeConfig = try location.config()
 		let valided = config.validAttachements(mounts)
-		
+
 		if valided.isEmpty == false {
 			var directorySharingAttachments = config.mounts
-			
+
 			valided.forEach { mount in
 				directorySharingAttachments.removeAll { $0.name == mount.name }
 			}
-			
+
 			config.mounts = directorySharingAttachments
 			try config.save()
-			
+
 			if location.status == .running {
 				return try self.unshare(mounts: valided)
 			} else {
@@ -88,7 +88,7 @@ public enum VMRunServiceMode: String, CustomStringConvertible, ExpressibleByArgu
 	public var description: String {
 		return self.rawValue
 	}
-	
+
 	case grpc
 	case xpc
 }
@@ -99,11 +99,11 @@ class VMRunService: NSObject {
 	let vm: VirtualMachine
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
-	
+
 	var vncURL: URL? {
 		return vm.vncURL
 	}
-	
+
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, logger: Logger) {
 		self.vm = vm
 		self.runMode = runMode
@@ -111,7 +111,7 @@ class VMRunService: NSObject {
 		self.certLocation = certLocation
 		self.logger = logger
 	}
-	
+
 	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
 		return try CakeAgentHelper(
 			on: self.group.next(),
@@ -122,7 +122,7 @@ class VMRunService: NSObject {
 			tlsKey: self.certLocation.clientKeyURL.path,
 			retries: retries)
 	}
-	
+
 	func mount(request: Caked.MountRequest, umount: Bool) -> Caked_MountReply {
 		guard request.mounts.isEmpty == false else {
 			return Caked_MountReply.with {
@@ -131,7 +131,7 @@ class VMRunService: NSObject {
 				$0.reason = "No mounts specified"
 			}
 		}
-		
+
 		do {
 			let config: CakeConfig = try vm.location.config()
 
@@ -156,7 +156,7 @@ class VMRunService: NSObject {
 					}
 				}
 			}
-			
+
 			let reply: CakeAgent.MountReply
 			let conn = try self.createCakeAgentConnection()
 			let request = CakeAgent.MountRequest.with {
@@ -165,15 +165,15 @@ class VMRunService: NSObject {
 						if mount.hasName {
 							$0.name = mount.name
 						}
-						
+
 						if mount.hasTarget {
 							$0.target = mount.target
 						}
-						
+
 						if mount.hasUid {
 							$0.uid = mount.uid
 						}
-						
+
 						if mount.hasGid {
 							$0.gid = mount.gid
 						}
@@ -188,7 +188,7 @@ class VMRunService: NSObject {
 			}
 
 			return Caked_MountReply.with {
-				if case let .error(value) = reply.response {
+				if case .error(let value) = reply.response {
 					$0.success = false
 					$0.reason = value
 					$0.mounts = request.mounts.map { mount in
@@ -221,15 +221,15 @@ class VMRunService: NSObject {
 			}
 		}
 	}
-	
+
 	func setScreenSize(width: Int, height: Int) {
 		vm.setScreenSize(width: width, height: height)
 	}
-	
+
 	func getScreenSize() throws -> (Int, Int) {
 		return vm.getScreenSize()
 	}
-	
+
 }
 
 public func createVMRunServiceClient(_ mode: VMRunServiceMode, location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {

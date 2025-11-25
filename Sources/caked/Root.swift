@@ -81,7 +81,7 @@ struct Root: ParsableCommand {
 				Login.self,
 				Logout.self,
 				Push.self,
-				Pull.self
+				Pull.self,
 			])
 
 	static func parse() throws -> ParsableCommand? {

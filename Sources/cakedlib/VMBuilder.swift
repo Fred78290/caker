@@ -75,8 +75,8 @@ public struct VMBuilder {
 		}
 	}
 
-#if arch(arm64)
-	private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	#if arch(arm64)
+		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
 			let vm = try IPSWInstaller(location: location, config: config, runMode: runMode, queue: queue)
 
 			try await vm.installIPSW(ipsw, progressHandler: progressHandler)
@@ -137,11 +137,11 @@ public struct VMBuilder {
 				config.macAddress = VZMACAddress.randomLocallyAdministered()
 
 				if config.os == .darwin {
-		#if arch(arm64)
-					config.ecid = VZMacMachineIdentifier()
-		#else
-					throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
-		#endif
+					#if arch(arm64)
+						config.ecid = VZMacMachineIdentifier()
+					#else
+						throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+					#endif
 				}
 			} else {
 				// Create NVRAM

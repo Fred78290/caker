@@ -46,7 +46,6 @@ public typealias Caked_StartedNetworkReply = Caked.Reply.NetworksReply.StartedNe
 public typealias Caked_StoppedNetworkReply = Caked.Reply.NetworksReply.StoppedNetworkReply
 public typealias Caked_NetworkInfoReply = Caked.Reply.NetworksReply.NetworkInfoReply
 
-
 public typealias Caked_RemoteReply = Caked.Reply.RemoteReply
 public typealias Caked_ListRemoteReply = Caked.Reply.RemoteReply.ListRemoteReply
 public typealias Caked_RemoteEntry = Caked.Reply.RemoteReply.ListRemoteReply.RemoteEntry
@@ -57,7 +56,6 @@ public typealias Caked_LoginReply = Caked.Reply.OCIReply.LoginReply
 public typealias Caked_LogoutReply = Caked.Reply.OCIReply.LogoutReply
 public typealias Caked_PushReply = Caked.Reply.OCIReply.PushReply
 public typealias Caked_PullReply = Caked.Reply.OCIReply.PullReply
-
 
 public typealias Caked_TemplateReply = Caked.Reply.TemplateReply
 public typealias Caked_CreateTemplateReply = Caked.Reply.TemplateReply.CreateTemplateReply

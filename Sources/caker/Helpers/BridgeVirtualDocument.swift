@@ -1,3 +1,4 @@
+import CakedLib
 //
 //  BridgeVirtualDocument.swift
 //  Caker
@@ -5,7 +6,6 @@
 //  Created by Frederic BOLTZ on 01/11/2025.
 //
 import SwiftUI
-import CakedLib
 import UniformTypeIdentifiers
 
 class BridgeVirtualDocument: FileDocument {
@@ -50,7 +50,7 @@ class BridgeVirtualDocument: FileDocument {
 			}
 		}
 	}
-	
+
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
 		throw ServiceError("Unimplemented")
 	}

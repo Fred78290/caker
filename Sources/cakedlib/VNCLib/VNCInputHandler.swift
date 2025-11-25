@@ -1,6 +1,6 @@
-import Foundation
 import AppKit
 import Carbon
+import Foundation
 
 extension NSView {
 	func postMouseEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
@@ -16,7 +16,7 @@ extension NSView {
 			pressure: type.rawValue >= NSEvent.EventType.leftMouseDown.rawValue && type.rawValue <= NSEvent.EventType.otherMouseDragged.rawValue ? 1.0 : 0.0
 		)
 	}
-	
+
 	func postScrollEvent(deltaY: CGFloat, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
 		return NSEvent.mouseEvent(
 			with: NSEvent.EventType.scrollWheel,
@@ -46,43 +46,43 @@ public class VNCInputHandler {
 		case down = 2
 	}
 
-    private weak var targetView: NSView!
-    private var mouseButtonState: UInt8 = 0
+	private weak var targetView: NSView!
+	private var mouseButtonState: UInt8 = 0
 	private var isDragging: Bool = false
-    private var lastMousePosition = NSPoint.zero
-    private let keyMapper = VNCKeyMapper()
+	private var lastMousePosition = NSPoint.zero
+	private let keyMapper = VNCKeyMapper()
 	private var keyCode: UInt16 = 0
 	private var modifiers: NSEvent.ModifierFlags = []
 	private var characters: String = ""
-	
-    // MARK: - First Responder
+
+	// MARK: - First Responder
 	@discardableResult
-    private func ensureFirstResponder() -> Bool {
-        guard let view = targetView else { return false }
-        // If the view is not already first responder, ask the window to make it so
-        if view.window?.firstResponder !== view {
-            return view.window?.makeFirstResponder(view) ?? false
-        }
+	private func ensureFirstResponder() -> Bool {
+		guard let view = targetView else { return false }
+		// If the view is not already first responder, ask the window to make it so
+		if view.window?.firstResponder !== view {
+			return view.window?.makeFirstResponder(view) ?? false
+		}
 
 		return false
 	}
-	
-    init(targetView: NSView?) {
-        self.targetView = targetView
-    }
-    
-    // MARK: - Mouse Events
-    
-    func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
+
+	init(targetView: NSView?) {
+		self.targetView = targetView
+	}
+
+	// MARK: - Mouse Events
+
+	func handlePointerEvent(x: Int, y: Int, buttonMask: UInt8) {
 		guard let view = targetView else {
 			return
 		}
-        // Ensure the view is first responder when pointer interaction begins
-        ensureFirstResponder()
-        
-        // Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
-        let viewBounds = view.bounds
-        let nsPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
+		// Ensure the view is first responder when pointer interaction begins
+		ensureFirstResponder()
+
+		// Convert VNC coordinates (origin top-left) to NSView (origin bottom-left)
+		let viewBounds = view.bounds
+		let nsPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
 		let moved = nsPoint != lastMousePosition
 
 		lastMousePosition = nsPoint
@@ -94,8 +94,8 @@ public class VNCInputHandler {
 				handleMouseMovement(view, to: nsPoint)
 			}
 		}
-    }
-    
+	}
+
 	private func prevDispatchEvent(_ event: NSEvent?, view: NSView, currentButton: CurrentButton, buttonState: ButtonState, moved: Bool) {
 		if let event = event {
 			if ensureFirstResponder() {
@@ -106,7 +106,7 @@ public class VNCInputHandler {
 				if buttonState == .down {
 					if isDragging == false {
 						switch currentButton {
-						case .leftButton, .rightButton,.middleButton:
+						case .leftButton, .rightButton, .middleButton:
 							isDragging = true
 							view.mouseEntered(with: event)
 						case .none:
@@ -131,7 +131,7 @@ public class VNCInputHandler {
 						isDragging = false
 
 						switch currentButton {
-						case .leftButton, .rightButton,.middleButton:
+						case .leftButton, .rightButton, .middleButton:
 							view.mouseExited(with: event)
 						case .none:
 							view.mouseMoved(with: event)
@@ -195,21 +195,21 @@ public class VNCInputHandler {
 				case .mouseExited:
 					isDragging = false
 					view.mouseExited(with: event)
-					
+
 				case .leftMouseDragged:
 					view.mouseDragged(with: event)
 				case .rightMouseDragged:
 					view.rightMouseDragged(with: event)
 				case .otherMouseDragged:
 					view.otherMouseDragged(with: event)
-					
+
 				case .leftMouseDown:
 					view.mouseDown(with: event)
 				case .rightMouseDown:
 					view.rightMouseDown(with: event)
 				case .otherMouseDown:
 					view.otherMouseDown(with: event)
-					
+
 				case .leftMouseUp:
 					view.mouseUp(with: event)
 				case .rightMouseUp:
@@ -227,7 +227,7 @@ public class VNCInputHandler {
 		var buttonEvent = false
 
 		mouseButtonState = buttonMask
-		
+
 		// Left button (bit 0)
 		if (buttonMask & 0x01) != (previousState & 0x01) {
 			buttonEvent = true
@@ -265,7 +265,7 @@ public class VNCInputHandler {
 				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
 			}
 		}
-		
+
 		// Middle button (bit 1)
 		if (buttonMask & 0x02) != (previousState & 0x02) {
 			buttonEvent = true
@@ -286,60 +286,59 @@ public class VNCInputHandler {
 		}
 
 		// Scroll wheel (bits 3 and 4)
-		if (buttonMask & 0x08) != 0 { // Scroll up
+		if (buttonMask & 0x08) != 0 {  // Scroll up
 			dispatchEvent(view.postScrollEvent(deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
-		if (buttonMask & 0x10) != 0 { // Scroll down
+		if (buttonMask & 0x10) != 0 {  // Scroll down
 			dispatchEvent(view.postScrollEvent(deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		return buttonEvent
 	}
-    
+
 	private func handleMouseMovement(_ view: NSView, to viewPoint: NSPoint) {
 		if let event = view.postMouseEvent(type: .mouseMoved, at: viewPoint, modifierFlags: self.modifiers) {
 			view.mouseMoved(with: event)
 		}
-    }
+	}
 
-    // MARK: - Keyboard Events
-    
-    func handleKeyEvent(key: UInt32, isDown: Bool) {
-        guard let view = targetView else { return }
-        // Ensure the view is first responder before delivering key events
-        ensureFirstResponder()
-        
+	// MARK: - Keyboard Events
+
+	func handleKeyEvent(key: UInt32, isDown: Bool) {
+		guard let view = targetView else { return }
+		// Ensure the view is first responder before delivering key events
+		ensureFirstResponder()
+
 		(self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key)
 
-        let event = NSEvent.keyEvent(
-            with: isDown ? .keyDown : .keyUp,
-            location: NSPoint.zero,
-            modifierFlags: modifiers,
-            timestamp: ProcessInfo.processInfo.systemUptime,
+		let event = NSEvent.keyEvent(
+			with: isDown ? .keyDown : .keyUp,
+			location: NSPoint.zero,
+			modifierFlags: modifiers,
+			timestamp: ProcessInfo.processInfo.systemUptime,
 			windowNumber: view.window?.windowNumber ?? 0,
-            context: nil,
-            characters: characters,
-            charactersIgnoringModifiers: characters,
-            isARepeat: false,
-            keyCode: keyCode
-        )
-		
-        if let event = event {
+			context: nil,
+			characters: characters,
+			charactersIgnoringModifiers: characters,
+			isARepeat: false,
+			keyCode: keyCode
+		)
+
+		if let event = event {
 			if isDown {
 				view.keyUp(with: event)
 			} else {
 				view.keyDown(with: event)
 			}
-        }
-    }
-    
-    // MARK: - Clipboard
-    
-    func handleClipboardText(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-    }
-}
+		}
+	}
 
+	// MARK: - Clipboard
+
+	func handleClipboardText(_ text: String) {
+		let pasteboard = NSPasteboard.general
+		pasteboard.clearContents()
+		pasteboard.setString(text, forType: .string)
+	}
+}

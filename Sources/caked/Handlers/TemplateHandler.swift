@@ -63,7 +63,7 @@ struct TemplateHandler: CakedCommand {
 		case .list:
 			reply = Caked_TemplateReply.with {
 				$0.list = CakedLib.TemplateHandler.listTemplate(runMode: runMode).caked
-		 }
+			}
 
 		default:
 			fatalError("Unknown command \(request.command)")

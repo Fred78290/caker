@@ -93,10 +93,10 @@ extension Cakeagent_CakeAgent.InfoReply {
 			$0.osname = self.osname
 			$0.release = self.release
 			$0.diskInfos = self.diskInfos.map(\.caked)
-			
+
 			if self.hasCpu {
 				let cpu = self.cpu
-				
+
 				$0.cpu = cpu.caked
 			}
 
@@ -108,7 +108,7 @@ extension Cakeagent_CakeAgent.InfoReply {
 					memory.used = mem.used
 				}
 			}
-			
+
 			$0.success = true
 			$0.reason = "Success"
 		}

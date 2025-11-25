@@ -65,11 +65,11 @@ extension Service {
 					if FileManager.default.fileExists(atPath: caCert) == false {
 						throw ServiceError("Root certificate file not found: \(caCert)")
 					}
-					
+
 					if FileManager.default.fileExists(atPath: tlsCert) == false {
 						throw ServiceError("TLS certificate file not found: \(tlsCert)")
 					}
-					
+
 					if FileManager.default.fileExists(atPath: tlsKey) == false {
 						throw ServiceError("TLS key file not found: \(tlsKey)")
 					}
@@ -136,7 +136,7 @@ extension Service {
 
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.options.runMode
-			
+
 			Logger.setLevel(self.logLevel)
 
 			if self.secure {
@@ -235,7 +235,7 @@ extension Service {
 				try ServiceHandler.findMe(),
 				"service",
 				"listen",
-				"--log-level=\(self.options.logLevel.rawValue)"
+				"--log-level=\(self.options.logLevel.rawValue)",
 			]
 
 			listenAddress.forEach {

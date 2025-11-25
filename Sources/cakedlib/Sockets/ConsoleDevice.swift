@@ -53,10 +53,10 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 		// When the bind is complete, set the channel
 		binder.whenComplete { result in
 			switch result {
-			case let .success(channel):
+			case .success(let channel):
 				self.setChannel(channel)
 				Logger(self).info("Console listening on \(consoleURL.absoluteString)")
-			case let .failure(error):
+			case .failure(let error):
 				Logger(self).info("Failed to bind console on \(consoleURL.absoluteString), \(error)")
 			}
 		}
@@ -128,7 +128,7 @@ final class ConsoleDevice: CatchRemoteCloseDelegate {
 				switch result {
 				case .success:
 					Logger(self).info("Console closed \(consoleURL.absoluteString)")
-				case let .failure(error):
+				case .failure(let error):
 					Logger(self).info("Failed to close console \(consoleURL.absoluteString), \(error)")
 				}
 			}

@@ -1,11 +1,11 @@
+import ArgumentParser
 import Cocoa
 import Foundation
 import GRPCLib
 import Logging
+import NIO
 import System
 import Virtualization
-import ArgumentParser
-import NIO
 
 public struct VMRunHandler {
 	public static var launchedFromService = false
@@ -19,7 +19,7 @@ public struct VMRunHandler {
 			case .vnc: return "vnc"
 			}
 		}
-		
+
 		case none
 		case ui
 		case vnc

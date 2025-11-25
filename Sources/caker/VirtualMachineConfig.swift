@@ -5,12 +5,12 @@
 //  Created by Frederic BOLTZ on 27/06/2025.
 //
 
+import ArgumentParser
 import CakedLib
 import Foundation
 import GRPCLib
 import SwiftUI
 import Virtualization
-import ArgumentParser
 
 struct VirtualMachineConfig: Hashable {
 	var os: VirtualizedOS = .linux
@@ -184,9 +184,9 @@ struct VirtualMachineConfig: Hashable {
 				var ipswQueue: DispatchQueue!
 
 				#if arch(arm64)
-				if imageSource == .ipsw {
-					ipswQueue = DispatchQueue(label: "IPSWQueue")
-				}
+					if imageSource == .ipsw {
+						ipswQueue = DispatchQueue(label: "IPSWQueue")
+					}
 				#endif
 
 				let build = await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in

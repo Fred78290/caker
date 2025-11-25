@@ -73,12 +73,12 @@ struct ForwardedPortDetailView: View {
 			let hostStyle = RangeIntegerStyle.guestPortRange
 			let guestStyle = RangeIntegerStyle.guestPortRange
 
-			if case let .forward(forward) = item.wrappedValue.oneOf {
+			if case .forward(let forward) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.portForwarding
 				self.selectedProtocol = .init(forward.proto)
 				self.hostPort = TextFieldStore(value: forward.host, type: .int, maxLength: 5, allowNegative: false, formatter: hostStyle)
 				self.guestPort = TextFieldStore(value: forward.guest, type: .int, maxLength: 5, allowNegative: false, formatter: guestStyle)
-			} else if case let .unixDomain(unixDomain) = item.wrappedValue.oneOf {
+			} else if case .unixDomain(let unixDomain) = item.wrappedValue.oneOf {
 				self.mode = ForwardMode.unixDomainSocket
 				self.selectedProtocol = .init(unixDomain.proto)
 				self.hostPath = unixDomain.host

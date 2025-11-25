@@ -93,13 +93,13 @@ public struct ImageHandler {
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let images = try await simpleStream.GetImages(runMode: runMode)
 			var result: [ImageInfo] = []
-			
+
 			images.forEach { product in
 				if let image = product.latest() {
 					result.append(ImageInfo(product: product, imageVersion: image.1))
 				}
 			}
-			
+
 			return ListImagesInfoReply(infos: result, success: true, reason: "Success")
 		} catch {
 			return ListImagesInfoReply(infos: [], success: false, reason: "\(error)")
@@ -113,7 +113,7 @@ public struct ImageHandler {
 			let imageAlias = split.count > 1 ? split[1] : split[0]
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let product = try await simpleStream.GetImage(alias: imageAlias, runMode: runMode)
-			
+
 			return ImageInfoReply(info: try ImageInfo(product: product), success: true, reason: "Success")
 		} catch {
 			return ImageInfoReply(info: .init(), success: false, reason: "\(error)")
@@ -127,9 +127,9 @@ public struct ImageHandler {
 			let imageAlias = split.count > 1 ? split[1] : split[0]
 			let simpleStream: SimpleStreamProtocol = try await getSimpleStreamProtocol(remote: remote, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: imageAlias, runMode: runMode)
-			
+
 			try await image.pullSimpleStreamImageAndConvert(runMode: runMode, progressHandler: ProgressObserver.progressHandler)
-			
+
 			return PulledImageInfoReply(info: image, success: true, reason: "Success")
 		} catch {
 			return PulledImageInfoReply(info: LinuxContainerImage(), success: false, reason: "\(error)")

@@ -9,10 +9,10 @@ import SwiftUI
 
 struct ColorSchemeModifier: ViewModifier {
 	@Environment(\.colorScheme) var colorScheme
-	
+
 	init() {
 	}
-	
+
 	func body(content: Content) -> some View {
 		content.onChange(of: self.colorScheme) { _, newValue in
 			Color.colorScheme = newValue

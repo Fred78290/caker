@@ -1,3 +1,4 @@
+import Containerization
 //
 //  PurgeableContentStore.swift
 //  Caker
@@ -5,7 +6,6 @@
 //  Created by Frederic BOLTZ on 16/11/2025.
 //
 import Foundation
-import Containerization
 import GRPCLib
 import NIO
 
@@ -35,18 +35,18 @@ public class PurgeableContentStore: PurgeableStorage {
 			let future = self.on.makeFutureWithTask {
 				try await imageStore.delete(reference: self.name)
 			}
-			
+
 			try future.wait()
 		}
-		
+
 		func accessDate() throws -> Date {
 			try self.url.accessDate()
 		}
-		
+
 		func sizeBytes() throws -> Int {
 			Int(totalSize)
 		}
-		
+
 		func allocatedSizeBytes() throws -> Int {
 			Int(totalSize)
 		}
@@ -59,11 +59,11 @@ public class PurgeableContentStore: PurgeableStorage {
 	func type() -> String {
 		"oci"
 	}
-	
+
 	func fqn(_ purgeable: any Purgeable) -> [String] {
 		return ["oci://\(purgeable.name)"]
 	}
-	
+
 	func purgeables() throws -> [any Purgeable] {
 		let on = Utilities.group.next()
 
@@ -75,7 +75,7 @@ public class PurgeableContentStore: PurgeableStorage {
 			let totalSize = try on.makeFutureWithTask {
 				return try await image.totalSize()
 			}.wait()
-			
+
 			return PurgeableImage(on: on, imageStore: self.imageStore, image: image, totalSize: totalSize)
 		}
 	}

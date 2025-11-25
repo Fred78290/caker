@@ -47,7 +47,7 @@ struct StartHandler: CakedCommand {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {

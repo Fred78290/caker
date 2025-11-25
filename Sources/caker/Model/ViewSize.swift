@@ -9,9 +9,9 @@ import Foundation
 import SwiftUI
 
 final class ViewSize: ObservableObject, Observable, Equatable, Codable {
-	@Published var width : CGFloat = 0
-	@Published var height : CGFloat = 0
-	
+	@Published var width: CGFloat = 0
+	@Published var height: CGFloat = 0
+
 	static let zero: ViewSize = .init(width: 0, height: 0)
 	static let standard: ViewSize = .init(width: 1280, height: 720)
 
@@ -19,7 +19,7 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 		case width
 		case height
 	}
-	
+
 	public var cgSize: CGSize {
 		get {
 			return .init(width: width, height: height)
@@ -33,37 +33,36 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 	var description: String {
 		return "(\(width), \(height))"
 	}
-	
+
 	init(width: CGFloat, height: CGFloat) {
 		self.width = width
 		self.height = height
 	}
-	
-	
+
 	init(size: CGSize) {
 		self.width = size.width
 		self.height = size.height
 	}
-	
+
 	init(from decoder: Decoder) throws {
 		let container: KeyedDecodingContainer<ViewSize.CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
 
 		self.width = try container.decode(CGFloat.self, forKey: .width)
 		self.height = try container.decode(CGFloat.self, forKey: .height)
 	}
-	
+
 	func encode(to encoder: Encoder) throws {
 		var container: KeyedEncodingContainer<CodingKeys> = encoder.container(keyedBy: CodingKeys.self)
 
 		try container.encode(self.width, forKey: .width)
 		try container.encode(self.height, forKey: .height)
 	}
-	
+
 	func toJSON() throws -> Data {
 		let encoder = JSONEncoder()
 
 		encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-		
+
 		return try encoder.encode(self)
 	}
 

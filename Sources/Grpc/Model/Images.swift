@@ -264,19 +264,19 @@ public struct ImageInfoReply: Codable {
 	public let info: ImageInfo
 	public let success: Bool
 	public let reason: String
-	
+
 	public init(info: ImageInfo, success: Bool, reason: String) {
 		self.info = info
 		self.success = success
 		self.reason = reason
 	}
-	
+
 	public init(from: Caked_ImageInfoReply) {
 		self.info = .init(from: from.info)
 		self.success = from.success
 		self.reason = from.reason
 	}
-	
+
 	public var caked: Caked_ImageInfoReply {
 		.with {
 			$0.success = self.success
@@ -290,21 +290,21 @@ public struct ListImagesInfoReply: Codable {
 	public let infos: [ImageInfo]
 	public let success: Bool
 	public let reason: String
-	
+
 	public init(infos: [ImageInfo], success: Bool, reason: String) {
 		self.infos = infos
 		self.success = success
 		self.reason = reason
 	}
-	
+
 	public init(from: Caked_ListImagesInfoReply) {
 		self.success = from.success
 		self.reason = from.reason
-		self.infos = from.infos.map{
+		self.infos = from.infos.map {
 			ImageInfo(from: $0)
 		}
 	}
-	
+
 	public var caked: Caked_ListImagesInfoReply {
 		.with {
 			$0.infos = self.infos.map(\.caked)
@@ -318,7 +318,7 @@ public struct PulledImageInfoReply: Codable {
 	public let info: LinuxContainerImage
 	public let success: Bool
 	public let reason: String
-	
+
 	public init(info: LinuxContainerImage, success: Bool, reason: String) {
 		self.info = info
 		self.success = success
@@ -330,7 +330,7 @@ public struct PulledImageInfoReply: Codable {
 		self.success = from.success
 		self.reason = from.reason
 	}
-	
+
 	public var cached: Caked_PulledImageInfoReply {
 		.with {
 			$0.success = self.success
@@ -338,7 +338,7 @@ public struct PulledImageInfoReply: Codable {
 			$0.info = self.info.caked
 		}
 	}
-	
+
 	public var caked: Caked_PulledImageInfoReply {
 		.with {
 			$0.success = self.success

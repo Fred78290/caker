@@ -18,7 +18,7 @@ struct MountHandler: CakedCommandAsync {
 			}
 		}
 	}
-	
+
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		let handler = self
 

@@ -1,11 +1,11 @@
 import ArgumentParser
+import Dynamic
 import Foundation
 import NIOPortForwarding
+import ObjectiveC
 import Security
 import System
 import Virtualization
-import ObjectiveC
-import Dynamic
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -342,23 +342,23 @@ extension String {
 extension URL {
 	public func socketPath(name: String) -> URL {
 		let socketPath = self.appendingPathComponent("\(name).sock", isDirectory: false).absoluteURL
-		
+
 		if socketPath.path.utf8.count < 103 {
 			return URL(string: "unix://\(socketPath.path)")!
 		} else {
 			return URL(string: "unix:///tmp/\(name)-\(self.lastPathComponent).sock")!
 		}
 	}
-	
+
 	public func fileSize() throws -> UInt64 {
 		guard self.isFileURL else {
 			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.badAddress.rawValue), userInfo: ["description": "not a file url"])
 		}
 		let attrs = try FileManager.default.attributesOfItem(atPath: self.absoluteURL.path(percentEncoded: false))
-		
+
 		return (attrs[.size] as? NSNumber)?.uint64Value ?? 0
 	}
-	
+
 	public func fileReference() -> String? {
 		guard self.isFileURL else {
 			return nil
@@ -376,12 +376,11 @@ extension FileWrapper {
 		guard let field = class_getInstanceVariable(FileWrapper.self, "_contentsURL") else {
 			return nil
 		}
-		
+
 		guard let value = object_getIvar(self, field) as? NSURL else {
 			return nil
 		}
-		
-		
+
 		return value
 	}
 }

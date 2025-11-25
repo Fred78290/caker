@@ -221,7 +221,7 @@ struct Client: AsyncParsableCommand {
 			Login.self,
 			Logout.self,
 			Pull.self,
-			Push.self
+			Push.self,
 		])
 
 	static func createClient(

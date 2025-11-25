@@ -3,9 +3,9 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
+import Socket
 import System
 import Virtualization
-import Socket
 
 public enum Architecture: String, Codable, CustomStringConvertible {
 	public var description: String {
@@ -340,7 +340,7 @@ extension URL: Purgeable {
 			guard let totalFileSize = try self.resourceValues(forKeys: [.totalFileSizeKey]).totalFileSize else {
 				return 0
 			}
-			
+
 			return totalFileSize
 		} else {
 			throw ServiceError("Not a file URL: \(self.absoluteString)")
@@ -362,7 +362,7 @@ extension URL: Purgeable {
 			guard let totalFileAllocatedSize = try self.resourceValues(forKeys: [.totalFileAllocatedSizeKey]).totalFileAllocatedSize else {
 				return 0
 			}
-			
+
 			return totalFileAllocatedSize
 		} else {
 			throw ServiceError("Not a file URL: \(self.absoluteString)")
@@ -433,7 +433,7 @@ extension DirectorySharingAttachments {
 extension Socket {
 	static func create(host: String, port: Int) throws -> Socket {
 		let signature = try Socket.Signature(protocolFamily: .inet, socketType: .stream, proto: .tcp, hostname: "localhost", port: Int32(port))!
-		
+
 		return try Socket.create(connectedUsing: signature)
 	}
 }
@@ -441,7 +441,7 @@ extension Socket {
 public struct Utilities {
 	public static let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 	public static let keychainID = "com.aldunelabs.caker"
-	
+
 	public static func cakeagentBinary(os: VirtualizedOS, runMode: Utils.RunMode, observer: ProgressObserver? = nil) async throws -> URL {
 		let arch = Architecture.current().rawValue
 		let os = os.rawValue
@@ -474,7 +474,7 @@ public struct Utilities {
 		)
 	}
 
-	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool{
+	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool {
 		let start = Date()
 
 		while Date().timeIntervalSince(start) < timeout {
@@ -520,11 +520,13 @@ public struct Utilities {
 
 		var len = socklen_t(MemoryLayout<sockaddr_in>.size)
 
-		getsockname(socketFD, withUnsafeMutablePointer(to: &addr) {
-			$0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-				UnsafeMutablePointer($0)
-			}
-		}, &len)
+		getsockname(
+			socketFD,
+			withUnsafeMutablePointer(to: &addr) {
+				$0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+					UnsafeMutablePointer($0)
+				}
+			}, &len)
 
 		return Int(UInt16(bigEndian: addr.sin_port))
 	}
@@ -542,42 +544,42 @@ public struct Utilities {
 		return environment
 	}
 
-    // MARK: - Async helpers
-    /// Load raw Data from a URL. If the URL is a file URL, it uses async file IO; otherwise it performs a network request.
-    @discardableResult
-    public static func loadData(from url: URL, timeout: TimeInterval = 60) async throws -> Data {
-        if url.isFileURL {
-            // Async file read on a background thread
-            return try await withCheckedThrowingContinuation { continuation in
-                DispatchQueue.global(qos: .utility).async {
-                    do {
-                        let data = try Data(contentsOf: url)
-                        continuation.resume(returning: data)
-                    } catch {
-                        continuation.resume(throwing: error)
-                    }
-                }
-            }
-        } else {
-            var request = URLRequest(url: url)
-            request.timeoutInterval = timeout
-            let (data, response) = try await URLSession.shared.data(for: request)
-            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-                throw ServiceError("HTTP error: \(http.statusCode) for URL: \(url.absoluteString)")
-            }
-            return data
-        }
-    }
+	// MARK: - Async helpers
+	/// Load raw Data from a URL. If the URL is a file URL, it uses async file IO; otherwise it performs a network request.
+	@discardableResult
+	public static func loadData(from url: URL, timeout: TimeInterval = 60) async throws -> Data {
+		if url.isFileURL {
+			// Async file read on a background thread
+			return try await withCheckedThrowingContinuation { continuation in
+				DispatchQueue.global(qos: .utility).async {
+					do {
+						let data = try Data(contentsOf: url)
+						continuation.resume(returning: data)
+					} catch {
+						continuation.resume(throwing: error)
+					}
+				}
+			}
+		} else {
+			var request = URLRequest(url: url)
+			request.timeoutInterval = timeout
+			let (data, response) = try await URLSession.shared.data(for: request)
+			if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+				throw ServiceError("HTTP error: \(http.statusCode) for URL: \(url.absoluteString)")
+			}
+			return data
+		}
+	}
 
-    /// Decode JSON from a URL into a Decodable type using `loadData(from:)`.
-    public static func loadJSON<T: Decodable>(from url: URL, as type: T.Type = T.self, decoder: JSONDecoder = JSONDecoder()) async throws -> T {
-        let data = try await loadData(from: url)
-        do {
-            return try decoder.decode(T.self, from: data)
-        } catch {
-            throw ServiceError("JSON decode failed for URL: \(url.absoluteString) with error: \(error)")
-        }
-    }
+	/// Decode JSON from a URL into a Decodable type using `loadData(from:)`.
+	public static func loadJSON<T: Decodable>(from url: URL, as type: T.Type = T.self, decoder: JSONDecoder = JSONDecoder()) async throws -> T {
+		let data = try await loadData(from: url)
+		do {
+			return try decoder.decode(T.self, from: data)
+		} catch {
+			throw ServiceError("JSON decode failed for URL: \(url.absoluteString) with error: \(error)")
+		}
+	}
 }
 
 extension Thread {
@@ -585,4 +587,3 @@ extension Thread {
 		Thread.current
 	}
 }
-

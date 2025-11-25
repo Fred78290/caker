@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-public extension Color {
-	static var toolbarForegroundColor: Color {
+extension Color {
+	public static var toolbarForegroundColor: Color {
 		switch colorScheme {
 		case .dark:
 			return Color(fromHex: "9d9b9aFF")!
@@ -17,7 +17,7 @@ public extension Color {
 		}
 	}
 
-	static var toolbarPressedColor: Color {
+	public static var toolbarPressedColor: Color {
 		switch colorScheme {
 		case .dark:
 			return Color(fromHex: "eeeeeeff")!
@@ -26,7 +26,7 @@ public extension Color {
 		}
 	}
 
-	static var toolbarFillColor: Color {
+	public static var toolbarFillColor: Color {
 		switch colorScheme {
 		case .dark:
 			return Color(fromHex: "494543FF")!
@@ -35,4 +35,3 @@ public extension Color {
 		}
 	}
 }
-

@@ -1,10 +1,10 @@
 import ArgumentParser
+import ContainerizationOCI
 import Foundation
 import GRPCLib
 import NIOCore
-import SystemConfiguration
-import ContainerizationOCI
 import Synchronization
+import SystemConfiguration
 
 public struct LoginHandler {
 	@discardableResult
@@ -28,7 +28,7 @@ public struct LoginHandler {
 		do {
 			try await client.ping()
 			try keychain.save(domain: server, username: username, password: password)
-			
+
 			return LoginReply(success: true, message: "Login succeeded")
 		} catch {
 			return LoginReply(success: false, message: "\(error)")

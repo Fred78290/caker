@@ -1,3 +1,5 @@
+import Containerization
+import ContainerizationOCI
 //
 //  PushHandler.swift
 //  Caker
@@ -5,8 +7,6 @@
 //  Created by Frederic BOLTZ on 14/11/2025.
 //
 import GRPCLib
-import ContainerizationOCI
-import Containerization
 import Synchronization
 
 public struct PushHandler {
@@ -19,7 +19,7 @@ public struct PushHandler {
 			if storage.exists(localName) == false {
 				return PushReply(success: false, message: "VM not found")
 			}
-	
+
 			let context = ProgressObserver.ProgressHandlerContext()
 			let currentItems = Atomic(0)
 			var location = try storage.find(localName)
@@ -32,12 +32,12 @@ public struct PushHandler {
 
 			let references = try remoteNames.map {
 				let ref = try Reference.parse($0)
-				
+
 				ref.normalize()
-				
+
 				return ref.description
 			}
-			
+
 			if config.os == .linux && config.useCloudInit {
 				progressHandler(.step("Clean cloud-init"))
 
@@ -75,7 +75,7 @@ public struct PushHandler {
 					}
 				}
 			}
-			
+
 			for normalizedReference in references {
 				progressHandler(.step("Push image to \(normalizedReference)"))
 

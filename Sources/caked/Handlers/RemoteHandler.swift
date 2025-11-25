@@ -39,7 +39,7 @@ struct RemoteHandler: CakedCommand {
 			fatalError("internal error")
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		let reply: Caked_RemoteReply
 

@@ -18,7 +18,7 @@ struct LaunchHandler: CakedCommandAsync {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
 			let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: .service)

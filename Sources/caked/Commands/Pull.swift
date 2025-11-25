@@ -25,6 +25,7 @@ struct Pull: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(await CakedLib.PullHandler.pull(name: self.options.name, image: self.options.image, insecure: self.options.insecure, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		Logger.appendNewLine(
+			self.common.format.render(await CakedLib.PullHandler.pull(name: self.options.name, image: self.options.image, insecure: self.options.insecure, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
 	}
 }

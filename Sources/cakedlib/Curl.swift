@@ -83,11 +83,12 @@ class Curl {
 			delegate.stream = continuation
 		}
 
-		let response = try await withCheckedThrowingContinuation { continuation in
-			delegate.response = continuation
+		let response =
+			try await withCheckedThrowingContinuation { continuation in
+				delegate.response = continuation
 
-			task.resume()
-		} as! HTTPURLResponse
+				task.resume()
+			} as! HTTPURLResponse
 
 		if response.statusCode != 200 {
 			throw URLError(.init(rawValue: response.statusCode))

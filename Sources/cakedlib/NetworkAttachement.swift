@@ -105,11 +105,11 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 
 		if let nat66Prefix = networkConfig.nat66Prefix {
 			let parts = nat66Prefix.split(separator: "/")
-			
+
 			guard let prefixStr = parts.first else {
 				throw ServiceError("Invalid NAT66 prefix \(nat66Prefix)")
 			}
-			
+
 			let prefixLen = parts.count > 1 ? UInt8(parts[1]) ?? 64 : 64
 
 			guard let parsed = String(prefixStr).to_in6_addr() else {
@@ -198,7 +198,7 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 		var socketURL = try self.vmnetEndpoint(runMode: runMode)
 
 		if VMRunHandler.launchedFromService || runMode == .app {
-			if try socketURL.socket.exists() == false || (try socketURL.socket.exists()  && socketURL.pidFile.isPIDRunning().running == false) {
+			if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
 				socketURL = try NetworksHandler.startNetwork(networkName: networkName, runMode: runMode)
 			}
 		}

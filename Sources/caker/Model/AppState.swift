@@ -91,12 +91,12 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
-    private var agentStatusTimer: Timer?
+	private var agentStatusTimer: Timer?
 
 	static var shared = AppState()
-	
+
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
-	
+
 	@Published var cakedServiceInstalled: Bool = false
 	@Published var cakedServiceRunning: Bool = false
 	@Published var currentDocument: VirtualMachineDocument!
@@ -109,14 +109,14 @@ class AppState: ObservableObject, Observable {
 	@Published var templates: [TemplateEntry] = []
 	@Published var networks: [BridgedNetwork] = []
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
-	
+
 	deinit {
 		agentStatusTimer?.invalidate()
 	}
 
 	init() {
 		let machines = Self.loadVirtualMachines()
-		
+
 		self.virtualMachines = machines
 		self.networks = Self.loadNetworks()
 		self.remotes = Self.loadRemotes()
@@ -140,49 +140,49 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	static func loadNetworks() -> [BridgedNetwork] {
 		let result = NetworksHandler.networks(runMode: .app)
-		
+
 		if result.success {
 			return result.networks.sorted(using: BridgedNetworkComparator())
 		}
-		
+
 		return []
 	}
-	
+
 	static func loadRemotes() -> [RemoteEntry] {
 		let result = RemoteHandler.listRemote(runMode: .app)
-		
+
 		if result.success {
 			return result.remotes.sorted(using: RemoteHandlerComparator())
 		}
-		
+
 		return []
 	}
-	
+
 	static func loadTemplates() -> [TemplateEntry] {
 		let result = TemplateHandler.listTemplate(runMode: .app)
-		
+
 		if result.success {
 			return result.templates.sorted(using: TemplateEntryComparator())
 		}
-		
+
 		return []
 	}
-	
+
 	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument]) {
 		let result = ListHandler.list(vmonly: true, runMode: .app)
 		var vms: [URL: VirtualMachineDocument] = [:]
-		
+
 		if result.success {
 			let storage = StorageLocation(runMode: .app)
-			
+
 			result.infos.compactMap {
 				if let location = try? storage.find($0.name) {
 					return location
 				}
-				
+
 				return nil
 			}.forEach { location in
 				if let vm = try? VirtualMachineDocument(location: location) {
@@ -190,62 +190,62 @@ class AppState: ObservableObject, Observable {
 				}
 			}
 		}
-		
+
 		return vms
 	}
-	
+
 	func reloadNetworks() {
 		self.networks = Self.loadNetworks()
 	}
-	
+
 	func reloadRemotes() {
 		self.remotes = Self.loadRemotes()
 	}
-	
+
 	func reloadTemplates() {
 		self.templates = Self.loadTemplates()
 	}
-	
+
 	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
 		self.virtualMachines[url]
 	}
-	
+
 	func removeVirtualMachineDocument(_ url: URL) {
-		if let _ = self.virtualMachines[url] {
+		if self.virtualMachines[url] != nil {
 			self.virtualMachines.removeValue(forKey: url)
 		}
 	}
-	
+
 	func haveVirtualMachinesRunning() -> Bool {
 		return virtualMachines.values.first { vm in
 			vm.status == .running && vm.externalRunning == false
 		} != nil
 	}
-	
+
 	func replaceVirtualMachineDocument(_ url: URL, with document: VirtualMachineDocument) {
 		DispatchQueue.main.async {
 			self.virtualMachines[url] = document
 		}
 	}
-	
+
 	func createTemplate(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-		
+
 		alert.messageText = "Create template"
 		alert.informativeText = "Name of the new template"
 		alert.alertStyle = .informational
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-		
+
 		alert.accessoryView = txt
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let templateResult = vm.createTemplateFromUI(name: txt.stringValue)
-			
+
 			if templateResult.created == false {
 				let alert = NSAlert()
-				
+
 				alert.messageText = "Failed to create template"
 				alert.informativeText = templateResult.reason ?? "Internal error"
 				alert.runModal()
@@ -254,26 +254,26 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = "Delete virtual machine"
 		alert.informativeText = "Are you sure you want to delete \(vm.name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm.name, userInfo: ["document": vm.name])
-				
+
 				let result = try DeleteHandler.delete(names: [vm.name], runMode: .app)
-				
+
 				if let first = result.first {
 					if first.deleted {
 						let location = StorageLocation(runMode: .app).location(vm.name)
-						
+
 						self.removeVirtualMachineDocument(location.rootURL)
 					} else {
 						DispatchQueue.main.async {
@@ -288,19 +288,19 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func deleteNetwork(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = "Delete network"
 		alert.informativeText = "Are you sure you want to delete network \(name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = NetworksHandler.delete(networkName: name, runMode: .app)
-			
+
 			if result.deleted {
 				self.reloadNetworks()
 			} else {
@@ -310,19 +310,19 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func deleteTemplate(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = "Delete template"
 		alert.informativeText = "Are you sure you want to delete template \(name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: .app)
-			
+
 			if result.deleted {
 				self.reloadTemplates()
 			} else {
@@ -332,19 +332,19 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func deleteRemote(name: String) {
 		let alert = NSAlert()
-		
+
 		alert.messageText = "Delete remote"
 		alert.informativeText = "Are you sure you want to delete remote \(name)? This action cannot be undone."
 		alert.alertStyle = .critical
 		alert.addButton(withTitle: "Delete")
 		alert.addButton(withTitle: "Cancel")
-		
+
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			let result = RemoteHandler.deleteRemote(name: name, runMode: .app)
-			
+
 			if result.deleted {
 				self.reloadTemplates()
 			} else {
@@ -354,7 +354,7 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func installCakedService() {
 		do {
 			try ServiceHandler.installAgent(runMode: .app)
@@ -364,7 +364,7 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func removeCakedService() {
 		do {
 			try ServiceHandler.uninstallAgent(runMode: .app)
@@ -374,7 +374,7 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func stopCakedService() {
 		do {
 			try ServiceHandler.stopAgent(runMode: .app)
@@ -384,7 +384,7 @@ class AppState: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
 	func startCakedService() {
 		do {
 			try ServiceHandler.launchAgent(runMode: .app)

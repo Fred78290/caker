@@ -1,7 +1,7 @@
+import Containerization
+import ContainerizationOCI
 import Foundation
 import GRPCLib
-import ContainerizationOCI
-import Containerization
 
 public let defaultRemotes: [String: String] = [
 	"images": "https://images.linuxcontainers.org/",

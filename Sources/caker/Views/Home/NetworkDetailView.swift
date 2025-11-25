@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 22/10/2025.
 //
 
+import CakedLib
 import GRPCLib
 import SwiftUI
-import CakedLib
 
 class NetworkDetailViewModel: ObservableObject, Observable {
 	static var dhcpLeaseRange = RangeIntegerStyle(range: 60...86400)
@@ -16,7 +16,7 @@ class NetworkDetailViewModel: ObservableObject, Observable {
 	@Published var dhcpEnd: TextFieldStore<String, RegexParseableFormatStyle>
 	@Published var netmask: TextFieldStore<String, RegexParseableFormatStyle>
 	@Published var dhcpLease: TextFieldStore<Int, RangeIntegerStyle>
-	
+
 	init(network: BridgedNetwork) {
 		self.dhcpLease = TextFieldStore(value: Int(network.dhcpLease) ?? 86400, text: network.dhcpLease, type: .int, maxLength: 5, allowNegative: false, formatter: Self.dhcpLeaseRange)
 		self.dhcpStart = .init(value: network.gateway.stringBefore(before: "/"), type: .none, maxLength: 16, formatter: .regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$"))
@@ -40,7 +40,7 @@ struct NetworkDetailView: View {
 
 	private var allowNetworkManagement: Bool {
 		let disabled: Bool
-		
+
 		if #available(macOS 26.0, *) {
 			disabled = currentItem.mode == .host || currentItem.mode == .shared || currentItem.mode == .nat
 		} else {
@@ -61,7 +61,7 @@ struct NetworkDetailView: View {
 					Section {
 						LabeledContent("Network mode") {
 							let modes = self.forEditing ? [BridgedNetworkMode.shared, BridgedNetworkMode.host] : BridgedNetworkMode.allCases
-							
+
 							HStack {
 								Picker("Mode", selection: $currentItem.mode) {
 									ForEach(modes, id: \.self) { mode in
@@ -72,18 +72,18 @@ struct NetworkDetailView: View {
 								.pickerStyle(.menu)
 								.allowsHitTesting(forEditing)
 								.labelsHidden()
-								
+
 								Spacer()
 							}
 						}
-						
+
 						LabeledContent("Network name") {
 							TextField("", text: $currentItem.name)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
 						}
-						
+
 						LabeledContent("DHCP Lease") {
 							TextField("", text: $model.dhcpLease.text)
 								.rounded(.leading)
@@ -96,7 +96,7 @@ struct NetworkDetailView: View {
 						.onChange(of: model.dhcpLease.value) { _, newValue in
 							self.currentItem.dhcpLease = "\(newValue)"
 						}
-						
+
 						LabeledContent("Network start") {
 							TextField("", text: $model.dhcpStart.text)
 								.rounded(.leading)
@@ -110,7 +110,7 @@ struct NetworkDetailView: View {
 							let cidr = model.netmask.value.netmaskToCidr()
 							self.currentItem.gateway = "\(newValue)/\(cidr)"
 						}
-						
+
 						LabeledContent("Network end") {
 							TextField("", text: $model.dhcpEnd.text)
 								.rounded(.leading)
@@ -124,14 +124,14 @@ struct NetworkDetailView: View {
 							let cidr = self.model.netmask.value.netmaskToCidr()
 							self.currentItem.dhcpEnd = "\(newValue)/\(cidr)"
 						}
-						
+
 						LabeledContent("Netmask") {
 							TextField("", text: $model.netmask.text)
 								.rounded(.leading)
 								.allowsHitTesting(forEditing)
 								.frame(width: contentWidth)
 						}
-						.formatAndValidate($model.netmask){ value in
+						.formatAndValidate($model.netmask) { value in
 							value.isValidNetmask() == false
 						}
 						.onChange(of: model.netmask.value) { _, newValue in
@@ -139,7 +139,7 @@ struct NetworkDetailView: View {
 							self.currentItem.gateway = "\(self.model.dhcpStart.value)/\(cidr)"
 							self.currentItem.dhcpEnd = "\(self.model.dhcpEnd.value)/\(cidr)"
 						}
-						
+
 						LabeledContent("Interface ID") {
 							TextField("", text: $currentItem.interfaceID)
 								.rounded(.leading)
@@ -153,7 +153,7 @@ struct NetworkDetailView: View {
 							}
 						}
 					}
-					
+
 				}.padding()
 
 				if forEditing == false && self.allowNetworkManagement {
@@ -162,7 +162,7 @@ struct NetworkDetailView: View {
 					if currentItem.endpoint.isEmpty {
 						Button("Start network") {
 							let result = NetworksHandler.start(networkName: self.currentItem.name, runMode: .app)
-							
+
 							if result.started == false {
 								alertError(ServiceError(result.reason))
 							} else {
@@ -173,7 +173,7 @@ struct NetworkDetailView: View {
 					} else {
 						Button("Stop network") {
 							let result = NetworksHandler.stop(networkName: self.currentItem.name, runMode: .app)
-							
+
 							if result.stopped == false {
 								alertError(ServiceError(result.reason))
 							} else {

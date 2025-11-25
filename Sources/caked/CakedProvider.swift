@@ -295,11 +295,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -331,7 +331,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Caked.Reply {
 		return try self.execute(command: request)
 	}
-	
+
 	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}

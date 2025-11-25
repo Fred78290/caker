@@ -11,14 +11,14 @@ public struct RemoteHandler {
 
 		do {
 			let remoteDb = try Home(runMode: runMode).remoteDatabase()
-			
+
 			guard remoteDb.get(name) == nil else {
 				return CreateRemoteReply(name: name, created: false, reason: "remote \(name) already exists")
 			}
-			
+
 			remoteDb.add(name, url.absoluteString)
 			try remoteDb.save()
-			
+
 			return CreateRemoteReply(name: name, created: true, reason: "remote \(name) added")
 		} catch {
 			return CreateRemoteReply(name: name, created: false, reason: "\(error)")
@@ -46,11 +46,12 @@ public struct RemoteHandler {
 		do {
 			let remoteDb = try Home(runMode: runMode).remoteDatabase()
 
-			return ListRemoteReply(remotes: try remoteDb.map { (key: String, value: String) in
-				RemoteEntry(name: key, url: value)
-			}, success: true, reason: "Success")
+			return ListRemoteReply(
+				remotes: try remoteDb.map { (key: String, value: String) in
+					RemoteEntry(name: key, url: value)
+				}, success: true, reason: "Success")
 		} catch {
-			return ListRemoteReply(remotes: [], success: false ,reason: "\(error)")
+			return ListRemoteReply(remotes: [], success: false, reason: "\(error)")
 		}
 	}
 }

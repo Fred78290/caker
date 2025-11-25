@@ -34,14 +34,14 @@ public struct PurgeHandler {
 			if let olderThan = options.olderThan {
 				let olderThanInterval = Int(exactly: olderThan)!.days.timeInterval
 				let olderThanDate = Date() - olderThanInterval
-				
+
 				try Self.purgeOlderThan(purgeableStorages: purgeableStorages, olderThanDate: olderThanDate)
 			}
-			
+
 			if let spaceBudget = options.spaceBudget {
 				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
 			}
-			
+
 			return PurgeReply(purged: true, reason: "Purged")
 		} catch {
 			return PurgeReply(purged: false, reason: "\(error)")

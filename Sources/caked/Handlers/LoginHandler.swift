@@ -17,7 +17,7 @@ struct LoginHandler: CakedCommand {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		let result = on.makeFutureWithTask {
 			return await CakedLib.LoginHandler.login(

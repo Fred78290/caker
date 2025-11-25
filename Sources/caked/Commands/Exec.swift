@@ -56,10 +56,10 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		if result.started {
 			var arguments = self.execute.arguments
 			let command = arguments.remove(at: 0)
-			
+
 			do {
 				let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
-				
+
 				if exitCode != 0 {
 					throw CakedLib.ExitCode(exitCode)
 				}

@@ -103,7 +103,7 @@ public final class VZVMNetSocket: VZVMNet, @unchecked Sendable {
 					self.logger.error("Failed to set mod 770 on socket \(socketPath)")
 				}
 
-			case let .failure(error):
+			case .failure(let error):
 				self.logger.info("Failed to bind console on \(socketPath), \(error)")
 			}
 		}

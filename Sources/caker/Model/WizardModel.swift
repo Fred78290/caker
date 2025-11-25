@@ -10,7 +10,7 @@ struct WizardModel {
 		static func < (lhs: WizardModel.SelectedItem, rhs: WizardModel.SelectedItem) -> Bool {
 			return lhs.rawValue < rhs.rawValue
 		}
-		
+
 		var id: Int {
 			self.rawValue
 		}
@@ -24,7 +24,7 @@ struct WizardModel {
 		case ports
 		case sockets
 	}
-	
+
 	struct ItemView: @MainActor ToolbarSettingItem, Hashable {
 		var id: SelectedItem
 		var title: String
@@ -36,7 +36,7 @@ struct WizardModel {
 			self.id = id
 		}
 	}
-	
+
 	static let items: [ItemView] = [
 		ItemView(.name, title: "Name", systemImage: "character.cursor.ibeam"),
 		ItemView(.os, title: "Choose OS", systemImage: "cloud"),

@@ -10,19 +10,19 @@ import SwiftUI
 import SwiftletUtilities
 
 /// Extends color to support the `MultiplatformTabBar`.
-fileprivate extension Color {
+extension Color {
 	#if os(macOS)
 		/// Holds the standard window background color.
-		static let backgroundColor = Color(NSColor.windowBackgroundColor)
+		fileprivate static let backgroundColor = Color(NSColor.windowBackgroundColor)
 
 		/// Holds the standard control background color.
-		static let secondaryBackgroundColor = Color(NSColor.controlBackgroundColor)
+		fileprivate static let secondaryBackgroundColor = Color(NSColor.controlBackgroundColor)
 	#else
 		/// Holds the standard window background color.
-		static let backgroundColor = Color(UIColor.systemBackground)
+		fileprivate static let backgroundColor = Color(UIColor.systemBackground)
 
 		/// Holds the standard control background color.
-		static let secondaryBackgroundColor = Color(UIColor.secondarySystemBackground)
+		fileprivate static let secondaryBackgroundColor = Color(UIColor.secondarySystemBackground)
 	#endif
 }
 
@@ -110,7 +110,7 @@ public struct MultiplatformTabBar<ID: MultiplatformTabIdentifier>: View {
 	private func barButton(_ index: ID) -> some View {
 		let item = tabSet[index]!
 
-		return Label{
+		return Label {
 			Text(item.title)
 		} icon: {
 			item.icon.resizable()

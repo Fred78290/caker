@@ -22,7 +22,7 @@ struct DeleteHandler: CakedCommand {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {

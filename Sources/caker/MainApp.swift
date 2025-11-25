@@ -1,21 +1,21 @@
+import ArgumentParser
 import CakedLib
 import GRPCLib
+import Logging
 import SwiftTerm
 import SwiftUI
 import SwifterSwiftUI
-import ArgumentParser
-import Logging
 
 @MainActor
 func alertError(_ error: Error) {
 	let informativeText: String
-	
+
 	if let error = error as? ServiceError {
 		informativeText = error.description
 	} else {
 		informativeText = error.localizedDescription
 	}
-	
+
 	let alert = NSAlert(error: error)
 
 	alert.messageText = "An error occured"
@@ -72,7 +72,7 @@ struct Defaults {
 struct MainAppParseArgument: ParsableCommand {
 	@Option(name: [.customLong("log-level")], help: "Log level")
 	var logLevel: Logging.Logger.Level = .info
-	
+
 	func validate() throws {
 		Logger.setLevel(self.logLevel)
 	}
@@ -111,7 +111,7 @@ struct MainApp: App {
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.size
-			
+
 			if document.location != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.colorSchemeForColor()
@@ -135,12 +135,12 @@ struct MainApp: App {
 		.restorationState(.disabled)
 		.commandsReplaced {
 			CommandGroup(before: .newItem) {
-					Button("New virtual machine") {
-						openWindow(id: "wizard")
-					}.keyboardShortcut(KeyboardShortcut("N"))
-					Button("Open virtual machine") {
-						open()
-					}.keyboardShortcut(KeyboardShortcut("o"))
+				Button("New virtual machine") {
+					openWindow(id: "wizard")
+				}.keyboardShortcut(KeyboardShortcut("N"))
+				Button("Open virtual machine") {
+					open()
+				}.keyboardShortcut(KeyboardShortcut("o"))
 			}
 			CommandMenu("Control") {
 				Button("Start") {
@@ -168,7 +168,7 @@ struct MainApp: App {
 				.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView(appState: $appState)
 				}
-				
+
 				Divider()
 
 				let agentCondition = self.agentCondition

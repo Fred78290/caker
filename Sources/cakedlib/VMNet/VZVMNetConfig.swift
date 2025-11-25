@@ -1,6 +1,6 @@
 import Foundation
-import Virtualization
 import GRPCLib
+import Virtualization
 
 public struct VZSharedNetwork: Codable, Equatable {
 	public let mode: VMNetMode
@@ -89,10 +89,10 @@ public struct VZSharedNetwork: Codable, Equatable {
 		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: "")
 	}
 
-	public static func networkInterfaces(networkConfig: VZVMNetConfig? = nil) -> [String:IP.Block<IP.V4>] {
-		var ipAddresses: [String:IP.Block<IP.V4>] = [:]
+	public static func networkInterfaces(networkConfig: VZVMNetConfig? = nil) -> [String: IP.Block<IP.V4>] {
+		var ipAddresses: [String: IP.Block<IP.V4>] = [:]
 		var addrList: UnsafeMutablePointer<ifaddrs>? = nil
-		
+
 		if let networkConfig = networkConfig {
 			networkConfig.sharedNetworks.forEach {
 				if let ip: IP.Block<IP.V4> = .init("\($0.value.dhcpStart)/\($0.value.netmask.netmaskToCidr())") {
@@ -100,39 +100,39 @@ public struct VZSharedNetwork: Codable, Equatable {
 				}
 			}
 		}
-		
+
 		guard getifaddrs(&addrList) == 0, let firstAddr = addrList else {
 			return [:]
 		}
-		
+
 		defer {
 			freeifaddrs(addrList)
 		}
-		
+
 		for cursor in sequence(first: firstAddr, next: { $0.pointee.ifa_next }) {
 			let addrStr: String
-			
+
 			if let addr = cursor.pointee.ifa_addr, let netmask = cursor.pointee.ifa_netmask {
 				let flags = Int32(cursor.pointee.ifa_flags)
 				let interface = addr.pointee
 				let addrFamily = interface.sa_family
-				
+
 				if (flags & (IFF_UP | IFF_RUNNING | IFF_LOOPBACK)) == (IFF_UP | IFF_RUNNING) {
 					var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-					
+
 					if addrFamily == UInt8(AF_INET) {
 						if getnameinfo(addr, socklen_t(interface.sa_len), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 							var netmaskName = [CChar](repeating: 0, count: Int(NI_MAXHOST))
-							
+
 							if getnameinfo(netmask, socklen_t(netmask.pointee.sa_len), &netmaskName, socklen_t(netmaskName.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 								addrStr = "\(String(cString: hostname))/\(String(cString: netmaskName).netmaskToCidr())"
 							} else {
 								addrStr = String(cString: hostname)
 							}
-							
+
 							if let ip: IP.Block<IP.V4> = .init(addrStr) {
 								let ifname = String(cString: cursor.pointee.ifa_name)
-								
+
 								ipAddresses[ifname] = ip
 							}
 						}
@@ -140,11 +140,11 @@ public struct VZSharedNetwork: Codable, Equatable {
 				}
 			}
 		}
-		
+
 		return ipAddresses
 	}
 
-	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String:IP.Block<IP.V4>] {
+	public static func networkInterfaces(includeSharedNetworks: Bool, runMode: Utils.RunMode) -> [String: IP.Block<IP.V4>] {
 		return Self.networkInterfaces(networkConfig: includeSharedNetworks ? try? Home(runMode: runMode).sharedNetworks() : nil)
 	}
 
@@ -183,47 +183,47 @@ extension String {
 	public func isValidMAcAddress() -> Bool {
 		self.range(of: "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$", options: .regularExpression) != nil
 	}
-	
+
 	public func isValidIP() -> Bool {
 		self.range(of: "^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$", options: .regularExpression) != nil
 	}
-	
+
 	public func isValidNetmask() -> Bool {
 		self.range(of: "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})$", options: .regularExpression) != nil
 	}
-	
+
 	public func netmaskToCidr() -> Int {
 		let octets: [Int] = self.split(separator: ".").map({ Int($0)! })
 		var cidr: Int = 0
-		
+
 		guard octets.count == 4 else {
 			return 0
 		}
-		
+
 		for i in 0..<4 {
 			cidr += (octets[i] == 255) ? 8 : (octets[i] == 254) ? 7 : (octets[i] == 252) ? 6 : (octets[i] == 248) ? 5 : (octets[i] == 240) ? 4 : (octets[i] == 224) ? 3 : (octets[i] == 192) ? 2 : (octets[i] == 128) ? 1 : (octets[i] == 0) ? 0 : -1
 		}
-		
+
 		return cidr
 	}
-	
+
 	public func cidrToNetmask() -> String {
 		var value = Int(self) ?? 0
 		value = 0xFFFF_FFFF ^ ((1 << (32 - value)) - 1)
-		
+
 		return "\((value >> 24) & 0xFF).\((value >> 16) & 0xFF).\((value >> 8) & 0xFF).\(value & 0xFF)"
 	}
-	
+
 	public func toIPV4() -> (address: IP.V4?, netmask: IP.V4?) {
 		let parts = self.split(separator: "/")
-		
+
 		guard parts.count > 0 else {
 			return (nil, nil)
 		}
-		
+
 		return (IP.V4(parts[0]), (parts.count > 1 ? IP.V4(String(parts[1]).cidrToNetmask()) : nil))
 	}
-	
+
 	public func to_in6_addr() -> in6_addr? {
 		var addr = in6_addr()
 
@@ -255,7 +255,7 @@ extension String {
 			if parts.count > 1, let cidr = UInt8(parts[1]) {
 				return IP.Block<IP.V4>(base: ip, bits: cidr).network
 			}
-			
+
 			return IP.Block<IP.V4>(base: ip, bits: 24).network
 		}
 
@@ -280,7 +280,7 @@ public struct VZVMNetConfig: Codable {
 
 	public var sharedNetworks: [String: VZSharedNetwork] {
 		var result: [String: VZSharedNetwork] = [:]
-		
+
 		self.userNetworks.forEach { key, value in
 			result[key] = value
 		}
@@ -292,9 +292,9 @@ public struct VZVMNetConfig: Codable {
 
 	public var sharedNetworkNames: [String] {
 		var result: [String] = Array(userNetworks.keys)
-			
+
 		result.append("nat")
-		
+
 		return result
 	}
 

@@ -14,13 +14,13 @@ public struct BuildHandler {
 			if storageLocation.exists(name) {
 				return BuildedReply(name: options.name, builded: false, reason: "VM already exists")
 			}
-			
+
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
-			
+
 			// Lock the temporary VM directory to prevent it's garbage collection
 			let tmpVMDirLock = try FileLock(lockURL: tempVMLocation.rootURL)
 			try tmpVMDirLock.lock()
-			
+
 			try await withTaskCancellationHandler(
 				operation: {
 					do {
@@ -28,13 +28,13 @@ public struct BuildHandler {
 						_ = try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
 						try storageLocation.relocate(name, from: tempVMLocation)
-						
+
 						progressHandler(.terminated(.success(location), "Build VM finished successfully"))
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
-						
+
 						progressHandler(.terminated(.failure(error), "Build VM failed"))
-						
+
 						throw error
 					}
 				},

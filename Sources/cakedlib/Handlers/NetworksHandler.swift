@@ -10,7 +10,7 @@ import UniformTypeIdentifiers
 import Virtualization
 import vmnet
 
-public typealias ReferencedNetworks = [String:Int]
+public typealias ReferencedNetworks = [String: Int]
 
 extension ReferencedNetworks {
 	public func usage(name: String) -> Int {
@@ -63,17 +63,17 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 
 	public var description: String {
 		switch self {
-			case .host:
-				return "Hosted network"
-			case .shared:
-				return "Shared network"
-			case .bridged:
-				return "Bridged network"
-			case .nat:
-				return "NAT shared network"
+		case .host:
+			return "Hosted network"
+		case .shared:
+			return "Shared network"
+		case .bridged:
+			return "Bridged network"
+		case .nat:
+			return "NAT shared network"
 		}
 	}
-	
+
 	public init?(argument: String) {
 		switch argument {
 		case "nat":
@@ -171,7 +171,8 @@ public struct NetworksHandler {
 
 			Logger(self).debug("Set DHCP lease time to \(leaseTime) seconds")
 
-			let lease = [
+			let lease =
+				[
 					DHCPLeaseTimeSecs: leaseTime as CFNumber
 				] as CFDictionary
 
@@ -525,17 +526,17 @@ public struct NetworksHandler {
 		do {
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
-			
+
 			guard let existing = networkConfig.sharedNetworks[networkName] else {
 				throw ServiceError("Network \(networkName) doesn't exists")
 			}
-			
+
 			if existing == network {
 				return ConfiguredNetworkReply(name: networkName, configured: false, reason: "Network \(networkName) unchanged")
 			}
-			
+
 			networkConfig.userNetworks[networkName] = network
-						
+
 			do {
 				return ConfiguredNetworkReply(name: networkName, configured: true, reason: try self.restartNetworkService(networkName: networkName, runMode: runMode))
 			} catch {
@@ -550,19 +551,19 @@ public struct NetworksHandler {
 		do {
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
-			
+
 			guard network.networkName != "" else {
 				return ConfiguredNetworkReply(name: "", configured: false, reason: "Network name is required")
 			}
-			
+
 			guard Self.isPhysicalInterface(name: String(network.networkName)) == false else {
 				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) is a physical interface")
 			}
-			
+
 			guard let exisiting = networkConfig.sharedNetworks[network.networkName] else {
 				return ConfiguredNetworkReply(name: network.networkName, configured: false, reason: "Network \(network.networkName) doesn't exists")
 			}
-			
+
 			let changed = VZSharedNetwork(
 				mode: exisiting.mode,
 				netmask: network.netmask ?? exisiting.netmask,
@@ -572,12 +573,12 @@ public struct NetworksHandler {
 				interfaceID: network.interfaceID ?? exisiting.interfaceID,
 				nat66Prefix: network.nat66Prefix ?? exisiting.nat66Prefix
 			)
-			
+
 			if changed != exisiting {
 				try changed.validate(runMode: runMode)
 				networkConfig.userNetworks[network.networkName] = changed
 				try home.setSharedNetworks(networkConfig)
-				
+
 				do {
 					return ConfiguredNetworkReply(name: network.networkName, configured: true, reason: try self.restartNetworkService(networkName: network.networkName, runMode: runMode))
 				} catch {
@@ -594,7 +595,7 @@ public struct NetworksHandler {
 	public static func start(networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
 		do {
 			_ = try startNetwork(networkName: networkName, runMode: runMode)
-			
+
 			return StartedNetworkReply(name: networkName, started: true, reason: "Network \(networkName) started")
 		} catch {
 			return StartedNetworkReply(name: networkName, started: false, reason: "\(error)")
@@ -759,21 +760,21 @@ public struct NetworksHandler {
 		do {
 			let home: Home = try Home(runMode: runMode)
 			var networkConfig = try home.sharedNetworks()
-			
+
 			guard networkConfig.sharedNetworks[networkName] != nil else {
 				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) doesn't exists")
 			}
-			
+
 			let socketURL = try NetworksHandler.vmnetEndpoint(networkName: networkName, runMode: runMode)
-			
+
 			if socketURL.pidFile.isCakedRunning() {
 				return DeleteNetworkReply(name: networkName, deleted: false, reason: "Network \(networkName) is running")
 			}
-			
+
 			networkConfig.userNetworks.removeValue(forKey: networkName)
-			
+
 			try home.setSharedNetworks(networkConfig)
-			
+
 			return DeleteNetworkReply(name: networkName, deleted: true, reason: "Network \(networkName) deleted")
 		} catch {
 			return DeleteNetworkReply(name: networkName, deleted: false, reason: "\(error)")
@@ -796,12 +797,12 @@ public struct NetworksHandler {
 			guard try pidURL.exists() else {
 				throw ServiceError("PID file \(pidURL.path) doesn't exists")
 			}
-			
+
 			guard pidURL.isCakedRunning() else {
 				Logger(self).debug("PID \(pidURL.path) is not running")
 				return "PID \(pidURL.path) is not running"
 			}
-			
+
 			if geteuid() == 0 {
 				// We are running as root, so we can just kill the process
 				if pidURL.killPID(SIGTERM) < 0 {
@@ -814,7 +815,7 @@ public struct NetworksHandler {
 			} else {
 				try pidURL.waitStopped()
 			}
-			
+
 			return "PID \(pidURL.path) stopped"
 		} catch {
 			return "\(error)"
@@ -862,7 +863,7 @@ public struct NetworksHandler {
 
 		return "\(address)/\(netmask.netmaskToCidr())"
 	}
-	
+
 	private static var _defaultNatNetwork: BridgedNetwork?
 
 	public static func defaultNatNetwork(runMode: Utils.RunMode) -> BridgedNetwork {
@@ -916,7 +917,7 @@ public struct NetworksHandler {
 			return usedNetworks
 		}
 
-		list.values.forEach{ location in
+		list.values.forEach { location in
 			if let config = try? location.config() {
 				config.qualifiedNetworks.forEach { network in
 					let name = network.network
@@ -944,13 +945,13 @@ public struct NetworksHandler {
 			func createBridgedNetwork(_ name: String, _ mode: BridgedNetworkMode, _ description: String, _ uuid: String, _ gateway: String, _ dhcpEnd: String, _ dhcpLease: String) throws -> BridgedNetwork {
 				let socketURL = try NetworksHandler.vmnetEndpoint(networkName: name, runMode: runMode)
 				let endpoint: String
-				
+
 				if try socketURL.socket.exists() {
 					endpoint = socketURL.socket.path
 				} else {
 					endpoint = ""
 				}
-				
+
 				return BridgedNetwork(name: name, mode: mode, description: description, gateway: gateway, dhcpEnd: dhcpEnd, dhcpLease: dhcpLease, interfaceID: uuid, endpoint: endpoint, usedBy: referencedNetworks.usage(name: name))
 			}
 
@@ -962,15 +963,15 @@ public struct NetworksHandler {
 						return try createBridgedNetwork(inf.identifier, .bridged, inf.localizedDisplayName ?? inf.identifier, "", "", "", "")
 					}
 				})
-			
+
 			let dhcpLease = networkConfig.defaultNatNetwork.dhcpLease != nil ? "\(networkConfig.defaultNatNetwork.dhcpLease!)" : ""
-			
+
 			networks = try networkConfig.sharedNetworks.reduce(into: networks) {
 				let cidr = $1.value.netmask.netmaskToCidr()
 				let gateway = "\($1.value.dhcpStart)/\(cidr)"
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
-				
+
 				$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
 			}.sorted {
 				$0 < $1
@@ -981,7 +982,7 @@ public struct NetworksHandler {
 			return ListNetworksReply(networks: [], success: false, reason: "\(error)")
 		}
 	}
-	
+
 	public static func status(networkName: String, runMode: Utils.RunMode) -> NetworkInfoReply {
 		do {
 			let referencedNetworks = Self.referencedNetworks(runMode: runMode)
@@ -996,22 +997,22 @@ public struct NetworksHandler {
 
 			if let inf = NetworksHandler.findPhysicalInterface(name: networkName) {
 				let interfaces = VZSharedNetwork.networkInterfaces(includeSharedNetworks: false, runMode: runMode)
-				
+
 				if let network = interfaces[networkName] {
 					gateway = network.network.description
 					dhcpEnd = "\(network.range.upperBound.description)/\(network.network.bits)"
 				}
-				
+
 				mode = .bridged
 				description = inf.localizedDisplayName ?? inf.identifier
 				uuid = inf.identifier
 			} else {
 				let networkConfig = try Home(runMode: runMode).sharedNetworks()
-				
+
 				guard let network = networkConfig.sharedNetworks[networkName] else {
 					throw ServiceError("Network \(networkName) doesn't exists")
 				}
-				
+
 				let cidr = network.netmask.netmaskToCidr()
 
 				mode = .init(from: network.mode)
@@ -1026,7 +1027,7 @@ public struct NetworksHandler {
 			}
 
 			let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
-			
+
 			if try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running {
 				endpoint = socketURL.socket.path
 			}

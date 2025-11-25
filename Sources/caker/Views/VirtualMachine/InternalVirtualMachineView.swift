@@ -25,11 +25,11 @@ class CakerVZVirtualMachineView: VZVirtualMachineView {
 			self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
 		}
 	}
-	
+
 	required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
-	
+
 	public override func viewWillStartLiveResize() {
 		self.liveViewResize = true
 		super.viewWillStartLiveResize()

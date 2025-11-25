@@ -14,9 +14,9 @@ public typealias MultiplatformTabIdentifier = Comparable & Hashable & Identifiab
 public class MultiplatformTabCollection<ID: MultiplatformTabIdentifier>: ObservableObject {
 
 	/// The tab collection.
-	@Published public var tabs: [ID:MultiplatformTab<ID>] = [:]
-	
-	public subscript (_ id: ID) -> MultiplatformTab<ID>! {
+	@Published public var tabs: [ID: MultiplatformTab<ID>] = [:]
+
+	public subscript(_ id: ID) -> MultiplatformTab<ID>! {
 		get { tabs[id] }
 		set { tabs[id] = newValue }
 	}
@@ -24,7 +24,7 @@ public class MultiplatformTabCollection<ID: MultiplatformTabIdentifier>: Observa
 	public var ids: [ID] {
 		tabs.keys.sorted()
 	}
-	
+
 	public var isEmpty: Bool {
 		tabs.isEmpty
 	}

@@ -170,9 +170,9 @@ public struct StartHandler {
 
 		promise.futureResult.whenComplete { result in
 			switch result {
-			case let .success(name):
+			case .success(let name):
 				Logger(self).info("VM \(name) terminated")
-			case let .failure(err):
+			case .failure(let err):
 				Logger(self).error(ServiceError("Failed to start VM \(location.name), \(err.localizedDescription)"))
 			}
 		}
@@ -193,7 +193,7 @@ public struct StartHandler {
 			} else {
 				ip = try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 			}
-			
+
 			return StartedReply(name: location.name, ip: ip, started: true, reason: "VM started")
 		} catch {
 			return StartedReply(name: location.name, ip: "", started: false, reason: "\(error)")

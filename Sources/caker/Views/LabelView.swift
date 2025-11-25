@@ -50,7 +50,7 @@ struct LabelView: View {
 				content(size: geom.size)
 			}
 		}
-    }
+	}
 }
 
 #Preview {

@@ -510,7 +510,7 @@ public final class CakeConfig {
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
-		
+
 		if self.cake["vncPassword"] == nil {
 			self.cake["vncPassword"] = UUID().uuidString
 

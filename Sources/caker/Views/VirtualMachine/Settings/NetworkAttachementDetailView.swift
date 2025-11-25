@@ -35,7 +35,7 @@ struct NetworkAttachementDetailView: View {
 		if result.success {
 			return result.networks
 		}
-		
+
 		return []
 	}
 

@@ -66,7 +66,7 @@ class CloudImageConverter {
 				self.progressHandler = progressHandler
 
 				self.context = .init()
-				
+
 				super.init()
 			}
 
@@ -79,8 +79,8 @@ class CloudImageConverter {
 			}
 		}
 
-		let progressHandlerImpl:QCow2ConverterProgressHandler?
-		
+		let progressHandlerImpl: QCow2ConverterProgressHandler?
+
 		if let progressHandler = progressHandler {
 			progressHandlerImpl = QCow2ConverterProgressHandler(progressHandler: progressHandler)
 		} else {

@@ -259,9 +259,9 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 
 		let stream = self.cakeAgentClient.events(.init(), callOptions: .init(timeLimit: .none)) { event in
 			self.queue.async {
-				if case let .forwardEvent(event) = event.event {
+				if case .forwardEvent(let event) = event.event {
 					self.handleEvent(event: event)
-				} else if case let .error(error) = event.event {
+				} else if case .error(let error) = event.event {
 					self.log.error("Event error: \(error)")
 
 					//	throw error

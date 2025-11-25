@@ -28,6 +28,10 @@ struct Push: AsyncParsableCommand {
 	}
 
 	func run() async throws {
-		Logger.appendNewLine(self.common.format.render(await CakedLib.PushHandler.push(localName: self.options.localName, remoteNames: self.options.remoteNames, insecure: self.options.insecure, chunkSizeInMB: self.options.chunkSize, concurrency: self.options.concurrency, runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)))
+		Logger.appendNewLine(
+			self.common.format.render(
+				await CakedLib.PushHandler.push(
+					localName: self.options.localName, remoteNames: self.options.remoteNames, insecure: self.options.insecure, chunkSizeInMB: self.options.chunkSize, concurrency: self.options.concurrency, runMode: self.common.runMode,
+					progressHandler: ProgressObserver.progressHandler)))
 	}
 }

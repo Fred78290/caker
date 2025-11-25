@@ -19,10 +19,11 @@ struct InfosHandler: CakedCommand {
 			}
 		}
 	}
-	
+
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		do {
-			let result: VirtualMachineStatusReply = CakedLib.InfosHandler.infos(name: self.request.name, runMode: runMode, client: CakeAgentHelper(on: on, client: try client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+			let result: VirtualMachineStatusReply = CakedLib.InfosHandler.infos(
+				name: self.request.name, runMode: runMode, client: CakeAgentHelper(on: on, client: try client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 			return Caked_Reply.with {
 				$0.vms = Caked_VirtualMachineReply.with {
 					$0.status = result.caked

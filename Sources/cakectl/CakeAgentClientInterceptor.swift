@@ -114,11 +114,11 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 	func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
 	func makePushInterceptors() -> [ClientInterceptor<Caked_PushRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_PushRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
 	func makePurgeInterceptors() -> [ClientInterceptor<Caked_PurgeRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_PurgeRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
@@ -134,7 +134,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 	func makeSuspendInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>] {
 		[CakeAgentClientInterceptor<Caked_SuspendRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
 	func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>] {
 		[CakeAgentClientInterceptor<Caked_StopRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

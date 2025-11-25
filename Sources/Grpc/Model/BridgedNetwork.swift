@@ -16,7 +16,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 	public static func < (lhs: BridgedNetwork, rhs: BridgedNetwork) -> Bool {
 		return lhs.id < rhs.id
 	}
-	
+
 	public typealias ID = String
 
 	public var name: String
@@ -52,15 +52,17 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		return "\((cidr >> 24) & 0xFF).\((cidr >> 16) & 0xFF).\((cidr >> 8) & 0xFF).\(cidr & 0xFF)"
 	}
 
-	public init(name: String,
-				mode: BridgedNetworkMode,
-				description: String,
-				gateway: String,
-				dhcpEnd: String = "",
-				dhcpLease: String,
-				interfaceID: String,
-				endpoint: String,
-				usedBy: Int) {
+	public init(
+		name: String,
+		mode: BridgedNetworkMode,
+		description: String,
+		gateway: String,
+		dhcpEnd: String = "",
+		dhcpLease: String,
+		interfaceID: String,
+		endpoint: String,
+		usedBy: Int
+	) {
 		self.name = name
 		self.mode = mode
 		self.description = description
@@ -101,19 +103,19 @@ public struct NetworkInfoReply: Codable {
 	public let info: BridgedNetwork
 	public let success: Bool
 	public let reason: String
-	
+
 	public init(info: BridgedNetwork, success: Bool, reason: String) {
 		self.info = info
 		self.success = success
 		self.reason = reason
 	}
-	
+
 	public init(from: Caked_NetworkInfoReply) throws {
 		self.info = BridgedNetwork(from: from.info)
 		self.success = from.success
 		self.reason = from.reason
 	}
-	
+
 	public var caked: Caked_NetworkInfoReply {
 		Caked_NetworkInfoReply.with {
 			$0.info = self.info.caked
@@ -127,13 +129,13 @@ public struct ListNetworksReply: Codable {
 	public let networks: [BridgedNetwork]
 	public let success: Bool
 	public let reason: String
-	
+
 	public init(networks: [BridgedNetwork], success: Bool, reason: String) {
 		self.networks = networks
 		self.success = success
 		self.reason = reason
 	}
-	
+
 	public init(from: Caked_ListNetworksReply) throws {
 		self.networks = from.networks.map(BridgedNetwork.init(from:))
 		self.success = from.success

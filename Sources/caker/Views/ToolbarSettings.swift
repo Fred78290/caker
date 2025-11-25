@@ -34,7 +34,7 @@ struct ToolbarSettingLabelStyle: LabelStyle {
 		if case .selected = state {
 			return appearsActive ? .accentColor : .secondary
 		}
-		
+
 		if case .hoveredAndSelected = state {
 			return .accentColor
 		}
@@ -76,18 +76,18 @@ struct ToolbarSettingLabelStyle: LabelStyle {
 		}
 	}
 
-#if compiler(>=6.2)
-	@available(macOS 26.0, *)
-	private var glassEffect: Glass {
-		guard self.appearsActive else { return .identity }
-		switch state {
-		case .selected, .pressed, .pressedAndSelected, .hoveredAndSelected, .hovered:
-			return .regular.interactive(true).tint(self.fillColor)
-		default:
-			return .identity
+	#if compiler(>=6.2)
+		@available(macOS 26.0, *)
+		private var glassEffect: Glass {
+			guard self.appearsActive else { return .identity }
+			switch state {
+			case .selected, .pressed, .pressedAndSelected, .hoveredAndSelected, .hovered:
+				return .regular.interactive(true).tint(self.fillColor)
+			default:
+				return .identity
+			}
 		}
-	}
-#endif
+	#endif
 
 	func makeBody(configuration: Configuration) -> some View {
 		let content: () -> some View = {
@@ -111,45 +111,45 @@ struct ToolbarSettingLabelStyle: LabelStyle {
 			.fixedSize(horizontal: false, vertical: true)
 		}
 
-#if compiler(>=6.2)
-		if #available(macOS 26.0, *) {
-			GlassEffectContainer {
-				VStack(alignment: .center, spacing: 2) {
-					configuration.icon
-						.aspectRatio(contentMode: .fit)
-						.foregroundStyle(self.foregroundColor)
-						.frame(width: 24, height: 24, alignment: .center)
+		#if compiler(>=6.2)
+			if #available(macOS 26.0, *) {
+				GlassEffectContainer {
+					VStack(alignment: .center, spacing: 2) {
+						configuration.icon
+							.aspectRatio(contentMode: .fit)
+							.foregroundStyle(self.foregroundColor)
+							.frame(width: 24, height: 24, alignment: .center)
 
-					configuration.title
-						.foregroundStyle(appearsActive ? self.foregroundColor : .gray.opacity(0.50))
-						.font(.subheadline)
-				}
-				.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
-				.padding(0)
-				.cornerRadius(6)
-				.fixedSize(horizontal: false, vertical: true)
+						configuration.title
+							.foregroundStyle(appearsActive ? self.foregroundColor : .gray.opacity(0.50))
+							.font(.subheadline)
+					}
+					.frame(minWidth: 65, maxWidth: .infinity, minHeight: 45, maxHeight: 45)
+					.padding(0)
+					.cornerRadius(6)
+					.fixedSize(horizontal: false, vertical: true)
 					.glassEffect(self.glassEffect, in: RoundedRectangle(cornerRadius: 6))
+				}
+			} else {
+				content()
 			}
-		} else {
+		#else
 			content()
-		}
-#else
-		content()
-#endif
+		#endif
 	}
 }
 
 extension ToolbarContent {
 	func backgroundVisibility(_ visible: Bool) -> some ToolbarContent {
-#if compiler(>=6.2)
-		if #available(macOS 26.0, *) {
-			return self.sharedBackgroundVisibility(visible ? .visible : .hidden)
-		} else {
+		#if compiler(>=6.2)
+			if #available(macOS 26.0, *) {
+				return self.sharedBackgroundVisibility(visible ? .visible : .hidden)
+			} else {
+				return self
+			}
+		#else
 			return self
-		}
-#else
-		return self
-#endif
+		#endif
 	}
 }
 
@@ -158,17 +158,17 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 	@Environment(\.appearsActive) var appearsActive
 
 	private let items: [Item]
-	private let maps: [ID:Item]
+	private let maps: [ID: Item]
 	private let placement: ToolbarItemPlacement
 	private let id: String
 	@State var hoveredItem: ID?
 	@State var pressedItem: ID?
 	@Binding var selectedItem: ID
-	
+
 	init(_ selection: Binding<ID>, items: [Item], placement: ToolbarItemPlacement = .automatic) {
 		self.init(selection, id: UUID().uuidString, items: items, placement: placement)
 	}
-	
+
 	init(_ selection: Binding<ID>, id: String, items: [Item], placement: ToolbarItemPlacement = .automatic) {
 		self.items = items
 		self.id = id
@@ -178,7 +178,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 			result[item.id] = item
 		}
 	}
-	
+
 	func buttonState(for id: ID) -> ToolbarSettingLabelStyle.State {
 		if self.selectedItem == id && self.pressedItem == id {
 			return .pressedAndSelected
@@ -194,12 +194,12 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 			return .none
 		}
 	}
-	
+
 	var body: some ToolbarContent {
 		ToolbarItem(id: id, placement: self.placement) {
 			ControlGroup {
 				ForEach(self.items) { item in
-					Label{
+					Label {
 						Text(item.title)
 					} icon: {
 						Image(systemName: item.systemImage).resizable()
@@ -228,7 +228,7 @@ struct ToolbarSettings<Item: ToolbarSettingItem<ID>, ID>: ToolbarContent where I
 			.navigationTitle(self.maps[self.selectedItem]?.title ?? "")
 			//.onAppear {
 			//   if let window = NSApp.mainWindow {
-				   // Set the desired position of the window
+			// Set the desired position of the window
 			//	   window.setFrameOrigin(NSPoint(x: desiredX, y: desiredY))
 			//   }
 			//}

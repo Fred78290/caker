@@ -1,12 +1,12 @@
+import CakeAgentLib
 import Foundation
 import GRPCLib
 import NIO
 import NIOPortForwarding
 import Semaphore
-import Virtualization
-import Socket
 import Shout
-import CakeAgentLib
+import Socket
+import Virtualization
 
 private let kScreenshotPeriodSeconds = 5.0
 
@@ -366,7 +366,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		get {
 			self.env.vzMachineView
 		}
-		
+
 		set {
 			self.env.vzMachineView = newValue
 		}
@@ -530,7 +530,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 			let pauseVM = {
 				self.virtualMachine.pause { result in
-					if case let .failure(err) = result {
+					if case .failure(let err) = result {
 						Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
 					} else {
 						Logger(self).info("VM \(self.location.name) paused")
@@ -550,54 +550,54 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			}
 
 			#if arch(arm64)
-			if #available(macOS 14, *) {
-				do {
-					try self.env.configuration.validateSaveRestoreSupport()
+				if #available(macOS 14, *) {
+					do {
+						try self.env.configuration.validateSaveRestoreSupport()
 
-					self.virtualMachine.pause { result in
+						self.virtualMachine.pause { result in
 
-						if case let .failure(err) = result {
-							Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
-							if let completionHandler = completionHandler {
-								completionHandler(result)
-							}
-						} else {
-							Logger(self).info("VM \(self.location.name) paused")
+							if case .failure(let err) = result {
+								Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
+								if let completionHandler = completionHandler {
+									completionHandler(result)
+								}
+							} else {
+								Logger(self).info("VM \(self.location.name) paused")
 
-							self.env.stopServices()
+								self.env.stopServices()
 
-							self.env.timer?.invalidate()
-							self.env.timer = nil
+								self.env.timer?.invalidate()
+								self.env.timer = nil
 
-							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
-								if let error = result {
-									if let completionHandler = completionHandler {
-										completionHandler(.failure(error))
-									}
-								} else {
-									Logger(self).info("Snap created successfully...")
+								self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
+									if let error = result {
+										if let completionHandler = completionHandler {
+											completionHandler(.failure(error))
+										}
+									} else {
+										Logger(self).info("Snap created successfully...")
 
-									if let completionHandler = completionHandler {
-										completionHandler(.success(()))
+										if let completionHandler = completionHandler {
+											completionHandler(.success(()))
+										}
 									}
 								}
 							}
+
+							self.didChangedState()
 						}
+					} catch {
+						Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
 
-						self.didChangedState()
+						if let completionHandler = completionHandler {
+							completionHandler(.failure(error))
+						}
 					}
-				} catch {
-					Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
-
-					if let completionHandler = completionHandler {
-						completionHandler(.failure(error))
-					}
+				} else {
+					pauseVM()
 				}
-			} else {
-				pauseVM()
-			}
 			#else
-			pauseVM()
+				pauseVM()
 			#endif
 		}
 	}
@@ -680,14 +680,14 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						}
 					}
 				}
-				
+
 				return
 			}
 
 			let bounds = vzMachineView.bounds
-			
+
 			logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
-			
+
 			vzMachineView.frame = CGRect(origin: .zero, size: newSize)
 		}
 	}
@@ -785,7 +785,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public func installAgent(updateAgent: Bool, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
 		return try await withCheckedThrowingContinuation { continuation in
 			do {
-				try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode).flatMapWithEventLoop{ runningIP, eventLoop in
+				try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
 					eventLoop.makeFutureWithTask {
 						let config = self.config
 
@@ -804,7 +804,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				}.whenComplete { result in
 					if case .success(let success) = result {
 						continuation.resume(with: .success(success))
-					} else if case let .failure(error) = result {
+					} else if case .failure(let error) = result {
 						if let err = error as? SSHError {
 							continuation.resume(with: .failure(ServiceError(err.kind.description)))
 						} else if let err = error as? Socket.Error {
@@ -955,7 +955,7 @@ extension VirtualMachine {
 	nonisolated private var isScreenshotSaveEnabled: Bool {
 		isScreenshotEnabled && !UserDefaults.standard.bool(forKey: "NoSaveScreenshot")
 	}
-		
+
 	func startScreenshotTimer() -> Timer {
 		if !isScreenshotSaveEnabled {
 			try? deleteScreenshot()
@@ -982,7 +982,7 @@ extension VirtualMachine {
 
 		return timer
 	}
-	
+
 	public func saveScreenshot() throws {
 		guard isScreenshotSaveEnabled else {
 			return
@@ -994,11 +994,11 @@ extension VirtualMachine {
 
 		try screenshot.pngData?.write(to: self.location.screenshotURL)
 	}
-	
+
 	func deleteScreenshot() throws {
 		try self.location.screenshotURL.delete()
 	}
-	
+
 	@MainActor func takeScreenshot() async {
 		if let vzMachineView = self.env.vzMachineView {
 			self.env.screenshot = vzMachineView.image()
@@ -1018,8 +1018,7 @@ extension VirtualMachine {
 		self.vmQueue.async {
 			sharedDevices.share = config.mounts.multipleDirectoryShares
 		}
-		
+
 		return true
 	}
 }
-

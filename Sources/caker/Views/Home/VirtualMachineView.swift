@@ -10,11 +10,13 @@ import SwiftUI
 extension Shape {
 	func fill<Fill: ShapeStyle, Stroke: ShapeStyle>(_ fillStyle: Fill, strokeBorder strokeStyle: Stroke, lineWidth: Double = 1) -> some View {
 		if #available(macOS 26.0, *) {
-			return self
+			return
+				self
 				.fill(fillStyle)
 				.background(fillStyle)
 		} else {
-			return self
+			return
+				self
 				.fill(fillStyle)
 				.stroke(strokeStyle, lineWidth: lineWidth)
 				.background(fillStyle)
@@ -43,10 +45,10 @@ struct VirtualMachineView: View {
 						HStack(alignment: .center) {
 							GlossyCircle(color: lightColor)
 								.frame(width: 14, height: 14)
-							
+
 							Text("\(vm.name)").font(.headline)
 							Spacer()
-							
+
 							Button(action: action) {
 								Image(systemName: imageName)
 									.font(.headline)
@@ -56,7 +58,7 @@ struct VirtualMachineView: View {
 						}
 						.padding(EdgeInsets(top: 4, leading: 10, bottom: 0, trailing: 10))
 						.frame(width: geometry.size.width)
-						
+
 						HStack {
 							Spacer()
 							Label("\(vm.virtualMachineConfig.cpuCount)", systemImage: "cpu")
@@ -71,7 +73,7 @@ struct VirtualMachineView: View {
 							Spacer()
 						}
 						.frame(width: geometry.size.width, height: 20)
-						
+
 						HStack {
 							self.vm.screenshot.image
 						}.overlay {

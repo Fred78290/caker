@@ -43,11 +43,11 @@ public struct TemplateHandler {
 		do {
 			let storage = StorageLocation(runMode: runMode, template: true)
 			var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
-			
+
 			if storage.exists(templateName) {
 				return CreateTemplateReply(name: templateName, created: false, reason: "template \(templateName) already exists")
 			}
-			
+
 			if source.status != .running {
 				let lock: FileLock = try FileLock(lockURL: storage.rootURL)
 				let config = try source.config()
@@ -55,34 +55,34 @@ public struct TemplateHandler {
 				var delete = false
 
 				try lock.lock()
-				
+
 				defer {
 					try? lock.unlock()
-					
+
 					if delete {
 						try? source.delete()
 					}
 				}
-				
+
 				Logger(self).info("Creating template \(templateName) from \(sourceName)")
-				
+
 				do {
 					if config.os == .linux && config.useCloudInit {
 						source = try cleanCloudInit(source: source, config: config, runMode: runMode)
 						delete = true
 					}
-					
+
 					try FileManager.default.createDirectory(at: templateLocation.rootURL, withIntermediateDirectories: true)
 					try source.templateTo(templateLocation)
-					
+
 					return CreateTemplateReply(name: templateName, created: true, reason: "template created")
 				} catch {
 					Logger(self).error(error)
-					
+
 					if let exists = try? templateLocation.rootURL.exists(), exists {
 						try? FileManager.default.removeItem(at: templateLocation.rootURL)
 					}
-					
+
 					return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
 				}
 			} else {
@@ -105,19 +105,19 @@ public struct TemplateHandler {
 					return DeleteTemplateReply(name: location.name, deleted: false, reason: "Template \(templateName) is running")
 				}
 			}
-			
+
 			try lock.lock()
-			
+
 			defer {
 				try? lock.unlock()
 			}
-			
+
 			if let location: VMLocation = try? storage.find(templateName) {
 				return doIt(location)
 			} else if let u = URL(string: templateName), u.scheme == "template", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
 				return doIt(location)
 			}
-			
+
 			return DeleteTemplateReply(name: templateName, deleted: false, reason: "Template \(templateName) not found")
 		} catch {
 			return DeleteTemplateReply(name: templateName, deleted: false, reason: "\(error)")
@@ -134,14 +134,15 @@ public struct TemplateHandler {
 		let storage = StorageLocation(runMode: runMode, template: true)
 
 		do {
-			return ListTemplateReply(templates: try storage.list().map { (key: String, value: VMLocation) in
-				return TemplateEntry(
-					name: key,
-					fqn: "template://\(key)",
-					diskSize: try value.diskSize(),
-					totalSize: try value.allocatedSize()
-				)
-			}, success: true, reason: "Success")
+			return ListTemplateReply(
+				templates: try storage.list().map { (key: String, value: VMLocation) in
+					return TemplateEntry(
+						name: key,
+						fqn: "template://\(key)",
+						diskSize: try value.diskSize(),
+						totalSize: try value.allocatedSize()
+					)
+				}, success: true, reason: "Success")
 
 		} catch {
 			return ListTemplateReply(templates: [], success: false, reason: "\(error)")

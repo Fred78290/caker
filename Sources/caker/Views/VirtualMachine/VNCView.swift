@@ -5,29 +5,29 @@
 //  Created by Frederic BOLTZ on 08/08/2025.
 //
 
-import Foundation
-import SwiftUI
-import RoyalVNCKit
 import CakedLib
+import Foundation
+import RoyalVNCKit
+import SwiftUI
 
 class VNCConnectionLogger: VNCLogger {
 	let logger: Logger = Logger("VNCConnectionLogger")
 	var isDebugLoggingEnabled: Bool = false
-	
+
 	public func logDebug(_ message: String) {
 		if isDebugLoggingEnabled {
 			self.logger.debug(message)
 		}
 	}
-	
+
 	public func logInfo(_ message: String) {
 		self.logger.info(message)
 	}
-	
+
 	public func logWarning(_ message: String) {
 		self.logger.warn(message)
 	}
-	
+
 	public func logError(_ message: String) {
 		self.logger.error(message)
 	}
@@ -39,7 +39,7 @@ struct VNCView: NSViewRepresentable {
 	private let document: VirtualMachineDocument
 	private let logger = Logger("HostVirtualMachineView")
 
-	init(document: VirtualMachineDocument,) {
+	init(document: VirtualMachineDocument, ) {
 		self.document = document
 	}
 
@@ -66,15 +66,15 @@ struct VNCView: NSViewRepresentable {
 			if let width = proposal.width, let height = proposal.height {
 				self.logger.debug("sizeThatFits: \(width)x\(height), \(nsView.frame), \(framebuffer.cgSize)")
 			}
-
-
+	
+	
 			return framebuffer.cgSize
 		} else {
 			if let width = proposal.width, let height = proposal.height {
 				self.logger.debug("sizeThatFits: \(width)x\(height), \(nsView.frame)")
 			}
 		}
-		
+	
 		return nil
 	}*/
 

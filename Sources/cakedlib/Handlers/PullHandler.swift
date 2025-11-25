@@ -1,3 +1,9 @@
+import Containerization
+import ContainerizationArchive
+import ContainerizationError
+import ContainerizationExtras
+import ContainerizationOCI
+import Foundation
 //
 //  PullHandler.swift
 //  Caker
@@ -5,12 +11,6 @@
 //  Created by Frederic BOLTZ on 14/11/2025.
 //
 import GRPCLib
-import Containerization
-import ContainerizationArchive
-import ContainerizationError
-import ContainerizationExtras
-import ContainerizationOCI
-import Foundation
 import Virtualization
 
 public struct PullHandler {
@@ -52,10 +52,10 @@ public struct PullHandler {
 						totalSize = $0.value as? Int64
 					}
 				}
-				
+
 				if let totalSize, let currentSize {
 					let fractionCompleted = (Double(currentSize) / Double(totalSize))
-					
+
 					if context.oldFractionCompleted != fractionCompleted {
 						progressHandler(.progress(context, fractionCompleted))
 						context.oldFractionCompleted = fractionCompleted
@@ -77,7 +77,7 @@ public struct PullHandler {
 			if StorageLocation(runMode: runMode).exists(name) {
 				return PullReply(.unknown, success: false, message: "VM already exists")
 			}
-			
+
 			let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: runMode)
 			let storageLocation = StorageLocation(runMode: runMode)
 
@@ -89,9 +89,9 @@ public struct PullHandler {
 				operation: {
 					do {
 						let result = try await Self.pull(location: tempVMLocation, image: image, insecure: insecure, runMode: runMode, progressHandler: progressHandler)
-						
+
 						try storageLocation.relocate(name, from: tempVMLocation)
-						
+
 						let location = try storageLocation.find(name)
 						let config: CakeConfig
 						let macAddress = VZMACAddress.randomLocallyAdministered()
@@ -100,11 +100,11 @@ public struct PullHandler {
 							config = try CakeConfig(location: location.rootURL, options: .init(name: name, password: "admin"))
 
 							if config.os == .darwin {
-					#if arch(arm64)
-								config.ecid = VZMacMachineIdentifier()
-					#else
-								throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
-					#endif
+								#if arch(arm64)
+									config.ecid = VZMacMachineIdentifier()
+								#else
+									throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
+								#endif
 							}
 
 						} else if try tempVMLocation.configURL.exists() == false {
@@ -130,9 +130,9 @@ public struct PullHandler {
 							}
 						} else {
 							config = try tempVMLocation.config()
-							
+
 							config.vncPassword = UUID().uuidString
-							
+
 							config.networks = config.networks.map {
 								if $0.isNAT() {
 									return .init(network: $0.network, mode: $0.mode, macAddress: macAddress.string)
@@ -170,9 +170,9 @@ public struct PullHandler {
 						return result
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
-						
+
 						progressHandler(.terminated(.failure(error), "Pull failed"))
-						
+
 						throw error
 					}
 				},

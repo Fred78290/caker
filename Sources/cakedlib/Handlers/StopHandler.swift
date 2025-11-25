@@ -36,10 +36,10 @@ public struct StopHandler {
 				stopped = try StorageLocation(runMode: runMode).list().compactMap { (key: String, value: VMLocation) in
 					if value.status == .running {
 						try value.stopVirtualMachine(force: force, runMode: runMode)
-						
+
 						return StoppedObject(name: key, stopped: true, reason: "")
 					}
-					
+
 					return nil
 				}
 			} else {

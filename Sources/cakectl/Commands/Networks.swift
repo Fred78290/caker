@@ -30,7 +30,7 @@ struct Networks: ParsableCommand {
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let status = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.status
-			
+
 			if status.success {
 				return self.format.render(status.info)
 			} else {
@@ -135,7 +135,7 @@ struct Networks: ParsableCommand {
 
 		func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.networks(Caked_NetworkRequest(command: self), callOptions: callOptions).response.wait().networks.list
-			
+
 			if result.success {
 				return self.format.render(result.networks)
 			} else {

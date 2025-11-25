@@ -19,9 +19,10 @@ public struct SuspendHandler {
 
 	public static func suspendVMs(names: [String], runMode: Utils.RunMode) -> SuspendReply {
 		do {
-			return SuspendReply(objects: try names.compactMap {
-				try SuspendHandler.suspendVM(name: $0, runMode: runMode)
-			}, success: true, reason: "Success")
+			return SuspendReply(
+				objects: try names.compactMap {
+					try SuspendHandler.suspendVM(name: $0, runMode: runMode)
+				}, success: true, reason: "Success")
 		} catch {
 			return SuspendReply(objects: [], success: false, reason: "\(error)")
 		}

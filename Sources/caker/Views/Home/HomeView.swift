@@ -5,8 +5,8 @@
 //  Created by Frederic BOLTZ on 13/07/2025.
 //
 
-import SwiftUI
 import GRPCLib
+import SwiftUI
 
 struct HomeView: View {
 	@Binding var appState: AppState
@@ -23,7 +23,7 @@ struct HomeView: View {
 			guard let vm = navigationModel.selectedVirtualMachine else {
 				return true
 			}
-			
+
 			return vm.status == .running
 		case .networks:
 			guard let network = navigationModel.selectedNetwork else {
@@ -38,34 +38,34 @@ struct HomeView: View {
 
 	var body: some View {
 		self.navigationView
-		.toolbar {
-			ToolbarItem(placement: .navigation) {
-				Button("Delete", systemImage: "trash") {
-					self.actionDelete()
-				}.disabled(self.deleteButtonDisabled)
-			}
-
-			ToolbarItem(placement: .navigation) {
-				Button("Plus", systemImage: "plus") {
-					self.actionPlus()
+			.toolbar {
+				ToolbarItem(placement: .navigation) {
+					Button("Delete", systemImage: "trash") {
+						self.actionDelete()
+					}.disabled(self.deleteButtonDisabled)
 				}
-			}
 
-			if self.showDetailView {
-				ToolbarItem(placement: .primaryAction) {
-					Button("Detail", systemImage: "sidebar.squares.right") {
-						if self.mustShowDetailView == nil {
-							mustShowDetailView = false
-						} else {
-							self.mustShowDetailView?.toggle()
+				ToolbarItem(placement: .navigation) {
+					Button("Plus", systemImage: "plus") {
+						self.actionPlus()
+					}
+				}
+
+				if self.showDetailView {
+					ToolbarItem(placement: .primaryAction) {
+						Button("Detail", systemImage: "sidebar.squares.right") {
+							if self.mustShowDetailView == nil {
+								mustShowDetailView = false
+							} else {
+								self.mustShowDetailView?.toggle()
+							}
 						}
 					}
 				}
 			}
-		}
-		.sheet(isPresented: $presented) {
-			self.sheet
-		}
+			.sheet(isPresented: $presented) {
+				self.sheet
+			}
 	}
 
 	@ViewBuilder
@@ -100,7 +100,7 @@ struct HomeView: View {
 				navigationModel.selectedTemplate = nil
 			}
 		}
-		
+
 		clearSelectection(oldValue)
 		clearSelectection(newValue)
 	}
@@ -209,7 +209,7 @@ struct HomeView: View {
 			}
 		}.navigationSplitViewColumnWidth(min: self.minContentSize, ideal: self.idealContentSize)
 	}
-	
+
 	@ViewBuilder
 	var detail: some View {
 		GeometryReader { geometry in
@@ -218,29 +218,32 @@ struct HomeView: View {
 				Text("Hello, VM!")
 			case .networks:
 				if navigationModel.selectedNetwork != nil {
-					NetworkDetailView(Binding<BridgedNetwork>(
-						get: {
-							navigationModel.selectedNetwork!
-						},
-						set: { newValue in
-							navigationModel.selectedNetwork = newValue
-						}
-					), reloadNetwork: Binding<Bool>(
-						get: {
-							false
-						},
-						set: { newValue in
-							if newValue {
-								DispatchQueue.main.async {
-									self.appState.reloadNetworks()
-									
-									navigationModel.selectedNetwork = self.appState.networks.first {
-										$0.id == navigationModel.selectedNetwork!.id
+					NetworkDetailView(
+						Binding<BridgedNetwork>(
+							get: {
+								navigationModel.selectedNetwork!
+							},
+							set: { newValue in
+								navigationModel.selectedNetwork = newValue
+							}
+						),
+						reloadNetwork: Binding<Bool>(
+							get: {
+								false
+							},
+							set: { newValue in
+								if newValue {
+									DispatchQueue.main.async {
+										self.appState.reloadNetworks()
+
+										navigationModel.selectedNetwork = self.appState.networks.first {
+											$0.id == navigationModel.selectedNetwork!.id
+										}
 									}
 								}
 							}
-						}
-					)).background(Color(NSColor.tertiarySystemFill))
+						)
+					).background(Color(NSColor.tertiarySystemFill))
 				} else {
 					EmptyView()
 				}

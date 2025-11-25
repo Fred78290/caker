@@ -59,9 +59,9 @@ struct VMSettingsView: View {
 				}
 			}
 		}.formStyle(.grouped)
-    }
+	}
 }
 
 #Preview {
-    VMSettingsView()
+	VMSettingsView()
 }

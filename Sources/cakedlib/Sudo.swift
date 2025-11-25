@@ -198,13 +198,13 @@ public final class SudoCaked {
 		process.standardInput = nil
 
 		#if XDEBUG
-		process.standardOutput = FileHandle.standardOutput
-		process.standardError = FileHandle.standardError
+			process.standardOutput = FileHandle.standardOutput
+			process.standardError = FileHandle.standardError
 		#else
-		process.standardOutput = nil
-		process.standardError = nil
+			process.standardOutput = nil
+			process.standardError = nil
 		#endif
-		
+
 		try process.run()
 
 		process.waitUntilExit()
@@ -216,4 +216,3 @@ public final class SudoCaked {
 		return false
 	}
 }
-

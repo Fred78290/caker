@@ -52,13 +52,13 @@ struct NetworksView: View {
 			} else {
 				List(appState.networks, id: \.self, selection: $navigationModel.selectedNetwork) { network in
 					GeometryReader { geom in
-						HStack{
+						HStack {
 							network.icon
 								.resizable()
 								.aspectRatio(contentMode: .fit)
 								.foregroundStyle(self.colorScheme == .dark ? .white : .primary)
 								.frame(size: CGSize(width: geom.size.height, height: geom.size.height))
-							
+
 							Text("\(network.name)")
 								.font(.headline)
 								.frame(width: 60, alignment: .leading)

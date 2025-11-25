@@ -95,7 +95,7 @@ class NavigationModel: ObservableObject, Observable {
 	}
 
 	var categories: [Category] = [.virtualMachine, .networks, .templates, .images]
-	
+
 	init() {
 		self.selectedCategory = .virtualMachine
 	}

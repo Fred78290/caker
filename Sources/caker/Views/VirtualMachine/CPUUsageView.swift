@@ -5,14 +5,14 @@
 //  Created by Frederic BOLTZ on 23/11/2025.
 //
 
-import SwiftUI
-import CakedLib
 import CakeAgentLib
+import CakedLib
 import GRPCLib
+import SwiftUI
 
 struct CPUUsageView: View {
 	let vmInfos: VMInformations
-	
+
 	var body: some View {
 		Group {
 			if let cpuInfos = vmInfos.cpuInfos {
@@ -28,17 +28,17 @@ struct CPUUsageView: View {
 					Image(systemName: "cpu")
 						.foregroundColor(.secondary)
 						.font(.caption)
-					
+
 					// Vertical bars for each CPU core
 					HStack(spacing: 1) {
 						ForEach(Array(cpuInfos.cores.enumerated()), id: \.offset) { index, core in
 							VStack(spacing: 0) {
 								Spacer()
-								
+
 								Rectangle()
 									.frame(width: 8, height: max(2, core.usagePercent / 100.0 * 16))
 									.foregroundColor(cpuUsageColor(core.usagePercent))
-								
+
 								Rectangle()
 									.frame(width: 8, height: max(0, 16 - (core.usagePercent / 100.0 * 16)))
 									.foregroundColor(Color.clear)
@@ -55,13 +55,13 @@ struct CPUUsageView: View {
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
 			} else {
 				EmptyView()
-				.padding(.horizontal, 6)
-				.padding(.vertical, 4)
-				.help("CPU usage unavailable")
+					.padding(.horizontal, 6)
+					.padding(.vertical, 4)
+					.help("CPU usage unavailable")
 			}
 		}
 	}
-	
+
 	private func cpuUsageColor(_ usage: Double) -> Color {
 		switch usage {
 		case 0..<30:

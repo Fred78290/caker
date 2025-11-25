@@ -122,20 +122,20 @@ final class CakedChannelStreamer: @unchecked Sendable {
 				self.exitCode = -1
 				_ = pipeChannel.channel.close()
 				self.semaphore.signal()
-			} else if case let .exitCode(code) = response.response {
+			} else if case .exitCode(let code) = response.response {
 				#if TRACE
 					redbold("exitCode=\(code)")
 				#endif
 				self.exitCode = code
 				_ = pipeChannel.channel.close()
 				self.semaphore.signal()
-			} else if case let .stdout(datas) = response.response {
+			} else if case .stdout(let datas) = response.response {
 				self.receivedLength += UInt64(datas.count)
 				#if TRACE
 					redbold("message length: \(datas.count), receivedLength=\(self.receivedLength)")
 				#endif
 				try self.outputHandle.write(contentsOf: datas)
-			} else if case let .stderr(datas) = response.response {
+			} else if case .stderr(let datas) = response.response {
 				try self.errorHandle.write(contentsOf: datas)
 			} else if case .established = response.response {
 				#if TRACE
@@ -247,7 +247,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		}.get().value
 
 		try await pipeChannel!.executeThenClose { inbound, outbound in
-			if case let .execute(cmd, arguments) = command {
+			if case .execute(let cmd, let arguments) = command {
 				shellStream.sendCommand(command: cmd, arguments: arguments)
 			} else if case .shell = command {
 				shellStream.sendShell()

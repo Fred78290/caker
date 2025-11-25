@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 07/11/2025.
 //
 
-import SwiftUI
-import GRPCLib
-import CakedLib
 import ArgumentParser
+import CakedLib
+import GRPCLib
+import SwiftUI
 
 struct NetworkWizard: View {
 	@Environment(\.dismiss) private var dismiss
@@ -32,18 +32,20 @@ struct NetworkWizard: View {
 
 	var body: some View {
 		VStack {
-			NetworkDetailView($currentItem, reloadNetwork: Binding<Bool>(
-				get: {
-						  false
-					  },
-					  set: { newValue in
-						  if newValue {
-							  DispatchQueue.main.async {
-								  self.appState.reloadNetworks()
-							  }
-						  }
-					  }
-				  ), forEditing: true)
+			NetworkDetailView(
+				$currentItem,
+				reloadNetwork: Binding<Bool>(
+					get: {
+						false
+					},
+					set: { newValue in
+						if newValue {
+							DispatchQueue.main.async {
+								self.appState.reloadNetworks()
+							}
+						}
+					}
+				), forEditing: true)
 			Spacer()
 			if let reason = self.reason {
 				Text(reason).font(.callout)
@@ -64,14 +66,14 @@ struct NetworkWizard: View {
 		.onChange(of: currentItem) { _, newValue in
 			(self.vzNetwork, self.reason) = Self.validate(newValue, networkConfig: self.networkConfig)
 		}
-    }
-	
+	}
+
 	static func validate(_ network: BridgedNetwork, networkConfig: VZVMNetConfig) -> (VZSharedNetwork?, String?) {
 		do {
 			if CakedLib.NetworksHandler.isPhysicalInterface(name: network.name) {
 				throw ValidationError("Network \(network.name) is a physical interface")
 			}
-			
+
 			if networkConfig.sharedNetworks[network.name] != nil {
 				throw ValidationError("Network \(network.name) already exist")
 			}
@@ -113,7 +115,7 @@ struct NetworkWizard: View {
 				interfaceID: network.interfaceID,
 				nat66Prefix: nil
 			)
-			
+
 			return (network, nil)
 		} catch {
 			print(error)
@@ -143,12 +145,12 @@ struct NetworkWizard: View {
 		}
 		dismiss()
 	}
-	
+
 	static func getDhcpLease() -> String {
 		guard let dhcpLease = try? NetworksHandler.getDHCPLease() else {
 			return ""
 		}
-		
+
 		return "\(dhcpLease)"
 	}
 }

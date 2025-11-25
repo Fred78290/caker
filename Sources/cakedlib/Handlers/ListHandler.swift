@@ -10,7 +10,7 @@ public struct ListHandler {
 			var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 				let status = location.status
 				let config = try location.config()
-				
+
 				return VirtualMachineInfo(
 					type: "vm",
 					source: "vms",
@@ -24,11 +24,11 @@ public struct ListHandler {
 					fingerprint: nil
 				)
 			}
-			
+
 			vmInfos.sort { vm1, vm2 in
 				vm1.fqn.joined(separator: ",") < vm2.fqn.joined(separator: ",")
 			}
-			
+
 			if vmonly == false {
 				let purgeableStorages: [PurgeableStorage] = [
 					try TemplateImageCache(runMode: runMode),
@@ -38,14 +38,14 @@ public struct ListHandler {
 					try RawImageCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
 				]
-				
+
 				_ = try purgeableStorages.map { imageCache in
 					var purgeables = try imageCache.purgeables()
-					
+
 					purgeables.sort { left, right in
 						left.url.lastPathComponent < right.url.lastPathComponent
 					}
-					
+
 					try purgeables.forEach { purgeable in
 						vmInfos.append(
 							VirtualMachineInfo(
@@ -64,7 +64,7 @@ public struct ListHandler {
 					}
 				}
 			}
-			
+
 			return VirtualMachineInfoReply(infos: vmInfos, success: true, reason: "Success")
 		} catch {
 			return VirtualMachineInfoReply(infos: [], success: false, reason: "\(error)")

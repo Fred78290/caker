@@ -240,33 +240,33 @@ struct Networks: ParsableCommand {
 	static func start(options: Networks.VMNetOptions, runMode: Utils.RunMode) -> StartedNetworkReply {
 		do {
 			let socketURL = try options.vmnetEndpoint(runMode: runMode)
-			
+
 			if socketURL.pidFile.isCakedRunning() {
 				return StartedNetworkReply(name: options.networkName, started: false, reason: "Network already running")
 			}
-			
+
 			if geteuid() == 0 {
 				let vzvmnet = try options.createVZVMNet(runMode: runMode)
 				var signalReconfigure: DispatchSourceSignal? = nil
-				
+
 				if CakedLib.NetworksHandler.isPhysicalInterface(name: options.networkName) == false {
 					let sig = DispatchSource.makeSignalSource(signal: SIGUSR2)
-					
+
 					if let dhcpLease = options.dhcpLease {
 						_ = try CakedLib.NetworksHandler.setDHCPLease(leaseTime: dhcpLease, runMode: runMode)
 					}
-					
+
 					Logger(self).info("Allow reconfigure network: \(options.networkName)")
-					
+
 					signal(SIGUSR2, SIG_IGN)
-					
+
 					sig.setEventHandler {
 						Logger(self).info("Will reconfigure network: \(options.networkName)")
-						
+
 						do {
 							let home: Home = try Home(runMode: runMode)
 							let networkConfig = try home.sharedNetworks()
-							
+
 							if let network = networkConfig.sharedNetworks[options.networkName] {
 								try? vzvmnet.1.reconfigure(networkConfig: network)
 							}
@@ -275,27 +275,27 @@ struct Networks: ParsableCommand {
 							Foundation.exit(1)
 						}
 					}
-					
+
 					sig.activate()
 					signalReconfigure = sig
 				}
-				
+
 				defer {
 					if let sig = signalReconfigure {
 						sig.cancel()
 					}
 				}
-				
+
 				try vzvmnet.1.start()
-				
+
 				return StartedNetworkReply(name: options.networkName, started: true, reason: "Network \(options.networkName) started")
 			} else if try SudoCaked(arguments: ["networks", "start", options.networkName], runMode: runMode, log: try CakedLib.NetworksHandler.vmnetFileLog(networkName: options.networkName, runMode: runMode)).run().terminationStatus != 0 {
 				throw ServiceError("Failed to start networks \(options.networkName)")
 			} else {
 				let socketURL = try options.vmnetEndpoint(runMode: runMode)
-				
+
 				try socketURL.pidFile.waitPID()
-				
+
 				return StartedNetworkReply(name: options.networkName, started: true, reason: "Network \(options.networkName) started")
 			}
 		} catch {
@@ -339,7 +339,7 @@ struct Networks: ParsableCommand {
 
 		func run() throws {
 			let result = CakedLib.NetworksHandler.status(networkName: self.name, runMode: self.common.runMode)
-			
+
 			if result.success {
 				Logger.appendNewLine(self.common.format.render(result.info))
 			} else {

@@ -74,7 +74,9 @@ struct Import: ParsableCommand {
 				Foundation.exit(Int32(exitCode))
 			}
 		} else {
-			Logger.appendNewLine(self.common.format.render(ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
+			Logger.appendNewLine(
+				self.common.format.render(
+					ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
 		}
 	}
 }

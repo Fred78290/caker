@@ -91,49 +91,49 @@ struct MainApp: App, VirtualMachineDelegate {
 			let idealHeight = CGFloat(display.height)
 
 			VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm)
-			.onAppear {
-				NSWindow.allowsAutomaticWindowTabbing = false
-			}
-			.onDisappear {
-				if kill(getpid(), SIGINT) != 0 {
-					NSApplication.shared.terminate(self)
+				.onAppear {
+					NSWindow.allowsAutomaticWindowTabbing = false
 				}
-			}
-			.onChange(of: self.appState.status) { _, newValue in
-				Logger(self).debug("New status: \(newValue)")
-			}
-			.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
-			.toolbar {
-				ToolbarItemGroup(placement: .navigation) {
-					if self.appState.status == .running {
-						Button("Stop", systemImage: "stop") {
-							self.requestStopFromUI()
-						}.help("Stop virtual machine")
-					} else if self.appState.status == .paused {
-						Button("Resume", systemImage: "playpause") {
-							self.startFromUI()
-						}.help("Resumes virtual machine")
-					} else {
-						Button("Start", systemImage: "power") {
-							self.startFromUI()
-						}.help("Start virtual machine")
+				.onDisappear {
+					if kill(getpid(), SIGINT) != 0 {
+						NSApplication.shared.terminate(self)
 					}
-
-					Button("Pause", systemImage: "pause") {
-						self.suspendFromUI()
-					}
-					.help("Suspends virtual machine")
-					.disabled(self.appState.isSuspendable == false)
-
-					Button("Restart", systemImage: "restart") {
-						self.restartFromUI()
-					}
-					.help("Restarts virtual machine")
-					.disabled(self.appState.isStopped)
 				}
-			}
-			.presentedWindowToolbarStyle(.unifiedCompact)
-			.windowToolbarFullScreenVisibility(.onHover)
+				.onChange(of: self.appState.status) { _, newValue in
+					Logger(self).debug("New status: \(newValue)")
+				}
+				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
+				.toolbar {
+					ToolbarItemGroup(placement: .navigation) {
+						if self.appState.status == .running {
+							Button("Stop", systemImage: "stop") {
+								self.requestStopFromUI()
+							}.help("Stop virtual machine")
+						} else if self.appState.status == .paused {
+							Button("Resume", systemImage: "playpause") {
+								self.startFromUI()
+							}.help("Resumes virtual machine")
+						} else {
+							Button("Start", systemImage: "power") {
+								self.startFromUI()
+							}.help("Start virtual machine")
+						}
+
+						Button("Pause", systemImage: "pause") {
+							self.suspendFromUI()
+						}
+						.help("Suspends virtual machine")
+						.disabled(self.appState.isSuspendable == false)
+
+						Button("Restart", systemImage: "restart") {
+							self.restartFromUI()
+						}
+						.help("Restarts virtual machine")
+						.disabled(self.appState.isStopped)
+					}
+				}
+				.presentedWindowToolbarStyle(.unifiedCompact)
+				.windowToolbarFullScreenVisibility(.onHover)
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
@@ -192,7 +192,7 @@ struct MainApp: App, VirtualMachineDelegate {
 	func didScreenshot(_ vm: CakedLib.VirtualMachine, data: NSImage) {
 		try? vm.saveScreenshot()
 	}
-	
+
 	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
 		MainApp.vm = vm
 		MainApp.virtualMachine = vm.getVM()

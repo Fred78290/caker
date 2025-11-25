@@ -5,10 +5,10 @@
 //  Created by Frederic BOLTZ on 10/08/2025.
 //
 
-import Cocoa
-import RoyalVNCKit
 import AppKit
 import Carbon
+import Cocoa
+import RoyalVNCKit
 
 class NSVNCView: NSView {
 	private let document: VirtualMachineDocument
@@ -16,7 +16,7 @@ class NSVNCView: NSView {
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
 	private var scrollStep: CGFloat = 12
-	private var lastModifierFlags: NSEvent.ModifierFlags = [ ]
+	private var lastModifierFlags: NSEvent.ModifierFlags = []
 	private var displayLink: CADisplayLink?
 	private var trackingArea: NSTrackingArea?
 	private var previousHotKeyMode: UnsafeMutableRawPointer?
@@ -27,10 +27,8 @@ class NSVNCView: NSView {
 	private var checkVNCReconfigurationTimeoutAttempts: Int = 20
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
 
-	var isLiveViewResize : Bool {
-		get {
-			return self.liveViewResize
-		}
+	var isLiveViewResize: Bool {
+		return self.liveViewResize
 	}
 
 	private var framebufferSize: CGSize {
@@ -195,7 +193,7 @@ class NSVNCView: NSView {
 			removeTrackingArea(trackingArea)
 		}
 
-		let newTrackingArea = NSTrackingArea(rect: bounds, options: [ .activeInKeyWindow, .inVisibleRect, .mouseMoved ], owner: self, userInfo: nil)
+		let newTrackingArea = NSTrackingArea(rect: bounds, options: [.activeInKeyWindow, .inVisibleRect, .mouseMoved], owner: self, userInfo: nil)
 
 		self.trackingArea = newTrackingArea
 		self.addTrackingArea(newTrackingArea)
@@ -318,8 +316,8 @@ extension NSVNCView {
 }
 
 // MARK: - Positions
-private extension NSVNCView {
-	struct UInt16Point {
+extension NSVNCView {
+	fileprivate struct UInt16Point {
 		let x: UInt16
 		let y: UInt16
 
@@ -334,7 +332,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func scaledContentRelativePosition(of event: NSEvent) -> UInt16Point? {
+	fileprivate func scaledContentRelativePosition(of event: NSEvent) -> UInt16Point? {
 		let viewRelativePosition = viewRelativePosition(of: event)
 		let contentRect = contentRect
 
@@ -348,7 +346,7 @@ private extension NSVNCView {
 		return scaledPositionUInt16
 	}
 
-	func viewRelativePosition(of event: NSEvent) -> CGPoint {
+	fileprivate func viewRelativePosition(of event: NSEvent) -> CGPoint {
 		var position = convert(event.locationInWindow, from: nil)
 		position.y = bounds.size.height - position.y
 
@@ -485,7 +483,7 @@ extension NSVNCView {
 
 	func handlePerformKeyEquivalent(with event: NSEvent) -> Bool {
 		// swiftlint:disable:next control_statement
-		guard (settings.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys), let window, (window.firstResponder == window || window.firstResponder == self) else {
+		guard settings.inputMode == .forwardKeyboardShortcutsEvenIfInUseLocally || settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys, let window, window.firstResponder == window || window.firstResponder == self else {
 			return false
 		}
 
@@ -515,12 +513,12 @@ extension NSVNCView {
 	}
 }
 
-private extension NSVNCView {
-	func frameSizeExceedsFramebufferSize(_ frameSize: CGSize) -> Bool {
+extension NSVNCView {
+	fileprivate func frameSizeExceedsFramebufferSize(_ frameSize: CGSize) -> Bool {
 		return frameSize.width >= framebufferSize.width && frameSize.height >= framebufferSize.height
 	}
 
-	func handleScrollWheel(scrollDelta: CGPoint, hasPreciseScrollingDeltas: Bool, mousePositionX: UInt16, mousePositionY: UInt16) {
+	fileprivate func handleScrollWheel(scrollDelta: CGPoint, hasPreciseScrollingDeltas: Bool, mousePositionX: UInt16, mousePositionY: UInt16) {
 		if hasPreciseScrollingDeltas {
 			handlePreciseScrollingDelta(scrollDelta, mousePositionX: mousePositionX, mousePositionY: mousePositionY)
 		} else {
@@ -528,7 +526,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func handleImpreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
+	fileprivate func handleImpreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
 		if scrollDelta.x < 0 {
 			connection.mouseWheel(.right, x: mousePositionX, y: mousePositionY, steps: 1)
 		} else if scrollDelta.x > 0 {
@@ -542,7 +540,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func handlePreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
+	fileprivate func handlePreciseScrollingDelta(_ scrollDelta: CGPoint, mousePositionX: UInt16, mousePositionY: UInt16) {
 		accumulatedScrollDeltaX += scrollDelta.x
 		accumulatedScrollDeltaY += scrollDelta.y
 
@@ -579,7 +577,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func updateImage(_ image: CGImage?, animated: Bool, duration: CGFloat = 0.5) {
+	fileprivate func updateImage(_ image: CGImage?, animated: Bool, duration: CGFloat = 0.5) {
 		if let layer {
 			if animated {
 				let transition = CATransition()
@@ -597,7 +595,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func updateImage(_ image: CGImage?, animated: Bool) {
+	fileprivate func updateImage(_ image: CGImage?, animated: Bool) {
 		didResizeFramebuffer = false
 
 		DispatchQueue.main.async { [weak self] in
@@ -607,7 +605,7 @@ private extension NSVNCView {
 		}
 	}
 
-	func frameSizeDidChange(_ size: CGSize) {
+	fileprivate func frameSizeDidChange(_ size: CGSize) {
 		if self.liveViewResize == false {
 			self.stopWaitVNCReconfiguration()
 
@@ -625,16 +623,16 @@ private extension NSVNCView {
 		}
 	}
 
-	func registerHotKeys() {
+	fileprivate func registerHotKeys() {
 		if settings.inputMode == .forwardAllKeyboardShortcutsAndHotKeys {
 			deregisterHotKeys()
-			
+
 			// This requires Accessibilty permissions which can be requested using `VNCAccessibilityUtils`
 			self.previousHotKeyMode = PushSymbolicHotKeyMode(.init(kHIHotKeyModeAllDisabled))
 		}
 	}
 
-	func deregisterHotKeys() {
+	fileprivate func deregisterHotKeys() {
 		if let previousHotKeyMode = previousHotKeyMode {
 			PopSymbolicHotKeyMode(previousHotKeyMode)
 		}

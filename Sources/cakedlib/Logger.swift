@@ -169,9 +169,9 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 	let progressHandler: BuildProgressHandler?
 
 	public static func progressHandler(_ result: ProgressValue) {
-		if case let .progress(context, fractionCompleted) = result {
+		if case .progress(let context, let fractionCompleted) = result {
 			let completed = Int(100 * fractionCompleted)
-			
+
 			if completed % 10 == 0 {
 				if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
 					if context.lastCompleted10 == 0 && completed == 100 {
@@ -181,7 +181,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 					} else {
 						print(String(format: "%0.3d%%", completed), terminator: " complete\n")
 					}
-					
+
 					fflush(stdout)
 
 					context.lastCompleted10 = completed
@@ -193,10 +193,10 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 					fflush(stdout)
 				}
 			}
-		} else if case let .terminated(result, message) = result {
+		} else if case .terminated(let result, let message) = result {
 			let logger = Logger("BuildHandler")
 
-			if case let .failure(error) = result {
+			if case .failure(let error) = result {
 				if let message {
 					logger.error("\(message): \(error)")
 				} else {
@@ -205,7 +205,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 			} else {
 				logger.info(message ?? "Installation succeeded")
 			}
-		} else if case let .step(message) = result {
+		} else if case .step(let message) = result {
 			Logger(self).info(message)
 		}
 	}
