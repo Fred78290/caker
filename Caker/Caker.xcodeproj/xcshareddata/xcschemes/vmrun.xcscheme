@@ -57,11 +57,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "ubuntu"
+            argument = "linux"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ui"
+            argument = "--vnc"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
