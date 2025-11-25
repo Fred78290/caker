@@ -993,7 +993,7 @@ class CloudInit {
 				cp $MOUNT/cakeagent /usr/local/bin/cakeagent
 				umount $MOUNT
 				chmod +x /usr/local/bin/cakeagent
-				/usr/local/bin/cakeagent --install \\
+				/usr/local/bin/cakeagent service install \\
 					--listen=vsock://any:5000 \\
 					--ca-cert=/etc/cakeagent/ssl/ca.pem \\
 					--tls-cert=/etc/cakeagent/ssl/server.pem \\

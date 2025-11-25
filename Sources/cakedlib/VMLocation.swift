@@ -640,7 +640,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			if test -f /usr/local/bin/cakeagent
 			then
-				if test -n "$(/usr/local/bin/cakeagent --version|grep \(CAKEAGENT_SNAPSHOT))"
+				if test -n "$(/usr/local/bin/cakeagent version|grep \(CAKEAGENT_SNAPSHOT))"
 				then
 					echo "CakeAgent already installed, skipping"
 					exit 0
