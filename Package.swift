@@ -119,7 +119,9 @@ let package = Package(
 		path: "Sources/cakedlib",
 		exclude: [
 			"VMRunService/GRPC/generate.sh",
-			"VMRunService/GRPC/mount.proto"
+			"VMRunService/GRPC/mount.proto",
+			"Sources/cakedlib/VNCLib/README.md",
+			"Sources/cakedlib/VNCLib/VNCAuthExample.swift"
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "CakedLib"),
