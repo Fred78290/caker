@@ -69,8 +69,6 @@ public class VNCInputHandler {
 	
     init(targetView: NSView?) {
         self.targetView = targetView
-        // Attempt to make the target view the first responder if it is in a window
-        ensureFirstResponder()
     }
     
     // MARK: - Mouse Events
