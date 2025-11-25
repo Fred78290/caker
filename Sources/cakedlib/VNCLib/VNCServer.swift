@@ -152,7 +152,7 @@ public class VNCServer: NSObject, VZVNCServer {
 
 		listener.stateUpdateHandler = { [weak self] state in
 			if let self = self {
-				self.logger.debug("Update state: \(state.description)")
+				self.logger.debug("Update state: \(state)")
 				switch state {
 				case .ready:
 					self.startFramebufferUpdates()
