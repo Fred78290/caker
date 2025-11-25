@@ -68,6 +68,8 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 			return "pointerEvent"
 		case .clientCutText:
 			return "clientCutText"
+		case .framebufferUpdateContinue:
+			return "framebufferUpdateContinue"
 		case .unknown:
 			return "unknown"
 		}
@@ -80,6 +82,7 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 	case keyEvent = 4
 	case pointerEvent = 5
 	case clientCutText = 6
+	case framebufferUpdateContinue = 150
 
 	init(rawValue: UInt8) {
 		switch rawValue {
@@ -89,6 +92,7 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 		case 4: self = .keyEvent
 		case 5: self = .pointerEvent
 		case 6: self = .clientCutText
+		case 150: self = .framebufferUpdateContinue
 		default: self = .unknown
 		}
 	}
@@ -152,22 +156,27 @@ struct VNCRectangle {
 
 // Client messages
 struct VNCKeyEvent {
-	var messageType: UInt8 = 4
 	var downFlag: UInt8 = 0
 	var padding: UInt16 = 0
 	var key: UInt32 = 0
 }
 
 struct VNCPointerEvent {
-	var messageType: UInt8 = 5
 	var buttonMask: UInt8 = 0
 	var xPosition: UInt16 = 0
 	var yPosition: UInt16 = 0
 }
 
 struct VNCFramebufferUpdateRequest {
-	var messageType: UInt8 = 3
 	var incremental: UInt8 = 0
+	var x: UInt16 = 0
+	var y: UInt16 = 0
+	var width: UInt16 = 0
+	var height: UInt16 = 0
+}
+
+struct VNCFramebufferUpdateContinue {
+	var active: UInt8 = 0
 	var x: UInt16 = 0
 	var y: UInt16 = 0
 	var width: UInt16 = 0
