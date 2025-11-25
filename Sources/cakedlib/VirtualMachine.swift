@@ -7,7 +7,6 @@ import Virtualization
 import Socket
 import Shout
 import CakeAgentLib
-import VNCLib
 
 private let kScreenshotPeriodSeconds = 5.0
 
