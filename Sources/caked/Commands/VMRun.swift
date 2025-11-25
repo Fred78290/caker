@@ -142,7 +142,13 @@ struct VMRun: AsyncParsableCommand {
 			display: display,
 			config: config)
 
-		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { vm in
+		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { address, vm in
+			address.whenSuccess { ip in
+				if let ip {
+					Logger(self).info("VM Machine is now available at \(ip)")
+				}
+			}
+
 			if display == .ui {
 				MainApp.runUI(name: location.name, vm: vm, config: config)
 			} else {

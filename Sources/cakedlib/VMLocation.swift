@@ -407,7 +407,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func startVirtualMachine(_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode, completionHandler: StartCompletionHandler? = nil) throws -> (
-		EventLoopFuture<String?>, VirtualMachine
+		address: EventLoopFuture<String?>, vm: VirtualMachine
 	) {
 		let vm = try VirtualMachine(location: self, config: config, screenSize: screenSize, runMode: runMode)
 
