@@ -39,6 +39,7 @@ public class VNCServer: NSObject, VZVNCServer {
 	public let captureMethod: VNCCaptureMethod
 	public var password: String?  // VNC Auth password
 
+	private let logger = Logger("VNCServer")
 	private var listener: NWListener!
 	private var connections: [VNCConnection] = []
 	private var updateTimer: Timer?
@@ -144,12 +145,14 @@ public class VNCServer: NSObject, VZVNCServer {
 
 		listener.newConnectionHandler = { [weak self] connection in
 			if let self = self {
+				self.logger.debug("New connection: \(connection)")
 				self.handleNewConnection(connection)
 			}
 		}
 
 		listener.stateUpdateHandler = { [weak self] state in
 			if let self = self {
+				self.logger.debug("Update state: \(state.description)")
 				switch state {
 				case .ready:
 					self.startFramebufferUpdates()
@@ -325,7 +328,11 @@ public enum VNCServerError: Error, LocalizedError {
 extension VNCServer: VNCConnectionDelegate {
 	func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String) {
 		connectionQueue.async(flags: .barrier) {
-			self.connections.removeAll { $0 === connection }
+			self.logger.debug("Client at \(clientAddress) disconnected")
+
+			self.connections.removeAll {
+				return $0 === connection
+			}
 		}
 
 		DispatchQueue.main.async {
@@ -334,6 +341,8 @@ extension VNCServer: VNCConnectionDelegate {
 	}
 
 	func vncConnection(_ connection: VNCConnection, didReceiveError error: Error) {
+		self.logger.debug("Client at \(connection) didReceiveError: \(error)")
+
 		DispatchQueue.main.async {
 			self.delegate?.vncServer(self, didReceiveError: error)
 		}

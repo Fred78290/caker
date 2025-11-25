@@ -54,6 +54,8 @@ class VNCConnection {
 
 	func start() {
 		connection.stateUpdateHandler = { [weak self] state in
+			self?.logger.debug("Connection state: \(state)")
+
 			switch state {
 			case .ready:
 				self?.handleInitialHandshake()
