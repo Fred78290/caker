@@ -39,7 +39,7 @@ public class VNCServer: NSObject, VZVNCServer {
 	public let captureMethod: VNCCaptureMethod
 	public var password: String?  // VNC Auth password
 
-	private var listener: NWListener?
+	private var listener: NWListener!
 	private var connections: [VNCConnection] = []
 	private var updateTimer: Timer?
 	private var framebuffer: VNCFramebuffer!
@@ -142,19 +142,21 @@ public class VNCServer: NSObject, VZVNCServer {
 
 		listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: self.port))
 
-		listener?.newConnectionHandler = { [weak self] connection in
-			self?.handleNewConnection(connection)
+		listener.newConnectionHandler = { [weak self] connection in
+			if let self = self {
+				self.handleNewConnection(connection)
+			}
 		}
 
-		listener?.stateUpdateHandler = { [weak self] state in
+		listener.stateUpdateHandler = { [weak self] state in
 			if let self = self {
 				switch state {
 				case .ready:
 					self.startFramebufferUpdates()
 				case .failed(let error):
-					self.delegate?.vncServer(self!, didReceiveError: error)
+					self.delegate?.vncServer(self, didReceiveError: error)
 				case .cancelled:
-					self?.isRunning = false
+					self.isRunning = false
 				default:
 					break
 				}
