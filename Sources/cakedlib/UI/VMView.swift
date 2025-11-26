@@ -18,14 +18,16 @@ public struct VMView: NSViewRepresentable {
 	public var display: VMRunHandler.DisplayMode
 	public var vncPassword: String?
 	public var vncPort: Int?
+	public var captureMethod: VNCCaptureMethod
 
-	public init(_ display: VMRunHandler.DisplayMode, automaticallyReconfiguresDisplay: Bool = false, vm: VirtualMachine, vncPassword: String?, vncPort: Int?) {
+	public init(_ display: VMRunHandler.DisplayMode, automaticallyReconfiguresDisplay: Bool = false, vm: VirtualMachine, vncPassword: String?, vncPort: Int?, captureMethod: VNCCaptureMethod) {
 		self.automaticallyReconfiguresDisplay = automaticallyReconfiguresDisplay
 		self.vm = vm
 		self.virtualMachine = vm
 		self.display = display
 		self.vncPassword = vncPassword
 		self.vncPort = vncPort
+		self.captureMethod = captureMethod
 	}
 
 	public func makeNSView(context: Context) -> NSViewType {
@@ -42,7 +44,7 @@ public struct VMView: NSViewRepresentable {
 		nsView.virtualMachine = self.virtualMachine.getVM()
 		
 		if let vncPassword, let vncPort, display == .all {
-			if let vncURL = try? self.vm.startVncServer(nsView, vncPassword: vncPassword, port: vncPort) {
+			if let vncURL = try? self.vm.startVncServer(nsView, vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod) {
 				Logger(self).info("VNC server started at \(vncURL.absoluteString)")
 			} else {
 				Logger(self).error("Failed to start VNC server")

@@ -4,6 +4,7 @@ import Foundation
 import Metal
 import Network
 import QuartzCore
+import ArgumentParser
 
 public protocol VZVNCServer {
 	func start() throws
@@ -11,9 +12,13 @@ public protocol VZVNCServer {
 	func connectionURL() -> URL
 }
 
-public enum VNCCaptureMethod {
-	case coreGraphics
-	case metal
+public enum VNCCaptureMethod: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
+	public var description: String {
+		self.rawValue
+	}
+	
+	case coreGraphics = "cg"
+	case metal = "metal"
 }
 
 public protocol VNCServerDelegate: AnyObject {
@@ -46,11 +51,13 @@ public class VNCServer: NSObject, VZVNCServer {
 	private var framebuffer: VNCFramebuffer!
 	private var displayLink: CADisplayLink!
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
+	private let name: String
 
-	public init(_ sourceView: NSView, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
+	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
 		self.sourceView = sourceView
 		self.captureMethod = captureMethod
 		self.password = password
+		self.name = name
 
 		if port == 0 {
 			self.port = Self.findAvailablePort(in: 30000...32767) ?? UInt16.random(in: 30000...32767)
@@ -192,7 +199,7 @@ public class VNCServer: NSObject, VZVNCServer {
 	}
 
 	private func handleNewConnection(_ nwConnection: NWConnection) {
-		let connection = VNCConnection(connection: nwConnection, framebuffer: framebuffer, password: password)
+		let connection = VNCConnection(self.name, connection: nwConnection, framebuffer: framebuffer, password: password)
 		connection.delegate = self
 		connection.inputDelegate = self
 
@@ -232,7 +239,7 @@ public class VNCServer: NSObject, VZVNCServer {
 	}
 
 	@objc private func updateFramebuffer() {
-		self.logger.debug("updateFramebuffer")
+		//self.logger.debug("updateFramebuffer")
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 

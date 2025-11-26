@@ -62,6 +62,9 @@ struct VMRun: AsyncParsableCommand {
 	@Option(help: ArgumentHelp("VNC Server port", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var vncPort: Int = 0
 
+	@Option(help: ArgumentHelp("VNC capture method", discussion: "This option allow choose the capture method of vnc", visibility: .hidden))
+	var captureMethod: VNCCaptureMethod = .coreGraphics
+
 	@Option(help: ArgumentHelp("Screen size", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var screenSize: ViewSize?
 
@@ -142,7 +145,7 @@ struct VMRun: AsyncParsableCommand {
 			display: display,
 			config: config)
 
-		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort) { address, vm in
+		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort, captureMethod: self.captureMethod) { address, vm in
 			address.whenSuccess { ip in
 				if let ip {
 					Logger(self).info("VM Machine is now available at \(ip)")
@@ -150,7 +153,7 @@ struct VMRun: AsyncParsableCommand {
 			}
 
 			if display == .ui || display == .all {
-				MainApp.runUI(display, name: location.name, vm: vm, config: config, vncPassword: vncPassword, vncPort: self.vncPort)
+				MainApp.runUI(display, name: location.name, vm: vm, config: config, vncPassword: vncPassword, vncPort: self.vncPort, captureMethod: self.captureMethod)
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()

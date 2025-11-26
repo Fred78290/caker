@@ -34,6 +34,7 @@ struct MainApp: App, VirtualMachineDelegate {
 	static var displayUI = false
 	static var vncPassword: String? = nil
 	static var vncPort: Int? = nil
+	static var captureMethod: VNCCaptureMethod = .coreGraphics
 	static var _vm: VirtualMachine? = nil
 	static var _config: CakeConfig? = nil
 	static var _name: String? = nil
@@ -102,7 +103,7 @@ struct MainApp: App, VirtualMachineDelegate {
 			let minHeight = CGFloat(display.height)
 			let idealHeight = CGFloat(display.height)
 
-			VMView(MainApp.display, automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, vncPassword: MainApp.vncPassword, vncPort: MainApp.vncPort)
+			VMView(MainApp.display, automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, vncPassword: MainApp.vncPassword, vncPort: MainApp.vncPort, captureMethod: MainApp.captureMethod)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}
@@ -205,10 +206,11 @@ struct MainApp: App, VirtualMachineDelegate {
 		try? vm.saveScreenshot()
 	}
 
-	static func runUI(_ display: VMRunHandler.DisplayMode, name: String, vm: VirtualMachine, config: CakeConfig, vncPassword: String, vncPort: Int?) {
+	static func runUI(_ display: VMRunHandler.DisplayMode, name: String, vm: VirtualMachine, config: CakeConfig, vncPassword: String, vncPort: Int?, captureMethod: VNCCaptureMethod) {
 		MainApp.displayUI = true
 		MainApp.vncPort = vncPort
 		MainApp.vncPassword = vncPassword
+		MainApp.captureMethod = captureMethod
 		MainApp.display = display
 		MainApp.vm = vm
 		MainApp.virtualMachine = vm.getVM()

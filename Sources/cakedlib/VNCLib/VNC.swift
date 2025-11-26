@@ -23,9 +23,9 @@ import Foundation
 import Virtualization
 
 extension VZVNCServer {
-	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) -> VZVNCServer {
+	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VZVirtualMachineView, password: String, port: Int, captureMethod: VNCCaptureMethod, queue: dispatch_queue_t) -> VZVNCServer {
 		//InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
-		VNCServer(view, password: password, port: UInt16(port), captureMethod: .coreGraphics)
+		VNCServer(view, name: name, password: password, port: UInt16(port), captureMethod: captureMethod)
 	}
 }
 
