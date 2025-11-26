@@ -120,18 +120,18 @@ enum VNCEncoding: UInt32, CustomDebugStringConvertible {
 }
 
 // Message structures
-struct VNCPixelFormat {
-	var bitsPerPixel: UInt8 = 0
-	var depth: UInt8 = 0
-	var bigEndianFlag: UInt8 = 0
-	var trueColorFlag: UInt8 = 0
-	var redMax: UInt16 = 0
-	var greenMax: UInt16 = 0
-	var blueMax: UInt16 = 0
-	var redShift: UInt8 = 0
-	var greenShift: UInt8 = 0
-	var blueShift: UInt8 = 0
-	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
+public struct VNCPixelFormat {
+	public var bitsPerPixel: UInt8 = 32
+	public var depth: UInt8 = 24
+	public var bigEndianFlag: UInt8 = 0
+	public var trueColorFlag: UInt8 = 1
+	public var redMax: UInt16 = UInt16(255).bigEndian
+	public var greenMax: UInt16 = UInt16(255).bigEndian
+	public var blueMax: UInt16 = UInt16(255).bigEndian
+	public var redShift: UInt8 = 0
+	public var greenShift: UInt8 = 8
+	public var blueShift: UInt8 = 16
+	public var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
 }
 
 struct VNCServerInit {
@@ -140,10 +140,10 @@ struct VNCServerInit {
 	var pixelFormat = VNCPixelFormat()
 }
 
-struct VNCFramebufferUpdateMsg {
-	var messageType: UInt8 = 0
-	var padding: UInt8 = 0
-	var numberOfRectangles: UInt16 = 0
+public struct VNCFramebufferUpdateMsg {
+	public var messageType: UInt8 = 0
+	public var padding: UInt8 = 0
+	public var numberOfRectangles: UInt16 = 0
 }
 
 struct VNCRectangle {

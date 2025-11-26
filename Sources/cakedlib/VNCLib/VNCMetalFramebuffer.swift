@@ -78,6 +78,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 		guard let device = metalDevice else { return }
 
 		let descriptor = MTLTextureDescriptor()
+
 		descriptor.textureType = .type2D
 		descriptor.pixelFormat = metalConfig.pixelFormat
 		descriptor.width = max(1, width)
@@ -85,13 +86,14 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 		descriptor.usage = [.renderTarget, .shaderRead]
 		descriptor.storageMode = .managed
 
-		renderTargetTexture = device.makeTexture(descriptor: descriptor)
+		self.renderTargetTexture = device.makeTexture(descriptor: descriptor)
 	}
 
 	private func updateRenderTargetSize() {
 		guard let device = metalDevice else { return }
 
 		let descriptor = MTLTextureDescriptor()
+
 		descriptor.textureType = .type2D
 		descriptor.pixelFormat = metalConfig.pixelFormat
 		descriptor.width = max(1, width)
@@ -99,7 +101,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 		descriptor.usage = [.renderTarget, .shaderRead]
 		descriptor.storageMode = .managed
 
-		renderTargetTexture = device.makeTexture(descriptor: descriptor)
+		self.renderTargetTexture = device.makeTexture(descriptor: descriptor)
 	}
 
 	// MARK: - Overridden Methods
@@ -140,23 +142,21 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 	private func captureViewContentWithMetal(view: NSView, bounds: NSRect) {
 		let startTime = CACurrentMediaTime()
 
-		guard metalDevice != nil,
-			let commandQueue = metalCommandQueue,
-			let renderTarget = renderTargetTexture
-		else {
+		guard metalDevice != nil, let commandQueue = metalCommandQueue, let renderTarget = renderTargetTexture else {
 			// Fallback to Core Graphics
-			captureViewContent(view: view, bounds: bounds)
+			self.captureViewContent(view: view, bounds: bounds)
 			return
 		}
 
 		// Create command buffer
 		guard let commandBuffer = commandQueue.makeCommandBuffer() else {
-			captureViewContent(view: view, bounds: bounds)
+			self.captureViewContent(view: view, bounds: bounds)
 			return
 		}
 
 		// Create render pass
 		let renderPassDescriptor = MTLRenderPassDescriptor()
+
 		renderPassDescriptor.colorAttachments[0].texture = renderTarget
 		renderPassDescriptor.colorAttachments[0].loadAction = .clear
 		renderPassDescriptor.colorAttachments[0].storeAction = .store
@@ -164,12 +164,14 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 
 		// Render view to metal texture
 		if let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
-			renderViewToMetal(view: view, encoder: renderEncoder, bounds: bounds)
+			self.renderViewToMetal(view: view, encoder: renderEncoder, bounds: bounds)
+
 			renderEncoder.endEncoding()
 		}
 
 		// Copy texture data to CPU
 		let blit = commandBuffer.makeBlitCommandEncoder()
+
 		blit?.synchronize(resource: renderTarget)
 		blit?.endEncoding()
 
@@ -181,6 +183,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 
 		// Record render time
 		let renderTime = CACurrentMediaTime() - startTime
+
 		recordRenderTime(renderTime)
 	}
 

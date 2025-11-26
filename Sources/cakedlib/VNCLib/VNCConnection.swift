@@ -34,6 +34,7 @@ class VNCConnection {
 	private var majorVersion: Int = 3
 	private var minorVersion: Int = 8
 	private let logger = Logger("VNCConnection")
+	private let name: String
 
 	// VNC Auth constants
 	private static let VNC_AUTH_NONE: UInt32 = 1
@@ -41,7 +42,8 @@ class VNCConnection {
 	private static let VNC_AUTH_OK: UInt32 = 0
 	private static let VNC_AUTH_FAILED: UInt32 = 1
 
-	init(connection: NWConnection, framebuffer: VNCFramebuffer, password: String? = nil) {
+	init(_ name: String, connection: NWConnection, framebuffer: VNCFramebuffer, password: String? = nil) {
+		self.name = name
 		self.connection = connection
 		self.framebuffer = framebuffer
 		self.inputHandler = VNCInputHandler(targetView: framebuffer.sourceView)
@@ -204,52 +206,17 @@ class VNCConnection {
 	}
 
 	private func sendAuthenticationForVersion37Plus() {
-		// VNC 3.7+: Send list of supported authentication types
-		var supportedAuthTypes: [UInt32] = []
-
-		// Always support no authentication if no password set
-		if vncPassword == nil {
-			supportedAuthTypes.append(Self.VNC_AUTH_NONE)
-		} else {
-			supportedAuthTypes.append(Self.VNC_AUTH_VNC)
-		}
-
-		// If no authentication methods available, send empty list (connection failure)
-		if supportedAuthTypes.isEmpty {
-			var authCount: UInt8 = 0
-			let authData = Data(bytes: &authCount, count: 1)
-
-			connection.send(
-				content: authData,
-				completion: .contentProcessed { [weak self] error in
-					// Send failure reason
-					let reason = "No supported authentication methods available"
-					let reasonData = reason.data(using: .utf8)!
-					var reasonLength = UInt32(reasonData.count).bigEndian
-
-					var failureData = Data()
-					failureData.append(Data(bytes: &reasonLength, count: 4))
-					failureData.append(reasonData)
-
-					self?.connection.send(
-						content: failureData,
-						completion: .contentProcessed { _ in
-							self?.disconnect()
-						})
-				})
-			return
-		}
-
 		// Send authentication type list
-		var authCount = UInt8(supportedAuthTypes.count)
-		var authData = Data()
-		authData.append(Data(bytes: &authCount, count: 1))
-
-		for authType in supportedAuthTypes {
-			var bigEndianAuthType = authType.bigEndian
-
-			authData.append(Data(bytes: &bigEndianAuthType, count: 4))
-		}
+		var authData = Data(count: 2)
+		
+		authData.withUnsafeMutableBytes { authData in
+			guard let ptr = authData.bindMemory(to: UInt8.self).baseAddress else {
+				return
+			}
+			
+			ptr[0] = 1
+			ptr[1] = vncPassword == nil ? UInt8(Self.VNC_AUTH_NONE) : UInt8(Self.VNC_AUTH_VNC)
+ 		}
 
 		self.connection.send(
 			content: authData,
@@ -435,31 +402,22 @@ class VNCConnection {
 
 	private func sendServerInit() {
 		let state = framebuffer.getCurrentState()
-
 		var serverInit = VNCServerInit()
-		let name = "NSView VNC Server"
-		let nameData = name.data(using: .utf8)!
+		let nameData = self.name.data(using: .utf8)!
 		var nameLength = UInt32(nameData.count).bigEndian
 		var initData = Data()
 
 		serverInit.framebufferWidth = UInt16(state.width).bigEndian
 		serverInit.framebufferHeight = UInt16(state.height).bigEndian
-		serverInit.pixelFormat.bitsPerPixel = 32
-		serverInit.pixelFormat.depth = 24
-		serverInit.pixelFormat.bigEndianFlag = 0
-		serverInit.pixelFormat.trueColorFlag = 1
-		serverInit.pixelFormat.redMax = UInt16(255).bigEndian
-		serverInit.pixelFormat.greenMax = UInt16(255).bigEndian
-		serverInit.pixelFormat.blueMax = UInt16(255).bigEndian
-		serverInit.pixelFormat.redShift = 0
-		serverInit.pixelFormat.greenShift = 8
-		serverInit.pixelFormat.blueShift = 16
+		serverInit.pixelFormat = framebuffer.getPixelFormat()
 
 		initData.append(Data(bytes: &serverInit, count: MemoryLayout<VNCServerInit>.size))
 		initData.append(Data(bytes: &nameLength, count: 4))
 		initData.append(nameData)
 
 		self.connection.send(content: initData, completion: .contentProcessed { _ in })
+		
+		self.logger.debug("Send server init")
 	}
 
 	private func receiveClientMessages() {
@@ -530,7 +488,7 @@ class VNCConnection {
 					pixelFormat.blueShift = data[15]
 					// Skip padding bytes 17-19
 
-					self.logger.debug("Client set pixel format: \(pixelFormat.bitsPerPixel)bpp, depth=\(pixelFormat.depth)")
+					self.logger.debug("Client set pixel format: \(pixelFormat)")
 				}
 
 				// Ignore for now, use default format
@@ -675,36 +633,56 @@ class VNCConnection {
 	}
 
 	func sendFramebufferUpdate() {
-		guard isAuthenticated else { return }
+		if isAuthenticated {
+			let state = framebuffer.getCurrentState()
 
-		let state = framebuffer.getCurrentState()
-		guard state.hasChanges else { return }
+			if state.hasChanges {
+				self.connectionQueue.async {
+					//var updateMsg = VNCFramebufferUpdateMsg()
+					//var rect = VNCRectangle()
+					var msgData = Data(count: MemoryLayout<VNCFramebufferUpdateMsg>.size + MemoryLayout<VNCRectangle>.size)
+					
+					msgData.withUnsafeMutableBytes { msgBytes in
+						var updateMsg = msgBytes.load(as: VNCFramebufferUpdateMsg.self)
+						var rect = msgBytes.load(fromByteOffset: MemoryLayout<VNCFramebufferUpdateMsg>.size, as: VNCRectangle.self)
 
-		self.connectionQueue.async {
-			var updateMsg = VNCFramebufferUpdateMsg()
-			var rect = VNCRectangle()
-			var msgData = Data()
+						updateMsg.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+						updateMsg.padding = 0
+						updateMsg.numberOfRectangles = UInt16(1).bigEndian
 
-			updateMsg.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-			updateMsg.padding = 0
-			updateMsg.numberOfRectangles = UInt16(1).bigEndian
+						rect.x = 0
+						rect.y = 0
+						rect.width = UInt16(state.width).bigEndian
+						rect.height = UInt16(state.height).bigEndian
+						rect.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
+					}
 
-			rect.x = 0
-			rect.y = 0
-			rect.width = UInt16(state.width).bigEndian
-			rect.height = UInt16(state.height).bigEndian
-			rect.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
-
-			msgData.append(Data(bytes: &updateMsg, count: MemoryLayout<VNCFramebufferUpdateMsg>.size))
-			msgData.append(Data(bytes: &rect, count: MemoryLayout<VNCRectangle>.size))
-			msgData.append(state.data)
-
-			self.connection.send(
-				content: msgData,
-				completion: .contentProcessed { _ in
-					self.framebuffer.markAsProcessed()
-				})
+					/*updateMsg.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+					updateMsg.padding = 0
+					updateMsg.numberOfRectangles = UInt16(1).bigEndian
+					
+					rect.x = 0
+					rect.y = 0
+					rect.width = UInt16(state.width).bigEndian
+					rect.height = UInt16(state.height).bigEndian
+					rect.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
+					
+					msgData.append(Data(bytes: &updateMsg, count: MemoryLayout<VNCFramebufferUpdateMsg>.size))
+					msgData.append(Data(bytes: &rect, count: MemoryLayout<VNCRectangle>.size))*/
+					
+					self.connection.send(
+						content: msgData,
+						completion: .contentProcessed { _ in
+							self.connection.send(
+								content: state.data,
+								completion: .contentProcessed { _ in
+									self.framebuffer.markAsProcessed()
+								})
+						})
+				}
+			}
 		}
+
 	}
 
 	func notifyFramebufferSizeChange() {

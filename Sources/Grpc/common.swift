@@ -411,10 +411,26 @@ extension NSView {
 		return self.window!.convertToScreen(self.convert(self.bounds, to: nil))
 	}
 
+	public func imageRepresentation(in bounds: NSRect) -> NSBitmapImageRep? {
+		if let imageRepresentation = bitmapImageRepForCachingDisplay(in: bounds) {
+			cacheDisplay(in: bounds, to: imageRepresentation)
+
+			return imageRepresentation
+		}
+
+		return nil
+	}
+
+	public func image(in bounds: NSRect) -> NSImage? {
+		if let imageRepresentation = imageRepresentation(in: bounds), let cgImage = imageRepresentation.cgImage {
+			return NSImage(cgImage: cgImage, size: bounds.size)
+		}
+
+		return nil
+	}
+
 	public func image() -> NSImage {
-		let imageRepresentation = bitmapImageRepForCachingDisplay(in: bounds)!
-		cacheDisplay(in: bounds, to: imageRepresentation)
-		return NSImage(cgImage: imageRepresentation.cgImage!, size: bounds.size)
+		self.image(in: self.bounds)!
 	}
 }
 
