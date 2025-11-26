@@ -474,6 +474,17 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	public func startVncServer(_ vzMachineView: VZVirtualMachineView, vncPassword: String, port: Int) throws -> URL {
+		if self.env.vncServer == nil {
+			self.env.vncServer = VNCServer.createVNCServer(self.virtualMachine, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vzMachineView = vzMachineView
+
+			try self.env.vncServer.start()
+		}
+
+		return self.env.vncServer.connectionURL()
+	}
+
 	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
 		if self.env.vncServer == nil {
 			let vzMachineView = VZVirtualMachineView(frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
@@ -482,10 +493,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			vzMachineView.autoresizingMask = [.width, .height]
 			vzMachineView.automaticallyReconfiguresDisplay = true
 
-			self.env.vncServer = VNCServer.createServer(self.virtualMachine, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
-			self.env.vzMachineView = vzMachineView
-
-			try self.env.vncServer.start()
+			return try self.startVncServer(vzMachineView, vncPassword: vncPassword, port: port)
 		}
 
 		return self.env.vncServer.connectionURL()

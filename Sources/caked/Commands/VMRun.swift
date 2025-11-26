@@ -99,7 +99,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		phUseLimaVMNet = self.useLimaVMNet
-		MainApp._display = display == .ui
+		MainApp.displayUI = display == .ui
 
 		let config = try location.config()
 
@@ -149,8 +149,8 @@ struct VMRun: AsyncParsableCommand {
 				}
 			}
 
-			if display == .ui {
-				MainApp.runUI(name: location.name, vm: vm, config: config)
+			if display == .ui || display == .all {
+				MainApp.runUI(display, name: location.name, vm: vm, config: config, vncPassword: vncPassword, vncPort: self.vncPort)
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()

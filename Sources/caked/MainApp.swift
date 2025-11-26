@@ -31,11 +31,14 @@ class AppState: ObservableObject, Observable {
 }
 
 struct MainApp: App, VirtualMachineDelegate {
-	static var _display = false
+	static var displayUI = false
+	static var vncPassword: String? = nil
+	static var vncPort: Int? = nil
 	static var _vm: VirtualMachine? = nil
 	static var _config: CakeConfig? = nil
 	static var _name: String? = nil
 	static var _virtualMachine: VZVirtualMachine? = nil
+	static var _display: VMRunHandler.DisplayMode? = nil
 
 	@State var appState: AppState
 
@@ -52,6 +55,15 @@ struct MainApp: App, VirtualMachineDelegate {
 		}
 		set {
 			_virtualMachine = newValue
+		}
+	}
+
+	static var display: VMRunHandler.DisplayMode {
+		get {
+			return _display!
+		}
+		set {
+			_display = newValue
 		}
 	}
 
@@ -90,7 +102,7 @@ struct MainApp: App, VirtualMachineDelegate {
 			let minHeight = CGFloat(display.height)
 			let idealHeight = CGFloat(display.height)
 
-			VMView(automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm)
+			VMView(MainApp.display, automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, vncPassword: MainApp.vncPassword, vncPort: MainApp.vncPort)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}
@@ -193,7 +205,11 @@ struct MainApp: App, VirtualMachineDelegate {
 		try? vm.saveScreenshot()
 	}
 
-	static func runUI(name: String, vm: VirtualMachine, config: CakeConfig) {
+	static func runUI(_ display: VMRunHandler.DisplayMode, name: String, vm: VirtualMachine, config: CakeConfig, vncPassword: String, vncPort: Int?) {
+		MainApp.displayUI = true
+		MainApp.vncPort = vncPort
+		MainApp.vncPassword = vncPassword
+		MainApp.display = display
 		MainApp.vm = vm
 		MainApp.virtualMachine = vm.getVM()
 		MainApp.name = name
@@ -204,7 +220,7 @@ struct MainApp: App, VirtualMachineDelegate {
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		if MainApp._display {
+		if MainApp.displayUI {
 			NSApp.setActivationPolicy(.regular)
 		}
 	}

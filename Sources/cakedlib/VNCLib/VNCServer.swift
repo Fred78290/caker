@@ -212,7 +212,10 @@ public class VNCServer: NSObject, VZVNCServer {
 
 	private func startFramebufferUpdates() {
 		self.isRunning = true
+
 		DispatchQueue.main.async {
+			self.updateFramebuffer()
+
 			if self.sourceView.window == nil {
 				self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
 					self.updateFramebuffer()
@@ -229,6 +232,7 @@ public class VNCServer: NSObject, VZVNCServer {
 	}
 
 	@objc private func updateFramebuffer() {
+		self.logger.debug("updateFramebuffer")
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 

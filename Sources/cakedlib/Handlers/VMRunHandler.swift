@@ -17,12 +17,14 @@ public struct VMRunHandler {
 			case .none: return "none"
 			case .ui: return "ui"
 			case .vnc: return "vnc"
+			case .all: return "all"
 			}
 		}
 
 		case none
 		case ui
 		case vnc
+		case all
 	}
 
 	let storageLocation: StorageLocation

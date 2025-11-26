@@ -61,7 +61,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--vnc"
+            argument = "--all"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
