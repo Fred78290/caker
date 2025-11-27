@@ -120,8 +120,8 @@ let package = Package(
 		exclude: [
 			"VMRunService/GRPC/generate.sh",
 			"VMRunService/GRPC/mount.proto",
-			"Sources/cakedlib/VNCLib/README.md",
-			"Sources/cakedlib/VNCLib/VNCAuthExample.swift"
+			"VNCLib/README.md",
+			"VNCLib/VNCAuthExample.swift"
 		]),
 		.executableTarget(name: "caker", dependencies: [
 			.target(name: "CakedLib"),
@@ -140,7 +140,8 @@ let package = Package(
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
 			.product(name: "CakeAgentLib", package: "CakeAgent"),
-			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding")
+			.product(name: "NIOPortForwarding", package: "swift-nio-portforwarding"),
+			.product(name: "RoyalVNCKitStatic", package: "royalvnc"),
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),

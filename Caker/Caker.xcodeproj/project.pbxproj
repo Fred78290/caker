@@ -227,6 +227,8 @@
 		9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE152DB3F17500799A6A /* RemoteOptions.swift */; };
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
 		9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */; };
+		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
+		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
@@ -721,6 +723,7 @@
 		9BB3BE1A2DB3F17500799A6A /* UmountOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UmountOptions.swift; sourceTree = "<group>"; };
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
+		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
@@ -1049,6 +1052,7 @@
 				9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */,
 				9BEBC84C2DF44B9C0092B196 /* NIOCore in Frameworks */,
 				9BEBC83C2DF44B9C0092B196 /* XAttr in Frameworks */,
+				9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */,
 				9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */,
 				9BEBC86A2DF44B9D0092B196 /* CakeAgentLib in Frameworks */,
 				9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */,
@@ -1469,8 +1473,6 @@
 		9BEBC6B12DF4400A0092B196 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
-				9BB149212EC760FC0094D950 /* Push.swift */,
-				9BB1491F2EC760F20094D950 /* Pull.swift */,
 				9BEBC6972DF4400A0092B196 /* Build.swift */,
 				9BEBC6982DF4400A0092B196 /* Certificates.swift */,
 				9BEBC69A2DF4400A0092B196 /* Configure.swift */,
@@ -1486,7 +1488,9 @@
 				9BEBC6A32DF4400A0092B196 /* Logout.swift */,
 				9BEBC6A42DF4400A0092B196 /* Mount.swift */,
 				9BEBC6A52DF4400A0092B196 /* Networks.swift */,
+				9BB1491F2EC760F20094D950 /* Pull.swift */,
 				9BEBC6A62DF4400A0092B196 /* Purge.swift */,
+				9BB149212EC760FC0094D950 /* Push.swift */,
 				9BEBC6A72DF4400A0092B196 /* Remote.swift */,
 				9BEBC6A82DF4400A0092B196 /* Rename.swift */,
 				9BEBC6A92DF4400A0092B196 /* Service.swift */,
@@ -1497,6 +1501,7 @@
 				9BEBC6AD2DF4400A0092B196 /* Template.swift */,
 				9BEBC6AE2DF4400A0092B196 /* Unmount.swift */,
 				9BEBC6AF2DF4400A0092B196 /* VMRun.swift */,
+				9BCEB1902ED76EB200B29B70 /* VNC.swift */,
 				9BEBC6B02DF4400A0092B196 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -1904,6 +1909,7 @@
 				9BEBC8652DF44B9D0092B196 /* ArgumentParser */,
 				9BEBC8672DF44B9D0092B196 /* Multipart */,
 				9BEBC8692DF44B9D0092B196 /* CakeAgentLib */,
+				9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -2248,6 +2254,7 @@
 				9BEBC6D52DF4400A0092B196 /* CI.swift in Sources */,
 				9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */,
 				9BEBC6D72DF4400A0092B196 /* InfosHandler.swift in Sources */,
+				9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */,
 				9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */,
 				9BEBC6DA2DF4400A0092B196 /* PurgeHandler.swift in Sources */,
 				9BEBC6DB2DF4400A0092B196 /* Purge.swift in Sources */,
@@ -3377,6 +3384,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */;
 			productName = ContainerizationIO;
+		};
+		9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
+			productName = RoyalVNCKitStatic;
 		};
 		9BEBC7B82DF440BF0092B196 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;
