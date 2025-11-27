@@ -93,6 +93,7 @@ class VNCConnection {
 			})
 	}
 
+	@discardableResult
 	private func handleError(_ error: NWError?) -> Bool {
 		if let error = error {
 			self.delegate?.vncConnection(self, didReceiveError: error)
@@ -218,13 +219,13 @@ class VNCConnection {
 			ptr[1] = vncPassword == nil ? UInt8(Self.VNC_AUTH_NONE) : UInt8(Self.VNC_AUTH_VNC)
  		}
 
-		self.connection.send(
-			content: authData,
-			completion: .contentProcessed { [weak self] error in
-				if error == nil {
-					self?.receiveAuthenticationChoice()
-				}
-			})
+		self.sendDatas(authData) { [weak self] error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				self.receiveAuthenticationChoice()
+			}
+		}
 	}
 
 	private func receiveClientInit() {
@@ -277,13 +278,13 @@ class VNCConnection {
 
 		self.logger.debug("Sending VNC authentication challenge: \(authChallenge.toHexString())")
 
-		self.connection.send(
-			content: self.authChallenge!,
-			completion: .contentProcessed { [weak self] error in
-				if error == nil {
-					self?.receiveVNCAuthResponse()
-				}
-			})
+		self.sendDatas(self.authChallenge!) { [weak self] error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				self.receiveVNCAuthResponse()
+			}
+		}
 	}
 
 	private func receiveVNCAuthResponse() {
@@ -368,38 +369,37 @@ class VNCConnection {
 		var result: UInt32 = success ? Self.VNC_AUTH_OK.bigEndian : Self.VNC_AUTH_FAILED.bigEndian
 		let resultData = Data(bytes: &result, count: 4)
 
-		self.connection.send(
-			content: resultData,
-			completion: .contentProcessed { [weak self] error in
-				if let self {
-					if error == nil && success {
-						// Authentication successful - wait for ClientInit
-						self.isAuthenticated = true
-						self.receiveClientInit()
-					} else if success == false {
-						if self.majorVersion == 3 && self.minorVersion < 8 {
-							self.disconnect()
-						} else {
-							// Send failure reason (mandatory in 3.7+)
-							let reason = "Authentication failed - invalid credentials"
-							let reasonData = reason.data(using: .utf8)!
-							var reasonLength = UInt32(reasonData.count).bigEndian
+		self.sendDatas(resultData) { [weak self] error in
+			guard let self: VNCConnection = self else { return }
 
-							var failureData = Data()
-							failureData.append(Data(bytes: &reasonLength, count: 4))
-							failureData.append(reasonData)
+			if self.handleError(error) {
+				if success {
+				// Authentication successful - wait for ClientInit
+					self.isAuthenticated = true
+					self.receiveClientInit()
+				} else {
+					if self.majorVersion == 3 && self.minorVersion < 8 {
+						self.disconnect()
+					} else {
+						// Send failure reason (mandatory in 3.7+)
+						let reason = "Authentication failed - invalid credentials"
+						let reasonData = reason.data(using: .utf8)!
+						var reasonLength = UInt32(reasonData.count).bigEndian
+						var failureData = Data()
 
-							self.connection.send(
-								content: failureData,
-								completion: .contentProcessed { _ in
-									self.disconnect()
-								})
+						failureData.append(Data(bytes: &reasonLength, count: 4))
+						failureData.append(reasonData)
+
+						self.sendDatas(failureData) { [weak self] error in
+							self?.disconnect()
 						}
 					}
 				}
-			})
+			} else {
+				self.disconnect()
+			}
+		}
 	}
-
 	private func sendServerInit() {
 		let state = framebuffer.getCurrentState()
 		var serverInit = VNCServerInit()
@@ -415,7 +415,9 @@ class VNCConnection {
 		initData.append(Data(bytes: &nameLength, count: 4))
 		initData.append(nameData)
 
-		self.connection.send(content: initData, completion: .contentProcessed { _ in })
+		self.sendDatas(initData) { [weak self] error in
+			self?.handleError(error)
+		}
 		
 		self.logger.debug("Send server init")
 	}
@@ -506,9 +508,24 @@ class VNCConnection {
 					let numberOfEncodings = UInt16(data[2]) << 8 | UInt16(data[1])
 					let encodingsLength = Int(numberOfEncodings) * 4
 
-					self.connection.receive(minimumIncompleteLength: encodingsLength, maximumLength: encodingsLength) { _, _, _, error in
-						if self.handleError(error) == true {
-							return
+					self.connection.receive(minimumIncompleteLength: encodingsLength, maximumLength: encodingsLength) { [weak self] data, _, _, error in
+						guard let self = self else { return }
+
+						if self.handleError(error) {
+							if let data = data {
+								var encodings: [Int32] = []
+								encodings.reserveCapacity(Int(numberOfEncodings))
+
+								data.withUnsafeBytes { rawBuffer in
+									guard let base = rawBuffer.bindMemory(to: Int32.self).baseAddress else { return }
+
+									for offset in 0..<Int(numberOfEncodings) {
+										encodings.append(base[offset].littleEndian)
+									}
+								}
+
+								self.logger.debug("Client set encodings: \(encodings)")
+							}
 						}
 
 						self.receiveClientMessages()
@@ -516,7 +533,6 @@ class VNCConnection {
 				} else {
 					self.receiveClientMessages()
 				}
-
 			}
 		}
 	}
@@ -640,49 +656,50 @@ class VNCConnection {
 				self.connectionQueue.async {
 					//var updateMsg = VNCFramebufferUpdateMsg()
 					//var rect = VNCRectangle()
-					var msgData = Data(count: MemoryLayout<VNCFramebufferUpdateMsg>.size + MemoryLayout<VNCRectangle>.size)
+					var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
 					
-					msgData.withUnsafeMutableBytes { msgBytes in
-						var updateMsg = msgBytes.load(as: VNCFramebufferUpdateMsg.self)
-						var rect = msgBytes.load(fromByteOffset: MemoryLayout<VNCFramebufferUpdateMsg>.size, as: VNCRectangle.self)
+					let payload = msgData.withUnsafeMutableBytes { msgBytes in
+						guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
+							return VNCFramebufferUpdatePayload()
+						}
 
-						updateMsg.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-						updateMsg.padding = 0
-						updateMsg.numberOfRectangles = UInt16(1).bigEndian
+						//var payload = baseAddress.pointee
+						baseAddress.pointee.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+						baseAddress.pointee.message.padding = 0
+						baseAddress.pointee.message.numberOfRectangles = UInt16(1).bigEndian
 
-						rect.x = 0
-						rect.y = 0
-						rect.width = UInt16(state.width).bigEndian
-						rect.height = UInt16(state.height).bigEndian
-						rect.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
+						baseAddress.pointee.rectangle.x = 0
+						baseAddress.pointee.rectangle.y = 0
+						baseAddress.pointee.rectangle.width = UInt16(state.width).bigEndian
+						baseAddress.pointee.rectangle.height = UInt16(state.height).bigEndian
+						baseAddress.pointee.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
+
+						return baseAddress.pointee
 					}
 
-					/*updateMsg.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-					updateMsg.padding = 0
-					updateMsg.numberOfRectangles = UInt16(1).bigEndian
+					self.logger.debug("Send framebuffer update: \(payload) -> \(msgData.toHexString())")
 					
-					rect.x = 0
-					rect.y = 0
-					rect.width = UInt16(state.width).bigEndian
-					rect.height = UInt16(state.height).bigEndian
-					rect.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
-					
-					msgData.append(Data(bytes: &updateMsg, count: MemoryLayout<VNCFramebufferUpdateMsg>.size))
-					msgData.append(Data(bytes: &rect, count: MemoryLayout<VNCRectangle>.size))*/
-					
-					self.connection.send(
-						content: msgData,
-						completion: .contentProcessed { _ in
-							self.connection.send(
-								content: state.data,
-								completion: .contentProcessed { _ in
+					self.sendDatas(msgData) { [weak self] error in
+						guard let self: VNCConnection = self else { return }
+
+						if self.handleError(error) {
+							self.sendDatas(state.data) { [weak self] error in
+								guard let self: VNCConnection = self else { return }
+
+								if self.handleError(error) {
 									self.framebuffer.markAsProcessed()
-								})
-						})
+								}
+							}
+						}
+					}
 				}
 			}
 		}
 
+	}
+
+	func sendDatas(_ data: Data, completion: @escaping (_ error: NWError?) -> Void) {
+		self.connection.send(content: data, completion: .contentProcessed { completion($0) })
 	}
 
 	func notifyFramebufferSizeChange() {

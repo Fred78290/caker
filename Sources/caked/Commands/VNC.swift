@@ -16,7 +16,7 @@ import RoyalVNCKit
 import Foundation
 import Cocoa
 
-class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger {
+class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 	var isDebugLoggingEnabled: Bool = true
 	var username: String? = nil
 	var password: String? = nil
@@ -51,7 +51,11 @@ class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger {
 				connectionStateString = "Disconnected"
 		}
 
-		connection.logger.logDebug("connection stateDidChange: \(connectionStateString)")
+		if let error = connectionState.error {
+			connection.logger.logDebug("connection stateDidChange: \(connectionStateString) with error: \(error)")
+		} else {
+			connection.logger.logDebug("connection stateDidChange: \(connectionStateString)")
+		}
 	}
 	
 	func connection(_ connection: RoyalVNCKit.VNCConnection, credentialFor authenticationType: RoyalVNCKit.VNCAuthenticationType, completion: @escaping ((any RoyalVNCKit.VNCCredential)?) -> Void) {
@@ -149,57 +153,67 @@ struct VNC: CakeAgentAsyncParsableCommand {
 	var name: String
 
 	var isDebugLoggingEnabled: Bool
-	let delegate = DelegateConnectionVNC()
+	var delegate: DelegateConnectionVNC
 
 	init() {
-		isDebugLoggingEnabled = true
+		self.isDebugLoggingEnabled = true
+		self.delegate = DelegateConnectionVNC()
 	}
 	
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
+
 		try self.validateOptions(runMode: self.common.runMode)
+
+		let location = try StorageLocation(runMode: runMode).find(name)
+
+		if location.status != .running {
+			throw ValidationError("VM \(self.name) is not running")
+		}
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
 		let result: VirtualMachineStatusReply = CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
 
-		if result.success && result.status.vncURL != nil {
-			if let vncURL = URL(string: result.status.vncURL!), vncURL.port != nil {
-				self.delegate.username = vncURL.user(percentEncoded: false)
-				self.delegate.password = vncURL.password(percentEncoded: false)
-
-				// Create settings
-				let settings = VNCConnection.Settings(isDebugLoggingEnabled: true,
-													  hostname: "localhost",
-													  port: UInt16(vncURL.port!),
-													  isShared: true,
-													  isScalingEnabled: true,
-													  useDisplayLink: false,
-													  inputMode: .none,
-													  isClipboardRedirectionEnabled: false,
-													  colorDepth: .depth24Bit,
-													  frameEncodings: .default)
-
-				// Create connection
-				let connection = VNCConnection(settings: settings, logger: self.delegate)
-
-				connection.delegate = self.delegate
-
-				// Connect
-				connection.connect()
-
-				// Run loop until connection is disconnected
-				while true {
-					let connectionStatus = connection.connectionState.status
-
-					if connectionStatus == .disconnected {
-						break
-					}
-					
-					try? await Task.sleep(nanoseconds: 1000_000_000)
-				}
+		if result.success {
+			guard let u = result.status.vncURL, let vncURL = URL(string: u), let vncPort = vncURL.port else {
+				Logger.appendNewLine("VM \(self.name) does not have a VNC connection")
+				return
 			}
 
+			self.delegate.username = vncURL.user(percentEncoded: false)
+			self.delegate.password = vncURL.password(percentEncoded: false)
+
+			// Create settings
+			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true,
+												  hostname: "127.0.0.1",
+												  port: UInt16(vncPort),
+												  isShared: true,
+												  isScalingEnabled: true,
+												  useDisplayLink: false,
+												  inputMode: .none,
+												  isClipboardRedirectionEnabled: false,
+												  colorDepth: .depth24Bit,
+												  frameEncodings: .default)
+
+			// Create connection
+			let connection = VNCConnection(settings: settings, logger: self.delegate)
+
+			connection.delegate = self.delegate
+
+			// Connect
+			connection.connect()
+
+			// Run loop until connection is disconnected
+			while true {
+				let connectionStatus = connection.connectionState.status
+
+				if connectionStatus == .disconnected {
+					break
+				}
+				
+				try? await Task.sleep(nanoseconds: 1000_000_000)
+			}
 		} else {
 			Logger.appendNewLine(self.common.format.render(result.reason))
 		}

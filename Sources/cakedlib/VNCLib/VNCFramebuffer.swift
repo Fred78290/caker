@@ -73,17 +73,18 @@ public class VNCFramebuffer {
 			}
 
 			// Capture content
-			DispatchQueue.main.sync {
-				self.captureViewContent(view: self.sourceView, bounds: bounds)
-			}
+			self.captureViewContent(view: self.sourceView, bounds: bounds)
 		}
 	}
 
 	internal func captureViewContent(view: NSView, bounds: NSRect) {
 		// Create image from view
+		let imageRepresentation = DispatchQueue.main.sync {
+			return view.imageRepresentation(in: bounds)
+		}
 
 		// Convert to pixel data
-		if let imageRepresentation = view.imageRepresentation(in: bounds) {
+		if let imageRepresentation = imageRepresentation {
 			convertBitmapToPixelData(bitmap: imageRepresentation)
 		}
 	}
@@ -155,7 +156,7 @@ public class VNCFramebuffer {
 
 		pixelFormat.bitsPerPixel = UInt8(self.bitsPerPixels)
 
-		if bitmapInfo.byteOrder == .order32Little {
+		if bitmapInfo.byteOrder == .order32Little || bitmapInfo.byteOrder == .orderDefault {
 			pixelFormat.depth = 24
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.redMax = UInt16(255).bigEndian
@@ -221,9 +222,7 @@ public class VNCFramebuffer {
 	}
 
 	public func getCurrentState() -> (width: Int, height: Int, data: Data, hasChanges: Bool, sizeChanged: Bool, checksum: SHA256.Digest?) {
-		return updateQueue.sync {
-			return (width: width, height: height, data: pixelData, hasChanges: hasChanges, sizeChanged: sizeChanged, checksum: currentChecksum)
-		}
+		return (width: width, height: height, data: pixelData, hasChanges: hasChanges, sizeChanged: sizeChanged, checksum: currentChecksum)
 	}
 }
 

@@ -71,7 +71,7 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 		case .framebufferUpdateContinue:
 			return "framebufferUpdateContinue"
 		case .unknown:
-			return "unknown"
+			return "unknown: \(rawValue)"
 		}
 	}
 
@@ -152,6 +152,11 @@ struct VNCRectangle {
 	var width: UInt16 = 0
 	var height: UInt16 = 0
 	var encoding: UInt32 = 0
+}
+
+struct VNCFramebufferUpdatePayload {
+	var message: VNCFramebufferUpdateMsg = VNCFramebufferUpdateMsg()
+	var rectangle: VNCRectangle = VNCRectangle()
 }
 
 // Client messages

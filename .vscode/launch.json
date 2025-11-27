@@ -281,7 +281,7 @@
 			"args": [
 				"vmrun",
 				"linux",
-				"--vnc",
+				"--all",
 				"--log-level=debug"
 			],
 			"cwd": "${workspaceFolder:caker}",

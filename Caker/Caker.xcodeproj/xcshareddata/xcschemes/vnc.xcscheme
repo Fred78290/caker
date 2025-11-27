@@ -60,6 +60,10 @@
             argument = "linux"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--log-level=debug"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
    <ProfileAction

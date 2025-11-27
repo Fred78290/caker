@@ -21,7 +21,7 @@ public enum VNCCaptureMethod: String, CustomStringConvertible, ExpressibleByArgu
 	case metal = "metal"
 }
 
-public protocol VNCServerDelegate: AnyObject {
+public protocol VNCServerDelegate: AnyObject, Sendable {
 	func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String)
 	func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String)
 	func vncServer(_ server: VNCServer, didReceiveError error: Error)
@@ -35,7 +35,7 @@ extension VNCServerDelegate {
 	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {}
 }
 
-public class VNCServer: NSObject, VZVNCServer {
+public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
 	public private(set) var sourceView: NSView
 	public private(set) var port: UInt16
@@ -248,11 +248,29 @@ public class VNCServer: NSObject, VZVNCServer {
 	}
 
 	private func sendFramebufferUpdates() {
-		connectionQueue.async {
-			for connection in self.connections {
-				connection.sendFramebufferUpdate()
+		guard self.connections.isEmpty == false else { return }
+
+		let eventLoop = Utilities.group.next()
+		let result = eventLoop.makeFutureWithTask {
+			print("enter group")
+
+			await withTaskGroup(of: Void.self) { group in
+				self.connections.forEach { connection in
+					group.addTask {
+						connection.sendFramebufferUpdate()
+					}
+				}
+
+				await group.waitForAll()
+				print("leave group")
 			}
 		}
+	
+		print("wait group")
+
+		try? result.wait()
+
+		print("leave sendFramebufferUpdates")
 	}
 
 	// MARK: - Performance Monitoring
