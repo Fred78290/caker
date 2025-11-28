@@ -141,8 +141,14 @@ enum VNCEncoding: UInt32, CustomDebugStringConvertible {
 	case hextile = 5
 }
 
+struct VNCSetEncoding {
+	var heading: UInt8 = 0
+	var numberOfEncodings: UInt16 = 0
+}
+
 // Message structures
 public struct VNCPixelFormat {
+	public var heading: (UInt8, UInt8, UInt8) = (0, 0, 0)
 	public var bitsPerPixel: UInt8 = 32
 	public var depth: UInt8 = 24
 	public var bigEndianFlag: UInt8 = 0
