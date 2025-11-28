@@ -48,10 +48,11 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private var listener: NWListener!
 	private var connections: [VNCConnection] = []
 	private var updateTimer: Timer?
-	private var framebuffer: VNCFramebuffer!
+	private var framebuffer: VNCFramebuffer
 	private var displayLink: CADisplayLink!
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
 	private let name: String
+	private let eventLoop = Utilities.group.next()
 
 	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
 		self.sourceView = sourceView
@@ -64,7 +65,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		} else {
 			self.port = port
 		}
-		super.init()
 
 		// Create appropriate framebuffer based on capture method
 		switch captureMethod {
@@ -72,12 +72,14 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			if MTLCreateSystemDefaultDevice() != nil {
 				self.framebuffer = VNCMetalFramebuffer(view: sourceView, captureMethod: .metal, metalConfig: metalConfig)
 			} else {
-				Logger(self).error("Metal not available, falling back to Core Graphics")
+				Logger("VNCServer").error("Metal not available, falling back to Core Graphics")
 				self.framebuffer = VNCFramebuffer(view: sourceView)
 			}
 		case .coreGraphics:
 			self.framebuffer = VNCFramebuffer(view: sourceView)
 		}
+
+		super.init()
 
 		setupViewObservers()
 	}
@@ -116,12 +118,14 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		// Update framebuffer with new size
 		let bounds = self.sourceView.bounds
 
-		framebuffer?.updateSize(width: Int(bounds.width), height: Int(bounds.height))
+		framebuffer.updateSize(width: Int(bounds.width), height: Int(bounds.height))
 
 		// Notify all clients of size change
-		connectionQueue.async {
-			for connection in self.connections {
-				connection.notifyFramebufferSizeChange()
+		if self.connections.isEmpty == false {
+			let result = self.eventLoop.makeFutureWithTask {
+				self.connections.forEach { connection in
+					connection.notifyFramebufferSizeChange()
+				}
 			}
 		}
 	}
@@ -188,11 +192,13 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		listener?.cancel()
 		listener = nil
 
-		connectionQueue.async {
-			for connection in self.connections {
-				connection.disconnect()
+		if self.connections.isEmpty == false {
+			connectionQueue.async {
+				self.connections.forEach {
+					$0.disconnect()
+				}
+				self.connections.removeAll()
 			}
-			self.connections.removeAll()
 		}
 
 		isRunning = false
@@ -221,7 +227,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.isRunning = true
 
 		DispatchQueue.main.async {
-			self.updateFramebuffer()
+			self.framebuffer.updateFromView()
 
 			if self.sourceView.window == nil {
 				self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
@@ -244,33 +250,28 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.framebuffer.updateFromView()
 
 		// Send updates to all connected clients
-		self.sendFramebufferUpdates()
-	}
+		if self.connections.isEmpty == false {
+			let result = self.eventLoop.makeFutureWithTask {
+				print("enter group")
 
-	private func sendFramebufferUpdates() {
-		guard self.connections.isEmpty == false else { return }
-
-		let eventLoop = Utilities.group.next()
-		let result = eventLoop.makeFutureWithTask {
-			print("enter group")
-
-			await withTaskGroup(of: Void.self) { group in
-				self.connections.forEach { connection in
-					group.addTask {
-						connection.sendFramebufferUpdate()
+				await withTaskGroup(of: Void.self) { group in
+					self.connections.forEach { connection in
+						group.addTask {
+							connection.sendFramebufferUpdate()
+						}
 					}
+
+					await group.waitForAll()
+					print("leave group")
 				}
-
-				await group.waitForAll()
-				print("leave group")
 			}
+		
+			print("wait group")
+
+			try? result.wait()
+
+			print("leave sendFramebufferUpdates")
 		}
-	
-		print("wait group")
-
-		try? result.wait()
-
-		print("leave sendFramebufferUpdates")
 	}
 
 	// MARK: - Performance Monitoring
@@ -364,16 +365,20 @@ extension VNCServer: VNCConnectionDelegate {
 			}
 		}
 
-		DispatchQueue.main.async {
-			self.delegate?.vncServer(self, clientDidDisconnect: clientAddress)
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncServer(self, clientDidDisconnect: clientAddress)
+			}
 		}
 	}
 
 	func vncConnection(_ connection: VNCConnection, didReceiveError error: Error) {
 		self.logger.debug("Client at \(connection) didReceiveError: \(error)")
 
-		DispatchQueue.main.async {
-			self.delegate?.vncServer(self, didReceiveError: error)
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncServer(self, didReceiveError: error)
+			}
 		}
 	}
 }
@@ -384,16 +389,20 @@ extension VNCServer: VNCInputDelegate {
 	func vncConnection(_ connection: VNCConnection, didReceiveKeyEvent key: UInt32, isDown: Bool) {
 		guard allowRemoteInput else { return }
 
-		DispatchQueue.main.async {
-			self.delegate?.vncServer(self, didReceiveKeyEvent: key, isDown: isDown)
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncServer(self, didReceiveKeyEvent: key, isDown: isDown)
+			}
 		}
 	}
 
 	func vncConnection(_ connection: VNCConnection, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {
 		guard allowRemoteInput else { return }
 
-		DispatchQueue.main.async {
-			self.delegate?.vncServer(self, didReceiveMouseEvent: x, y: Int(buttonMask), buttonMask: buttonMask)
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncServer(self, didReceiveMouseEvent: x, y: Int(buttonMask), buttonMask: buttonMask)
+			}
 		}
 	}
 }
