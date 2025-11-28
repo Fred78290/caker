@@ -57,7 +57,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "ubuntu-dekstop-25.10"
+            argument = "ubuntu-desktop-25.10"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
