@@ -122,9 +122,15 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		// Notify all clients of size change
 		if self.connections.isEmpty == false {
-			let result = self.eventLoop.makeFutureWithTask {
-				self.connections.forEach { connection in
-					connection.notifyFramebufferSizeChange()
+			let _ = self.eventLoop.makeFutureWithTask {
+				await withTaskGroup(of: Void.self) { group in
+					self.connections.forEach { connection in
+						group.addTask {
+							await connection.notifyFramebufferSizeChange()
+						}
+					}
+					
+					await group.waitForAll()
 				}
 			}
 		}
@@ -252,25 +258,18 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		// Send updates to all connected clients
 		if self.connections.isEmpty == false {
 			let result = self.eventLoop.makeFutureWithTask {
-				print("enter group")
-
 				await withTaskGroup(of: Void.self) { group in
 					self.connections.forEach { connection in
 						group.addTask {
-							connection.sendFramebufferUpdate()
+							await connection.sendFramebufferUpdate()
 						}
 					}
 
 					await group.waitForAll()
-					print("leave group")
 				}
 			}
-		
-			print("wait group")
 
 			try? result.wait()
-
-			print("leave sendFramebufferUpdates")
 		}
 	}
 

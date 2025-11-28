@@ -53,7 +53,7 @@ enum VNCServerMessageType: UInt8, CustomDebugStringConvertible {
 }
 
 // Client message types
-enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
+enum VNCClientMessageType: UInt, CustomDebugStringConvertible {
 	var debugDescription: String {
 		switch self {
 		case .setPixelFormat:
@@ -70,12 +70,22 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 			return "clientCutText"
 		case .framebufferUpdateContinue:
 			return "framebufferUpdateContinue"
+		case .clientFence:
+			return "clientFence"
+		case .xvpServerMessage:
+			return "xvpServerMessage"
+		case .setDesktopSize:
+			return "setDesktopSize"
+		case .giiClientVersion:
+			return "giiClientVersion"
+		case .qemuClientMessage:
+			return "qemuClientMessage"
 		case .unknown:
 			return "unknown: \(rawValue)"
 		}
 	}
 
-	case unknown = 255
+	case unknown = 0xFFFF
 	case setPixelFormat = 0
 	case setEncodings = 2
 	case framebufferUpdateRequest = 3
@@ -83,6 +93,11 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 	case pointerEvent = 5
 	case clientCutText = 6
 	case framebufferUpdateContinue = 150
+	case clientFence = 248
+	case xvpServerMessage = 250
+	case setDesktopSize = 251
+	case giiClientVersion = 253
+	case qemuClientMessage = 255
 
 	init(rawValue: UInt8) {
 		switch rawValue {
@@ -93,7 +108,14 @@ enum VNCClientMessageType: UInt8, CustomDebugStringConvertible {
 		case 5: self = .pointerEvent
 		case 6: self = .clientCutText
 		case 150: self = .framebufferUpdateContinue
-		default: self = .unknown
+		case 248: self = .clientFence
+		case 250: self = .xvpServerMessage
+		case 251: self = .setDesktopSize
+		case 253: self = .giiClientVersion
+		case 255: self = .qemuClientMessage
+		default:
+			Logger("VNCClientMessageType").error("Unknown raw value: \(rawValue)")
+			self = .unknown
 		}
 	}
 }
@@ -186,4 +208,33 @@ struct VNCFramebufferUpdateContinue {
 	var y: UInt16 = 0
 	var width: UInt16 = 0
 	var height: UInt16 = 0
+}
+
+struct VNCFenceClient {
+	public var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
+	public var flags: UInt32 = 0
+	public var payloadLength: UInt8 = 0
+}
+
+struct VNCSetDesktopSize {
+	public var padding: UInt8 = 0
+	public var width: UInt16 = 0
+	public var height: UInt16 = 0
+	public var numberOfScreen: UInt8 = 0
+	public var padding2: UInt8 = 0
+}
+
+struct VNCScreenDesktop {
+	public var screenID: UInt32 = 0
+	public var posX: UInt16 = 0
+	public var posY: UInt16 = 0
+	public var width: UInt16 = 0
+	public var height: UInt16 = 0
+	public var flags: UInt32 = 0
+}
+
+struct VNCQemuKeyEvent {
+	public var downFlag: UInt16 = 0
+	public var keySym: UInt32 = 0
+	public var keyCode: UInt32 = 0
 }

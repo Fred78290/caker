@@ -2,6 +2,7 @@ import CommonCrypto
 import CryptoKit
 import Foundation
 import Network
+import Semaphore
 
 extension Data {
 	func toHexString() -> String {
@@ -19,7 +20,7 @@ protocol VNCInputDelegate: AnyObject {
 	func vncConnection(_ connection: VNCConnection, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8)
 }
 
-class VNCConnection {
+final class VNCConnection: @unchecked Sendable {
 	weak var delegate: VNCConnectionDelegate?
 	weak var inputDelegate: VNCInputDelegate?
 
@@ -85,7 +86,7 @@ class VNCConnection {
 			completion: .contentProcessed { [weak self] error in
 				if let self = self {
 					if let error = error {
-						self.delegate?.vncConnection(self, didReceiveError: error)
+						self.didReceiveError(error)
 						return
 					}
 					self.receiveClientVersion()
@@ -96,10 +97,12 @@ class VNCConnection {
 	@discardableResult
 	private func handleError(_ error: NWError?) -> Bool {
 		if let error = error {
-			self.delegate?.vncConnection(self, didReceiveError: error)
+			self.didReceiveError(error)
 
 			if connection.state != .ready {
 				self.disconnect()
+			} else {
+				self.receiveClientMessages()
 			}
 
 			return false
@@ -113,7 +116,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data, let versionString = String(data: data, encoding: .ascii) {
+				if let data = data, data.count >= 12, let versionString = String(data: data, encoding: .ascii) {
 					// Parse client version (format: "RFB MMM.mmm\n")
 					let trimmedVersion = versionString.trimmingCharacters(in: .whitespacesAndNewlines)
 					if trimmedVersion.hasPrefix("RFB ") {
@@ -135,7 +138,7 @@ class VNCConnection {
 								let unsupportedVersionError = NSError(
 									domain: "VNCConnectionError", code: 1002,
 									userInfo: [NSLocalizedDescriptionKey: "Unsupported VNC version: \(majorVersion).\(minorVersion)"])
-								self.delegate?.vncConnection(self, didReceiveError: unsupportedVersionError)
+								self.didReceiveError(unsupportedVersionError)
 								self.disconnect()
 							}
 						} else {
@@ -143,7 +146,7 @@ class VNCConnection {
 							let invalidFormatError = NSError(
 								domain: "VNCConnectionError", code: 1003,
 								userInfo: [NSLocalizedDescriptionKey: "Invalid version format: \(versionPart)"])
-							self.delegate?.vncConnection(self, didReceiveError: invalidFormatError)
+							self.didReceiveError(invalidFormatError)
 							self.disconnect()
 						}
 					} else {
@@ -151,12 +154,12 @@ class VNCConnection {
 						let invalidProtocolError = NSError(
 							domain: "VNCConnectionError", code: 1004,
 							userInfo: [NSLocalizedDescriptionKey: "Invalid RFB protocol string: \(trimmedVersion)"])
-						self.delegate?.vncConnection(self, didReceiveError: invalidProtocolError)
+						self.didReceiveError(invalidProtocolError)
 						self.disconnect()
 					}
 				} else {
 					let invalidVersionError = NSError(domain: "VNCConnectionError", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Invalid client version format"])
-					self.delegate?.vncConnection(self, didReceiveError: invalidVersionError)
+					self.didReceiveError(invalidVersionError)
 				}
 			}
 		}
@@ -234,11 +237,13 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				self.logger.debug("ClientInit received \(data!.toHexString()) starting VNC session")
-
-				// Send ServerInit and start receiving client messages
-				self.sendServerInit()
-				self.receiveClientMessages()
+				if let data = data, data.isEmpty == false {
+					self.logger.debug("ClientInit received \(data.toHexString()) starting VNC session")
+					
+					// Send ServerInit and start receiving client messages
+					self.sendServerInit()
+					self.receiveClientMessages()
+				}
 			}
 		}
 	}
@@ -249,7 +254,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.isEmpty == false {
 					let authType = data[0]
 
 					self.logger.debug("Client chose authentication type: \(authType)")
@@ -427,7 +432,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.isEmpty == false {
 					self.handleClientMessage(type: data[0])
 
 					if isComplete == false {
@@ -460,6 +465,16 @@ class VNCConnection {
 			self.receiveClientCutText()
 		case .framebufferUpdateContinue:
 			self.receiveFramebufferUpdateContinue()
+		case .clientFence:
+			self.receiveClientFence()
+		case .xvpServerMessage:
+			self.receiveXVPServerMessage()
+		case .setDesktopSize:
+			self.receiveSetDesktopSize()
+		case .giiClientVersion:
+			self.receiveGIIClientVersion()
+		case .qemuClientMessage:
+			self.receiveQemuClientMessage()
 		default:
 			self.receiveClientMessages()
 		}
@@ -472,7 +487,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 19 {
 					// Message type already heated (1 byte)
 					// Skip padding bytes (3 bytes after message type)
 					// Parse VNC Pixel Format (16 bytes starting at offset 3)
@@ -504,7 +519,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 3 {
 					let numberOfEncodings = UInt16(data[2]) << 8 | UInt16(data[1])
 					let encodingsLength = Int(numberOfEncodings) * 4
 
@@ -512,7 +527,7 @@ class VNCConnection {
 						guard let self = self else { return }
 
 						if self.handleError(error) {
-							if let data = data {
+							if let data = data, data.count >= encodingsLength {
 								var encodings: [Int32] = []
 								encodings.reserveCapacity(Int(numberOfEncodings))
 
@@ -520,15 +535,15 @@ class VNCConnection {
 									guard let base = rawBuffer.bindMemory(to: Int32.self).baseAddress else { return }
 
 									for offset in 0..<Int(numberOfEncodings) {
-										encodings.append(base[offset].littleEndian)
+										encodings.append(base[offset].bigEndian)
 									}
 								}
 
 								self.logger.debug("Client set encodings: \(encodings)")
 							}
-						}
 
-						self.receiveClientMessages()
+							self.receiveClientMessages()
+						}
 					}
 				} else {
 					self.receiveClientMessages()
@@ -542,7 +557,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 9 {
 					var request = VNCFramebufferUpdateRequest()
 
 					request.incremental = data[0]
@@ -552,11 +567,38 @@ class VNCConnection {
 					request.height = UInt16(data[8]) << 8 | UInt16(data[7])
 
 					// Send framebuffer update
-					self.sendFramebufferUpdate()
+					Task {
+						await self.sendFramebufferUpdate()
+					}
 				}
+
 				self.receiveClientMessages()
 			}
 		}
+	}
+
+	private func receiveDatas<T>() async -> T? {
+		let semaphore = AsyncSemaphore(value: 0)
+		let dataLength: Int = MemoryLayout<T>.size
+		var result: T? = nil
+		
+		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+			
+			if self.handleError(error) {
+				if let data = data, data.count >= dataLength {
+					data.withUnsafeBytes { ptr in
+						result = ptr.load(as: T.self)
+					}
+				}
+			}
+			
+			semaphore.signal()
+		}
+		
+		await semaphore.wait()
+		
+		return result
 	}
 
 	private func receiveFramebufferUpdateContinue() {
@@ -564,7 +606,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 9 {
 					var request = VNCFramebufferUpdateContinue()
 
 					request.active = data[0]
@@ -584,7 +626,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 7 {
 					let downFlag = data[0] != 0
 					let key = UInt32(data[4]) << 24 | UInt32(data[3]) << 16 | UInt32(data[6]) << 8 | UInt32(data[5])
 
@@ -604,7 +646,7 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 5 {
 					let buttonMask = data[0]
 					let x = UInt16(data[1]) << 8 | UInt16(data[2])
 					let y = UInt16(data[3]) << 8 | UInt16(data[4])
@@ -625,21 +667,19 @@ class VNCConnection {
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data {
+				if let data = data, data.count >= 7 {
 					let textLength = UInt32(data[3]) << 24 | UInt32(data[4]) << 16 | UInt32(data[5]) << 8 | UInt32(data[6])
 
 					self.connection.receive(minimumIncompleteLength: Int(textLength), maximumLength: Int(textLength)) { textData, _, _, error in
-						if self.handleError(error) == true {
-							return
-						}
-
-						if let textData = textData, let text = String(data: textData, encoding: .utf8) {
-							DispatchQueue.main.async {
-								self.inputHandler.handleClipboardText(text)
+						if self.handleError(error) {
+							if let textData = textData, let text = String(data: textData, encoding: .utf8) {
+								DispatchQueue.main.async {
+									self.inputHandler.handleClipboardText(text)
+								}
 							}
-						}
 
-						self.receiveClientMessages()
+							self.receiveClientMessages()
+						}
 					}
 				} else {
 					self.receiveClientMessages()
@@ -648,51 +688,170 @@ class VNCConnection {
 		}
 	}
 
-	func sendFramebufferUpdate() {
+	private func receiveClientFence() {
+		let messageLength = MemoryLayout<VNCFenceClient>.size
+
+		self.connection.receive(minimumIncompleteLength: messageLength, maximumLength: messageLength) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				if let data = data, data.count >= messageLength {
+					let fence = data.withUnsafeBytes { ptr in
+						return ptr.load(as: VNCFenceClient.self)
+					}
+
+					let dataLength = Int(fence.payloadLength)
+
+					self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { _, _, _, error in
+						self.handleError(error)
+					}
+				} else {
+					self.receiveClientMessages()
+				}
+			}
+		}
+	}
+
+	private func receiveXVPServerMessage() {
+		self.eatDatas(dataLength: 3)
+	}
+
+	private func receiveSetDesktopSize() {
+		let messageLength = MemoryLayout<VNCSetDesktopSize>.size
+
+		self.connection.receive(minimumIncompleteLength: messageLength, maximumLength: messageLength) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				if let data = data, data.count >= messageLength {
+					let desktopSize = data.withUnsafeBytes { ptr in
+						return ptr.load(as: VNCSetDesktopSize.self)
+					}
+
+					self.eatDatas(dataLength: Int(desktopSize.numberOfScreen) * MemoryLayout<VNCScreenDesktop>.size)
+				} else {
+					self.receiveClientMessages()
+				}
+			}
+		}
+	}
+
+	private func receiveGIIClientVersion() {
+		self.connection.receive(minimumIncompleteLength: 3, maximumLength: 3) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				if let data = data, data.count == 3 {
+					self.eatDatas(dataLength: Int(UInt16(data[1]) << 8 | UInt16(data[2])))
+				} else {
+					self.receiveClientMessages()
+				}
+			}
+		}
+	}
+
+	private func eatDatas(dataLength: Int) {
+		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] _, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				self.receiveClientMessages()
+			}
+		}
+	}
+
+	private func receiveQemuClientMessage() {
+		self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				if let data = data, data.count == 1 {
+					if data[0] == 0 {
+						eatDatas(dataLength: MemoryLayout<VNCQemuKeyEvent>.size)
+					} else {
+						self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
+							guard let self = self else { return }
+
+							if self.handleError(error) {
+								if let data = data, data.count == 1 {
+									if data[0] == 2 {
+										self.connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] data, _, _, error in
+											guard let self = self else { return }
+
+											if self.handleError(error) {
+												if let data = data, data.count == 4 {
+													let length = UInt32(data[1]) << 24 | UInt32(data[0]) << 16 | UInt32(data[3]) << 8 | UInt32(data[2])
+													
+													self.eatDatas(dataLength: Int(length))
+												} else {
+													self.receiveClientMessages()
+												}
+											}
+										}
+									} else {
+										self.receiveClientMessages()
+									}
+								}
+
+								self.receiveClientMessages()
+							}
+						}
+					}
+				} else {
+					self.receiveClientMessages()
+				}
+			}
+		}
+	}
+
+	func sendFramebufferUpdate() async {
 		if isAuthenticated {
 			let state = framebuffer.getCurrentState()
 
 			if state.hasChanges {
-				self.connectionQueue.async {
-					//var updateMsg = VNCFramebufferUpdateMsg()
-					//var rect = VNCRectangle()
-					var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
-					
-					let payload = msgData.withUnsafeMutableBytes { msgBytes in
-						guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
-							return VNCFramebufferUpdatePayload()
-						}
+				var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
+				let semaphore = AsyncSemaphore(value: 0)
 
-						//var payload = baseAddress.pointee
-						baseAddress.pointee.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-						baseAddress.pointee.message.padding = 0
-						baseAddress.pointee.message.numberOfRectangles = UInt16(1).bigEndian
-
-						baseAddress.pointee.rectangle.x = 0
-						baseAddress.pointee.rectangle.y = 0
-						baseAddress.pointee.rectangle.width = UInt16(state.width).bigEndian
-						baseAddress.pointee.rectangle.height = UInt16(state.height).bigEndian
-						baseAddress.pointee.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
-
-						return baseAddress.pointee
+				let _ = msgData.withUnsafeMutableBytes { msgBytes in
+					guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
+						return VNCFramebufferUpdatePayload()
 					}
 
-					self.logger.debug("Send framebuffer update: \(payload) -> \(msgData.toHexString())")
-					
-					self.sendDatas(msgData) { [weak self] error in
-						guard let self: VNCConnection = self else { return }
+					//var payload = baseAddress.pointee
+					baseAddress.pointee.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+					baseAddress.pointee.message.padding = 0
+					baseAddress.pointee.message.numberOfRectangles = UInt16(1).bigEndian
 
-						if self.handleError(error) {
-							self.sendDatas(state.data) { [weak self] error in
-								guard let self: VNCConnection = self else { return }
+					baseAddress.pointee.rectangle.x = 0
+					baseAddress.pointee.rectangle.y = 0
+					baseAddress.pointee.rectangle.width = UInt16(state.width).bigEndian
+					baseAddress.pointee.rectangle.height = UInt16(state.height).bigEndian
+					baseAddress.pointee.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
 
-								if self.handleError(error) {
-									self.framebuffer.markAsProcessed()
-								}
+					return baseAddress.pointee
+				}
+
+				//self.logger.debug("Send framebuffer update: \(payload) -> \(msgData.toHexString())")
+				
+				self.sendDatas(msgData) { [weak self] error in
+					guard let self: VNCConnection = self else { return }
+
+					if self.handleError(error) {
+						self.sendDatas(state.data) { [weak self] error in
+							guard let self: VNCConnection = self else { return }
+
+							if self.handleError(error) {
+								self.framebuffer.markAsProcessed()
 							}
+
+							semaphore.signal()
 						}
+					} else {
+						semaphore.signal()
 					}
 				}
+				
+				await semaphore.wait()
 			}
 		}
 
@@ -702,11 +861,23 @@ class VNCConnection {
 		self.connection.send(content: data, completion: .contentProcessed { completion($0) })
 	}
 
-	func notifyFramebufferSizeChange() {
-		self.sendFramebufferUpdate()
+	func notifyFramebufferSizeChange() async {
+		await self.sendFramebufferUpdate()
+	}
+
+	private func didReceiveError(_ error: Error) {
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncConnection(self, didReceiveError: error)
+			}
+		}
 	}
 
 	private func handleDisconnection() {
-		self.delegate?.vncConnectionDidDisconnect(self, clientAddress: clientAddress)
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncConnectionDidDisconnect(self, clientAddress: self.clientAddress)
+			}
+		}
 	}
 }
