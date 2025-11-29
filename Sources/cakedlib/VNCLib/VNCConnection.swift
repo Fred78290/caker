@@ -28,6 +28,7 @@ final class VNCConnection: @unchecked Sendable {
 	private let framebuffer: VNCFramebuffer
 	private let inputHandler: VNCInputHandler
 	private var isAuthenticated = false
+	private var sendFramebuffer: Bool = false
 	private var clientAddress: String = ""
 	private let connectionQueue = DispatchQueue(label: "vnc.connection")
 	private var authChallenge: Data!
@@ -97,12 +98,17 @@ final class VNCConnection: @unchecked Sendable {
 	@discardableResult
 	private func handleError(_ error: NWError?) -> Bool {
 		if let error = error {
+			self.logger.error(error)
 			self.didReceiveError(error)
 
-			if connection.state != .ready {
+			if case .posix = error {
 				self.disconnect()
 			} else {
-				self.receiveClientMessages()
+				if connection.state != .ready {
+					self.disconnect()
+				} else {
+					self.receiveClientMessages()
+				}
 			}
 
 			return false
@@ -189,7 +195,6 @@ final class VNCConnection: @unchecked Sendable {
 				completion: .contentProcessed { [weak self] error in
 					if error == nil {
 						// For AUTH_NONE in 3.3, proceed directly to client init
-						self?.isAuthenticated = true
 						self?.receiveClientInit()
 					}
 				})
@@ -242,7 +247,6 @@ final class VNCConnection: @unchecked Sendable {
 					
 					// Send ServerInit and start receiving client messages
 					self.sendServerInit()
-					self.receiveClientMessages()
 				}
 			}
 		}
@@ -380,7 +384,6 @@ final class VNCConnection: @unchecked Sendable {
 			if self.handleError(error) {
 				if success {
 				// Authentication successful - wait for ClientInit
-					self.isAuthenticated = true
 					self.receiveClientInit()
 				} else {
 					if self.majorVersion == 3 && self.minorVersion < 8 {
@@ -405,6 +408,7 @@ final class VNCConnection: @unchecked Sendable {
 			}
 		}
 	}
+
 	private func sendServerInit() {
 		let state = framebuffer.getCurrentState()
 		var serverInit = VNCServerInit()
@@ -421,10 +425,16 @@ final class VNCConnection: @unchecked Sendable {
 		initData.append(nameData)
 
 		self.sendDatas(initData) { [weak self] error in
-			self?.handleError(error)
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				self.isAuthenticated = true
+				self.receiveClientMessages()
+				self.logger.debug("Send server init")
+			} else {
+				self.logger.debug("Send server init failed")
+			}
 		}
-		
-		self.logger.debug("Send server init")
 	}
 
 	private func receiveClientMessages() {
@@ -483,27 +493,26 @@ final class VNCConnection: @unchecked Sendable {
 	// MARK: - Message Handlers
 
 	private func receiveSetPixelFormat() {
-		self.connection.receive(minimumIncompleteLength: 19, maximumLength: 19) { [weak self] data, _, _, error in
+		let dataLength = MemoryLayout<VNCPixelFormat>.size
+
+		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data, data.count >= 19 {
+				if let data = data, data.count >= dataLength {
+					
 					// Message type already heated (1 byte)
 					// Skip padding bytes (3 bytes after message type)
 					// Parse VNC Pixel Format (16 bytes starting at offset 3)
-					var pixelFormat = VNCPixelFormat()
+					let pixelFormat = data.withUnsafeBytes { ptr in
+						var value = ptr.load(as: VNCPixelFormat.self)
+						
+						value.redMax = value.redMax.bigEndian
+						value.greenMax = value.greenMax.bigEndian
+						value.blueMax = value.blueMax.bigEndian
 
-					pixelFormat.bitsPerPixel = data[3]
-					pixelFormat.depth = data[4]
-					pixelFormat.bigEndianFlag = data[5]
-					pixelFormat.trueColorFlag = data[6]
-					pixelFormat.redMax = UInt16(data[7]) << 8 | UInt16(data[8])
-					pixelFormat.greenMax = UInt16(data[9]) << 8 | UInt16(data[10])
-					pixelFormat.blueMax = UInt16(data[11]) << 8 | UInt16(data[12])
-					pixelFormat.redShift = data[13]
-					pixelFormat.greenShift = data[14]
-					pixelFormat.blueShift = data[15]
-					// Skip padding bytes 17-19
+						return value
+					}
 
 					self.logger.debug("Client set pixel format: \(pixelFormat)")
 				}
@@ -520,8 +529,8 @@ final class VNCConnection: @unchecked Sendable {
 
 			if self.handleError(error) {
 				if let data = data, data.count >= 3 {
-					let numberOfEncodings = UInt16(data[2]) << 8 | UInt16(data[1])
-					let encodingsLength = Int(numberOfEncodings) * 4
+					let encoding = data.withUnsafeBytes { $0.load(fromByteOffset: 0, as: VNCSetEncoding.self) }
+					let encodingsLength = Int(encoding.numberOfEncodings) * 4
 
 					self.connection.receive(minimumIncompleteLength: encodingsLength, maximumLength: encodingsLength) { [weak self] data, _, _, error in
 						guard let self = self else { return }
@@ -529,12 +538,12 @@ final class VNCConnection: @unchecked Sendable {
 						if self.handleError(error) {
 							if let data = data, data.count >= encodingsLength {
 								var encodings: [Int32] = []
-								encodings.reserveCapacity(Int(numberOfEncodings))
+								encodings.reserveCapacity(Int(encoding.numberOfEncodings))
 
 								data.withUnsafeBytes { rawBuffer in
 									guard let base = rawBuffer.bindMemory(to: Int32.self).baseAddress else { return }
 
-									for offset in 0..<Int(numberOfEncodings) {
+									for offset in 0..<Int(encoding.numberOfEncodings) {
 										encodings.append(base[offset].bigEndian)
 									}
 								}
@@ -607,13 +616,11 @@ final class VNCConnection: @unchecked Sendable {
 
 			if self.handleError(error) {
 				if let data = data, data.count >= 9 {
-					var request = VNCFramebufferUpdateContinue()
-
-					request.active = data[0]
-					request.x = UInt16(data[2]) << 8 | UInt16(data[1])
-					request.y = UInt16(data[4]) << 8 | UInt16(data[3])
-					request.width = UInt16(data[6]) << 8 | UInt16(data[5])
-					request.height = UInt16(data[8]) << 8 | UInt16(data[7])
+					let request = data.withUnsafeBytes {
+						$0.load(as: VNCFramebufferUpdateContinue.self)
+					}
+					
+					self.logger.debug("receiveFramebufferUpdateContinue: \(request)")
 				}
 
 				self.receiveClientMessages()
@@ -805,7 +812,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	func sendFramebufferUpdate() async {
-		if isAuthenticated {
+		if isAuthenticated && sendFramebuffer {
 			let state = framebuffer.getCurrentState()
 
 			if state.hasChanges {
