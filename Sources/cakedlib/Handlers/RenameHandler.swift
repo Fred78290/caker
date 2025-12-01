@@ -14,7 +14,7 @@ public struct RenameHandler {
 
 			try storage.relocate(newname, from: location)
 
-			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "VM renamed")
+			return RenameReply(oldName: oldname, newName: newname, renamed: true, reason: "VM renamed")
 		} catch {
 			return RenameReply(oldName: oldname, newName: newname, renamed: false, reason: "\(error)")
 		}
