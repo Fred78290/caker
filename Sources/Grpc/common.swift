@@ -6,6 +6,7 @@ import ObjectiveC
 import Security
 import System
 import Virtualization
+import CryptoKit
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -246,39 +247,39 @@ extension String {
 	public static let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
 	public static let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
 	public static let grpcSeparator: String = "|"
-
+	
 	public func isFingerPrint() -> Bool {
 		if Self.fingerprint64.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
-
+		
 		if Self.fingerprint12.firstMatch(in: self, options: [], range: NSRange(location: 0, length: self.count)) != nil {
 			return true
 		}
-
+		
 		return false
 	}
-
+	
 	public var deletingPathExtension: String {
 		return (self as NSString).deletingPathExtension
 	}
-
+	
 	public var expandingTildeInPath: String {
 		if self.hasPrefix("~") {
 			return (self as NSString).expandingTildeInPath
 		}
-
+		
 		return self
 	}
-
+	
 	public init(errno: Errno) {
 		self = String(cString: strerror(errno.rawValue))
 	}
-
+	
 	public init(errno: Int32) {
 		self = String(cString: strerror(errno))
 	}
-
+	
 	public func stringBeforeLast(before: Character) -> String {
 		if let r = self.lastIndex(of: before) {
 			return String(self[self.startIndex..<r])
@@ -286,7 +287,7 @@ extension String {
 			return self
 		}
 	}
-
+	
 	public func stringAfterLast(after: Character) -> String {
 		if let r = self.lastIndex(of: after) {
 			guard let start = self.index(r, offsetBy: 1, limitedBy: self.endIndex) else {
@@ -297,7 +298,7 @@ extension String {
 			return self
 		}
 	}
-
+	
 	public func stringBefore(before: String) -> String {
 		if let r = self.range(of: before) {
 			return String(self[self.startIndex..<r.lowerBound])
@@ -305,7 +306,7 @@ extension String {
 			return self
 		}
 	}
-
+	
 	public func stringAfter(after: String) -> String {
 		if let r = self.range(of: after) {
 			return String(self[r.upperBound..<self.endIndex])
@@ -313,29 +314,56 @@ extension String {
 			return self
 		}
 	}
-
+	
 	public func substring(_ bounds: PartialRangeUpTo<Int>) -> String {
 		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
 			return self
 		}
-
+		
 		return String(self[self.startIndex..<endIndex])
 	}
-
+	
 	public func substring(_ bounds: Range<Int>) -> String {
 		guard let startIndex = self.index(self.startIndex, offsetBy: bounds.lowerBound, limitedBy: self.endIndex) else {
 			return ""
 		}
-
+		
 		guard let endIndex = self.index(self.startIndex, offsetBy: bounds.upperBound, limitedBy: self.endIndex) else {
 			return self
 		}
-
+		
 		return String(self[startIndex..<endIndex])
 	}
-
+	
 	public func base64EncodedString() -> String {
 		self.data(using: .ascii)?.base64EncodedString() ?? ""
+	}
+	
+	public func encrypt(key: String) throws -> String {
+		let symmetricKey = SymmetricKey(data: Data(key.utf8))
+		let cypher = try AES.GCM.seal(self.data(using: .utf8)!, using: symmetricKey)
+		
+		guard let combined = cypher.combined else {
+			throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.invalidArgument.rawValue), userInfo: ["description": "encryption failed"])
+		}
+
+		return "[[ENCRYPTED]:\(combined.base64EncodedString())]"
+	}
+	
+	public func decrypt(key: String) throws -> String {
+		if self.starts(with: "[[ENCRYPTED]:") && self.last == "]" {
+			let symmetricKey = SymmetricKey(data: Data(key.utf8))
+			let crypted = self.substring(13..<self.count-1)
+			let sealedBox = try AES.GCM.SealedBox(combined: Data(base64Encoded: crypted)!)
+
+			guard let decrypted = String(data: try AES.GCM.open(sealedBox, using: symmetricKey), encoding: .utf8) else {
+				throw NSError(domain: NSOSStatusErrorDomain, code: Int(Errno.invalidArgument.rawValue), userInfo: ["description": "decryption failed"])
+			}
+			
+			return decrypted
+		}
+
+		return self
 	}
 }
 

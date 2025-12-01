@@ -237,8 +237,8 @@ public final class CakeConfig {
 	}
 
 	public var configuredPassword: String? {
-		set { self.cake["configuredPassword"] = newValue }
-		get { self.cake["configuredPassword"] as? String }
+		set { self.cake["configuredPassword"] = try? newValue?.encrypt(key: "com.aldunelabs.com.caked") }
+		get { try? (self.cake["configuredPassword"] as? String)?.decrypt(key: "com.aldunelabs.com.caked") }
 	}
 
 	public var configuredGroup: String {
