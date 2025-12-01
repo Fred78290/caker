@@ -3,12 +3,7 @@ import CryptoKit
 import Foundation
 import Network
 import Semaphore
-
-extension Data {
-	func toHexString() -> String {
-		return self.map { String(format: "%02X", $0) }.joined()
-	}
-}
+import System
 
 protocol VNCConnectionDelegate: AnyObject {
 	func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String)
@@ -23,12 +18,16 @@ protocol VNCInputDelegate: AnyObject {
 final class VNCConnection: @unchecked Sendable {
 	weak var delegate: VNCConnectionDelegate?
 	weak var inputDelegate: VNCInputDelegate?
+	var sendFramebuffer: Bool = false {
+		didSet {
+			self.logger.debug("sendFramebuffer: \(self.sendFramebuffer)")
+		}
+	}
 
 	private let connection: NWConnection
 	private let framebuffer: VNCFramebuffer
 	private let inputHandler: VNCInputHandler
 	private var isAuthenticated = false
-	private var sendFramebuffer: Bool = false
 	private var clientAddress: String = ""
 	private let connectionQueue = DispatchQueue(label: "vnc.connection")
 	private var authChallenge: Data!
@@ -37,12 +36,32 @@ final class VNCConnection: @unchecked Sendable {
 	private var minorVersion: Int = 8
 	private let logger = Logger("VNCConnection")
 	private let name: String
+	private var clientPixelFormat: VNCPixelFormat? = nil
+	private var encodings = SetEncoding()
 
 	// VNC Auth constants
 	private static let VNC_AUTH_NONE: UInt32 = 1
 	private static let VNC_AUTH_VNC: UInt32 = 2
 	private static let VNC_AUTH_OK: UInt32 = 0
 	private static let VNC_AUTH_FAILED: UInt32 = 1
+
+	struct SetEncoding {
+		var preferredEncoding: VNCSetEncoding.Encoding = .rfbEncodingNone
+		var useCopyRect: Bool = false
+		var useNewFBSize: Bool = false
+		var cursorWasChanged: Bool = false
+		var cursorWasMoved: Bool = false
+		var useRichCursorEncoding: Bool = false
+		var enableCursorPosUpdates: Bool = false
+		var enableCursorShapeUpdates: Bool = false
+		var enableLastRectEncoding: Bool = false
+		var enableKeyboardLedState: Bool = false
+		var enableSupportedMessages: Bool = false
+		var enableSupportedEncodings: Bool = false
+		var enableServerIdentity: Bool = false
+		var enableContinousUpdate: Bool = false
+		var appleVNCEncoding: Bool = false
+	}
 
 	init(_ name: String, connection: NWConnection, framebuffer: VNCFramebuffer, password: String? = nil) {
 		self.name = name
@@ -100,17 +119,7 @@ final class VNCConnection: @unchecked Sendable {
 		if let error = error {
 			self.logger.error(error)
 			self.didReceiveError(error)
-
-			if case .posix = error {
-				self.disconnect()
-			} else {
-				if connection.state != .ready {
-					self.disconnect()
-				} else {
-					self.receiveClientMessages()
-				}
-			}
-
+			self.disconnect()
 			return false
 		}
 
@@ -118,13 +127,12 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func receiveClientVersion() {
-		connection.receive(minimumIncompleteLength: 12, maximumLength: 12) { [weak self] data, _, isComplete, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.count >= 12, let versionString = String(data: data, encoding: .ascii) {
+		self.receiveDatas(ofType: UInt8.self, countOf: 12) { result in
+			if case let .success(data) = result {
+				if let versionString = String(bytes: data, encoding: .ascii) {
 					// Parse client version (format: "RFB MMM.mmm\n")
 					let trimmedVersion = versionString.trimmingCharacters(in: .whitespacesAndNewlines)
+
 					if trimmedVersion.hasPrefix("RFB ") {
 						let versionPart = String(trimmedVersion.dropFirst(4))  // Remove "RFB "
 						let components = versionPart.components(separatedBy: ".")
@@ -141,32 +149,25 @@ final class VNCConnection: @unchecked Sendable {
 								self.sendAuthenticationMethods()
 							} else {
 								// Unsupported version
-								let unsupportedVersionError = NSError(
-									domain: "VNCConnectionError", code: 1002,
-									userInfo: [NSLocalizedDescriptionKey: "Unsupported VNC version: \(majorVersion).\(minorVersion)"])
-								self.didReceiveError(unsupportedVersionError)
+								self.didReceiveError(NSError(domain: "VNCConnectionError", code: 1002, userInfo: [NSLocalizedDescriptionKey: "Unsupported VNC version: \(majorVersion).\(minorVersion)"]))
 								self.disconnect()
 							}
 						} else {
 							// Invalid version format
-							let invalidFormatError = NSError(
-								domain: "VNCConnectionError", code: 1003,
-								userInfo: [NSLocalizedDescriptionKey: "Invalid version format: \(versionPart)"])
-							self.didReceiveError(invalidFormatError)
+							self.didReceiveError(NSError(domain: "VNCConnectionError", code: 1003, userInfo: [NSLocalizedDescriptionKey: "Invalid version format: \(versionPart)"]))
 							self.disconnect()
 						}
 					} else {
 						// Not a valid RFB protocol string
-						let invalidProtocolError = NSError(
-							domain: "VNCConnectionError", code: 1004,
-							userInfo: [NSLocalizedDescriptionKey: "Invalid RFB protocol string: \(trimmedVersion)"])
-						self.didReceiveError(invalidProtocolError)
+						self.didReceiveError(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Invalid RFB protocol string: \(trimmedVersion)"]))
 						self.disconnect()
 					}
 				} else {
-					let invalidVersionError = NSError(domain: "VNCConnectionError", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Invalid client version format"])
-					self.didReceiveError(invalidVersionError)
+					self.didReceiveError(NSError(domain: "VNCConnectionError", code: 1001, userInfo: [NSLocalizedDescriptionKey: "Invalid client version format"]))
+					self.disconnect()
 				}
+			} else if case let .failure(error) = result{
+				self.logger.error("Failed to receive client version: \(error)")
 			}
 		}
 	}
@@ -238,45 +239,39 @@ final class VNCConnection: @unchecked Sendable {
 
 	private func receiveClientInit() {
 		// Receive ClientInit message (1 byte: shared flag)
-		self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.isEmpty == false {
-					self.logger.debug("ClientInit received \(data.toHexString()) starting VNC session")
-					
-					// Send ServerInit and start receiving client messages
-					self.sendServerInit()
-				}
+		self.receiveDatas(ofType: UInt8.self) { result in
+			if case let .success(sharedFlag) = result {
+				self.logger.debug("ClientInit received \(sharedFlag) starting VNC session")
+				
+				// Send ServerInit and start receiving client messages
+				self.sendServerInit()
+			} else if case let .failure(error) = result {
+				self.logger.error("Error parsing ClientInit: \(error)")
+				self.connection.cancel()
 			}
 		}
 	}
 
 	private func receiveAuthenticationChoice() {
 		// Only used for VNC 3.7+ where client chooses from authentication list
-		self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: UInt8.self) { result in
+			if case let .success(authType) = result {
+				self.logger.debug("Client chose authentication type: \(authType)")
 
-			if self.handleError(error) {
-				if let data = data, data.isEmpty == false {
-					let authType = data[0]
-
-					self.logger.debug("Client chose authentication type: \(authType)")
-
-					if authType == UInt8(Self.VNC_AUTH_NONE) {
-						// No authentication - proceed to authentication result
-						self.sendAuthenticationResult(success: true)
-					} else if authType == UInt8(Self.VNC_AUTH_VNC) {
-						// VNC authentication - send challenge
-						self.sendVNCAuthChallenge()
-					} else {
-						// Unsupported authentication type
-						self.logger.error("Client requested unsupported authentication type: \(authType)")
-						self.sendAuthenticationResult(success: false)
-					}
+				if authType == UInt8(Self.VNC_AUTH_NONE) {
+					// No authentication - proceed to authentication result
+					self.sendAuthenticationResult(success: true)
+				} else if authType == UInt8(Self.VNC_AUTH_VNC) {
+					// VNC authentication - send challenge
+					self.sendVNCAuthChallenge()
 				} else {
-					self.receiveAuthenticationChoice()
+					// Unsupported authentication type
+					self.logger.error("Client requested unsupported authentication type: \(authType)")
+					self.sendAuthenticationResult(success: false)
 				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to receive authentication choice: \(error)")
+				self.connection.cancel()
 			}
 		}
 	}
@@ -297,13 +292,11 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func receiveVNCAuthResponse() {
-		self.connection.receive(minimumIncompleteLength: 16, maximumLength: 16) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data {
-					self.sendAuthenticationResult(success: self.validateVNCAuthResponse(data))
-				}
+		self.receiveDatas(ofType: UInt8.self, countOf: 16) { result in
+			if case let .success(value) = result {
+				self.sendAuthenticationResult(success: self.validateVNCAuthResponse(Data(value)))
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to receive authentication response: \(error)")
 			}
 		}
 	}
@@ -437,28 +430,95 @@ final class VNCConnection: @unchecked Sendable {
 		}
 	}
 
-	private func receiveClientMessages() {
-		self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, isComplete, error in
+	private func receiveDatas<T: VNCLoadMessage>(ofType: T.Type, countOf: Int, dataLength: Int = MemoryLayout<T>.size, _ completion: @escaping (Result<[T], Error>) -> Void) {
+		self.connection.receive(minimumIncompleteLength: countOf * dataLength, maximumLength: countOf * dataLength) { [weak self] data, _, _, error in
 			guard let self = self else { return }
 
 			if self.handleError(error) {
-				if let data = data, data.isEmpty == false {
-					self.handleClientMessage(type: data[0])
+				if let data = data, data.count >= dataLength {
+					var values: [T] = []
+					values.reserveCapacity(countOf)
 
-					if isComplete == false {
-						self.receiveClientMessages()
+					data.withUnsafeBytes { ptr in
+						for offset in 0..<countOf {
+							let start = offset * dataLength
+							let end = start + dataLength
+							
+							values.append(T.load(from: UnsafeRawBufferPointer(rebasing: ptr[start..<end])))
+						}
 					}
+					
+					completion(.success(values))
 				} else {
-					self.receiveClientMessages()
+					completion(.failure(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"])))
 				}
+			} else {
+				completion(.failure(error!))
 			}
 		}
 	}
 
-	private func handleClientMessage(type: UInt8) {
-		let messageType = VNCClientMessageType(rawValue: type)
+	private func receiveDatas<T : VNCLoadMessage>(ofType: T.Type, dataLength: Int = MemoryLayout<T>.size, _ completion: @escaping (Result<T, Error>) -> Void) {
+		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
+			guard let self = self else { return }
 
-		self.logger.debug("Receive message: \(messageType.debugDescription )")
+			if self.handleError(error) {
+				if let data = data, data.count >= dataLength {
+					let value = data.withUnsafeBytes { ptr in
+						T.load(from: ptr)
+					}
+					
+					completion(.success(value))
+				} else {
+					completion(.failure(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"])))
+				}
+			} else {
+				completion(.failure(error!))
+			}
+		}
+	}
+
+	private func receiveDatas<T: VNCLoadMessage>(dataLength: Int = MemoryLayout<T>.size) async -> Result<T, Error> {
+		let semaphore = AsyncSemaphore(value: 0)
+		var result: Result<T, Error> = .failure(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"]))
+
+		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
+			guard let self = self else { return }
+
+			if self.handleError(error) {
+				if let data = data, data.count >= dataLength {
+					let value = data.withUnsafeBytes { ptr in
+						return ptr.load(as: T.self)
+					}
+					
+					result = .success(value)
+				}
+			} else {
+				result = .failure(error!)
+			}
+			
+			semaphore.signal()
+		}
+		
+		await semaphore.wait()
+		
+		return result
+	}
+
+	private func receiveClientMessages() {
+		self.logger.debug("Poll client message")
+
+		self.receiveDatas(ofType: UInt8.self) { result in
+			if case let .success(type) = result {
+				self.handleClientMessage(VNCClientMessageType(rawValue: type))
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to receive client message type: \(error)")
+			}
+		}
+	}
+
+	private func handleClientMessage(_ messageType: VNCClientMessageType) {
+		self.logger.debug("Handle client message: \(messageType.debugDescription )")
 
 		switch messageType {
 		case .setPixelFormat:
@@ -493,326 +553,340 @@ final class VNCConnection: @unchecked Sendable {
 	// MARK: - Message Handlers
 
 	private func receiveSetPixelFormat() {
-		let dataLength = MemoryLayout<VNCPixelFormat>.size
-
-		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.count >= dataLength {
-					
-					// Message type already heated (1 byte)
-					// Skip padding bytes (3 bytes after message type)
-					// Parse VNC Pixel Format (16 bytes starting at offset 3)
-					let pixelFormat = data.withUnsafeBytes { ptr in
-						var value = ptr.load(as: VNCPixelFormat.self)
-						
-						value.redMax = value.redMax.bigEndian
-						value.greenMax = value.greenMax.bigEndian
-						value.blueMax = value.blueMax.bigEndian
-
-						return value
-					}
-
-					self.logger.debug("Client set pixel format: \(pixelFormat)")
-				}
-
+		self.receiveDatas(ofType: VNCSetPixelFormat.self, dataLength: 19) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client set pixel format: \(value)")
+				self.clientPixelFormat = value.pixelFormat
 				// Ignore for now, use default format
 				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read VNC pixel format: \(error)")
 			}
 		}
 	}
 
 	private func receiveSetEncodings() {
-		self.connection.receive(minimumIncompleteLength: 3, maximumLength: 3) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: VNCSetEncoding.self, dataLength: 3) { result in
+			if case let .success(value) = result {
+				self.receiveDatas(ofType: Int32.self, countOf: Int(value.numberOfEncodings)) { result in
+					if case let .success(values) = result {
+						self.logger.debug("Client set encoding: \(values)")
+						var setEncoding = SetEncoding()
 
-			if self.handleError(error) {
-				if let data = data, data.count >= 3 {
-					let encoding = data.withUnsafeBytes { $0.load(fromByteOffset: 0, as: VNCSetEncoding.self) }
-					let encodingsLength = Int(encoding.numberOfEncodings) * 4
-
-					self.connection.receive(minimumIncompleteLength: encodingsLength, maximumLength: encodingsLength) { [weak self] data, _, _, error in
-						guard let self = self else { return }
-
-						if self.handleError(error) {
-							if let data = data, data.count >= encodingsLength {
-								var encodings: [Int32] = []
-								encodings.reserveCapacity(Int(encoding.numberOfEncodings))
-
-								data.withUnsafeBytes { rawBuffer in
-									guard let base = rawBuffer.bindMemory(to: Int32.self).baseAddress else { return }
-
-									for offset in 0..<Int(encoding.numberOfEncodings) {
-										encodings.append(base[offset].bigEndian)
+						values.forEach {
+							if let encoding = VNCSetEncoding.Encoding(rawValue: Int32($0)) {
+								switch encoding {
+								case .rfbEncodingCopyRect:
+									setEncoding.useCopyRect = true;
+									break;
+								case .rfbEncodingRaw, .rfbEncodingRRE, .rfbEncodingCoRRE, .rfbEncodingHextile, .rfbEncodingUltra, .rfbEncodingZlib, .rfbEncodingZRLE, .rfbEncodingZYWRLE, .rfbEncodingTight, .rfbEncodingTightPng, .rfbEncodingZlibHex:
+									if setEncoding.preferredEncoding == .rfbEncodingNone {
+										setEncoding.preferredEncoding = encoding
 									}
+								case .rfbEncodingXCursor:
+									setEncoding.enableCursorShapeUpdates = true
+									setEncoding.cursorWasChanged = true
+								case .rfbEncodingRichCursor:
+									setEncoding.enableCursorShapeUpdates = true
+									setEncoding.useRichCursorEncoding = true
+									setEncoding.cursorWasChanged = true
+								case .rfbEncodingPointerPos:
+									setEncoding.enableCursorPosUpdates = true
+									setEncoding.cursorWasMoved = true
+								case .rfbEncodingLastRect:
+									setEncoding.enableLastRectEncoding = true
+								case .rfbEncodingNewFBSize:
+									setEncoding.useNewFBSize = true
+								case .rfbEncodingKeyboardLedState:
+									setEncoding.enableKeyboardLedState = true
+								case .rfbEncodingSupportedMessages:
+									setEncoding.enableSupportedMessages = true
+								case .rfbEncodingSupportedEncodings:
+									setEncoding.enableSupportedEncodings = true
+								case .rfbEncodingServerIdentity:
+									setEncoding.enableServerIdentity = true
+								case .rfbEncodingEnableContinousUpdate:
+									setEncoding.enableContinousUpdate = true
+								//default: break
+								case .rfbEncodingNone:
+									break
+								case .rfbEncodingXvp:
+									break
+								case .appleEncoding1000:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1001:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1002:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1011:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1100:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1101:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1102:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1103:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1104:
+									setEncoding.appleVNCEncoding = true
+								case .appleEncoding1105:
+									setEncoding.appleVNCEncoding = true
 								}
-
-								self.logger.debug("Client set encodings: \(encodings)")
 							}
+						}
 
+						self.encodings = setEncoding
+
+						if setEncoding.enableContinousUpdate || setEncoding.appleVNCEncoding {
+							self.sendFramebuffer = true
+						}
+
+						if (setEncoding.enableCursorPosUpdates && setEncoding.enableCursorShapeUpdates == false) {
+							setEncoding.enableCursorPosUpdates = false
+						}
+
+						if setEncoding.preferredEncoding == .rfbEncodingNone {
+							setEncoding.preferredEncoding = .rfbEncodingRaw
+						}
+
+						if setEncoding.enableContinousUpdate {
+							self.sendDatas(Data(repeating: 150, count: 1)) { error in
+								if self.handleError(error) {
+									self.sendFramebuffer = true
+									self.receiveClientMessages()
+								}
+							}
+						} else {
 							self.receiveClientMessages()
 						}
+					} else if case let .failure(error) = result {
+						self.logger.error("Failed to read encodings: \(error)")
 					}
-				} else {
-					self.receiveClientMessages()
 				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read encodings: \(error)")
 			}
 		}
 	}
 
 	private func receiveFramebufferUpdateRequest() {
-		self.connection.receive(minimumIncompleteLength: 9, maximumLength: 9) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: VNCFramebufferUpdateRequest.self, dataLength: 9) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client request update: \(value)")
 
-			if self.handleError(error) {
-				if let data = data, data.count >= 9 {
-					var request = VNCFramebufferUpdateRequest()
+				if self.encodings.enableContinousUpdate == false && value.incremental != 0 {
+					self.sendFramebuffer = true
+				}
 
-					request.incremental = data[0]
-					request.x = UInt16(data[2]) << 8 | UInt16(data[1])
-					request.y = UInt16(data[4]) << 8 | UInt16(data[3])
-					request.width = UInt16(data[6]) << 8 | UInt16(data[5])
-					request.height = UInt16(data[8]) << 8 | UInt16(data[7])
-
-					// Send framebuffer update
-					Task {
-						await self.sendFramebufferUpdate()
-					}
+				// Send framebuffer update
+				Task {
+					await self.sendFramebufferUpdate()
 				}
 
 				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read request update: \(error)")
 			}
 		}
-	}
-
-	private func receiveDatas<T>() async -> T? {
-		let semaphore = AsyncSemaphore(value: 0)
-		let dataLength: Int = MemoryLayout<T>.size
-		var result: T? = nil
-		
-		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-			
-			if self.handleError(error) {
-				if let data = data, data.count >= dataLength {
-					data.withUnsafeBytes { ptr in
-						result = ptr.load(as: T.self)
-					}
-				}
-			}
-			
-			semaphore.signal()
-		}
-		
-		await semaphore.wait()
-		
-		return result
 	}
 
 	private func receiveFramebufferUpdateContinue() {
-		self.connection.receive(minimumIncompleteLength: 9, maximumLength: 9) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: VNCFramebufferUpdateContinue.self, dataLength: 9) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client request update continue: \(value)")
 
-			if self.handleError(error) {
-				if let data = data, data.count >= 9 {
-					let request = data.withUnsafeBytes {
-						$0.load(as: VNCFramebufferUpdateContinue.self)
-					}
-					
-					self.logger.debug("receiveFramebufferUpdateContinue: \(request)")
-				}
+				self.sendFramebuffer = value.active != 0
 
-				self.receiveClientMessages()
-			}
-		}
-	}
-
-	private func receiveKeyEvent() {
-		self.connection.receive(minimumIncompleteLength: 7, maximumLength: 7) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.count >= 7 {
-					let downFlag = data[0] != 0
-					let key = UInt32(data[4]) << 24 | UInt32(data[3]) << 16 | UInt32(data[6]) << 8 | UInt32(data[5])
-
-					DispatchQueue.main.async {
-						self.inputHandler.handleKeyEvent(key: key, isDown: downFlag)
-						self.inputDelegate?.vncConnection(self, didReceiveKeyEvent: key, isDown: downFlag)
-					}
-				}
-
-				self.receiveClientMessages()
-			}
-		}
-	}
-
-	private func receivePointerEvent() {
-		self.connection.receive(minimumIncompleteLength: 5, maximumLength: 5) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.count >= 5 {
-					let buttonMask = data[0]
-					let x = UInt16(data[1]) << 8 | UInt16(data[2])
-					let y = UInt16(data[3]) << 8 | UInt16(data[4])
-
-					DispatchQueue.main.async {
-						self.inputHandler.handlePointerEvent(x: Int(x), y: Int(y), buttonMask: buttonMask)
-						self.inputDelegate?.vncConnection(self, didReceiveMouseEvent: Int(x), y: Int(y), buttonMask: buttonMask)
-					}
-				}
-
-				self.receiveClientMessages()
-			}
-		}
-	}
-
-	private func receiveClientCutText() {
-		self.connection.receive(minimumIncompleteLength: 7, maximumLength: 7) { [weak self] data, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				if let data = data, data.count >= 7 {
-					let textLength = UInt32(data[3]) << 24 | UInt32(data[4]) << 16 | UInt32(data[5]) << 8 | UInt32(data[6])
-
-					self.connection.receive(minimumIncompleteLength: Int(textLength), maximumLength: Int(textLength)) { textData, _, _, error in
+				if value.active == 0 {
+					self.sendDatas(Data(repeating: 150, count: 1)) { error in
 						if self.handleError(error) {
-							if let textData = textData, let text = String(data: textData, encoding: .utf8) {
-								DispatchQueue.main.async {
-									self.inputHandler.handleClipboardText(text)
-								}
-							}
-
 							self.receiveClientMessages()
 						}
 					}
 				} else {
 					self.receiveClientMessages()
 				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read update continue: \(error)")
+			}
+		}
+	}
+
+	private func receiveKeyEvent() {
+		self.receiveDatas(ofType: VNCKeyEvent.self, dataLength: 7) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client send key event: \(value)")
+
+				DispatchQueue.main.async {
+					self.inputHandler.handleKeyEvent(key: value.key, isDown: value.downFlag != 0)
+					self.inputDelegate?.vncConnection(self, didReceiveKeyEvent: value.key, isDown: value.downFlag != 0)
+				}
+
+				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read key event: \(error)")
+			}
+		}
+	}
+
+	private func receivePointerEvent() {
+		self.receiveDatas(ofType: VNCPointerEvent.self, dataLength: 5) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client send pointer event: \(value)")
+
+				DispatchQueue.main.async {
+					self.inputHandler.handlePointerEvent(x: Int(value.xPosition), y: Int(value.yPosition), buttonMask: value.buttonMask)
+					self.inputDelegate?.vncConnection(self, didReceiveMouseEvent: Int(value.xPosition), y: Int(value.yPosition), buttonMask: value.buttonMask)
+				}
+
+				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read pointer event: \(error)")
+			}
+		}
+	}
+
+	private func receiveClientCutText() {
+		self.receiveDatas(ofType: VNCClientCutText.self, dataLength: 7) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client send cut text: \(value)")
+
+				self.receiveDatas(ofType: UInt8.self, countOf: Int(value.textLength)) { result in
+					if case let .success(value) = result {
+						let text = String(decoding: value, as: Unicode.UTF8.self)
+						
+						DispatchQueue.main.async {
+							self.inputHandler.handleClipboardText(text)
+						}
+
+						self.receiveClientMessages()
+					} else if case let .failure(error) = result {
+						self.logger.error("Failed to read text: \(error)")
+					}
+				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read cut text: \(error)")
 			}
 		}
 	}
 
 	private func receiveClientFence() {
-		let messageLength = MemoryLayout<VNCFenceClient>.size
+		self.receiveDatas(ofType: VNCFenceClient.self, dataLength: 9) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client send fence: \(value)")
 
-		self.connection.receive(minimumIncompleteLength: messageLength, maximumLength: messageLength) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+				self.receiveDatas(ofType: UInt8.self, countOf: Int(value.payloadLength)) { result in
+					if case let .success(value) = result {
+						self.logger.debug("fence: \(value)")
 
-			if self.handleError(error) {
-				if let data = data, data.count >= messageLength {
-					let fence = data.withUnsafeBytes { ptr in
-						return ptr.load(as: VNCFenceClient.self)
+						self.receiveClientMessages()
+					} else if case let .failure(error) = result {
+						self.logger.error("Failed to read fence: \(error)")
 					}
-
-					let dataLength = Int(fence.payloadLength)
-
-					self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { _, _, _, error in
-						self.handleError(error)
-					}
-				} else {
-					self.receiveClientMessages()
 				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read fence request: \(error)")
 			}
 		}
 	}
 
 	private func receiveXVPServerMessage() {
-		self.eatDatas(dataLength: 3)
+		self.receiveDatas(ofType: UInt8.self, countOf: 3) { result in
+			if case let .success(value) = result {
+				self.logger.debug("XVP server message: \(value)")
+				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read XVP server message: \(error)")
+			}
+		}
 	}
 
 	private func receiveSetDesktopSize() {
-		let messageLength = MemoryLayout<VNCSetDesktopSize>.size
+		self.receiveDatas(ofType: VNCSetDesktopSize.self, dataLength: 7) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client set desktop size: \(value)")
 
-		self.connection.receive(minimumIncompleteLength: messageLength, maximumLength: messageLength) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+				self.receiveDatas(ofType: VNCScreenDesktop.self, countOf: Int(value.numberOfScreen)) { result in
+					if case let .success(values) = result {
+						self.logger.debug("desktops: \(values)")
 
-			if self.handleError(error) {
-				if let data = data, data.count >= messageLength {
-					let desktopSize = data.withUnsafeBytes { ptr in
-						return ptr.load(as: VNCSetDesktopSize.self)
+						self.receiveClientMessages()
+					} else if case let .failure(error) = result {
+						self.logger.error("Failed to read desktop: \(error)")
 					}
-
-					self.eatDatas(dataLength: Int(desktopSize.numberOfScreen) * MemoryLayout<VNCScreenDesktop>.size)
-				} else {
-					self.receiveClientMessages()
 				}
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read desktop size request: \(error)")
 			}
 		}
 	}
 
 	private func receiveGIIClientVersion() {
-		self.connection.receive(minimumIncompleteLength: 3, maximumLength: 3) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: VNCGiiVersion.self, dataLength: 3) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client Gii version: \(value)")
 
-			if self.handleError(error) {
-				if let data = data, data.count == 3 {
-					self.eatDatas(dataLength: Int(UInt16(data[1]) << 8 | UInt16(data[2])))
-				} else {
-					self.receiveClientMessages()
+				self.receiveDatas(ofType: UInt8.self, countOf: Int(value.length)) { result in
+					if case let .success(values) = result {
+						self.logger.debug("Gii payload: \(values)")
+
+						self.receiveClientMessages()
+					} else if case let .failure(error) = result {
+						self.logger.error("Failed to read Gii payload: \(error)")
+					}
 				}
-			}
-		}
-	}
-
-	private func eatDatas(dataLength: Int) {
-		self.connection.receive(minimumIncompleteLength: dataLength, maximumLength: dataLength) { [weak self] _, _, _, error in
-			guard let self = self else { return }
-
-			if self.handleError(error) {
-				self.receiveClientMessages()
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read Gii request: \(error)")
 			}
 		}
 	}
 
 	private func receiveQemuClientMessage() {
-		self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
-			guard let self = self else { return }
+		self.receiveDatas(ofType: UInt8.self) { result in
+			if case let .success(value) = result {
+				self.logger.debug("Client qemu message: \(value)")
 
-			if self.handleError(error) {
-				if let data = data, data.count == 1 {
-					if data[0] == 0 {
-						eatDatas(dataLength: MemoryLayout<VNCQemuKeyEvent>.size)
-					} else {
-						self.connection.receive(minimumIncompleteLength: 1, maximumLength: 1) { [weak self] data, _, _, error in
-							guard let self = self else { return }
-
-							if self.handleError(error) {
-								if let data = data, data.count == 1 {
-									if data[0] == 2 {
-										self.connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { [weak self] data, _, _, error in
-											guard let self = self else { return }
-
-											if self.handleError(error) {
-												if let data = data, data.count == 4 {
-													let length = UInt32(data[1]) << 24 | UInt32(data[0]) << 16 | UInt32(data[3]) << 8 | UInt32(data[2])
-													
-													self.eatDatas(dataLength: Int(length))
-												} else {
-													self.receiveClientMessages()
-												}
-											}
-										}
-									} else {
-										self.receiveClientMessages()
-									}
-								}
-
-								self.receiveClientMessages()
-							}
+				if value == 0 {
+					self.receiveDatas(ofType: VNCQemuKeyEvent.self) { result in
+						if case let .success(values) = result {
+							self.logger.debug("Client qemu key event: \(values)")
+							
+							self.receiveClientMessages()
+						} else if case let .failure(error) = result {
+							self.logger.error("Failed to read qemu key event: \(error)")
 						}
 					}
 				} else {
-					self.receiveClientMessages()
+					self.receiveDatas(ofType: UInt16.self) { result in
+						if case let .success(value) = result {
+							self.logger.debug("Client qemu audio operation: \(value)")
+
+							if value == 2 {
+								self.receiveDatas(ofType: VNCQemuAudioFormat.self) { result in
+									if case let .success(value) = result {
+										self.logger.debug("Client qemu audio format: \(value)")
+										
+										self.receiveClientMessages()
+									}
+								}
+							} else {
+								self.receiveClientMessages()
+							}
+						} else if case let .failure(error) = result {
+							self.logger.error("Failed to read qemu audio operation: \(error)")
+						}
+					}
 				}
+
+			} else if case let .failure(error) = result {
+				self.logger.error("Failed to read qemu request: \(error)")
 			}
 		}
 	}
 
 	func sendFramebufferUpdate() async {
-		if isAuthenticated && sendFramebuffer {
+		if isAuthenticated {
 			let state = framebuffer.getCurrentState()
 
 			if state.hasChanges {
@@ -839,7 +913,6 @@ final class VNCConnection: @unchecked Sendable {
 				}
 
 				//self.logger.debug("Send framebuffer update: \(payload) -> \(msgData.toHexString())")
-				
 				self.sendDatas(msgData) { [weak self] error in
 					guard let self: VNCConnection = self else { return }
 
@@ -869,7 +942,9 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	func notifyFramebufferSizeChange() async {
-		await self.sendFramebufferUpdate()
+		if self.sendFramebuffer {
+			await self.sendFramebufferUpdate()
+		}
 	}
 
 	private func didReceiveError(_ error: Error) {
@@ -888,3 +963,4 @@ final class VNCConnection: @unchecked Sendable {
 		}
 	}
 }
+

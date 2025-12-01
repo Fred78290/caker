@@ -3,6 +3,20 @@ import Carbon
 import Foundation
 
 extension NSView {
+	func postEnterExitEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags, trackingNumber: Int) -> NSEvent? {
+			return NSEvent.enterExitEvent(
+				with: type,
+				location: viewPoint,
+				modifierFlags: modifierFlags,
+				timestamp: ProcessInfo.processInfo.systemUptime,
+				windowNumber: self.window?.windowNumber ?? 0,
+				context: nil,
+				eventNumber: Date.now.nanosecond,
+				trackingNumber: trackingNumber,
+				userData: nil
+			)
+	}
+
 	func postMouseEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
 		return NSEvent.mouseEvent(
 			with: type,
@@ -11,7 +25,7 @@ extension NSView {
 			timestamp: ProcessInfo.processInfo.systemUptime,
 			windowNumber: self.window?.windowNumber ?? 0,
 			context: nil,
-			eventNumber: 0,
+			eventNumber: Date.now.nanosecond,
 			clickCount: type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown ? 1 : 0,
 			pressure: type.rawValue >= NSEvent.EventType.leftMouseDown.rawValue && type.rawValue <= NSEvent.EventType.otherMouseDragged.rawValue ? 1.0 : 0.0
 		)
@@ -25,7 +39,7 @@ extension NSView {
 			timestamp: ProcessInfo.processInfo.systemUptime,
 			windowNumber: self.window?.windowNumber ?? 0,
 			context: NSGraphicsContext.current,
-			eventNumber: 0,
+			eventNumber: Date.now.nanosecond,
 			clickCount: Int(deltaY),
 			pressure: 0
 		)
@@ -54,6 +68,7 @@ public class VNCInputHandler {
 	private var keyCode: UInt16 = 0
 	private var modifiers: NSEvent.ModifierFlags = []
 	private var characters: String = ""
+	private var trackingNumber: Int = 0
 
 	// MARK: - First Responder
 	@discardableResult
@@ -85,8 +100,6 @@ public class VNCInputHandler {
 		let nsPoint = NSPoint(x: CGFloat(x), y: viewBounds.height - CGFloat(y))
 		let moved = nsPoint != lastMousePosition
 
-		lastMousePosition = nsPoint
-
 		// Handle mouse buttons with move
 		if handleMouseButtons(view, buttonMask: buttonMask, at: nsPoint, moved: moved) == false {
 			if moved {
@@ -94,6 +107,8 @@ public class VNCInputHandler {
 				handleMouseMovement(view, to: nsPoint)
 			}
 		}
+
+		lastMousePosition = nsPoint
 	}
 
 	private func prevDispatchEvent(_ event: NSEvent?, view: NSView, currentButton: CurrentButton, buttonState: ButtonState, moved: Bool) {
@@ -232,10 +247,18 @@ public class VNCInputHandler {
 		if (buttonMask & 0x01) != (previousState & 0x01) {
 			buttonEvent = true
 
-			if (buttonMask & 0x01) != 0 {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .leftMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			if moved {
+				if (buttonMask & 0x01) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
 			} else {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .leftMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				if (buttonMask & 0x01) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .leftMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .leftMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
 			}
 		} else if (buttonMask & 0x01) != 0 {
 			buttonEvent = true
@@ -243,7 +266,7 @@ public class VNCInputHandler {
 			if isDragging {
 				dispatchEvent(view.postMouseEvent(type: .leftMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
 			} else {
-				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
 			}
 		}
 
@@ -251,10 +274,18 @@ public class VNCInputHandler {
 		if (buttonMask & 0x04) != (previousState & 0x04) {
 			buttonEvent = true
 
-			if (buttonMask & 0x04) != 0 {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .rightMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			if moved {
+				if (buttonMask & 0x04) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
 			} else {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .rightMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				if (buttonMask & 0x04) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .rightMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .rightMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
 			}
 		} else if (buttonMask & 0x04) != 0 {
 			buttonEvent = true
@@ -262,7 +293,7 @@ public class VNCInputHandler {
 			if isDragging {
 				dispatchEvent(view.postMouseEvent(type: .rightMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
 			} else {
-				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
 			}
 		}
 
@@ -270,10 +301,18 @@ public class VNCInputHandler {
 		if (buttonMask & 0x02) != (previousState & 0x02) {
 			buttonEvent = true
 
-			if (buttonMask & 0x02) != 0 {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseEntered : .otherMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			if moved {
+				if (buttonMask & 0x02) != 0 {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				} else {
+					dispatchEvent(view.postEnterExitEvent(type: .mouseExited, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
+				}
 			} else {
-				dispatchEvent(view.postMouseEvent(type: moved ? .mouseExited : .otherMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				if (buttonMask & 0x02) != 0 {
+					dispatchEvent(view.postMouseEvent(type: .otherMouseDown, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				} else {
+					dispatchEvent(view.postMouseEvent(type: .otherMouseUp, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				}
 			}
 		} else if (buttonMask & 0x02) != 0 {
 			buttonEvent = true
@@ -281,7 +320,7 @@ public class VNCInputHandler {
 			if isDragging {
 				dispatchEvent(view.postMouseEvent(type: .otherMouseDragged, at: viewPoint, modifierFlags: self.modifiers), view: view)
 			} else {
-				dispatchEvent(view.postMouseEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers), view: view)
+				dispatchEvent(view.postEnterExitEvent(type: .mouseEntered, at: viewPoint, modifierFlags: self.modifiers, trackingNumber: self.trackingNumber), view: view)
 			}
 		}
 

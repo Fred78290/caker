@@ -2,6 +2,16 @@ import AppKit
 import Foundation
 import CryptoKit
 
+extension CGImageAlphaInfo {
+	var isFirst: Bool {
+		return self == .first || self == .premultipliedFirst
+	}
+
+	var isLast: Bool {
+		return self == .last || self == .premultipliedLast
+	}
+}
+
 public class VNCFramebuffer {
 	public internal(set) var width: Int
 	public internal(set) var height: Int
@@ -95,9 +105,35 @@ public class VNCFramebuffer {
 			self.bitmapInfo = cgImage.bitmapInfo;
 
 			if let provider = cgImage.dataProvider, let data = provider.data as NSData? {
-				pixelData = data as Data
-				previousPixelData = pixelData
-				hasChanges = true
+				let imageSource = data as Data
+
+				self.previousPixelData = pixelData
+				self.hasChanges = true
+				self.pixelData = Data(count: data.count)
+				
+				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress,
+							  let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+						let count = data.count
+						var i = 0
+
+						while i < count {
+							let r = sp[i]
+							let g = sp[i + 1]
+							let b = sp[i + 2]
+							let a = sp[i + 3]
+
+							dp[i]     = b // B
+							dp[i + 1] = g // G
+							dp[i + 2] = r // R
+							dp[i + 3] = a // A
+
+							i += 4
+						}
+					}
+				}
+
 				return
 			}
 		}
@@ -142,12 +178,13 @@ public class VNCFramebuffer {
 
 	public func markAsProcessed() {
 		updateQueue.async {
+			
 			self.hasChanges = false
 			self.sizeChanged = false
 		}
 	}
 
-	public func getPixelFormat() -> VNCPixelFormat {
+	func getPixelFormat() -> VNCPixelFormat {
 		var pixelFormat = VNCPixelFormat()
 		
 		guard let bitmapInfo = self.bitmapInfo else {
@@ -161,12 +198,13 @@ public class VNCFramebuffer {
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.blueMax = UInt16(255).bigEndian
+			pixelFormat.bigEndianFlag = 1
 
-			if bitmapInfo.alpha == .last {
+			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 16
 				pixelFormat.greenShift = 8
 				pixelFormat.blueShift = 0
-			} else if bitmapInfo.alpha == .first {
+			} else if bitmapInfo.alpha.isFirst {
 				pixelFormat.redShift = 24
 				pixelFormat.greenShift = 16
 				pixelFormat.blueShift = 8
@@ -177,11 +215,11 @@ public class VNCFramebuffer {
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.blueMax = UInt16(255).bigEndian
 
-			if bitmapInfo.alpha == .last {
+			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 0
 				pixelFormat.greenShift = 8
 				pixelFormat.blueShift = 16
-			} else if bitmapInfo.alpha == .first {
+			} else if bitmapInfo.alpha.isFirst {
 				pixelFormat.redShift = 8
 				pixelFormat.greenShift = 16
 				pixelFormat.blueShift = 24
@@ -192,11 +230,11 @@ public class VNCFramebuffer {
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.blueMax = UInt16(16).bigEndian
 
-			if bitmapInfo.alpha == .last {
+			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 8
 				pixelFormat.greenShift = 4
 				pixelFormat.blueShift = 0
-			} else if bitmapInfo.alpha == .first {
+			} else if bitmapInfo.alpha.isFirst {
 				pixelFormat.redShift = 12
 				pixelFormat.greenShift = 8
 				pixelFormat.blueShift = 4
@@ -207,11 +245,11 @@ public class VNCFramebuffer {
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.blueMax = UInt16(16).bigEndian
 
-			if bitmapInfo.alpha == .last {
+			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 8
 				pixelFormat.greenShift = 4
 				pixelFormat.blueShift = 0
-			} else if bitmapInfo.alpha == .first {
+			} else if bitmapInfo.alpha.isFirst {
 				pixelFormat.redShift = 12
 				pixelFormat.greenShift = 8
 				pixelFormat.blueShift = 4

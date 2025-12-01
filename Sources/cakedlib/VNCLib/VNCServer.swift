@@ -255,11 +255,19 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 
+		let connections = self.connections.compactMap {
+			if $0.sendFramebuffer {
+				return $0
+			}
+
+			return nil
+		}
+
 		// Send updates to all connected clients
-		if self.connections.isEmpty == false {
+		if connections.isEmpty == false {
 			let result = self.eventLoop.makeFutureWithTask {
 				await withTaskGroup(of: Void.self) { group in
-					self.connections.forEach { connection in
+					connections.forEach { connection in
 						group.addTask {
 							await connection.sendFramebufferUpdate()
 						}
