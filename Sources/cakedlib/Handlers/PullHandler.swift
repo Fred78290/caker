@@ -160,7 +160,6 @@ public struct PullHandler {
 						}
 
 						config.macAddress = macAddress
-						config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
 						config.source = .oci
 
 						try config.save()
