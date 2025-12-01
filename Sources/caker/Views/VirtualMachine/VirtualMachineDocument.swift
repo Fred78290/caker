@@ -225,8 +225,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var firstIP: String!
 
 	// Agent monitoring
-	private var agentMonitorTimer: Timer?
+	private var agentMonitorTimer: Timer!
 	private var isMonitoringAgent: Bool = false
+	private var isWaitingForAgent: Bool = false
 
 	var osImage: some View {
 		var name = "linux"
@@ -298,7 +299,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.location = location
 		self.virtualMachineConfig = config
 		self.screenshot = .init(screenshotURL: location.screenshotURL)
-		self.agent = config.agent ? AgentStatus.installed : AgentStatus.none
+		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.monitor = monitor
 
@@ -381,7 +382,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 		// Start agent monitoring when VM is running
 		if self.agent == .installed {
-			startAgentMonitoring()
+			startAgentMonitoring(interval: 1.0)
 		}
 	}
 
@@ -423,7 +424,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		do {
 			self.virtualMachineConfig = try VirtualMachineConfig(location: location)
 			self.location = location
-			self.agent = self.virtualMachineConfig.agent ? .installed : .none
+			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 
@@ -500,7 +501,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 					// Start agent monitoring if VM is running and agent was successfully installed
 					if agent == .installed && self.status == .running {
-						self.startAgentMonitoring()
+						self.startAgentMonitoring(interval: 1.0)
 					}
 
 					done()
@@ -698,13 +699,16 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 			return
 		}
 
+		self.virtualMachineConfig.agent = vm.config.agent
+		self.virtualMachineConfig.firstLaunch = vm.config.firstLaunch
+
 		self.canStart = virtualMachine.canStart
 		self.canStop = virtualMachine.canStop
 		self.canPause = virtualMachine.canPause
 		self.canResume = virtualMachine.canResume
 		self.canRequestStop = virtualMachine.canRequestStop
 		self.suspendable = suspendable
-		self.agent = vm.config.agent ? .installed : .none
+		self.agent = vm.config.agent ? vm.config.firstLaunch ? .installing : .installed : .none
 		self.status = status
 	}
 
@@ -1077,7 +1081,7 @@ extension VirtualMachineDocument {
 		return (title, false, self.agent != .none)
 	}
 
-	private func startAgentMonitoring() {
+	private func startAgentMonitoring(interval: TimeInterval) {
 		guard !isMonitoringAgent, agent == .installed, status == .running else {
 			return
 		}
@@ -1085,8 +1089,10 @@ extension VirtualMachineDocument {
 		self.logger.debug("Starting agent monitoring for VM: \(self.name)")
 		isMonitoringAgent = true
 
+		agentMonitorTimer?.invalidate()
+
 		// Schedule periodic monitoring every seconds
-		agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+		agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
 			self?.monitorAgent()
 		}
 	}
@@ -1150,16 +1156,31 @@ extension VirtualMachineDocument {
 
 			self.logger.info("VM \(self.name) current IP address: \(firstIP)")
 		}
+		
+		if self.isWaitingForAgent {
+			self.isWaitingForAgent = false
+			self.stopAgentMonitoring()
+			agentMonitorTimer?.invalidate()
+			// Schedule periodic monitoring every seconds
+			agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+				self?.monitorAgent()
+			}
+		}
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) {
-		// Agent is not responding - could indicate VM issues
-		self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
-
 		if let grpcError = error as? GRPCStatus {
 			switch grpcError.code {
 			case .unavailable, .cancelled:
 				// These could be temporary - continue monitoring
+				if self.isWaitingForAgent == false {
+					self.isWaitingForAgent = true
+					agentMonitorTimer?.invalidate()
+					// Schedule periodic monitoring every seconds
+					agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+						self?.monitorAgent()
+					}
+				}
 				break
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
@@ -1168,6 +1189,9 @@ extension VirtualMachineDocument {
 				// Other errors might indicate serious issues
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
+		} else {
+			// Agent is not responding - could indicate VM issues
+			self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
 		}
 
 		if let infosClient = self._infosClient {

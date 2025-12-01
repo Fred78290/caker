@@ -768,6 +768,7 @@ struct VirtualMachineWizard: View {
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in
 							self.config.imageName = ""
+							self.config.source = newValue
 							#if arch(arm64)
 								if newValue == .ipsw {
 									self.config.cpuCount = max(self.config.cpuCount, 4)
@@ -878,7 +879,7 @@ struct VirtualMachineWizard: View {
 		self.model.createVM = true
 		self.model.createVMMessage = "Creating virtual machine..."
 
-		await self.config.createVirtualMachine(imageSource: self.model.imageSource) { result in
+		await self.createVirtualMachine() { result in
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
@@ -900,6 +901,31 @@ struct VirtualMachineWizard: View {
 				}
 			}
 		}
+	}
+
+	func createVirtualMachine(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
+		await withTaskCancellationHandler(
+			operation: {
+				let options = self.config.buildOptions()
+				var ipswQueue: DispatchQueue!
+
+				#if arch(arm64)
+				if self.model.imageSource == .ipsw {
+					ipswQueue = DispatchQueue(label: "IPSWQueue")
+				}
+				#endif
+
+				let build = await BuildHandler.build(name: self.config.vmname, options: options, runMode: .app, queue: ipswQueue) { result in
+					progressHandler(result)
+				}
+
+				if build.builded == false {
+					progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
+				}
+			},
+			onCancel: {
+				progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
+			})
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
