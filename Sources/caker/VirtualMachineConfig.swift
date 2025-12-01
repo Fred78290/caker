@@ -30,6 +30,8 @@ struct VirtualMachineConfig: Hashable {
 	var mounts: DirectorySharingAttachments = []
 	var vmname: String! = nil
 	var agent: Bool = false
+	var source: VMBuilder.ImageSource = .raw
+	var firstLaunch: Bool = false
 
 	var imageName: String
 	var sshAuthorizedKey: String?
@@ -75,6 +77,7 @@ struct VirtualMachineConfig: Hashable {
 		clearPassword = true
 		diskSize = 20
 		autoinstall = false
+		firstLaunch = true
 
 		if FileManager.default.fileExists(atPath: "~/.ssh/id_rsa.pub".expandingTildeInPath) {
 			self.sshAuthorizedKey = "~/.ssh/id_rsa.pub"
@@ -107,6 +110,8 @@ struct VirtualMachineConfig: Hashable {
 		self.clearPassword = true
 		self.diskSize = UInt16(try location.diskURL.fileSize() / (1024 * 1024 * 1024))
 		self.agent = config.agent
+		self.firstLaunch = config.firstLaunch
+		self.source = config.source
 	}
 
 	func save() throws {
@@ -143,6 +148,10 @@ struct VirtualMachineConfig: Hashable {
 		try config.save()
 	}
 
+	func buildOptions() -> BuildOptions {
+		self.buildOptions(image: self.imageName, sshAuthorizedKey: self.sshAuthorizedKey)
+	}
+
 	func buildOptions(image: String, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
@@ -175,30 +184,5 @@ struct VirtualMachineConfig: Hashable {
 	@MainActor
 	func notify(name: NSNotification.Name, object: Any?) {
 		NotificationCenter.default.post(name: name, object: object)
-	}
-
-	func createVirtualMachine(imageSource: VMBuilder.ImageSource, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
-		await withTaskCancellationHandler(
-			operation: {
-				let options = self.buildOptions(image: imageName, sshAuthorizedKey: sshAuthorizedKey)
-				var ipswQueue: DispatchQueue!
-
-				#if arch(arm64)
-					if imageSource == .ipsw {
-						ipswQueue = DispatchQueue(label: "IPSWQueue")
-					}
-				#endif
-
-				let build = await BuildHandler.build(name: vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-					progressHandler(result)
-				}
-
-				if build.builded == false {
-					progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
-				}
-			},
-			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
-			})
 	}
 }

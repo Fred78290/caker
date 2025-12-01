@@ -416,7 +416,7 @@ struct HostVirtualMachineView: View {
 	func handleAppStateChangedNotification(_ newValue: Bool) {
 		if newValue {
 			self.appState.currentDocument = self.document
-			self.appState.isAgentInstalling = self.document.agent == .installing
+			self.appState.isAgentInstalling = self.document.agent == .installing && self.document.status == .running
 			self.appState.isStopped = document.status == .stopped || document.status == .stopping
 			self.appState.isRunning = document.status == .running || document.status == .starting
 			self.appState.isPaused = document.status == .paused || document.status == .pausing
@@ -436,7 +436,7 @@ struct HostVirtualMachineView: View {
 
 	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
 		if self.appearsActive {
-			self.appState.isAgentInstalling = self.document.agent == .installing
+			self.appState.isAgentInstalling = self.document.agent == .installing && newValue == .running
 			self.appState.isStopped = newValue == .stopped || newValue == .stopping
 			self.appState.isRunning = newValue == .running || newValue == .starting
 			self.appState.isPaused = newValue == .paused || newValue == .pausing
