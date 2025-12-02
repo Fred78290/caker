@@ -146,6 +146,7 @@
 		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
+		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
@@ -648,6 +649,7 @@
 		9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
 		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
@@ -1378,6 +1380,7 @@
 				9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */,
 				9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */,
 				9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */,
+				9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */,
 				9B5A377B2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift */,
 				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
 				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
@@ -2402,6 +2405,7 @@
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B62DF440720092B196 /* CakedTCPPortForwardingServer.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
+				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -256,7 +256,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.framebuffer.updateFromView()
 
 		let connections = self.connections.compactMap {
-			if $0.sendFramebuffer {
+			if $0.sendFramebufferContinous {
 				return $0
 			}
 

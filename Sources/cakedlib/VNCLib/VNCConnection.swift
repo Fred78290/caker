@@ -18,9 +18,9 @@ protocol VNCInputDelegate: AnyObject {
 final class VNCConnection: @unchecked Sendable {
 	weak var delegate: VNCConnectionDelegate?
 	weak var inputDelegate: VNCInputDelegate?
-	var sendFramebuffer: Bool = false {
+	var sendFramebufferContinous: Bool = false {
 		didSet {
-			self.logger.debug("sendFramebuffer: \(self.sendFramebuffer)")
+			self.logger.debug("sendFramebufferContinous: \(self.sendFramebufferContinous)")
 		}
 	}
 
@@ -403,14 +403,13 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func sendServerInit() {
-		let state = framebuffer.getCurrentState()
 		var serverInit = VNCServerInit()
 		let nameData = self.name.data(using: .utf8)!
 		var nameLength = UInt32(nameData.count).bigEndian
 		var initData = Data()
 
-		serverInit.framebufferWidth = UInt16(state.width).bigEndian
-		serverInit.framebufferHeight = UInt16(state.height).bigEndian
+		serverInit.framebufferWidth = UInt16(framebuffer.width).bigEndian
+		serverInit.framebufferHeight = UInt16(framebuffer.height).bigEndian
 		serverInit.pixelFormat = framebuffer.getPixelFormat()
 
 		initData.append(Data(bytes: &serverInit, count: MemoryLayout<VNCServerInit>.size))
@@ -506,7 +505,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func receiveClientMessages() {
-		self.logger.debug("Poll client message")
+		self.logger.trace("Poll client message")
 
 		self.receiveDatas(ofType: UInt8.self) { result in
 			if case let .success(type) = result {
@@ -518,7 +517,9 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func handleClientMessage(_ messageType: VNCClientMessageType) {
-		self.logger.debug("Handle client message: \(messageType.debugDescription )")
+		if messageType != .keyEvent && messageType != .pointerEvent {
+			self.logger.debug("Handle client message: \(messageType.debugDescription )")
+		}
 
 		switch messageType {
 		case .setPixelFormat:
@@ -575,6 +576,8 @@ final class VNCConnection: @unchecked Sendable {
 
 						values.forEach {
 							if let encoding = VNCSetEncoding.Encoding(rawValue: Int32($0)) {
+								self.logger.debug("Client encoding: \(encoding)")
+
 								switch encoding {
 								case .rfbEncodingCopyRect:
 									setEncoding.useCopyRect = true;
@@ -639,7 +642,7 @@ final class VNCConnection: @unchecked Sendable {
 						self.encodings = setEncoding
 
 						if setEncoding.enableContinousUpdate || setEncoding.appleVNCEncoding {
-							self.sendFramebuffer = true
+							self.logger.debug("enable continous frame update")
 						}
 
 						if (setEncoding.enableCursorPosUpdates && setEncoding.enableCursorShapeUpdates == false) {
@@ -653,7 +656,6 @@ final class VNCConnection: @unchecked Sendable {
 						if setEncoding.enableContinousUpdate {
 							self.sendDatas(Data(repeating: 150, count: 1)) { error in
 								if self.handleError(error) {
-									self.sendFramebuffer = true
 									self.receiveClientMessages()
 								}
 							}
@@ -673,11 +675,7 @@ final class VNCConnection: @unchecked Sendable {
 	private func receiveFramebufferUpdateRequest() {
 		self.receiveDatas(ofType: VNCFramebufferUpdateRequest.self, dataLength: 9) { result in
 			if case let .success(value) = result {
-				self.logger.debug("Client request update: \(value)")
-
-				if self.encodings.enableContinousUpdate == false && value.incremental != 0 {
-					self.sendFramebuffer = true
-				}
+				self.logger.trace("Client request update: \(value)")
 
 				// Send framebuffer update
 				Task {
@@ -696,7 +694,7 @@ final class VNCConnection: @unchecked Sendable {
 			if case let .success(value) = result {
 				self.logger.debug("Client request update continue: \(value)")
 
-				self.sendFramebuffer = value.active != 0
+				self.sendFramebufferContinous = value.active != 0
 
 				if value.active == 0 {
 					self.sendDatas(Data(repeating: 150, count: 1)) { error in
@@ -717,9 +715,31 @@ final class VNCConnection: @unchecked Sendable {
 		self.receiveDatas(ofType: VNCKeyEvent.self, dataLength: 7) { result in
 			if case let .success(value) = result {
 				self.logger.debug("Client send key event: \(value)")
+				let down = value.downFlag != 0
+				var keyCode: UInt32 = 0
+				var specialKeyFound = false
+				var isShiftDown = false
+				var isAltGrDown = false
+
+				if let specialKeyCode = specialKeyMap[value.key] {
+					keyCode = specialKeyCode
+					specialKeyFound = true
+				}
+
+				if specialKeyFound {
+					if value.key == Keysyms.XK_ISO_Level3_Shift {
+						isAltGrDown = down
+					}
+					
+					if value.key == Keysyms.XK_Shift_L || value.key == Keysyms.XK_Shift_R {
+						isShiftDown = down
+					}
+				} else {
+					
+				}
 
 				DispatchQueue.main.async {
-					self.inputHandler.handleKeyEvent(key: value.key, isDown: value.downFlag != 0)
+					self.inputHandler.handleKeyEvent(key: value.key, isDown: down)
 					self.inputDelegate?.vncConnection(self, didReceiveKeyEvent: value.key, isDown: value.downFlag != 0)
 				}
 
@@ -733,7 +753,7 @@ final class VNCConnection: @unchecked Sendable {
 	private func receivePointerEvent() {
 		self.receiveDatas(ofType: VNCPointerEvent.self, dataLength: 5) { result in
 			if case let .success(value) = result {
-				self.logger.debug("Client send pointer event: \(value)")
+				self.logger.trace("Client send pointer event: \(value)")
 
 				DispatchQueue.main.async {
 					self.inputHandler.handlePointerEvent(x: Int(value.xPosition), y: Int(value.yPosition), buttonMask: value.buttonMask)
@@ -887,51 +907,57 @@ final class VNCConnection: @unchecked Sendable {
 
 	func sendFramebufferUpdate() async {
 		if isAuthenticated {
-			let state = framebuffer.getCurrentState()
+			let state = await framebuffer.getCurrentState()
+			var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
+			let semaphore = AsyncSemaphore(value: 0)
 
-			if state.hasChanges {
-				var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
-				let semaphore = AsyncSemaphore(value: 0)
-
-				let _ = msgData.withUnsafeMutableBytes { msgBytes in
-					guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
-						return VNCFramebufferUpdatePayload()
-					}
-
-					//var payload = baseAddress.pointee
-					baseAddress.pointee.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-					baseAddress.pointee.message.padding = 0
-					baseAddress.pointee.message.numberOfRectangles = UInt16(1).bigEndian
-
-					baseAddress.pointee.rectangle.x = 0
-					baseAddress.pointee.rectangle.y = 0
-					baseAddress.pointee.rectangle.width = UInt16(state.width).bigEndian
-					baseAddress.pointee.rectangle.height = UInt16(state.height).bigEndian
-					baseAddress.pointee.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
-
-					return baseAddress.pointee
+			let _ = msgData.withUnsafeMutableBytes { msgBytes in
+				guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
+					return VNCFramebufferUpdatePayload()
 				}
 
-				//self.logger.debug("Send framebuffer update: \(payload) -> \(msgData.toHexString())")
-				self.sendDatas(msgData) { [weak self] error in
-					guard let self: VNCConnection = self else { return }
+				//var payload = baseAddress.pointee
+				baseAddress.pointee.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+				baseAddress.pointee.message.padding = 0
+				baseAddress.pointee.message.numberOfRectangles = UInt16(1).bigEndian
 
-					if self.handleError(error) {
-						self.sendDatas(state.data) { [weak self] error in
-							guard let self: VNCConnection = self else { return }
+				baseAddress.pointee.rectangle.x = 0
+				baseAddress.pointee.rectangle.y = 0
+				baseAddress.pointee.rectangle.width = UInt16(state.width).bigEndian
+				baseAddress.pointee.rectangle.height = UInt16(state.height).bigEndian
+				baseAddress.pointee.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
 
+				return baseAddress.pointee
+			}
+
+			if state.data.count != (state.width * state.height * 4) {
+				self.logger.debug("Send rectangle update: \(state.width)x\(state.height), \(state.data.count) bytes")
+			}
+
+			self.sendDatas(msgData) { [weak self] error in
+				guard let self: VNCConnection = self else { return }
+
+				if self.handleError(error) {
+					self.sendDatas(state.data) { [weak self] error in
+						guard let self: VNCConnection = self else { return }
+
+						Task {
 							if self.handleError(error) {
-								self.framebuffer.markAsProcessed()
+								await self.framebuffer.markAsProcessed()
 							}
-
+							
 							semaphore.signal()
 						}
-					} else {
-						semaphore.signal()
 					}
+				} else {
+					semaphore.signal()
 				}
-				
-				await semaphore.wait()
+			}
+			
+			await semaphore.wait()
+			
+			if self.encodings.enableContinousUpdate && self.sendFramebufferContinous == false {
+				self.sendFramebufferContinous = true
 			}
 		}
 
@@ -942,7 +968,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	func notifyFramebufferSizeChange() async {
-		if self.sendFramebuffer {
+		if self.sendFramebufferContinous == false {
 			await self.sendFramebufferUpdate()
 		}
 	}

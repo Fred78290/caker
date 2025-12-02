@@ -15,18 +15,14 @@ extension CGImageAlphaInfo {
 public class VNCFramebuffer {
 	public internal(set) var width: Int
 	public internal(set) var height: Int
-	public internal(set) var pixelData: Data
-	public internal(set) var hasChanges = false
-	public internal(set) var sizeChanged = false
-
-    public internal(set) var currentChecksum: SHA256.Digest?
-    internal var previousChecksum: SHA256.Digest? = nil
-
+	internal var pixelData: Data
+	internal var hasChanges = false
+	internal var sizeChanged = false
 	internal weak var sourceView: NSView!
-	internal var previousPixelData: Data?
 	internal let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
 	internal var bitmapInfo: CGBitmapInfo? = nil
 	internal var bitsPerPixels: Int = 0
+	internal let logger = Logger("VNCFramebuffer")
 
 	public init(view: NSView) {
 		self.sourceView = view
@@ -43,12 +39,6 @@ public class VNCFramebuffer {
 	}
 
 	public func renderStats() -> String {
-		if let currentChecksum {
-			let hexChecksum = currentChecksum.map { String(format: "%02x", $0) }.joined()
-			
-			return "Framebuffer - Size: \(width)x\(height), Has Changes: \(hasChanges), Size Changed: \(sizeChanged), Checksum: \(hexChecksum)"
-		}
-
 		return "Framebuffer - Size: \(width)x\(height), Has Changes: \(hasChanges), Size Changed: \(sizeChanged)"
 	}
 
@@ -57,15 +47,16 @@ public class VNCFramebuffer {
 	}
 
 	public func updateSize(width: Int, height: Int) {
-		updateQueue.async {
-			guard self.width != width || self.height != height else { return }
+		guard self.width != width || self.height != height else { return }
 
+		if width == 0 || height == 0 {
+			self.logger.debug("View size is zero, skipping frame capture.")
+		}
+
+		updateQueue.async {
 			self.width = width
 			self.height = height
 			self.pixelData = Data(count: width * height * 4)
-			self.previousPixelData = nil
-            self.previousChecksum = nil
-            self.currentChecksum = nil
 			self.sizeChanged = true
 			self.hasChanges = true
 		}
@@ -77,9 +68,17 @@ public class VNCFramebuffer {
 		let newHeight = Int(bounds.height)
 
 		updateQueue.async {
+			if newWidth == 0 || newHeight == 0 {
+				self.logger.debug("View size is zero, skipping frame capture.")
+			}
+
 			// Check if size has changed
 			if self.width != newWidth || self.height != newHeight {
-				self.updateSize(width: newWidth, height: newHeight)
+				self.width = newWidth
+				self.height = newHeight
+				self.pixelData = Data(count: newWidth * newHeight * 4)
+				self.sizeChanged = true
+				self.hasChanges = true
 			}
 
 			// Capture content
@@ -104,18 +103,18 @@ public class VNCFramebuffer {
 			self.bitsPerPixels = cgImage.bitsPerPixel
 			self.bitmapInfo = cgImage.bitmapInfo;
 
-			if let provider = cgImage.dataProvider, let data = provider.data as NSData? {
-				let imageSource = data as Data
-
-				self.previousPixelData = pixelData
-				self.hasChanges = true
-				self.pixelData = Data(count: data.count)
+			if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
+				var pixelData = Data(count: imageSource.count)
 				
+				if imageSource.count != (width * height * 4) {
+					self.logger.debug("Send rectangle update: \(width)x\(height), \(imageSource.count) bytes")
+				}
+
 				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress,
 							  let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-						let count = data.count
+						let count = imageSource.count
 						var i = 0
 
 						while i < count {
@@ -134,54 +133,16 @@ public class VNCFramebuffer {
 					}
 				}
 
-				return
+				self.hasChanges = true
+				self.pixelData = pixelData
 			}
-		}
-
-		let bytesPerPixel = 4
-		let bytesPerRow = width * bytesPerPixel
-
-		self.currentChecksum = pixelData.withUnsafeMutableBytes { bytes in
-			guard let pixels = bytes.bindMemory(to: UInt8.self).baseAddress else {
-				return self.currentChecksum ?? SHA256.hash(data: Data((0..<16).map { _ in UInt8.random(in: 0...255) }))
-			}
-			
-			var sha256 = SHA256()
-			
-			for y in 0..<height {
-				for x in 0..<width {
-					let color = bitmap.colorAt(x: x, y: y) ?? NSColor.black
-					let srgbColor = color.usingColorSpace(.sRGB) ?? color
-					let offset = (y * bytesPerRow) + (x * bytesPerPixel)
-					
-					pixels[offset + 0] = UInt8(srgbColor.redComponent * 255)  // R
-					pixels[offset + 1] = UInt8(srgbColor.greenComponent * 255)  // G
-					pixels[offset + 2] = UInt8(srgbColor.blueComponent * 255)  // B
-					pixels[offset + 3] = UInt8(srgbColor.alphaComponent * 255)  // A
-					
-					let buffer = UnsafeRawBufferPointer(start: pixels + offset, count: 4)
-					
-					sha256.update(bufferPointer: buffer)
-				}
-			}
-			
-			return sha256.finalize()
-		}
-		
-		// Check for changes using checksum comparison
-		if previousChecksum != currentChecksum {
-			hasChanges = true
-			previousChecksum = currentChecksum
-			previousPixelData = pixelData
 		}
 	}
 
-	public func markAsProcessed() {
-		updateQueue.async {
-			
-			self.hasChanges = false
-			self.sizeChanged = false
-		}
+	@MainActor
+	func markAsProcessed() {
+		self.hasChanges = false
+		self.sizeChanged = false
 	}
 
 	func getPixelFormat() -> VNCPixelFormat {
@@ -259,8 +220,18 @@ public class VNCFramebuffer {
 		return pixelFormat
 	}
 
-	public func getCurrentState() -> (width: Int, height: Int, data: Data, hasChanges: Bool, sizeChanged: Bool, checksum: SHA256.Digest?) {
-		return (width: width, height: height, data: pixelData, hasChanges: hasChanges, sizeChanged: sizeChanged, checksum: currentChecksum)
+	@MainActor
+	func setCurrentState(width: Int, height: Int, pixelData: Data, hasChanges: Bool, sizeChanged: Bool) {
+		self.width = width
+		self.height = height
+		self.pixelData = pixelData
+		self.hasChanges = hasChanges
+		self.sizeChanged = sizeChanged
+	}
+
+	@MainActor
+	func getCurrentState() -> (width: Int, height: Int, data: Data, hasChanges: Bool, sizeChanged: Bool) {
+		return (width: width, height: height, data: pixelData, hasChanges: hasChanges, sizeChanged: sizeChanged)
 	}
 }
 

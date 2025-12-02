@@ -236,8 +236,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 		let bytesPerPixel = 4
 		let bytesPerRow = width * bytesPerPixel
 		let bufferSize = height * bytesPerRow
-
-		pixelData = Data(count: bufferSize)
+		var pixelData = Data(count: bufferSize)
 
 		pixelData.withUnsafeMutableBytes { bytes in
 			guard let baseAddress = bytes.bindMemory(to: UInt8.self).baseAddress else { return }
@@ -252,12 +251,8 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 				mipmapLevel: 0
 			)
 		}
-
-		// Check for changes
-		if previousPixelData != pixelData {
-			hasChanges = true
-			previousPixelData = pixelData
-		}
+		
+		self.pixelData = pixelData
 	}
 
 	private func recordRenderTime(_ time: TimeInterval) {
