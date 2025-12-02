@@ -340,12 +340,17 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleWillCloseNotification(_ notification: Notification) {
-		if self.document.externalRunning == false && self.isNoShutdownVMOnClose == false {
-			if isMyWindowKey(notification) {
+		if isMyWindowKey(notification) {
+			guard self.document.externalRunning == false else {
+				self.document.disconnect()
+				return
+			}
+
+			if self.isNoShutdownVMOnClose == false {
 				if document.status == .running {
 					document.stopFromUI(force: false)
 				}
-
+				
 				DispatchQueue.main.async {
 					self.document.close()
 				}

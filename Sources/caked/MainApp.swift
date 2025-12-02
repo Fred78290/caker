@@ -96,13 +96,13 @@ struct MainApp: App, VirtualMachineDelegate {
 	}
 
 	var body: some Scene {
-		WindowGroup(MainApp.name) {
-			let display = MainApp.config.display
-			let minWidth = CGFloat(display.width)
-			let idealWidth = CGFloat(display.width)
-			let minHeight = CGFloat(display.height)
-			let idealHeight = CGFloat(display.height)
+		let display = MainApp.config.display
+		let minWidth = CGFloat(display.width)
+		let idealWidth = CGFloat(display.width)
+		let minHeight = CGFloat(display.height)
+		let idealHeight = CGFloat(display.height)
 
+		WindowGroup(MainApp.name) {
 			VMView(MainApp.display, automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, vncPassword: MainApp.vncPassword, vncPort: MainApp.vncPort, captureMethod: MainApp.captureMethod)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
@@ -150,6 +150,7 @@ struct MainApp: App, VirtualMachineDelegate {
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
+		.defaultSize(CGSize(width: idealWidth, height: idealHeight))
 		.commands {
 			CommandGroup(replacing: .help, addition: {})
 			CommandGroup(replacing: .newItem, addition: {})

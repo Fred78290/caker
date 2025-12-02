@@ -326,6 +326,25 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.virtualMachineConfig = config
 	}
 
+	func disconnect() {
+		self.logger.debug("Disconnecting \(self.name)")
+
+		stopAgentMonitoring()
+
+		self.vncURL = nil
+		self.vncStatus = .disconnected
+
+		if self.externalRunning == false {
+			self.status = .stopped
+		}
+
+		if let connection = self.connection {
+			connection.disconnect()
+		}
+
+		self.closeShell()
+	}
+
 	func close() {
 		self.logger.debug("Closing \(self.name)")
 
