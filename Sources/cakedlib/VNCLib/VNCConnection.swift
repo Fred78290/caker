@@ -517,7 +517,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func handleClientMessage(_ messageType: VNCClientMessageType) {
-		if messageType != .keyEvent && messageType != .pointerEvent {
+		if messageType != .keyEvent && messageType != .pointerEvent && messageType != .framebufferUpdateRequest {
 			self.logger.debug("Handle client message: \(messageType.debugDescription )")
 		}
 
@@ -714,29 +714,8 @@ final class VNCConnection: @unchecked Sendable {
 	private func receiveKeyEvent() {
 		self.receiveDatas(ofType: VNCKeyEvent.self, dataLength: 7) { result in
 			if case let .success(value) = result {
-				self.logger.debug("Client send key event: \(value)")
+				self.logger.debug("Client send key event: \(value.description)")
 				let down = value.downFlag != 0
-				var keyCode: UInt32 = 0
-				var specialKeyFound = false
-				var isShiftDown = false
-				var isAltGrDown = false
-
-				if let specialKeyCode = specialKeyMap[value.key] {
-					keyCode = specialKeyCode
-					specialKeyFound = true
-				}
-
-				if specialKeyFound {
-					if value.key == Keysyms.XK_ISO_Level3_Shift {
-						isAltGrDown = down
-					}
-					
-					if value.key == Keysyms.XK_Shift_L || value.key == Keysyms.XK_Shift_R {
-						isShiftDown = down
-					}
-				} else {
-					
-				}
 
 				DispatchQueue.main.async {
 					self.inputHandler.handleKeyEvent(key: value.key, isDown: down)

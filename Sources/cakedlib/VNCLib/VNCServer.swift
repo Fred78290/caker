@@ -54,7 +54,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 
-	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) {
+	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) throws {
+
+		try VNCKeyMapper.setupKeyMapper()
+
 		self.sourceView = sourceView
 		self.captureMethod = captureMethod
 		self.password = password

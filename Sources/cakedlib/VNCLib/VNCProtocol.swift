@@ -388,7 +388,11 @@ struct VNCFramebufferUpdatePayload: VNCLoadMessage {
 }
 
 // Client messages
-struct VNCKeyEvent: VNCLoadMessage {
+struct VNCKeyEvent: VNCLoadMessage, CustomStringConvertible {
+	var description: String {
+		"key=\(key.hexa), down:\(downFlag)"
+	}
+	
 	static func load(from data: UnsafeRawBufferPointer) -> VNCKeyEvent {
 		var value = VNCKeyEvent()
 

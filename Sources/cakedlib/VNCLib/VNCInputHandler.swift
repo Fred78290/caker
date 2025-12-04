@@ -65,6 +65,7 @@ public class VNCInputHandler {
 	private var isDragging: Bool = false
 	private var lastMousePosition = NSPoint.zero
 	private let keyMapper = VNCKeyMapper()
+	private var postEvent: Bool = false
 	private var keyCode: UInt16 = 0
 	private var modifiers: NSEvent.ModifierFlags = []
 	private var characters: String = ""
@@ -349,26 +350,28 @@ public class VNCInputHandler {
 		// Ensure the view is first responder before delivering key events
 		ensureFirstResponder()
 
-		(self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key)
+		(self.postEvent, self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key, isDown: isDown)
 
-		let event = NSEvent.keyEvent(
-			with: isDown ? .keyDown : .keyUp,
-			location: NSPoint.zero,
-			modifierFlags: modifiers,
-			timestamp: ProcessInfo.processInfo.systemUptime,
-			windowNumber: view.window?.windowNumber ?? 0,
-			context: nil,
-			characters: characters,
-			charactersIgnoringModifiers: characters,
-			isARepeat: false,
-			keyCode: keyCode
-		)
-
-		if let event = event {
-			if isDown {
-				view.keyUp(with: event)
-			} else {
-				view.keyDown(with: event)
+		if self.postEvent {
+			let event = NSEvent.keyEvent(
+				with: isDown ? .keyDown : .keyUp,
+				location: NSPoint.zero,
+				modifierFlags: modifiers,
+				timestamp: ProcessInfo.processInfo.systemUptime,
+				windowNumber: view.window?.windowNumber ?? 0,
+				context: nil,
+				characters: characters,
+				charactersIgnoringModifiers: characters,
+				isARepeat: false,
+				keyCode: keyCode
+			)
+			
+			if let event = event {
+				if isDown {
+					view.keyUp(with: event)
+				} else {
+					view.keyDown(with: event)
+				}
 			}
 		}
 	}
