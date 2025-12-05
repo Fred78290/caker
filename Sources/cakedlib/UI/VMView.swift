@@ -44,10 +44,12 @@ public struct VMView: NSViewRepresentable {
 		nsView.virtualMachine = self.virtualMachine.getVM()
 		
 		if let vncPassword, let vncPort, display == .all {
-			if let vncURL = try? self.vm.startVncServer(nsView, vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod) {
+			do {
+				let vncURL = try self.vm.startVncServer(nsView, vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod)
+
 				Logger(self).info("VNC server started at \(vncURL.absoluteString)")
-			} else {
-				Logger(self).error("Failed to start VNC server")
+			} catch {
+				Logger(self).error("Failed to start VNC server: \(error)")
 			}
 		}
 	}
