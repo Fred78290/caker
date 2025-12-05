@@ -70,6 +70,7 @@ public class VNCInputHandler {
 	private var modifiers: NSEvent.ModifierFlags = []
 	private var characters: String = ""
 	private var trackingNumber: Int = 0
+	private let eventSource = CGEventSource(stateID: .privateState)
 
 	// MARK: - First Responder
 	@discardableResult
@@ -352,25 +353,55 @@ public class VNCInputHandler {
 
 		(self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key, isDown: isDown)
 
-		let event = NSEvent.keyEvent(
-			with: isDown ? .keyDown : .keyUp,
-			location: NSPoint.zero,
-			modifierFlags: modifiers,
-			timestamp: ProcessInfo.processInfo.systemUptime,
-			windowNumber: view.window?.windowNumber ?? 0,
-			context: nil,
-			characters: characters,
-			charactersIgnoringModifiers: characters,
-			isARepeat: false,
-			keyCode: keyCode
-		)
-		
-		if let event = event {
-			if isDown {
-				view.keyUp(with: event)
-			} else {
-				view.keyDown(with: event)
+		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: self.keyCode, keyDown: isDown) else {
+			return
+		}
+
+		if self.characters.count == 1, let codeUnit = self.characters.utf16.first {
+			var c: UniChar = codeUnit
+			keyboardEvent.keyboardSetUnicodeString(stringLength: 1, unicodeString: &c)
+		}
+
+		if self.modifiers.isEmpty == false {
+			var flags: CGEventFlags = []
+			
+			if self.modifiers.contains(.shift) {
+				flags.insert(.maskShift)
 			}
+
+			if self.modifiers.contains(.command) {
+				flags.insert(.maskCommand)
+			}
+
+			if self.modifiers.contains(.control) {
+				flags.insert(.maskControl)
+			}
+
+			if self.modifiers.contains(.numericPad) {
+				flags.insert(.maskNumericPad)
+			}
+	
+			if self.modifiers.contains(.function) {
+				flags.insert(.maskSecondaryFn)
+			}
+
+			if self.modifiers.contains(.function) {
+				flags.insert(.maskSecondaryFn)
+			}
+
+			if self.modifiers.contains(.capsLock) {
+				flags.insert(.maskAlphaShift)
+			}
+
+			keyboardEvent.flags = flags
+		}
+
+		guard let event = NSEvent(cgEvent: keyboardEvent) else { return }
+		
+		if isDown {
+			view.keyDown(with: event)
+		} else {
+			view.keyUp(with: event)
 		}
 	}
 
@@ -382,3 +413,4 @@ public class VNCInputHandler {
 		pasteboard.setString(text, forType: .string)
 	}
 }
+

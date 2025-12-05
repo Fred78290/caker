@@ -64,9 +64,9 @@ extension CGKeyCode {
 			var specialKeys = [NSEvent.SpecialKey:CGKeyCode]()
 			var characterKeys = [String:CGKeyCode]()
 			var modifierFlagKeys = [NSEvent.ModifierFlags:CGKeyCode]()
+			let eventSource = CGEventSource(stateID: .privateState);
 
 			for keyCode in (0..<128).map({ CGKeyCode($0) }) {
-				let eventSource = CGEventSource(stateID: .privateState);
 				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: true) else { continue }
 				guard let nsevent = NSEvent(cgEvent: cgevent) else { continue }
 
@@ -328,6 +328,7 @@ public class VNCKeyMapper {
 	private var isOptionDown = false
 	private var isControlDown = false
 	private var isCommandDown = false
+	private var isCapsLockDown = false
 	private var isNumericPad = false
 
 	static func setupKeyMapper() throws {
@@ -473,6 +474,8 @@ public class VNCKeyMapper {
 			self.isOptionDown = isDown
 		case CGKeyCodes.command, CGKeyCodes.rightCommand:
 			self.isCommandDown = isDown
+		case CGKeyCodes.capsLock:
+			self.isCapsLockDown = isDown
 		default:
 			break
 		}
@@ -491,6 +494,10 @@ public class VNCKeyMapper {
 
 		if isCommandDown {
 			modifierFlags.insert(.control)
+		}
+
+		if isCapsLockDown {
+			modifierFlags.insert(.capsLock)
 		}
 
 		if isNumericPad {
