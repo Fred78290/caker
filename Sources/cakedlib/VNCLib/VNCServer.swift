@@ -53,6 +53,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
 	private let name: String
 	private let eventLoop = Utilities.group.next()
+	private var isLiveResize = false
 
 	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) throws {
 
@@ -104,17 +105,58 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			object: sourceView
 		)
 
+		NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(viewWillStartLiveResize),
+			name: NSWindow.willStartLiveResizeNotification,
+			object: nil
+		)
+
+		NotificationCenter.default.addObserver(
+			self,
+			selector: #selector(viewDidEndLiveResize),
+			name: NSWindow.didEndLiveResizeNotification,
+			object: nil
+		)
+
 		// Enable notifications
 		sourceView.postsFrameChangedNotifications = true
 		sourceView.postsBoundsChangedNotifications = true
 	}
 
+	func isMyWindowKey(_ notification: Notification) -> Bool {
+		guard let sourceWindow = self.sourceView.window else {
+			return false
+		}
+
+		if let window = notification.object as? NSWindow, window.windowNumber == sourceWindow.windowNumber {
+			return true
+		}
+
+		return false
+	}
+	@objc private func viewWillStartLiveResize(_ notification: Notification) {
+		if self.isMyWindowKey(notification) {
+			self.isLiveResize = true
+		}
+	}
+	
+	@objc private func viewDidEndLiveResize(_ notification: Notification) {
+		if self.isMyWindowKey(notification) {
+			self.isLiveResize = false
+		}
+	}
+
 	@objc private func viewBoundsDidChange() {
-		handleViewSizeChange()
+		if self.isLiveResize == false {
+			handleViewSizeChange()
+		}
 	}
 
 	@objc private func viewFrameDidChange() {
-		handleViewSizeChange()
+		if self.isLiveResize == false {
+			handleViewSizeChange()
+		}
 	}
 
 	private func handleViewSizeChange() {
@@ -282,18 +324,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 			try? result.wait()
 		}
-	}
-
-	// MARK: - Performance Monitoring
-
-	/// Get render performance statistics
-	public var renderStats: String? {
-		return framebuffer.renderStats()
-	}
-
-	/// Get average render time in milliseconds
-	public var averageRenderTime: TimeInterval {
-		return framebuffer.averageRenderTime()
 	}
 
 	deinit {

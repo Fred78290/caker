@@ -77,6 +77,7 @@
 		9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
 		9B3602452E2273C700889BFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3602442E2273C200889BFD /* Extensions.swift */; };
+		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
 		9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */; };
@@ -1071,6 +1072,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9BB149242EC876640094D950 /* Containerization in Frameworks */,
+				9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */,
 				9BEBC7FB2DF440BF0092B196 /* Gzip in Frameworks */,
 				9BEBC7BF2DF440BF0092B196 /* SwiftDate in Frameworks */,
 				9BEBC7D52DF440BF0092B196 /* Yams in Frameworks */,
@@ -1975,6 +1977,7 @@
 				9BB149252EC876640094D950 /* ContainerizationEXT4 */,
 				9BB149272EC876640094D950 /* ContainerizationExtras */,
 				9BB149292EC876640094D950 /* ContainerizationIO */,
+				9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -3208,6 +3211,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */;
 			productName = SwiftletUtilities;
+		};
+		9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
+			productName = RoyalVNCKitStatic;
 		};
 		9B4438892EBC9C12008BB2BB /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;

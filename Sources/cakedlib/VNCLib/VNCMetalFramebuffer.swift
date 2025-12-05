@@ -261,32 +261,4 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 			renderTimes.removeFirst()
 		}
 	}
-
-	// MARK: - Performance Stats
-	public override func averageRenderTime() -> TimeInterval {
-		guard !renderTimes.isEmpty else { return 0 }
-		return renderTimes.reduce(0, +) / TimeInterval(renderTimes.count)
-	}
-
-	public override func renderStats() -> String {
-		let avgTime = self.averageRenderTime() * 1000  // Convert to ms
-		let method = captureMethod == .metal ? "Metal" : "Core Graphics"
-		let gpuMemory = calculateGPUMemoryUsage()
-
-		return """
-			=== VNC Render Stats ===
-			Method: \(method)
-			Average render time: \(String(format: "%.2f ms", avgTime))
-			GPU memory: \(gpuMemory / 1024 / 1024) MB
-			Frame size: \(width)x\(height)
-			Scale factor: \(metalConfig.scaleFactor)x
-			"""
-	}
-
-	private func calculateGPUMemoryUsage() -> UInt64 {
-		guard let texture = renderTargetTexture else { return 0 }
-
-		let bytesPerPixel = metalConfig.pixelFormat == .rgba16Float ? 8 : 4
-		return UInt64(texture.width * texture.height * bytesPerPixel)
-	}
 }

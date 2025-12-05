@@ -38,14 +38,6 @@ public class VNCFramebuffer {
 		}
 	}
 
-	public func renderStats() -> String {
-		return "Framebuffer - Size: \(width)x\(height), Has Changes: \(hasChanges), Size Changed: \(sizeChanged)"
-	}
-
-	public func averageRenderTime() -> TimeInterval {
-		return 0
-	}
-
 	public func updateSize(width: Int, height: Int) {
 		guard self.width != width || self.height != height else { return }
 
@@ -104,31 +96,31 @@ public class VNCFramebuffer {
 			self.bitmapInfo = cgImage.bitmapInfo;
 
 			if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
-				var pixelData = Data(count: imageSource.count)
+				var pixelData = Data(count: width*height*4)
 				
-				if imageSource.count != (width * height * 4) {
-					self.logger.debug("Send rectangle update: \(width)x\(height), \(imageSource.count) bytes")
-				}
-
 				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
-						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress,
-							  let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-						let count = imageSource.count
-						var i = 0
+						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+						let rowWidth = self.width * 4
 
-						while i < count {
-							let r = sp[i]
-							let g = sp[i + 1]
-							let b = sp[i + 2]
-							let a = sp[i + 3]
+						for row in 0..<height {
+							let srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
+							let dstPtr = dp.advanced(by: (width * 4) * row)
+							var i = 0
 
-							dp[i]     = b // B
-							dp[i + 1] = g // G
-							dp[i + 2] = r // R
-							dp[i + 3] = a // A
+							while i < rowWidth {
+								let r = srcPtr[i]
+								let g = srcPtr[i + 1]
+								let b = srcPtr[i + 2]
+								let a = srcPtr[i + 3]
 
-							i += 4
+								dstPtr[i]     = b // B
+								dstPtr[i + 1] = g // G
+								dstPtr[i + 2] = r // R
+								dstPtr[i + 3] = a // A
+
+								i += 4
+							}
 						}
 					}
 				}
