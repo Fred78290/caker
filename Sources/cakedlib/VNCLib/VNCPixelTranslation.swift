@@ -80,7 +80,7 @@ private func rfbTranslateWithRGBTable<IN: FixedWidthInteger, OUT: FixedWidthInte
 
 private func rfbInitTrueColourSingleTable<OUT: FixedWidthInteger>(input: VNCPixelFormat, output: VNCPixelFormat) -> [OUT] {
     let nEntries = 1 << input.bitsPerPixel
-    var table = Array<OUT>(repeating: 0, count: nEntries)
+	var table: [OUT] = .init(repeating: 0, count: nEntries);
     let swp = MemoryLayout<OUT>.size != 8
 
     for i in 0..<nEntries {
@@ -125,7 +125,7 @@ private func rfbInitOneRGBTable<OUT: FixedWidthInteger>(_ inMax: UInt16, _ outMa
 	let outMax = Int(outMax)
 	let outShift = Int(outShift)
 	let nEntries = inMax + 1;
-	var table: [OUT] = Array<OUT>(repeating: 0, count: nEntries);
+	var table: [OUT] = .init(repeating: 0, count: nEntries);
 
 	for i in 0..<nEntries {
 		if MemoryLayout<OUT>.size != 8 && swap {

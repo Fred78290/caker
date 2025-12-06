@@ -36,8 +36,10 @@ final class VNCConnection: @unchecked Sendable {
 	private var minorVersion: Int = 8
 	private let logger = Logger("VNCConnection")
 	private let name: String
-	private var clientPixelFormat: VNCPixelFormat? = nil
+	private var clientPixelFormat: VNCPixelFormat
 	private var encodings = SetEncoding()
+	private var translatePixelFormat: ClientTranslatePixelFormat = rfbTranslateNone
+	private var translateLookupTable: [[any FixedWidthInteger]] = [[]]
 
 	// VNC Auth constants
 	private static let VNC_AUTH_NONE: UInt32 = 1
@@ -69,6 +71,7 @@ final class VNCConnection: @unchecked Sendable {
 		self.framebuffer = framebuffer
 		self.inputHandler = VNCInputHandler(targetView: framebuffer.sourceView)
 		self.vncPassword = password
+		self.clientPixelFormat = framebuffer.pixelFormat
 
 		if case .hostPort(let host, _) = connection.endpoint {
 			self.clientAddress = "\(host)"
@@ -95,6 +98,13 @@ final class VNCConnection: @unchecked Sendable {
 	func disconnect() {
 		connection.cancel()
 	}
+
+	private func transformPixel(_ pixelData: Data, width: Int, height: Int) -> Data {
+		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, 0, width, height)
+		
+		//return framebuffer.convertToClient(state.data, clientFormat: self.clientPixelFormat)
+	}
+
 	private func setClientColourMapBGR233() -> Bool {
 		var data = Data(count: MemoryLayout<VNCSetColourMapEntries>.size + (256 * 3 * 2))
 		var result = data.withUnsafeMutableBytes { ptr in
@@ -648,9 +658,11 @@ final class VNCConnection: @unchecked Sendable {
 		self.receiveDatas(ofType: VNCSetPixelFormat.self, dataLength: 19) { result in
 			if case let .success(value) = result {
 				self.logger.debug("Client set pixel format: \(value)")
-				self.clientPixelFormat = value.pixelFormat
-				// Ignore for now, use default format
-				self.receiveClientMessages()
+				if self.setClientPixelFormat(value.pixelFormat) {
+					self.receiveClientMessages()
+				} else {
+					self.disconnect()
+				}
 			} else if case let .failure(error) = result {
 				self.logger.error("Failed to read VNC pixel format: \(error)")
 			}
@@ -980,7 +992,7 @@ final class VNCConnection: @unchecked Sendable {
 			let state = await framebuffer.getCurrentState()
 			var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
 			let semaphore = AsyncSemaphore(value: 0)
-			let pixelData = framebuffer.convertToClient(state.data, clientFormat: self.clientPixelFormat)
+			let pixelData = transformPixel(state.data, width: state.width, height: state.height)
 
 			let _ = msgData.withUnsafeMutableBytes { msgBytes in
 				guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
