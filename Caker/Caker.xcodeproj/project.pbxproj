@@ -78,6 +78,7 @@
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
 		9B3602452E2273C700889BFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3602442E2273C200889BFD /* Extensions.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
+		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
 		9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */; };
 		9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */; };
@@ -602,6 +603,7 @@
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
 		9B3602442E2273C200889BFD /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1384,6 +1386,7 @@
 				9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */,
 				9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */,
 				9B5A377B2ED4BDA8007B59B0 /* VNCMetalFramebuffer.swift */,
+				9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */,
 				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
 				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
 			);
@@ -2326,6 +2329,7 @@
 				9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */,
 				9BEBC7752DF440720092B196 /* CakedPortForwarder.swift in Sources */,
 				9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */,
+				9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */,
 				9BEBC7772DF440720092B196 /* Curl.swift in Sources */,
 				9B911A5F2ECF16AA0017791D /* ServiceHandler.swift in Sources */,
 				9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */,
