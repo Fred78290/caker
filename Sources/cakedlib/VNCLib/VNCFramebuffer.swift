@@ -132,12 +132,12 @@ public class VNCFramebuffer {
 
 		pixelFormat.bitsPerPixel = UInt8(self.bitsPerPixels)
 
-		if bitmapInfo.byteOrder == .order32Little || bitmapInfo.byteOrder == .orderDefault {
+		if bitmapInfo.byteOrder == .order32Little {
 			pixelFormat.depth = 24
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.blueMax = UInt16(255).bigEndian
-			pixelFormat.bigEndianFlag = 1
+			pixelFormat.bigEndianFlag = 0
 
 			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 16
@@ -148,11 +148,12 @@ public class VNCFramebuffer {
 				pixelFormat.greenShift = 16
 				pixelFormat.blueShift = 8
 			}
-		} else if bitmapInfo.byteOrder == .order32Big {
+		} else if bitmapInfo.byteOrder == .order32Big || bitmapInfo.byteOrder == .orderDefault {
 			pixelFormat.depth = 24
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.redMax = UInt16(255).bigEndian
 			pixelFormat.blueMax = UInt16(255).bigEndian
+			pixelFormat.bigEndianFlag = 1
 
 			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 0
@@ -164,7 +165,7 @@ public class VNCFramebuffer {
 				pixelFormat.blueShift = 24
 			}
 		} else if bitmapInfo.byteOrder == .order16Little {
-			pixelFormat.depth = 12
+			pixelFormat.depth = 16
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.blueMax = UInt16(16).bigEndian
@@ -183,6 +184,7 @@ public class VNCFramebuffer {
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.redMax = UInt16(16).bigEndian
 			pixelFormat.blueMax = UInt16(16).bigEndian
+			pixelFormat.bigEndianFlag = 1
 
 			if bitmapInfo.alpha.isLast {
 				pixelFormat.redShift = 8
