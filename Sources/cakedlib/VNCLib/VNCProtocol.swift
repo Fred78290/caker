@@ -14,7 +14,9 @@ extension UInt32: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> UInt32 {
 		UInt32.build(data[0], data[1], data[2], data[3])
 	}
-	
+}
+
+extension UInt32 {
 	static func build(_ a: UInt8, _ b: UInt8, _ c: UInt8, _ d: UInt8) -> UInt32 {
 		var value: UInt32 = 0
 
@@ -39,7 +41,9 @@ extension Int32: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> Int32 {
 		Int32.build(data[0], data[1], data[2], data[3])
 	}
+}
 
+extension Int32 {
 	static func build(_ a: UInt8, _ b: UInt8, _ c: UInt8, _ d: UInt8) -> Int32 {
 		var value: Int32 = 0
 
@@ -64,7 +68,9 @@ extension UInt16: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> UInt16 {
 		UInt16.build(data[0], data[1])
 	}
+}
 
+extension UInt16 {
 	static func build(_ a: UInt8, _ b: UInt8) -> UInt16 {
 		var value: UInt16 = 0
 
