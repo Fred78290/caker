@@ -889,6 +889,7 @@ final class VNCConnection: @unchecked Sendable {
 			let state = await framebuffer.getCurrentState()
 			var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
 			let semaphore = AsyncSemaphore(value: 0)
+			let pixelData = framebuffer.convertToClient(state.data, clientFormat: self.clientPixelFormat)
 
 			let _ = msgData.withUnsafeMutableBytes { msgBytes in
 				guard let baseAddress = msgBytes.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress else {
@@ -909,15 +910,11 @@ final class VNCConnection: @unchecked Sendable {
 				return baseAddress.pointee
 			}
 
-			if state.data.count != (state.width * state.height * 4) {
-				self.logger.debug("Send rectangle update: \(state.width)x\(state.height), \(state.data.count) bytes")
-			}
-
 			self.sendDatas(msgData) { [weak self] error in
 				guard let self: VNCConnection = self else { return }
 
 				if self.handleError(error) {
-					self.sendDatas(state.data) { [weak self] error in
+					self.sendDatas(pixelData) { [weak self] error in
 						guard let self: VNCConnection = self else { return }
 
 						Task {

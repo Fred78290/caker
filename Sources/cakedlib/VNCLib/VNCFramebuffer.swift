@@ -20,6 +20,7 @@ public class VNCFramebuffer {
 	internal var sizeChanged = false
 	internal weak var sourceView: NSView!
 	internal let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
+	internal var pixelFormat = VNCPixelFormat()
 	internal var bitmapInfo: CGBitmapInfo? = nil
 	internal var bitsPerPixels: Int = 0
 	internal let logger = Logger("VNCFramebuffer")
@@ -106,21 +107,8 @@ public class VNCFramebuffer {
 						for row in 0..<height {
 							let srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
 							let dstPtr = dp.advanced(by: (width * 4) * row)
-							var i = 0
 
-							while i < rowWidth {
-								let r = srcPtr[i]
-								let g = srcPtr[i + 1]
-								let b = srcPtr[i + 2]
-								let a = srcPtr[i + 3]
-
-								dstPtr[i]     = b // B
-								dstPtr[i + 1] = g // G
-								dstPtr[i + 2] = r // R
-								dstPtr[i + 3] = a // A
-
-								i += 4
-							}
+							memcpy(dstPtr, srcPtr, rowWidth)
 						}
 					}
 				}
@@ -138,8 +126,6 @@ public class VNCFramebuffer {
 	}
 
 	func getPixelFormat() -> VNCPixelFormat {
-		var pixelFormat = VNCPixelFormat()
-		
 		guard let bitmapInfo = self.bitmapInfo else {
 			return pixelFormat
 		}
@@ -210,6 +196,14 @@ public class VNCFramebuffer {
 		}
 		
 		return pixelFormat
+	}
+
+	func convertToClient(_ pixelData: Data, clientFormat: VNCPixelFormat?) -> Data {
+		if let clientFormat = clientFormat {
+			return clientFormat.transform(pixelData)
+		}
+		
+		return self.pixelFormat.transform(pixelData)
 	}
 
 	@MainActor

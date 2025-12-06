@@ -329,6 +329,56 @@ struct VNCPixelFormat: VNCLoadMessage {
 	var greenShift: UInt8 = 8
 	var blueShift: UInt8 = 0
 	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
+
+	func transform(_ imageSource: Data) -> Data {
+		guard self.bigEndianFlag == 0 else {
+			if self.redShift == 0 {
+				return imageSource
+			} else {
+				var pixelData = Data(count: imageSource.count)
+
+				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+						guard let sp = srcRaw.bindMemory(to: UInt32.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt32.self).baseAddress else { return }
+						let count = imageSource.count/4
+
+						for i in 0..<count {
+							dp[i] = sp[i].littleEndian
+						}
+					}
+				}
+
+				return pixelData
+			}
+		}
+
+		var pixelData = Data(count: imageSource.count)
+		
+		imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+			pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+				guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress,
+					  let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+				let count = imageSource.count
+				var i = 0
+
+				while i < count {
+					let r = sp[i]
+					let g = sp[i + 1]
+					let b = sp[i + 2]
+					let a = sp[i + 3]
+
+					dp[i]     = b // B
+					dp[i + 1] = g // G
+					dp[i + 2] = r // R
+					dp[i + 3] = a // A
+
+					i += 4
+				}
+			}
+		}
+
+		return pixelData
+	}
 }
 
 struct VNCServerInit {
