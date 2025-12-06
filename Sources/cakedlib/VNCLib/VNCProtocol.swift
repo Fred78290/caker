@@ -633,3 +633,9 @@ struct VNCGiiVersion: VNCLoadMessage {
 	var length: UInt16 = 0
 }
 
+struct VNCSetColourMapEntries {
+	var messageType: UInt8 = 1
+	var padding: UInt8 = 0
+	var firstColour: UInt16 = 0
+	var entryCount: UInt16 = UInt16(255).bigEndian
+}

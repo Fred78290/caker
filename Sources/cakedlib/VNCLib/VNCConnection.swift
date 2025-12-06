@@ -95,6 +95,97 @@ final class VNCConnection: @unchecked Sendable {
 	func disconnect() {
 		connection.cancel()
 	}
+	private func setClientColourMapBGR233() -> Bool {
+		var data = Data(count: MemoryLayout<VNCSetColourMapEntries>.size + (256 * 3 * 2))
+		var result = data.withUnsafeMutableBytes { ptr in
+			guard let message = ptr.bindMemory(to: VNCSetColourMapEntries.self).baseAddress else {
+				return false
+			}
+
+			message.pointee = VNCSetColourMapEntries()
+
+			guard var ptr = ptr.bindMemory(to: UInt16.self).baseAddress else {
+				return false
+			}
+
+			ptr = ptr.advanced(by: MemoryLayout<VNCSetColourMapEntries>.size)
+			
+			for b in 0..<4 {
+				for g in 0..<8 {
+					for r in 0..<8 {
+						ptr.initialize(to: UInt16(r * 65535 / 7).bigEndian)
+						ptr.initialize(to: UInt16(g * 65535 / 7).bigEndian)
+						ptr.initialize(to: UInt16(b * 65535 / 7).bigEndian)
+						ptr = ptr.advanced(by: 3)
+					}
+				}
+			}
+
+			return true
+		}
+
+		if result {
+			let semaphore = DispatchSemaphore(value: 1)
+			
+			self.sendDatas(data) { [weak self] error in
+				guard let self = self else { return }
+
+				if self.handleError(error) {
+					self.receiveAuthenticationChoice()
+				} else {
+					result = false
+				}
+				
+				semaphore.signal()
+			}
+
+			semaphore.wait()
+		}
+
+		return result
+	}
+
+	private func setClientPixelFormat(_ pixelFormat: VNCPixelFormat) -> Bool {
+		var pixelFormat = pixelFormat
+
+		guard pixelFormat.bitsPerPixel == 32 || pixelFormat.bitsPerPixel == 16 || pixelFormat.bitsPerPixel == 8 else {
+			return false
+		}
+
+		if pixelFormat.trueColorFlag == 0 {
+			guard pixelFormat.bitsPerPixel == 8 else {
+				return false
+			}
+
+			guard setClientColourMapBGR233() else {
+				return false
+			}
+
+			pixelFormat = VNCPixelFormat(bitsPerPixel: 8, depth: 8, bigEndianFlag: 0, trueColorFlag: 1, redMax: 7, greenMax: 7, blueMax: 3, redShift: 0, greenShift: 3, blueShift: 6)
+		}
+
+		let serverPixelFormat = framebuffer.getPixelFormat()
+
+		guard pixelFormat == serverPixelFormat else {
+			
+			if serverPixelFormat.bitsPerPixel <= 16 {
+				self.translatePixelFormat = rfbTranslateWithSingleTableFns[Int(serverPixelFormat.bitsPerPixel/16)][Int(pixelFormat.bitsPerPixel/16)]
+				self.translateLookupTable = rfbInitTrueColourSingleTableFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat);
+			} else {
+				self.translatePixelFormat = rfbTranslateWithRGBTablesFns[Int(serverPixelFormat.bitsPerPixel/16)][Int(pixelFormat.bitsPerPixel/16)]
+				self.translateLookupTable = rfbInitTrueColourRGBTablesFns[Int(pixelFormat.bitsPerPixel / 16)](serverPixelFormat, pixelFormat);
+			}
+
+			self.clientPixelFormat = pixelFormat
+
+			return true
+		}
+
+		self.clientPixelFormat = pixelFormat
+		self.translatePixelFormat = rfbTranslateNone
+
+		return true
+	}
 
 	private func handleInitialHandshake() {
 		// Send RFB protocol version
