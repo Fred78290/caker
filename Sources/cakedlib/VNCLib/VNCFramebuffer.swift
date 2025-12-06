@@ -133,7 +133,7 @@ public class VNCFramebuffer {
 		pixelFormat.bitsPerPixel = UInt8(self.bitsPerPixels)
 
 		if bitmapInfo.byteOrder == .order32Little {
-			pixelFormat.depth = 24
+			pixelFormat.depth = 32
 			pixelFormat.redMax = 255
 			pixelFormat.redMax = 255
 			pixelFormat.blueMax = 255
@@ -149,7 +149,7 @@ public class VNCFramebuffer {
 				pixelFormat.blueShift = 8
 			}
 		} else if bitmapInfo.byteOrder == .order32Big || bitmapInfo.byteOrder == .orderDefault {
-			pixelFormat.depth = 24
+			pixelFormat.depth = 32
 			pixelFormat.redMax = 255
 			pixelFormat.redMax = 255
 			pixelFormat.blueMax = 255
