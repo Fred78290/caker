@@ -306,35 +306,71 @@ struct VNCSetPixelFormat: VNCLoadMessage {
 }
 
 // Message structures
-struct VNCPixelFormat: VNCLoadMessage {
+struct VNCPixelFormat: VNCLoadMessage, Equatable {
+	static func == (lhs: VNCPixelFormat, rhs: VNCPixelFormat) -> Bool {
+		if lhs.bitsPerPixel != rhs.bitsPerPixel { return false }
+		if lhs.depth != rhs.depth { return false }
+		if lhs.bigEndianFlag != rhs.bigEndianFlag { return false }
+		if lhs.trueColorFlag != rhs.trueColorFlag { return false }
+		if lhs.redMax != rhs.redMax { return false }
+		if lhs.greenMax != rhs.greenMax { return false }
+		if lhs.blueMax != rhs.blueMax { return false }
+		if lhs.redShift != rhs.redShift { return false }
+		if lhs.greenShift != rhs.greenShift { return false }
+		if lhs.blueShift != rhs.blueShift { return false }
+		
+		return true
+	}
+	
 	static func load(from data: UnsafeRawBufferPointer) -> VNCPixelFormat {
-		var value = VNCPixelFormat()
-
-		value.bitsPerPixel = data[0]
-		value.depth = data[1]
-		value.bigEndianFlag = data[2]
-		value.trueColorFlag = data[3]
-		value.redMax = UInt16.build(data[4], data[5])
-		value.greenMax = UInt16.build(data[6], data[7])
-		value.blueMax = UInt16.build(data[8], data[9])
-		value.redShift = data[10]
-		value.greenShift = data[11]
-		value.blueShift = data[12]
+		let value = VNCPixelFormat(bitsPerPixel: data[0],
+								   depth: data[1],
+								   bigEndianFlag: data[2],
+								   trueColorFlag: data[3],
+								   redMax: UInt16.build(data[4], data[5]),
+								   greenMax: UInt16.build(data[6], data[7]),
+								   blueMax: UInt16.build(data[8], data[9]),
+								   redShift: data[10],
+								   greenShift: data[11],
+								   blueShift: data[12])
 		
 		return value
 	}
 	
-	var bitsPerPixel: UInt8 = 32
-	var depth: UInt8 = 24
-	var bigEndianFlag: UInt8 = 0
-	var trueColorFlag: UInt8 = 1
-	var redMax: UInt16 = UInt16(255).bigEndian
-	var greenMax: UInt16 = UInt16(255).bigEndian
-	var blueMax: UInt16 = UInt16(255).bigEndian
-	var redShift: UInt8 = 16
-	var greenShift: UInt8 = 8
-	var blueShift: UInt8 = 0
+	var bitsPerPixel: UInt8
+	var depth: UInt8
+	var bigEndianFlag: UInt8
+	var trueColorFlag: UInt8
+	var redMax: UInt16
+	var greenMax: UInt16
+	var blueMax: UInt16
+	var redShift: UInt8
+	var greenShift: UInt8
+	var blueShift: UInt8
 	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
+
+	init(bitsPerPixel: UInt8 = 32, depth: UInt8 = 24, bigEndianFlag: UInt8 = 0, trueColorFlag: UInt8 = 1, redMax: UInt16 = 255, greenMax: UInt16 = 255, blueMax: UInt16 = 255, redShift: UInt8 = 16, greenShift: UInt8 = 8, blueShift: UInt8 = 0) {
+		self.bitsPerPixel = bitsPerPixel
+		self.depth = depth
+		self.bigEndianFlag = bigEndianFlag
+		self.trueColorFlag = trueColorFlag
+		self.redMax = redMax
+		self.greenMax = greenMax
+		self.blueMax = blueMax
+		self.redShift = redShift
+		self.greenShift = greenShift
+		self.blueShift = blueShift
+	}
+
+	var bigEndian: Self {
+		var result = self
+
+		result.redMax = UInt16(truncatingIfNeeded: self.redMax.bigEndian)
+		result.greenMax = UInt16(truncatingIfNeeded: self.greenMax.bigEndian)
+		result.blueMax = UInt16(truncatingIfNeeded: self.blueMax.bigEndian)
+
+		return result
+	}
 
 	func transform(_ imageSource: Data) -> Data {
 		guard self.bigEndianFlag == 0 else {

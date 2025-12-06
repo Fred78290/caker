@@ -501,7 +501,7 @@ final class VNCConnection: @unchecked Sendable {
 
 		serverInit.framebufferWidth = UInt16(framebuffer.width).bigEndian
 		serverInit.framebufferHeight = UInt16(framebuffer.height).bigEndian
-		serverInit.pixelFormat = framebuffer.getPixelFormat()
+		serverInit.pixelFormat = self.clientPixelFormat.bigEndian
 
 		initData.append(Data(bytes: &serverInit, count: MemoryLayout<VNCServerInit>.size))
 		initData.append(Data(bytes: &nameLength, count: 4))
