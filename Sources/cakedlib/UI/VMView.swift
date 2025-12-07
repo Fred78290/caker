@@ -7,6 +7,18 @@
 import SwiftUI
 import Virtualization
 
+class ExVZVirtualMachineView: VZVirtualMachineView {
+	var onDisconnect: (() -> Void)?
+	
+	override func keyDown(with event: NSEvent) {
+		if let cgEvent = event.cgEvent {
+			Logger(self).debug("keyboardEventKeycode=\(cgEvent.getIntegerValueField(.keyboardEventKeycode))")
+		}
+		
+		super.keyDown(with: event)
+	}
+}
+
 public struct VMView: NSViewRepresentable {
 	public typealias NSViewType = VZVirtualMachineView
 
@@ -31,7 +43,7 @@ public struct VMView: NSViewRepresentable {
 	}
 
 	public func makeNSView(context: Context) -> NSViewType {
-		let machineView = VZVirtualMachineView()
+		let machineView = ExVZVirtualMachineView()
 
 		if #available(macOS 14.0, *) {
 			machineView.automaticallyReconfiguresDisplay = self.automaticallyReconfiguresDisplay
