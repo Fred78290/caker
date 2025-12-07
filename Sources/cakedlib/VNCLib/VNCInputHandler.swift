@@ -2,6 +2,22 @@ import AppKit
 import Carbon
 import Foundation
 
+extension CGEventFlags {
+	var appKitFlags: NSEvent.ModifierFlags {
+		var flags: NSEvent.ModifierFlags = []
+
+		if contains(.maskControl) { flags.insert(.control) }
+		if contains(.maskShift) { flags.insert(.shift) }
+		if contains(.maskAlternate) { flags.insert(.option) }
+		if contains(.maskControl) { flags.insert(.control) }
+		if contains(.maskNumericPad) { flags.insert(.numericPad) }
+		if contains(.maskSecondaryFn) { flags.insert(.function) }
+		if contains(.maskHelp) { flags.insert(.help) }
+
+		return flags
+	}
+}
+
 extension NSView {
 	func postEnterExitEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags, trackingNumber: Int) -> NSEvent? {
 			return NSEvent.enterExitEvent(
@@ -64,7 +80,7 @@ public class VNCInputHandler {
 	private var mouseButtonState: UInt8 = 0
 	private var isDragging: Bool = false
 	private var lastMousePosition = NSPoint.zero
-	private let keyMapper = VNCKeyMapper()
+	private let keyMapper = newKeyMapper()
 	private var postEvent: Bool = false
 	private var keyCode: UInt16 = 0
 	private var modifiers: NSEvent.ModifierFlags = []
@@ -351,57 +367,29 @@ public class VNCInputHandler {
 		// Ensure the view is first responder before delivering key events
 		ensureFirstResponder()
 
-		(self.keyCode, self.modifiers, self.characters) = keyMapper.mapVNCKey(key, isDown: isDown)
+		keyMapper.mapVNCKey(key, isDown: isDown) { keyCode, modifiers, characters in
+			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
+				return
+			}
 
-		guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: self.keyCode, keyDown: isDown) else {
-			return
-		}
+			self.modifiers = modifiers.appKitFlags
 
-		if self.characters.count == 1, let codeUnit = self.characters.utf16.first {
-			var c: UniChar = codeUnit
-			keyboardEvent.keyboardSetUnicodeString(stringLength: 1, unicodeString: &c)
-		}
+			if modifiers.isEmpty == false {
+				keyboardEvent.flags = modifiers
+			}
 
-		if self.modifiers.isEmpty == false {
-			var flags: CGEventFlags = []
+			if let characters, characters.count == 1, let codeUnit = characters.utf16.first {
+				var c: UniChar = codeUnit
+				keyboardEvent.keyboardSetUnicodeString(stringLength: 1, unicodeString: &c)
+			}
+
+			guard let event = NSEvent(cgEvent: keyboardEvent) else { return }
 			
-			if self.modifiers.contains(.shift) {
-				flags.insert(.maskShift)
+			if isDown {
+				view.keyDown(with: event)
+			} else {
+				view.keyUp(with: event)
 			}
-
-			if self.modifiers.contains(.command) {
-				flags.insert(.maskCommand)
-			}
-
-			if self.modifiers.contains(.control) {
-				flags.insert(.maskControl)
-			}
-
-			if self.modifiers.contains(.numericPad) {
-				flags.insert(.maskNumericPad)
-			}
-	
-			if self.modifiers.contains(.function) {
-				flags.insert(.maskSecondaryFn)
-			}
-
-			if self.modifiers.contains(.function) {
-				flags.insert(.maskSecondaryFn)
-			}
-
-			if self.modifiers.contains(.capsLock) {
-				flags.insert(.maskAlphaShift)
-			}
-
-			keyboardEvent.flags = flags
-		}
-
-		guard let event = NSEvent(cgEvent: keyboardEvent) else { return }
-		
-		if isDown {
-			view.keyDown(with: event)
-		} else {
-			view.keyUp(with: event)
 		}
 	}
 

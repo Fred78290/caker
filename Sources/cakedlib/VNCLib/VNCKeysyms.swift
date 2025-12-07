@@ -169,6 +169,33 @@ let specialKeyMap: [UInt32: UInt32] = [
 ]
 
 struct Keysyms {
+	static func characterForKeysym(_ vncKey: UInt32) -> String? {
+		// Convert VNC codes to characters
+		if vncKey >= 0x20 && vncKey <= 0x7E {
+			// ASCII printable characters
+			if let scalar = UnicodeScalar(vncKey) {
+				return String(Character(scalar))
+			}
+
+			return nil
+		}
+
+		// Special characters
+		switch vncKey {
+		case 0xFF08: return "\u{8}"  // Backspace
+		case 0xFF09: return "\t"  // Tab
+		case 0xFF0D: return "\r"  // Return
+		case 0xFF1B: return "\u{1B}"  // Escape
+		case 0x0020: return " "  // Space
+		default:
+			if let scalar = UnicodeScalar(vncKey) {
+				return String(Character(scalar))
+			} else {
+				return nil
+			}
+		}
+	}
+
 	static let XK_VoidSymbol: UInt32 = 0xFFFF /* void symbol */
 
 	/*
