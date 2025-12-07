@@ -106,9 +106,23 @@ public class VNCFramebuffer {
 
 						for row in 0..<height {
 							let srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
-							let dstPtr = dp.advanced(by: (width * 4) * row)
+							let dstPtr = dp.advanced(by: rowWidth * row)
 
-							memcpy(dstPtr, srcPtr, rowWidth)
+							var i = 0
+
+							while i < rowWidth {
+								let r = srcPtr[i]
+								let g = srcPtr[i + 1]
+								let b = srcPtr[i + 2]
+								let a = srcPtr[i + 3]
+
+								dstPtr[i]     = b // B
+								dstPtr[i + 1] = g // G
+								dstPtr[i + 2] = r // R
+								dstPtr[i + 3] = a // A
+
+								i += 4
+							}
 						}
 					}
 				}
@@ -132,7 +146,23 @@ public class VNCFramebuffer {
 
 		pixelFormat.bitsPerPixel = UInt8(self.bitsPerPixels)
 
-		if bitmapInfo.byteOrder == .order32Little {
+		if bitmapInfo.byteOrder == .orderDefault {
+			pixelFormat.depth = 32
+			pixelFormat.redMax = 255
+			pixelFormat.redMax = 255
+			pixelFormat.blueMax = 255
+			pixelFormat.bigEndianFlag = VNCServer.littleEndian ? 0 : 1
+
+			if bitmapInfo.alpha.isLast {
+				pixelFormat.redShift = 16
+				pixelFormat.greenShift = 8
+				pixelFormat.blueShift = 0
+			} else if bitmapInfo.alpha.isFirst {
+				pixelFormat.redShift = 24
+				pixelFormat.greenShift = 16
+				pixelFormat.blueShift = 8
+			}
+		} else if bitmapInfo.byteOrder == .order32Little {
 			pixelFormat.depth = 32
 			pixelFormat.redMax = 255
 			pixelFormat.redMax = 255
@@ -148,7 +178,7 @@ public class VNCFramebuffer {
 				pixelFormat.greenShift = 16
 				pixelFormat.blueShift = 8
 			}
-		} else if bitmapInfo.byteOrder == .order32Big || bitmapInfo.byteOrder == .orderDefault {
+		} else if bitmapInfo.byteOrder == .order32Big {
 			pixelFormat.depth = 32
 			pixelFormat.redMax = 255
 			pixelFormat.redMax = 255
