@@ -55,6 +55,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
 
+	static var littleEndian: Bool {
+		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
+	}
+
 	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) throws {
 
 		try VNCKeyMapper.setupKeyMapper()
