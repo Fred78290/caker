@@ -234,6 +234,7 @@
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
+		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
@@ -731,6 +732,7 @@
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
+		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
@@ -1381,6 +1383,7 @@
 			children = (
 				9B5A37752ED4BDA8007B59B0 /* VNC.swift */,
 				9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */,
+				9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */,
 				9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */,
 				9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */,
 				9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */,
@@ -2412,6 +2415,7 @@
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
 				9BEBC7B62DF440720092B196 /* CakedTCPPortForwardingServer.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
+				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
 				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
