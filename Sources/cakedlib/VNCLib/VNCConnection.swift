@@ -100,7 +100,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func transformPixel(_ pixelData: Data, width: Int, height: Int) -> Data {
-		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, 0, width, height)
+		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, width * 4, width, height)
 		
 		//return framebuffer.convertToClient(state.data, clientFormat: self.clientPixelFormat)
 	}
