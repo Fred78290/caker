@@ -243,6 +243,12 @@ public struct ClientCertificatesLocation: Codable {
 	}
 }
 
+extension Data {
+	public func toHexString() -> String {
+		return self.map { String(format: "%02X ", $0) }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
+	}
+}
+
 extension String {
 	public static let fingerprint64 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{64}$")
 	public static let fingerprint12 = try! NSRegularExpression(pattern: "^[0-9a-fA-F]{12}$")
