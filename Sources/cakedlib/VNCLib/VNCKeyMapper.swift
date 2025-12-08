@@ -62,12 +62,12 @@ extension CGKeyCode {
 		}
 	}
 	
-	private struct Initializers {
+	struct Initializers {
 		let specialKeys: [NSEvent.SpecialKey:CGKeyCode]
 		let characterKeys: [String:CGKeyCode]
 		let modifierFlagKeys: [NSEvent.ModifierFlags:CGKeyCode]
 
-		static let shared = Initializers()
+		static var shared: Initializers! = nil
 		
 		init() {
 			var specialKeys = [NSEvent.SpecialKey:CGKeyCode]()
@@ -76,28 +76,33 @@ extension CGKeyCode {
 			let eventSource = CGEventSource(stateID: .privateState);
 
 			for keyCode in (0..<128).map({ CGKeyCode($0) }) {
-				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: CGKeyCode(keyCode), keyDown: true) else { continue }
-				guard let nsevent = NSEvent(cgEvent: cgevent) else { continue }
+				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: true) else { fatalError("Unable to create CGEvent for \(keyCode)") }
 
-				var hasHandledKeyCode = false
-
-				if nsevent.type == .keyDown {
-					if let specialKey = nsevent.specialKey {
+				if let nsevent = NSEvent(cgEvent: cgevent) {
+					var hasHandledKeyCode = false
+					
+					if nsevent.type == .keyDown {
+						if let specialKey = nsevent.specialKey {
+							hasHandledKeyCode = true
+							specialKeys[specialKey] = keyCode
+						} else if let characters = nsevent.charactersIgnoringModifiers, !characters.isEmpty && characters != "\u{0010}" {
+							hasHandledKeyCode = true
+							characterKeys[characters] = keyCode
+						}
+					} else if nsevent.type == .flagsChanged {
 						hasHandledKeyCode = true
-						specialKeys[specialKey] = keyCode
-					} else if let characters = nsevent.charactersIgnoringModifiers, !characters.isEmpty && characters != "\u{0010}" {
-						hasHandledKeyCode = true
-						characterKeys[characters] = keyCode
+						modifierFlagKeys[nsevent.modifierFlags] = keyCode
+					} else {
+						Logger("CGKeyCode").debug("Unknown event type for keycode \(keyCode): \(nsevent.type)")
 					}
-				} else if nsevent.type == .flagsChanged, let modifierFlag = nsevent.modifierFlags.first(.capsLock, .shift, .control, .option, .command, .help, .function) {
-					hasHandledKeyCode = true
-					modifierFlagKeys[modifierFlag] = keyCode
-				}
-
-				if !hasHandledKeyCode {
-					#if DEBUG
-					print("Unhandled keycode \(keyCode): \(nsevent)")
-					#endif
+					
+#if DEBUG
+					if hasHandledKeyCode == false {
+						Logger("CGKeyCode").debug("Unhandled keycode \(keyCode): \(nsevent.type)")
+					}
+#endif
+				} else {
+					fatalError("unable to create NSEvent")
 				}
 			}
 
@@ -334,6 +339,7 @@ public class VNCKeyMapper: Keymapper {
 	private var isNumericPad = false
 
 	static func setupKeyMapper() throws {
+		CGKeyCode.Initializers.shared = CGKeyCode.Initializers.init()
 	}
 	
 	func setupKeyMapper() throws {

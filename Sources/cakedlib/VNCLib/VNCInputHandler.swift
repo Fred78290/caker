@@ -385,7 +385,9 @@ public class VNCInputHandler {
 
 			guard let event = NSEvent(cgEvent: keyboardEvent) else { return }
 			
-			if isDown {
+			if event.type == .flagsChanged {
+				view.flagsChanged(with: event)
+			} else if isDown {
 				view.keyDown(with: event)
 			} else {
 				view.keyUp(with: event)
