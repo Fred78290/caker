@@ -235,6 +235,8 @@
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
 		9BD32F882D75FF060066A01E /* Mount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F852D75FF060066A01E /* Mount.swift */; };
 		9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */; };
+		9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */; };
+		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
@@ -733,6 +735,8 @@
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
 		9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFixedWidthInteger.swift; sourceTree = "<group>"; };
+		9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OSXKeyMapper.swift; sourceTree = "<group>"; };
+		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
@@ -1381,6 +1385,7 @@
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
 			isa = PBXGroup;
 			children = (
+				9BDA13A52EE6D42300357544 /* Keymapper */,
 				9B5A37752ED4BDA8007B59B0 /* VNC.swift */,
 				9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */,
 				9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */,
@@ -1471,6 +1476,15 @@
 				9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */,
 			);
 			path = options;
+			sourceTree = "<group>";
+		};
+		9BDA13A52EE6D42300357544 /* Keymapper */ = {
+			isa = PBXGroup;
+			children = (
+				9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */,
+				9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */,
+			);
+			path = Keymapper;
 			sourceTree = "<group>";
 		};
 		9BEBC6962DF4400A0092B196 /* CI */ = {
@@ -2320,6 +2334,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */,
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9BEBC76C2DF440720092B196 /* VMView.swift in Sources */,
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
@@ -2407,6 +2422,7 @@
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
 				9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */,
+				9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */,
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,

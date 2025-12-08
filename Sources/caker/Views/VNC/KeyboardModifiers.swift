@@ -56,125 +56,62 @@ struct KeyboardModifiers {
 		var rightCommandWentDown = false
 		var rightCommandWentUp = false
 
-		if currentFlags.contains(.leftShift),
-			!lastFlags.contains(.leftShift)
-		{
+		if currentFlags.contains(.leftShift), !lastFlags.contains(.leftShift) {
 			leftShiftWentDown = true
-		} else if !currentFlags.contains(.leftShift),
-			lastFlags.contains(.leftShift)
-		{
+		} else if !currentFlags.contains(.leftShift), lastFlags.contains(.leftShift) {
 			leftShiftWentUp = true
 		}
 
-		if currentFlags.contains(.rightShift),
-			!lastFlags.contains(.rightShift)
-		{
+		if currentFlags.contains(.rightShift), !lastFlags.contains(.rightShift) {
 			rightShiftWentDown = true
-		} else if !currentFlags.contains(.rightShift),
-			lastFlags.contains(.rightShift)
-		{
+		} else if !currentFlags.contains(.rightShift), lastFlags.contains(.rightShift) {
 			rightShiftWentUp = true
 		}
 
-		if currentFlags.contains(.leftControl),
-			!lastFlags.contains(.leftControl)
-		{
+		if currentFlags.contains(.leftControl), !lastFlags.contains(.leftControl) {
 			leftControlWentDown = true
-		} else if !currentFlags.contains(.leftControl),
-			lastFlags.contains(.leftControl)
-		{
+		} else if !currentFlags.contains(.leftControl), lastFlags.contains(.leftControl) {
 			leftControlWentUp = true
 		}
 
-		if currentFlags.contains(.rightControl),
-			!lastFlags.contains(.rightControl)
-		{
+		if currentFlags.contains(.rightControl), !lastFlags.contains(.rightControl) {
 			rightControlWentDown = true
-		} else if !currentFlags.contains(.rightControl),
-			lastFlags.contains(.rightControl)
-		{
+		} else if !currentFlags.contains(.rightControl), lastFlags.contains(.rightControl) {
 			rightControlWentUp = true
 		}
 
-		if currentFlags.contains(.leftOption),
-			!lastFlags.contains(.leftOption)
-		{
+		if currentFlags.contains(.leftOption), !lastFlags.contains(.leftOption) {
 			leftOptionWentDown = true
-		} else if !currentFlags.contains(.leftOption),
-			lastFlags.contains(.leftOption)
-		{
+		} else if !currentFlags.contains(.leftOption), lastFlags.contains(.leftOption) {
 			leftOptionWentUp = true
 		}
 
-		if currentFlags.contains(.rightOption),
-			!lastFlags.contains(.rightOption)
-		{
+		if currentFlags.contains(.rightOption), !lastFlags.contains(.rightOption) {
 			rightOptionWentDown = true
-		} else if !currentFlags.contains(.rightOption),
-			lastFlags.contains(.rightOption)
-		{
+		} else if !currentFlags.contains(.rightOption), lastFlags.contains(.rightOption) {
 			rightOptionWentUp = true
 		}
 
-		if currentFlags.contains(.leftCommand),
-			!lastFlags.contains(.leftCommand)
-		{
+		if currentFlags.contains(.leftCommand), !lastFlags.contains(.leftCommand) {
 			leftCommandWentDown = true
-		} else if !currentFlags.contains(.leftCommand),
-			lastFlags.contains(.leftCommand)
-		{
+		} else if !currentFlags.contains(.leftCommand), lastFlags.contains(.leftCommand) {
 			leftCommandWentUp = true
 		}
 
-		if currentFlags.contains(.rightCommand),
-			!lastFlags.contains(.rightCommand)
-		{
+		if currentFlags.contains(.rightCommand), !lastFlags.contains(.rightCommand) {
 			rightCommandWentDown = true
-		} else if !currentFlags.contains(.rightCommand),
-			lastFlags.contains(.rightCommand)
-		{
+		} else if !currentFlags.contains(.rightCommand), lastFlags.contains(.rightCommand) {
 			rightCommandWentUp = true
 		}
 
-		self.leftShift = .init(
-			key: CGKeyCodes.shift,
-			down: leftShiftWentDown,
-			up: leftShiftWentUp)
-
-		self.rightShift = .init(
-			key: CGKeyCodes.rightShift,
-			down: rightShiftWentDown,
-			up: rightShiftWentUp)
-
-		self.leftControl = .init(
-			key: CGKeyCodes.control,
-			down: leftControlWentDown,
-			up: leftControlWentUp)
-
-		self.rightControl = .init(
-			key: CGKeyCodes.rightControl,
-			down: rightControlWentDown,
-			up: rightControlWentUp)
-
-		self.leftOption = .init(
-			key: CGKeyCodes.option,
-			down: leftOptionWentDown,
-			up: leftOptionWentUp)
-
-		self.rightOption = .init(
-			key: CGKeyCodes.rightOption,
-			down: rightOptionWentDown,
-			up: rightOptionWentUp)
-
-		self.leftCommand = .init(
-			key: CGKeyCodes.command,
-			down: leftCommandWentDown,
-			up: leftCommandWentUp)
-
-		self.rightCommand = .init(
-			key: CGKeyCodes.rightCommand,
-			down: rightCommandWentDown,
-			up: rightCommandWentUp)
+		self.leftShift = .init(key: CGKeyCodes.shift, down: leftShiftWentDown, up: leftShiftWentUp)
+		self.rightShift = .init(key: CGKeyCodes.rightShift, down: rightShiftWentDown, up: rightShiftWentUp)
+		self.leftControl = .init(key: CGKeyCodes.control, down: leftControlWentDown, up: leftControlWentUp)
+		self.rightControl = .init(key: CGKeyCodes.rightControl, down: rightControlWentDown, up: rightControlWentUp)
+		self.leftOption = .init(key: CGKeyCodes.option, down: leftOptionWentDown, up: leftOptionWentUp)
+		self.rightOption = .init(key: CGKeyCodes.rightOption, down: rightOptionWentDown, up: rightOptionWentUp)
+		self.leftCommand = .init(key: CGKeyCodes.command, down: leftCommandWentDown, up: leftCommandWentUp)
+		self.rightCommand = .init(key: CGKeyCodes.rightCommand, down: rightCommandWentDown, up: rightCommandWentUp)
 	}
 }
 
@@ -211,10 +148,7 @@ extension KeyboardModifiers {
 		case down
 		case up
 
-		static func with(
-			down: Bool,
-			up: Bool
-		) -> ModifierState {
+		static func with(down: Bool, up: Bool) -> ModifierState {
 			if down && up {
 				fatalError("Keyboard Modifier cannot be down and up at the same time")
 			} else if down {
@@ -231,24 +165,14 @@ extension KeyboardModifiers {
 		let key: CGKeyCode
 		let state: ModifierState
 
-		init(
-			key: CGKeyCode,
-			state: ModifierState
-		) {
+		init(key: CGKeyCode, state: ModifierState) {
 			self.key = key
 			self.state = state
 		}
 
-		init(
-			key: CGKeyCode,
-			down: Bool,
-			up: Bool
-		) {
+		init(key: CGKeyCode, down: Bool, up: Bool) {
 			self.key = key
-
-			self.state = .with(
-				down: down,
-				up: up)
+			self.state = .with(down: down, up: up)
 		}
 
 		var description: String? {
@@ -300,25 +224,15 @@ extension KeyboardModifiers {
 				return nil
 			}
 
-			guard
-				let ev = Self.createKeyEventForModifierFlags(
-					keyCode: key,
-					isDown: state == .down)
-			else {
+			guard let ev = Self.createKeyEventForModifierFlags(keyCode: key, isDown: state == .down) else {
 				fatalError("Failed to create NSEvent for modifier flags")
 			}
 
 			return ev
 		}
 
-		private static func createKeyEventForModifierFlags(
-			keyCode: CGKeyCode,
-			isDown: Bool
-		) -> NSEvent? {
-			let eventType: NSEvent.EventType =
-				isDown
-				? .keyDown
-				: .keyUp
+		private static func createKeyEventForModifierFlags(keyCode: CGKeyCode, isDown: Bool) -> NSEvent? {
+			let eventType: NSEvent.EventType = isDown ? .keyDown : .keyUp
 
 			return NSEvent.keyEvent(
 				with: eventType,

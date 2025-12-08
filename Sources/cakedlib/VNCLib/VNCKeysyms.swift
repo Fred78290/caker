@@ -99,74 +99,9 @@ SOFTWARE.
 /// SOFTWARE.
 ///
 /// *****************************************************************
-let specialKeyMap: [UInt32: UInt32] = [
-	/* "Special" keys */
-	Keysyms.XK_space: 49, /* Space */
-	Keysyms.XK_Return: 36, /* Return */
-	Keysyms.XK_Delete: 117, /* Delete */
-	Keysyms.XK_Tab: 48, /* Tab */
-	Keysyms.XK_Escape: 53, /* Esc */
-	Keysyms.XK_Caps_Lock: 57, /* Caps Lock */
-	Keysyms.XK_Num_Lock: 71, /* Num Lock */
-	Keysyms.XK_Scroll_Lock: 107, /* Scroll Lock */
-	Keysyms.XK_Pause: 113, /* Pause */
-	Keysyms.XK_BackSpace: 51, /* Backspace */
-	Keysyms.XK_Insert: 114, /* Insert */
+///
 
-	/* Cursor movement */
-	Keysyms.XK_Up: 126, /* Cursor Up */
-	Keysyms.XK_Down: 125, /* Cursor Down */
-	Keysyms.XK_Left: 123, /* Cursor Left */
-	Keysyms.XK_Right: 124, /* Cursor Right */
-	Keysyms.XK_Page_Up: 116, /* Page Up */
-	Keysyms.XK_Page_Down: 121, /* Page Down */
-	Keysyms.XK_Home: 115, /* Home */
-	Keysyms.XK_End: 119, /* End */
-
-	/* Numeric keypad */
-	Keysyms.XK_KP_0: 82, /* KP 0 */
-	Keysyms.XK_KP_1: 83, /* KP 1 */
-	Keysyms.XK_KP_2: 84, /* KP 2 */
-	Keysyms.XK_KP_3: 85, /* KP 3 */
-	Keysyms.XK_KP_4: 86, /* KP 4 */
-	Keysyms.XK_KP_5: 87, /* KP 5 */
-	Keysyms.XK_KP_6: 88, /* KP 6 */
-	Keysyms.XK_KP_7: 89, /* KP 7 */
-	Keysyms.XK_KP_8: 91, /* KP 8 */
-	Keysyms.XK_KP_9: 92, /* KP 9 */
-	Keysyms.XK_KP_Enter: 76, /* KP Enter */
-	Keysyms.XK_KP_Decimal: 65, /* KP . */
-	Keysyms.XK_KP_Add: 69, /* KP + */
-	Keysyms.XK_KP_Subtract: 78, /* KP - */
-	Keysyms.XK_KP_Multiply: 67, /* KP * */
-	Keysyms.XK_KP_Divide: 75, /* KP / */
-
-	/* Function keys */
-	Keysyms.XK_F1: 122, /* F1 */
-	Keysyms.XK_F2: 120, /* F2 */
-	Keysyms.XK_F3: 99, /* F3 */
-	Keysyms.XK_F4: 118, /* F4 */
-	Keysyms.XK_F5: 96, /* F5 */
-	Keysyms.XK_F6: 97, /* F6 */
-	Keysyms.XK_F7: 98, /* F7 */
-	Keysyms.XK_F8: 100, /* F8 */
-	Keysyms.XK_F9: 101, /* F9 */
-	Keysyms.XK_F10: 109, /* F10 */
-	Keysyms.XK_F11: 103, /* F11 */
-	Keysyms.XK_F12: 111, /* F12 */
-
-	/* Modifier keys */
-	Keysyms.XK_Shift_L: 56, /* Shift Left */
-	Keysyms.XK_Shift_R: 56, /* Shift Right */
-	Keysyms.XK_Control_L: 59, /* Ctrl Left */
-	Keysyms.XK_Control_R: 59, /* Ctrl Right */
-	Keysyms.XK_Meta_L: 58, /* Logo Left (-> Option) */
-	Keysyms.XK_Meta_R: 58, /* Logo Right (-> Option) */
-	Keysyms.XK_Alt_L: 55, /* Alt Left (-> Command) */
-	Keysyms.XK_Alt_R: 55, /* Alt Right (-> Command) */
-	Keysyms.XK_ISO_Level3_Shift: 61, /* Alt-Gr (-> Option Right) */
-	0x1008_FF2B: 63 /* Fn */,
-]
+import Foundation
 
 struct Keysyms {
 	static func characterForKeysym(_ vncKey: UInt32) -> String? {
@@ -182,10 +117,10 @@ struct Keysyms {
 
 		// Special characters
 		switch vncKey {
-		case 0xFF08: return "\u{8}"  // Backspace
-		case 0xFF09: return "\t"  // Tab
-		case 0xFF0D: return "\r"  // Return
-		case 0xFF1B: return "\u{1B}"  // Escape
+		case 0x08, 0xFF08: return "\u{8}"  // Backspace
+		case 0x09, 0xFF09: return "\t"  // Tab
+		case 0x0D, 0xFF0D: return "\r"  // Return
+		case 0x1B, 0xFF1B: return "\u{1B}"  // Escape
 		case 0x0020: return " "  // Space
 		default:
 			if let scalar = UnicodeScalar(vncKey) {
