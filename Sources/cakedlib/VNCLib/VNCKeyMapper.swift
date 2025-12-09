@@ -87,31 +87,50 @@ extension NSEvent.ModifierFlags {
 	}
 
 	var keysym: UInt32? {
-		if self.contains(.leftCommand) {
-			return Keysyms.XK_Meta_L
-		} else if self.contains(.rightCommand) {
-			return Keysyms.XK_Meta_R
-		} else if self.contains(.leftControl) {
-			return Keysyms.XK_Control_L
-		} else if self.contains(.rightControl) {
-			return Keysyms.XK_Control_R
-		} else if self.contains(.leftOption) {
-			return Keysyms.XK_Alt_L
-		} else if self.contains(.rightOption) {
+		if self.contains(.rightCommand) {
 			return Keysyms.XK_Alt_R
-		} else if self.contains(.leftShift) {
-			return Keysyms.XK_Shift_L
-		} else if self.contains(.rightShift) {
+		}
+		
+		if self.contains(.rightOption) {
+			return Keysyms.XK_Meta_R
+		}
+
+		if self.contains(.leftCommand) {
+			return Keysyms.XK_Alt_L
+		}
+		
+		if self.contains(.rightControl) {
+			return Keysyms.XK_Control_R
+		}
+
+		if self.contains(.rightShift) {
 			return Keysyms.XK_Shift_R
-		} else if self.contains(.capsLock) {
+		}
+
+		if self.contains(.leftOption) {
+			return Keysyms.XK_Meta_L
+		}
+		
+		if self.contains(.leftControl) {
+			return Keysyms.XK_Control_L
+		}
+		
+		if self.contains(.leftShift) {
+			return Keysyms.XK_Shift_L
+		}
+
+		if self.contains(.capsLock) {
 			return Keysyms.XK_Caps_Lock
-		} else if self.contains(.function) {
+		}
+
+		if self.contains(.function) {
 			return Keysyms.XK_function
 		}
 
 		return nil
 	}
 }
+
 extension NSEvent.SpecialKey {
 	var keysym: UInt32? {
 		switch self {
@@ -227,8 +246,16 @@ extension CGKeyCode {
 		}
 	}
 
-	static func charactersIgnoringModifiers(_ keyCode: CGKeyCode) -> String? {
-		return Initializers.shared.keysCharacters[keyCode]
+	static func charactersIgnoringModifiers(_ keyCode: CGKeyCode, shift: Bool) -> String? {
+		guard var result = Initializers.shared.keysCharacters[keyCode] else {
+			return nil
+		}
+
+		if shift {
+			result = result.uppercased()
+		}
+
+		return result
 	}
 
 	static func characterForKeysym(_ vncKey: UInt32) -> String? {
@@ -394,7 +421,7 @@ public extension VNCKeyCode {
 }
 
 public class VNCKeyMapper: Keymapper {
-	private var currentModifiers: NSEvent.ModifierFlags = []
+	private var currentModifiers: NSEvent.ModifierFlags = NSEvent.ModifierFlags(rawValue: 0x100)
 
 	static func setupKeyMapper() throws {
 		CGKeyCode.Initializers.shared = try CGKeyCode.Initializers.init()
@@ -404,17 +431,17 @@ public class VNCKeyMapper: Keymapper {
 		try Self.setupKeyMapper()
 	}
 	
-	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?, charactersIgnoringModifiers: String?) {
+	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?) {
 		if let keyCode = CGKeyCode(modifierKey: vncKeyCode) {
-			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
+			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode))
 		}
 
 		if let keyCode = CGKeyCode(specialKey: vncKeyCode) {
-			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode))
 		}
 
 		if let keyCode = VNCKeyCode.to(vncKeyCode: vncKeyCode) {
-			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode))
 		}
 
 		// ASCII printable characters
@@ -424,15 +451,15 @@ public class VNCKeyMapper: Keymapper {
 			guard let keyCode = CGKeyCode(character: characters) else {
 				Logger(self).debug("Not found: key=\(vncKeyCode.hexa)")
 
-				return (CGKeyCode(vncKeyCode), false, String(scalar), String(scalar))
+				return (CGKeyCode(vncKeyCode), false, String(scalar))
 			}
 
-			return (keyCode, false, String(scalar), CGKeyCode.charactersIgnoringModifiers(keyCode))
+			return (keyCode, false, String(scalar))
 		} else {
 			Logger(self).debug("Not unicode found: key=\(vncKeyCode.hexa)")
 		}
 
-		return (CGKeyCode(vncKeyCode), false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.characterForKeysym(vncKeyCode))
+		return (CGKeyCode(vncKeyCode), false, CGKeyCode.characterForKeysym(vncKeyCode))
 	}
 
 	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
@@ -442,54 +469,54 @@ public class VNCKeyMapper: Keymapper {
 			switch result.keyCode {
 			case CGKeyCodes.shift:
 				if isDown {
-					self.currentModifiers.insert(.leftShift)
+					self.currentModifiers.insert(.leftShift.union(.shift))
 				} else {
-					self.currentModifiers.remove(.leftShift)
+					self.currentModifiers.remove(.leftShift.union(.shift))
 				}
 			case CGKeyCodes.rightShift:
 				if isDown {
-					self.currentModifiers.insert(.rightShift)
+					self.currentModifiers.insert(.rightShift.union(.shift))
 				} else {
-					self.currentModifiers.remove(.rightShift)
+					self.currentModifiers.remove(.rightShift.union(.shift))
 				}
 
 			case CGKeyCodes.control:
 				if isDown {
-					self.currentModifiers.insert(.leftControl)
+					self.currentModifiers.insert(.leftControl.union(.control))
 				} else {
-					self.currentModifiers.remove(.leftControl)
+					self.currentModifiers.remove(.leftControl.union(.control))
 				}
 			case CGKeyCodes.rightControl:
 				if isDown {
-					self.currentModifiers.insert(.rightControl)
+					self.currentModifiers.insert(.rightControl.union(.control))
 				} else {
-					self.currentModifiers.remove(.rightControl)
+					self.currentModifiers.remove(.rightControl.union(.control))
 				}
 
 			case CGKeyCodes.option:
 				if isDown {
-					self.currentModifiers.insert(.leftOption)
+					self.currentModifiers.insert(.leftOption.union(.option))
 				} else {
-					self.currentModifiers.remove(.leftOption)
+					self.currentModifiers.remove(.leftOption.union(.option))
 				}
 			case CGKeyCodes.rightOption:
 				if isDown {
-					self.currentModifiers.insert(.rightOption)
+					self.currentModifiers.insert(.rightOption.union(.option))
 				} else {
-					self.currentModifiers.remove(.rightOption)
+					self.currentModifiers.remove(.rightOption.union(.option))
 				}
 
 			case CGKeyCodes.command:
 				if isDown {
-					self.currentModifiers.insert(.leftCommand)
+					self.currentModifiers.insert(.leftCommand.union(.command))
 				} else {
-					self.currentModifiers.remove(.leftCommand)
+					self.currentModifiers.remove(.leftCommand.union(.command))
 				}
 			case CGKeyCodes.rightCommand:
 				if isDown {
-					self.currentModifiers.insert(.rightCommand)
+					self.currentModifiers.insert(.rightCommand.union(.command))
 				} else {
-					self.currentModifiers.remove(.rightCommand)
+					self.currentModifiers.remove(.rightCommand.union(.command))
 				}
 
 			case CGKeyCodes.capsLock:
@@ -517,7 +544,9 @@ public class VNCKeyMapper: Keymapper {
 			}
 		}
 
-		sendKeyEvent(result.keyCode, self.currentModifiers, result.characters, result.charactersIgnoringModifiers)
+		let charactersIgnoringModifiers = CGKeyCode.charactersIgnoringModifiers(result.keyCode, shift: self.currentModifiers.contains(.shift))
+
+		sendKeyEvent(result.keyCode, self.currentModifiers, result.characters, charactersIgnoringModifiers)
 	}
 }
 
