@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import CryptoKit
+import Synchronization
 
 extension CGImageAlphaInfo {
 	var isFirst: Bool {
@@ -15,7 +16,7 @@ extension CGImageAlphaInfo {
 public class VNCFramebuffer {
 	public internal(set) var width: Int
 	public internal(set) var height: Int
-	internal var pixelData: Data
+	internal let pixelData: Mutex<Data>
 	internal var hasChanges = false
 	internal var sizeChanged = false
 	internal weak var sourceView: NSView!
@@ -29,9 +30,9 @@ public class VNCFramebuffer {
 		self.sourceView = view
 		self.width = Int(view.bounds.width)
 		self.height = Int(view.bounds.height)
-		self.pixelData = Data(count: width * height * 4)  // RGBA
+		self.pixelData = .init(Data(count: width * height * 4))  // RGBA
 
-		if let imageRepresentation = view.imageRepresentation(in: NSRect(x: 0, y: 0, width: 4, height: 4)) {
+		if let imageRepresentation = view.imageRepresentationSync(in: NSRect(x: 0, y: 0, width: 4, height: 4)) {
 			if let cgImage = imageRepresentation.cgImage {
 				self.bitsPerPixels = cgImage.bitsPerPixel
 				self.bitmapInfo = cgImage.bitmapInfo;
@@ -46,12 +47,12 @@ public class VNCFramebuffer {
 			self.logger.debug("View size is zero, skipping frame capture.")
 		}
 
-		updateQueue.async {
+		self.pixelData.withLock {
 			self.width = width
 			self.height = height
-			self.pixelData = Data(count: width * height * 4)
 			self.sizeChanged = true
 			self.hasChanges = true
+			$0 = Data(count: width * height * 4)
 		}
 	}
 
@@ -60,6 +61,10 @@ public class VNCFramebuffer {
 		let newWidth = Int(bounds.width)
 		let newHeight = Int(bounds.height)
 
+		guard let imageRepresentation = sourceView.imageRepresentationSync(in: bounds) else {
+			return
+		}
+
 		updateQueue.async {
 			if newWidth == 0 || newHeight == 0 {
 				self.logger.debug("View size is zero, skipping frame capture.")
@@ -67,26 +72,24 @@ public class VNCFramebuffer {
 
 			// Check if size has changed
 			if self.width != newWidth || self.height != newHeight {
-				self.width = newWidth
-				self.height = newHeight
-				self.pixelData = Data(count: newWidth * newHeight * 4)
-				self.sizeChanged = true
-				self.hasChanges = true
+				self.pixelData.withLock {
+					self.width = newWidth
+					self.height = newHeight
+					self.sizeChanged = true
+					self.hasChanges = true
+					$0 = Data(count: newWidth * newHeight * 4)
+				}
 			}
 
 			// Capture content
-			self.captureViewContent(view: self.sourceView, bounds: bounds)
+			self.convertBitmapToPixelData(bitmap: imageRepresentation)
 		}
 	}
 
-	internal func captureViewContent(view: NSView, bounds: NSRect) {
+	internal func captureViewContent(view: NSView, bounds: NSRect) async {
 		// Create image from view
-		let imageRepresentation = DispatchQueue.main.sync {
-			return view.imageRepresentation(in: bounds)
-		}
-
 		// Convert to pixel data
-		if let imageRepresentation = imageRepresentation {
+		if let imageRepresentation = await view.imageRepresentation(in: bounds) {
 			convertBitmapToPixelData(bitmap: imageRepresentation)
 		}
 	}
@@ -127,8 +130,10 @@ public class VNCFramebuffer {
 					}
 				}
 
-				self.hasChanges = true
-				self.pixelData = pixelData
+				self.pixelData.withLock {
+					self.hasChanges = true
+					$0 = pixelData
+				}
 			}
 		}
 	}
@@ -238,18 +243,19 @@ public class VNCFramebuffer {
 		return self.pixelFormat.transform(pixelData)
 	}
 
-	@MainActor
 	func setCurrentState(width: Int, height: Int, pixelData: Data, hasChanges: Bool, sizeChanged: Bool) {
-		self.width = width
-		self.height = height
-		self.pixelData = pixelData
-		self.hasChanges = hasChanges
-		self.sizeChanged = sizeChanged
+		self.pixelData.withLock {
+			self.width = width
+			self.height = height
+			self.hasChanges = hasChanges
+			self.sizeChanged = sizeChanged
+			$0 = pixelData
+		}
 	}
 
 	@MainActor
 	func getCurrentState() -> (width: Int, height: Int, data: Data, hasChanges: Bool, sizeChanged: Bool) {
-		return (width: width, height: height, data: pixelData, hasChanges: hasChanges, sizeChanged: sizeChanged)
+		return (width: width, height: height, data: pixelData.withLock { $0 }, hasChanges: hasChanges, sizeChanged: sizeChanged)
 	}
 }
 

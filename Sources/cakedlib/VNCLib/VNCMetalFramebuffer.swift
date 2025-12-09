@@ -131,7 +131,7 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 				case .metal:
 					self.captureViewContentWithMetal(view: self.sourceView, bounds: bounds)
 				case .coreGraphics:
-					self.captureViewContent(view: self.sourceView, bounds: bounds)
+					super.updateFromView()
 				}
 			}
 		}
@@ -144,13 +144,13 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 
 		guard metalDevice != nil, let commandQueue = metalCommandQueue, let renderTarget = renderTargetTexture else {
 			// Fallback to Core Graphics
-			self.captureViewContent(view: view, bounds: bounds)
+			super.updateFromView()
 			return
 		}
 
 		// Create command buffer
 		guard let commandBuffer = commandQueue.makeCommandBuffer() else {
-			self.captureViewContent(view: view, bounds: bounds)
+			super.updateFromView()
 			return
 		}
 
@@ -252,7 +252,9 @@ public class VNCMetalFramebuffer: VNCFramebuffer {
 			)
 		}
 		
-		self.pixelData = pixelData
+		self.pixelData.withLock {
+			$0 = pixelData
+		}
 	}
 
 	private func recordRenderTime(_ time: TimeInterval) {

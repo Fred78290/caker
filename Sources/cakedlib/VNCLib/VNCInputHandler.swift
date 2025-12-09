@@ -2,22 +2,6 @@ import AppKit
 import Carbon
 import Foundation
 
-extension CGEventFlags {
-	var appKitFlags: NSEvent.ModifierFlags {
-		var flags: NSEvent.ModifierFlags = []
-
-		if contains(.maskControl) { flags.insert(.control) }
-		if contains(.maskShift) { flags.insert(.shift) }
-		if contains(.maskAlternate) { flags.insert(.option) }
-		if contains(.maskControl) { flags.insert(.control) }
-		if contains(.maskNumericPad) { flags.insert(.numericPad) }
-		if contains(.maskSecondaryFn) { flags.insert(.function) }
-		if contains(.maskHelp) { flags.insert(.help) }
-
-		return flags
-	}
-}
-
 extension NSView {
 	func postEnterExitEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags, trackingNumber: Int) -> NSEvent? {
 			return NSEvent.enterExitEvent(
@@ -367,24 +351,17 @@ public class VNCInputHandler {
 		// Ensure the view is first responder before delivering key events
 		ensureFirstResponder()
 
-		keyMapper.mapVNCKey(key, isDown: isDown) { keyCode, modifiers, characters in
+		keyMapper.mapVNCKey(key, isDown: isDown) { keyCode, modifiers, characters, charactersIgnoringModifiers in
 			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
 				return
 			}
 
-			self.modifiers = modifiers.appKitFlags
+			self.modifiers = modifiers
 
-			if modifiers.isEmpty == false {
-				keyboardEvent.flags = modifiers
+			guard let event = NSEvent.keyEvent(with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp), location: lastMousePosition, modifierFlags: self.modifiers, timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: self.targetView.window?.windowNumber ?? 0, context: nil, characters: characters ?? "", charactersIgnoringModifiers: charactersIgnoringModifiers ?? "", isARepeat: false, keyCode: keyCode) else {
+				return
 			}
 
-			if let characters, characters.count == 1, let codeUnit = characters.utf16.first {
-				var c: UniChar = codeUnit
-				keyboardEvent.keyboardSetUnicodeString(stringLength: 1, unicodeString: &c)
-			}
-
-			guard let event = NSEvent(cgEvent: keyboardEvent) else { return }
-			
 			if event.type == .flagsChanged {
 				view.flagsChanged(with: event)
 			} else if isDown {

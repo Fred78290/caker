@@ -3,17 +3,17 @@ import Carbon
 import Foundation
 import RoyalVNCKit
 
-let kVK_ANSI_Exclam = CGKeyCode(0x0021)
-let kVK_ANSI_Number = CGKeyCode(0x0023)
-let kVK_ANSI_Dollar = CGKeyCode(0x0024)
-let kVK_ANSI_Percent = CGKeyCode(0x0025)
-let kVK_ANSI_Ampersand = CGKeyCode(0x0026)
-let kVK_ANSI_LeftParen = CGKeyCode(0x0028)
-let kVK_ANSI_RightParen = CGKeyCode(0x0029)
-let kVK_ANSI_Asterisk = CGKeyCode(0x002A)
-let kVK_ANSI_Plus = CGKeyCode(0x002B)
-let kVK_ANSI_Caret = CGKeyCode(0x005F)
-let kVK_ANSI_Underscore = CGKeyCode(0x005F)
+let kVK_ANSI_Exclam = kVK_ANSI_1
+let kVK_ANSI_Number = kVK_ANSI_3
+let kVK_ANSI_Dollar = kVK_ANSI_4
+let kVK_ANSI_Percent = kVK_ANSI_5
+let kVK_ANSI_Ampersand = kVK_ANSI_7
+let kVK_ANSI_LeftParen = kVK_ANSI_9
+let kVK_ANSI_RightParen = kVK_ANSI_0
+let kVK_ANSI_Asterisk = kVK_ANSI_8
+let kVK_ANSI_Plus = kVK_ANSI_Equal
+let kVK_ANSI_Caret = kVK_ANSI_6
+let kVK_ANSI_Underscore = kVK_ANSI_Minus
 
 // Source - https://stackoverflow.com/a
 // Posted by jjrscott, modified by community. See post 'Timeline' for change history
@@ -28,13 +28,178 @@ let kVK_ANSI_Underscore = CGKeyCode(0x005F)
 import Foundation
 import AppKit
 
+typealias HandleKeyMapping = (_ keyCode: CGKeyCode, _ event: NSEvent.ModifierFlags, _ characters: String?, _ charactersIgnoringModifiers: String?) -> Void
+
 protocol Keymapper {
 	func setupKeyMapper() throws
-	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: (CGKeyCode, CGEventFlags, String?) -> Void)
+	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping)
 }
 
 func newKeyMapper() -> Keymapper {
 	VNCKeyMapper()
+}
+
+extension CGEventFlags {
+	var appKitFlags: NSEvent.ModifierFlags {
+		var flags: NSEvent.ModifierFlags = []
+
+		if contains(.maskControl) { flags.insert(.control) }
+		if contains(.maskShift) { flags.insert(.shift) }
+		if contains(.maskAlternate) { flags.insert(.option) }
+		if contains(.maskControl) { flags.insert(.control) }
+		if contains(.maskNumericPad) { flags.insert(.numericPad) }
+		if contains(.maskSecondaryFn) { flags.insert(.function) }
+		if contains(.maskHelp) { flags.insert(.help) }
+
+		return flags
+	}
+}
+
+extension NSEvent.ModifierFlags {
+	var cgEventFlag: CGEventFlags {
+		var flags: CGEventFlags = []
+		
+		if self.contains(.command) || self.contains(.leftCommand) || self.contains(.rightCommand) {
+			flags.insert(.maskCommand)
+		}
+
+		if self.contains(.control) || self.contains(.leftControl) || self.contains(.rightControl) {
+			flags.insert(.maskControl)
+		}
+
+		if self.contains(.option) || self.contains(.leftOption) || self.contains(.rightOption) {
+			flags.insert(.maskAlternate)
+		}
+
+		if self.contains(.numericPad) {
+			flags.insert(.maskNumericPad)
+		}
+
+		if self.contains(.function) {
+			flags.insert(.maskSecondaryFn)
+		}
+
+		if self.contains(.help) {
+			flags.insert(.maskHelp)
+		}
+
+		return flags
+	}
+
+	var keysym: UInt32? {
+		if self.contains(.leftCommand) {
+			return Keysyms.XK_Meta_L
+		} else if self.contains(.rightCommand) {
+			return Keysyms.XK_Meta_R
+		} else if self.contains(.leftControl) {
+			return Keysyms.XK_Control_L
+		} else if self.contains(.rightControl) {
+			return Keysyms.XK_Control_R
+		} else if self.contains(.leftOption) {
+			return Keysyms.XK_Alt_L
+		} else if self.contains(.rightOption) {
+			return Keysyms.XK_Alt_R
+		} else if self.contains(.leftShift) {
+			return Keysyms.XK_Shift_L
+		} else if self.contains(.rightShift) {
+			return Keysyms.XK_Shift_R
+		} else if self.contains(.capsLock) {
+			return Keysyms.XK_Caps_Lock
+		} else if self.contains(.function) {
+			return Keysyms.XK_function
+		}
+
+		return nil
+	}
+}
+extension NSEvent.SpecialKey {
+	var keysym: UInt32? {
+		switch self {
+		case .backTab: return Keysyms.XK_3270_BackTab
+		case .backspace: return Keysyms.XK_BackSpace
+		case .begin: return Keysyms.XK_Begin
+		case .break: return Keysyms.XK_Break
+		case .carriageReturn: return Keysyms.XK_Return
+		case .clearDisplay: return Keysyms.XK_Clear
+		//case .clearLine: return Keysyms.XK_Clear
+		case .delete: return Keysyms.XK_BackSpace
+		//case .deleteCharacter: return Keysyms.XK_Delete
+		case .deleteForward: return Keysyms.XK_Delete
+		//case .deleteLine: return Keysyms.XK_Delete
+		case .downArrow: return Keysyms.XK_Down
+		case .end: return Keysyms.XK_End
+		case .enter: return Keysyms.XK_KP_Enter
+		case .execute: return Keysyms.XK_Execute
+		case .f1: return Keysyms.XK_F1
+		case .f2: return Keysyms.XK_F2
+		case .f3: return Keysyms.XK_F3
+		case .f4: return Keysyms.XK_F4
+		case .f5: return Keysyms.XK_F5
+		case .f6: return Keysyms.XK_F6
+		case .f7: return Keysyms.XK_F7
+		case .f8: return Keysyms.XK_F8
+		case .f9: return Keysyms.XK_F9
+		case .f10: return Keysyms.XK_F10
+		case .f11: return Keysyms.XK_F11
+		case .f12: return Keysyms.XK_F12
+		case .f13: return Keysyms.XK_F13
+		case .f14: return Keysyms.XK_F14
+		case .f15: return Keysyms.XK_F15
+		case .f16: return Keysyms.XK_F16
+		case .f17: return Keysyms.XK_F17
+		case .f18: return Keysyms.XK_F18
+		case .f19: return Keysyms.XK_F19
+		case .f20: return Keysyms.XK_F20
+		case .f21: return Keysyms.XK_F21
+		case .f22: return Keysyms.XK_F22
+		case .f23: return Keysyms.XK_F23
+		case .f24: return Keysyms.XK_F24
+		case .f25: return Keysyms.XK_F25
+		case .f26: return Keysyms.XK_F26
+		case .f27: return Keysyms.XK_F27
+		case .f28: return Keysyms.XK_F28
+		case .f29: return Keysyms.XK_F29
+		case .f30: return Keysyms.XK_F30
+		case .f31: return Keysyms.XK_F31
+		case .f32: return Keysyms.XK_F32
+		case .f33: return Keysyms.XK_F33
+		case .f34: return Keysyms.XK_F34
+		case .f35: return Keysyms.XK_F35
+		case .find: return Keysyms.XK_Find
+		//case .formFeed: return Keysyms.XK_Return
+		case .help: return Keysyms.XK_Help
+		case .home: return Keysyms.XK_Home
+		case .insert:	return Keysyms.XK_Insert
+		//case .insertLine: return Keysyms.XK_Insert
+		//case .insertCharacter: :KeysymsXK_Insert
+		case .leftArrow: return Keysyms.XK_Left
+		case .lineSeparator: return Keysyms.XK_Linefeed
+		case .menu: return Keysyms.XK_Return
+		case .modeSwitch: return Keysyms.XK_Mode_switch
+		case .newline: return Keysyms.XK_Return
+		case .next: return Keysyms.XK_Next
+		case .pageDown: return Keysyms.XK_Page_Down
+		case .pageUp: return Keysyms.XK_Page_Up
+		case .pause: return Keysyms.XK_Pause
+		case .prev: return Keysyms.XK_PreviousCandidate
+		case .print: return Keysyms.XK_Print
+		case .printScreen: return Keysyms.XK_3270_PrintScreen
+		case .paragraphSeparator: return Keysyms.XK_paragraph
+		case .redo: return Keysyms.XK_Redo
+		case .reset: return Keysyms.XK_3270_Reset
+		case .rightArrow: return Keysyms.XK_Right
+		case .scrollLock: return Keysyms.XK_Scroll_Lock
+		case .stop: return Keysyms.XK_Cancel
+		case .select: return Keysyms.XK_Select
+		case .sysReq: return Keysyms.XK_Sys_Req
+		//case .system: :KeysymsXK_Sys_Req
+		case .tab: return Keysyms.XK_Tab
+		case .undo: return Keysyms.XK_Undo
+		case .upArrow: return Keysyms.XK_Up
+		default:
+			return nil
+		}
+	}
 }
 
 extension CGKeyCode {
@@ -45,120 +210,122 @@ extension CGKeyCode {
 			return nil
 		}
 	}
-
-	public init?(modifierFlag: NSEvent.ModifierFlags) {
-		if let keyCode = Initializers.shared.modifierFlagKeys[modifierFlag] {
-			self = keyCode
-		} else {
-			return nil
-		}
-	}
 	
-	public init?(specialKey: NSEvent.SpecialKey) {
+	public init?(specialKey: UInt32) {
 		if let keyCode = Initializers.shared.specialKeys[specialKey] {
 			self = keyCode
 		} else {
 			return nil
 		}
 	}
-	
+
+	public init?(modifierKey: UInt32) {
+		if let keyCode = Initializers.shared.modifierFlagKeys[modifierKey] {
+			self = keyCode
+		} else {
+			return nil
+		}
+	}
+
+	static func charactersIgnoringModifiers(_ keyCode: CGKeyCode) -> String? {
+		return Initializers.shared.keysCharacters[keyCode]
+	}
+
+	static func characterForKeysym(_ vncKey: UInt32) -> String? {
+		// Convert VNC codes to characters
+		if vncKey >= 0x20 && vncKey <= 0x7E {
+			// ASCII printable characters
+			if let scalar = UnicodeScalar(vncKey) {
+				return String(Character(scalar))
+			}
+
+			return nil
+		}
+
+		// Special characters
+		switch vncKey {
+		case 0x08, 0xFF08: return "\u{8}"  // Backspace
+		case 0x09, 0xFF09: return "\t"  // Tab
+		case 0x0D, 0xFF0D: return "\r"  // Return
+		case 0x1B, 0xFF1B: return "\u{1B}"  // Escape
+		case 0x0020: return " "  // Space
+		default:
+			return nil
+		}
+	}
+
 	struct Initializers {
-		let specialKeys: [NSEvent.SpecialKey:CGKeyCode]
+		let specialKeys: [UInt32:CGKeyCode]
 		let characterKeys: [String:CGKeyCode]
-		let modifierFlagKeys: [NSEvent.ModifierFlags:CGKeyCode]
+		let modifierFlagKeys: [UInt32:CGKeyCode]
+		let keysCharacters: [CGKeyCode:String]
 
 		static var shared: Initializers! = nil
 		
 		init() throws {
-			var specialKeys = [NSEvent.SpecialKey:CGKeyCode]()
-			var characterKeys = [String:CGKeyCode]()
-			var modifierFlagKeys = [NSEvent.ModifierFlags:CGKeyCode]()
+			var specialKeys: [UInt32:CGKeyCode] = [:]
+			var characterKeys: [String:CGKeyCode] = [:]
+			var keysCharacters: [CGKeyCode:String] = [:]
+			var modifierFlagKeys: [UInt32:CGKeyCode] = [:]
+			let eventSource = CGEventSource(stateID: .privateState);
+			let modifiers: [NSEvent.ModifierFlags] = [
+				[],
+				.init(rawValue: 0x100),
+				.shift,
+				.option,
+				.shift.union(.option)
+			]
 
-			if let currentKeyboardUnmanaged = TISCopyCurrentKeyboardInputSource() {
-				let currentKeyboard = currentKeyboardUnmanaged.retain()
-				let inputSource = currentKeyboard.takeUnretainedValue()
+			for keyCode in (0..<128).map({ CGKeyCode($0) }) {
+				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: true) else {
+					throw ServiceError("Unable to create CGEvent for \(keyCode)")
+				}
 				
-				if let keyboardLayoutData = TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData) {
-					let layoutData = Unmanaged<CFData>.fromOpaque(keyboardLayoutData).takeUnretainedValue() as Data
+				if let nsevent = NSEvent(cgEvent: cgevent) {
+					var hasHandledKeyCode = false
 					
-					try layoutData.withUnsafeBytes { rawBuffer in
-						guard let baseAddress = rawBuffer.baseAddress else { return }
-						let keyboardLayout = baseAddress.assumingMemoryBound(to: UCKeyboardLayout.self)
-						let eventSource = CGEventSource(stateID: .privateState);
-
-						func remapKeyboard(_ keyCode: CGKeyCode, characters: String? = nil) {
-							var chars: [UniChar] = [0, 0, 0, 0]
-							var realLength: Int = 0
-							var deadKeyState: UInt32 = 0
-
-							func append(_ chars: String) {
-								if characterKeys[chars] == nil {
-									characterKeys[chars] = keyCode
-								}
+					if nsevent.type == .keyDown {
+						if let specialKey = nsevent.specialKey {
+							if let keysym = specialKey.keysym {
+								hasHandledKeyCode = true
+								specialKeys[keysym] = keyCode
 							}
-
-							let status = UCKeyTranslate(keyboardLayout,
-														keyCode,
-														UInt16(kUCKeyActionDisplay),
-														0,
-														UInt32(LMGetKbdType()),
-														UInt32(kUCKeyTranslateNoDeadKeysBit),
-														&deadKeyState,
-														chars.count,
-														&realLength,
-														&chars)
-							
-							if status == 0 {
-								let chars = String(utf16CodeUnits: &chars[0], count: 1)
-								append(chars)
-								append(chars.uppercased())
-							} else if let characters {
-								append(characters)
-								append(characters.uppercased())
-							} else {
-								#if DEBUG
-								Logger("CGKeyCode").debug("Unhandled keycode \(keyCode)")
-								#endif
-							}
-						}
-
-						for keyCode in (0..<128).map({ CGKeyCode($0) }) {
-							guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: true) else { throw ServiceError("Unable to create CGEvent for \(keyCode)") }
-							
-							if let nsevent = NSEvent(cgEvent: cgevent) {
-								var hasHandledKeyCode = false
-								
-								if nsevent.type == .keyDown {
-									if let specialKey = nsevent.specialKey {
-										hasHandledKeyCode = true
-										specialKeys[specialKey] = keyCode
-									} else if let characters = nsevent.charactersIgnoringModifiers, !characters.isEmpty && characters != "\u{0010}" {
-										hasHandledKeyCode = true
-										remapKeyboard(keyCode, characters: characters)
-										characterKeys[characters] = keyCode
-									}
-								} else if nsevent.type == .flagsChanged {
+						} else {
+							modifiers.forEach { modifier in
+								if let characters = nsevent.characters(byApplyingModifiers: modifier) {
 									hasHandledKeyCode = true
-									modifierFlagKeys[nsevent.modifierFlags] = keyCode
-								} else {
-									Logger("CGKeyCode").debug("Unknown event type for keycode \(keyCode): \(nsevent.type)")
+
+									if characterKeys[characters] == nil {
+										characterKeys[characters] = keyCode
+
+										if let charactersIgnoringModifiers = nsevent.charactersIgnoringModifiers {
+											keysCharacters[keyCode] = charactersIgnoringModifiers
+										}
+									}
 								}
-								
-								if hasHandledKeyCode == false {
-									remapKeyboard(keyCode)
-								}
-							} else {
-								throw ServiceError("unable to create NSEvent")
 							}
 						}
-						
+					} else if nsevent.type == .flagsChanged {
+						if let keysym = nsevent.modifierFlags.keysym {
+							hasHandledKeyCode = true
+							modifierFlagKeys[keysym] = keyCode
+						}
+					} else {
+						Logger("CGKeyCode").debug("Unknown event type for keycode \(keyCode): \(nsevent.type)")
 					}
+					
+					if hasHandledKeyCode == false {
+						Logger("CGKeyCode").debug("Unhandled keycode: \(keyCode): \(nsevent.type)")
+					}
+				} else {
+					throw ServiceError("unable to create NSEvent")
 				}
 			}
 
 			self.specialKeys = specialKeys
 			self.characterKeys = characterKeys
 			self.modifierFlagKeys = modifierFlagKeys
+			self.keysCharacters = keysCharacters
 		}
 	}
 }
@@ -189,147 +356,16 @@ extension VNCKeyCode {
 	public static let ansiKeypad9 = VNCKeyCode(Keysyms.XK_KP_9)
 }
 
-private struct VNCKeyCodeMaps {
-	static var vncKeyCodeToKeyCodeMapping: [UInt32:CGKeyCode] = [
-		0x0008: CGKeyCode(kVK_Delete),
-		0x0009: CGKeyCode(kVK_Tab),
-		0x000D: CGKeyCode(kVK_Return),
-		0x001B: CGKeyCode(kVK_Escape),
-		0x0020: CGKeyCode(kVK_Space),
-		0x0021: CGKeyCode(kVK_ANSI_Exclam),
-		0x0022: CGKeyCode(kVK_ANSI_Quote),
-		0x0023: CGKeyCode(kVK_ANSI_Number),
-		0x0024: CGKeyCode(kVK_ANSI_Dollar),
-		0x0025: CGKeyCode(kVK_ANSI_Percent),
-		0x0026: CGKeyCode(kVK_ANSI_Ampersand),
-		0x0027: CGKeyCode(kVK_ANSI_Quote),
-		0x0028: CGKeyCode(kVK_ANSI_LeftParen),
-		0x0029: CGKeyCode(kVK_ANSI_RightParen),
-		0x002A: CGKeyCode(kVK_ANSI_Asterisk),
-		0x002B: CGKeyCode(kVK_ANSI_Plus),
-		0x002C: CGKeyCode(kVK_ANSI_Comma),
-		0x002D: CGKeyCode(kVK_ANSI_Minus),
-		0x002E: CGKeyCode(kVK_ANSI_Period),
-		0x002F: CGKeyCode(kVK_ANSI_Slash),
-
-		0x0030: CGKeyCode(kVK_ANSI_0),
-		0x0031: CGKeyCode(kVK_ANSI_1),
-		0x0032: CGKeyCode(kVK_ANSI_2),
-		0x0033: CGKeyCode(kVK_ANSI_3),
-		0x0034: CGKeyCode(kVK_ANSI_4),
-		0x0035: CGKeyCode(kVK_ANSI_5),
-		0x0036: CGKeyCode(kVK_ANSI_6),
-		0x0037: CGKeyCode(kVK_ANSI_7),
-		0x0038: CGKeyCode(kVK_ANSI_8),
-		0x0039: CGKeyCode(kVK_ANSI_9),
-
-		0x0041: CGKeyCode(kVK_ANSI_A),
-		0x0042: CGKeyCode(kVK_ANSI_B),
-		0x0043: CGKeyCode(kVK_ANSI_C),
-		0x0044: CGKeyCode(kVK_ANSI_D),
-		0x0045: CGKeyCode(kVK_ANSI_E),
-		0x0046: CGKeyCode(kVK_ANSI_F),
-		0x0047: CGKeyCode(kVK_ANSI_G),
-		0x0048: CGKeyCode(kVK_ANSI_H),
-		0x0049: CGKeyCode(kVK_ANSI_I),
-		0x004A: CGKeyCode(kVK_ANSI_J),
-		0x004B: CGKeyCode(kVK_ANSI_K),
-		0x004C: CGKeyCode(kVK_ANSI_L),
-		0x004D: CGKeyCode(kVK_ANSI_M),
-		0x004E: CGKeyCode(kVK_ANSI_N),
-		0x004F: CGKeyCode(kVK_ANSI_O),
-		0x0050: CGKeyCode(kVK_ANSI_P),
-		0x0051: CGKeyCode(kVK_ANSI_Q),
-		0x0052: CGKeyCode(kVK_ANSI_R),
-		0x0053: CGKeyCode(kVK_ANSI_S),
-		0x0054: CGKeyCode(kVK_ANSI_T),
-		0x0055: CGKeyCode(kVK_ANSI_U),
-		0x0056: CGKeyCode(kVK_ANSI_V),
-		0x0057: CGKeyCode(kVK_ANSI_W),
-		0x0058: CGKeyCode(kVK_ANSI_X),
-		0x0059: CGKeyCode(kVK_ANSI_Y),
-		0x005A: CGKeyCode(kVK_ANSI_Z),
-
-		0x005B: CGKeyCode(kVK_ANSI_LeftBracket),
-		0x005C: CGKeyCode(kVK_ANSI_Backslash),
-		0x005D: CGKeyCode(kVK_ANSI_RightBracket),
-		0x005E: CGKeyCode(kVK_ANSI_Caret),
-		0x005F: CGKeyCode(kVK_ANSI_Underscore),
-		0x0060: CGKeyCode(kVK_ANSI_Grave),
-
-		0x0061: CGKeyCode(kVK_ANSI_A),
-		0x0062: CGKeyCode(kVK_ANSI_B),
-		0x0063: CGKeyCode(kVK_ANSI_C),
-		0x0064: CGKeyCode(kVK_ANSI_D),
-		0x0065: CGKeyCode(kVK_ANSI_E),
-		0x0066: CGKeyCode(kVK_ANSI_F),
-		0x0067: CGKeyCode(kVK_ANSI_G),
-		0x0068: CGKeyCode(kVK_ANSI_H),
-		0x0069: CGKeyCode(kVK_ANSI_I),
-		0x006A: CGKeyCode(kVK_ANSI_J),
-		0x006B: CGKeyCode(kVK_ANSI_K),
-		0x006C: CGKeyCode(kVK_ANSI_L),
-		0x006D: CGKeyCode(kVK_ANSI_M),
-		0x006E: CGKeyCode(kVK_ANSI_N),
-		0x006F: CGKeyCode(kVK_ANSI_O),
-		0x0070: CGKeyCode(kVK_ANSI_P),
-		0x0071: CGKeyCode(kVK_ANSI_Q),
-		0x0072: CGKeyCode(kVK_ANSI_R),
-		0x0073: CGKeyCode(kVK_ANSI_S),
-		0x0074: CGKeyCode(kVK_ANSI_T),
-		0x0075: CGKeyCode(kVK_ANSI_U),
-		0x0076: CGKeyCode(kVK_ANSI_V),
-		0x0077: CGKeyCode(kVK_ANSI_W),
-		0x0078: CGKeyCode(kVK_ANSI_X),
-		0x0079: CGKeyCode(kVK_ANSI_Y),
-		0x007A: CGKeyCode(kVK_ANSI_Z),
-		0x007B: CGKeyCode(kVK_ANSI_LeftBracket),
-		0x007C: CGKeyCode(kVK_ANSI_Backslash),
-		0x007D: CGKeyCode(kVK_ANSI_RightBracket),
-		0x007E: CGKeyCode(kVK_ANSI_Grave),
-		0x007F: CGKeyCode(kVK_ForwardDelete)
-	]
-
+public extension VNCKeyCode {
 	static let vncSpecialKeyCodeToKeyCodeMapping: [UInt32:CGKeyCode] = [
 		0xFFE5: CGKeyCodes.capsLock,
 		0xFFE6: CGKeyCodes.capsLock,
 		0x1008FF2B: CGKeyCodes.function,
 
-		VNCKeyCode.shift.rawValue: CGKeyCodes.shift,
-		VNCKeyCode.rightShift.rawValue: CGKeyCodes.rightShift,
-
-		VNCKeyCode.control.rawValue: CGKeyCodes.control,
-		VNCKeyCode.rightControl.rawValue: CGKeyCodes.rightControl,
-
-		VNCKeyCode.option.rawValue: CGKeyCodes.option,
-		VNCKeyCode.rightOption.rawValue: CGKeyCodes.rightOption,
-
 		VNCKeyCode.optionForARD.rawValue: CGKeyCodes.option,
 		VNCKeyCode.rightOptionForARD.rawValue: CGKeyCodes.rightOption,
-
-		VNCKeyCode.command.rawValue: CGKeyCodes.command,
-		VNCKeyCode.rightCommand.rawValue: CGKeyCodes.rightCommand,
-
 		VNCKeyCode.commandForARD.rawValue: CGKeyCodes.command,
 		VNCKeyCode.rightCommandForARD.rawValue: CGKeyCodes.rightCommand,
-
-		VNCKeyCode.return.rawValue: CGKeyCodes.return,
-		VNCKeyCode.forwardDelete.rawValue: CGKeyCodes.forwardDelete,
-		VNCKeyCode.space.rawValue: CGKeyCodes.space,
-		VNCKeyCode.delete.rawValue: CGKeyCodes.delete,
-		VNCKeyCode.tab.rawValue: CGKeyCodes.tab,
-		VNCKeyCode.escape.rawValue: CGKeyCodes.escape,
-
-		VNCKeyCode.leftArrow.rawValue: CGKeyCodes.leftArrow,
-		VNCKeyCode.upArrow.rawValue: CGKeyCodes.upArrow,
-		VNCKeyCode.rightArrow.rawValue: CGKeyCodes.rightArrow,
-		VNCKeyCode.downArrow.rawValue: CGKeyCodes.downArrow,
-
-		VNCKeyCode.pageUp.rawValue: CGKeyCodes.pageUp,
-		VNCKeyCode.pageDown.rawValue: CGKeyCodes.pageDown,
-		VNCKeyCode.end.rawValue: CGKeyCodes.end,
-		VNCKeyCode.home.rawValue: CGKeyCodes.home,
-		VNCKeyCode.insert.rawValue: CGKeyCodes.help,
 
 		VNCKeyCode.ansiKeypad0.rawValue: CGKeyCodes.ansiKeypad0,
 		VNCKeyCode.ansiKeypad1.rawValue: CGKeyCodes.ansiKeypad1,
@@ -350,42 +386,15 @@ private struct VNCKeyCodeMaps {
 		VNCKeyCode.ansiKeypadPlus.rawValue: CGKeyCodes.ansiKeypadPlus,
 		VNCKeyCode.ansiKeypadEnter.rawValue: CGKeyCodes.ansiKeypadEnter,
 		VNCKeyCode.ansiKeypadDecimal.rawValue: CGKeyCodes.ansiKeypadDecimal,
-
-		VNCKeyCode.f1.rawValue: CGKeyCodes.f1,
-		VNCKeyCode.f2.rawValue: CGKeyCodes.f2,
-		VNCKeyCode.f3.rawValue: CGKeyCodes.f3,
-		VNCKeyCode.f4.rawValue: CGKeyCodes.f4,
-		VNCKeyCode.f5.rawValue: CGKeyCodes.f5,
-		VNCKeyCode.f6.rawValue: CGKeyCodes.f6,
-		VNCKeyCode.f7.rawValue: CGKeyCodes.f7,
-		VNCKeyCode.f8.rawValue: CGKeyCodes.f8,
-		VNCKeyCode.f9.rawValue: CGKeyCodes.f9,
-		VNCKeyCode.f10.rawValue: CGKeyCodes.f10,
-		VNCKeyCode.f11.rawValue: CGKeyCodes.f11,
-		VNCKeyCode.f12.rawValue: CGKeyCodes.f12,
-		VNCKeyCode.f13.rawValue: CGKeyCodes.f13,
-		VNCKeyCode.f14.rawValue: CGKeyCodes.f14,
-		VNCKeyCode.f15.rawValue: CGKeyCodes.f15,
-		VNCKeyCode.f16.rawValue: CGKeyCodes.f16,
-		VNCKeyCode.f17.rawValue: CGKeyCodes.f17,
-		VNCKeyCode.f18.rawValue: CGKeyCodes.f18,
-		VNCKeyCode.f19.rawValue: CGKeyCodes.f19
 	]
-}
 
-public extension VNCKeyCode {
 	static func to(vncKeyCode: UInt32) -> CGKeyCode? {
-		return VNCKeyCodeMaps.vncSpecialKeyCodeToKeyCodeMapping[vncKeyCode]
+		return Self.vncSpecialKeyCodeToKeyCodeMapping[vncKeyCode]
 	}
 }
 
 public class VNCKeyMapper: Keymapper {
-	private var isShiftDown = false
-	private var isOptionDown = false
-	private var isControlDown = false
-	private var isCommandDown = false
-	private var isCapsLockDown = false
-	private var isNumericPad = false
+	private var currentModifiers: NSEvent.ModifierFlags = []
 
 	static func setupKeyMapper() throws {
 		CGKeyCode.Initializers.shared = try CGKeyCode.Initializers.init()
@@ -395,9 +404,17 @@ public class VNCKeyMapper: Keymapper {
 		try Self.setupKeyMapper()
 	}
 	
-	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, characters: String?) {
+	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?, charactersIgnoringModifiers: String?) {
+		if let keyCode = CGKeyCode(modifierKey: vncKeyCode) {
+			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
+		}
+
+		if let keyCode = CGKeyCode(specialKey: vncKeyCode) {
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
+		}
+
 		if let keyCode = VNCKeyCode.to(vncKeyCode: vncKeyCode) {
-			return (keyCode, Keysyms.characterForKeysym(vncKeyCode))
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.charactersIgnoringModifiers(keyCode))
 		}
 
 		// ASCII printable characters
@@ -407,53 +424,100 @@ public class VNCKeyMapper: Keymapper {
 			guard let keyCode = CGKeyCode(character: characters) else {
 				Logger(self).debug("Not found: key=\(vncKeyCode.hexa)")
 
-				return (CGKeyCode(vncKeyCode), String(scalar))
+				return (CGKeyCode(vncKeyCode), false, String(scalar), String(scalar))
 			}
 
-			return (keyCode, String(scalar))
+			return (keyCode, false, String(scalar), CGKeyCode.charactersIgnoringModifiers(keyCode))
 		} else {
 			Logger(self).debug("Not unicode found: key=\(vncKeyCode.hexa)")
 		}
 
-		return (CGKeyCode(vncKeyCode), nil)
+		return (CGKeyCode(vncKeyCode), false, CGKeyCode.characterForKeysym(vncKeyCode), CGKeyCode.characterForKeysym(vncKeyCode))
 	}
 
-	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: (CGKeyCode, CGEventFlags, String?) -> Void) {
+	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
 		let result = self.vncKeyCodeTo(vncKeyCode: vncKey)
-		var modifierFlags: CGEventFlags = []
 
-		switch result.keyCode {
-		case CGKeyCodes.shift, CGKeyCodes.rightShift:
-			self.isShiftDown = isDown
-		case CGKeyCodes.control, CGKeyCodes.rightControl:
-			self.isControlDown = isDown
-		case CGKeyCodes.option, CGKeyCodes.rightOption:
-			self.isOptionDown = isDown
-		case CGKeyCodes.command, CGKeyCodes.rightCommand:
-			self.isCommandDown = isDown
-		case CGKeyCodes.capsLock:
-			self.isCapsLockDown = isDown
-		default:
-			break
+		if result.modifier {
+			switch result.keyCode {
+			case CGKeyCodes.shift:
+				if isDown {
+					self.currentModifiers.insert(.leftShift)
+				} else {
+					self.currentModifiers.remove(.leftShift)
+				}
+			case CGKeyCodes.rightShift:
+				if isDown {
+					self.currentModifiers.insert(.rightShift)
+				} else {
+					self.currentModifiers.remove(.rightShift)
+				}
+
+			case CGKeyCodes.control:
+				if isDown {
+					self.currentModifiers.insert(.leftControl)
+				} else {
+					self.currentModifiers.remove(.leftControl)
+				}
+			case CGKeyCodes.rightControl:
+				if isDown {
+					self.currentModifiers.insert(.rightControl)
+				} else {
+					self.currentModifiers.remove(.rightControl)
+				}
+
+			case CGKeyCodes.option:
+				if isDown {
+					self.currentModifiers.insert(.leftOption)
+				} else {
+					self.currentModifiers.remove(.leftOption)
+				}
+			case CGKeyCodes.rightOption:
+				if isDown {
+					self.currentModifiers.insert(.rightOption)
+				} else {
+					self.currentModifiers.remove(.rightOption)
+				}
+
+			case CGKeyCodes.command:
+				if isDown {
+					self.currentModifiers.insert(.leftCommand)
+				} else {
+					self.currentModifiers.remove(.leftCommand)
+				}
+			case CGKeyCodes.rightCommand:
+				if isDown {
+					self.currentModifiers.insert(.rightCommand)
+				} else {
+					self.currentModifiers.remove(.rightCommand)
+				}
+
+			case CGKeyCodes.capsLock:
+				if isDown {
+					self.currentModifiers.insert(.capsLock)
+				} else {
+					self.currentModifiers.remove(.capsLock)
+				}
+
+			case CGKeyCodes.help:
+				if isDown {
+					self.currentModifiers.insert(.help)
+				} else {
+					self.currentModifiers.remove(.help)
+				}
+
+			case CGKeyCodes.function:
+				if isDown {
+					self.currentModifiers.insert(.function)
+				} else {
+					self.currentModifiers.remove(.function)
+				}
+			default:
+				break
+			}
 		}
 
-		if isCommandDown {
-			modifierFlags.insert(.maskCommand)
-		}
-
-		if isOptionDown {
-			modifierFlags.insert(.maskAlternate)
-		}
-
-		if isShiftDown {
-			modifierFlags.insert(.maskShift)
-		}
-
-		if isNumericPad {
-			modifierFlags.insert(.maskNumericPad)
-		}
-
-		sendKeyEvent(result.keyCode, modifierFlags, result.characters)
+		sendKeyEvent(result.keyCode, self.currentModifiers, result.characters, result.charactersIgnoringModifiers)
 	}
 }
 

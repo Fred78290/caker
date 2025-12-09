@@ -7,6 +7,7 @@
 
 import Carbon
 import Foundation
+import AppKit
 
 class OSXKeyMapper: Keymapper {
 	static let keyTableSize = 65536
@@ -205,7 +206,7 @@ class OSXKeyMapper: Keymapper {
 	static var keyNumericPadCommand: CGKeyCode = 0
 	static var keyFunctionCommand: CGKeyCode = 0
 
-	var currentModifiers: CGEventFlags = []
+	var currentModifiers: NSEvent.ModifierFlags = []
 	var unicodeInputSource: Unmanaged<TISInputSource>! = nil
 	var currentInputSource: Unmanaged<TISInputSource>! = TISCopyCurrentKeyboardInputSource()
 	var modiferKeys = [Bool](repeating: false, count: 256)
@@ -237,78 +238,74 @@ class OSXKeyMapper: Keymapper {
 		Self.setupKeyMapper()
 	}
 
-	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: (CGKeyCode, CGEventFlags, String?) -> Void) {
+	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
 		let keyCode = UInt16(Self.keyTable[Int(vncKey)])
-		let characters = Keysyms.characterForKeysym(vncKey)
+		let characters = CGKeyCode.characterForKeysym(vncKey)
 
 		if keyCode == 0xFFFF {
 			Logger(self).debug("keyCode not found: \(vncKey)")
 		} else {
-			let isModifierKey = (Keysyms.XK_Shift_L <= vncKey && vncKey <= Keysyms.XK_Hyper_R)
-
 			self.modiferKeys[Int(keyCode)] = isDown
 
-			if isModifierKey {
-				// Record them in our "currentModifiers"
-				switch vncKey {
-				case Keysyms.XK_Shift_L, Keysyms.XK_Shift_R:
-					if isDown {
-						currentModifiers.insert(.maskShift)
-					} else {
-						currentModifiers.remove(.maskShift)
-					}
-				case Keysyms.XK_Control_L, Keysyms.XK_Control_R:
-					if isDown {
-						currentModifiers.insert(.maskControl)
-					} else {
-						currentModifiers.remove(.maskControl)
-					}
-				case Keysyms.XK_Meta_L, Keysyms.XK_Meta_R:
-					if isDown {
-						currentModifiers.insert(.maskAlternate)
-					} else {
-						currentModifiers.remove(.maskAlternate)
-					}
-				case Keysyms.XK_Alt_L, Keysyms.XK_Alt_R:
-					if isDown {
-						currentModifiers.insert(.maskCommand)
-					} else {
-						currentModifiers.remove(.maskCommand)
-					}
-				default:
-					break
+			// Record them in our "currentModifiers"
+			switch vncKey {
+			case Keysyms.XK_Shift_L:
+				if isDown {
+					currentModifiers.insert(.leftShift)
+				} else {
+					currentModifiers.remove(.leftShift)
+				}
+			case Keysyms.XK_Shift_R:
+				if isDown {
+					currentModifiers.insert(.rightShift)
+				} else {
+					currentModifiers.remove(.rightShift)
 				}
 
-				sendKeyEvent(keyCode, currentModifiers, nil)
-			} else {
-				var modifiersToSend: CGEventFlags = [.maskNonCoalesced]
-
-				if self.modiferKeys[Int(Self.keyCodeShift)] {
-					modifiersToSend.insert(.maskShift)
+			case Keysyms.XK_Control_L:
+				if isDown {
+					currentModifiers.insert(.leftControl)
+				} else {
+					currentModifiers.remove(.leftControl)
+				}
+			case Keysyms.XK_Control_R:
+				if isDown {
+					currentModifiers.insert(.rightControl)
+				} else {
+					currentModifiers.remove(.rightControl)
 				}
 
-				if self.modiferKeys[Int(Self.keyCodeControl)] {
-					modifiersToSend.insert(.maskControl)
+			case Keysyms.XK_Meta_L:
+				if isDown {
+					currentModifiers.insert(.leftOption)
+				} else {
+					currentModifiers.remove(.leftOption)
+				}
+			case Keysyms.XK_Meta_R:
+				if isDown {
+					currentModifiers.insert(.rightOption)
+				} else {
+					currentModifiers.remove(.rightOption)
 				}
 
-				if self.modiferKeys[Int(Self.keyCodeOption)] {
-					modifiersToSend.insert(.maskAlternate)
+			case Keysyms.XK_Alt_L:
+				if isDown {
+					currentModifiers.insert(.leftCommand)
+				} else {
+					currentModifiers.remove(.leftCommand)
+				}
+			case Keysyms.XK_Alt_R:
+				if isDown {
+					currentModifiers.insert(.rightCommand)
+				} else {
+					currentModifiers.remove(.rightCommand)
 				}
 
-				if self.modiferKeys[Int(Self.keyCodeCommand)] {
-					modifiersToSend.insert(.maskCommand)
-				}
-
-				if self.modiferKeys[Int(Self.keyNumericPadCommand)] {
-					modifiersToSend.insert(.maskNumericPad)
-				}
-
-				if self.modiferKeys[Int(Self.keyFunctionCommand)] {
-					modifiersToSend.insert(.maskSecondaryFn)
-				}
-
-				sendKeyEvent(keyCode, modifiersToSend, characters)
+			default:
+				break
 			}
+
+			sendKeyEvent(keyCode, currentModifiers, characters, characters)
 		}
 	}
 }

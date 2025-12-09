@@ -127,6 +127,7 @@ enum CarbonKeyCode: CGKeyCode {
 	case kVK_F16                       = 106
 	case kVK_F14                       = 107
 	case kVK_F10                       = 109
+	case kVK_Unknown08                 = 108
 	case kVK_ContextualMenu            = 110
 	case kVK_F12                       = 111
 	
@@ -502,18 +503,18 @@ public class CarbonKeyMapper: Keymapper {
 	// Mapping des modificateurs VNC vers NSEvent.ModifierFlags
 	static let vncModifiers: [UInt32: NSEvent.ModifierFlags] = [
 		0xFF0B: .numericPad,
-		0xFFE1: .shift,  // Left Shift
-		0xFFE2: .shift,  // Right Shift
-		0xFFE3: .control,  // Left Control
-		0xFFE4: .control,  // Right Control
+		0xFFE1: .leftShift,  // Left Shift
+		0xFFE2: .rightShift,  // Right Shift
+		0xFFE3: .leftControl,  // Left Control
+		0xFFE4: .rightControl,  // Right Control
 		0xFFE5: .capsLock,  // Shift lock
 		0xFFE6: .capsLock,  // Left Shift
-		0xFFE7: .option,  // Left Meta
-		0xFFE8: .option,  // Right Meta
-		0xFFE9: .option,  // Left Alt
-		0xFFEA: .option,  // Right Alt
-		0xFFEB: .command,  // Left Command
-		0xFFEC: .command,  // Right Command
+		0xFFE7: .leftOption,  // Left Meta
+		0xFFE8: .rightOption,  // Right Meta
+		0xFFE9: .leftOption,  // Left Alt
+		0xFFEA: .rightOption,  // Right Alt
+		0xFFEB: .leftCommand,  // Left Command
+		0xFFEC: .rightCommand,  // Right Command
 		0x1008FF2B: .function
 	]
 
@@ -524,12 +525,7 @@ public class CarbonKeyMapper: Keymapper {
 	private static var charShiftOptionKeyMap: [UniChar: CGKeyCode] = [:]
 	private static var keymapInitialized: Bool = false
 
-	private var isShiftDown = false
-	private var isOptionDown = false
-	private var isControlDown = false
-	private var isCommandDown = false
-	private var isCapsLockDown = false
-	private var isNumericPad = false
+	private var currentModifiers: NSEvent.ModifierFlags = []
 
 	static func setupKeyMapper() throws {
 		guard keymapInitialized == false else {
@@ -614,20 +610,20 @@ public class CarbonKeyMapper: Keymapper {
 		#if DEBUG
 		print("charKeyMap")
 		charKeyMap.map {
-			"\(Keysyms.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
 		}.sorted().forEach {
 			print($0)
 		}
 
 		print("charShiftKeyMap")
 		charShiftKeyMap.map {
-			"\(Keysyms.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
 		}.sorted().forEach {
 			print($0)
 		}
 		print("charOptionKeyMap")
 		charOptionKeyMap.map {
-			"\(Keysyms.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
 		}.sorted().forEach {
 			print($0)
 		}
@@ -639,78 +635,38 @@ public class CarbonKeyMapper: Keymapper {
 		try Self.setupKeyMapper()
 	}
 	
-	var modifierFlags: CGEventFlags {
-		var modifierFlags: CGEventFlags = []
-
-		if isCommandDown {
-			modifierFlags.insert(.maskCommand)
-		}
-
-		if isOptionDown {
-			modifierFlags.insert(.maskAlternate)
-		}
-
-		if isShiftDown {
-			modifierFlags.insert(.maskShift)
-		}
-
-		if isControlDown {
-			modifierFlags.insert(.maskControl)
-		}
-
-		if isNumericPad {
-			modifierFlags.insert(.maskNumericPad)
-		}
-
-		return modifierFlags
-	}
-
-	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: (CGKeyCode, CGEventFlags, String?) -> Void) {
+	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
 		// Check if it's a modifier
 		if let modifier = Self.vncModifiers[vncKey] {
 			let keyCode = Self.vncToMacKeyMap[vncKey]?.rawValue ?? 0
 
-			if modifier == .shift {
-				self.isShiftDown = isDown
+			if isDown {
+				self.currentModifiers.insert(modifier)
+			} else {
+				self.currentModifiers.remove(modifier)
 			}
-			if modifier == .control {
-				self.isControlDown = isDown
-			}
-
-			if modifier == .option {
-				self.isOptionDown = isDown
-			}
-
-			if modifier == .command {
-				self.isCommandDown = isDown
-			}
-
-			if modifier == .numericPad && isDown == false {
-				isNumericPad.toggle()
-			}
-
-			sendKeyEvent(keyCode, self.modifierFlags, nil)
+			sendKeyEvent(keyCode, self.currentModifiers, nil, nil)
 		} else {
 			var keyMap = Self.charKeyMap
 			
-			if isShiftDown {
+			if self.currentModifiers.contains(.shift) {
 				keyMap = Self.charShiftKeyMap;
 			}
 			
-			if (!isShiftDown && isOptionDown) {
+			if (self.currentModifiers.contains(.shift) == false && self.currentModifiers.contains(.option)) {
 				keyMap = Self.charOptionKeyMap
 			}
 			
-			if (isShiftDown && isOptionDown) {
+			if (self.currentModifiers.contains(.shift) && self.currentModifiers.contains(.option)) {
 				keyMap = Self.charShiftOptionKeyMap
 			}
 			
 			if let keyCode = keyMap[UInt16(vncKey)] {
-				sendKeyEvent(keyCode, self.modifierFlags, Keysyms.characterForKeysym(vncKey))
+				sendKeyEvent(keyCode, self.currentModifiers, CGKeyCode.characterForKeysym(vncKey), CGKeyCode.characterForKeysym(vncKey))
 			} else if let keyCode = CarbonKeyCode.USKeyCodes[vncKey] {
 				Logger(self).debug("Fallback: key=\(vncKey.hexa), keyCode=\(keyCode)")
 				
-				sendKeyEvent(keyCode.rawValue, self.modifierFlags, Keysyms.characterForKeysym(vncKey))
+				sendKeyEvent(keyCode.rawValue, self.currentModifiers, CGKeyCode.characterForKeysym(vncKey), CGKeyCode.characterForKeysym(vncKey))
 			} else {
 				Logger(self).debug("Not found: key=\(vncKey.hexa)")
 			}

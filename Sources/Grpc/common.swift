@@ -445,7 +445,7 @@ extension NSView {
 		return self.window!.convertToScreen(self.convert(self.bounds, to: nil))
 	}
 
-	public func imageRepresentation(in bounds: NSRect) -> NSBitmapImageRep? {
+	public func imageRepresentationSync(in bounds: NSRect) -> NSBitmapImageRep? {
 		if let imageRepresentation = bitmapImageRepForCachingDisplay(in: bounds) {
 			cacheDisplay(in: bounds, to: imageRepresentation)
 
@@ -453,6 +453,11 @@ extension NSView {
 		}
 
 		return nil
+	}
+
+	@MainActor
+	public func imageRepresentation(in bounds: NSRect) -> NSBitmapImageRep? {
+		return imageRepresentationSync(in: bounds)
 	}
 
 	public func image(in bounds: NSRect) -> NSImage? {

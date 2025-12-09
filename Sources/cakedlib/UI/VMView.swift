@@ -11,17 +11,13 @@ class ExVZVirtualMachineView: VZVirtualMachineView {
 	var onDisconnect: (() -> Void)?
 	
 	override func keyDown(with event: NSEvent) {
-		if let cgEvent = event.cgEvent {
-			Logger(self).debug("keyDown: \(cgEvent.type.rawValue) keyboardEventKeycode=\(cgEvent.getIntegerValueField(.keyboardEventKeycode))")
-		}
+		Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
 		
 		super.keyDown(with: event)
 	}
 	
 	override func flagsChanged(with event: NSEvent) {
-		if let cgEvent = event.cgEvent {
-			Logger(self).debug("flagsChanged: \(cgEvent.type.rawValue) keyboardEventKeycode=\(cgEvent.getIntegerValueField(.keyboardEventKeycode))")
-		}
+		Logger(self).debug("flagsChanged: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
 		
 		super.flagsChanged(with: event)
 	}
