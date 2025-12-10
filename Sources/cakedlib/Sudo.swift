@@ -18,6 +18,11 @@ public final class SudoCaked {
 	var outputPipe: Foundation.Pipe!
 	var errorPipe: Foundation.Pipe!
 
+	deinit {
+		try? outputPipe?.close()
+		try? errorPipe?.close()
+	}
+
 	public convenience init(arguments: [String], runMode: Utils.RunMode, log: FileHandle? = nil) throws {
 		try self.init(command: Home.cakedCommandName, arguments: arguments, runMode: runMode, standardOutput: log, standardError: log)
 	}
@@ -42,6 +47,8 @@ public final class SudoCaked {
 		}
 
 		runningArguments.append(contentsOf: arguments)
+
+		//Logger("SUDO").info("SUDO: \(sudoURL) \(runningArguments.joined(separator: " "))")
 
 		process.executableURL = sudoURL
 		process.arguments = runningArguments
@@ -107,6 +114,9 @@ public final class SudoCaked {
 		self.process.waitUntilExit()
 
 		return outputQueue.sync {
+			try? outputPipe?.close()
+			try? errorPipe?.close()
+
 			return self.process.terminationStatus
 		}
 	}
