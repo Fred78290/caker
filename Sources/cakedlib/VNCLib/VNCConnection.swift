@@ -5,6 +5,8 @@ import Network
 import Semaphore
 import System
 
+private let kNotEnoughDataError = NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"])
+
 protocol VNCConnectionDelegate: AnyObject {
 	func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String)
 	func vncConnection(_ connection: VNCConnection, didReceiveError error: Error)
@@ -22,6 +24,10 @@ final class VNCConnection: @unchecked Sendable {
 		didSet {
 			self.logger.debug("sendFramebufferContinous: \(self.sendFramebufferContinous)")
 		}
+	}
+
+	var connectionState: NWConnection.State {
+		self.connection.state
 	}
 
 	private let connection: NWConnection
@@ -550,7 +556,9 @@ final class VNCConnection: @unchecked Sendable {
 					
 					completion(.success(values))
 				} else {
-					completion(.failure(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"])))
+					self.didReceiveError(kNotEnoughDataError)
+					self.disconnect()
+					completion(.failure(kNotEnoughDataError))
 				}
 			} else {
 				completion(.failure(error!))
@@ -570,7 +578,9 @@ final class VNCConnection: @unchecked Sendable {
 					
 					completion(.success(value))
 				} else {
-					completion(.failure(NSError(domain: "VNCConnectionError", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Not enough data"])))
+					self.didReceiveError(kNotEnoughDataError)
+					self.disconnect()
+					completion(.failure(kNotEnoughDataError))
 				}
 			} else {
 				completion(.failure(error!))
@@ -592,6 +602,8 @@ final class VNCConnection: @unchecked Sendable {
 					}
 					
 					result = .success(value)
+				} else {
+					result = .failure(kNotEnoughDataError)
 				}
 			} else {
 				result = .failure(error!)
@@ -602,6 +614,11 @@ final class VNCConnection: @unchecked Sendable {
 		
 		await semaphore.wait()
 		
+		if case .failure(let error) = result {
+			self.didReceiveError(error)
+			self.disconnect()
+		}
+
 		return result
 	}
 
