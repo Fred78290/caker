@@ -132,7 +132,15 @@ extension Process {
 		standardOutput = outputPipe
 
 		let errorPipe = Pipe()
+		var inputPipe: Pipe! = nil
+
 		standardError = errorPipe
+
+		defer {
+			try? outputPipe.close()
+			try? errorPipe.close()
+			try? inputPipe?.close()
+		}
 
 		outputPipe.fileHandleForReading.readabilityHandler = { handler in
 			let data = handler.availableData
@@ -152,7 +160,7 @@ extension Process {
 
 		if var input = input {
 			input = input + "\n"
-			let inputPipe = Pipe()
+			inputPipe = Pipe()
 
 			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
 				handler.write(input.data(using: .utf8)!)
@@ -226,11 +234,17 @@ extension Process {
 
 		var outputData = Data()
 		var errorData = Data()
-
 		let outputPipe = Pipe()
-		standardOutput = outputPipe
-
 		let errorPipe = Pipe()
+		var inputPipe: Pipe! = nil
+
+		defer {
+			try? outputPipe.close()
+			try? errorPipe.close()
+			try? inputPipe?.close()
+		}
+
+		standardOutput = outputPipe
 		standardError = errorPipe
 
 		outputPipe.fileHandleForReading.readabilityHandler = { handler in
@@ -251,7 +265,7 @@ extension Process {
 
 		if var input = input {
 			input = input + "\n"
-			let inputPipe = Pipe()
+			inputPipe = Pipe()
 
 			inputPipe.fileHandleForWriting.writeabilityHandler = { handler in
 				handler.write(input.data(using: .utf8)!)
@@ -325,11 +339,11 @@ extension ProcessWithSharedFileHandle {
 
 		var outputData = Data()
 		var errorData = Data()
-
 		let outputPipe = Pipe()
+		let errorPipe = Pipe()
+
 		standardOutput = outputPipe
 
-		let errorPipe = Pipe()
 		standardError = errorPipe
 
 		outputPipe.fileHandleForReading.readabilityHandler = { handler in
