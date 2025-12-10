@@ -32,14 +32,16 @@ extension NSView {
 	}
 
 	func postScrollEvent(deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
-		guard let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: deltaX, wheel2: deltaY, wheel3: 0) else {
+		guard let event = CGEvent(scrollWheelEvent2Source: CGEventSource(stateID: .privateState), units: .pixel, wheelCount: 1, wheel1: deltaX, wheel2: deltaY, wheel3: 0) else {
 			return nil
 		}
-		
+
 		event.flags = modifierFlags.cgEventFlag
 		event.location = CGPoint(x: viewPoint.x, y: viewPoint.y)
 		event.timestamp = CGEventTimestamp(ProcessInfo.processInfo.systemUptime)
-		
+		event.setIntegerValueField(.mouseEventDeltaX, value: Int64(deltaX))
+		event.setIntegerValueField(.mouseEventDeltaY, value: Int64(deltaY))
+
 		return NSEvent(cgEvent: event)
 	}
 }
@@ -356,9 +358,19 @@ public class VNCInputHandler {
 	func handleKeyEvent(key: UInt32, isDown: Bool) {
 		guard let view = targetView else { return }
 		// Ensure the view is first responder before delivering key events
+		var keySym = key
+
+		if keySym == Keysyms.XK_ISO_Level3_Shift {
+			keySym = Keysyms.XK_Meta_L
+		}
+
+		if keySym == Keysyms.XK_Super_L {
+			keySym = Keysyms.XK_Alt_R
+		}
+
 		ensureFirstResponder()
 
-		keyMapper.mapVNCKey(key, isDown: isDown) { keyCode, modifiers, characters, charactersIgnoringModifiers in
+		keyMapper.mapVNCKey(keySym, isDown: isDown) { keyCode, modifiers, characters, charactersIgnoringModifiers in
 			guard let keyboardEvent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: isDown) else {
 				return
 			}
