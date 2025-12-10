@@ -31,18 +31,16 @@ extension NSView {
 		)
 	}
 
-	func postScrollEvent(deltaY: CGFloat, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
-		return NSEvent.mouseEvent(
-			with: NSEvent.EventType.scrollWheel,
-			location: viewPoint,
-			modifierFlags: modifierFlags,
-			timestamp: ProcessInfo.processInfo.systemUptime,
-			windowNumber: self.window?.windowNumber ?? 0,
-			context: NSGraphicsContext.current,
-			eventNumber: Date.now.nanosecond,
-			clickCount: Int(deltaY),
-			pressure: 0
-		)
+	func postScrollEvent(deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
+		guard let event = CGEvent(scrollWheelEvent2Source: nil, units: .pixel, wheelCount: 1, wheel1: deltaX, wheel2: deltaY, wheel3: 0) else {
+			return nil
+		}
+		
+		event.flags = modifierFlags.cgEventFlag
+		event.location = CGPoint(x: viewPoint.x, y: viewPoint.y)
+		event.timestamp = CGEventTimestamp(ProcessInfo.processInfo.systemUptime)
+		
+		return NSEvent(cgEvent: event)
 	}
 }
 
@@ -328,11 +326,20 @@ public class VNCInputHandler {
 
 		// Scroll wheel (bits 3 and 4)
 		if (buttonMask & 0x08) != 0 {  // Scroll up
-			dispatchEvent(view.postScrollEvent(deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(deltaX: 0, deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		if (buttonMask & 0x10) != 0 {  // Scroll down
-			dispatchEvent(view.postScrollEvent(deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(deltaX: 0, deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		// Scroll wheel (bits 5 and 6)
+		if (buttonMask & 0x20) != 0 {  // Scroll up
+			dispatchEvent(view.postScrollEvent(deltaX: 1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
+		}
+
+		if (buttonMask & 0x40) != 0 {  // Scroll down
+			dispatchEvent(view.postScrollEvent(deltaX: -1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		return buttonEvent

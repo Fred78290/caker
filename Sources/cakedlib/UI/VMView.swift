@@ -21,6 +21,12 @@ class ExVZVirtualMachineView: VZVirtualMachineView {
 		
 		super.flagsChanged(with: event)
 	}
+	
+	override func scrollWheel(with event: NSEvent) {
+		Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+		
+		super.scrollWheel(with: event)
+	}
 }
 
 public struct VMView: NSViewRepresentable {
