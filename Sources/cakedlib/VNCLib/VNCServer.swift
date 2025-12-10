@@ -51,6 +51,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private var framebuffer: VNCFramebuffer
 	private var displayLink: CADisplayLink!
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
+	private let updateframeBufferQueue = DispatchQueue(label: "vnc.server.framebuffer")
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
@@ -171,16 +172,24 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		// Notify all clients of size change
 		if self.connections.isEmpty == false {
-			let _ = self.eventLoop.makeFutureWithTask {
-				await withTaskGroup(of: Void.self) { group in
-					self.connections.forEach { connection in
-						group.addTask {
-							await connection.notifyFramebufferSizeChange()
+			self.updateframeBufferQueue.async {
+				let result = self.eventLoop.makeFutureWithTask {
+					await withTaskGroup(of: Void.self) { group in
+						self.connections.compactMap( {
+							if $0.connectionState == .ready  {
+								return $0
+							}
+							return nil
+						}).forEach { connection in
+							group.addTask {
+								await connection.notifyFramebufferSizeChange()
+							}
 						}
+						await group.waitForAll()
 					}
-					
-					await group.waitForAll()
 				}
+				
+				try? result.wait()
 			}
 		}
 	}
@@ -305,7 +314,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.framebuffer.updateFromView()
 
 		let connections = self.connections.compactMap {
-			if $0.sendFramebufferContinous {
+			if $0.connectionState == .ready && $0.sendFramebufferContinous {
 				return $0
 			}
 
@@ -314,19 +323,21 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		// Send updates to all connected clients
 		if connections.isEmpty == false {
-			let result = self.eventLoop.makeFutureWithTask {
-				await withTaskGroup(of: Void.self) { group in
-					connections.forEach { connection in
-						group.addTask {
-							await connection.sendFramebufferUpdate()
+			self.updateframeBufferQueue.async {
+				let result = self.eventLoop.makeFutureWithTask {
+					await withTaskGroup(of: Void.self) { group in
+						connections.forEach { connection in
+							group.addTask {
+								await connection.sendFramebufferUpdate()
+							}
 						}
+						
+						await group.waitForAll()
 					}
-
-					await group.waitForAll()
 				}
+				
+				try? result.wait()
 			}
-
-			try? result.wait()
 		}
 	}
 
