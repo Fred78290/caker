@@ -1005,7 +1005,7 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	func sendFramebufferUpdate() async {
-		if isAuthenticated {
+		if isAuthenticated && self.connection.state == .ready {
 			let state = await framebuffer.getCurrentState()
 			var msgData = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
 			let semaphore = AsyncSemaphore(value: 0)
@@ -1060,7 +1060,11 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	func sendDatas(_ data: Data, completion: @escaping (_ error: NWError?) -> Void) {
-		self.connection.send(content: data, completion: .contentProcessed { completion($0) })
+		if self.connection.state == .ready {
+			self.connection.send(content: data, completion: .contentProcessed { completion($0) })
+		} else {
+			completion(NWError.posix(.EADDRNOTAVAIL))
+		}
 	}
 
 	func notifyFramebufferSizeChange() async {
