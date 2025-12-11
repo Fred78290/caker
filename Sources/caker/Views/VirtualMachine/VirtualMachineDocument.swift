@@ -221,7 +221,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
 	@Published var screenshot: ScreenshotLoader!
-	@Published var vmInfos: VMInformations!
+	@Published var vmInfos = VirtualMachineInformations()
 	@Published var firstIP: String!
 
 	// Agent monitoring
@@ -1091,7 +1091,7 @@ extension VirtualMachineDocument {
 			return (title, false, true)
 		}
 
-		if let agentVersion = self.vmInfos?.agentVersion {
+		if let agentVersion = self.vmInfos.agentVersion {
 			if agentVersion.isEmpty == false && agentVersion.contains(CAKEAGENT_SNAPSHOT) {
 				return ("Update agent", true, false)
 			}
@@ -1122,7 +1122,6 @@ extension VirtualMachineDocument {
 		}
 
 		self.logger.debug("Stopping agent monitoring for VM: \(self.name)")
-		vmInfos = nil
 		firstIP = nil
 		isMonitoringAgent = false
 
@@ -1167,7 +1166,7 @@ extension VirtualMachineDocument {
 		// For example, you could update IP addresses or system info
 		self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
 
-		self.vmInfos = .init(from: info)
+		self.vmInfos.update(from: info)
 
 		// Update IP addresses if they changed
 		if let firstIP = info.ipaddresses.first, firstIP != self.firstIP {

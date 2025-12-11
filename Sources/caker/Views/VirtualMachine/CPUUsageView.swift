@@ -11,13 +11,13 @@ import GRPCLib
 import SwiftUI
 
 struct CPUUsageView: View {
-	let vmInfos: VMInformations
+	@Binding var vmInfos: VirtualMachineInformations
 
 	var body: some View {
 		Group {
 			if let cpuInfos = vmInfos.cpuInfos {
 				HStack(spacing: 2) {
-					if let firstIP = vmInfos.ipaddresses.first {
+					if let firstIP = vmInfos.ipaddresses?.first {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
 							.font(.caption)
