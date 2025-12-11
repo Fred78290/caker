@@ -7,6 +7,7 @@ import QuartzCore
 import ArgumentParser
 
 public protocol VZVNCServer {
+	var delegate: VNCServerDelegate? { get set }
 	func start() throws
 	func stop()
 	func connectionURL() -> URL
@@ -31,6 +32,7 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 
 extension VNCServerDelegate {
 	// Méthodes optionnelles avec implémentation par défaut
+	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {}
 	public func vncServer(_ server: VNCServer, didReceiveKeyEvent key: UInt32, isDown: Bool) {}
 	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {}
 }
@@ -411,6 +413,15 @@ public enum VNCServerError: Error, LocalizedError {
 // MARK: - VNCConnectionDelegate
 
 extension VNCServer: VNCConnectionDelegate {
+	func vncConnectionResizeDesktop(_ connection: VNCConnection, screens: [VNCScreenDesktop]) {
+
+		if let delegate = self.delegate {
+			DispatchQueue.main.async {
+				delegate.vncServer(self, clientDidResizeDesktop: screens)
+			}
+		}
+	}
+	
 	func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String) {
 		connectionQueue.async(flags: .barrier) {
 			self.logger.debug("Client at \(clientAddress) disconnected")

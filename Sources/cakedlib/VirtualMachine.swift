@@ -697,11 +697,24 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				return
 			}
 
-			let bounds = vzMachineView.bounds
+			if let window = vzMachineView.window {
+				let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
+				var frame = window.frame
 
-			logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				frame = window.frameRect(forContentRect: NSMakeRect(frame.origin.x, frame.origin.y, CGFloat(width), CGFloat(height) + titleBarHeight))
+				frame.origin.y += window.frame.size.height
+				frame.origin.y -= frame.size.height
 
-			vzMachineView.frame = CGRect(origin: .zero, size: newSize)
+				if frame != window.frame {
+					window.setFrame(frame, display: true, animate: true)
+				}
+			} else {
+				let bounds = vzMachineView.bounds
+				
+				logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
+				
+				vzMachineView.frame = CGRect(origin: .zero, size: newSize)
+			}
 		}
 	}
 
@@ -1033,5 +1046,23 @@ extension VirtualMachine {
 		}
 
 		return true
+	}
+}
+
+extension VirtualMachine: VNCServerDelegate {
+	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {
+		if let screen = screens.first {
+			setScreenSize(width: Int(screen.width), height: Int(screen.height))
+		}
+	}
+
+	public func vncServer(_ server: VNCServer, didReceiveError error: any Error) {
+	}
+	
+	public func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String) {
+	}
+	
+	public func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String) {
+		
 	}
 }

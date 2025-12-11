@@ -483,7 +483,7 @@ struct VNCSetDesktopSize: VNCLoadMessage {
 	var padding2: UInt8 = 0
 }
 
-struct VNCScreenDesktop: VNCLoadMessage {
+public struct VNCScreenDesktop: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCScreenDesktop {
 		var value = VNCScreenDesktop()
 
@@ -497,12 +497,12 @@ struct VNCScreenDesktop: VNCLoadMessage {
 		return value
 	}
 	
-	var screenID: UInt32 = 0
-	var posX: UInt16 = 0
-	var posY: UInt16 = 0
-	var width: UInt16 = 0
-	var height: UInt16 = 0
-	var flags: UInt32 = 0
+	public var screenID: UInt32 = 0
+	public var posX: UInt16 = 0
+	public var posY: UInt16 = 0
+	public var width: UInt16 = 0
+	public var height: UInt16 = 0
+	public var flags: UInt32 = 0
 }
 
 struct VNCQemuKeyEvent: VNCLoadMessage {
