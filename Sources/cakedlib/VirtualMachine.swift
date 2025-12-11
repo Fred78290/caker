@@ -332,7 +332,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
 
-	private var env: VirtualMachineEnvironment
+	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
 
 	public var suspendable: Bool {
@@ -474,6 +474,15 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
+	public func stopVncServer() throws {
+		if let vncServer = self.env.vncServer {
+			vncServer.stop()
+			self.env.vncServer = nil
+			self.env.vzMachineView.virtualMachine = nil
+			self.env.vzMachineView = nil
+		}
+	}
+
 	public func startVncServer(_ vzMachineView: VZVirtualMachineView, vncPassword: String, port: Int, captureMethod: VNCCaptureMethod) throws -> URL {
 		if self.env.vncServer == nil {
 			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, captureMethod: captureMethod, queue: DispatchQueue.global())
@@ -487,11 +496,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	public func startVncServer(vncPassword: String, port: Int, captureMethod: VNCCaptureMethod) throws -> URL {
 		if self.env.vncServer == nil {
-			let vzMachineView = VZVirtualMachineView(frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
-
-			vzMachineView.virtualMachine = self.virtualMachine
-			vzMachineView.autoresizingMask = [.width, .height]
-			vzMachineView.automaticallyReconfiguresDisplay = true
+			let vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
 
 			return try self.startVncServer(vzMachineView, vncPassword: vncPassword, port: port, captureMethod: captureMethod)
 		}

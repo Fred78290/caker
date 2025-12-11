@@ -22,7 +22,6 @@ class AppState: ObservableObject, Observable {
 
 	func update(vm: VirtualMachine) {
 		self.status = vm.status
-
 		self.isStopped = status == .stopped
 		self.isRunning = status == .running
 		self.isPaused = status == .paused
@@ -32,78 +31,27 @@ class AppState: ObservableObject, Observable {
 
 struct MainApp: App, VirtualMachineDelegate {
 	static var displayUI = false
-	static var vncPassword: String? = nil
-	static var vncPort: Int? = nil
-	static var captureMethod: VNCCaptureMethod = .coreGraphics
-	static var _vm: VirtualMachine? = nil
-	static var _config: CakeConfig? = nil
-	static var _name: String? = nil
-	static var _virtualMachine: VZVirtualMachine? = nil
-	static var _display: VMRunHandler.DisplayMode? = nil
+	static var params: VMRunHandler!
+	static var vm: VirtualMachine!
 
 	@State var appState: AppState
 
 	@NSApplicationDelegateAdaptor private var appDelegate: AppDelegate
 
 	init() {
-		self.appState = AppState(Self._vm!)
-		Self._vm?.delegate = self
-	}
-
-	static var virtualMachine: VZVirtualMachine {
-		get {
-			return _virtualMachine!
-		}
-		set {
-			_virtualMachine = newValue
-		}
-	}
-
-	static var display: VMRunHandler.DisplayMode {
-		get {
-			return _display!
-		}
-		set {
-			_display = newValue
-		}
-	}
-
-	static var name: String {
-		get {
-			return _name!
-		}
-		set {
-			_name = newValue
-		}
-	}
-
-	static var config: CakeConfig {
-		get {
-			return _config!
-		}
-		set {
-			_config = newValue
-		}
-	}
-
-	static var vm: VirtualMachine {
-		get {
-			return _vm!
-		}
-		set {
-			_vm = newValue
-		}
+		self.appState = AppState(Self.vm)
+		Self.vm.delegate = self
 	}
 
 	var body: some Scene {
-		let display = MainApp.config.display
+		let display = MainApp.params.config.display
 		let minWidth = CGFloat(display.width)
 		let idealWidth = CGFloat(display.width)
 		let minHeight = CGFloat(display.height)
 		let idealHeight = CGFloat(display.height)
 
-		WindowGroup(MainApp.name) {
-			VMView(MainApp.display, automaticallyReconfiguresDisplay: MainApp.config.displayRefit || (MainApp.config.os == .darwin), vm: MainApp.vm, vncPassword: MainApp.vncPassword, vncPort: MainApp.vncPort, captureMethod: MainApp.captureMethod)
+		WindowGroup(MainApp.params.name) {
+			VMView(MainApp.vm, params: MainApp.params)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
 				}
@@ -158,7 +106,7 @@ struct MainApp: App, VirtualMachineDelegate {
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.config) }
+			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.params.config) }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task { self.startFromUI() }
@@ -180,23 +128,23 @@ struct MainApp: App, VirtualMachineDelegate {
 	}
 
 	func startFromUI() {
-		MainApp._vm?.startFromUI()
+		MainApp.vm.startFromUI()
 	}
 
 	func restartFromUI() {
-		MainApp._vm?.restartFromUI()
+		MainApp.vm.restartFromUI()
 	}
 
 	func stopFromUI() {
-		MainApp._vm?.stopFromUI()
+		MainApp.vm.stopFromUI()
 	}
 
 	func requestStopFromUI() {
-		MainApp._vm?.requestStopFromUI()
+		MainApp.vm.requestStopFromUI()
 	}
 
 	func suspendFromUI() {
-		MainApp._vm?.suspendFromUI()
+		MainApp.vm.suspendFromUI()
 	}
 
 	func didChangedState(_ vm: VirtualMachine) {
@@ -207,16 +155,10 @@ struct MainApp: App, VirtualMachineDelegate {
 		try? vm.saveScreenshot()
 	}
 
-	static func runUI(_ display: VMRunHandler.DisplayMode, name: String, vm: VirtualMachine, config: CakeConfig, vncPassword: String, vncPort: Int?, captureMethod: VNCCaptureMethod) {
+	static func runUI(_ vm: VirtualMachine, params: VMRunHandler) {
 		MainApp.displayUI = true
-		MainApp.vncPort = vncPort
-		MainApp.vncPassword = vncPassword
-		MainApp.captureMethod = captureMethod
-		MainApp.display = display
+		MainApp.params = params
 		MainApp.vm = vm
-		MainApp.virtualMachine = vm.getVM()
-		MainApp.name = name
-		MainApp.config = config
 		MainApp.main()
 	}
 }

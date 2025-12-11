@@ -10,19 +10,19 @@ import Virtualization
 class ExVZVirtualMachineView: VZVirtualMachineView {
 	var onDisconnect: (() -> Void)?
 	
-	override func keyDown(with event: NSEvent) {
+	public override func keyDown(with event: NSEvent) {
 		Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
 		
 		super.keyDown(with: event)
 	}
 	
-	override func flagsChanged(with event: NSEvent) {
+	public override func flagsChanged(with event: NSEvent) {
 		Logger(self).debug("flagsChanged: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
 		
 		super.flagsChanged(with: event)
 	}
 	
-	override func scrollWheel(with event: NSEvent) {
+	public override func scrollWheel(with event: NSEvent) {
 		Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
 		
 		super.scrollWheel(with: event)
@@ -31,48 +31,37 @@ class ExVZVirtualMachineView: VZVirtualMachineView {
 
 public struct VMView: NSViewRepresentable {
 	public typealias NSViewType = VZVirtualMachineView
-
-	let automaticallyReconfiguresDisplay: Bool
-
-	@ObservedObject
-	public var vm: VirtualMachine
+	
 	public var virtualMachine: VirtualMachine
-	public var display: VMRunHandler.DisplayMode
-	public var vncPassword: String?
-	public var vncPort: Int?
-	public var captureMethod: VNCCaptureMethod
+	public var params: VMRunHandler
+	
+	public static func createView(vm: VirtualMachine, frame: NSRect) -> VZVirtualMachineView {
+		#if DEBUG
+		let vzMachineView = ExVZVirtualMachineView(frame: frame)
+		#else
+		let vzMachineView = VZVirtualMachineView(frame: frame)
+		#endif
 
-	public init(_ display: VMRunHandler.DisplayMode, automaticallyReconfiguresDisplay: Bool = false, vm: VirtualMachine, vncPassword: String?, vncPort: Int?, captureMethod: VNCCaptureMethod) {
-		self.automaticallyReconfiguresDisplay = automaticallyReconfiguresDisplay
-		self.vm = vm
-		self.virtualMachine = vm
-		self.display = display
-		self.vncPassword = vncPassword
-		self.vncPort = vncPort
-		self.captureMethod = captureMethod
-	}
-
-	public func makeNSView(context: Context) -> NSViewType {
-		let machineView = ExVZVirtualMachineView()
-
-		if #available(macOS 14.0, *) {
-			machineView.automaticallyReconfiguresDisplay = self.automaticallyReconfiguresDisplay
-		}
-
-		return machineView
-	}
-
-	public func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.virtualMachine = self.virtualMachine.getVM()
+		vzMachineView.virtualMachine = vm.virtualMachine
+		vzMachineView.autoresizingMask = [.width, .height]
+		vzMachineView.automaticallyReconfiguresDisplay = true
 		
-		if let vncPassword, let vncPort, display == .all {
-			do {
-				let vncURL = try self.vm.startVncServer(nsView, vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod)
-
-				Logger(self).info("VNC server started at \(vncURL.absoluteString)")
-			} catch {
-				Logger(self).error("Failed to start VNC server: \(error)")
-			}
+		return vzMachineView
+	}
+	
+	public init(_ vm: VirtualMachine, params: VMRunHandler) {
+		self.params = params
+		self.virtualMachine = vm
+	}
+	
+	public func makeNSView(context: Context) -> VZVirtualMachineView {
+		guard let vmView = self.virtualMachine.env.vzMachineView else {
+			return NSViewType()
 		}
+		
+		return vmView
+	}
+	
+	public func updateNSView(_ nsView: VZVirtualMachineView, context: Context) {
 	}
 }

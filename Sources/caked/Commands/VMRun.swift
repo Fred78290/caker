@@ -141,19 +141,29 @@ struct VMRun: AsyncParsableCommand {
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
-			runMode: self.common.runMode,
 			display: display,
-			config: config)
+			config: config,
+			screenSize: displaySize,
+			vncPassword: vncPassword,
+			vncPort: vncPort,
+			captureMethod: captureMethod,
+			runMode: self.common.runMode)
 
-		try handler.run(screenSize: displaySize, display: self.display, vncPassword: vncPassword, vncPort: self.vncPort, captureMethod: self.captureMethod) { address, vm in
+		try handler.run() { address, vm in
 			address.whenSuccess { ip in
 				if let ip {
 					Logger(self).info("VM Machine is now available at \(ip)")
 				}
 			}
 
+			if display == .all {
+				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod)
+
+				Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
+			}
+
 			if display == .ui || display == .all {
-				MainApp.runUI(display, name: location.name, vm: vm, config: config, vncPassword: vncPassword, vncPort: self.vncPort, captureMethod: self.captureMethod)
+				MainApp.runUI(vm, params: handler)
 			} else {
 				NSApplication.shared.setActivationPolicy(.prohibited)
 				NSApplication.shared.run()

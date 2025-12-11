@@ -27,15 +27,19 @@ public struct VMRunHandler {
 		case all
 	}
 
-	let storageLocation: StorageLocation
-	let location: VMLocation
-	let name: String
-	let runMode: Utils.RunMode
-	let display: DisplayMode
-	let config: CakeConfig
-	let mode: VMRunServiceMode
+	public let storageLocation: StorageLocation
+	public let location: VMLocation
+	public let name: String
+	public let runMode: Utils.RunMode
+	public let display: DisplayMode
+	public let config: CakeConfig
+	public let mode: VMRunServiceMode
+	public let vncPassword: String
+	public let vncPort: Int
+	public let captureMethod: VNCCaptureMethod
+	public let screenSize: CGSize
 
-	public init(_ mode: VMRunServiceMode, storageLocation: StorageLocation, location: VMLocation, name: String, runMode: Utils.RunMode, display: DisplayMode, config: CakeConfig) {
+	public init(_ mode: VMRunServiceMode, storageLocation: StorageLocation, location: VMLocation, name: String, display: DisplayMode, config: CakeConfig, screenSize: CGSize, vncPassword: String, vncPort: Int, captureMethod: VNCCaptureMethod, runMode: Utils.RunMode) {
 		self.storageLocation = storageLocation
 		self.location = location
 		self.name = name
@@ -43,9 +47,13 @@ public struct VMRunHandler {
 		self.display = display
 		self.config = config
 		self.mode = mode
+		self.vncPort = vncPort
+		self.vncPassword = vncPassword
+		self.captureMethod = captureMethod
+		self.screenSize = screenSize
 	}
 
-	public func run(screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, captureMethod: VNCCaptureMethod, _ completionHandler: @escaping (EventLoopFuture<String?>, VirtualMachine) -> Void) throws {
+	public func run(_ completionHandler: @escaping (EventLoopFuture<String?>, VirtualMachine) -> Void) throws {
 		defer {
 			location.removePID()
 		}
