@@ -20,37 +20,13 @@ enum VNCAuthType: UInt32, CustomDebugStringConvertible {
 }
 
 // Server message types
-enum VNCServerMessageType: UInt8, CustomDebugStringConvertible {
-	var debugDescription: String {
-		switch self {
-		case .framebufferUpdate:
-			return "framebufferUpdate"
-		case .setColorMapEntries:
-			return "setColorMapEntries"
-		case .bell:
-			return "bell"
-		case .serverCutText:
-			return "serverCutText"
-		case .unknown:
-			return "unknown"
-		}
-	}
-
-	case unknown = 255
-	case framebufferUpdate = 0
-	case setColorMapEntries = 1
-	case bell = 2
-	case serverCutText = 3
-
-	init(rawValue: UInt8) {
-		switch rawValue {
-		case 0: self = .framebufferUpdate
-		case 1: self = .setColorMapEntries
-		case 2: self = .bell
-		case 3: self = .serverCutText
-		default: self = .unknown
-		}
-	}
+enum VNCServerMessageType: UInt8 {
+	case rfbFramebufferUpdate = 0
+	case rfbSetColourMapEntries = 1	/* not currently supported */
+	case rfbBell = 2
+	case rfbServerCutText = 3
+	case rfbResizeFrameBuffer = 4
+	case rfbPalmVNCReSizeFrameBuffer = 0x0F
 }
 
 // Client message types
@@ -142,6 +118,8 @@ struct VNCSetEncoding: VNCLoadMessage {
 		case rfbEncodingPointerPos = -232
 		case rfbEncodingLastRect = -224
 		case rfbEncodingNewFBSize = -223
+		case rfbEncodingExtDesktopSize = -308
+		
 		case rfbEncodingKeyboardLedState = -131072
 		case rfbEncodingSupportedMessages = -131071
 		case rfbEncodingSupportedEncodings = -131070
@@ -481,6 +459,21 @@ struct VNCSetDesktopSize: VNCLoadMessage {
 	var height: UInt16 = 0
 	var numberOfScreen: UInt8 = 0
 	var padding2: UInt8 = 0
+}
+
+struct VNCExtDesktopSizeMessage {
+	var numOfScreens: UInt8 = 1
+	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
+	var screen = VNCScreenModel()
+}
+
+struct VNCScreenModel {
+	var screenID: UInt32 = 0
+	var posX: UInt16 = 0
+	var posY: UInt16 = 0
+	var width: UInt16 = 0
+	var height: UInt16 = 0
+	var flags: UInt32 = 0
 }
 
 public struct VNCScreenDesktop: VNCLoadMessage {

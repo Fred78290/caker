@@ -183,8 +183,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 							}
 							return nil
 						}).forEach { connection in
-							group.addTask {
-								await connection.notifyFramebufferSizeChange()
+							if connection.sendFramebufferContinous == false {
+								group.addTask {
+									await connection.sendFramebufferUpdate()
+								}
 							}
 						}
 						await group.waitForAll()
