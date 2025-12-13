@@ -769,6 +769,7 @@ extension VNCConnection {
 // MARK: - Send server message
 extension VNCConnection {
 	func sendNewFBSize(width: UInt16, height: UInt16) async throws {
+		self.logger.debug("sendNewFBSize: \(width)x\(height)")
 		var payload = VNCFramebufferUpdatePayload()
 
 		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
@@ -779,12 +780,13 @@ extension VNCConnection {
 		payload.rectangle.y = 0
 		payload.rectangle.width = UInt16(width).bigEndian
 		payload.rectangle.height = UInt16(height).bigEndian
-		payload.rectangle.encoding = UInt32(VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian)  // VNC_ENCODING_RAW
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingNewFBSize.rawValue.bigEndian
 
 		try await self.sendDatas(payload)
 	}
 
 	private func sendExDesktopSize(width: UInt16, height: UInt16) async throws {
+		self.logger.debug("sendNewFBSize: \(width)x\(height)")
 		var payload = VNCFramebufferUpdatePayload()
 		var message = VNCExtDesktopSizeMessage()
 
@@ -796,7 +798,7 @@ extension VNCConnection {
 		payload.rectangle.y = 0
 		payload.rectangle.width = UInt16(width).bigEndian
 		payload.rectangle.height = UInt16(height).bigEndian
-		payload.rectangle.encoding = UInt32(VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian)  // VNC_ENCODING_RAW
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingExtDesktopSize.rawValue.bigEndian
 
 		message.numOfScreens = 1
 		message.screen.height = height.bigEndian
@@ -818,7 +820,7 @@ extension VNCConnection {
 		payload.rectangle.y = 0
 		payload.rectangle.width = UInt16(width).bigEndian
 		payload.rectangle.height = UInt16(height).bigEndian
-		payload.rectangle.encoding = UInt32(0).bigEndian  // VNC_ENCODING_RAW
+		payload.rectangle.encoding = 0
 		
 		try await self.sendDatas(payload)
 		try await self.sendDatas(pixelData)
@@ -880,6 +882,8 @@ extension VNCConnection {
 	}
 
 	func sendSupportedMessages() async throws {
+		self.logger.debug("sendSupportedMessages")
+
 		var payload = VNCFramebufferUpdatePayload()
 		var client2server: [UInt8] = Array(repeating: 0, count: 32); /* maximum of 256 message types (256/8)=32 */
 		var server2client: [UInt8] = Array(repeating: 0, count: 32); /* maximum of 256 message types (256/8)=32 */
@@ -892,7 +896,7 @@ extension VNCConnection {
 		payload.rectangle.y = 0
 		payload.rectangle.width = UInt16(64).bigEndian
 		payload.rectangle.height = 0
-		payload.rectangle.encoding = UInt32(VNCSetEncoding.Encoding.rfbEncodingSupportedMessages.rawValue.bigEndian)  // VNC_ENCODING_RAW
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingSupportedMessages.rawValue.bigEndian
 		
 		client2server.rfbSetBit(Int(VNCClientMessageType.setPixelFormat.rawValue))
 		client2server.rfbSetBit(Int(VNCClientMessageType.setEncodings.rawValue))
@@ -911,6 +915,8 @@ extension VNCConnection {
 	}
 
 	func sendSupportedEncodings() async throws {
+		self.logger.debug("sendSupportedEncodings")
+
 		var payload = VNCFramebufferUpdatePayload()
 		let supportedEncoding: [Int32] = [
 			VNCSetEncoding.Encoding.rfbEncodingRaw.rawValue.bigEndian,
@@ -928,7 +934,7 @@ extension VNCConnection {
 		payload.rectangle.y = 0
 		payload.rectangle.width = UInt16(supportedEncoding.count * 4).bigEndian
 		payload.rectangle.height = UInt16(supportedEncoding.count).bigEndian
-		payload.rectangle.encoding = UInt32(VNCSetEncoding.Encoding.rfbEncodingSupportedEncodings.rawValue.bigEndian)
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingSupportedEncodings.rawValue.bigEndian
 
 		try await self.sendDatas(payload)
 		try await self.sendDatas(supportedEncoding)
@@ -1126,7 +1132,7 @@ extension VNCConnection {
 				if self.handleError(error) {
 					if let data = data, data.count >= dataLength {
 						let value = data.withUnsafeBytes { ptr in
-							return ptr.load(as: T.self)
+							T.load(from: ptr)
 						}
 						
 						result = .success(value)
