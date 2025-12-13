@@ -313,7 +313,7 @@ struct VNCRectangle: VNCLoadMessage {
 		value.y = UInt16.build(data[2], data[3])
 		value.width = UInt16.build(data[4], data[5])
 		value.height = UInt16.build(data[6], data[7])
-		value.encoding = UInt32.build(data[8], data[9], data[10], data[11])
+		value.encoding = Int32.build(data[8], data[9], data[10], data[11])
 
 		return value
 	}
@@ -322,7 +322,7 @@ struct VNCRectangle: VNCLoadMessage {
 	var y: UInt16 = 0
 	var width: UInt16 = 0
 	var height: UInt16 = 0
-	var encoding: UInt32 = 0
+	var encoding: Int32 = 0
 }
 
 struct VNCFramebufferUpdatePayload: VNCLoadMessage {
@@ -480,12 +480,12 @@ public struct VNCScreenDesktop: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCScreenDesktop {
 		var value = VNCScreenDesktop()
 
-		value.screenID = UInt32.build(data[0], data[1], data[4], data[5])
-		value.posX = UInt16.build(data[6], data[7])
-		value.posY = UInt16.build(data[8], data[9])
-		value.width = UInt16.build(data[10], data[11])
-		value.height = UInt16.build(data[12], data[13])
-		value.flags = UInt32.build(data[14], data[15], data[16], data[17])
+		value.screenID = UInt32.build(data[0], data[1], data[2], data[3])
+		value.posX = UInt16.build(data[4], data[5])
+		value.posY = UInt16.build(data[6], data[7])
+		value.width = UInt16.build(data[8], data[9])
+		value.height = UInt16.build(data[10], data[11])
+		value.flags = UInt32.build(data[12], data[13], data[14], data[15])
 
 		return value
 	}
