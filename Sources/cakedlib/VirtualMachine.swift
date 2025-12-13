@@ -487,7 +487,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		if self.env.vncServer == nil {
 			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, captureMethod: captureMethod, queue: DispatchQueue.global())
 			self.env.vzMachineView = vzMachineView
-
+			self.env.vncServer.delegate = self
 			try self.env.vncServer.start()
 		}
 
@@ -1055,7 +1055,7 @@ extension VirtualMachine: VNCServerDelegate {
 			setScreenSize(width: Int(screen.width), height: Int(screen.height))
 		}
 	}
-
+	
 	public func vncServer(_ server: VNCServer, didReceiveError error: any Error) {
 	}
 	
@@ -1065,4 +1065,11 @@ extension VirtualMachine: VNCServerDelegate {
 	public func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String) {
 		
 	}
+	
+	public func vncServer(_ server: VNCServer, didReceiveKeyEvent key: UInt32, isDown: Bool) {
+	}
+	
+	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {
+	}
+	
 }

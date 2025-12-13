@@ -52,7 +52,8 @@ final class VNCConnection: @unchecked Sendable {
 		}
 	}
 	
-	var connectionState: NWConnection.State {
+	internal var newFBSizePending = false
+	internal var connectionState: NWConnection.State {
 		self.connection.state
 	}
 	
@@ -72,7 +73,6 @@ final class VNCConnection: @unchecked Sendable {
 	private var encodings = SetEncoding()
 	private var translatePixelFormat: ClientTranslatePixelFormat = rfbTranslateNone
 	private var translateLookupTable: [[any FixedWidthInteger]] = [[]]
-	private var newFBSizePending = false
 	private var messageClientStream: AsyncStream<VNCClientMessageType>!
 	private var messageClientContinuation: AsyncStream<VNCClientMessageType>.Continuation!
 	
@@ -786,7 +786,7 @@ extension VNCConnection {
 	}
 
 	private func sendExDesktopSize(width: UInt16, height: UInt16) async throws {
-		self.logger.debug("sendNewFBSize: \(width)x\(height)")
+		self.logger.debug("sendExDesktopSize: \(width)x\(height)")
 		var payload = VNCFramebufferUpdatePayload()
 		var message = VNCExtDesktopSizeMessage()
 
@@ -824,7 +824,6 @@ extension VNCConnection {
 		
 		try await self.sendDatas(payload)
 		try await self.sendDatas(pixelData)
-		await self.framebuffer.markAsProcessed()
 		
 		if self.encodings.enableContinousUpdate && self.sendFramebufferContinous == false {
 			self.sendFramebufferContinous = true
@@ -867,6 +866,11 @@ extension VNCConnection {
 				try await self.sendSupportedEncodings()
 			}
 		}
+	}
+
+	func sendFramebufferNewSize() async {
+		self.newFBSizePending = true
+		await self.sendFramebufferUpdate()
 	}
 
 	func sendFramebufferUpdate() async {

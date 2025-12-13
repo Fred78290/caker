@@ -28,13 +28,7 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 	func vncServer(_ server: VNCServer, didReceiveError error: Error)
 	func vncServer(_ server: VNCServer, didReceiveKeyEvent key: UInt32, isDown: Bool)
 	func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8)
-}
-
-extension VNCServerDelegate {
-	// Méthodes optionnelles avec implémentation par défaut
-	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {}
-	public func vncServer(_ server: VNCServer, didReceiveKeyEvent key: UInt32, isDown: Bool) {}
-	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {}
+	func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop])
 }
 
 public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
@@ -57,6 +51,14 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
+	private var activeConnections: [VNCConnection] {
+		self.connections.compactMap {
+			if $0.connectionState == .ready  {
+				return $0
+			}
+			return nil
+		 }
+	}
 
 	static var littleEndian: Bool {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
@@ -151,6 +153,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	@objc private func viewDidEndLiveResize(_ notification: Notification) {
 		if self.isMyWindowKey(notification) {
 			self.isLiveResize = false
+			handleViewSizeChange()
 		}
 	}
 
@@ -163,38 +166,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	@objc private func viewFrameDidChange() {
 		if self.isLiveResize == false {
 			handleViewSizeChange()
-		}
-	}
-
-	private func handleViewSizeChange() {
-		// Update framebuffer with new size
-		let bounds = self.sourceView.bounds
-
-		framebuffer.updateSize(width: Int(bounds.width), height: Int(bounds.height))
-
-		// Notify all clients of size change
-		if self.connections.isEmpty == false {
-			self.updateframeBufferQueue.async {
-				let result = self.eventLoop.makeFutureWithTask {
-					await withTaskGroup(of: Void.self) { group in
-						self.connections.compactMap( {
-							if $0.connectionState == .ready  {
-								return $0
-							}
-							return nil
-						}).forEach { connection in
-							if connection.sendFramebufferContinous == false {
-								group.addTask {
-									await connection.sendFramebufferUpdate()
-								}
-							}
-						}
-						await group.waitForAll()
-					}
-				}
-				
-				try? result.wait()
-			}
 		}
 	}
 
@@ -312,18 +283,54 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
+	private func handleViewSizeChange() {
+		// Update framebuffer with new size
+		let bounds = self.sourceView.bounds
+
+		if framebuffer.width != Int(bounds.width) || framebuffer.height != Int(bounds.height) {
+			framebuffer.updateSize(width: Int(bounds.width), height: Int(bounds.height))
+			
+			// Notify all clients of size change
+			let connections = self.activeConnections
+			
+			if connections.isEmpty == false {
+				self.updateframeBufferQueue.async {
+					let result = self.eventLoop.makeFutureWithTask {
+						await withTaskGroup(of: Void.self) { group in
+							connections.forEach { connection in
+								if connection.sendFramebufferContinous == false {
+									group.addTask {
+										await connection.sendFramebufferNewSize()
+									}
+								} else {
+									connection.newFBSizePending = true
+								}
+							}
+							
+							await group.waitForAll()
+						}
+					}
+					
+					try? result.wait()
+					
+					DispatchQueue.main.sync {
+						self.framebuffer.markAsProcessed()
+					}
+				}
+			} else {
+				MainActor.assumeIsolated {
+					self.framebuffer.markAsProcessed()
+				}
+			}
+		}
+	}
+
 	@objc private func updateFramebuffer() {
 		//self.logger.debug("updateFramebuffer")
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 
-		let connections = self.connections.compactMap {
-			if $0.connectionState == .ready && $0.sendFramebufferContinous {
-				return $0
-			}
-
-			return nil
-		}
+		let connections = self.activeConnections
 
 		// Send updates to all connected clients
 		if connections.isEmpty == false {
@@ -341,6 +348,14 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				}
 				
 				try? result.wait()
+
+				DispatchQueue.main.sync {
+					self.framebuffer.markAsProcessed()
+				}
+			}
+		} else {
+			MainActor.assumeIsolated {
+				self.framebuffer.markAsProcessed()
 			}
 		}
 	}
@@ -416,7 +431,6 @@ public enum VNCServerError: Error, LocalizedError {
 
 extension VNCServer: VNCConnectionDelegate {
 	func vncConnectionResizeDesktop(_ connection: VNCConnection, screens: [VNCScreenDesktop]) {
-
 		if let delegate = self.delegate {
 			DispatchQueue.main.async {
 				delegate.vncServer(self, clientDidResizeDesktop: screens)
