@@ -339,6 +339,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		}
 
 		if let connection = self.connection {
+			self.connection = nil
 			connection.disconnect()
 		}
 
@@ -361,6 +362,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		}
 
 		if let connection = self.connection {
+			self.connection = nil
 			connection.disconnect()
 		}
 
@@ -384,7 +386,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.vncStatus = .disconnected
 		self.status = status
 		self.externalRunning = false
-		self.connection?.disconnect()
+		if let connection = self.connection {
+			self.connection = nil
+			connection.disconnect()
+		}
 	}
 
 	@MainActor
@@ -898,13 +903,17 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 					newStatus = .connecting
 				}
 			} else if connectionState.status == .disconnected {
-				self.connection = nil
-
-				if self.status == .starting || self.status == .running {
-					DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-						self.tryVNCConnect()
+				if self.connection != nil {
+					self.connection = nil
+					
+					if self.status == .starting || self.status == .running {
+						DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+							self.tryVNCConnect()
+						}
+						newStatus = .connecting
+					} else {
+						self.vncView = nil
 					}
-					newStatus = .connecting
 				} else {
 					self.vncView = nil
 				}
