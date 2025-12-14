@@ -330,7 +330,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 
-		let connections = self.activeConnections
+		let connections = self.activeConnections.filter { $0.sendFramebufferContinous }
 
 		// Send updates to all connected clients
 		if connections.isEmpty == false {
