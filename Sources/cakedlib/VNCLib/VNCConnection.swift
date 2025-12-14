@@ -518,8 +518,12 @@ extension VNCConnection {
 	}
 
 	private func handleClientMessage(_ messageType: VNCClientMessageType) async throws {
-		if messageType != .keyEvent && messageType != .pointerEvent && messageType != .framebufferUpdateRequest {
-			self.logger.debug("Handle client message: \(messageType.debugDescription )")
+		if Logger.Level() >= .debug {
+			if messageType != .keyEvent && messageType != .pointerEvent && messageType != .framebufferUpdateRequest && messageType != .clientCutText {
+				self.logger.debug("Handle client message: \(messageType.debugDescription )")
+			} else if Logger.Level() >= .trace {
+				self.logger.trace("Handle client message: \(messageType.debugDescription )")
+			}
 		}
 		
 		switch messageType {
@@ -707,7 +711,7 @@ extension VNCConnection {
 		let values = try await self.receiveDatas(ofType: UInt8.self, countOf: Int(value.textLength))
 		let text = String(decoding: values, as: Unicode.UTF8.self)
 
-		self.logger.debug("Client send cut text: \(text)")
+		self.logger.trace("Client send cut text: \(text)")
 
 		DispatchQueue.main.async {
 			self.inputHandler.handleClipboardText(text)
