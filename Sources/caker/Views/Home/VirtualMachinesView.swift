@@ -29,7 +29,7 @@ struct VirtualMachinesView: View {
 	func virtualMachineView(_ document: VirtualMachineDocument) -> some View {
 		let selected: Bool = self.navigationModel.selectedVirtualMachine?.id == document.id
 
-		VirtualMachineView(selected: selected, vm: document)
+		VirtualMachineView(document, selected: selected)
 			.frame(size: .init(width: Self.cellWidth, height: Self.cellHeight))
 
 		//		if self.appearsActive {

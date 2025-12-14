@@ -75,14 +75,18 @@ struct ScreenshotLoader: Hashable, Identifiable {
 		self.screenshotURL = screenshotURL
 	}
 
+	var nsImage: NSImage? {
+		guard let exist = try? screenshotURL.exists(), exist else {
+			return nil
+		}
+
+		return NSImage(contentsOfFile: screenshotURL.path)
+	}
+
 	@ViewBuilder
 	var image: some View {
 		GeometryReader { geom in
-			if let exist = try? screenshotURL.exists(), exist == false {
-				Rectangle()
-					.fill(.black)
-					.frame(size: geom.size)
-			} else if let image = NSImage(contentsOfFile: screenshotURL.path) {
+			if let image = self.nsImage {
 				Rectangle()
 					.fill(.black)
 					.frame(size: geom.size)
@@ -220,7 +224,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
-	@Published var screenshot: ScreenshotLoader!
 	@Published var vmInfos = VirtualMachineInformations()
 	@Published var firstIP: String!
 
@@ -228,6 +231,11 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var agentMonitorTimer: Timer!
 	private var isMonitoringAgent: Bool = false
 	private var isWaitingForAgent: Bool = false
+	private var screenshot: ScreenshotLoader!
+
+	var lastScreenshot: NSImage? {
+		self.screenshot?.nsImage
+	}
 
 	var osImage: some View {
 		var name = "linux"
@@ -765,8 +773,10 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 					}
 				}
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
-				DispatchQueue.main.async {
-					self.screenshot = ScreenshotLoader(screenshotURL: location.screenshotURL)
+				if let screenshot = self.screenshot.nsImage {
+					DispatchQueue.main.async {
+						NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: screenshot, userInfo: ["document": self])
+					}
 				}
 			}
 		}
@@ -1238,6 +1248,7 @@ extension VirtualMachineDocument {
 	static let FailCreateVirtualMachine = NSNotification.Name("FailCreateVirtualMachine")
 	static let ProgressCreateVirtualMachine = NSNotification.Name("ProgressCreateVirtualMachine")
 	static let ProgressMessageCreateVirtualMachine = NSNotification.Name("ProgressMessageCreateVirtualMachine")
+	static let NewScreenshot = NSNotification.Name("NewScreenshot")
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
 
 	func issuedNotificationFromDocument<T>(_ notification: Notification) -> T? {

@@ -28,10 +28,17 @@ struct VirtualMachineView: View {
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
-	var selected: Bool
-	@StateObject var vm: VirtualMachineDocument
+	private var selected: Bool
+	private var vm: VirtualMachineDocument
 	private let radius: CGFloat = 12
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
+	@State var screenshot: NSImage?
+
+	init(_ vm: VirtualMachineDocument, selected: Bool) {
+		self.vm = vm
+		self.selected = selected
+		self.screenshot = vm.lastScreenshot
+	}
 
 	var body: some View {
 		let lightColor = self.lightColor(vm.status)
@@ -75,7 +82,24 @@ struct VirtualMachineView: View {
 						.frame(width: geometry.size.width, height: 20)
 
 						HStack {
-							self.vm.screenshot.image
+							GeometryReader { geom in
+								if let screenshot = self.screenshot {
+									Rectangle()
+										.fill(.black)
+										.frame(size: geom.size)
+										.overlay {
+											Image(nsImage: screenshot)
+												.resizable()
+												.blur(radius: 8)
+												.aspectRatio(contentMode: .fit)
+												.scaledToFit()
+										}.clipped()
+								} else {
+									Rectangle()
+										.fill(.black)
+										.frame(size: geom.size)
+								}
+							}
 						}.overlay {
 							self.vm.osImage.frame(size: CGSize(width: 64, height: 64))
 						}
@@ -86,6 +110,11 @@ struct VirtualMachineView: View {
 				.clipShape(RoundedRectangle(cornerRadius: radius))
 				.frame(size: geometry.size)
 				.withGlassEffect(GlassEffect.regular(nil, nil), in: RoundedRectangle(cornerRadius: radius))
+				.onReceive(VirtualMachineDocument.NewScreenshot) { notification in
+					if let screenshot: NSImage = self.vm.issuedNotificationFromDocument(notification) {
+						self.screenshot = screenshot
+					}
+				}
 		}
 	}
 
@@ -136,5 +165,5 @@ struct VirtualMachineView: View {
 #Preview {
 	let appState = AppState()
 
-	VirtualMachineView(selected: false, vm: appState.virtualMachines.first!.value)
+	VirtualMachineView(appState.virtualMachines.first!.value, selected: false)
 }
