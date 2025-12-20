@@ -258,6 +258,14 @@ extension CGKeyCode {
 		return result
 	}
 
+	static func modifiersForCharacter(_ characters: String?) -> NSEvent.ModifierFlags? {
+		guard let characters else {
+			return nil
+		}
+
+		return Initializers.shared.charactersModifiers[characters]
+	}
+
 	static func characterForKeysym(_ vncKey: UInt32) -> String? {
 		// Convert VNC codes to characters
 		if vncKey >= 0x20 && vncKey <= 0x7E {
@@ -286,6 +294,7 @@ extension CGKeyCode {
 		let characterKeys: [String:CGKeyCode]
 		let modifierFlagKeys: [UInt32:CGKeyCode]
 		let keysCharacters: [CGKeyCode:String]
+		let charactersModifiers: [String:NSEvent.ModifierFlags]
 
 		static var shared: Initializers! = nil
 		
@@ -294,12 +303,14 @@ extension CGKeyCode {
 			var characterKeys: [String:CGKeyCode] = [:]
 			var keysCharacters: [CGKeyCode:String] = [:]
 			var modifierFlagKeys: [UInt32:CGKeyCode] = [:]
+			var charactersModifiers: [String:NSEvent.ModifierFlags] = [:]
 			let eventSource = CGEventSource(stateID: .privateState);
 			let modifiers: [NSEvent.ModifierFlags] = [
 				[],
 				.init(rawValue: 0x100),
 				.shift,
 				.option,
+				.capsLock,
 				.shift.union(.option)
 			]
 
@@ -324,7 +335,7 @@ extension CGKeyCode {
 
 									if characterKeys[characters] == nil {
 										characterKeys[characters] = keyCode
-
+										charactersModifiers[characters] = modifier
 										if let charactersIgnoringModifiers = nsevent.charactersIgnoringModifiers {
 											keysCharacters[keyCode] = charactersIgnoringModifiers
 										}
@@ -353,6 +364,7 @@ extension CGKeyCode {
 			self.characterKeys = characterKeys
 			self.modifierFlagKeys = modifierFlagKeys
 			self.keysCharacters = keysCharacters
+			self.charactersModifiers = charactersModifiers
 		}
 	}
 }
@@ -431,17 +443,17 @@ public class VNCKeyMapper: Keymapper {
 		try Self.setupKeyMapper()
 	}
 	
-	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?) {
+	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?, modifiersForCharacter: NSEvent.ModifierFlags?) {
 		if let keyCode = CGKeyCode(modifierKey: vncKeyCode) {
-			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode))
+			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode), nil)
 		}
 
 		if let keyCode = CGKeyCode(specialKey: vncKeyCode) {
-			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode))
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), nil)
 		}
 
 		if let keyCode = VNCKeyCode.to(vncKeyCode: vncKeyCode) {
-			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode))
+			return (keyCode, false, CGKeyCode.characterForKeysym(vncKeyCode), nil)
 		}
 
 		// ASCII printable characters
@@ -451,19 +463,22 @@ public class VNCKeyMapper: Keymapper {
 			guard let keyCode = CGKeyCode(character: characters) else {
 				Logger(self).debug("Not found: key=\(vncKeyCode.hexa)")
 
-				return (CGKeyCode(vncKeyCode), false, String(scalar))
+				return (CGKeyCode(vncKeyCode), false, String(scalar), nil)
 			}
 
-			return (keyCode, false, String(scalar))
+			return (keyCode, false, String(scalar), CGKeyCode.modifiersForCharacter(characters))
 		} else {
 			Logger(self).debug("Not unicode found: key=\(vncKeyCode.hexa)")
 		}
 
-		return (CGKeyCode(vncKeyCode), false, CGKeyCode.characterForKeysym(vncKeyCode))
+		let characters = CGKeyCode.characterForKeysym(vncKeyCode)
+
+		return (CGKeyCode(vncKeyCode), false, characters, CGKeyCode.modifiersForCharacter(characters))
 	}
 
 	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
 		let result = self.vncKeyCodeTo(vncKeyCode: vncKey)
+		var currentModifiers = self.currentModifiers
 
 		if result.modifier {
 			switch result.keyCode {
@@ -542,11 +557,18 @@ public class VNCKeyMapper: Keymapper {
 			default:
 				break
 			}
+
+
+			currentModifiers = self.currentModifiers
+		}
+
+		if let modifier = result.modifiersForCharacter {
+			currentModifiers = modifier
 		}
 
 		let charactersIgnoringModifiers = CGKeyCode.charactersIgnoringModifiers(result.keyCode, shift: self.currentModifiers.contains(.shift))
 
-		sendKeyEvent(result.keyCode, self.currentModifiers, result.characters, charactersIgnoringModifiers)
+		sendKeyEvent(result.keyCode, currentModifiers, result.characters, charactersIgnoringModifiers)
 	}
 }
 
