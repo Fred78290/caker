@@ -96,6 +96,8 @@ class AppState: ObservableObject, Observable {
 	static var shared = AppState()
 
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
+	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
+	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 
 	@Published var cakedServiceInstalled: Bool = false
 	@Published var cakedServiceRunning: Bool = false

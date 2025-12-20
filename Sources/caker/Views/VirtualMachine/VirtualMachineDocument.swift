@@ -869,15 +869,21 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
+			#if DEBUG
+			let isDebugLoggingEnabled = false
+			#else
+			let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug
+			#endif
+
 			let settings = RoyalVNCKit.VNCConnection.Settings(
-				isDebugLoggingEnabled: false,  //Logger.LoggingLevel() == .debug,
+				isDebugLoggingEnabled: isDebugLoggingEnabled,
 				hostname: vncHost,
 				port: UInt16(vncPort),
 				isShared: true,
 				isScalingEnabled: true,
 				useDisplayLink: true,
 				inputMode: .forwardAllKeyboardShortcutsAndHotKeys,
-				isClipboardRedirectionEnabled: true,
+				isClipboardRedirectionEnabled: AppState.shared.isClipboardRedirectionEnabled,
 				colorDepth: .depth24Bit,
 				frameEncodings: .default)
 			let connection = RoyalVNCKit.VNCConnection(settings: settings, logger: VNCConnectionLogger())

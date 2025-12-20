@@ -12,6 +12,8 @@ struct VMSettingsView: View {
 	@AppStorage("NoScreenshot") var isNoScreenshot = false
 	@AppStorage("NoSaveScreenshot") var isNoSaveScreenshot = false
 	@AppStorage("NoShutdownVMOnClose") var isNoShutdownVMOnClose = false
+	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false
+	@AppStorage("DebugVNCMessageEnabled") var debugVNCMessageEnabled: Bool = false
 
 	var body: some View {
 		Form {
@@ -58,6 +60,31 @@ struct VMSettingsView: View {
 					isNoShutdownVMOnClose = newValue
 				}
 			}
+
+			Toggle(
+				isOn: $isClipboardRedirectionEnabled,
+				label: {
+					Text("Send clipboard data to VM on VNC view")
+				}
+			).onChange(of: isClipboardRedirectionEnabled) { _, newValue in
+				if newValue {
+					isClipboardRedirectionEnabled = newValue
+				}
+			}
+
+			#if DEBUG
+			Toggle(
+				isOn: $debugVNCMessageEnabled,
+				label: {
+					Text("Debug VNC messages")
+				}
+			).onChange(of: debugVNCMessageEnabled) { _, newValue in
+				if newValue {
+					debugVNCMessageEnabled = newValue
+				}
+			}
+			#endif
+
 		}.formStyle(.grouped)
 	}
 }
