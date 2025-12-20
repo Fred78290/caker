@@ -744,8 +744,8 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 		self.status = status
 	}
 
-	func didScreenshot(_ vm: CakedLib.VirtualMachine, data: NSImage) {
-		try? vm.saveScreenshot()
+	func didScreenshot(_ vm: CakedLib.VirtualMachine, screenshot: NSImage) {
+		try? screenshot.pngData?.write(to: self.location.screenshotURL)
 	}
 }
 

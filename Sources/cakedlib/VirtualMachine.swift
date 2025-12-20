@@ -12,7 +12,7 @@ private let kScreenshotPeriodSeconds = 5.0
 
 public protocol VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine)
-	func didScreenshot(_ vm: VirtualMachine, data: NSImage)
+	func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage)
 }
 
 extension SSHError.Kind {
@@ -117,7 +117,6 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	let runMode: Utils.RunMode
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VZVirtualMachineView! = nil
-	var screenshot: NSImage? = nil
 	var timer: Timer? = nil
 
 	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
@@ -719,12 +718,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	func getScreenSize() -> (width: Int, height: Int) {
-		if let vzMachineView = self.env.vzMachineView {
-			return (Int(vzMachineView.bounds.width), Int(vzMachineView.bounds.height))
-		}
+		return self.vmQueue.sync {
+			if #available(macOS 14.0, *) {
+				if let vzMachineView = self.env.vzMachineView {
+					return (Int(vzMachineView.bounds.width), Int(vzMachineView.bounds.height))
+				}
 
-		if #available(macOS 14.0, *) {
-			return self.vmQueue.sync {
 				if let display = self.virtualMachine.graphicsDevices.first?.displays.first {
 					let size = display.sizeInPixels
 
@@ -732,9 +731,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				}
 
 				return (0, 0)
+			} else {
+				if let vzMachineView = self.env.vzMachineView {
+					return (Int(vzMachineView.bounds.width), Int(vzMachineView.bounds.height))
+				}
+
+				return (0, 0)
 			}
-		} else {
-			return (0, 0)
 		}
 	}
 
@@ -1009,12 +1012,12 @@ extension VirtualMachine {
 		return timer
 	}
 
-	public func saveScreenshot() throws {
+	private func saveScreenshot() throws {
 		guard isScreenshotSaveEnabled else {
 			return
 		}
 
-		guard let screenshot = self.env.screenshot else {
+		guard let screenshot = vzMachineView?.image() else {
 			return
 		}
 
@@ -1027,10 +1030,7 @@ extension VirtualMachine {
 
 	@MainActor func takeScreenshot() async {
 		if let vzMachineView = self.env.vzMachineView {
-			self.env.screenshot = vzMachineView.image()
-			if let screenshot = self.env.screenshot {
-				self.delegate?.didScreenshot(self, data: screenshot)
-			}
+			self.delegate?.didScreenshot(self, screenshot: vzMachineView.image())
 		}
 	}
 }

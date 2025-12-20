@@ -239,6 +239,7 @@ public class VNCInputHandler {
 			}
 		}
 	}
+
 	private func handleMouseButtons(_ view: NSView, buttonMask: UInt8, at viewPoint: NSPoint, moved: Bool) -> Bool {
 		let previousState = mouseButtonState
 		var buttonEvent = false

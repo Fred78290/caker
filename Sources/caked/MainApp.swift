@@ -151,8 +151,8 @@ struct MainApp: App, VirtualMachineDelegate {
 		self.appState.update(vm: vm)
 	}
 
-	func didScreenshot(_ vm: CakedLib.VirtualMachine, data: NSImage) {
-		try? vm.saveScreenshot()
+	func didScreenshot(_ vm: CakedLib.VirtualMachine, screenshot: NSImage) {
+		try? screenshot.pngData?.write(to: vm.location.screenshotURL)
 	}
 
 	static func runUI(_ vm: VirtualMachine, params: VMRunHandler) {
