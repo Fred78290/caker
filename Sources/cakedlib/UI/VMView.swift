@@ -7,6 +7,65 @@
 import SwiftUI
 import Virtualization
 
+extension VZVirtualMachineView {
+	public var guestIsUsingHostCursor: Bool {
+		get {
+			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_guestIsUsingHostCursor") else {
+				return false
+			}
+			
+			guard let value = object_getIvar(self, field) as? Bool else {
+				return false
+			}
+			
+			return value
+		}
+		set {
+			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_guestIsUsingHostCursor") else {
+				return
+			}
+
+			object_setIvar(self, field, newValue)
+		}
+	}
+	
+	
+	public var showsHostCursor: Bool {
+		get {
+			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_showsHostCursor") else {
+				return false
+			}
+
+			guard let value = object_getIvar(self, field) as? Bool else {
+				return false
+			}
+
+			return value
+		}
+		set {
+			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_showsHostCursor") else {
+				return
+			}
+
+			object_setIvar(self, field, newValue)
+		}
+	}
+	
+	public var ivars: [Ivar] {
+		var count: UInt32 = 0
+		var ivars: [Ivar] = []
+		let result = class_copyIvarList(VZVirtualMachineView.self, &count)
+
+		for index in 0..<Int(count) {
+			if let ivar = result?[index] {
+				ivars.append(ivar)
+			}
+		}
+
+		return ivars
+	}
+}
+
 class ExVZVirtualMachineView: VZVirtualMachineView {
 	var onDisconnect: (() -> Void)?
 	
@@ -45,7 +104,9 @@ public struct VMView: NSViewRepresentable {
 		vzMachineView.virtualMachine = vm.virtualMachine
 		vzMachineView.autoresizingMask = [.width, .height]
 		vzMachineView.automaticallyReconfiguresDisplay = true
-		
+		vzMachineView.capturesSystemKeys = true
+		//vzMachineView.showsHostCursor = false
+
 		return vzMachineView
 	}
 	

@@ -291,7 +291,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			framebuffer.updateSize(width: Int(bounds.width), height: Int(bounds.height))
 			
 			// Notify all clients of size change
-			let connections = self.activeConnections
+			/*let connections = self.activeConnections
 			
 			if connections.isEmpty == false {
 				self.updateframeBufferQueue.async {
@@ -321,7 +321,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				MainActor.assumeIsolated {
 					self.framebuffer.markAsProcessed()
 				}
-			}
+			}*/
 		}
 	}
 
@@ -330,7 +330,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		// Update framebuffer from source view
 		self.framebuffer.updateFromView()
 
-		let connections = self.activeConnections.filter { $0.sendFramebufferContinous }
+		let sizeChanged = framebuffer.sizeChanged
+		let connections = self.activeConnections.filter {
+			$0.sendFramebufferContinous || sizeChanged
+		}
 
 		// Send updates to all connected clients
 		if connections.isEmpty == false {
@@ -338,6 +341,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				let result = self.eventLoop.makeFutureWithTask {
 					await withTaskGroup(of: Void.self) { group in
 						connections.forEach { connection in
+							if sizeChanged {
+								connection.newFBSizePending = true
+							}
+
 							group.addTask {
 								await connection.sendFramebufferUpdate()
 							}
