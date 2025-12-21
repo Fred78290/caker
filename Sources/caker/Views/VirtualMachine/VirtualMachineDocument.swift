@@ -870,7 +870,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
 			#if DEBUG
-			let isDebugLoggingEnabled = false
+			let isDebugLoggingEnabled = AppState.shared.debugVNCMessageEnabled
 			#else
 			let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug
 			#endif

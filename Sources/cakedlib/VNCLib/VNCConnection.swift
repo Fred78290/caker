@@ -4,6 +4,7 @@ import Foundation
 import Network
 import Semaphore
 import System
+import Compression
 
 extension [UInt8] {
 	mutating func rfbSetBit(_ position: Int) {
@@ -52,7 +53,6 @@ final class VNCConnection: @unchecked Sendable {
 		}
 	}
 	
-	internal var newFBSizePending = false
 	internal var connectionState: NWConnection.State {
 		self.connection.state
 	}
@@ -141,9 +141,137 @@ final class VNCConnection: @unchecked Sendable {
 	
 	private func transformPixel(_ pixelData: Data, width: Int, height: Int) -> Data {
 		return self.translatePixelFormat(self.translateLookupTable, self.clientPixelFormat, pixelData, width * 4, width, height)
-		
-		//return framebuffer.convertToClient(state.data, clientFormat: self.clientPixelFormat)
 	}
+
+	private func rfbSendRectEncodingRaw(_ pixelData: Data, width: Int, height: Int) async throws {
+		var payload = VNCFramebufferUpdatePayload()
+		
+		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.message.padding = 0
+		payload.message.numberOfRectangles = UInt16(1).bigEndian
+		
+		payload.rectangle.x = 0
+		payload.rectangle.y = 0
+		payload.rectangle.width = UInt16(width).bigEndian
+		payload.rectangle.height = UInt16(height).bigEndian
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingRaw.rawValue.bigEndian
+		
+		try await self.sendDatas(payload)
+		try await self.sendDatas(pixelData)
+	}
+
+	private func rfbSendRectEncodingZlib(_ pixelData: Data, width: Int, height: Int) async throws {
+		func zlibMaxSize(_ width: Int) -> Int {
+			let zlibMaxRectSize = 128*256
+
+			if width * 2 > zlibMaxRectSize {
+				return width * 2
+			}
+			
+			return zlibMaxRectSize
+		}
+
+		let maxLines = zlibMaxSize(width)
+		var linesRemaining = height
+		var payload = VNCFramebufferUpdatePayload()
+		var posY = 0
+		let lineWidthBytes = width * (Int(self.clientPixelFormat.bitsPerPixel) / 8)
+
+		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.message.padding = 0
+		payload.message.numberOfRectangles = UInt16(1).bigEndian
+
+		payload.rectangle.x = 0
+		payload.rectangle.y = 0
+		payload.rectangle.width = UInt16(width).bigEndian
+		payload.rectangle.height = UInt16(height).bigEndian
+		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian
+
+		while linesRemaining > 0 {
+			let linesToComp = min(maxLines, linesRemaining)
+			let compressed = self.zlibCompress(pixelData, offset: posY * lineWidthBytes, length: linesToComp * lineWidthBytes)
+
+			payload.rectangle.y = UInt16(posY).bigEndian
+			payload.rectangle.height = UInt16(linesToComp).bigEndian
+
+			try await self.sendDatas(payload)
+			try await self.sendDatas(compressed)
+
+			linesRemaining -= linesToComp;
+			posY += linesToComp;
+		}
+	}
+
+	private func zlibCompress(_ data: Data, offset: Int, length: Int) -> Data {
+        guard !data.isEmpty else { return data }
+
+		return data.withUnsafeBytes { (srcBuffer: UnsafeRawBufferPointer) -> Data in
+            guard var srcBase = srcBuffer.baseAddress else { return Data() }
+			
+			srcBase = srcBase.advanced(by: offset)
+
+			var dstCapacity = (length + ((length + 99) / 100) + 12) + MemoryLayout<UInt32>.size
+            var compressed = Data(count: dstCapacity)
+
+			let status = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
+                guard let dstBase = dstBuffer.baseAddress else { return 0 }
+
+				var compressedSize = compression_encode_buffer(
+					dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size),
+                    dstCapacity,
+                    srcBase.assumingMemoryBound(to: UInt8.self),
+					length,
+                    nil,
+					COMPRESSION_ZLIB
+                )
+
+				if compressedSize > 0 {
+					dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
+					compressedSize += MemoryLayout<UInt32>.size
+				}
+
+				return compressedSize
+            }
+
+            if status == 0 {
+                // If the buffer was too small, try again with a larger buffer once.
+                dstCapacity = (length * 2) + MemoryLayout<UInt32>.size
+                compressed = Data(count: dstCapacity)
+
+				let retry = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
+                    guard let dstBase = dstBuffer.baseAddress else { return 0 }
+
+					var compressedSize = compression_encode_buffer(
+						dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size),
+                        dstCapacity,
+                        srcBase.assumingMemoryBound(to: UInt8.self),
+						length,
+                        nil,
+						COMPRESSION_ZLIB
+                    )
+
+					if compressedSize > 0 {
+						dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
+						compressedSize += MemoryLayout<UInt32>.size
+					}
+
+					return compressedSize
+                }
+                
+				if retry > 0 {
+                    compressed.removeSubrange(retry..<compressed.count)
+                    return compressed
+                } else {
+                    // Fallback to original data if compression failed
+                    return data
+                }
+
+			} else {
+                compressed.removeSubrange(status..<compressed.count)
+                return compressed
+            }
+        }
+    }
 	
 	private func setClientColourMapBGR233() async throws {
 		var data = Data(count: MemoryLayout<VNCSetColourMapEntries>.size + (256 * 3 * 2))
@@ -580,7 +708,11 @@ extension VNCConnection {
 				case .rfbEncodingCopyRect:
 					setEncoding.useCopyRect = true;
 					break;
-				case .rfbEncodingRaw, .rfbEncodingRRE, .rfbEncodingCoRRE, .rfbEncodingHextile, .rfbEncodingUltra, .rfbEncodingZlib, .rfbEncodingZRLE, .rfbEncodingZYWRLE, .rfbEncodingTight, .rfbEncodingTightPng, .rfbEncodingZlibHex:
+				case .rfbEncodingZlib:
+					if setEncoding.preferredEncoding == .rfbEncodingNone {
+						setEncoding.preferredEncoding = encoding
+					}
+				case .rfbEncodingRaw, .rfbEncodingRRE, .rfbEncodingCoRRE, .rfbEncodingHextile, .rfbEncodingUltra, .rfbEncodingZRLE, .rfbEncodingZYWRLE, .rfbEncodingTight, .rfbEncodingTightPng, .rfbEncodingZlibHex:
 					if setEncoding.preferredEncoding == .rfbEncodingNone {
 						setEncoding.preferredEncoding = encoding
 					}
@@ -661,14 +793,16 @@ extension VNCConnection {
 	
 	private func receiveFramebufferUpdateRequest() async throws {
 		let value = try await self.receiveDatas(ofType: VNCFramebufferUpdateRequest.self, dataLength: 9)
+		var newSizePending = false
 
 		self.logger.trace("Client request update: \(value)")
+
 		if self.encodings.useExtDesktopSize && value.incremental == 0 {
-			self.newFBSizePending = true
+			newSizePending = true
 		}
 
 		// Send framebuffer update
-		try await self.sendFramebufferUpdateThrowing()
+		try await self.sendFramebufferUpdateThrowing(newSizePending)
 	}
 	
 	private func receiveFramebufferUpdateContinue() async throws {
@@ -813,28 +947,20 @@ extension VNCConnection {
 	}
 
 	private func sendUpdateBuffer(_ pixelData: Data, width: Int, height: Int) async throws {
-		let pixelData = transformPixel(pixelData, width: width, height: height)
-		var payload = VNCFramebufferUpdatePayload()
-		
-		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-		payload.message.padding = 0
-		payload.message.numberOfRectangles = UInt16(1).bigEndian
-		
-		payload.rectangle.x = 0
-		payload.rectangle.y = 0
-		payload.rectangle.width = UInt16(width).bigEndian
-		payload.rectangle.height = UInt16(height).bigEndian
-		payload.rectangle.encoding = 0
-		
-		try await self.sendDatas(payload)
-		try await self.sendDatas(pixelData)
+        let pixelData = transformPixel(pixelData, width: width, height: height)
+
+		if self.encodings.preferredEncoding == .rfbEncodingZlib {
+			try await rfbSendRectEncodingZlib(pixelData, width: width, height: height)
+		} else {
+			try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
+		}
 		
 		if self.encodings.enableContinousUpdate && self.sendFramebufferContinous == false {
 			self.sendFramebufferContinous = true
 		}
 	}
 
-	func sendFramebufferUpdateThrowing() async throws {
+	func sendFramebufferUpdateThrowing(_ newSizePending: Bool) async throws {
 		if isAuthenticated && self.connection.state == .ready {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
@@ -850,9 +976,7 @@ extension VNCConnection {
 				self.encodings.enableSupportedMessages = false
 			}
 
-			if self.newFBSizePending && self.encodings.useNewFBSize {
-				self.newFBSizePending = false
-				
+			if newSizePending && self.encodings.useNewFBSize {
 				if self.encodings.useExtDesktopSize {
 					try await sendExDesktopSize(width: UInt16(state.width), height: UInt16(state.height))
 				} else {
@@ -872,15 +996,10 @@ extension VNCConnection {
 		}
 	}
 
-	func sendFramebufferNewSize() async {
-		self.newFBSizePending = true
-		await self.sendFramebufferUpdate()
-	}
-
-	func sendFramebufferUpdate() async {
+	func sendFramebufferUpdate(_ newSizePending: Bool) async {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
-				try await self.sendFramebufferUpdateThrowing()
+				try await self.sendFramebufferUpdateThrowing(newSizePending)
 			} catch {
 				self.logger.error("send framebuffer failed error: \(error)")
 				self.didReceiveError(error)
@@ -1167,3 +1286,4 @@ extension VNCConnection {
 		throw kNotEnoughDataError
 	}
 }
+
