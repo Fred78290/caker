@@ -56,34 +56,32 @@ public class VNCFramebuffer {
 		}
 	}
 
-	public func updateFromView() {
+	public func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
 		let bounds = sourceView.bounds
 		let newWidth = Int(bounds.width)
 		let newHeight = Int(bounds.height)
 
+		if newWidth == 0 || newHeight == 0 {
+			self.logger.debug("View size is zero, skipping frame capture.")
+			return (nil, false)
+		}
+
 		guard let imageRepresentation = sourceView.imageRepresentationSync(in: bounds) else {
-			return
+			return (nil, false)
 		}
 
-		updateQueue.async {
-			if newWidth == 0 || newHeight == 0 {
-				self.logger.debug("View size is zero, skipping frame capture.")
+		// Check if size has changed
+		if self.width != newWidth || self.height != newHeight {
+			self.pixelData.withLock {
+				self.width = newWidth
+				self.height = newHeight
+				self.sizeChanged = true
+				self.hasChanges = true
+				$0 = Data(count: newWidth * newHeight * 4)
 			}
-
-			// Check if size has changed
-			if self.width != newWidth || self.height != newHeight {
-				self.pixelData.withLock {
-					self.width = newWidth
-					self.height = newHeight
-					self.sizeChanged = true
-					self.hasChanges = true
-					$0 = Data(count: newWidth * newHeight * 4)
-				}
-			}
-
-			// Capture content
-			self.convertBitmapToPixelData(bitmap: imageRepresentation)
 		}
+
+		return (imageRepresentation, self.hasChanges)
 	}
 
 	internal func captureViewContent(view: NSView, bounds: NSRect) async {
@@ -94,7 +92,7 @@ public class VNCFramebuffer {
 		}
 	}
 
-	private func convertBitmapToPixelData(bitmap: NSBitmapImageRep) {
+	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) {
 		if let cgImage = bitmap.cgImage {
 			self.bitsPerPixels = cgImage.bitsPerPixel
 			self.bitmapInfo = cgImage.bitmapInfo;

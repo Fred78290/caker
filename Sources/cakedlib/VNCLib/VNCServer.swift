@@ -328,41 +328,43 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	@objc private func updateFramebuffer() {
 		//self.logger.debug("updateFramebuffer")
 		// Update framebuffer from source view
-		self.framebuffer.updateFromView()
+		let result = self.framebuffer.updateFromView()
 
-		let sizeChanged = framebuffer.sizeChanged
-		let connections = self.activeConnections.filter {
-			$0.sendFramebufferContinous || sizeChanged
+		guard let imageRepresentation = result.imageRepresentation else {
+			return
 		}
 
 		// Send updates to all connected clients
-		if connections.isEmpty == false {
 			self.updateframeBufferQueue.async {
-				let result = self.eventLoop.makeFutureWithTask {
-					await withTaskGroup(of: Void.self) { group in
-						connections.forEach { connection in
-							if sizeChanged {
-								connection.newFBSizePending = true
-							}
+				self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation)
 
-							group.addTask {
-								await connection.sendFramebufferUpdate()
-							}
-						}
-						
-						await group.waitForAll()
-					}
+				let connections = self.activeConnections.filter {
+					$0.sendFramebufferContinous || result.sizeChanged
 				}
-				
-				try? result.wait()
+
+				if connections.isEmpty == false {
+					let result = self.eventLoop.makeFutureWithTask {
+						await withTaskGroup(of: Void.self) { group in
+							connections.forEach { connection in
+								if result.sizeChanged {
+									connection.newFBSizePending = true
+								}
+								
+								group.addTask {
+									await connection.sendFramebufferUpdate()
+								}
+							}
+							
+							await group.waitForAll()
+						}
+					}
+					
+					try? result.wait()
+				}
 
 				DispatchQueue.main.sync {
 					self.framebuffer.markAsProcessed()
 				}
-			}
-		} else {
-			MainActor.assumeIsolated {
-				self.framebuffer.markAsProcessed()
 			}
 		}
 	}
