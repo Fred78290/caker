@@ -43,11 +43,8 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let logger = Logger("VNCServer")
 	private var listener: NWListener!
 	private var connections: [VNCConnection] = []
-	private var updateTimer: Timer?
 	private var framebuffer: VNCFramebuffer
-	private var displayLink: CADisplayLink!
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
-	private let updateframeBufferQueue = DispatchQueue(label: "vnc.server.framebuffer")
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
@@ -64,8 +61,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
 	}
 
-	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .metal, metalConfig: VNCMetalFramebuffer.MetalConfiguration = .standard) throws {
-
+	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .coreGraphics) throws {
 		try newKeyMapper().setupKeyMapper()
 
 		self.sourceView = sourceView
@@ -80,17 +76,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 
 		// Create appropriate framebuffer based on capture method
-		switch captureMethod {
-		case .metal:
-			if MTLCreateSystemDefaultDevice() != nil {
-				self.framebuffer = VNCMetalFramebuffer(view: sourceView, captureMethod: .metal, metalConfig: metalConfig)
-			} else {
-				Logger("VNCServer").error("Metal not available, falling back to Core Graphics")
-				self.framebuffer = VNCFramebuffer(view: sourceView)
-			}
-		case .coreGraphics:
-			self.framebuffer = VNCFramebuffer(view: sourceView)
-		}
+		self.framebuffer = VNCFramebuffer(view: sourceView)
 
 		super.init()
 
@@ -222,12 +208,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public func stop() {
 		guard isRunning else { return }
 
-		updateTimer?.invalidate()
-		updateTimer = nil
-
-		displayLink?.invalidate()
-		displayLink = nil
-
 		listener?.cancel()
 		listener = nil
 
@@ -265,113 +245,48 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private func startFramebufferUpdates() {
 		self.isRunning = true
 
-		DispatchQueue.main.async {
-			self.framebuffer.updateFromView()
-
-			if self.sourceView.window == nil {
-				self.updateTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { _ in
-					self.updateFramebuffer()
-				}
-			} else {
-				self.displayLink = self.sourceView.displayLink(target: self, selector: #selector(self.updateFramebuffer))
-
-				// Configure display link for optimal VNC streaming
-				// Limit to 30 FPS for network efficiency while maintaining smoothness
-				self.displayLink.preferredFrameRateRange = CAFrameRateRange(minimum: 15, maximum: 30, preferred: 30)
-				self.displayLink.add(to: .current, forMode: .common)
-			}
+		Task {
+			try await self.updateFramebuffer()
 		}
 	}
 
 	private func handleViewSizeChange() {
-		// Update framebuffer with new size
-		let bounds = self.sourceView.bounds
-
-		if framebuffer.width != Int(bounds.width) || framebuffer.height != Int(bounds.height) {
-			framebuffer.updateSize(width: Int(bounds.width), height: Int(bounds.height))
-			
-			// Notify all clients of size change
-			/*let connections = self.activeConnections
-			
-			if connections.isEmpty == false {
-				self.updateframeBufferQueue.async {
-					let result = self.eventLoop.makeFutureWithTask {
-						await withTaskGroup(of: Void.self) { group in
-							connections.forEach { connection in
-								if connection.sendFramebufferContinous == false {
-									group.addTask {
-										await connection.sendFramebufferNewSize()
-									}
-								} else {
-									connection.newFBSizePending = true
-								}
-							}
-							
-							await group.waitForAll()
-						}
-					}
-					
-					try? result.wait()
-					
-					DispatchQueue.main.sync {
-						self.framebuffer.markAsProcessed()
-					}
-				}
-			} else {
-				MainActor.assumeIsolated {
-					self.framebuffer.markAsProcessed()
-				}
-			}*/
-		}
 	}
 
-	@objc private func updateFramebuffer() {
-		//self.logger.debug("updateFramebuffer")
-		// Update framebuffer from source view
-		let result = self.framebuffer.updateFromView()
-
-		guard let imageRepresentation = result.imageRepresentation else {
-			return
-		}
-
-		// Send updates to all connected clients
-			self.updateframeBufferQueue.async {
-				self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation)
-
-				let connections = self.activeConnections.filter {
-					$0.sendFramebufferContinous || result.sizeChanged
-				}
-
-				if connections.isEmpty == false {
-					let result = self.eventLoop.makeFutureWithTask {
-						await withTaskGroup(of: Void.self) { group in
-							connections.forEach { connection in
-								if result.sizeChanged {
-									connection.newFBSizePending = true
-								}
-								
-								group.addTask {
-									await connection.sendFramebufferUpdate()
-								}
-							}
-							
-							await group.waitForAll()
+	private func updateFramebuffer() async throws {
+		while isRunning {
+			let result = await self.framebuffer.updateFromView()
+			
+			guard let imageRepresentation = result.imageRepresentation else {
+				continue
+			}
+			
+			self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation)
+			
+			let connections = self.activeConnections.filter {
+				$0.sendFramebufferContinous || result.sizeChanged
+			}
+			
+			if connections.isEmpty == false {
+				await withTaskGroup(of: Void.self) { group in
+					connections.forEach { connection in
+						group.addTask {
+							await connection.sendFramebufferUpdate(result.sizeChanged)
 						}
 					}
 					
-					try? result.wait()
-				}
-
-				DispatchQueue.main.sync {
-					self.framebuffer.markAsProcessed()
+					await group.waitForAll()
 				}
 			}
+			
+			await self.framebuffer.markAsProcessed()
+			
+			try await Task.sleep(nanoseconds: 300_000)
 		}
 	}
 
 	deinit {
 		NotificationCenter.default.removeObserver(self)
-		stop()
 	}
 
 	// MARK: - Port Availability

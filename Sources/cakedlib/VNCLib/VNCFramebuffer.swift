@@ -40,7 +40,7 @@ public class VNCFramebuffer {
 		}
 	}
 
-	public func updateSize(width: Int, height: Int) {
+	func updateSize(width: Int, height: Int) {
 		guard self.width != width || self.height != height else { return }
 
 		if width == 0 || height == 0 {
@@ -56,6 +56,7 @@ public class VNCFramebuffer {
 		}
 	}
 
+	@MainActor
 	public func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
 		let bounds = sourceView.bounds
 		let newWidth = Int(bounds.width)
@@ -71,15 +72,7 @@ public class VNCFramebuffer {
 		}
 
 		// Check if size has changed
-		if self.width != newWidth || self.height != newHeight {
-			self.pixelData.withLock {
-				self.width = newWidth
-				self.height = newHeight
-				self.sizeChanged = true
-				self.hasChanges = true
-				$0 = Data(count: newWidth * newHeight * 4)
-			}
-		}
+		updateSize(width: newWidth, height: newHeight)
 
 		return (imageRepresentation, self.hasChanges)
 	}
