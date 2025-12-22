@@ -194,6 +194,13 @@ final class VNCConnection: @unchecked Sendable {
 			payload.rectangle.y = UInt16(posY).bigEndian
 			payload.rectangle.height = UInt16(linesToComp).bigEndian
 
+//			var msg = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
+//			msg.withUnsafeMutableBytes { ptr in
+//				ptr.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress!.pointee = payload
+//			}
+//
+//			msg.append(compressed)
+//			try await self.sendDatas(msg)
 			try await self.sendDatas(payload)
 			try await self.sendDatas(compressed)
 
@@ -948,8 +955,9 @@ extension VNCConnection {
 
 	private func sendUpdateBuffer(_ pixelData: Data, width: Int, height: Int) async throws {
         let pixelData = transformPixel(pixelData, width: width, height: height)
+		let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
 
-		if self.encodings.preferredEncoding == .rfbEncodingZlib {
+		if preferredEncoding == .rfbEncodingZlib {
 			try await rfbSendRectEncodingZlib(pixelData, width: width, height: height)
 		} else {
 			try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
