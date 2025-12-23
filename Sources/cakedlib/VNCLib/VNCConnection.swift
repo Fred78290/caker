@@ -217,14 +217,14 @@ final class VNCConnection: @unchecked Sendable {
 			
 			srcBase = srcBase.advanced(by: offset)
 
-			var dstCapacity = (length + ((length + 99) / 100) + 12) + MemoryLayout<UInt32>.size
+			var dstCapacity = (length + ((length + 99) / 100) + 12) + MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
             var compressed = Data(count: dstCapacity)
 
 			let status = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
                 guard let dstBase = dstBuffer.baseAddress else { return 0 }
 
 				var compressedSize = compression_encode_buffer(
-					dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size),
+					dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size),
                     dstCapacity,
                     srcBase.assumingMemoryBound(to: UInt8.self),
 					length,
@@ -234,7 +234,9 @@ final class VNCConnection: @unchecked Sendable {
 
 				if compressedSize > 0 {
 					dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
-					compressedSize += MemoryLayout<UInt32>.size
+					dstBase.assumingMemoryBound(to: UInt16.self).advanced(by: 4).pointee = 0
+
+					compressedSize += MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
 				}
 
 				return compressedSize
@@ -242,14 +244,14 @@ final class VNCConnection: @unchecked Sendable {
 
             if status == 0 {
                 // If the buffer was too small, try again with a larger buffer once.
-                dstCapacity = (length * 2) + MemoryLayout<UInt32>.size
+                dstCapacity = (length * 2) + MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
                 compressed = Data(count: dstCapacity)
 
 				let retry = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
                     guard let dstBase = dstBuffer.baseAddress else { return 0 }
 
 					var compressedSize = compression_encode_buffer(
-						dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size),
+						dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size),
                         dstCapacity,
                         srcBase.assumingMemoryBound(to: UInt8.self),
 						length,
@@ -259,6 +261,8 @@ final class VNCConnection: @unchecked Sendable {
 
 					if compressedSize > 0 {
 						dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
+						dstBase.assumingMemoryBound(to: UInt16.self).advanced(by: 4).pointee = 0
+
 						compressedSize += MemoryLayout<UInt32>.size
 					}
 
