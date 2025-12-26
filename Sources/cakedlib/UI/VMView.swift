@@ -6,8 +6,30 @@
 //
 import SwiftUI
 import Virtualization
+import QuartzCore
+
+@objc protocol _VZFramebufferObserver {
+	@objc func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafeMutableRawPointer?)
+	@objc func framebuffer(_ framebuffer: Any, didUpdateFrame frame: UnsafeMutableRawPointer?)
+	@objc func framebuffer(_ framebuffer: Any, didUpdateGraphicsOrientation orientation: Int64)
+	@objc func framebufferDidUpdateColorSpace(_ framebuffer: Any)
+}
 
 extension VZVirtualMachineView {
+	public var framebufferView: NSView? {
+		get {
+			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_framebufferView") else {
+				return nil
+			}
+			
+			guard let value = object_getIvar(self, field) as? NSView else {
+				return nil
+			}
+			
+			return value
+		}
+	}
+
 	public var guestIsUsingHostCursor: Bool {
 		get {
 			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_guestIsUsingHostCursor") else {
@@ -28,8 +50,7 @@ extension VZVirtualMachineView {
 			object_setIvar(self, field, newValue)
 		}
 	}
-	
-	
+
 	public var showsHostCursor: Bool {
 		get {
 			guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_showsHostCursor") else {
@@ -69,6 +90,18 @@ extension VZVirtualMachineView {
 class ExVZVirtualMachineView: VZVirtualMachineView {
 	var onDisconnect: (() -> Void)?
 	
+	override init(frame frameRect: NSRect) {
+		super.init(frame: frameRect)
+		
+		if let framebufferView = self.framebufferView {
+			let observer: _VZFramebufferObserver = unsafeBitCast(framebufferView, to: _VZFramebufferObserver.self)
+		}
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
 	public override func keyDown(with event: NSEvent) {
 		Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
 		
@@ -126,3 +159,4 @@ public struct VMView: NSViewRepresentable {
 	public func updateNSView(_ nsView: VZVirtualMachineView, context: Context) {
 	}
 }
+

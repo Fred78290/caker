@@ -189,6 +189,9 @@
 		9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E8E2E23BF1300C13D23 /* AppState.swift */; };
 		9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
+		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
+		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
+		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
 		9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */; };
 		9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */; };
@@ -692,6 +695,9 @@
 		9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteData.swift; sourceTree = "<group>"; };
 		9B9C4E922E23C92900C13D23 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
+		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
+		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
+		9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibDeflateStream.swift; sourceTree = "<group>"; };
 		9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineView.swift; sourceTree = "<group>"; };
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -1440,6 +1446,16 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		9BA1808A2EFBF87B000D1424 /* Compression */ = {
+			isa = PBXGroup;
+			children = (
+				9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */,
+				9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */,
+				9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */,
+			);
+			path = Compression;
+			sourceTree = "<group>";
+		};
 		9BAF74B52EBBD7CC0036CE1B /* MultiplatformTabBar */ = {
 			isa = PBXGroup;
 			children = (
@@ -1734,6 +1750,7 @@
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
+				9BA1808A2EFBF87B000D1424 /* Compression */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
 				9B20D6012E019FA400BEFB41 /* Importers */,
 				9BEBC7322DF440720092B196 /* IP */,
@@ -2015,7 +2032,7 @@
 				TargetAttributes = {
 					9B464A532D5A3DA000164BF5 = {
 						CreatedOnToolsVersion = 16.2;
-						LastSwiftMigration = 1640;
+						LastSwiftMigration = 2620;
 					};
 					9B464B4E2D5A3E5C00164BF5 = {
 						CreatedOnToolsVersion = 16.2;
@@ -2380,6 +2397,7 @@
 				9BEBC7942DF440720092B196 /* LaunchHandler.swift in Sources */,
 				9BEBC7952DF440720092B196 /* CakedUDPPortForwardingServer.swift in Sources */,
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
+				9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */,
 				9BEBC7972DF440720092B196 /* Logger.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
 				9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */,
@@ -2420,6 +2438,8 @@
 				9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */,
 				9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */,
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
+				9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */,
+				9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */,
 				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
 				9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */,
 				9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */,
@@ -2620,14 +2640,14 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Caker/CakerDebug.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Caker/Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = LE7988HTRN;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_DEBUG_DYLIB = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -2646,7 +2666,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
+				PROVISIONING_PROFILE_SPECIFIER = "Caker Develop 2";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Caker Develop 2";
 				REGISTER_APP_GROUPS = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;

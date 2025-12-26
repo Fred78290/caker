@@ -261,26 +261,27 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				continue
 			}
 			
-			self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation)
-			
-			let connections = self.activeConnections.filter {
-				$0.sendFramebufferContinous || result.sizeChanged
-			}
-			
-			if connections.isEmpty == false {
-				await withTaskGroup(of: Void.self) { group in
-					connections.forEach { connection in
-						group.addTask {
-							await connection.sendFramebufferUpdate(result.sizeChanged)
+			if self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation) {
+				self.logger.debug("updateFramebuffer")
+				let connections = self.activeConnections.filter {
+					$0.sendFramebufferContinous || result.sizeChanged
+				}
+				
+				if connections.isEmpty == false {
+					await withTaskGroup(of: Void.self) { group in
+						connections.forEach { connection in
+							group.addTask {
+								await connection.sendFramebufferUpdate(result.sizeChanged)
+							}
 						}
+						
+						await group.waitForAll()
 					}
-					
-					await group.waitForAll()
 				}
 			}
-			
+
 			await self.framebuffer.markAsProcessed()
-			
+
 			try await Task.sleep(nanoseconds: 300_000)
 		}
 	}

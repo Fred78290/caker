@@ -339,6 +339,11 @@ struct VNCFramebufferUpdatePayload: VNCLoadMessage {
 	var rectangle: VNCRectangle = VNCRectangle()
 }
 
+struct VNCFramebufferUpdatePayloadZLib {
+	var buffer: VNCFramebufferUpdatePayload = .init()
+	var compressedSize: UInt32 = 0
+}
+
 // Client messages
 struct VNCKeyEvent: VNCLoadMessage, CustomStringConvertible {
 	var description: String {

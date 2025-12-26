@@ -77,56 +77,105 @@ public class VNCFramebuffer {
 		return (imageRepresentation, self.hasChanges)
 	}
 
-	internal func captureViewContent(view: NSView, bounds: NSRect) async {
-		// Create image from view
-		// Convert to pixel data
-		if let imageRepresentation = await view.imageRepresentation(in: bounds) {
-			convertBitmapToPixelData(bitmap: imageRepresentation)
+	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) -> Bool {
+		var changed = self.sizeChanged
+
+		guard let cgImage = bitmap.cgImage else {
+			return false
 		}
-	}
 
-	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) {
-		if let cgImage = bitmap.cgImage {
-			self.bitsPerPixels = cgImage.bitsPerPixel
-			self.bitmapInfo = cgImage.bitmapInfo;
+		if cgImage.bitmapInfo != self.bitmapInfo || cgImage.width != self.width || cgImage.height != self.height {
+			changed = true
+		}
 
-			if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
-				var pixelData = Data(count: width*height*4)
-				
+		self.bitsPerPixels = cgImage.bitsPerPixel
+		self.bitmapInfo = cgImage.bitmapInfo;
+
+		if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
+			var pixelData = Data(count: width*height*4)
+
+			if changed {
 				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
 						let rowWidth = self.width * 4
-
+						
 						for row in 0..<height {
-							let srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
-							let dstPtr = dp.advanced(by: rowWidth * row)
-
+							var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
+							var dstPtr = dp.advanced(by: rowWidth * row)
+							
 							var i = 0
-
+							
 							while i < rowWidth {
-								let r = srcPtr[i]
-								let g = srcPtr[i + 1]
-								let b = srcPtr[i + 2]
-								let a = srcPtr[i + 3]
-
-								dstPtr[i]     = b // B
-								dstPtr[i + 1] = g // G
-								dstPtr[i + 2] = r // R
-								dstPtr[i + 3] = a // A
-
+								let r = srcPtr[0]
+								let g = srcPtr[1]
+								let b = srcPtr[2]
+								let a = srcPtr[3]
+								
+								dstPtr[0] = b // B
+								dstPtr[1] = g // G
+								dstPtr[2] = r // R
+								dstPtr[3] = a // A
+								
+								srcPtr = srcPtr.advanced(by: 4)
+								dstPtr = dstPtr.advanced(by: 4)
+								
 								i += 4
 							}
 						}
 					}
 				}
+			} else {
+				self.pixelData.withLock { $0 }.withUnsafeBytes { originalPixelsPtr in
+					var originalPixelPtr = originalPixelsPtr.baseAddress!.assumingMemoryBound(to: UInt32.self)
+					
+					imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+						pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+							guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+							let rowWidth = self.width * 4
+							
+							for row in 0..<height {
+								var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
+								var dstPtr = dp.advanced(by: rowWidth * row)
+								
+								var i = 0
+								
+								while i < rowWidth {
+									let r = srcPtr[0]
+									let g = srcPtr[1]
+									let b = srcPtr[2]
+									let a = srcPtr[3]
+									
+									dstPtr[0] = b // B
+									dstPtr[1] = g // G
+									dstPtr[2] = r // R
+									dstPtr[3] = a // A
 
-				self.pixelData.withLock {
-					self.hasChanges = true
-					$0 = pixelData
+									dstPtr.withMemoryRebound(to: UInt32.self, capacity: 1) { ptr in
+										if ptr.pointee != originalPixelPtr.pointee {
+											changed = true
+										}
+									}
+
+									originalPixelPtr = originalPixelPtr.advanced(by: 1)
+									srcPtr = srcPtr.advanced(by: 4)
+									dstPtr = dstPtr.advanced(by: 4)
+									
+									i += 4
+								}
+							}
+						}
+					}
 				}
 			}
+
+			self.pixelData.withLock {
+				self.hasChanges = true
+				$0 = pixelData
+			}
 		}
+
+		return changed
 	}
 
 	@MainActor

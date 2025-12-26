@@ -75,7 +75,8 @@ final class VNCConnection: @unchecked Sendable {
 	private var translateLookupTable: [[any FixedWidthInteger]] = [[]]
 	private var messageClientStream: AsyncStream<VNCClientMessageType>!
 	private var messageClientContinuation: AsyncStream<VNCClientMessageType>.Continuation!
-	
+	private let sharedZStream: ZlibDeflateStream
+
 	// VNC Auth constants
 	private static let VNC_AUTH_NONE: UInt32 = 1
 	private static let VNC_AUTH_VNC: UInt32 = 2
@@ -89,7 +90,8 @@ final class VNCConnection: @unchecked Sendable {
 		self.inputHandler = VNCInputHandler(targetView: framebuffer.sourceView)
 		self.vncPassword = password
 		self.clientPixelFormat = framebuffer.pixelFormat
-		
+		self.sharedZStream = try! ZlibDeflateStream()
+
 		if case .hostPort(let host, _) = connection.endpoint {
 			self.clientAddress = "\(host)"
 		}
@@ -173,34 +175,28 @@ final class VNCConnection: @unchecked Sendable {
 
 		let maxLines = zlibMaxSize(width)
 		var linesRemaining = height
-		var payload = VNCFramebufferUpdatePayload()
+		var payload = VNCFramebufferUpdatePayloadZLib()
 		var posY = 0
 		let lineWidthBytes = width * (Int(self.clientPixelFormat.bitsPerPixel) / 8)
 
-		payload.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
-		payload.message.padding = 0
-		payload.message.numberOfRectangles = UInt16(1).bigEndian
+		payload.buffer.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		payload.buffer.message.padding = 0
+		payload.buffer.message.numberOfRectangles = UInt16(1).bigEndian
 
-		payload.rectangle.x = 0
-		payload.rectangle.y = 0
-		payload.rectangle.width = UInt16(width).bigEndian
-		payload.rectangle.height = UInt16(height).bigEndian
-		payload.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian
+		payload.buffer.rectangle.x = 0
+		payload.buffer.rectangle.y = 0
+		payload.buffer.rectangle.width = UInt16(width).bigEndian
+		payload.buffer.rectangle.height = UInt16(height).bigEndian
+		payload.buffer.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian
 
 		while linesRemaining > 0 {
 			let linesToComp = min(maxLines, linesRemaining)
-			let compressed = self.zlibCompress(pixelData, offset: posY * lineWidthBytes, length: linesToComp * lineWidthBytes)
+			let compressed = try self.sharedZStream.compressedData(data: pixelData, offset: posY * lineWidthBytes, length: linesToComp * lineWidthBytes, flush: .syncFlush)
 
-			payload.rectangle.y = UInt16(posY).bigEndian
-			payload.rectangle.height = UInt16(linesToComp).bigEndian
+			payload.buffer.rectangle.y = UInt16(posY).bigEndian
+			payload.buffer.rectangle.height = UInt16(linesToComp).bigEndian
+			payload.compressedSize = UInt32(compressed.count).bigEndian
 
-//			var msg = Data(count: MemoryLayout<VNCFramebufferUpdatePayload>.size)
-//			msg.withUnsafeMutableBytes { ptr in
-//				ptr.bindMemory(to: VNCFramebufferUpdatePayload.self).baseAddress!.pointee = payload
-//			}
-//
-//			msg.append(compressed)
-//			try await self.sendDatas(msg)
 			try await self.sendDatas(payload)
 			try await self.sendDatas(compressed)
 
@@ -208,81 +204,6 @@ final class VNCConnection: @unchecked Sendable {
 			posY += linesToComp;
 		}
 	}
-
-	private func zlibCompress(_ data: Data, offset: Int, length: Int) -> Data {
-        guard !data.isEmpty else { return data }
-
-		return data.withUnsafeBytes { (srcBuffer: UnsafeRawBufferPointer) -> Data in
-            guard var srcBase = srcBuffer.baseAddress else { return Data() }
-			
-			srcBase = srcBase.advanced(by: offset)
-
-			var dstCapacity = (length + ((length + 99) / 100) + 12) + MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
-            var compressed = Data(count: dstCapacity)
-
-			let status = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
-                guard let dstBase = dstBuffer.baseAddress else { return 0 }
-
-				var compressedSize = compression_encode_buffer(
-					dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size),
-                    dstCapacity,
-                    srcBase.assumingMemoryBound(to: UInt8.self),
-					length,
-                    nil,
-					COMPRESSION_ZLIB
-                )
-
-				if compressedSize > 0 {
-					dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
-					dstBase.assumingMemoryBound(to: UInt16.self).advanced(by: 4).pointee = 0
-
-					compressedSize += MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
-				}
-
-				return compressedSize
-            }
-
-            if status == 0 {
-                // If the buffer was too small, try again with a larger buffer once.
-                dstCapacity = (length * 2) + MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size
-                compressed = Data(count: dstCapacity)
-
-				let retry = compressed.withUnsafeMutableBytes { (dstBuffer: UnsafeMutableRawBufferPointer) -> Int in
-                    guard let dstBase = dstBuffer.baseAddress else { return 0 }
-
-					var compressedSize = compression_encode_buffer(
-						dstBase.assumingMemoryBound(to: UInt8.self).advanced(by: MemoryLayout<UInt32>.size + MemoryLayout<UInt16>.size),
-                        dstCapacity,
-                        srcBase.assumingMemoryBound(to: UInt8.self),
-						length,
-                        nil,
-						COMPRESSION_ZLIB
-                    )
-
-					if compressedSize > 0 {
-						dstBuffer.bindMemory(to: UInt32.self).baseAddress!.pointee = UInt32(compressedSize).bigEndian
-						dstBase.assumingMemoryBound(to: UInt16.self).advanced(by: 4).pointee = 0
-
-						compressedSize += MemoryLayout<UInt32>.size
-					}
-
-					return compressedSize
-                }
-                
-				if retry > 0 {
-                    compressed.removeSubrange(retry..<compressed.count)
-                    return compressed
-                } else {
-                    // Fallback to original data if compression failed
-                    return data
-                }
-
-			} else {
-                compressed.removeSubrange(status..<compressed.count)
-                return compressed
-            }
-        }
-    }
 	
 	private func setClientColourMapBGR233() async throws {
 		var data = Data(count: MemoryLayout<VNCSetColourMapEntries>.size + (256 * 3 * 2))
