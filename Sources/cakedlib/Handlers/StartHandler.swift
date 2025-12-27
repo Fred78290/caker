@@ -53,8 +53,9 @@ public struct StartHandler {
 			}
 
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
-				Logger(self).debug("VM \(location.name) exited with code \(process.terminationStatus)")
-
+				#if DEBUG
+					Logger(self).debug("VM \(location.name) exited with code \(process.terminationStatus)")
+				#endif
 				if let promise = promise {
 					if process.terminationStatus == 0 {
 						promise.succeed(location.name)
@@ -154,7 +155,9 @@ public struct StartHandler {
 		process.executableURL = URL(fileURLWithPath: "/bin/sh")
 		process.terminationHandler = terminationHandler
 
-		Logger(self).debug(process.arguments?.joined(separator: " ") ?? "")
+		#if DEBUG
+			Logger(self).debug(process.arguments?.joined(separator: " ") ?? "")
+		#endif
 
 		try process.run()
 

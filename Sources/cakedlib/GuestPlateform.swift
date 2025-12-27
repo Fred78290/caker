@@ -34,7 +34,9 @@ struct LinuxPlateform: GuestPlateForm {
 	func graphicsDevice(screenSize: CGSize) -> VZGraphicsDeviceConfiguration {
 		let result: VZVirtioGraphicsDeviceConfiguration = VZVirtioGraphicsDeviceConfiguration()
 
-		Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+		#if DEBUG
+			Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+		#endif
 
 		result.scanouts = [
 			VZVirtioGraphicsScanoutConfiguration(
@@ -95,7 +97,9 @@ struct LinuxPlateform: GuestPlateForm {
 				return result
 			}
 
-			Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+			#if DEBUG
+				Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+			#endif
 
 			result.displays = [
 				VZMacGraphicsDisplayConfiguration(

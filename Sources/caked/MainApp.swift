@@ -60,9 +60,11 @@ struct MainApp: App, VirtualMachineDelegate {
 						NSApplication.shared.terminate(self)
 					}
 				}
-				.onChange(of: self.appState.status) { _, newValue in
-					Logger(self).debug("New status: \(newValue)")
-				}
+				#if DEBUG
+					.onChange(of: self.appState.status) { _, newValue in
+						Logger(self).debug("New status: \(newValue)")
+					}
+				#endif
 				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {

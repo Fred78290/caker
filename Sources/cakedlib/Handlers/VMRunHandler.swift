@@ -39,7 +39,10 @@ public struct VMRunHandler {
 	public let captureMethod: VNCCaptureMethod
 	public let screenSize: CGSize
 
-	public init(_ mode: VMRunServiceMode, storageLocation: StorageLocation, location: VMLocation, name: String, display: DisplayMode, config: CakeConfig, screenSize: CGSize, vncPassword: String, vncPort: Int, captureMethod: VNCCaptureMethod, runMode: Utils.RunMode) {
+	public init(
+		_ mode: VMRunServiceMode, storageLocation: StorageLocation, location: VMLocation, name: String, display: DisplayMode, config: CakeConfig, screenSize: CGSize, vncPassword: String, vncPort: Int, captureMethod: VNCCaptureMethod,
+		runMode: Utils.RunMode
+	) {
 		self.storageLocation = storageLocation
 		self.location = location
 		self.name = name
@@ -76,7 +79,8 @@ public struct VMRunHandler {
 			}
 		}
 
-		let result = try location.startVirtualMachine(mode, on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, captureMethod: captureMethod, internalCall: false, runMode: runMode)
+		let result = try location.startVirtualMachine(
+			mode, on: Utilities.group.next(), config: config, screenSize: screenSize, display: display, vncPassword: vncPassword, vncPort: vncPort, captureMethod: captureMethod, internalCall: false, runMode: runMode)
 
 		completionHandler(result.address, result.vm)
 	}

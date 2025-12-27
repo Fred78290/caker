@@ -10,25 +10,34 @@ import GRPCLib
 import SwiftUI
 
 func viewLog(_ text: String) -> some View {
-	Logger("View").debug(text)
+	#if DEBUG
+		Logger("View").debug(text)
+	#endif
 
 	return EmptyView()
 }
 
 extension View {
 	func log(_ label: String = "View", text: String) -> some View {
-		Logger(label).debug(text)
+		#if DEBUG
+			Logger(label).debug(text)
+		#endif
+
 		return self
 	}
 
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
-		Logger(label).debug("frame(minSize: \(minSize), idealSize: \(idealSize))")
+		#if DEBUG
+			Logger(label).debug("frame(minSize: \(minSize), idealSize: \(idealSize))")
+		#endif
 
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
 	}
 
 	func frame(_ label: String = "View", minSize: CGSize) -> some View {
-		Logger(label).debug("frame(minSize: \(minSize)")
+		#if DEBUG
+			Logger(label).debug("frame(minSize: \(minSize)")
+		#endif
 
 		return frame(minWidth: minSize.width, maxWidth: .infinity, minHeight: minSize.height, maxHeight: .infinity)
 	}
@@ -92,7 +101,9 @@ struct HostVirtualMachineView: View {
 		GeometryReader { geom in
 			let view = vmView(geom.size)
 				.windowAccessor($window) {
-					self.logger.debug("\(self.id) Attaching window accessor: \(String(describing: $0))")
+					#if DEBUG
+						self.logger.debug("\(self.id) Attaching window accessor: \(String(describing: $0))")
+					#endif
 
 					if let window = $0 {
 						if self.needsResize {
@@ -268,7 +279,10 @@ struct HostVirtualMachineView: View {
 
 	func setContentSize(_ size: CGSize, animated: Bool) {
 		if let window = self.window {
-			self.logger.debug("\(self.id) Resize window: \(size)")
+			#if DEBUG
+				self.logger.debug("\(self.id) Resize window: \(size)")
+			#endif
+
 			self.needsResize = false
 
 			let titleBarHeight: CGFloat = window.frame.height - window.contentLayoutRect.height
@@ -321,7 +335,9 @@ struct HostVirtualMachineView: View {
 
 	func handleStartLiveResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			self.logger.debug("handleStartLiveResizeNotification: \(notification)")
+			#if DEBUG
+				self.logger.debug("handleStartLiveResizeNotification: \(notification)")
+			#endif
 
 			self.liveResizeWindow = true
 		}
@@ -329,7 +345,9 @@ struct HostVirtualMachineView: View {
 
 	func handleDidResizeNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
-			self.logger.debug("handleDidResizeNotification: \(notification)")
+			#if DEBUG
+				self.logger.debug("handleDidResizeNotification: \(notification)")
+			#endif
 
 			if self.liveResizeWindow {
 				self.liveResizeWindow = false
@@ -350,7 +368,7 @@ struct HostVirtualMachineView: View {
 				if document.status == .running {
 					document.stopFromUI(force: false)
 				}
-				
+
 				DispatchQueue.main.async {
 					self.document.close()
 				}
@@ -380,7 +398,9 @@ struct HostVirtualMachineView: View {
 		}
 
 		if let size = notification.object as? CGSize {
-			self.logger.debug("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
+			#if DEBUG
+				self.logger.debug("\(self.id) VNCFramebufferSizeChanged: \(size) \(String(describing: window))")
+			#endif
 
 			if let window = self.window {
 				if window.styleMask.contains(NSWindow.StyleMask.fullScreen) == false {
@@ -450,9 +470,11 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
-		if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-			self.logger.debug("VNC status changed: \(newValue), framebuffer size: \(framebuffer.size)")
-		}
+		#if DEBUG
+			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
+				self.logger.debug("VNC status changed: \(newValue), framebuffer size: \(framebuffer.size)")
+			}
+		#endif
 	}
 
 	func handleExternalModeChangedNotification(_ newValue: ExternalModeView) {

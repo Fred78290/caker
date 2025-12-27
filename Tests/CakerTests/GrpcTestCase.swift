@@ -5,34 +5,36 @@ import NIOPosix
 import Synchronization
 import XCTest
 
+@testable import CakedLib
 @testable import GRPCLib
 @testable import cakectl
-@testable import CakedLib
 @testable import caked
 
 class GrpcTestCase {
 	let certs: CertificatesLocation = try! CertificatesLocation.createCertificats(runMode: .user)
 
 	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> ClientConnection {
-		let client = try Client.createClient(on: on,
-		                                     listeningAddress: listeningAddress,
-		                                     retries: .upTo(1),
-		                                     caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
-		                                     tlsCert: tls ? certs.clientCertURL.absoluteURL.path : nil,
-		                                     tlsKey: tls ? certs.clientKeyURL.absoluteURL.path : nil)
+		let client = try Client.createClient(
+			on: on,
+			listeningAddress: listeningAddress,
+			retries: .upTo(1),
+			caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
+			tlsCert: tls ? certs.clientCertURL.absoluteURL.path : nil,
+			tlsKey: tls ? certs.clientKeyURL.absoluteURL.path : nil)
 
 		return client
 	}
 
 	func createServer(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> Server {
-		let server = try ServiceHandler.createServer(eventLoopGroup: on,
-													 runMode: .user,
-		                                             listeningAddress: listeningAddress,
-													 serviceProviders: [try CakedProvider(group: on, runMode: .user)],
-		                                             caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
-		                                             tlsCert: tls ? certs.serverCertURL.absoluteURL.path : nil,
-		                                             tlsKey: tls ? certs.serverKeyURL.absoluteURL.path : nil).wait()
-
+		let server = try ServiceHandler.createServer(
+			eventLoopGroup: on,
+			runMode: .user,
+			listeningAddress: listeningAddress,
+			serviceProviders: [try CakedProvider(group: on, runMode: .user)],
+			caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
+			tlsCert: tls ? certs.serverCertURL.absoluteURL.path : nil,
+			tlsKey: tls ? certs.serverKeyURL.absoluteURL.path : nil
+		).wait()
 
 		return server
 	}

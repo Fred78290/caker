@@ -25,9 +25,6 @@ let kVK_ANSI_Underscore = kVK_ANSI_Minus
 //  Created by John Scott on 09/02/2022.
 //
 
-import Foundation
-import AppKit
-
 typealias HandleKeyMapping = (_ keyCode: CGKeyCode, _ event: NSEvent.ModifierFlags, _ characters: String?, _ charactersIgnoringModifiers: String?) -> Void
 
 protocol Keymapper {
@@ -58,7 +55,7 @@ extension CGEventFlags {
 extension NSEvent.ModifierFlags {
 	var cgEventFlag: CGEventFlags {
 		var flags: CGEventFlags = []
-		
+
 		if self.contains(.command) || self.contains(.leftCommand) || self.contains(.rightCommand) {
 			flags.insert(.maskCommand)
 		}
@@ -90,7 +87,7 @@ extension NSEvent.ModifierFlags {
 		if self.contains(.rightCommand) {
 			return Keysyms.XK_Alt_R
 		}
-		
+
 		if self.contains(.rightOption) {
 			return Keysyms.XK_Meta_R
 		}
@@ -98,7 +95,7 @@ extension NSEvent.ModifierFlags {
 		if self.contains(.leftCommand) {
 			return Keysyms.XK_Alt_L
 		}
-		
+
 		if self.contains(.rightControl) {
 			return Keysyms.XK_Control_R
 		}
@@ -110,11 +107,11 @@ extension NSEvent.ModifierFlags {
 		if self.contains(.leftOption) {
 			return Keysyms.XK_Meta_L
 		}
-		
+
 		if self.contains(.leftControl) {
 			return Keysyms.XK_Control_L
 		}
-		
+
 		if self.contains(.leftShift) {
 			return Keysyms.XK_Shift_L
 		}
@@ -188,7 +185,7 @@ extension NSEvent.SpecialKey {
 		//case .formFeed: return Keysyms.XK_Return
 		case .help: return Keysyms.XK_Help
 		case .home: return Keysyms.XK_Home
-		case .insert:	return Keysyms.XK_Insert
+		case .insert: return Keysyms.XK_Insert
 		//case .insertLine: return Keysyms.XK_Insert
 		//case .insertCharacter: :KeysymsXK_Insert
 		case .leftArrow: return Keysyms.XK_Left
@@ -229,7 +226,7 @@ extension CGKeyCode {
 			return nil
 		}
 	}
-	
+
 	public init?(specialKey: UInt32) {
 		if let keyCode = Initializers.shared.specialKeys[specialKey] {
 			self = keyCode
@@ -290,38 +287,38 @@ extension CGKeyCode {
 	}
 
 	struct Initializers {
-		let specialKeys: [UInt32:CGKeyCode]
-		let characterKeys: [String:CGKeyCode]
-		let modifierFlagKeys: [UInt32:CGKeyCode]
-		let keysCharacters: [CGKeyCode:String]
-		let charactersModifiers: [String:NSEvent.ModifierFlags]
+		let specialKeys: [UInt32: CGKeyCode]
+		let characterKeys: [String: CGKeyCode]
+		let modifierFlagKeys: [UInt32: CGKeyCode]
+		let keysCharacters: [CGKeyCode: String]
+		let charactersModifiers: [String: NSEvent.ModifierFlags]
 
 		static var shared: Initializers! = nil
-		
+
 		init() throws {
-			var specialKeys: [UInt32:CGKeyCode] = [:]
-			var characterKeys: [String:CGKeyCode] = [:]
-			var keysCharacters: [CGKeyCode:String] = [:]
-			var modifierFlagKeys: [UInt32:CGKeyCode] = [:]
-			var charactersModifiers: [String:NSEvent.ModifierFlags] = [:]
-			let eventSource = CGEventSource(stateID: .privateState);
+			var specialKeys: [UInt32: CGKeyCode] = [:]
+			var characterKeys: [String: CGKeyCode] = [:]
+			var keysCharacters: [CGKeyCode: String] = [:]
+			var modifierFlagKeys: [UInt32: CGKeyCode] = [:]
+			var charactersModifiers: [String: NSEvent.ModifierFlags] = [:]
+			let eventSource = CGEventSource(stateID: .privateState)
 			let modifiers: [NSEvent.ModifierFlags] = [
 				[],
 				.init(rawValue: 0x100),
 				.shift,
 				.option,
 				.capsLock,
-				.shift.union(.option)
+				.shift.union(.option),
 			]
 
 			for keyCode in (0..<128).map({ CGKeyCode($0) }) {
 				guard let cgevent = CGEvent(keyboardEventSource: eventSource, virtualKey: keyCode, keyDown: true) else {
 					throw ServiceError("Unable to create CGEvent for \(keyCode)")
 				}
-				
+
 				if let nsevent = NSEvent(cgEvent: cgevent) {
 					var hasHandledKeyCode = false
-					
+
 					if nsevent.type == .keyDown {
 						if let specialKey = nsevent.specialKey {
 							if let keysym = specialKey.keysym {
@@ -349,12 +346,16 @@ extension CGKeyCode {
 							modifierFlagKeys[keysym] = keyCode
 						}
 					} else {
-						Logger("CGKeyCode").debug("Unknown event type for keycode \(keyCode): \(nsevent.type)")
+						#if DEBUG
+							Logger("CGKeyCode").debug("Unknown event type for keycode \(keyCode): \(nsevent.type)")
+						#endif
 					}
-					
-					if hasHandledKeyCode == false {
-						Logger("CGKeyCode").debug("Unhandled keycode: \(keyCode): \(nsevent.type)")
-					}
+
+					#if DEBUG
+						if hasHandledKeyCode == false {
+							Logger("CGKeyCode").debug("Unhandled keycode: \(keyCode): \(nsevent.type)")
+						}
+					#endif
 				} else {
 					throw ServiceError("unable to create NSEvent")
 				}
@@ -369,10 +370,10 @@ extension CGKeyCode {
 	}
 }
 
-extension NSEvent.ModifierFlags: @retroactive Hashable { }
+extension NSEvent.ModifierFlags: @retroactive Hashable {}
 
 extension OptionSet {
-	public func first(_ options: Self.Element ...) -> Self.Element? {
+	public func first(_ options: Self.Element...) -> Self.Element? {
 		for option in options {
 			if contains(option) {
 				return option
@@ -395,11 +396,11 @@ extension VNCKeyCode {
 	public static let ansiKeypad9 = VNCKeyCode(Keysyms.XK_KP_9)
 }
 
-public extension VNCKeyCode {
-	static let vncSpecialKeyCodeToKeyCodeMapping: [UInt32:CGKeyCode] = [
+extension VNCKeyCode {
+	public static let vncSpecialKeyCodeToKeyCodeMapping: [UInt32: CGKeyCode] = [
 		0xFFE5: CGKeyCodes.capsLock,
 		0xFFE6: CGKeyCodes.capsLock,
-		0x1008FF2B: CGKeyCodes.function,
+		0x1008_FF2B: CGKeyCodes.function,
 
 		VNCKeyCode.optionForARD.rawValue: CGKeyCodes.option,
 		VNCKeyCode.rightOptionForARD.rawValue: CGKeyCodes.rightOption,
@@ -427,7 +428,7 @@ public extension VNCKeyCode {
 		VNCKeyCode.ansiKeypadDecimal.rawValue: CGKeyCodes.ansiKeypadDecimal,
 	]
 
-	static func to(vncKeyCode: UInt32) -> CGKeyCode? {
+	public static func to(vncKeyCode: UInt32) -> CGKeyCode? {
 		return Self.vncSpecialKeyCodeToKeyCodeMapping[vncKeyCode]
 	}
 }
@@ -438,11 +439,11 @@ public class VNCKeyMapper: Keymapper {
 	static func setupKeyMapper() throws {
 		CGKeyCode.Initializers.shared = try CGKeyCode.Initializers.init()
 	}
-	
+
 	func setupKeyMapper() throws {
 		try Self.setupKeyMapper()
 	}
-	
+
 	private func vncKeyCodeTo(vncKeyCode: UInt32) -> (keyCode: CGKeyCode, modifier: Bool, characters: String?, modifiersForCharacter: NSEvent.ModifierFlags?) {
 		if let keyCode = CGKeyCode(modifierKey: vncKeyCode) {
 			return (keyCode, true, CGKeyCode.characterForKeysym(vncKeyCode), nil)
@@ -461,14 +462,18 @@ public class VNCKeyMapper: Keymapper {
 			let characters = String(scalar)
 
 			guard let keyCode = CGKeyCode(character: characters) else {
-				Logger(self).debug("Not found: key=\(vncKeyCode.hexa)")
+				#if DEBUG
+					Logger(self).debug("Not found: key=\(vncKeyCode.hexa)")
+				#endif
 
 				return (CGKeyCode(vncKeyCode), false, String(scalar), nil)
 			}
 
 			return (keyCode, false, String(scalar), CGKeyCode.modifiersForCharacter(characters))
 		} else {
-			Logger(self).debug("Not unicode found: key=\(vncKeyCode.hexa)")
+			#if DEBUG
+				Logger(self).debug("Not unicode found: key=\(vncKeyCode.hexa)")
+			#endif
 		}
 
 		let characters = CGKeyCode.characterForKeysym(vncKeyCode)
@@ -558,7 +563,6 @@ public class VNCKeyMapper: Keymapper {
 				break
 			}
 
-
 			currentModifiers = self.currentModifiers
 		}
 
@@ -571,4 +575,3 @@ public class VNCKeyMapper: Keymapper {
 		sendKeyEvent(result.keyCode, currentModifiers, result.characters, charactersIgnoringModifiers)
 	}
 }
-

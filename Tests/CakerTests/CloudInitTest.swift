@@ -1,10 +1,10 @@
 import XCTest
 
+@testable import CakedLib
 @testable import GRPCLib
 @testable import NIOCore
 @testable import NIOPortForwarding
 @testable import NIOPosix
-@testable import CakedLib
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -238,10 +238,10 @@ final class CloudInitTests: XCTestCase {
 
 		promise.futureResult.whenComplete { result in
 			switch result {
-			case let .success(name):
+			case .success(let name):
 				print("VM Stopped: \(name)")
 				break
-			case let .failure(err):
+			case .failure(let err):
 				XCTFail(err.localizedDescription)
 			}
 		}

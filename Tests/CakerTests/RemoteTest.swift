@@ -1,7 +1,7 @@
 import XCTest
 
-@testable import GRPCLib
 @testable import CakedLib
+@testable import GRPCLib
 
 final class RemoteTests: XCTestCase {
 	let linuxcontainers = URL(string: "https://images.linuxcontainers.org/")!

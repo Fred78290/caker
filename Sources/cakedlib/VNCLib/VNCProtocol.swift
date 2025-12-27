@@ -22,7 +22,7 @@ enum VNCAuthType: UInt32, CustomDebugStringConvertible {
 // Server message types
 enum VNCServerMessageType: UInt8 {
 	case rfbFramebufferUpdate = 0
-	case rfbSetColourMapEntries = 1	/* not currently supported */
+	case rfbSetColourMapEntries = 1 /* not currently supported */
 	case rfbBell = 2
 	case rfbServerCutText = 3
 	case rfbResizeFrameBuffer = 4
@@ -119,14 +119,14 @@ struct VNCSetEncoding: VNCLoadMessage {
 		case rfbEncodingLastRect = -224
 		case rfbEncodingNewFBSize = -223
 		case rfbEncodingExtDesktopSize = -308
-		
+
 		case rfbEncodingKeyboardLedState = -131072
 		case rfbEncodingSupportedMessages = -131071
 		case rfbEncodingSupportedEncodings = -131070
 		case rfbEncodingServerIdentity = -131069
 		case rfbEncodingXvp = -309
 		case rfbEncodingEnableContinousUpdate = -313
-		
+
 		case appleEncoding1000 = 1000
 		case appleEncoding1001 = 1001
 		case appleEncoding1002 = 1002
@@ -147,7 +147,7 @@ struct VNCSetEncoding: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var heading: UInt8 = 0
 	var numberOfEncodings: UInt16 = 0
 }
@@ -160,7 +160,7 @@ struct VNCSetPixelFormat: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var heading: (UInt8, UInt8, UInt8) = (0, 0, 0)
 	var pixelFormat = VNCPixelFormat()
 }
@@ -178,25 +178,26 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 		if lhs.redShift != rhs.redShift { return false }
 		if lhs.greenShift != rhs.greenShift { return false }
 		if lhs.blueShift != rhs.blueShift { return false }
-		
+
 		return true
 	}
-	
+
 	static func load(from data: UnsafeRawBufferPointer) -> VNCPixelFormat {
-		let value = VNCPixelFormat(bitsPerPixel: data[0],
-								   depth: data[1],
-								   bigEndianFlag: data[2],
-								   trueColorFlag: data[3],
-								   redMax: UInt16.build(data[4], data[5]),
-								   greenMax: UInt16.build(data[6], data[7]),
-								   blueMax: UInt16.build(data[8], data[9]),
-								   redShift: data[10],
-								   greenShift: data[11],
-								   blueShift: data[12])
-		
+		let value = VNCPixelFormat(
+			bitsPerPixel: data[0],
+			depth: data[1],
+			bigEndianFlag: data[2],
+			trueColorFlag: data[3],
+			redMax: UInt16.build(data[4], data[5]),
+			greenMax: UInt16.build(data[6], data[7]),
+			blueMax: UInt16.build(data[8], data[9]),
+			redShift: data[10],
+			greenShift: data[11],
+			blueShift: data[12])
+
 		return value
 	}
-	
+
 	var bitsPerPixel: UInt8
 	var depth: UInt8
 	var bigEndianFlag: UInt8
@@ -242,7 +243,7 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 						guard let sp = srcRaw.bindMemory(to: UInt32.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt32.self).baseAddress else { return }
-						let count = imageSource.count/4
+						let count = imageSource.count / 4
 
 						for i in 0..<count {
 							dp[i] = sp[i].littleEndian
@@ -255,11 +256,12 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 		}
 
 		var pixelData = Data(count: imageSource.count)
-		
+
 		imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 			pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 				guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress,
-					  let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+					let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress
+				else { return }
 				let count = imageSource.count
 				var i = 0
 
@@ -269,10 +271,10 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 					let b = sp[i + 2]
 					let a = sp[i + 3]
 
-					dp[i]     = b // B
-					dp[i + 1] = g // G
-					dp[i + 2] = r // R
-					dp[i + 3] = a // A
+					dp[i] = b  // B
+					dp[i + 1] = g  // G
+					dp[i + 2] = r  // R
+					dp[i + 3] = a  // A
 
 					i += 4
 				}
@@ -299,7 +301,7 @@ struct VNCFramebufferUpdateMsg: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var messageType: UInt8 = 0
 	var padding: UInt8 = 0
 	var numberOfRectangles: UInt16 = 0
@@ -317,7 +319,7 @@ struct VNCRectangle: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var x: UInt16 = 0
 	var y: UInt16 = 0
 	var width: UInt16 = 0
@@ -334,7 +336,7 @@ struct VNCFramebufferUpdatePayload: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var message: VNCFramebufferUpdateMsg = VNCFramebufferUpdateMsg()
 	var rectangle: VNCRectangle = VNCRectangle()
 }
@@ -349,7 +351,7 @@ struct VNCKeyEvent: VNCLoadMessage, CustomStringConvertible {
 	var description: String {
 		"key=\(key.hexa), down:\(downFlag)"
 	}
-	
+
 	static func load(from data: UnsafeRawBufferPointer) -> VNCKeyEvent {
 		var value = VNCKeyEvent()
 
@@ -359,7 +361,7 @@ struct VNCKeyEvent: VNCLoadMessage, CustomStringConvertible {
 
 		return value
 	}
-	
+
 	var downFlag: UInt8 = 0
 	var padding: UInt16 = 0
 	var key: UInt32 = 0
@@ -372,10 +374,10 @@ struct VNCPointerEvent: VNCLoadMessage {
 		value.buttonMask = data[0]
 		value.xPosition = UInt16.build(data[1], data[2])
 		value.yPosition = UInt16.build(data[3], data[4])
-		
+
 		return value
 	}
-	
+
 	var buttonMask: UInt8 = 0
 	var xPosition: UInt16 = 0
 	var yPosition: UInt16 = 0
@@ -384,11 +386,11 @@ struct VNCPointerEvent: VNCLoadMessage {
 struct VNCClientCutText: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCClientCutText {
 		var value = VNCClientCutText()
-		
+
 		value.textLength = UInt32.build(data[3], data[4], data[5], data[6])
 		return value
 	}
-	
+
 	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
 	var textLength: UInt32 = 0
 }
@@ -405,7 +407,7 @@ struct VNCFramebufferUpdateRequest: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var incremental: UInt8 = 0
 	var x: UInt16 = 0
 	var y: UInt16 = 0
@@ -425,7 +427,7 @@ struct VNCFramebufferUpdateContinue: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var active: UInt8 = 0
 	var x: UInt16 = 0
 	var y: UInt16 = 0
@@ -442,7 +444,7 @@ struct VNCFenceClient: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var padding: (UInt8, UInt8, UInt8) = (0, 0, 0)
 	var flags: UInt32 = 0
 	var payloadLength: UInt8 = 0
@@ -458,7 +460,7 @@ struct VNCSetDesktopSize: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var padding: UInt8 = 0
 	var width: UInt16 = 0
 	var height: UInt16 = 0
@@ -494,7 +496,7 @@ public struct VNCScreenDesktop: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	public var screenID: UInt32 = 0
 	public var posX: UInt16 = 0
 	public var posY: UInt16 = 0
@@ -513,7 +515,7 @@ struct VNCQemuKeyEvent: VNCLoadMessage {
 
 		return value
 	}
-	
+
 	var downFlag: UInt16 = 0
 	var keySym: UInt32 = 0
 	var keyCode: UInt32 = 0
@@ -522,14 +524,14 @@ struct VNCQemuKeyEvent: VNCLoadMessage {
 struct VNCQemuAudioFormat: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCQemuAudioFormat {
 		var value = VNCQemuAudioFormat()
-		
+
 		value.sampleFormat = data[0]
 		value.numOfChannels = data[1]
 		value.frequency = UInt32.build(data[2], data[3], data[4], data[5])
 
 		return value
 	}
-	
+
 	var sampleFormat: UInt8 = 0
 	var numOfChannels: UInt8 = 0
 	var frequency: UInt32 = 0
@@ -538,13 +540,13 @@ struct VNCQemuAudioFormat: VNCLoadMessage {
 struct VNCGiiVersion: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCGiiVersion {
 		var value = VNCGiiVersion()
-		
+
 		value.subType = data[0]
 		value.length = UInt16.build(data[1], data[2])
 
 		return value
 	}
-	
+
 	var subType: UInt8 = 0
 	var length: UInt16 = 0
 }

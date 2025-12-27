@@ -1,6 +1,6 @@
 import AppKit
-import Foundation
 import CryptoKit
+import Foundation
 import Synchronization
 
 extension CGImageAlphaInfo {
@@ -35,7 +35,7 @@ public class VNCFramebuffer {
 		if let imageRepresentation = view.imageRepresentationSync(in: NSRect(x: 0, y: 0, width: 4, height: 4)) {
 			if let cgImage = imageRepresentation.cgImage {
 				self.bitsPerPixels = cgImage.bitsPerPixel
-				self.bitmapInfo = cgImage.bitmapInfo;
+				self.bitmapInfo = cgImage.bitmapInfo
 			}
 		}
 	}
@@ -43,9 +43,11 @@ public class VNCFramebuffer {
 	func updateSize(width: Int, height: Int) {
 		guard self.width != width || self.height != height else { return }
 
-		if width == 0 || height == 0 {
-			self.logger.debug("View size is zero, skipping frame capture.")
-		}
+		#if DEBUG
+			if width == 0 || height == 0 {
+				self.logger.debug("View size is zero, skipping frame capture.")
+			}
+		#endif
 
 		self.pixelData.withLock {
 			self.width = width
@@ -63,7 +65,9 @@ public class VNCFramebuffer {
 		let newHeight = Int(bounds.height)
 
 		if newWidth == 0 || newHeight == 0 {
-			self.logger.debug("View size is zero, skipping frame capture.")
+			#if DEBUG
+				self.logger.debug("View size is zero, skipping frame capture.")
+			#endif
 			return (nil, false)
 		}
 
@@ -89,37 +93,37 @@ public class VNCFramebuffer {
 		}
 
 		self.bitsPerPixels = cgImage.bitsPerPixel
-		self.bitmapInfo = cgImage.bitmapInfo;
+		self.bitmapInfo = cgImage.bitmapInfo
 
 		if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
-			var pixelData = Data(count: width*height*4)
+			var pixelData = Data(count: width * height * 4)
 
 			if changed {
 				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
 						let rowWidth = self.width * 4
-						
+
 						for row in 0..<height {
 							var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
 							var dstPtr = dp.advanced(by: rowWidth * row)
-							
+
 							var i = 0
-							
+
 							while i < rowWidth {
 								let r = srcPtr[0]
 								let g = srcPtr[1]
 								let b = srcPtr[2]
 								let a = srcPtr[3]
-								
-								dstPtr[0] = b // B
-								dstPtr[1] = g // G
-								dstPtr[2] = r // R
-								dstPtr[3] = a // A
-								
+
+								dstPtr[0] = b  // B
+								dstPtr[1] = g  // G
+								dstPtr[2] = r  // R
+								dstPtr[3] = a  // A
+
 								srcPtr = srcPtr.advanced(by: 4)
 								dstPtr = dstPtr.advanced(by: 4)
-								
+
 								i += 4
 							}
 						}
@@ -128,28 +132,28 @@ public class VNCFramebuffer {
 			} else {
 				self.pixelData.withLock { $0 }.withUnsafeBytes { originalPixelsPtr in
 					var originalPixelPtr = originalPixelsPtr.baseAddress!.assumingMemoryBound(to: UInt32.self)
-					
+
 					imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
 						pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
 							guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
 							let rowWidth = self.width * 4
-							
+
 							for row in 0..<height {
 								var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
 								var dstPtr = dp.advanced(by: rowWidth * row)
-								
+
 								var i = 0
-								
+
 								while i < rowWidth {
 									let r = srcPtr[0]
 									let g = srcPtr[1]
 									let b = srcPtr[2]
 									let a = srcPtr[3]
-									
-									dstPtr[0] = b // B
-									dstPtr[1] = g // G
-									dstPtr[2] = r // R
-									dstPtr[3] = a // A
+
+									dstPtr[0] = b  // B
+									dstPtr[1] = g  // G
+									dstPtr[2] = r  // R
+									dstPtr[3] = a  // A
 
 									dstPtr.withMemoryRebound(to: UInt32.self, capacity: 1) { ptr in
 										if ptr.pointee != originalPixelPtr.pointee {
@@ -160,7 +164,7 @@ public class VNCFramebuffer {
 									originalPixelPtr = originalPixelPtr.advanced(by: 1)
 									srcPtr = srcPtr.advanced(by: 4)
 									dstPtr = dstPtr.advanced(by: 4)
-									
+
 									i += 4
 								}
 							}
@@ -271,7 +275,7 @@ public class VNCFramebuffer {
 				pixelFormat.blueShift = 4
 			}
 		}
-		
+
 		return pixelFormat
 	}
 
@@ -279,7 +283,7 @@ public class VNCFramebuffer {
 		if let clientFormat = clientFormat {
 			return clientFormat.transform(pixelData)
 		}
-		
+
 		return self.pixelFormat.transform(pixelData)
 	}
 
@@ -298,4 +302,3 @@ public class VNCFramebuffer {
 		return (width: width, height: height, data: pixelData.withLock { $0 }, hasChanges: hasChanges, sizeChanged: sizeChanged)
 	}
 }
-

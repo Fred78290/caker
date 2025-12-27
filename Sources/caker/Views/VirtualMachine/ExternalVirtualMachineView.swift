@@ -133,7 +133,9 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 
 			try? self.document.startShell(rows: self.getTerminal().rows, cols: self.getTerminal().cols) { response in
 				if case .exitCode(let code) = response.response {
-					Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
+					#if DEBUG
+						Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
+					#endif
 
 					self.document.closeShell {
 						DispatchQueue.main.async {

@@ -149,7 +149,7 @@ struct VMRun: AsyncParsableCommand {
 			captureMethod: captureMethod,
 			runMode: self.common.runMode)
 
-		try handler.run() { address, vm in
+		try handler.run { address, vm in
 			address.whenSuccess { ip in
 				if let ip {
 					Logger(self).info("VM Machine is now available at \(ip)")

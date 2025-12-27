@@ -15,9 +15,11 @@ class VNCConnectionLogger: VNCLogger {
 	var isDebugLoggingEnabled: Bool = false
 
 	public func logDebug(_ message: String) {
-		if isDebugLoggingEnabled {
-			self.logger.debug(message)
-		}
+		#if DEBUG
+			if isDebugLoggingEnabled {
+				self.logger.debug(message)
+			}
+		#endif
 	}
 
 	public func logInfo(_ message: String) {
@@ -56,7 +58,9 @@ struct VNCView: NSViewRepresentable {
 
 		self.document.vncView = view
 
-		self.logger.debug("makeNSView: \(view.frame), \(framebuffer.cgSize)")
+		#if DEBUG
+			self.logger.debug("makeNSView: \(view.frame), \(framebuffer.cgSize)")
+		#endif
 
 		return view
 	}
@@ -79,13 +83,15 @@ struct VNCView: NSViewRepresentable {
 	}*/
 
 	func updateNSView(_ nsView: NSViewType, context: Context) {
-		if nsView.isLiveViewResize == false {
-			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-				self.logger.debug("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
-			} else {
-				self.logger.debug("updateNSView: \(nsView.frame), framebuffer: nil")
+		#if DEBUG
+			if nsView.isLiveViewResize == false {
+				if let connection = self.document.connection, let framebuffer = connection.framebuffer {
+					self.logger.debug("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
+				} else {
+					self.logger.debug("updateNSView: \(nsView.frame), framebuffer: nil")
+				}
 			}
-		}
+		#endif
 	}
 
 }

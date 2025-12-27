@@ -73,16 +73,16 @@ struct VMSettingsView: View {
 			}
 
 			#if DEBUG
-			Toggle(
-				isOn: $debugVNCMessageEnabled,
-				label: {
-					Text("Debug VNC messages")
+				Toggle(
+					isOn: $debugVNCMessageEnabled,
+					label: {
+						Text("Debug VNC messages")
+					}
+				).onChange(of: debugVNCMessageEnabled) { _, newValue in
+					if newValue {
+						debugVNCMessageEnabled = newValue
+					}
 				}
-			).onChange(of: debugVNCMessageEnabled) { _, newValue in
-				if newValue {
-					debugVNCMessageEnabled = newValue
-				}
-			}
 			#endif
 
 		}.formStyle(.grouped)

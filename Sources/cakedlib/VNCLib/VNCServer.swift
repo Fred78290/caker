@@ -1,10 +1,10 @@
 import AppKit
+import ArgumentParser
 import Darwin
 import Foundation
 import Metal
 import Network
 import QuartzCore
-import ArgumentParser
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
@@ -17,7 +17,7 @@ public enum VNCCaptureMethod: String, CustomStringConvertible, ExpressibleByArgu
 	public var description: String {
 		self.rawValue
 	}
-	
+
 	case coreGraphics = "cg"
 	case metal = "metal"
 }
@@ -50,11 +50,11 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private var isLiveResize = false
 	private var activeConnections: [VNCConnection] {
 		self.connections.compactMap {
-			if $0.connectionState == .ready  {
+			if $0.connectionState == .ready {
 				return $0
 			}
 			return nil
-		 }
+		}
 	}
 
 	static var littleEndian: Bool {
@@ -135,7 +135,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 			self.isLiveResize = true
 		}
 	}
-	
+
 	@objc private func viewDidEndLiveResize(_ notification: Notification) {
 		if self.isMyWindowKey(notification) {
 			self.isLiveResize = false
@@ -181,14 +181,20 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 		listener.newConnectionHandler = { [weak self] connection in
 			if let self = self {
-				self.logger.debug("New connection: \(connection)")
+				#if DEBUG
+					self.logger.debug("New connection: \(connection)")
+				#endif
+
 				self.handleNewConnection(connection)
 			}
 		}
 
 		listener.stateUpdateHandler = { [weak self] state in
 			if let self = self {
-				self.logger.debug("Update state: \(state)")
+				#if DEBUG
+					self.logger.debug("Update state: \(state)")
+				#endif
+
 				switch state {
 				case .ready:
 					self.startFramebufferUpdates()
@@ -256,17 +262,19 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private func updateFramebuffer() async throws {
 		while isRunning {
 			let result = await self.framebuffer.updateFromView()
-			
+
 			guard let imageRepresentation = result.imageRepresentation else {
 				continue
 			}
-			
+
 			if self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation) {
-				self.logger.debug("updateFramebuffer")
+				#if DEBUG
+					self.logger.trace("updateFramebuffer")
+				#endif
 				let connections = self.activeConnections.filter {
 					$0.sendFramebufferContinous || result.sizeChanged
 				}
-				
+
 				if connections.isEmpty == false {
 					await withTaskGroup(of: Void.self) { group in
 						connections.forEach { connection in
@@ -274,7 +282,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 								await connection.sendFramebufferUpdate(result.sizeChanged)
 							}
 						}
-						
+
 						await group.waitForAll()
 					}
 				}
@@ -362,7 +370,7 @@ extension VNCServer: VNCConnectionDelegate {
 			}
 		}
 	}
-	
+
 	func vncConnectionDidDisconnect(_ connection: VNCConnection, clientAddress: String) {
 		connectionQueue.async(flags: .barrier) {
 			self.logger.debug("Client at \(clientAddress) disconnected")
@@ -380,7 +388,9 @@ extension VNCServer: VNCConnectionDelegate {
 	}
 
 	func vncConnection(_ connection: VNCConnection, didReceiveError error: Error) {
-		self.logger.debug("Client at \(connection) didReceiveError: \(error)")
+		#if DEBUG
+			self.logger.debug("Client at \(connection) didReceiveError: \(error)")
+		#endif
 
 		if let delegate = self.delegate {
 			DispatchQueue.main.async {

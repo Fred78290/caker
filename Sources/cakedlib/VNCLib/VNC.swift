@@ -31,7 +31,7 @@ extension VZVNCServer {
 
 class InternalVNCServer: VZVNCServer {
 	var delegate: (any VNCServerDelegate)?
-	
+
 	private let vnc: Dynamic
 	private let password: String  // = UUID().uuidString
 

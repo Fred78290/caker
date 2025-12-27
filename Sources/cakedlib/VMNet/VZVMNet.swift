@@ -157,7 +157,9 @@ public class VZVMNet: @unchecked Sendable {
 	}
 
 	public func reconfigure(networkConfig: VZSharedNetwork) throws {
-		self.logger.debug("Reconfiguring VMNet with new parameters")
+		#if DEBUG
+			self.logger.debug("Reconfiguring VMNet with new parameters")
+		#endif
 
 		self.networkConfig = networkConfig
 
@@ -170,41 +172,44 @@ public class VZVMNet: @unchecked Sendable {
 
 	internal func print_vmnet_start_param(params: xpc_object_t?, info: String = "settings") {
 		guard let params = params else {
-			self.logger.debug("params not defined")
+			#if DEBUG
+				self.logger.debug("params not defined")
+			#endif
 			return
 		}
 
 		xpc_dictionary_apply(params) { key, value in
-			let t = xpc_get_type(value)
-			let key = String(cString: key)
+			#if DEBUG
+				let t = xpc_get_type(value)
+				let key = String(cString: key)
 
-			if t == XPC_TYPE_UINT64 {
-				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_uint64(params, key))")
-			} else if t == XPC_TYPE_INT64 {
-				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_int64(params, key))")
-			} else if t == XPC_TYPE_DOUBLE {
-				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_double(params, key))")
-			} else if t == XPC_TYPE_DATE {
-				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_date(params, key))")
-			} else if t == XPC_TYPE_BOOL {
-				self.logger.debug("\(info) \(key): \(xpc_dictionary_get_bool(params, key))")
-			} else if t == XPC_TYPE_STRING {
-				if let cstr = xpc_string_get_string_ptr(value) {
-					let value = String(cString: cstr)
+				if t == XPC_TYPE_UINT64 {
+					self.logger.debug("\(info) \(key): \(xpc_dictionary_get_uint64(params, key))")
+				} else if t == XPC_TYPE_INT64 {
+					self.logger.debug("\(info) \(key): \(xpc_dictionary_get_int64(params, key))")
+				} else if t == XPC_TYPE_DOUBLE {
+					self.logger.debug("\(info) \(key): \(xpc_dictionary_get_double(params, key))")
+				} else if t == XPC_TYPE_DATE {
+					self.logger.debug("\(info) \(key): \(xpc_dictionary_get_date(params, key))")
+				} else if t == XPC_TYPE_BOOL {
+					self.logger.debug("\(info) \(key): \(xpc_dictionary_get_bool(params, key))")
+				} else if t == XPC_TYPE_STRING {
+					if let cstr = xpc_string_get_string_ptr(value) {
+						let value = String(cString: cstr)
 
-					self.logger.debug("\(info) \(key): \(value)")
+						self.logger.debug("\(info) \(key): \(value)")
+					}
+				} else if t == XPC_TYPE_UUID {
+					UnsafeMutablePointer<Int8>.allocate(capacity: 37).withMemoryRebound(to: UInt8.self, capacity: 37) { uuid in
+						uuid_unparse(xpc_uuid_get_bytes(value), uuid)
+
+						let value = String(cString: uuid)
+						self.logger.debug("\(info) \(key): \(value)")
+					}
+				} else {
+					self.logger.debug("\(info) \(key): \(t)")
 				}
-			} else if t == XPC_TYPE_UUID {
-				UnsafeMutablePointer<Int8>.allocate(capacity: 37).withMemoryRebound(to: UInt8.self, capacity: 37) { uuid in
-					uuid_unparse(xpc_uuid_get_bytes(value), uuid)
-
-					let value = String(cString: uuid)
-					self.logger.debug("\(info) \(key): \(value)")
-				}
-			} else {
-				self.logger.debug("\(info) \(key): \(t)")
-			}
-
+			#endif
 			return true
 		}
 	}
@@ -236,7 +241,9 @@ public class VZVMNet: @unchecked Sendable {
 				}
 			}
 
-			self.logger.debug("\(direction) packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(size)")
+			#if DEBUG
+				self.logger.debug("\(direction) packet[\(i)]: dest=\(VZMACAddress(ethernetAddress: macAddress[0]).string), src=\(VZMACAddress(ethernetAddress: macAddress[1]).string), size=\(size)")
+			#endif
 		}
 	}
 

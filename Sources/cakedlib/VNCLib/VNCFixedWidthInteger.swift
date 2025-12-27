@@ -33,7 +33,7 @@ extension UInt32 {
 			ptr[1] = c
 			ptr[0] = d
 		}
-		
+
 		return value.littleEndian
 	}
 
@@ -60,7 +60,7 @@ extension Int32 {
 			ptr[1] = c
 			ptr[0] = d
 		}
-		
+
 		return value.littleEndian
 	}
 
@@ -85,7 +85,7 @@ extension UInt16 {
 			ptr[1] = a
 			ptr[0] = b
 		}
-		
+
 		return value.littleEndian
 	}
 
@@ -110,7 +110,7 @@ extension Int16 {
 			ptr[1] = a
 			ptr[0] = b
 		}
-		
+
 		return value.littleEndian
 	}
 

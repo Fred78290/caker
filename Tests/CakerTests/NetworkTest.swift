@@ -1,9 +1,9 @@
 import XCTest
 
+@testable import CakedLib
 @testable import GRPCLib
 @testable import NIOPortForwarding
 @testable import cakectl
-@testable import CakedLib
 
 final class NetworkConfigTests: XCTestCase {
 	let interfaces = VZSharedNetwork.networkInterfaces()

@@ -335,7 +335,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	func disconnect() {
-		self.logger.debug("Disconnecting \(self.name)")
+		#if DEBUG
+			self.logger.debug("Disconnecting \(self.name)")
+		#endif
 
 		stopAgentMonitoring()
 
@@ -355,7 +357,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	func close() {
-		self.logger.debug("Closing \(self.name)")
+		#if DEBUG
+			self.logger.debug("Closing \(self.name)")
+		#endif
 
 		stopAgentMonitoring()
 
@@ -379,7 +383,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped, _line: UInt = #line, _file: String = #file) {
-		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
+		#if DEBUG
+			self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
+		#endif
 
 		// Stop agent monitoring when VM is stopped
 		stopAgentMonitoring()
@@ -402,7 +408,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	@MainActor
 	func setStateAsRunning(suspendable: Bool, vncURL: URL?, _line: UInt = #line, _file: String = #file) {
-		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
+		#if DEBUG
+			self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
+		#endif
+
 		self.canStart = false
 		self.canStop = true
 		self.canPause = true
@@ -419,7 +428,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
-		self.logger.debug("setState to \(status) at \(_file):\(_line)")
+		#if DEBUG
+			self.logger.debug("setState to \(status) at \(_file):\(_line)")
+		#endif
 
 		self.status = status
 		self.canStart = status == .stopped || status == .paused
@@ -433,7 +444,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
 		if self.documentSize != size {
-			self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
+			#if DEBUG
+				self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
+			#endif
 
 			self.documentSize = size
 		}
@@ -451,7 +464,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	private func loadVirtualMachine(from location: VMLocation) -> URL? {
-		self.logger.debug("Load VM from: \(location.rootURL)")
+		#if DEBUG
+			self.logger.debug("Load VM from: \(location.rootURL)")
+		#endif
 
 		do {
 			self.virtualMachineConfig = try VirtualMachineConfig(location: location)
@@ -565,7 +580,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 							let suspendable = config.suspendable
 
 							promise.futureResult.whenSuccess { _ in
-								self.logger.debug("VM \(self.name) terminated")
+								#if DEBUG
+									self.logger.debug("VM \(self.name) terminated")
+								#endif
 
 								DispatchQueue.main.async {
 									self.setStateAsStopped()
@@ -588,8 +605,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: extras)
 							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
-							self.logger.debug("VM started on \(runningIP)")
-							self.logger.debug("Found VNC URL: \(String(describing: url))")
+							#if DEBUG
+								self.logger.debug("VM started on \(runningIP)")
+								self.logger.debug("Found VNC URL: \(String(describing: url))")
+							#endif
 
 							DispatchQueue.main.async {
 								self.setStateAsRunning(suspendable: suspendable, vncURL: url)
@@ -724,7 +743,9 @@ extension VirtualMachineDocument: VirtualMachineDelegate {
 	func didChangedState(_ vm: VirtualMachine) {
 		let virtualMachine = vm.virtualMachine
 
-		self.logger.debug("didChangedState: \(virtualMachine.state)")
+		#if DEBUG
+			self.logger.debug("didChangedState: \(virtualMachine.state)")
+		#endif
 
 		guard let status = Status(rawValue: virtualMachine.state.rawValue) else {
 			self.status = .none
@@ -796,7 +817,9 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 extension VirtualMachineDocument: VNCConnectionDelegate {
 	func setVncScreenSize(_ screenSize: ViewSize) {
 		if self.externalRunning && self.status == .running {
-			self.logger.debug("setVncScreenSize: \(screenSize.description)")
+			#if DEBUG
+				self.logger.debug("setVncScreenSize: \(screenSize.description)")
+			#endif
 
 			Task {
 				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(screenSize.width), height: Int(screenSize.height))
@@ -811,13 +834,17 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			screenSize = ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
 		}
 
-		self.logger.debug("getVncScreenSize: \(screenSize.description)")
+		#if DEBUG
+			self.logger.debug("getVncScreenSize: \(screenSize.description)")
+		#endif
 
 		return screenSize
 	}
 
 	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
+		#if DEBUG
+			self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
+		#endif
 
 		if size.width == 0 && size.height == 0 {
 			return
@@ -870,9 +897,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
 			#if DEBUG
-			let isDebugLoggingEnabled = AppState.shared.debugVNCMessageEnabled
+				let isDebugLoggingEnabled = AppState.shared.debugVNCMessageEnabled
 			#else
-			let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug
+				let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug
 			#endif
 
 			let settings = RoyalVNCKit.VNCConnection.Settings(
@@ -896,14 +923,19 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			Task {
 				if Utilities.waitPortReady(host: vncHost, port: vncPort) {
 					connection.connect()
-					self.logger.debug("Connected to: \(vncURL)...")
+
+					#if DEBUG
+						self.logger.debug("Connected to: \(vncURL)...")
+					#endif
 				}
 			}
 		}
 	}
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, stateDidChange connectionState: RoyalVNCKit.VNCConnection.ConnectionState) {
-		self.logger.debug("Connection state changed to \(connectionState.status.description)")
+		#if DEBUG
+			self.logger.debug("Connection state changed to \(connectionState.status.description)")
+		#endif
 
 		DispatchQueue.main.async {
 			var newStatus = VncStatus(vncStatus: connectionState.status)
@@ -921,7 +953,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			} else if connectionState.status == .disconnected {
 				if self.connection != nil {
 					self.connection = nil
-					
+
 					if self.status == .starting || self.status == .running {
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
 							self.tryVNCConnect()
@@ -944,7 +976,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, credentialFor authenticationType: VNCAuthenticationType, completion: @escaping ((any VNCCredential)?) -> Void) {
-		self.logger.debug("Connection need credential")
+		#if DEBUG
+			self.logger.debug("Connection need credential")
+		#endif
 
 		if let vncURL = self.vncURL {
 			if authenticationType.requiresPassword && authenticationType.requiresUsername {
@@ -969,7 +1003,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		if self.vncStatus != .ready {
 			let size = ViewSize(size: framebuffer.cgSize)
 
-			self.logger.debug("Connection create framebuffer size: \(size.description)")
+			#if DEBUG
+				self.logger.debug("Connection create framebuffer size: \(size.description)")
+			#endif
 
 			DispatchQueue.main.async {
 				self.logger.debug("vnc ready")
@@ -979,7 +1015,9 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 	}
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
-		self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
+		#if DEBUG
+			self.logger.debug("VNC framebuffer size changed: \(framebuffer.cgSize)")
+		#endif
 
 		if framebuffer.size.width != 8192 && framebuffer.size.height != 4320 {
 			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
@@ -1130,7 +1168,10 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		self.logger.debug("Starting agent monitoring for VM: \(self.name)")
+		#if DEBUG
+			self.logger.debug("Starting agent monitoring for VM: \(self.name)")
+		#endif
+
 		isMonitoringAgent = true
 
 		agentMonitorTimer?.invalidate()
@@ -1146,7 +1187,10 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		self.logger.debug("Stopping agent monitoring for VM: \(self.name)")
+		#if DEBUG
+			self.logger.debug("Stopping agent monitoring for VM: \(self.name)")
+		#endif
+
 		firstIP = nil
 		isMonitoringAgent = false
 
@@ -1175,13 +1219,18 @@ extension VirtualMachineDocument {
 			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
 			let infos = try await self.infosClient().info(callOptions: callOptions)
 
-			self.logger.debug("Agent health check successful for VM: \(self.name)")
+			#if DEBUG
+				self.logger.debug("Agent health check successful for VM: \(self.name)")
+			#endif
 
 			DispatchQueue.main.async {
 				self.handleAgentHealthCheckSuccess(info: infos)
 			}
 		} catch {
-			self.logger.debug("Failed to create agent client for health check: \(error)")
+			#if DEBUG
+				self.logger.debug("Failed to create agent client for health check: \(error)")
+			#endif
+
 			self.handleAgentHealthCheckFailure(error: error)
 		}
 	}
@@ -1189,7 +1238,9 @@ extension VirtualMachineDocument {
 	private func handleAgentHealthCheckSuccess(info: InfoReply) {
 		// Agent is responding - optionally update VM info if needed
 		// For example, you could update IP addresses or system info
-		self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
+		#if DEBUG
+			self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
+		#endif
 
 		self.vmInfos.update(from: info)
 
@@ -1197,9 +1248,11 @@ extension VirtualMachineDocument {
 		if let firstIP = info.ipaddresses.first, firstIP != self.firstIP {
 			self.firstIP = firstIP
 
-			self.logger.info("VM \(self.name) current IP address: \(firstIP)")
+			#if DEBUG
+				self.logger.debug("VM \(self.name) current IP address: \(firstIP)")
+			#endif
 		}
-		
+
 		if self.isWaitingForAgent {
 			self.isWaitingForAgent = false
 			self.stopAgentMonitoring()
@@ -1233,8 +1286,10 @@ extension VirtualMachineDocument {
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
 		} else {
-			// Agent is not responding - could indicate VM issues
-			self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			#if DEBUG
+				// Agent is not responding - could indicate VM issues
+				self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			#endif
 		}
 
 		if let infosClient = self._infosClient {

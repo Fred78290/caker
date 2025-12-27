@@ -1,10 +1,10 @@
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
-
 import zlib
+
+#if canImport(FoundationEssentials)
+	import FoundationEssentials
+#else
+	import Foundation
+#endif
 
 enum ZlibError: Error {
 	case unknown(status: Int32, message: String?)
@@ -20,13 +20,13 @@ enum ZlibError: Error {
 }
 
 enum ZlibFlush: Int32 {
-	case noFlush = 0 // Z_NO_FLUSH
-	case partialFlush = 1 // Z_PARTIAL_FLUSH
-	case syncFlush = 2 // Z_SYNC_FLUSH
-	case fullFlush = 3 // Z_FULL_FLUSH
-	case finish = 4 // Z_FINISH
-	case block = 5 // Z_BLOCK
-	case trees = 6 // Z_TREES
+	case noFlush = 0  // Z_NO_FLUSH
+	case partialFlush = 1  // Z_PARTIAL_FLUSH
+	case syncFlush = 2  // Z_SYNC_FLUSH
+	case fullFlush = 3  // Z_FULL_FLUSH
+	case finish = 4  // Z_FINISH
+	case block = 5  // Z_BLOCK
+	case trees = 6  // Z_TREES
 }
 
 internal class ZlibStream {
@@ -38,12 +38,12 @@ internal class ZlibStream {
 		memset(streamPtr, 0, MemoryLayout<z_stream>.size)
 
 		self.streamPtr = streamPtr
-		
+
 		try self.setupStream()
 	}
 
 	open func setupStream() throws {
-		
+
 	}
 
 	open func end() {
@@ -165,24 +165,24 @@ extension ZlibError {
 
 	static func withStatus(_ status: Int32, errorMessage: String?) -> Self {
 		switch status {
-			case Z_STREAM_END:
-				.streamEnd(message: errorMessage)
-			case Z_NEED_DICT:
-				.needDict(message: errorMessage)
-			case Z_ERRNO:
-				.errNo(message: errorMessage)
-			case Z_STREAM_ERROR:
-				.streamError(message: errorMessage)
-			case Z_DATA_ERROR:
-				.dataError(message: errorMessage)
-			case Z_MEM_ERROR:
-				.memoryError(message: errorMessage)
-			case Z_BUF_ERROR:
-				.bufferError(message: errorMessage)
-			case Z_VERSION_ERROR:
-				.versionError(message: errorMessage)
-			default:
-				.unknown(status: status, message: errorMessage)
+		case Z_STREAM_END:
+			.streamEnd(message: errorMessage)
+		case Z_NEED_DICT:
+			.needDict(message: errorMessage)
+		case Z_ERRNO:
+			.errNo(message: errorMessage)
+		case Z_STREAM_ERROR:
+			.streamError(message: errorMessage)
+		case Z_DATA_ERROR:
+			.dataError(message: errorMessage)
+		case Z_MEM_ERROR:
+			.memoryError(message: errorMessage)
+		case Z_BUF_ERROR:
+			.bufferError(message: errorMessage)
+		case Z_VERSION_ERROR:
+			.versionError(message: errorMessage)
+		default:
+			.unknown(status: status, message: errorMessage)
 		}
 	}
 }

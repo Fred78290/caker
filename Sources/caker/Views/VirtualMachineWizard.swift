@@ -879,7 +879,7 @@ struct VirtualMachineWizard: View {
 		self.model.createVM = true
 		self.model.createVMMessage = "Creating virtual machine..."
 
-		await self.createVirtualMachine() { result in
+		await self.createVirtualMachine { result in
 			DispatchQueue.main.async {
 				switch result {
 				case .progress(_, let fractionCompleted):
@@ -910,9 +910,9 @@ struct VirtualMachineWizard: View {
 				var ipswQueue: DispatchQueue!
 
 				#if arch(arm64)
-				if self.model.imageSource == .ipsw {
-					ipswQueue = DispatchQueue(label: "IPSWQueue")
-				}
+					if self.model.imageSource == .ipsw {
+						ipswQueue = DispatchQueue(label: "IPSWQueue")
+					}
 				#endif
 
 				let build = await BuildHandler.build(name: self.config.vmname, options: options, runMode: .app, queue: ipswQueue) { result in

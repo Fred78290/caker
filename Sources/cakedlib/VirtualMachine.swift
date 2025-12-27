@@ -709,9 +709,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				}
 			} else {
 				let bounds = vzMachineView.bounds
-				
+
 				logger.info("Resizing vzMachineView from: \(bounds.width)x\(bounds.height) to: \(width)x\(height)")
-				
+
 				vzMachineView.frame = CGRect(origin: .zero, size: newSize)
 			}
 		}
@@ -1055,21 +1055,21 @@ extension VirtualMachine: VNCServerDelegate {
 			setScreenSize(width: Int(screen.width), height: Int(screen.height))
 		}
 	}
-	
+
 	public func vncServer(_ server: VNCServer, didReceiveError error: any Error) {
 	}
-	
+
 	public func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String) {
 	}
-	
+
 	public func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String) {
-		
+
 	}
-	
+
 	public func vncServer(_ server: VNCServer, didReceiveKeyEvent key: UInt32, isDown: Bool) {
 	}
-	
+
 	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {
 	}
-	
+
 }

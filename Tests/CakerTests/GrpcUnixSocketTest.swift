@@ -4,9 +4,9 @@ import NIOPosix
 import Synchronization
 import XCTest
 
+@testable import CakedLib
 @testable import GRPCLib
 @testable import cakectl
-@testable import CakedLib
 
 final class GrpcUnixSocketTests: XCTestCase {
 	let testCase = GrpcTestCase()

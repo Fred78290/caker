@@ -38,8 +38,10 @@ class Streamable {
 			try simpleStreamCache.addCache(fingerprint: etag, url: remoteURL, kind: kind, alias: [cachedFile])
 		}
 
-		// Download the index
-		Logger(self).debug("Fetching \(remoteURL.lastPathComponent)...")
+		#if DEBUG
+			// Download the index
+			Logger(self).debug("Fetching \(remoteURL.lastPathComponent)...")
+		#endif
 
 		try await Curl(fromURL: remoteURL).get(store: indexLocation, observer: ProgressObserver(totalUnitCount: 100).log("Fetching \(remoteURL.lastPathComponent)"))
 

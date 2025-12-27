@@ -8,13 +8,13 @@
 import ArgumentParser
 import CakeAgentLib
 import CakedLib
+import Cocoa
+import Foundation
 import GRPC
 import GRPCLib
 import Logging
 import NIO
 import RoyalVNCKit
-import Foundation
-import Cocoa
 
 class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 	var isDebugLoggingEnabled: Bool = true
@@ -22,33 +22,35 @@ class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 	var password: String? = nil
 
 	func logDebug(_ message: String) {
-		VNC.logger.debug(message)
+		#if DEBUG
+			VNC.logger.debug(message)
+		#endif
 	}
-	
+
 	func logInfo(_ message: String) {
 		VNC.logger.info(message)
 	}
-	
+
 	func logWarning(_ message: String) {
 		VNC.logger.warn(message)
 	}
-	
+
 	func logError(_ message: String) {
 		VNC.logger.error(message)
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, stateDidChange connectionState: RoyalVNCKit.VNCConnection.ConnectionState) {
 		let connectionStateString: String
 
 		switch connectionState.status {
-			case .connecting:
-				connectionStateString = "Connecting"
-			case .connected:
-				connectionStateString = "Connected"
-			case .disconnecting:
-				connectionStateString = "Disconnecting"
-			case .disconnected:
-				connectionStateString = "Disconnected"
+		case .connecting:
+			connectionStateString = "Connecting"
+		case .connected:
+			connectionStateString = "Connected"
+		case .disconnecting:
+			connectionStateString = "Disconnecting"
+		case .disconnected:
+			connectionStateString = "Disconnected"
 		}
 
 		if let error = connectionState.error {
@@ -57,7 +59,7 @@ class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 			connection.logger.logDebug("connection stateDidChange: \(connectionStateString)")
 		}
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, credentialFor authenticationType: RoyalVNCKit.VNCAuthenticationType, completion: @escaping ((any RoyalVNCKit.VNCCredential)?) -> Void) {
 		let authenticationTypeString: String
 
@@ -81,19 +83,19 @@ class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 			if let password {
 				return password
 			}
-			
+
 			return readInput("Password: ")
 		}
 
 		switch authenticationType {
-			case .vnc:
-				authenticationTypeString = "VNC"
-			case .appleRemoteDesktop:
-				authenticationTypeString = "Apple Remote Desktop"
-			case .ultraVNCMSLogonII:
-				authenticationTypeString = "UltraVNC MS Logon II"
-			@unknown default:
-				fatalError("Unknown authentication type: \(authenticationType)")
+		case .vnc:
+			authenticationTypeString = "VNC"
+		case .appleRemoteDesktop:
+			authenticationTypeString = "Apple Remote Desktop"
+		case .ultraVNCMSLogonII:
+			authenticationTypeString = "UltraVNC MS Logon II"
+		@unknown default:
+			fatalError("Unknown authentication type: \(authenticationType)")
 		}
 
 		connection.logger.logDebug("connection credentialFor: \(authenticationTypeString)")
@@ -110,24 +112,23 @@ class DelegateConnectionVNC: VNCConnectionDelegate, VNCLogger, Codable {
 
 		completion(credential)
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didCreateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		connection.logger.logDebug("connection didCreateFramebuffer")
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		connection.logger.logDebug("connection didResizeFramebuffer")
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		connection.logger.logDebug("connection didUpdateFramebuffer")
 	}
-	
+
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: RoyalVNCKit.VNCCursor) {
 		connection.logger.logDebug("connection didUpdateCursor")
 	}
 }
-
 
 struct VNC: CakeAgentAsyncParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vnc", abstract: "Start a VNC client to debug your application")
@@ -142,7 +143,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 	var runMode: Utils.RunMode {
 		self.common.runMode
 	}
-	
+
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions
 
@@ -159,7 +160,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 		self.isDebugLoggingEnabled = true
 		self.delegate = DelegateConnectionVNC()
 	}
-	
+
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
@@ -185,16 +186,17 @@ struct VNC: CakeAgentAsyncParsableCommand {
 			self.delegate.password = vncURL.password(percentEncoded: false)
 
 			// Create settings
-			let settings = VNCConnection.Settings(isDebugLoggingEnabled: true,
-												  hostname: "127.0.0.1",
-												  port: UInt16(vncPort),
-												  isShared: true,
-												  isScalingEnabled: true,
-												  useDisplayLink: false,
-												  inputMode: .none,
-												  isClipboardRedirectionEnabled: false,
-												  colorDepth: .depth24Bit,
-												  frameEncodings: .default)
+			let settings = VNCConnection.Settings(
+				isDebugLoggingEnabled: true,
+				hostname: "127.0.0.1",
+				port: UInt16(vncPort),
+				isShared: true,
+				isScalingEnabled: true,
+				useDisplayLink: false,
+				inputMode: .none,
+				isClipboardRedirectionEnabled: false,
+				colorDepth: .depth24Bit,
+				frameEncodings: .default)
 
 			// Create connection
 			let connection = VNCConnection(settings: settings, logger: self.delegate)
@@ -211,7 +213,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 				if connectionStatus == .disconnected {
 					break
 				}
-				
+
 				try? await Task.sleep(nanoseconds: 1000_000_000)
 			}
 		} else {
@@ -219,4 +221,3 @@ struct VNC: CakeAgentAsyncParsableCommand {
 		}
 	}
 }
-

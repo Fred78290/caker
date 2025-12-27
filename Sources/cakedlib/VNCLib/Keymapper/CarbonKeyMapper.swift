@@ -1,3 +1,5 @@
+import AppKit
+import Carbon
 //
 //  CarbonKeyMapper.swift
 //  Caker
@@ -5,150 +7,148 @@
 //  Created by Frederic BOLTZ on 08/12/2025.
 //
 import Foundation
-import AppKit
-import Carbon
 
 enum CarbonKeyCode: CGKeyCode {
 	/* keycodes for keys that are dependent on keyboard layout*/
-	case kVK_ANSI_A                    = 0
-	case kVK_ANSI_S                    = 1
-	case kVK_ANSI_D                    = 2
-	case kVK_ANSI_F                    = 3
-	case kVK_ANSI_H                    = 4
-	case kVK_ANSI_G                    = 5
-	case kVK_ANSI_Z                    = 6
-	case kVK_ANSI_X                    = 7
-	case kVK_ANSI_C                    = 8
-	case kVK_ANSI_V                    = 9
-	case kVK_ISO_Section               = 10 // ISO keyboards only
-	case kVK_ANSI_B                    = 11
-	case kVK_ANSI_Q                    = 12
-	case kVK_ANSI_W                    = 13
-	case kVK_ANSI_E                    = 14
-	case kVK_ANSI_R                    = 15
-	
-	case kVK_ANSI_Y                    = 16
-	case kVK_ANSI_T                    = 17
-	case kVK_ANSI_1                    = 18
-	case kVK_ANSI_2                    = 19
-	case kVK_ANSI_3                    = 20
-	case kVK_ANSI_4                    = 21
-	case kVK_ANSI_6                    = 22
-	case kVK_ANSI_5                    = 23
-	case kVK_ANSI_Equal                = 24
-	case kVK_ANSI_9                    = 25
-	case kVK_ANSI_7                    = 26
-	case kVK_ANSI_Minus                = 27
-	case kVK_ANSI_8                    = 28
-	case kVK_ANSI_0                    = 29
-	case kVK_ANSI_RightBracket         = 30
-	case kVK_ANSI_O                    = 31
-	
-	case kVK_ANSI_U                    = 32
-	case kVK_ANSI_LeftBracket          = 33
-	case kVK_ANSI_I                    = 34
-	case kVK_ANSI_P                    = 35
-	case kVK_Return                    = 36
-	case kVK_ANSI_L                    = 37
-	case kVK_ANSI_J                    = 38
-	case kVK_ANSI_Quote                = 39
-	case kVK_ANSI_K                    = 40
-	case kVK_ANSI_Semicolon            = 41
-	case kVK_ANSI_Backslash            = 42
-	case kVK_ANSI_Comma                = 43
-	case kVK_ANSI_Slash                = 44
-	case kVK_ANSI_N                    = 45
-	case kVK_ANSI_M                    = 46
-	case kVK_ANSI_Period               = 47
-	
-	case kVK_Tab                       = 48
-	case kVK_Space                     = 49
-	case kVK_ANSI_Grave                = 50
-	case kVK_Delete                    = 51
-	case kVK_Unknown01                 = 52
-	case kVK_Escape                    = 53
-	case kVK_RightCommand              = 54
-	case kVK_Command                   = 55
-	case kVK_Shift                     = 56
-	case kVK_CapsLock                  = 57
-	case kVK_Option                    = 58
-	case kVK_Control                   = 59
-	case kVK_RightShift                = 60
-	case kVK_RightOption               = 61
-	case kVK_RightControl              = 62
-	case kVK_Function                  = 63
-	
-	case kVK_F17                       = 64
-	case kVK_ANSI_KeypadDecimal        = 65
-	case kVK_Unknown02                 = 66
-	case kVK_ANSI_KeypadMultiply       = 67
-	case kVK_Unknown03                 = 68
-	case kVK_ANSI_KeypadPlus           = 69
-	case kVK_Unknown04                 = 70
-	case kVK_ANSI_KeypadClear          = 71
-	case kVK_VolumeUp                  = 72
-	case kVK_VolumeDown                = 73
-	case kVK_Mute                      = 74
-	case kVK_ANSI_KeypadDivide         = 75
-	case kVK_ANSI_KeypadEnter          = 76
-	case kVK_Unknown05                 = 77
-	case kVK_ANSI_KeypadMinus          = 78
-	case kVK_F18                       = 79
-	
-	case kVK_F19                       = 80
-	case kVK_ANSI_KeypadEquals         = 81
-	case kVK_ANSI_Keypad0              = 82
-	case kVK_ANSI_Keypad1              = 83
-	case kVK_ANSI_Keypad2              = 84
-	case kVK_ANSI_Keypad3              = 85
-	case kVK_ANSI_Keypad4              = 86
-	case kVK_ANSI_Keypad5              = 87
-	case kVK_ANSI_Keypad6              = 88
-	case kVK_ANSI_Keypad7              = 89
-	case kVK_F20                       = 90
-	case kVK_ANSI_Keypad8              = 91
-	case kVK_ANSI_Keypad9              = 92
-	case kVK_JIS_Yen                   = 93 // JIS keyboards only
-	case kVK_JIS_Underscore            = 94 // JIS keyboards only
-	case kVK_JIS_KeypadComma           = 95 // JIS keyboards only
-	
+	case kVK_ANSI_A = 0
+	case kVK_ANSI_S = 1
+	case kVK_ANSI_D = 2
+	case kVK_ANSI_F = 3
+	case kVK_ANSI_H = 4
+	case kVK_ANSI_G = 5
+	case kVK_ANSI_Z = 6
+	case kVK_ANSI_X = 7
+	case kVK_ANSI_C = 8
+	case kVK_ANSI_V = 9
+	case kVK_ISO_Section = 10  // ISO keyboards only
+	case kVK_ANSI_B = 11
+	case kVK_ANSI_Q = 12
+	case kVK_ANSI_W = 13
+	case kVK_ANSI_E = 14
+	case kVK_ANSI_R = 15
+
+	case kVK_ANSI_Y = 16
+	case kVK_ANSI_T = 17
+	case kVK_ANSI_1 = 18
+	case kVK_ANSI_2 = 19
+	case kVK_ANSI_3 = 20
+	case kVK_ANSI_4 = 21
+	case kVK_ANSI_6 = 22
+	case kVK_ANSI_5 = 23
+	case kVK_ANSI_Equal = 24
+	case kVK_ANSI_9 = 25
+	case kVK_ANSI_7 = 26
+	case kVK_ANSI_Minus = 27
+	case kVK_ANSI_8 = 28
+	case kVK_ANSI_0 = 29
+	case kVK_ANSI_RightBracket = 30
+	case kVK_ANSI_O = 31
+
+	case kVK_ANSI_U = 32
+	case kVK_ANSI_LeftBracket = 33
+	case kVK_ANSI_I = 34
+	case kVK_ANSI_P = 35
+	case kVK_Return = 36
+	case kVK_ANSI_L = 37
+	case kVK_ANSI_J = 38
+	case kVK_ANSI_Quote = 39
+	case kVK_ANSI_K = 40
+	case kVK_ANSI_Semicolon = 41
+	case kVK_ANSI_Backslash = 42
+	case kVK_ANSI_Comma = 43
+	case kVK_ANSI_Slash = 44
+	case kVK_ANSI_N = 45
+	case kVK_ANSI_M = 46
+	case kVK_ANSI_Period = 47
+
+	case kVK_Tab = 48
+	case kVK_Space = 49
+	case kVK_ANSI_Grave = 50
+	case kVK_Delete = 51
+	case kVK_Unknown01 = 52
+	case kVK_Escape = 53
+	case kVK_RightCommand = 54
+	case kVK_Command = 55
+	case kVK_Shift = 56
+	case kVK_CapsLock = 57
+	case kVK_Option = 58
+	case kVK_Control = 59
+	case kVK_RightShift = 60
+	case kVK_RightOption = 61
+	case kVK_RightControl = 62
+	case kVK_Function = 63
+
+	case kVK_F17 = 64
+	case kVK_ANSI_KeypadDecimal = 65
+	case kVK_Unknown02 = 66
+	case kVK_ANSI_KeypadMultiply = 67
+	case kVK_Unknown03 = 68
+	case kVK_ANSI_KeypadPlus = 69
+	case kVK_Unknown04 = 70
+	case kVK_ANSI_KeypadClear = 71
+	case kVK_VolumeUp = 72
+	case kVK_VolumeDown = 73
+	case kVK_Mute = 74
+	case kVK_ANSI_KeypadDivide = 75
+	case kVK_ANSI_KeypadEnter = 76
+	case kVK_Unknown05 = 77
+	case kVK_ANSI_KeypadMinus = 78
+	case kVK_F18 = 79
+
+	case kVK_F19 = 80
+	case kVK_ANSI_KeypadEquals = 81
+	case kVK_ANSI_Keypad0 = 82
+	case kVK_ANSI_Keypad1 = 83
+	case kVK_ANSI_Keypad2 = 84
+	case kVK_ANSI_Keypad3 = 85
+	case kVK_ANSI_Keypad4 = 86
+	case kVK_ANSI_Keypad5 = 87
+	case kVK_ANSI_Keypad6 = 88
+	case kVK_ANSI_Keypad7 = 89
+	case kVK_F20 = 90
+	case kVK_ANSI_Keypad8 = 91
+	case kVK_ANSI_Keypad9 = 92
+	case kVK_JIS_Yen = 93  // JIS keyboards only
+	case kVK_JIS_Underscore = 94  // JIS keyboards only
+	case kVK_JIS_KeypadComma = 95  // JIS keyboards only
+
 	/* keycodes for keys that are independent of keyboard layout*/
-	
-	case kVK_F5                        = 96
-	case kVK_F6                        = 97
-	case kVK_F7                        = 98
-	case kVK_F3                        = 99
-	case kVK_F8                        = 100
-	case kVK_F9                        = 101
-	case kVK_JIS_Eisu                  = 102 // JIS keyboards only
-	case kVK_F11                       = 103
-	case kVK_JIS_Kana                  = 104 // JIS keyboards only
-	case kVK_F13                       = 105
-	case kVK_F16                       = 106
-	case kVK_F14                       = 107
-	case kVK_F10                       = 109
-	case kVK_Unknown08                 = 108
-	case kVK_ContextualMenu            = 110
-	case kVK_F12                       = 111
-	
-	case kVK_Unknown06                 = 112
-	case kVK_F15                       = 113
-	case kVK_Help                      = 114
-	case kVK_Home                      = 115
-	case kVK_PageUp                    = 116
-	case kVK_ForwardDelete             = 117
-	case kVK_F4                        = 118
-	case kVK_End                       = 119
-	case kVK_F2                        = 120
-	case kVK_PageDown                  = 121
-	case kVK_F1                        = 122
-	case kVK_LeftArrow                 = 123
-	case kVK_RightArrow                = 124
-	case kVK_DownArrow                 = 125
-	case kVK_UpArrow                   = 126
-	case kVK_Unknown07                 = 127
-	
-	static let USKeyCodes: [UInt32:CarbonKeyCode] = [
+
+	case kVK_F5 = 96
+	case kVK_F6 = 97
+	case kVK_F7 = 98
+	case kVK_F3 = 99
+	case kVK_F8 = 100
+	case kVK_F9 = 101
+	case kVK_JIS_Eisu = 102  // JIS keyboards only
+	case kVK_F11 = 103
+	case kVK_JIS_Kana = 104  // JIS keyboards only
+	case kVK_F13 = 105
+	case kVK_F16 = 106
+	case kVK_F14 = 107
+	case kVK_F10 = 109
+	case kVK_Unknown08 = 108
+	case kVK_ContextualMenu = 110
+	case kVK_F12 = 111
+
+	case kVK_Unknown06 = 112
+	case kVK_F15 = 113
+	case kVK_Help = 114
+	case kVK_Home = 115
+	case kVK_PageUp = 116
+	case kVK_ForwardDelete = 117
+	case kVK_F4 = 118
+	case kVK_End = 119
+	case kVK_F2 = 120
+	case kVK_PageDown = 121
+	case kVK_F1 = 122
+	case kVK_LeftArrow = 123
+	case kVK_RightArrow = 124
+	case kVK_DownArrow = 125
+	case kVK_UpArrow = 126
+	case kVK_Unknown07 = 127
+
+	static let USKeyCodes: [UInt32: CarbonKeyCode] = [
 		/* Numbers */
 		Keysyms.XK_0: .kVK_ANSI_0, /* 0 */
 		Keysyms.XK_1: .kVK_ANSI_1, /* 1 */
@@ -497,7 +497,7 @@ public class CarbonKeyMapper: Keymapper {
 		Keysyms.XK_slash: CarbonKeyCode.kVK_ANSI_Slash, /* / */
 		Keysyms.XK_minus: CarbonKeyCode.kVK_ANSI_Minus, /* - */
 		Keysyms.XK_equal: CarbonKeyCode.kVK_ANSI_Equal, /* = */
-		Keysyms.XK_grave: CarbonKeyCode.kVK_ANSI_Grave, /* ` */
+		Keysyms.XK_grave: CarbonKeyCode.kVK_ANSI_Grave /* ` */,
 	]
 
 	// Mapping des modificateurs VNC vers NSEvent.ModifierFlags
@@ -515,13 +515,13 @@ public class CarbonKeyMapper: Keymapper {
 		0xFFEA: .rightOption,  // Right Alt
 		0xFFEB: .leftCommand,  // Left Command
 		0xFFEC: .rightCommand,  // Right Command
-		0x1008FF2B: .function
+		0x1008_FF2B: .function,
 	]
 
 	private static var charKeyMap: [UniChar: CGKeyCode] = [:]
-	private static var charShiftKeyMap : [UniChar: CGKeyCode] = [:]
-	private static var charControlKeyMap : [UniChar: CGKeyCode] = [:]
-	private static var charOptionKeyMap : [UniChar: CGKeyCode] = [:]
+	private static var charShiftKeyMap: [UniChar: CGKeyCode] = [:]
+	private static var charControlKeyMap: [UniChar: CGKeyCode] = [:]
+	private static var charOptionKeyMap: [UniChar: CGKeyCode] = [:]
 	private static var charShiftOptionKeyMap: [UniChar: CGKeyCode] = [:]
 	private static var keymapInitialized: Bool = false
 
@@ -549,7 +549,7 @@ public class CarbonKeyMapper: Keymapper {
 						0,
 						CGEventFlags.maskShift.rawValue,
 						CGEventFlags.maskAlternate.rawValue,
-						CGEventFlags.maskShift.rawValue | CGEventFlags.maskAlternate.rawValue
+						CGEventFlags.maskShift.rawValue | CGEventFlags.maskAlternate.rawValue,
 					]
 
 					for i: CGKeyCode in 0..<256 {
@@ -560,20 +560,21 @@ public class CarbonKeyMapper: Keymapper {
 							var realLength: Int = 0
 							let currentModifier = modifiers[m]
 
-							let status = UCKeyTranslate(keyboardLayout,
-										   i,
-										   UInt16(kUCKeyActionDisplay),
-										   UInt32(currentModifier >> 8) & 0x00FF,
-										   UInt32(LMGetKbdType()),
-										   UInt32(kUCKeyTranslateNoDeadKeysBit),
-										   &deadKeyState,
-										   chars.count,
-										   &realLength,
-										   &chars)
+							let status = UCKeyTranslate(
+								keyboardLayout,
+								i,
+								UInt16(kUCKeyActionDisplay),
+								UInt32(currentModifier >> 8) & 0x00FF,
+								UInt32(LMGetKbdType()),
+								UInt32(kUCKeyTranslateNoDeadKeysBit),
+								&deadKeyState,
+								chars.count,
+								&realLength,
+								&chars)
 
 							if status == 0 {
 								let unicodeChar = chars[0]
-								
+
 								switch currentModifier {
 								case 0:
 									if charKeyMap[unicodeChar] == nil {
@@ -608,33 +609,33 @@ public class CarbonKeyMapper: Keymapper {
 			throw ServiceError("Unable to init VNKeyMapper: no keyboard")
 		}
 		#if DEBUG
-		print("charKeyMap")
-		charKeyMap.map {
-			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
-		}.sorted().forEach {
-			print($0)
-		}
+			print("charKeyMap")
+			charKeyMap.map {
+				"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			}.sorted().forEach {
+				print($0)
+			}
 
-		print("charShiftKeyMap")
-		charShiftKeyMap.map {
-			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
-		}.sorted().forEach {
-			print($0)
-		}
-		print("charOptionKeyMap")
-		charOptionKeyMap.map {
-			"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
-		}.sorted().forEach {
-			print($0)
-		}
-		print("end")
+			print("charShiftKeyMap")
+			charShiftKeyMap.map {
+				"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			}.sorted().forEach {
+				print($0)
+			}
+			print("charOptionKeyMap")
+			charOptionKeyMap.map {
+				"\(CGKeyCode.characterForKeysym(UInt32($0)) ?? "\($0)") = \($1)"
+			}.sorted().forEach {
+				print($0)
+			}
+			print("end")
 		#endif
 	}
 
 	func setupKeyMapper() throws {
 		try Self.setupKeyMapper()
 	}
-	
+
 	func mapVNCKey(_ vncKey: UInt32, isDown: Bool, sendKeyEvent: HandleKeyMapping) {
 		// Check if it's a modifier
 		if let modifier = Self.vncModifiers[vncKey] {
@@ -648,29 +649,32 @@ public class CarbonKeyMapper: Keymapper {
 			sendKeyEvent(keyCode, self.currentModifiers, nil, nil)
 		} else {
 			var keyMap = Self.charKeyMap
-			
+
 			if self.currentModifiers.contains(.shift) {
-				keyMap = Self.charShiftKeyMap;
+				keyMap = Self.charShiftKeyMap
 			}
-			
-			if (self.currentModifiers.contains(.shift) == false && self.currentModifiers.contains(.option)) {
+
+			if self.currentModifiers.contains(.shift) == false && self.currentModifiers.contains(.option) {
 				keyMap = Self.charOptionKeyMap
 			}
-			
-			if (self.currentModifiers.contains(.shift) && self.currentModifiers.contains(.option)) {
+
+			if self.currentModifiers.contains(.shift) && self.currentModifiers.contains(.option) {
 				keyMap = Self.charShiftOptionKeyMap
 			}
-			
+
 			if let keyCode = keyMap[UInt16(vncKey)] {
 				sendKeyEvent(keyCode, self.currentModifiers, CGKeyCode.characterForKeysym(vncKey), CGKeyCode.characterForKeysym(vncKey))
 			} else if let keyCode = CarbonKeyCode.USKeyCodes[vncKey] {
-				Logger(self).debug("Fallback: key=\(vncKey.hexa), keyCode=\(keyCode)")
-				
+				#if DEBUG
+					Logger(self).debug("Fallback: key=\(vncKey.hexa), keyCode=\(keyCode)")
+				#endif
+
 				sendKeyEvent(keyCode.rawValue, self.currentModifiers, CGKeyCode.characterForKeysym(vncKey), CGKeyCode.characterForKeysym(vncKey))
 			} else {
-				Logger(self).debug("Not found: key=\(vncKey.hexa)")
+				#if DEBUG
+					Logger(self).debug("Not found: key=\(vncKey.hexa)")
+				#endif
 			}
 		}
 	}
 }
-

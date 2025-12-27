@@ -1,20 +1,20 @@
+import zlib
+
 #if canImport(Darwin)
-import Darwin
+	import Darwin
 #elseif canImport(Glibc)
-import Glibc
+	import Glibc
 #endif
 
 #if canImport(Foundation)
-import Foundation
+	import Foundation
 #endif
 
-import zlib
-
 enum ZlibCompressionLevel: Int32 {
-    case noCompression = 0
-    case bestSpeed = 1
-    case bestCompression = 9
-    case defaultCompression = -1
+	case noCompression = 0
+	case bestSpeed = 1
+	case bestCompression = 9
+	case defaultCompression = -1
 }
 
 final class ZlibDeflateStream: ZlibStream {
@@ -23,7 +23,7 @@ final class ZlibDeflateStream: ZlibStream {
 		let status = withUnsafeMutablePointer(to: &version) { versionPtr in
 			return zlib.deflateInit2_(streamPtr, ZlibCompressionLevel.defaultCompression.rawValue, Z_DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY, versionPtr, Int32(MemoryLayout<z_stream>.size))
 		}
-		
+
 		guard status == Z_OK else {
 			throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
 		}
@@ -34,15 +34,15 @@ final class ZlibDeflateStream: ZlibStream {
 	}
 
 	func deflateEnd() throws {
-        let status = zlib.deflateEnd(streamPtr)
+		let status = zlib.deflateEnd(streamPtr)
 
 		guard status == Z_OK else {
-            throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
-        }
-    }
+			throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
+		}
+	}
 
-    func deflate(flush: ZlibFlush) throws -> Bool {
-        let status = zlib.deflate(streamPtr, flush.rawValue)
+	func deflate(flush: ZlibFlush) throws -> Bool {
+		let status = zlib.deflate(streamPtr, flush.rawValue)
 
 		if status == Z_BUF_ERROR {
 			if flush == .syncFlush || flush == .fullFlush {
@@ -53,20 +53,20 @@ final class ZlibDeflateStream: ZlibStream {
 		}
 
 		if status == Z_STREAM_END {
-            return true
-        }
+			return true
+		}
 
 		guard status == Z_OK else {
-            throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
-        }
-        
+			throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
+		}
+
 		return false
-    }
+	}
 
 	func compressedData(data: Data, offset: Int, length: Int, flush: ZlibFlush = .finish) throws -> Data {
 		var flush = flush
 		var mutableData = data
-		let expectedCompressedSize: UInt = UInt(length + (( length + 99 ) / 100 ) + 12);
+		let expectedCompressedSize: UInt = UInt(length + ((length + 99) / 100) + 12)
 		var output = Data(count: .init(expectedCompressedSize))
 
 		if offset + length > data.count {
@@ -110,7 +110,7 @@ final class ZlibDeflateStream: ZlibStream {
 						break
 					}
 				}
-				
+
 				return self.totalOut
 			}
 		}

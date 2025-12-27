@@ -1,10 +1,10 @@
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
-
 import zlib
+
+#if canImport(FoundationEssentials)
+	import FoundationEssentials
+#else
+	import Foundation
+#endif
 
 final class ZlibInflateStream: ZlibStream {
 	enum ZlibStreamError: Error {

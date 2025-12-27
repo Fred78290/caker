@@ -4,17 +4,17 @@ import Foundation
 
 extension NSView {
 	func postEnterExitEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags, trackingNumber: Int) -> NSEvent? {
-			return NSEvent.enterExitEvent(
-				with: type,
-				location: viewPoint,
-				modifierFlags: modifierFlags,
-				timestamp: ProcessInfo.processInfo.systemUptime,
-				windowNumber: self.window?.windowNumber ?? 0,
-				context: nil,
-				eventNumber: Date.now.nanosecond,
-				trackingNumber: trackingNumber,
-				userData: nil
-			)
+		return NSEvent.enterExitEvent(
+			with: type,
+			location: viewPoint,
+			modifierFlags: modifierFlags,
+			timestamp: ProcessInfo.processInfo.systemUptime,
+			windowNumber: self.window?.windowNumber ?? 0,
+			context: nil,
+			eventNumber: Date.now.nanosecond,
+			trackingNumber: trackingNumber,
+			userData: nil
+		)
 	}
 
 	func postMouseEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
@@ -378,7 +378,11 @@ public class VNCInputHandler {
 
 			self.modifiers = modifiers
 
-			guard let event = NSEvent.keyEvent(with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp), location: lastMousePosition, modifierFlags: self.modifiers, timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: self.targetView.window?.windowNumber ?? 0, context: nil, characters: characters ?? "", charactersIgnoringModifiers: charactersIgnoringModifiers ?? "", isARepeat: false, keyCode: keyCode) else {
+			guard
+				let event = NSEvent.keyEvent(
+					with: keyboardEvent.type == .flagsChanged ? .flagsChanged : (isDown ? .keyDown : .keyUp), location: lastMousePosition, modifierFlags: self.modifiers, timestamp: ProcessInfo.processInfo.systemUptime,
+					windowNumber: self.targetView.window?.windowNumber ?? 0, context: nil, characters: characters ?? "", charactersIgnoringModifiers: charactersIgnoringModifiers ?? "", isARepeat: false, keyCode: keyCode)
+			else {
 				return
 			}
 
@@ -400,4 +404,3 @@ public class VNCInputHandler {
 		pasteboard.setString(text, forType: .string)
 	}
 }
-

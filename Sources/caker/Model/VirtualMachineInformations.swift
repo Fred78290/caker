@@ -1,3 +1,4 @@
+import CakeAgentLib
 //
 //  VirtualMachineInformations.swift
 //  Caker
@@ -7,7 +8,6 @@
 import CakedLib
 import GRPCLib
 import SwiftUI
-import CakeAgentLib
 
 class VirtualMachineInformations: ObservableObject {
 	@Published var name: String? = nil
@@ -51,7 +51,7 @@ class VirtualMachineInformations: ObservableObject {
 		self.cpuInfos = infos.cpuInfo
 		self.agentVersion = infos.agentVersion
 	}
-	
+
 	func update(from infos: InfoReply) {
 		self.name = infos.name
 		self.version = infos.version

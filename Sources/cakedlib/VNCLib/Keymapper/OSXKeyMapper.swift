@@ -5,9 +5,9 @@
 //  Created by Frederic BOLTZ on 08/12/2025.
 //
 
+import AppKit
 import Carbon
 import Foundation
-import AppKit
 
 class OSXKeyMapper: Keymapper {
 	static let keyTableSize = 65536
@@ -220,7 +220,7 @@ class OSXKeyMapper: Keymapper {
 
 		keymapInitialized = true
 
-		Self.USKeyCodes.forEach { k,v in
+		Self.USKeyCodes.forEach { k, v in
 			keyTable[Int(k)] = CGKeyCode(v)
 		}
 
@@ -243,7 +243,9 @@ class OSXKeyMapper: Keymapper {
 		let characters = CGKeyCode.characterForKeysym(vncKey)
 
 		if keyCode == 0xFFFF {
-			Logger(self).debug("keyCode not found: \(vncKey)")
+			#if DEBUG
+				Logger(self).debug("keyCode not found: \(vncKey)")
+			#endif
 		} else {
 			self.modiferKeys[Int(keyCode)] = isDown
 

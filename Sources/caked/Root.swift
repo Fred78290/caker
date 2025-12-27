@@ -30,19 +30,19 @@ struct Root: ParsableCommand {
 	static let sigintSrc: any DispatchSourceSignal = {
 		signal(SIGINT, SIG_IGN)
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
-		
+
 		sigintSrc.setEventHandler {
 			Utilities.group.shutdownGracefully { error in
 				if let error = error {
 					exit(withError: error)
 				}
 			}
-			
+
 			Foundation.exit(130)
 		}
-		
+
 		sigintSrc.activate()
-		
+
 		return sigintSrc
 	}()
 
@@ -81,7 +81,7 @@ struct Root: ParsableCommand {
 				Login.self,
 				Logout.self,
 				Push.self,
-				Pull.self
+				Pull.self,
 			])
 
 	static func parse() throws -> ParsableCommand? {
@@ -98,9 +98,9 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
-#if DEBUG
-		Self.configuration.subcommands.append(VNC.self)
-#endif
+		#if DEBUG
+			Self.configuration.subcommands.append(VNC.self)
+		#endif
 
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in

@@ -327,7 +327,9 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 			promise.futureResult.whenComplete { _ in
 				self.eventChannel = nil
 				self.eventStream = nil
-				self.log.debug("Event channel closed")
+				#if DEBUG
+					self.log.debug("Event channel closed")
+				#endif
 			}
 
 			subchannel.close(promise: promise)
@@ -350,14 +352,18 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				self.eventChannel = nil
 				self.eventStream = nil
 
-				self.log.debug("Event channel closed")
+				#if DEBUG
+					self.log.debug("Event channel closed")
+				#endif
 			}
 
 			self.close(promise: promise)
 		} else {
 			self.status = .stopped
 			self.eventStream = nil
-			self.log.debug("Event channel already closed")
+			#if DEBUG
+				self.log.debug("Event channel already closed")
+			#endif
 		}
 	}
 }

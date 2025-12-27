@@ -116,9 +116,11 @@ public final class Logger {
 	}
 
 	public func debug(_ line: String) {
-		if Self.intLogLevel >= LogLevel.debug {
-			logger.debug(.init(stringLiteral: line))
-		}
+		#if DEBUG
+			if Self.intLogLevel >= LogLevel.debug {
+				logger.debug(.init(stringLiteral: line))
+			}
+		#endif
 	}
 
 	public func trace(_ line: String) {
