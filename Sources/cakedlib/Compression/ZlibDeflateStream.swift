@@ -70,6 +70,7 @@ final class ZlibDeflateStream: ZlibStream {
 				self.totalIn = 0
 				self.nextIn = inputBytes
 				self.availIn = .init(length)
+				self.availOut = 0
 				self.dataType = Z_BINARY
 
 				while true {
