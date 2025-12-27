@@ -92,31 +92,42 @@ import Virtualization
 		}
 
 		private func installIPSW(url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler, continuation: CheckedContinuation<Void, any Error>) {
-			self.logger.trace("[\(Thread.currentThread.description)] start ipsw install")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] start ipsw install")
+			#endif
 
 			self.installer = VZMacOSInstaller(virtualMachine: self.virtualMachine, restoringFromImageAt: url)
 
 			let context = ProgressObserver.ProgressHandlerContext()
 			let progressObserver = self.installer.progress.observe(\.fractionCompleted, options: [.initial, .old, .new]) { progress, change in
 				if progress.fractionCompleted != context.oldFractionCompleted {
-					self.logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
+					#if DEBUG
+						self.logger.trace("[\(Thread.currentThread.description)] ipsw install progress \(progress.fractionCompleted)")
+					#endif
 
 					progressHandler(.progress(context, progress.fractionCompleted))
 
-					self.logger.trace("[\(Thread.currentThread.description)] ipsw leave progress \(progress.fractionCompleted)")
+					#if DEBUG
+						self.logger.trace("[\(Thread.currentThread.description)] ipsw leave progress \(progress.fractionCompleted)")
+					#endif
+
 					context.oldFractionCompleted = progress.fractionCompleted
 				}
 			}
 
 			self.installer.install { result in
-				self.logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
+				#if DEBUG
+					self.logger.trace("[\(Thread.currentThread.description)] ipsw install terminated")
+				#endif
 				self.installer = nil
 
 				continuation.resume(with: result)
 				progressObserver.invalidate()
 			}
 
-			self.logger.trace("[\(Thread.currentThread.description)] leaving ipsw install")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] leaving ipsw install")
+			#endif
 		}
 
 		@MainActor
@@ -133,32 +144,46 @@ import Virtualization
 		}
 
 		private func installIPSWAsync(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			self.logger.trace("[\(Thread.currentThread.description)] entering installIPSWAsync")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSWAsync")
+			#endif
 
 			try await withTaskCancellationHandler(
 				operation: {
-					self.logger.trace("[\(Thread.currentThread.description)] entering withTaskCancellationHandler")
+					#if DEBUG
+						self.logger.trace("[\(Thread.currentThread.description)] entering withTaskCancellationHandler")
+					#endif
 
 					try await withCheckedThrowingContinuation { continuation in
-						self.logger.trace("[\(Thread.currentThread.description)] entering withCheckedThrowingContinuation")
+						#if DEBUG
+							self.logger.trace("[\(Thread.currentThread.description)] entering withCheckedThrowingContinuation")
+						#endif
 						queue.async {
 							self.installIPSW(url: url, progressHandler: progressHandler, continuation: continuation)
 						}
 						self.logger.trace("[\(Thread.currentThread.description)] exiting withCheckedThrowingContinuation")
 					}
 
-					self.logger.trace("[\(Thread.currentThread.description)] exiting withTaskCancellationHandler")
+					#if DEBUG
+						self.logger.trace("[\(Thread.currentThread.description)] exiting withTaskCancellationHandler")
+					#endif
 				},
 				onCancel: {
-					self.logger.trace("[\(Thread.currentThread.description)] cancel withTaskCancellationHandler")
+					#if DEBUG
+						self.logger.trace("[\(Thread.currentThread.description)] cancel withTaskCancellationHandler")
+					#endif
 					self.installer.progress.cancel()
 				})
 
-			self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSWAsync")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSWAsync")
+			#endif
 		}
 
 		public func installIPSW(_ url: URL, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
-			self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] entering installIPSW")
+			#endif
 
 			progressHandler(.step("Installing MacOS from IPSW..."))
 			if self.queue == nil {
@@ -167,7 +192,10 @@ import Virtualization
 				try await self.installIPSWAsync(url, progressHandler: progressHandler)
 			}
 
-			self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
+			#if DEBUG
+				self.logger.trace("[\(Thread.currentThread.description)] exiting installIPSW")
+			#endif
+
 			progressHandler(.step("Install MacOS from IPSW done..."))
 		}
 	}
