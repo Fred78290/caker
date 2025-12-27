@@ -227,6 +227,18 @@ public struct VMBuilder {
 		let remotes = remoteDb.keys
 		var imageURL: URL
 
+		func aliasImage(_ image: String) -> String {
+			if image.contains(":///") {
+				return image.stringAfter(after: ":///")
+			} else if image.contains("://") {
+				return image.stringAfter(after: "://")
+			} else if image.contains(":/") {
+				return image.stringAfter(after: ":/")
+			} else {
+				return image.stringAfter(after: ":")
+			}
+		}
+
 		starter.append(contentsOf: knownSchemes)
 		starter.append(contentsOf: remotes)
 
@@ -281,11 +293,12 @@ public struct VMBuilder {
 			#else
 				throw ServiceError("unsupported image url: \(options.image)")
 			#endif
-		} else if let remoteContainerServer = remoteDb.get(scheme), let aliasImage = options.image.split(separator: try Regex("[:/]"), omittingEmptySubsequences: true).last {
+		} else if let remoteContainerServer = remoteDb.get(scheme) {
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
 			}
 
+			let aliasImage = aliasImage(options.image)
 			let simpleStream = try await SimpleStreamProtocol(baseURL: remoteContainerServerURL, runMode: runMode)
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), runMode: runMode)
 

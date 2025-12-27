@@ -22,14 +22,14 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-async-algorithms", branch: "main"),
 		.package(url: "https://github.com/apple/swift-atomics.git", exact: "1.2.0"),
 		.package(url: "https://github.com/apple/swift-certificates.git", exact: "1.6.1"),
-		.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
+		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		.package(url: "https://github.com/apple/swift-crypto.git", exact: "3.9.1"),
 		.package(url: "https://github.com/apple/swift-log.git", exact: "1.6.2"),
 		.package(url: "https://github.com/apple/swift-nio-extras.git", exact: "1.26.0"),
 		.package(url: "https://github.com/apple/swift-nio-http2.git", exact: "1.36.0"),
 		.package(url: "https://github.com/apple/swift-nio-ssh.git", exact: "0.10.0"),
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.30.0"),
-		.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
+		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.82.1"),
 		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.31.0"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
@@ -51,7 +51,7 @@ let package = Package(
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
 		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "1.0.8"),
 		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
-		.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
+		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "ab423247d2f5ca4608ecb03d0e23d0957ce530c4"),
 		.package(url :"https://github.com/aus-der-Technik/FileMonitor.git", exact: "1.2.0"),
 		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
@@ -59,7 +59,6 @@ let package = Package(
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
-		//.target(name: "ZLib", linkerSettings: [.linkedLibrary("z")]),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),
@@ -125,6 +124,7 @@ let package = Package(
 			"VNCLib/VNCAuthExample.swift"
 		]),
 		.executableTarget(name: "caker", dependencies: [
+			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
@@ -137,6 +137,7 @@ let package = Package(
 			.product(name: "SwiftletUtilities", package: "SwiftletUtilities")
 		]),
 		.executableTarget(name: "caked", dependencies: [
+			.target(name: "GRPCLib"),
 			.target(name: "CakedLib"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "GRPC", package: "grpc-swift"),
@@ -180,6 +181,7 @@ let package = Package(
 		.testTarget(name: "CakerTests",
 		            dependencies: [
 		            	"GRPCLib",
+						"CakedLib",
 		            	"caked",
 		            	"cakectl"
 		            ],

@@ -7,10 +7,11 @@ import XCTest
 
 @testable import GRPCLib
 @testable import cakectl
+@testable import CakedLib
 @testable import caked
 
 class GrpcTestCase {
-	let certs: CertificatesLocation = try! CertificatesLocation.createCertificats(asSystem: false)
+	let certs: CertificatesLocation = try! CertificatesLocation.createCertificats(runMode: .user)
 
 	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> ClientConnection {
 		let client = try Client.createClient(on: on,
@@ -24,9 +25,10 @@ class GrpcTestCase {
 	}
 
 	func createServer(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> Server {
-		let server = try Service.Listen.createServer(eventLoopGroup: on,
-		                                             asSystem: false,
+		let server = try ServiceHandler.createServer(eventLoopGroup: on,
+													 runMode: .user,
 		                                             listeningAddress: listeningAddress,
+													 serviceProviders: [try CakedProvider(group: on, runMode: .user)],
 		                                             caCert: tls ? certs.caCertURL.absoluteURL.path : nil,
 		                                             tlsCert: tls ? certs.serverCertURL.absoluteURL.path : nil,
 		                                             tlsKey: tls ? certs.serverKeyURL.absoluteURL.path : nil).wait()
@@ -56,7 +58,12 @@ class GrpcTestCase {
 		}
 
 		let reply = serviceNIOClient.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
+		let result = try reply.response.wait().vms.list
 
-		print(Format.text.render(try reply.response.wait().vms.list))
+		if result.success {
+			print(Format.text.render(result.infos))
+		} else {
+			print(Format.text.render(result.reason))
+		}
 	}
 }

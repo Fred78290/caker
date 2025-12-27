@@ -44,6 +44,14 @@ final class ZlibDeflateStream: ZlibStream {
     func deflate(flush: ZlibFlush) throws -> Bool {
         let status = zlib.deflate(streamPtr, flush.rawValue)
 
+		if status == Z_BUF_ERROR {
+			if flush == .syncFlush || flush == .fullFlush {
+				return true
+			} else {
+				return false
+			}
+		}
+
 		if status == Z_STREAM_END {
             return true
         }
@@ -56,9 +64,14 @@ final class ZlibDeflateStream: ZlibStream {
     }
 
 	func compressedData(data: Data, offset: Int, length: Int, flush: ZlibFlush = .finish) throws -> Data {
+		var flush = flush
 		var mutableData = data
-		let expectedCompressedSize:UInt = UInt(length + (( length + 99 ) / 100 ) + 12);
+		let expectedCompressedSize: UInt = UInt(length + (( length + 99 ) / 100 ) + 12);
 		var output = Data(count: .init(expectedCompressedSize))
+
+		if offset + length > data.count {
+			throw ZlibError.dataError(message: "Out of bounds")
+		}
 
 		let written = try mutableData.withUnsafeMutableBytes { inputPtr in
 			let inputBytes = inputPtr.baseAddress!.assumingMemoryBound(to: Bytef.self).advanced(by: offset)
@@ -78,7 +91,7 @@ final class ZlibDeflateStream: ZlibStream {
 					let remaining = expectedCompressedSize - doneBytes
 
 					if doneBytes > expectedCompressedSize {
-						throw ServiceError("ZLib produced more compressed bytes (\(doneBytes)) than expected (\(expectedCompressedSize))")
+						throw ZlibError.streamError(message: "ZLib produced more compressed bytes (\(doneBytes)) than expected (\(expectedCompressedSize))")
 					}
 
 					self.nextOut = outBytes.advanced(by: .init(doneBytes))
@@ -88,7 +101,12 @@ final class ZlibDeflateStream: ZlibStream {
 						break
 					}
 
-					if try self.deflate(flush: flush) {
+					if try self.deflate(flush: flush) == false {
+						if self.availIn == 0 {
+							break
+						}
+						flush = .finish
+					} else {
 						break
 					}
 				}

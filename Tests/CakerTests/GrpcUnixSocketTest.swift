@@ -6,12 +6,12 @@ import XCTest
 
 @testable import GRPCLib
 @testable import cakectl
-@testable import caked
+@testable import CakedLib
 
 final class GrpcUnixSocketTests: XCTestCase {
 	let testCase = GrpcTestCase()
 
-	let address = URL(string: try! Utils.getDefaultServerAddress(asSystem: false))
+	let address = URL(string: try! Utils.getDefaultServerAddress(runMode: .user))
 	//	let address = URL(string: "unix:///tmp/caked-\(getpid()).sock")
 	//	let address = URL(string: "unix:///Users/fboltz/.cake/.cacked.sock")
 

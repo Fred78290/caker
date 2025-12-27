@@ -1,7 +1,7 @@
 import Foundation
 import XCTest
 
-@testable import caked
+@testable import CakedLib
 
 final class ProcessWithSharedFileHandleTests: XCTestCase {
 

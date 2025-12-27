@@ -1,29 +1,42 @@
 import XCTest
 
 @testable import GRPCLib
-@testable import caked
+@testable import CakedLib
 
 final class RemoteTests: XCTestCase {
 	let linuxcontainers = URL(string: "https://images.linuxcontainers.org/")!
 
 	func testRemoteList() throws {
-		XCTAssertNoThrow(try RemoteHandler.listRemote(asSystem: false))
+		let reply = RemoteHandler.listRemote(runMode: .user)
 
-		print(Format.text.renderList(try! RemoteHandler.listRemote(asSystem: false)))
+		XCTAssertTrue(reply.success)
+
+		print(Format.text.renderList(reply.remotes))
 	}
 
 	func testRemoteAddDelete() throws {
 		let remote = UUID().uuidString
+		let addReply = RemoteHandler.addRemote(name: remote, url: linuxcontainers, runMode: .user)
 
-		XCTAssertNoThrow(try RemoteHandler.addRemote(name: remote, url: linuxcontainers, asSystem: false))
-		XCTAssertNoThrow(try RemoteHandler.deleteRemote(name: remote, asSystem: false))
+		XCTAssertTrue(addReply.created)
+
+		let deleteReply = RemoteHandler.deleteRemote(name: remote, runMode: .user)
+
+		XCTAssertTrue(deleteReply.deleted)
 	}
 
 	func testRemoteDuplicate() throws {
 		let remote = UUID().uuidString
+		var addReply = RemoteHandler.addRemote(name: remote, url: linuxcontainers, runMode: .user)
 
-		XCTAssertNoThrow(try RemoteHandler.addRemote(name: remote, url: linuxcontainers, asSystem: false))
-		XCTAssertThrowsError(try RemoteHandler.addRemote(name: remote, url: linuxcontainers, asSystem: false))
-		XCTAssertNoThrow(try RemoteHandler.deleteRemote(name: remote, asSystem: false))
+		XCTAssertTrue(addReply.created)
+
+		addReply = RemoteHandler.addRemote(name: remote, url: linuxcontainers, runMode: .user)
+
+		XCTAssertFalse(addReply.created)
+
+		let deleteReply = RemoteHandler.deleteRemote(name: remote, runMode: .user)
+
+		XCTAssertTrue(deleteReply.deleted)
 	}
 }

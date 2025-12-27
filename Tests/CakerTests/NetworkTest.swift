@@ -3,7 +3,7 @@ import XCTest
 @testable import GRPCLib
 @testable import NIOPortForwarding
 @testable import cakectl
-@testable import caked
+@testable import CakedLib
 
 final class NetworkConfigTests: XCTestCase {
 	let interfaces = VZSharedNetwork.networkInterfaces()
@@ -36,13 +36,13 @@ final class NetworkConfigTests: XCTestCase {
 	func testValidNetwork() throws {
 		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.1.0.1", dhcpEnd: "10.1.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertNoThrow(try vz.validate())
+		XCTAssertNoThrow(try vz.validate(runMode: .user))
 	}
 
 	func testInvalidNetmask() throws {
 		let vz = VZSharedNetwork(mode: .shared, netmask: "ABC.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertThrowsError(try vz.validate()) { error in
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError("Invalid netmask ABC.255.255.0"))
 		}
 	}
@@ -50,7 +50,7 @@ final class NetworkConfigTests: XCTestCase {
 	func testInvalidGateway() throws {
 		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0", dhcpEnd: "10.0.0.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertThrowsError(try vz.validate()) { error in
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError("Invalid gateway 10.0.0"))
 		}
 	}
@@ -58,7 +58,7 @@ final class NetworkConfigTests: XCTestCase {
 	func testInvalidDhcpEnd() throws {
 		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertThrowsError(try vz.validate()) { error in
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError("Invalid dhcp end 192.168.2"))
 		}
 	}
@@ -66,13 +66,13 @@ final class NetworkConfigTests: XCTestCase {
 	func testDhcpEndNotInRangeNetwork() throws {
 		let vz = VZSharedNetwork(mode: .shared, netmask: "255.255.255.0", dhcpStart: "10.0.0.1", dhcpEnd: "192.168.2.254", dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertThrowsError(try vz.validate()) { error in
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError("dhcp end 192.168.2.254 is not in the range of the network 10.0.0.0/24"))
 		}
 	}
 
 	func testOverlappedNetwork() throws {
-		guard let firstInf = interfaces.first else {
+		guard let firstInf = interfaces.first?.value else {
 			XCTFail("No network interfaces found")
 			return
 		}
@@ -87,7 +87,7 @@ final class NetworkConfigTests: XCTestCase {
 
 		let vz = VZSharedNetwork(mode: .shared, netmask: "\(firstInf.bits)".cidrToNetmask(), dhcpStart: gateway, dhcpEnd: dhcpEnd, dhcpLease: nil, interfaceID: UUID().uuidString, nat66Prefix: nil)
 
-		XCTAssertThrowsError(try vz.validate()) { error in
+		XCTAssertThrowsError(try vz.validate(runMode: .user)) { error in
 			XCTAssertEqual(error as? ServiceError, ServiceError("Gateway \(gateway) is already in use"))
 		}
 	}

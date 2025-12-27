@@ -1,0 +1,29 @@
+{
+  "configurations" : [
+    {
+      "id" : "84B10516-D8AE-4775-9745-CEC08F1A5F94",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "cakectl",
+      "name" : "cakectl"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "CakerTests",
+        "name" : "CakerTests"
+      }
+    }
+  ],
+  "version" : 1
+}

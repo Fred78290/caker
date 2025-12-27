@@ -4,7 +4,7 @@ import XCTest
 @testable import NIOCore
 @testable import NIOPortForwarding
 @testable import NIOPosix
-@testable import caked
+@testable import CakedLib
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -93,7 +93,7 @@ final class CloudInitTests: XCTestCase {
 
 	override func tearDown() {
 		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
-		let storageLocation: StorageLocation = StorageLocation(asSystem: false)
+		let storageLocation: StorageLocation = StorageLocation(runMode: .user)
 
 		for name in names {
 			if storageLocation.exists(name) {
@@ -134,20 +134,20 @@ final class CloudInitTests: XCTestCase {
 
 	func testSimpleStreamsFindImage() async throws {
 		if let linuxContainerURL: URL = URL(string: defaultSimpleStreamsServer) {
-			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL, asSystem: false)
+			let simpleStream: SimpleStreamProtocol = try await SimpleStreamProtocol(baseURL: linuxContainerURL, runMode: .user)
 			let arch = Architecture.current().rawValue
 			let fingerprint = try CloudInitTests.getFingerPrint(url: try simpleStream.GetImagesIndexURL(), product: "ubuntu:noble:\(arch):cloud")
-			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud", asSystem: false)
+			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: "ubuntu/noble/cloud", runMode: .user)
 
 			XCTAssertEqual(image.fingerprint, fingerprint)
 
-			let temporaryURL = try Home(asSystem: false).temporaryDirectory.appendingPathComponent("alpine.img").absoluteURL
+			let temporaryURL = try Home(runMode: .user).temporaryDirectory.appendingPathComponent("alpine.img").absoluteURL
 
 			defer {
 				try? temporaryURL.delete()
 			}
 
-			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL, asSystem: false)
+			try await image.retrieveSimpleStreamImageAndConvert(to: temporaryURL, runMode: .user, progressHandler: ProgressObserver.progressHandler)
 
 			print("saved to \(temporaryURL.path)")
 
@@ -157,7 +157,7 @@ final class CloudInitTests: XCTestCase {
 
 	func buildVM(name: String, image: String) async throws {
 		var options: BuildOptions = BuildOptions()
-		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(asSystem: false)
+		let tempVMLocation: VMLocation = try VMLocation.tempDirectory(runMode: .user)
 
 		options.name = name
 		options.autostart = true
@@ -172,24 +172,26 @@ final class CloudInitTests: XCTestCase {
 		options.clearPassword = true
 		options.image = image
 		options.nested = true
+		options.autoinstall = false
+		options.suspendable = true
 		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
 		options.userData = self.userDataPath.path
 		options.vendorData = nil
+		options.screenSize = VMScreenSize.standard
+		options.dynamicPortForwarding = false
+		options.netIfnames = false
 		options.networkConfig = self.networkConfigPath.path
-		options.forwardedPorts = [
-			TunnelAttachement(host: 2022, guest: 22, proto: .tcp)
-		]
+		options.consoleURL = nil
 		options.mounts = []
 		options.networks = []
 		options.sockets = []
-		options.consoleURL = nil
-		//options.netSoftnet = false
-		//options.netSoftnetAllow = nil
-		//options.netHost = false
+		options.forwardedPorts = [
+			TunnelAttachement(host: 2022, guest: 22, proto: .tcp)
+		]
 
-		_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, asSystem: false)
+		_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, runMode: .user, queue: nil, progressHandler: ProgressObserver.progressHandler)
 
-		XCTAssertNoThrow(try StorageLocation(asSystem: false).relocate(options.name, from: tempVMLocation))
+		XCTAssertNoThrow(try StorageLocation(runMode: .user).relocate(options.name, from: tempVMLocation))
 	}
 
 	func testBuildVMWithCloudImage() async throws {
@@ -197,8 +199,8 @@ final class CloudInitTests: XCTestCase {
 	}
 
 	func testBuildVMWithQCow2() async throws {
-		let tmpQcow2 = try Home(asSystem: false).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
-		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, asSystem: false)
+		let tmpQcow2 = try Home(runMode: .user).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
+		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, runMode: .user, progressHandler: ProgressObserver.progressHandler)
 
 		defer {
 			try? tempLocation.delete()
@@ -230,7 +232,7 @@ final class CloudInitTests: XCTestCase {
 
 	func testLaunchVMWithCloudImage() async throws {
 		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
-		let location: VMLocation = try StorageLocation(asSystem: false).find(noble_cloud_image)
+		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
 
@@ -245,11 +247,11 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let runningIP = try StartHandler.startVM(location: location, config: location.config(), waitIPTimeout: 180, startMode: .background, asSystem: false, promise: promise)
+		let runningIP = try StartHandler.startVM(location: location, config: location.config(), waitIPTimeout: 180, startMode: .background, runMode: .user, promise: promise)
 
 		print("startVM got running ip: \(runningIP)")
 
-		try location.stopVirtualMachine(force: false, asSystem: false)
+		try location.stopVirtualMachine(force: false, runMode: .user)
 
 		// Wait VM die
 		XCTAssertNoThrow(try promise.futureResult.wait())
@@ -257,7 +259,7 @@ final class CloudInitTests: XCTestCase {
 
 	func testShouldDeleteVM() async throws {
 		let names = [noble_cloud_image, noble_qcow2_image, noble_oci_image, noble_container_image, noble_lxd_image, noble_must_fail_image]
-		let storageLocation: StorageLocation = StorageLocation(asSystem: false)
+		let storageLocation: StorageLocation = StorageLocation(runMode: .user)
 
 		for name in names {
 			if storageLocation.exists(name) {
