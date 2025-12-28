@@ -48,6 +48,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let name: String
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
+	private var updateBufferTask: Task<Void, Never>?
 	private var activeConnections: [VNCConnection] {
 		self.connections.compactMap {
 			if $0.connectionState == .ready {
@@ -202,6 +203,8 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 					self.delegate?.vncServer(self, didReceiveError: error)
 				case .cancelled:
 					self.isRunning = false
+					self.updateBufferTask?.cancel()
+					self.updateBufferTask = nil
 				default:
 					break
 				}
@@ -250,9 +253,15 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 	private func startFramebufferUpdates() {
 		self.isRunning = true
+		self.updateBufferTask?.cancel()
+		self.updateBufferTask = Task { [weak self] in
+			guard let self else { return }
 
-		Task {
-			try await self.updateFramebuffer()
+			do {
+				try await self.updateFramebuffer()
+			} catch {
+				self.logger.error("Framebuffer update failed: \(error)")
+			}
 		}
 	}
 
@@ -260,7 +269,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	}
 
 	private func updateFramebuffer() async throws {
-		while isRunning {
+		while isRunning && Task.isCancelled == false {
 			let result = await self.framebuffer.updateFromView()
 
 			guard let imageRepresentation = result.imageRepresentation else {
