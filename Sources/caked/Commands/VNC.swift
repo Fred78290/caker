@@ -207,7 +207,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 			connection.connect()
 
 			// Run loop until connection is disconnected
-			while true {
+			while Task.isCancelled == false {
 				let connectionStatus = connection.connectionState.status
 
 				if connectionStatus == .disconnected {
