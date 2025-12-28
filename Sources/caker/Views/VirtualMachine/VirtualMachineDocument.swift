@@ -547,14 +547,14 @@ extension VirtualMachineDocument {
 					agent = .none
 				}
 				
+				self.agent = agent
+				
+				// Start agent monitoring if VM is running and agent was successfully installed
+				if agent == .installed && self.status == .running {
+					self.startAgentMonitoring(interval: 1.0)
+				}
+
 				DispatchQueue.main.async {
-					self.agent = agent
-					
-					// Start agent monitoring if VM is running and agent was successfully installed
-					if agent == .installed && self.status == .running {
-						self.startAgentMonitoring(interval: 1.0)
-					}
-					
 					done()
 				}
 			}
@@ -1188,7 +1188,7 @@ extension VirtualMachineDocument {
 		agentMonitorTask?.cancel()
 		agentMonitorTask = Task { [weak self] in
 			guard let self else { return }
-			while !Task.isCancelled {
+			while Task.isCancelled == false {
 				await self.monitorAgent()
 				try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
 			}
