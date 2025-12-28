@@ -110,24 +110,24 @@ struct ScreenshotLoader: Hashable, Identifiable {
 // MARK: - VirtualMachineDocument
 final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
-
+	
 	static func == (lhs: VirtualMachineDocument, rhs: VirtualMachineDocument) -> Bool {
 		lhs.virtualMachine == rhs.virtualMachine
 	}
-
+	
 	enum AgentStatus: Int {
 		case none = 0
 		case installed = 1
 		case installing = 2
 	}
-
+	
 	enum VncStatus: Int {
 		case disconnected
 		case connecting
 		case connected
 		case disconnecting
 		case ready
-
+		
 		init(vncStatus: VNCConnection.Status) {
 			switch vncStatus {
 			case .disconnected:
@@ -141,7 +141,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			}
 		}
 	}
-
+	
 	enum Status: Int, CustomStringConvertible {
 		var description: String {
 			switch self {
@@ -169,7 +169,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 				return "error"
 			}
 		}
-
+		
 		case none = -1
 		case stopped = 0
 		case running = 1
@@ -182,7 +182,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case saving = 8
 		case restoring = 9
 	}
-
+	
 	private var _infosClient: CakeAgentHelper!
 	private var shellClient: CakeAgentClient!
 	private var stream: CakeAgentExecuteStream!
@@ -190,9 +190,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var monitor: FileMonitor?
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
-
+	
 	let id = UUID().uuidString
-
+	
 	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
@@ -200,15 +200,15 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	var description: String {
 		name
 	}
-
+	
 	var isLaunchVMExternally: Bool {
 		guard let launchVMExternally = self.launchVMExternally else {
 			return AppState.shared.launchVMExternally
 		}
-
+		
 		return launchVMExternally
 	}
-
+	
 	@Published var virtualMachineConfig: VirtualMachineConfig = .init()
 	@Published var externalRunning: Bool = false
 	@Published var status: Status = .none
@@ -226,20 +226,21 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var launchVMExternally: Bool? = nil
 	@Published var vmInfos = VirtualMachineInformations()
 	@Published var firstIP: String!
-
+	
 	// Agent monitoring
 	private var agentMonitorTimer: Timer!
+	private var agentMonitorTask: Task<Void, Never>?
 	private var isMonitoringAgent: Bool = false
 	private var isWaitingForAgent: Bool = false
 	private var screenshot: ScreenshotLoader!
-
+	
 	var lastScreenshot: NSImage? {
 		self.screenshot?.nsImage
 	}
-
+	
 	var osImage: some View {
 		var name = "linux"
-
+		
 		if self.virtualMachineConfig.os == .darwin {
 			name = "mac"
 		} else if let config = try? self.location.config(), let osName = config.osName {
@@ -270,7 +271,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 				"webos",
 				"xubuntu",
 			]
-
+			
 			for value in osNames {
 				if osName.lowercased().contains(value) {
 					name = value
@@ -278,31 +279,31 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 				}
 			}
 		}
-
+		
 		return Image(name).resizable().aspectRatio(contentMode: .fit)
 	}
 
 	deinit {
 		stopAgentMonitoring()
-
+		
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
-
+		
 		if let client = self.shellClient {
 			_ = client.close()
 		}
 	}
-
+	
 	init() {
 		self.virtualMachine = nil
 		self.virtualMachineConfig = VirtualMachineConfig()
 	}
-
+	
 	init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(location: location)
 		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
-
+		
 		self.name = location.name
 		self.location = location
 		self.virtualMachineConfig = config
@@ -310,13 +311,13 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.monitor = monitor
-
+		
 		if self.externalRunning {
 			self.documentSize = self.getVncScreenSize()
 		} else {
 			self.documentSize = ViewSize(size: config.display.size)
 		}
-
+		
 		switch location.status {
 		case .running:
 			self.status = .running
@@ -325,71 +326,74 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case .paused:
 			self.status = .paused
 		}
-
+		
 		try monitor.start()
 	}
-
+	
 	init(name: String, config: VirtualMachineConfig) {
 		self.name = name
 		self.virtualMachineConfig = config
 	}
-
+	
 	func disconnect() {
-		#if DEBUG
-			self.logger.debug("Disconnecting \(self.name)")
-		#endif
-
+#if DEBUG
+		self.logger.debug("Disconnecting \(self.name)")
+#endif
+		
 		stopAgentMonitoring()
-
+		
 		self.vncURL = nil
 		self.vncStatus = .disconnected
-
+		
 		if self.externalRunning == false {
 			self.status = .stopped
 		}
-
+		
 		if let connection = self.connection {
 			self.connection = nil
 			connection.disconnect()
 		}
-
+		
 		self.closeShell()
 	}
+}
 
+extension VirtualMachineDocument {
 	func close() {
-		#if DEBUG
-			self.logger.debug("Closing \(self.name)")
-		#endif
+#if DEBUG
+		self.logger.debug("Closing \(self.name)")
+#endif
 
 		stopAgentMonitoring()
-
+		
 		self.virtualMachine = nil
 		self.inited = false
 		self.vncView = nil
 		self.vncURL = nil
 		self.vncStatus = .disconnected
-
+		
 		if self.externalRunning == false {
 			self.status = .stopped
 		}
-
+		
 		if let connection = self.connection {
 			self.connection = nil
 			connection.disconnect()
 		}
-
+		
 		self.closeShell()
 	}
-
+	
 	@MainActor
 	func setStateAsStopped(_ status: Status = .stopped, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
-		#endif
+#if DEBUG
+		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
+#endif
 
 		// Stop agent monitoring when VM is stopped
 		stopAgentMonitoring()
-
+		
+		self.vmInfos.status = .stopped
 		self.canStart = true
 		self.canStop = false
 		self.canPause = false
@@ -405,12 +409,12 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			connection.disconnect()
 		}
 	}
-
+	
 	@MainActor
 	func setStateAsRunning(suspendable: Bool, vncURL: URL?, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
-		#endif
+#if DEBUG
+		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
+#endif
 
 		self.canStart = false
 		self.canStop = true
@@ -420,18 +424,18 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.suspendable = suspendable
 		self.vncURL = vncURL
 		self.status = .running
-
+		
 		// Start agent monitoring when VM is running
 		if self.agent == .installed {
 			startAgentMonitoring(interval: 1.0)
 		}
 	}
-
+	
 	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("setState to \(status) at \(_file):\(_line)")
-		#endif
-
+#if DEBUG
+		self.logger.debug("setState to \(status) at \(_file):\(_line)")
+#endif
+		
 		self.status = status
 		self.canStart = status == .stopped || status == .paused
 		self.canStop = status == .running
@@ -441,122 +445,125 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.vncURL = vncURL
 		self.suspendable = suspendable
 	}
-
+	
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
 		if self.documentSize != size {
-			#if DEBUG
-				self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
-			#endif
-
+#if DEBUG
+			self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
+#endif
+			
 			self.documentSize = size
 		}
 	}
-
+	
 	private func createVirtualMachine() throws {
 		let config = try! location.config()
 		let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
-
+		
 		self.virtualMachine = virtualMachine
 		self.vncURL = nil
 		self.didChangedState(virtualMachine)
-
+		
 		virtualMachine.delegate = self
 	}
-
+	
 	private func loadVirtualMachine(from location: VMLocation) -> URL? {
-		#if DEBUG
-			self.logger.debug("Load VM from: \(location.rootURL)")
-		#endif
-
+#if DEBUG
+		self.logger.debug("Load VM from: \(location.rootURL)")
+#endif
+		
 		do {
 			self.virtualMachineConfig = try VirtualMachineConfig(location: location)
 			self.location = location
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name
 			self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
-
+			
 			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
 			} else {
 				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
 			}
-
+			
 			if externalRunning {
 				retrieveVNCURL()
 			} else if self.virtualMachine == nil {
 				try createVirtualMachine()
 			}
-
+			
 			if monitor == nil {
 				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 				try monitor.start()
-
+				
 				self.monitor = monitor
 			}
-
+			
 			return location.rootURL
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
 			}
 		}
-
+		
 		return nil
 	}
-
+	
 	func loadVirtualMachine() -> URL? {
 		guard let virtualMachine = self.virtualMachine else {
 			if let location = self.location {
 				return self.loadVirtualMachine(from: location)
 			}
-
+			
 			if let location = try? StorageLocation(runMode: .app).find(name) {
 				return self.loadVirtualMachine(from: location)
 			}
-
+			
 			DispatchQueue.main.async {
 				alertError(ServiceError("Unable to find virtual machine: \(self.name)"))
 			}
-
+			
 			return nil
 		}
-
+		
 		return virtualMachine.location.rootURL
 	}
-
+	
 	func installAgent(updateAgent: Bool, _ done: @escaping () -> Void) {
 		if let virtualMachine = self.virtualMachine {
 			self.agent = .installing
-
+			
 			Task {
 				var agent: AgentStatus = .installing
-
+				
 				do {
 					agent = try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) ? .installed : .none
-
+					
 					if agent == .none {
 						throw ServiceError("Failed to install agent.")
 					}
 				} catch {
 					await alertError(error)
-
+					
 					agent = .none
 				}
-
+				
 				DispatchQueue.main.async {
 					self.agent = agent
-
+					
 					// Start agent monitoring if VM is running and agent was successfully installed
 					if agent == .installed && self.status == .running {
 						self.startAgentMonitoring(interval: 1.0)
 					}
-
+					
 					done()
 				}
 			}
 		}
 	}
+}
 
+// MARK: - UI Actions
+extension VirtualMachineDocument {
 	func startFromUI() {
 		guard self.status == .stopped else {
 			return
@@ -813,8 +820,8 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 	}
 }
 
-// MARK: - VNCConnectionDelegate
-extension VirtualMachineDocument: VNCConnectionDelegate {
+// MARK: - VNC handling
+extension VirtualMachineDocument {
 	func setVncScreenSize(_ screenSize: ViewSize) {
 		if self.externalRunning && self.status == .running {
 			#if DEBUG
@@ -932,6 +939,10 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		}
 	}
 
+}
+
+// MARK: - VNCConnectionDelegate
+extension VirtualMachineDocument: VNCConnectionDelegate {
 	func connection(_ connection: RoyalVNCKit.VNCConnection, stateDidChange connectionState: RoyalVNCKit.VNCConnection.ConnectionState) {
 		#if DEBUG
 			self.logger.debug("Connection state changed to \(connectionState.status.description)")
@@ -1174,11 +1185,13 @@ extension VirtualMachineDocument {
 
 		isMonitoringAgent = true
 
-		agentMonitorTimer?.invalidate()
-
-		// Schedule periodic monitoring every seconds
-		agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-			self?.monitorAgent()
+		agentMonitorTask?.cancel()
+		agentMonitorTask = Task { [weak self] in
+			guard let self else { return }
+			while !Task.isCancelled {
+				await self.monitorAgent()
+				try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+			}
 		}
 	}
 
@@ -1194,11 +1207,11 @@ extension VirtualMachineDocument {
 		firstIP = nil
 		isMonitoringAgent = false
 
-		agentMonitorTimer?.invalidate()
-		agentMonitorTimer = nil
+		agentMonitorTask?.cancel()
+		agentMonitorTask = nil
 	}
 
-	private func monitorAgent() {
+	private func monitorAgent() async {
 		guard self.location != nil else {
 			return
 		}
@@ -1208,9 +1221,7 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		Task { [weak self] in
-			await self?.performAgentHealthCheck()
-		}
+		await self.performAgentHealthCheck()
 	}
 
 	private func performAgentHealthCheck() async {
@@ -1223,9 +1234,7 @@ extension VirtualMachineDocument {
 				self.logger.debug("Agent health check successful for VM: \(self.name)")
 			#endif
 
-			DispatchQueue.main.async {
-				self.handleAgentHealthCheckSuccess(info: infos)
-			}
+			await self.handleAgentHealthCheckSuccess(info: infos)
 		} catch {
 			#if DEBUG
 				self.logger.debug("Failed to create agent client for health check: \(error)")
@@ -1235,6 +1244,7 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	@MainActor
 	private func handleAgentHealthCheckSuccess(info: InfoReply) {
 		// Agent is responding - optionally update VM info if needed
 		// For example, you could update IP addresses or system info
@@ -1255,12 +1265,6 @@ extension VirtualMachineDocument {
 
 		if self.isWaitingForAgent {
 			self.isWaitingForAgent = false
-			self.stopAgentMonitoring()
-			agentMonitorTimer?.invalidate()
-			// Schedule periodic monitoring every seconds
-			agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-				self?.monitorAgent()
-			}
 		}
 	}
 
@@ -1271,11 +1275,6 @@ extension VirtualMachineDocument {
 				// These could be temporary - continue monitoring
 				if self.isWaitingForAgent == false {
 					self.isWaitingForAgent = true
-					agentMonitorTimer?.invalidate()
-					// Schedule periodic monitoring every seconds
-					agentMonitorTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-						self?.monitorAgent()
-					}
 				}
 				break
 			case .deadlineExceeded:
@@ -1320,3 +1319,4 @@ extension VirtualMachineDocument {
 		return notification.object as? T
 	}
 }
+
