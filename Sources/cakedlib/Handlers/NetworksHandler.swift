@@ -237,7 +237,12 @@ public struct NetworksHandler {
 		let socketURL = try Self.vmnetEndpoint(networkName: networkName, runMode: runMode)
 
 		if socketURL.pidFile.isCakedRunning() {
-			Logger(self).info("Network \(networkName) is already running")
+			if let pid = socketURL.pidFile.readPID() {
+				Logger(self).info("Network \(networkName) is already running with PID=\(pid)")
+			} else {
+				Logger(self).info("Network \(networkName) is already running with undetermined PID")
+			}
+
 			return
 		}
 
@@ -629,7 +634,11 @@ public struct NetworksHandler {
 		}
 
 		if socketURL.pidFile.isCakedRunning() {
-			throw ServiceError("Network \(networkName) already running \(socketURL.pidFile.path)")
+			if let pid = socketURL.pidFile.readPID() {
+				Logger(self).info("Network \(networkName) is already running with PID=\(pid)")
+			} else {
+				Logger(self).info("Network \(networkName) is already running with undetermined PID")
+			}
 		}
 
 		Logger(self).info("Start network: \(networkName) using socket: \(socketURL.socket.path)")

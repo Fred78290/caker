@@ -383,11 +383,15 @@ struct Networks: ParsableCommand {
 			let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: name, runMode: self.common.runMode)
 
 			if socketURL.pidFile.isCakedRunning() {
-				throw ValidationError("Network \(self.name) already running")
+				if let pid = socketURL.pidFile.readPID() {
+					throw ValidationError("Network \(self.name) is already running with PID=\(pid)")
+				} else {
+					throw ValidationError("Network \(self.name) is already running with undetermined PID")
+				}
 			}
 
 			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
-				throw ValidationError("Network \(self.name) already running")
+				throw ValidationError("Listen network \(self.name) already exists at this location: \(socketURL.socket.path)")
 			}
 		}
 
