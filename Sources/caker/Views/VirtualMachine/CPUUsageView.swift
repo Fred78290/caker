@@ -22,7 +22,14 @@ struct CPUUsageView: View {
 
 	var body: some View {
 		Group {
-			if let cpuInfos = vmInfos.cpuInfos {
+			if vmInfos.cpuInfos.cores.isEmpty {
+				EmptyView()
+					.padding(.horizontal, 6)
+					.padding(.vertical, 4)
+					.help("CPU usage unavailable")
+			} else {
+				let cpuInfos = vmInfos.cpuInfos
+
 				HStack(spacing: 2) {
 					if let firstIP = vmInfos.ipaddresses?.first {
 						Image(systemName: "network")
@@ -59,11 +66,6 @@ struct CPUUsageView: View {
 				.padding(.horizontal, 6)
 				.padding(.vertical, 4)
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
-			} else {
-				EmptyView()
-					.padding(.horizontal, 6)
-					.padding(.vertical, 4)
-					.help("CPU usage unavailable")
 			}
 		}
 	}
