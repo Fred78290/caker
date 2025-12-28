@@ -50,8 +50,8 @@ struct CPUUsageView: View {
 				}
 				.padding(.horizontal, 6)
 				.padding(.vertical, 4)
-				.background(Color.secondary.opacity(0.1))
-				.cornerRadius(4)
+				//.background(Color.secondary.opacity(0.1))
+				//.cornerRadius(4)
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
 			} else {
 				EmptyView()
