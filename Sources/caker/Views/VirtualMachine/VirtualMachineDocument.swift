@@ -487,8 +487,8 @@ extension VirtualMachineDocument {
 			
 			if externalRunning {
 				retrieveVNCURL()
-			} else if self.virtualMachine == nil {
-				try createVirtualMachine()
+			//} else if self.virtualMachine == nil {
+			//	try createVirtualMachine()
 			}
 			
 			if monitor == nil {
@@ -649,7 +649,14 @@ extension VirtualMachineDocument {
 			self.externalRunning = false
 
 			if self.virtualMachine == nil {
-				try? createVirtualMachine()
+				do {
+					try createVirtualMachine()
+				} catch {
+					MainActor.assumeIsolated {
+						alertError(error)
+					}
+					return
+				}
 			}
 
 			if let virtualMachine = self.virtualMachine {
@@ -1166,7 +1173,7 @@ extension VirtualMachineDocument {
 		}
 
 		if let agentVersion = self.vmInfos.agentVersion {
-			if agentVersion.isEmpty == false && agentVersion.contains(CAKEAGENT_SNAPSHOT) {
+			if agentVersion.isEmpty == false && agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
 				return ("Update agent", true, false)
 			}
 		}
