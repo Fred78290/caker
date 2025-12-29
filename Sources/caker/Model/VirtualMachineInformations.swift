@@ -118,6 +118,7 @@ class CpuInfos: ObservableObject {
 }
 
 class VirtualMachineInformations: ObservableObject {
+	@Published var timestamp: Date = .now
 	@Published var name: String? = nil
 	@Published var version: String? = nil
 	@Published var uptime: UInt64? = nil
@@ -161,6 +162,7 @@ class VirtualMachineInformations: ObservableObject {
 	}
 
 	func update(from infos: InfoReply) {
+		self.timestamp = .now
 		self.name = infos.name
 		self.version = infos.version
 		self.uptime = infos.uptime
