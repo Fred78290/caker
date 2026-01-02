@@ -45,22 +45,17 @@ struct CPUUsageView: View {
 
 					// Vertical bars for each CPU core
 					HStack(spacing: 1) {
-						ForEach(Array(cpuInfos.cores.enumerated()), id: \.offset) { index, core in
-							VStack(spacing: 1) {
-								Spacer()
-
+						GeometryReader { proxy in
+							ForEach(Array(cpuInfos.cores.enumerated()), id: \.offset) { index, core in
+								let height = proxy.size.height * core.usagePercent / 100
+								
 								Rectangle()
-									.frame(width: 8, height: max(2, core.usagePercent / 100.0 * 16))
-									.foregroundColor(.accentColor)
-
-								Rectangle()
-									.frame(width: 8, height: max(0, 16 - (core.usagePercent / 100.0 * 16)))
-									.foregroundColor(Color.clear)
+									.fill(Color.accentColor)
+									.frame(height: height)
+									.offset(x: 0, y: proxy.size.height - height)
+									.animation(Animation.easeInOut(duration: 0.1), value: height)
 							}
-							.frame(height: 16)
-							.foregroundColor(Color.systemGray)
-							.help("Core \(index): \(Int(core.usagePercent))%\nUser: \(String(format: "%.1f", core.user))%\nSystem: \(String(format: "%.1f", core.system))%\nIdle: \(String(format: "%.1f", core.idle))%")
-						}
+						}.foregroundColor(Color.systemGray)
 					}
 				}
 				.padding(.horizontal, 6)
