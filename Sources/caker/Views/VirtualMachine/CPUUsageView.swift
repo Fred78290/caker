@@ -12,10 +12,10 @@ import SwiftUI
 import SwiftletUtilities
 
 struct CPUUsageView: View {
-	@Binding private var vmInfos: VirtualMachineInformations
+	@StateObject private var vmInfos: VirtualMachineInformations
 	private var oldCpuInfos: CpuInfos? = nil
 
-	init(vmInfos: Binding<VirtualMachineInformations>) {
+	init(vmInfos: StateObject<VirtualMachineInformations>) {
 		self._vmInfos = vmInfos
 		self.oldCpuInfos = vmInfos.wrappedValue.cpuInfos
 	}
@@ -55,12 +55,15 @@ struct CPUUsageView: View {
 									.offset(x: 0, y: proxy.size.height - height)
 									.animation(Animation.easeInOut(duration: 0.1), value: height)
 							}
-						}.foregroundColor(Color.systemGray)
+						}
+						.foregroundColor(Color.systemGray)
+						.frame(width: CGFloat(cpuInfos.cores.count * 8))
 					}
 				}
 				.padding(.horizontal, 6)
 				.padding(.vertical, 4)
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
+				.log("CPUUsageView", text: "Update")
 			}
 		}
 	}
