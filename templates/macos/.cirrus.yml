@@ -5,7 +5,7 @@ env:
   MACOS_VERSION: sequoia
   TART_HOME: ${HOME}/.cake
   CAKE_HOME: ${HOME}/.cake
-  CAKEAGENT_SNAPSHOT: "SNAPSHOT-f6978c2d"
+  CAKEAGENT_SNAPSHOT: "SNAPSHOT-b2f74f7b"
   REGISTRY: devregistry.aldunelabs.com
 
 task:
