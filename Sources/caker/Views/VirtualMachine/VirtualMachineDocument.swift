@@ -1235,13 +1235,23 @@ extension VirtualMachineDocument {
 		do {
 			// Perform info request with short timeout
 			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
-			let infos = try await self.infosClient().info(callOptions: callOptions)
-
-			#if DEBUG
-				self.logger.debug("Agent health check successful for VM: \(self.name)")
-			#endif
+			let infoClient = try await self.infosClient()
+			let infos = try infoClient.info(callOptions: callOptions)
 
 			await self.handleAgentHealthCheckSuccess(info: infos)
+
+			#if DEBUG
+				self.logger.debug("Agent health entering currentUsage for VM: \(self.name)")
+			#endif
+
+			AsyncStream {
+				
+			}
+			try infoClient.currentUsage(frequency: 2, continuation: continuation)
+
+			#if DEBUG
+				self.logger.debug("Exit Agent health check successful for VM: \(self.name)")
+			#endif
 		} catch {
 			#if DEBUG
 				self.logger.debug("Failed to create agent client for health check: \(error)")

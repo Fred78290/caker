@@ -9,7 +9,7 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 
-class CoreInfo: ObservableObject {
+final class CoreInfo: ObservableObject, Observable {
 	@Published var coreID: Int32 = 0
 	@Published var usagePercent: Double = 0
 	@Published var user: Double = 0
@@ -49,7 +49,7 @@ class CoreInfo: ObservableObject {
 	}
 }
 
-class CpuInfos: ObservableObject {
+final class CpuInfos: ObservableObject, Observable {
 	@Published var totalUsagePercent: Double = 0
 	@Published var user: Double = 0
 	@Published var system: Double = 0
@@ -91,6 +91,29 @@ class CpuInfos: ObservableObject {
 		}
 	}
 	
+	func update(from infos: CakeAgent.InfoReply.CpuInfo) {
+		self.totalUsagePercent = infos.totalUsagePercent
+		self.user = infos.user
+		self.system = infos.system
+		self.idle = infos.idle
+		self.iowait = infos.iowait
+		self.irq = infos.irq
+		self.softirq = infos.softirq
+		self.cores = infos.cores.map {
+			CoreInfo(coreID: $0.coreID,
+					 usagePercent: $0.usagePercent,
+					 user: $0.user,
+					 system: $0.system,
+					 idle: $0.idle,
+					 iowait: $0.iowait,
+					 irq: $0.irq,
+					 softirq: $0.softirq,
+					 steal: $0.steal,
+					 guest: $0.guest,
+					 guestNice: $0.guestNice)
+		}
+	}
+	
 	func update(from infos: CpuInformations?) {
 		if let infos {
 			self.totalUsagePercent = infos.totalUsagePercent
@@ -117,7 +140,7 @@ class CpuInfos: ObservableObject {
 	}
 }
 
-class VirtualMachineInformations: ObservableObject {
+final class VirtualMachineInformations: ObservableObject, Observable {
 	@Published var timestamp: Date = .now
 	@Published var name: String? = nil
 	@Published var version: String? = nil
@@ -161,6 +184,14 @@ class VirtualMachineInformations: ObservableObject {
 		self.cpuInfos = CpuInfos(from: infos.cpuInfo)
 	}
 
+	func update(from infos: CakeAgent.CurrentUsageReply) {
+		self.timestamp = .now
+		self.memory?.free = infos.memory.free
+		self.memory?.used = infos.memory.used
+		self.memory?.total = infos.memory.total
+		self.cpuInfos.update(from: infos.cpuInfos)
+	}
+	
 	func update(from infos: InfoReply) {
 		self.timestamp = .now
 		self.name = infos.name
