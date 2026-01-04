@@ -7,18 +7,18 @@
 
 import CakeAgentLib
 import CakedLib
+import GRPC
 import GRPCLib
 import SwiftUI
 import SwiftletUtilities
 
 struct CPUUsageView: View {
-	@StateObject private var vmInfos: VirtualMachineInformations
-	private var oldCpuInfos: CpuInfos? = nil
+	let name: String
 
-	init(vmInfos: StateObject<VirtualMachineInformations>) {
-		self._vmInfos = vmInfos
-		self.oldCpuInfos = vmInfos.wrappedValue.cpuInfos
-	}
+	@StateObject private var vmInfos = VirtualMachineInformations()
+	#if DEBUG
+		private let logger = Logger("CPUUsageView")
+	#endif
 
 	var body: some View {
 		Group {
@@ -65,19 +65,101 @@ struct CPUUsageView: View {
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
 				.log("CPUUsageView", text: "Update")
 			}
+		}.task {
+			let stream = AsyncStream.makeStream(of: CakeAgent.CurrentUsageReply.self)
+
+			await withTaskCancellationHandler(operation: {
+				while Task.isCancelled == false {
+					if await self.performAgentHealthCheck(stream: stream) {
+						try? await Task.sleep(nanoseconds: 1_000_000_000)
+					}
+				}
+			}, onCancel: {
+				stream.continuation.finish()
+			})
 		}
 	}
 
-	private func cpuUsageColor(_ usage: Double) -> Color {
-		switch usage {
-		case 0..<30:
-			return .green
-		case 30..<70:
-			return .yellow
-		case 70..<90:
-			return .orange
-		default:
-			return .red
+	static func createHelper(name: String) throws -> CakeAgentHelper {
+		let eventLoop = Utilities.group.next()
+		let client = try Utilities.createCakeAgentClient(
+			on: eventLoop,
+			runMode: .app,
+			name: name,
+			connectionTimeout: 5,
+			retries: .upTo(1)
+		)
+
+		return CakeAgentHelper(on: eventLoop, client: client)
+	}
+
+	@MainActor
+	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
+		self.vmInfos.update(from: usage)
+	}
+
+	@MainActor
+	private func handleAgentHealthCheckSuccess(info: InfoReply) {
+		// Agent is responding - optionally update VM info if needed
+		// For example, you could update IP addresses or system info
+		#if DEBUG
+			self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
+		#endif
+
+		self.vmInfos.update(from: info)
+
+		// Update IP addresses if they changed
+		#if DEBUG
+			if let firstIP = info.ipaddresses.first {
+				self.logger.debug("VM \(self.name) current IP address: \(firstIP)")
+			}
+		#endif
+	}
+
+	private func handleAgentHealthCheckFailure(error: Error) {
+		if let grpcError = error as? GRPCStatus {
+			switch grpcError.code {
+			case .unavailable, .cancelled:
+				// These could be temporary - continue monitoring
+				break
+			case .deadlineExceeded:
+				// Timeout - VM might be under heavy load
+				self.logger.info("Agent monitoring: VM \(self.name) agent timeout - VM might be busy")
+			default:
+				// Other errors might indicate serious issues
+				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
+			}
+		} else {
+			#if DEBUG
+				// Agent is not responding - could indicate VM issues
+				self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			#endif
 		}
+	}
+
+	private func performAgentHealthCheck(stream: (stream: AsyncStream<CakeAgent.CurrentUsageReply>, continuation: AsyncStream<CakeAgent.CurrentUsageReply>.Continuation)) async -> Bool {
+		do {
+			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
+			let helper = try Self.createHelper(name: "CakeAgent")
+			let infos = try helper.info(callOptions: callOptions)
+
+			defer {
+				try? helper.closeSync()
+			}
+
+			self.handleAgentHealthCheckSuccess(info: infos)
+
+			try helper.currentUsage(frequency: 20, continuation: stream.continuation)
+
+			for try await currentUsage in stream.stream {
+				self.handleAgentHealthCurrentUsage(usage: currentUsage)
+			}
+
+		} catch {
+			handleAgentHealthCheckFailure(error: error)
+			return true
+		}
+
+		return false
 	}
 }

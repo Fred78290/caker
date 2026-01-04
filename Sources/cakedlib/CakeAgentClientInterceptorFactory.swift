@@ -116,8 +116,11 @@ final class CakeAgentClientInterceptorFactory: CakeAgentServiceClientInterceptor
 		[CakeAgentClientInterceptor()]
 	}
 
-	func makeEventsInterceptors() -> [GRPC.ClientInterceptor<CakeAgentLib.Cakeagent_CakeAgent.Empty, CakeAgentLib.Cakeagent_CakeAgent.TunnelPortForwardEvent>] {
+	func makeEventsInterceptors() -> [ClientInterceptor<CakeAgent.Empty, CakeAgent.TunnelPortForwardEvent>] {
 		[CakeAgentClientInterceptor()]
 	}
 
+	func makeCurrentUsageInterceptors() -> [ClientInterceptor<CakeAgent.CurrentUsageRequest, CakeAgent.CurrentUsageReply>] {
+		[CakeAgentClientInterceptor()]
+	}
 }

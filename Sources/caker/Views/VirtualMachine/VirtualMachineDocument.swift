@@ -224,14 +224,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
-	@Published var vmInfos = VirtualMachineInformations()
 	@Published var firstIP: String!
 	
-	// Agent monitoring
-	private var agentMonitorTimer: Timer!
-	private var agentMonitorTask: Task<Void, Never>?
-	private var isMonitoringAgent: Bool = false
-	private var isWaitingForAgent: Bool = false
 	private var screenshot: ScreenshotLoader!
 	
 	var lastScreenshot: NSImage? {
@@ -284,8 +278,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	deinit {
-		stopAgentMonitoring()
-		
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
@@ -339,9 +331,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 #if DEBUG
 		self.logger.debug("Disconnecting \(self.name)")
 #endif
-		
-		stopAgentMonitoring()
-		
+
 		self.vncURL = nil
 		self.vncStatus = .disconnected
 		
@@ -363,8 +353,6 @@ extension VirtualMachineDocument {
 #if DEBUG
 		self.logger.debug("Closing \(self.name)")
 #endif
-
-		stopAgentMonitoring()
 		
 		self.virtualMachine = nil
 		self.inited = false
@@ -389,11 +377,7 @@ extension VirtualMachineDocument {
 #if DEBUG
 		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
 #endif
-
-		// Stop agent monitoring when VM is stopped
-		stopAgentMonitoring()
 		
-		self.vmInfos.status = .stopped
 		self.canStart = true
 		self.canStop = false
 		self.canPause = false
@@ -424,11 +408,6 @@ extension VirtualMachineDocument {
 		self.suspendable = suspendable
 		self.vncURL = vncURL
 		self.status = .running
-		
-		// Start agent monitoring when VM is running
-		if self.agent == .installed {
-			startAgentMonitoring(interval: 1.0)
-		}
 	}
 	
 	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
@@ -548,11 +527,6 @@ extension VirtualMachineDocument {
 				}
 				
 				self.agent = agent
-				
-				// Start agent monitoring if VM is running and agent was successfully installed
-				if agent == .installed && self.status == .running {
-					self.startAgentMonitoring(interval: 1.0)
-				}
 
 				DispatchQueue.main.async {
 					done()
@@ -1110,7 +1084,9 @@ extension VirtualMachineDocument {
 	@MainActor
 	func heartBeatShell(rows: Int, cols: Int) {
 		do {
-			_ = try self.infosClient().info()
+			let helper = try self.createCakeAgentHelper()
+				
+			_ = try helper.info()
 
 			DispatchQueue.main.async {
 				self.stream = self.shellClient.execute(callOptions: CallOptions(timeLimit: .none)) { response in
@@ -1146,23 +1122,18 @@ extension VirtualMachineDocument {
 
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
-	@MainActor
-	private func infosClient() throws -> CakeAgentHelper {
-		if _infosClient == nil {
-			// Create a short-lived client for the health check
-			let eventLoop = Utilities.group.next()
-			let client = try Utilities.createCakeAgentClient(
-				on: eventLoop,
-				runMode: .app,
-				name: self.name,
-				connectionTimeout: 5,
-				retries: .upTo(1)
-			)
+	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+		// Create a short-lived client for the health check
+		let eventLoop = Utilities.group.next()
+		let client = try Utilities.createCakeAgentClient(
+			on: eventLoop,
+			runMode: .app,
+			name: self.name,
+			connectionTimeout: connectionTimeout,
+			retries: .upTo(1)
+		)
 
-			self._infosClient = CakeAgentHelper(on: eventLoop, client: client)
-		}
-
-		return _infosClient
+		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
 	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
@@ -1172,146 +1143,23 @@ extension VirtualMachineDocument {
 			return (title, false, true)
 		}
 
-		if let agentVersion = self.vmInfos.agentVersion {
-			if agentVersion.isEmpty == false && agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
+		do {
+			let helper = try self.createCakeAgentHelper()
+			
+			defer {
+				try? helper.closeSync()
+			}
+			
+			let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.milliseconds(100))))
+			
+			if infos.agentVersion.isEmpty == false && infos.agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
 				return ("Update agent", true, false)
 			}
+		} catch {
+			
 		}
 
 		return (title, false, self.agent != .none)
-	}
-
-	private func startAgentMonitoring(interval: TimeInterval) {
-		guard !isMonitoringAgent, agent == .installed, status == .running else {
-			return
-		}
-
-		#if DEBUG
-			self.logger.debug("Starting agent monitoring for VM: \(self.name)")
-		#endif
-
-		isMonitoringAgent = true
-
-		agentMonitorTask?.cancel()
-		agentMonitorTask = Task { [weak self] in
-			guard let self else { return }
-			while Task.isCancelled == false {
-				await self.monitorAgent()
-				try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
-			}
-		}
-	}
-
-	private func stopAgentMonitoring() {
-		guard isMonitoringAgent else {
-			return
-		}
-
-		#if DEBUG
-			self.logger.debug("Stopping agent monitoring for VM: \(self.name)")
-		#endif
-
-		firstIP = nil
-		isMonitoringAgent = false
-
-		agentMonitorTask?.cancel()
-		agentMonitorTask = nil
-	}
-
-	private func monitorAgent() async {
-		guard self.location != nil else {
-			return
-		}
-
-		guard isMonitoringAgent, agent == .installed, status == .running else {
-			stopAgentMonitoring()
-			return
-		}
-
-		await self.performAgentHealthCheck()
-	}
-
-	private func performAgentHealthCheck() async {
-		do {
-			// Perform info request with short timeout
-			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
-			let infoClient = try await self.infosClient()
-			let infos = try infoClient.info(callOptions: callOptions)
-
-			await self.handleAgentHealthCheckSuccess(info: infos)
-
-			#if DEBUG
-				self.logger.debug("Agent health entering currentUsage for VM: \(self.name)")
-			#endif
-
-			AsyncStream {
-				
-			}
-			try infoClient.currentUsage(frequency: 2, continuation: continuation)
-
-			#if DEBUG
-				self.logger.debug("Exit Agent health check successful for VM: \(self.name)")
-			#endif
-		} catch {
-			#if DEBUG
-				self.logger.debug("Failed to create agent client for health check: \(error)")
-			#endif
-
-			self.handleAgentHealthCheckFailure(error: error)
-		}
-	}
-
-	@MainActor
-	private func handleAgentHealthCheckSuccess(info: InfoReply) {
-		// Agent is responding - optionally update VM info if needed
-		// For example, you could update IP addresses or system info
-		#if DEBUG
-			self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
-		#endif
-
-		self.vmInfos.update(from: info)
-
-		// Update IP addresses if they changed
-		if let firstIP = info.ipaddresses.first, firstIP != self.firstIP {
-			self.firstIP = firstIP
-
-			#if DEBUG
-				self.logger.debug("VM \(self.name) current IP address: \(firstIP)")
-			#endif
-		}
-
-		if self.isWaitingForAgent {
-			self.isWaitingForAgent = false
-		}
-	}
-
-	private func handleAgentHealthCheckFailure(error: Error) {
-		if let grpcError = error as? GRPCStatus {
-			switch grpcError.code {
-			case .unavailable, .cancelled:
-				// These could be temporary - continue monitoring
-				if self.isWaitingForAgent == false {
-					self.isWaitingForAgent = true
-				}
-				break
-			case .deadlineExceeded:
-				// Timeout - VM might be under heavy load
-				self.logger.info("Agent monitoring: VM \(self.name) agent timeout - VM might be busy")
-			default:
-				// Other errors might indicate serious issues
-				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
-			}
-		} else {
-			#if DEBUG
-				// Agent is not responding - could indicate VM issues
-				self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
-			#endif
-		}
-
-		if let infosClient = self._infosClient {
-			_ = infosClient.close()
-			self._infosClient = nil
-		}
 	}
 }
 

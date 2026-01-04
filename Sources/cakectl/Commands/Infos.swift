@@ -12,7 +12,7 @@ struct Infos: GrpcParsableCommand {
 	var options: Client.Options
 
 	@Flag(help: "Output format: text or json")
-	var format: Format = .text
+	var format: GRPCLib.Format = .text
 
 	@Argument(help: "VM name")
 	var name: String
