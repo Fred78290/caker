@@ -6,34 +6,24 @@ set -e
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
 
-pushd "$(dirname $0)/.." >/dev/null
-PKGDIR=${PWD}/dist/Caker.app
+pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
+CURDIR=${PWD}
+PKGDIR=${CURDIR}/dist/Caker.app
 popd > /dev/null
+
+BUILDDIR=${CURDIR}/.build/debug
+RESOURCESDIR=${CURDIR}/Caker/Caker/Content
+ASSETS=${BUILDDIR}/assets
 
 if [ -z "$VMNAME" ]; then
     VMNAME=linux
 fi
 
 /usr/bin/swift build
-codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caker
-codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/caked
-codesign --sign - --entitlements Resources/dev.entitlements --force .build/debug/cakectl
 
-rm -Rf ${PKGDIR}
-mkdir -p ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources ${PKGDIR}/Contents/Resources/Icons
-cp -c .build/debug/caker ${PKGDIR}/Contents/MacOS/caker
-cp -c .build/debug/caked ${PKGDIR}/Contents/MacOS/caked
-cp -c .build/debug/cakectl ${PKGDIR}/Contents/Resources/cakectl
-cp -c Resources/caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
-cp -c Resources/caked.plist ${PKGDIR}/Contents/Info.plist
-cp -c Resources/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
-cp -c Resources/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
-cp -c Resources/menubar.png ${PKGDIR}/Contents/Resources/MenuBarIcon.png
-cp -c Resources/Icons/*.png ${PKGDIR}/Contents/Resources/Icons
+source ${CURDIR}/Scripts/build.inc.sh
 
-BIN_PATH=$(swift build --show-bin-path)
 BIN_PATH=${PKGDIR}/Contents/MacOS
-
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
@@ -80,8 +70,7 @@ LXD_IMAGE=ubuntu:noble
 #LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
-#CMD="cakectl --insecure "
-CMD="caked "
+CMD="caked"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 

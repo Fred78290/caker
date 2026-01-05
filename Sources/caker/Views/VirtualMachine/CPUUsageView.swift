@@ -21,7 +21,7 @@ struct CPUUsageView: View {
 	#endif
 
 	var body: some View {
-		Group {
+		HStack {
 			if vmInfos.cpuInfos.cores.isEmpty {
 				EmptyView()
 					.padding(.horizontal, 6)
@@ -66,18 +66,26 @@ struct CPUUsageView: View {
 				.log("CPUUsageView", text: "Update")
 			}
 		}.task {
-			let stream = AsyncStream.makeStream(of: CakeAgent.CurrentUsageReply.self)
-
-			await withTaskCancellationHandler(operation: {
-				while Task.isCancelled == false {
-					if await self.performAgentHealthCheck(stream: stream) {
-						try? await Task.sleep(nanoseconds: 1_000_000_000)
-					}
-				}
-			}, onCancel: {
-				stream.continuation.finish()
-			})
+			await monitorCurrentUsage()
 		}
+	}
+
+	func monitorCurrentUsage() async {
+		let stream = AsyncStream.makeStream(of: CakeAgent.CurrentUsageReply.self)
+
+		await withTaskCancellationHandler(operation: {
+			var isWaitingForAgent: Bool = true
+
+			while Task.isCancelled == false && isWaitingForAgent {
+				isWaitingForAgent = await self.performAgentHealthCheck(stream: stream)
+
+				if isWaitingForAgent {
+					try? await Task.sleep(nanoseconds: 1_000_000_000)
+				}
+			}
+		}, onCancel: {
+			stream.continuation.finish()
+		})
 	}
 
 	static func createHelper(name: String) throws -> CakeAgentHelper {
@@ -116,48 +124,62 @@ struct CPUUsageView: View {
 		#endif
 	}
 
-	private func handleAgentHealthCheckFailure(error: Error) {
-		if let grpcError = error as? GRPCStatus {
+	private func handleAgentHealthCheckFailure(error: Error, continueMonitoring: Bool) -> Bool {
+		func handleGrpcStatus(_ grpcError: GRPCStatus) {
 			switch grpcError.code {
-			case .unavailable, .cancelled:
+			case .unavailable:
 				// These could be temporary - continue monitoring
+				self.logger.info("Agent monitoring: VM \(self.name) agent unvailable")
+				break
+			case .cancelled:
+				// These could be temporary - continue monitoring
+				self.logger.info("Agent monitoring: VM \(self.name) agent cancelled")
 				break
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
-				self.logger.info("Agent monitoring: VM \(self.name) agent timeout - VM might be busy")
+				self.logger.info("Agent monitoring: VM \(self.name) agent timeout")
 			default:
 				// Other errors might indicate serious issues
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
-		} else {
-			#if DEBUG
-				// Agent is not responding - could indicate VM issues
-				self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
-			#endif
 		}
+
+		if let grpcError = error as? any GRPCStatusTransformable {
+			handleGrpcStatus(grpcError.makeGRPCStatus())
+		} else if let grpcError = error as? GRPCStatus {
+			handleGrpcStatus(grpcError)
+		} else {
+			// Agent is not responding - could indicate VM issues
+			self.logger.error("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			return false
+		}
+		
+		return continueMonitoring
 	}
 
 	private func performAgentHealthCheck(stream: (stream: AsyncStream<CakeAgent.CurrentUsageReply>, continuation: AsyncStream<CakeAgent.CurrentUsageReply>.Continuation)) async -> Bool {
+		var continueMonitoring = true
+
 		do {
 			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
-			let helper = try Self.createHelper(name: "CakeAgent")
-			let infos = try helper.info(callOptions: callOptions)
+			let helper = try Self.createHelper(name: self.name)
 
 			defer {
 				try? helper.closeSync()
 			}
 
-			self.handleAgentHealthCheckSuccess(info: infos)
+			self.handleAgentHealthCheckSuccess(info: try helper.info(callOptions: callOptions))
 
 			try helper.currentUsage(frequency: 20, continuation: stream.continuation)
+
+			continueMonitoring = false
 
 			for try await currentUsage in stream.stream {
 				self.handleAgentHealthCurrentUsage(usage: currentUsage)
 			}
 
 		} catch {
-			handleAgentHealthCheckFailure(error: error)
-			return true
+			return handleAgentHealthCheckFailure(error: error, continueMonitoring: continueMonitoring)
 		}
 
 		return false

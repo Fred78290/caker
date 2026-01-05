@@ -90,7 +90,30 @@ final class CpuInfos: ObservableObject, Observable {
 			}
 		}
 	}
-	
+
+	init(from infos: CakeAgent.InfoReply.CpuInfo) {
+		self.totalUsagePercent = infos.totalUsagePercent
+		self.user = infos.user
+		self.system = infos.system
+		self.idle = infos.idle
+		self.iowait = infos.iowait
+		self.irq = infos.irq
+		self.softirq = infos.softirq
+		self.cores = infos.cores.map {
+			CoreInfo(coreID: $0.coreID,
+					 usagePercent: $0.usagePercent,
+					 user: $0.user,
+					 system: $0.system,
+					 idle: $0.idle,
+					 iowait: $0.iowait,
+					 irq: $0.irq,
+					 softirq: $0.softirq,
+					 steal: $0.steal,
+					 guest: $0.guest,
+					 guestNice: $0.guestNice)
+		}
+	}
+
 	func update(from infos: CakeAgent.InfoReply.CpuInfo) {
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
@@ -164,6 +187,26 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 	init() {
 	}
 
+	init(from infos: VMInformations) {
+		self.name = infos.name
+		self.version = infos.version
+		self.uptime = infos.uptime
+		self.memory = infos.memory
+		self.cpuCount = infos.cpuCount
+		self.diskInfos = infos.diskInfos
+		self.ipaddresses = infos.ipaddresses
+		self.osname = infos.osname
+		self.hostname = infos.hostname
+		self.release = infos.release
+		self.mounts = infos.mounts
+		self.status = infos.status
+		self.attachedNetworks = infos.attachedNetworks
+		self.tunnelInfos = infos.tunnelInfos
+		self.socketInfos = infos.socketInfos
+		self.agentVersion = infos.agentVersion
+		self.cpuInfos = CpuInfos(from: infos.cpuInfos)
+	}
+
 	init(from infos: InfoReply) {
 		self.name = infos.name
 		self.version = infos.version
@@ -186,10 +229,12 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 
 	func update(from infos: CakeAgent.CurrentUsageReply) {
 		self.timestamp = .now
-		self.memory?.free = infos.memory.free
-		self.memory?.used = infos.memory.used
-		self.memory?.total = infos.memory.total
-		self.cpuInfos.update(from: infos.cpuInfos)
+		self.cpuInfos = CpuInfos(from: infos.cpuInfos)
+		self.memory = .with {
+			$0.total = infos.memory.total
+			$0.free = infos.memory.free
+			$0.used = infos.memory.used
+		}
 	}
 	
 	func update(from infos: InfoReply) {
