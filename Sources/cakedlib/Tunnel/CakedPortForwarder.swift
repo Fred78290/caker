@@ -107,7 +107,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	internal let bindAddress: [String]
 	internal let ttl: Int
 	internal var dynamicPorts: [ForwardedSocketAddress] = []
-	internal let log: Logger
+	internal let logger: Logger
 	internal var eventStream: ServerStreamingCall<Cakeagent_CakeAgent.Empty, CakeAgent.TunnelPortForwardEvent>? = nil
 	internal var eventChannel: Channel? = nil
 	internal let queue = DispatchQueue(label: "CakedPortForwarder")
@@ -130,7 +130,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 		self.listeningAddress = listeningAddress
 		self.forwardedPorts = forwardedPorts
 		self.cakeAgentClient = try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: listeningAddress, timeout: 5, runMode: runMode)
-		self.log = Logger("CakedPortForwarder")
+		self.logger = Logger("CakedPortForwarder")
 
 		try super.init(group: group, remoteHost: remoteHost, mappedPorts: mappedPorts, bindAddresses: bindAddress, udpConnectionTTL: ttl)
 
@@ -149,20 +149,20 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				let forward = ForwardedSocketAddress(proto: port.protocol, addr: port.ip, port: Int(port.port))
 
 				if discardedPort.contains(port.port) {
-					self.log.info("Discard dynamic port forwarding: \(forward.description) (discarded port)")
+					self.logger.info("Discard dynamic port forwarding: \(forward.description) (discarded port)")
 				} else if addedPorts.first(where: { $0.port == port.port && $0.addr == port.ip }) != nil {
-					self.log.info("Already binded dynamic port forwarding: \(forward.description)")
+					self.logger.info("Already binded dynamic port forwarding: \(forward.description)")
 				} else {
 					if remoteAddress.isLoopback || remoteAddress.isLinkLocal {
-						self.log.info("Discard dynamic port forwarding: \(forward.description) (loopback/link local)")
+						self.logger.info("Discard dynamic port forwarding: \(forward.description) (loopback/link local)")
 					} else {
 						addedPorts.append(forward)
 
-						self.log.info("Candidate dynamic port forwarding: \(forward.description)")
+						self.logger.info("Candidate dynamic port forwarding: \(forward.description)")
 					}
 				}
 			} else {
-				self.log.warn("Invalid dynamic port forwarding: \(port.ip):\(port.port)")
+				self.logger.warn("Invalid dynamic port forwarding: \(port.ip):\(port.port)")
 			}
 		}
 
@@ -172,17 +172,17 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				let remoteAddress = try! SocketAddress(ipAddress: forward.addr, port: forward.port)
 
 				if bindAddress.protocol == remoteAddress.protocol {
-					self.log.info("Add dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
+					self.logger.info("Add dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
 
 					do {
 						if try self.addPortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: forward.proto, ttl: self.ttl).isEmpty {
-							self.log.info("Failed to add dynamic port forwarding: \(forward.description)")
+							self.logger.info("Failed to add dynamic port forwarding: \(forward.description)")
 						} else {
-							self.log.info("Added dynamic port forwarding: \(forward.description)")
+							self.logger.info("Added dynamic port forwarding: \(forward.description)")
 							self.dynamicPorts.append(forward)
 						}
 					} catch {
-						self.log.error("Failed to add dynamic port forwarding: \(forward.description), error: \(error)")
+						self.logger.error("Failed to add dynamic port forwarding: \(forward.description), error: \(error)")
 					}
 				}
 			}
@@ -193,11 +193,11 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				let forward: ForwardedSocketAddress = ForwardedSocketAddress(proto: port.protocol, addr: port.ip, port: Int(port.port))
 
 				if self.dynamicPorts.contains(forward) {
-					self.log.info("Will remove dynamic port forwarding: \(forward.description)")
+					self.logger.info("Will remove dynamic port forwarding: \(forward.description)")
 					return forward
 				}
 
-				self.log.info("To be removed dynamic port forwarding not found: \(forward.description)")
+				self.logger.info("To be removed dynamic port forwarding not found: \(forward.description)")
 			}
 
 			return nil
@@ -209,10 +209,10 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				let remoteAddress = try! SocketAddress(ipAddress: port.addr, port: port.port)
 
 				if bindAddress.protocol == remoteAddress.protocol {
-					self.log.info("Will remove dynamic port forwarding: \(port.description)")
+					self.logger.info("Will remove dynamic port forwarding: \(port.description)")
 
 					if (try? self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: port.proto, ttl: self.ttl)) != nil {
-						self.log.info("Remove dynamic port forwarding: \(port.description)")
+						self.logger.info("Remove dynamic port forwarding: \(port.description)")
 
 						self.dynamicPorts.removeAll {
 							$0 == port
@@ -221,14 +221,14 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 						return
 					}
 
-					self.log.info("Didn't remove dynamic port forwarding: \(port.description)")
+					self.logger.info("Didn't remove dynamic port forwarding: \(port.description)")
 				}
 			}
 		}
 	}
 
 	func removeDynamicPortForwarding() throws {
-		self.log.info("Remove dynamic port forwarding")
+		self.logger.info("Remove dynamic port forwarding")
 
 		defer {
 			self.dynamicPorts.removeAll()
@@ -240,7 +240,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				let remoteAddress = try! SocketAddress(ipAddress: forward.addr, port: forward.port)
 
 				if bindAddress.protocol == remoteAddress.protocol {
-					self.log.info("Remove dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
+					self.logger.info("Remove dynamic port forwarding: \(bindAddress) -> \(remoteAddress)")
 
 					do {
 						try self.removePortForwardingServer(bindAddress: bindAddress, remoteAddress: remoteAddress, proto: forward.proto, ttl: self.ttl)
@@ -253,7 +253,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	}
 
 	func startDynamicPortForwarding() throws {
-		log.info("Start dynamic port forwarding")
+		logger.info("Start dynamic port forwarding")
 
 		self.status = .starting
 
@@ -262,7 +262,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				if case .forwardEvent(let event) = event.event {
 					self.handleEvent(event: event)
 				} else if case .error(let error) = event.event {
-					self.log.error("Event error: \(error)")
+					self.logger.error("Event error: \(error)")
 
 					//	throw error
 					if let subchannel = self.eventChannel {
@@ -276,13 +276,13 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 			self.queue.sync {
 				switch result {
 				case .failure(let err):
-					Logger(self).error("Dynamic port forwarding stream receive failure: \(err)")
+					self.logger.error("Dynamic port forwarding stream receive failure: \(err)")
 				case .success(let status):
 					if status.code != .ok {
 						if status.code == .unavailable {
 							self.disconnected()
 						} else {
-							Logger(self).error("Dynamic port forwarding stream status: \(status)")
+							self.logger.error("Dynamic port forwarding stream status: \(status)")
 							self.eventChannel?.close(promise: nil)
 						}
 					} else {
@@ -298,7 +298,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 			self.eventChannel = channel
 			self.status = .started
 
-			self.log.info("Started dynamic port forwarding")
+			self.logger.info("Started dynamic port forwarding")
 
 			return channel.eventLoop.makeSucceededVoidFuture()
 		}
@@ -328,7 +328,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				self.eventChannel = nil
 				self.eventStream = nil
 				#if DEBUG
-					self.log.debug("Event channel closed")
+					self.logger.debug("Event channel closed")
 				#endif
 			}
 
@@ -339,7 +339,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 	}
 
 	func disconnected() {
-		Logger(self).info("Dynamic port forwarding stream disconnected")
+		self.logger.info("Dynamic port forwarding stream disconnected")
 		self.status = .stopping
 
 		try? self.removeDynamicPortForwarding()
@@ -353,7 +353,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 				self.eventStream = nil
 
 				#if DEBUG
-					self.log.debug("Event channel closed")
+					self.logger.debug("Event channel closed")
 				#endif
 			}
 
@@ -362,7 +362,7 @@ class CakedPortForwarder: PortForwarder, @unchecked Sendable {
 			self.status = .stopped
 			self.eventStream = nil
 			#if DEBUG
-				self.log.debug("Event channel already closed")
+				self.logger.debug("Event channel already closed")
 			#endif
 		}
 	}

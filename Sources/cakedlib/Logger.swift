@@ -93,19 +93,19 @@ public final class Logger {
 
 	public func error(_ err: Error) {
 		if Self.intLogLevel >= LogLevel.error {
-			logger.error(.init(stringLiteral: err.localizedDescription))
+			logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err.localizedDescription))\u{001B}[0m")
 		}
 	}
 
 	public func error(_ err: String) {
 		if Self.intLogLevel >= LogLevel.error {
-			logger.error(.init(stringLiteral: err))
+			logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err))\u{001B}[0m")
 		}
 	}
 
 	public func warn(_ line: String) {
 		if Self.intLogLevel >= LogLevel.warning {
-			logger.warning(.init(stringLiteral: line))
+			logger.warning("\u{001B}[0;33m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
 		}
 	}
 
@@ -116,16 +116,14 @@ public final class Logger {
 	}
 
 	public func debug(_ line: String) {
-		#if DEBUG
-			if Self.intLogLevel >= LogLevel.debug {
-				logger.debug(.init(stringLiteral: line))
-			}
-		#endif
+		if Self.intLogLevel >= LogLevel.debug {
+			logger.debug("\u{001B}[0;32m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+		}
 	}
 
 	public func trace(_ line: String) {
 		if Self.intLogLevel >= LogLevel.trace {
-			logger.trace(.init(stringLiteral: line))
+			logger.trace("\u{001B}[0;34m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
 		}
 	}
 

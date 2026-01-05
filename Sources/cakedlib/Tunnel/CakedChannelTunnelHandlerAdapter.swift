@@ -18,8 +18,8 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 	let bindAddress: SocketAddress
 	let remoteAddress: SocketAddress
 	let proto: CakeAgent.TunnelMessage.TunnelProtocol
-
 	var tunnel: BidirectionalStreamingCall<Cakeagent_CakeAgent.TunnelMessage, Cakeagent_CakeAgent.TunnelMessage>? = nil
+	let logger = Logger("CakedChannelTunnelHandlerAdapter")
 
 	public init(proto: CakeAgent.TunnelMessage.TunnelProtocol, bindAddress: SocketAddress, remoteAddress: SocketAddress, cakeAgentClient: CakeAgentClient) {
 		self.proto = proto
@@ -29,13 +29,12 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 	}
 
 	public func channelRegistered(context: ChannelHandlerContext) {
-		#if TRACE
-			redbold("Create tunnel from \(self.bindAddress) to \(self.remoteAddress)")
-		#endif
+		logger.debug("Create tunnel from \(self.bindAddress) to \(self.remoteAddress)")
+
 		self.tunnel = cakeAgentClient.tunnel(callOptions: nil) { message in
 			// Handle incoming messages from the tunnel
-			#if TRACE
-				redbold("Receive message \(message)")
+			#if DEBUG
+			self.logger.trace("Receive message \(message)")
 			#endif
 			switch message.message {
 			case .datas(let data):
@@ -47,9 +46,6 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 				context.channel.close(promise: nil)
 			case .error(let err):
 				// Handle error
-				#if TRACE
-					redbold("Tunnel error: \(err)")
-				#endif
 				self.errorCaught(context: context, error: IOError(errnoCode: EIO, reason: err))
 			default:
 				break
@@ -59,13 +55,10 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 		self.tunnel?.status.whenComplete { result in
 			switch result {
 			case .failure(let err):
-				#if TRACE
-					redbold("Tunnel error: \(err)")
-				#endif
 				self.errorCaught(context: context, error: err)
 			case .success(let status):
-				#if TRACE
-					redbold("Tunnel status: \(status)")
+				#if DEBUG
+				self.logger.trace("Tunnel status: \(status)")
 				#endif
 				if status.code != .ok {
 					self.errorCaught(context: context, error: status)
@@ -86,8 +79,8 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 				}
 			}
 
-			#if TRACE
-				redbold("Connect tunnel \(connect)")
+			#if DEBUG
+			self.logger.trace("Connect tunnel \(connect)")
 			#endif
 
 			_ = tunnel.sendMessage(connect)
@@ -98,8 +91,8 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 
 	public func channelInactive(context: ChannelHandlerContext) {
 		if let tunnel = self.tunnel {
-			#if TRACE
-				redbold("Disconnect tunnel from \(self.bindAddress) to \(self.remoteAddress)")
+			#if DEBUG
+			self.logger.info("Disconnect tunnel from \(self.bindAddress) to \(self.remoteAddress)")
 			#endif
 			tunnel.sendMessage(CakeAgent.TunnelMessage.with { $0.eof = true }).whenComplete { _ in
 				_ = tunnel.sendEnd()
@@ -117,8 +110,8 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 				$0.datas = Data(buffer: data)
 			}
 
-			#if TRACE
-				redbold("Send message \(message)")
+			#if DEBUG
+			self.logger.trace("Send message \(message)")
 			#endif
 			_ = tunnel.sendMessage(message)
 		} else {
@@ -127,9 +120,8 @@ class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 	}
 
 	public func errorCaught(context: ChannelHandlerContext, error: Error) {
-		#if TRACE
-			redbold("errorCaught \(error)")
-		#endif
+		self.logger.error("Tunnel error: \(error)")
+
 		context.close(promise: nil)
 
 		context.fireErrorCaught(error)
