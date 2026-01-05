@@ -244,7 +244,7 @@ struct HostVirtualMachineView: View {
 						.disabled(self.appState.isRunning || self.appState.isPaused)
 					}
 
-					if document.status == .running {
+					if document.status == .running && document.vmInfos != nil {
 						ToolbarItemGroup(placement: .status) {
 							// CPU Usage Status Bar
 							CPUUsageView(name: document.name)

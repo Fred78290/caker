@@ -190,7 +190,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var monitor: FileMonitor?
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
-	
+	private var agentMonitoring: Task<Void, Never>?
+
 	let id = UUID().uuidString
 	
 	var vncView: NSVNCView?
@@ -224,8 +225,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
-	@Published var firstIP: String!
-	
+	@Published var vmInfos: VMInformations? = nil
+	@Published var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
+
 	private var screenshot: ScreenshotLoader!
 	
 	var lastScreenshot: NSImage? {
@@ -278,6 +280,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 
 	deinit {
+		self.stopAgentMonitoring()
+
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
@@ -326,7 +330,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.name = name
 		self.virtualMachineConfig = config
 	}
-	
+}
+
+// MARK: - Core
+extension VirtualMachineDocument {
 	func disconnect() {
 #if DEBUG
 		self.logger.debug("Disconnecting \(self.name)")
@@ -346,9 +353,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		
 		self.closeShell()
 	}
-}
 
-extension VirtualMachineDocument {
 	func close() {
 #if DEBUG
 		self.logger.debug("Closing \(self.name)")
@@ -378,6 +383,9 @@ extension VirtualMachineDocument {
 		self.logger.debug("setStateAsStopped to \(status) at \(_file):\(_line)")
 #endif
 		
+		// Stop agent monitoring when VM is stopped
+		self.stopAgentMonitoring()
+
 		self.canStart = true
 		self.canStop = false
 		self.canPause = false
@@ -388,6 +396,9 @@ extension VirtualMachineDocument {
 		self.vncStatus = .disconnected
 		self.status = status
 		self.externalRunning = false
+		self.agentCondition = ("Install agent", false, true)
+		self.vmInfos = nil
+
 		if let connection = self.connection {
 			self.connection = nil
 			connection.disconnect()
@@ -408,6 +419,12 @@ extension VirtualMachineDocument {
 		self.suspendable = suspendable
 		self.vncURL = vncURL
 		self.status = .running
+		self.agentCondition = ("Install agent", false, self.agent != .none)
+
+		// Start agent monitoring when VM is running
+		if self.agent == .installed {
+			self.startAgentMonitoring()
+		}
 	}
 	
 	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
@@ -466,8 +483,6 @@ extension VirtualMachineDocument {
 			
 			if externalRunning {
 				retrieveVNCURL()
-			//} else if self.virtualMachine == nil {
-			//	try createVirtualMachine()
 			}
 			
 			if monitor == nil {
@@ -505,34 +520,6 @@ extension VirtualMachineDocument {
 		}
 		
 		return virtualMachine.location.rootURL
-	}
-	
-	func installAgent(updateAgent: Bool, _ done: @escaping () -> Void) {
-		if let virtualMachine = self.virtualMachine {
-			self.agent = .installing
-			
-			Task {
-				var agent: AgentStatus = .installing
-				
-				do {
-					agent = try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) ? .installed : .none
-					
-					if agent == .none {
-						throw ServiceError("Failed to install agent.")
-					}
-				} catch {
-					await alertError(error)
-					
-					agent = .none
-				}
-				
-				self.agent = agent
-
-				DispatchQueue.main.async {
-					done()
-				}
-			}
-		}
 	}
 }
 
@@ -614,7 +601,7 @@ extension VirtualMachineDocument {
 					}
 				} catch {
 					DispatchQueue.main.async {
-						self.setState(suspendable: false, status: .stopped)
+						self.setStateAsStopped()
 						alertError(error)
 					}
 				}
@@ -1136,30 +1123,116 @@ extension VirtualMachineDocument {
 		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
-	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
-		let title = "Install agent"
+	func installAgent(updateAgent: Bool, _ done: @escaping () -> Void) {
+		if let virtualMachine = self.virtualMachine {
+			self.agent = .installing
+			
+			Task {
+				var agent: AgentStatus = .installing
+				
+				do {
+					agent = try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) ? .installed : .none
+					
+					if agent == .none {
+						throw ServiceError("Failed to install agent.")
+					}
+				} catch {
+					await alertError(error)
+					
+					agent = .none
+				}
+				
+				self.agent = agent
 
-		if self.status != .running {
-			return (title, false, true)
+				DispatchQueue.main.async {
+					done()
+				}
+			}
+		}
+	}
+
+	@MainActor
+	private func agentMonitoringSuccess(infos: InfoReply) {
+		#if DEBUG
+			self.logger.debug("Agent monitoring: VM \(self.name) agent is responding")
+		#endif
+
+		self.vmInfos = .init(from: infos)
+
+		if infos.agentVersion.isEmpty == false && infos.agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
+			#if DEBUG
+				self.logger.debug("Agent monitoring: VM \(self.name) agent need to be updated")
+			#endif
+			self.agentCondition = ("Update agent", true, false)
+		}
+	}
+
+	private func agentMonitoringFailure(error: Error) -> Bool {
+		if let grpcError = error as? GRPCStatus {
+			switch grpcError.code {
+			case .unavailable, .cancelled:
+				// These could be temporary - continue monitoring
+				break
+			case .deadlineExceeded:
+				// Timeout - VM might be under heavy load
+				self.logger.info("Agent monitoring: VM \(self.name) agent timeout - VM might be busy")
+			default:
+				// Other errors might indicate serious issues
+				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
+			}
+		} else {
+			#if DEBUG
+				// Agent is not responding - could indicate VM issues
+				self.logger.debug("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
+			#endif
+			
+			return false
 		}
 
+		return true
+	}
+
+	private func performAgentMonitoring() async -> Bool {
 		do {
 			let helper = try self.createCakeAgentHelper()
-			
+
 			defer {
 				try? helper.closeSync()
 			}
-			
-			let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.milliseconds(100))))
-			
-			if infos.agentVersion.isEmpty == false && infos.agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
-				return ("Update agent", true, false)
-			}
+
+			await agentMonitoringSuccess(infos: try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10)))))
 		} catch {
-			
+			return agentMonitoringFailure(error: error)
 		}
 
-		return (title, false, self.agent != .none)
+		return false
+	}
+
+	func startAgentMonitoring() {
+		guard agentMonitoring == nil else {
+			return
+		}
+		
+		self.agentMonitoring = Task {
+			var isWaitingForAgent = true
+
+			await withTaskCancellationHandler(operation: {
+				while Task.isCancelled == false && isWaitingForAgent {
+					isWaitingForAgent = await self.performAgentMonitoring()
+
+					if isWaitingForAgent {
+						try? await Task.sleep(nanoseconds: 1_000_000_000)
+					}
+				}
+			}, onCancel: {
+				self.agentMonitoring = nil
+			})
+		}
+	}
+
+	func stopAgentMonitoring() {
+		self.agentMonitoring?.cancel()
+		self.agentMonitoring = nil
 	}
 }
 
