@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct List: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "List created VMs")

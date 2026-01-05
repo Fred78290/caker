@@ -4,6 +4,7 @@ import Foundation
 import GRPCLib
 import Logging
 import TextTable
+import CakeAgentLib
 
 extension Format {
 	func render(_ data: CertificatesLocation) -> String {

@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Networks: ParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(

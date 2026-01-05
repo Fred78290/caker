@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Start: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Launch a linux VM create in background")

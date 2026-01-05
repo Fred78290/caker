@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Stop: GrpcParsableCommand {
 	static let configuration = StopOptions.configuration

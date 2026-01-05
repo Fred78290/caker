@@ -30,6 +30,8 @@
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
+		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
+		9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3422F0AD87C0099F00F /* CakeAgentLib */; };
 		9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */; };
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
@@ -982,6 +984,7 @@
 				9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */,
 				9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */,
 				9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */,
+				9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */,
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
@@ -1015,6 +1018,7 @@
 				9B464C102D5A426200164BF5 /* Crypto in Frameworks */,
 				9B464C2E2D5A426200164BF5 /* NIOPosix in Frameworks */,
 				9B464C852D5A489E00164BF5 /* DMRetry in Frameworks */,
+				9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */,
 				9B464C872D5A48A900164BF5 /* Dynamic in Frameworks */,
 				9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */,
 				9B464C482D5A426200164BF5 /* Logging in Frameworks */,
@@ -1824,6 +1828,7 @@
 				9B9123802E29253A006DD682 /* SwiftTerm */,
 				9B0D1A452E2BAA2700D70267 /* FileMonitor */,
 				9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */,
+				9B13C3422F0AD87C0099F00F /* CakeAgentLib */,
 			);
 			productName = Caker;
 			productReference = 9B464A542D5A3DA000164BF5 /* Caker.app */;
@@ -1869,6 +1874,7 @@
 				9B464C8F2D5A492F00164BF5 /* X509 */,
 				9B464C912D5A493900164BF5 /* XAttr */,
 				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
+				9B13C3402F0AD8540099F00F /* CakeAgentLib */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -3239,6 +3245,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */;
 			productName = FileMonitor;
+		};
+		9B13C3402F0AD8540099F00F /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
+		};
+		9B13C3422F0AD87C0099F00F /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
 		};
 		9B28BFA12DDB259E00B5A0AF /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;

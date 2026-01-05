@@ -2,6 +2,7 @@ import ArgumentParser
 import GRPC
 import GRPCLib
 import Virtualization
+import CakeAgentLib
 
 struct Configure: AsyncParsableCommand {
 	static let configuration = ConfigureOptions.configuration

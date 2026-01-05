@@ -6,6 +6,7 @@ import GRPC
 import GRPCLib
 import Logging
 import NIO
+import CakeAgentLib
 
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")

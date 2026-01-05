@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct Mount: GrpcParsableCommand {
 	static let configuration = MountOptions.configuration

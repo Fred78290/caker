@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct Login: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Login to a registry")

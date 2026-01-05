@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Rename: GrpcParsableCommand {
 	static let configuration = RenameOptions.configuration

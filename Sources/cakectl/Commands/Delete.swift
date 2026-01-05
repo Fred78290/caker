@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import TextTable
+import CakeAgentLib
 
 struct Delete: GrpcParsableCommand {
 	static let configuration: CommandConfiguration = DeleteOptions.configuration

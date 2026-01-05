@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct Pull: GrpcParsableCommand {
 	static let configuration = PullOptions.configuration

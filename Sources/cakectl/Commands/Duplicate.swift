@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import TextTable
+import CakeAgentLib
 
 struct Duplicate: GrpcParsableCommand {
 	static let configuration = DuplicateOptions.configuration

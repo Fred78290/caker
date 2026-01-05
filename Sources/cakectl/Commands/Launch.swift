@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Launch: GrpcParsableCommand {
 	static let configuration = BuildOptions.configuration

@@ -3,6 +3,7 @@ import Dispatch
 import GRPC
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct Logout: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Logout from a registry")

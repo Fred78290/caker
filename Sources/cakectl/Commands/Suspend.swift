@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Suspend: GrpcParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Suspend VM(s)")

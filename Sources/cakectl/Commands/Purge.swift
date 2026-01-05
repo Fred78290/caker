@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import GRPC
 import GRPCLib
+import CakeAgentLib
 
 struct Purge: GrpcParsableCommand {
 	static let configuration = PurgeOptions.configuration
