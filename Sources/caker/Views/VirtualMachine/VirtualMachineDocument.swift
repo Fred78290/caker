@@ -183,7 +183,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case restoring = 9
 	}
 	
-	private var _infosClient: CakeAgentHelper!
 	private var shellClient: CakeAgentClient!
 	private var stream: CakeAgentExecuteStream!
 	private var shellHandlerResponse: ShellHandlerResponse!
