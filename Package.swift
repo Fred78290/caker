@@ -40,7 +40,7 @@ let package = Package(
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
 		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
-		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.26.0"),
+		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.1"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),
