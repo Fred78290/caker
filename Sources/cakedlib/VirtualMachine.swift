@@ -222,9 +222,14 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	func connectionInitiatedByHost(socket: SocketDevice) {
 		if socket.bind == self.location.agentURL.path {
 			do {
-				try PortForwardingServer.createPortForwardingServer(
-					group: Utilities.group.next(), name: self.location.name, remoteAddress: self.runningIP, forwardedPorts: self.config.forwardedPorts, dynamicPortForwarding: config.dynamicPortForwarding, listeningAddress: self.location.agentURL,
-					runMode: runMode)
+				let group = Utilities.group.next()
+				
+				try CakeAgentPortForwardingServer.createPortForwardingServer(group: group,
+																			 cakeAgentClient: try CakeAgentConnection.createCakeAgentClient(on: group.next(), listeningAddress: self.location.agentURL, timeout: 5, runMode: runMode),
+																			 name: self.location.name,
+																			 remoteAddress: self.runningIP,
+																			 forwardedPorts: self.config.forwardedPorts,
+																			 dynamicPortForwarding: config.dynamicPortForwarding)
 			} catch {
 				Logger(self).error(error)
 			}
@@ -246,7 +251,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func stopForwaringPorts() {
-		try? PortForwardingServer.closeForwardedPort()
+		try? CakeAgentPortForwardingServer.closeForwardedPort()
 	}
 
 	func stopVMRunService() {

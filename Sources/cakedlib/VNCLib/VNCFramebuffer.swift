@@ -2,7 +2,7 @@ import AppKit
 import CryptoKit
 import Foundation
 import Synchronization
-
+import CakeAgentLib
 
 extension CGImageAlphaInfo {
 	var isFirst: Bool {

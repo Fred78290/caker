@@ -309,7 +309,6 @@
 		9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */; };
 		9BEBC7732DF440720092B196 /* IP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC72E2DF440720092B196 /* IP.swift */; };
 		9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7572DF440720092B196 /* CertificatesLocation.swift */; };
-		9BEBC7752DF440720092B196 /* CakedPortForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7432DF440720092B196 /* CakedPortForwarder.swift */; };
 		9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7622DF440720092B196 /* ServiceError.swift */; };
 		9BEBC7772DF440720092B196 /* Curl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7592DF440720092B196 /* Curl.swift */; };
 		9BEBC7782DF440720092B196 /* VZVMNetConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */; };
@@ -330,7 +329,6 @@
 		9BEBC7892DF440720092B196 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7652DF440720092B196 /* Utilities.swift */; };
 		9BEBC78A2DF440720092B196 /* ConfigureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7182DF440720092B196 /* ConfigureHandler.swift */; };
 		9BEBC78B2DF440720092B196 /* GuestPlateform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75C2DF440720092B196 /* GuestPlateform.swift */; };
-		9BEBC78C2DF440720092B196 /* CakedChannelTunnelHandlerAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7422DF440720092B196 /* CakedChannelTunnelHandlerAdapter.swift */; };
 		9BEBC78D2DF440720092B196 /* IP.V4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7312DF440720092B196 /* IP.V4.swift */; };
 		9BEBC78F2DF440720092B196 /* ConsoleDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC73F2DF440720092B196 /* ConsoleDevice.swift */; };
 		9BEBC7902DF440720092B196 /* LoginHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7202DF440720092B196 /* LoginHandler.swift */; };
@@ -338,7 +336,6 @@
 		9BEBC7922DF440720092B196 /* StopHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7292DF440720092B196 /* StopHandler.swift */; };
 		9BEBC7932DF440720092B196 /* VZVMNetHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7502DF440720092B196 /* VZVMNetHandler.swift */; };
 		9BEBC7942DF440720092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71E2DF440720092B196 /* LaunchHandler.swift */; };
-		9BEBC7952DF440720092B196 /* CakedUDPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7452DF440720092B196 /* CakedUDPPortForwardingServer.swift */; };
 		9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7562DF440720092B196 /* CakeAgentConnection.swift */; };
 		9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7192DF440720092B196 /* DeleteHandler.swift */; };
 		9BEBC7992DF440720092B196 /* Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7632DF440720092B196 /* Shell.swift */; };
@@ -363,12 +360,10 @@
 		9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC72A2DF440720092B196 /* TemplateHandler.swift */; };
 		9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71D2DF440720092B196 /* InfosHandler.swift */; };
 		9BEBC7B02DF440720092B196 /* ARPParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7532DF440720092B196 /* ARPParser.swift */; };
-		9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7602DF440720092B196 /* PortForwardingServer.swift */; };
 		9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7392DF440720092B196 /* XPCVMRunService.swift */; };
 		9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7272DF440720092B196 /* RunHandler.swift */; };
 		9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7642DF440720092B196 /* StorageLocation.swift */; };
 		9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7222DF440720092B196 /* MountHandler.swift */; };
-		9BEBC7B62DF440720092B196 /* CakedTCPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7442DF440720092B196 /* CakedTCPPortForwardingServer.swift */; };
 		9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7212DF440720092B196 /* LogoutHandler.swift */; };
 		9BEBC7B92DF440BF0092B196 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7B82DF440BF0092B196 /* Dynamic */; };
 		9BEBC7BB2DF440BF0092B196 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEBC7BA2DF440BF0092B196 /* Algorithms */; };
@@ -845,10 +840,6 @@
 		9BEBC73E2DF440720092B196 /* CommunicationHandlers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunicationHandlers.swift; sourceTree = "<group>"; };
 		9BEBC73F2DF440720092B196 /* ConsoleDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleDevice.swift; sourceTree = "<group>"; };
 		9BEBC7402DF440720092B196 /* VirtualSocketDevices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualSocketDevices.swift; sourceTree = "<group>"; };
-		9BEBC7422DF440720092B196 /* CakedChannelTunnelHandlerAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelTunnelHandlerAdapter.swift; sourceTree = "<group>"; };
-		9BEBC7432DF440720092B196 /* CakedPortForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedPortForwarder.swift; sourceTree = "<group>"; };
-		9BEBC7442DF440720092B196 /* CakedTCPPortForwardingServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedTCPPortForwardingServer.swift; sourceTree = "<group>"; };
-		9BEBC7452DF440720092B196 /* CakedUDPPortForwardingServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedUDPPortForwardingServer.swift; sourceTree = "<group>"; };
 		9BEBC74B2DF440720092B196 /* VMView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMView.swift; sourceTree = "<group>"; };
 		9BEBC74D2DF440720092B196 /* VZVMNet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNet.swift; sourceTree = "<group>"; };
 		9BEBC74E2DF440720092B196 /* VZVMNetConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVMNetConfig.swift; sourceTree = "<group>"; };
@@ -867,7 +858,6 @@
 		9BEBC75C2DF440720092B196 /* GuestPlateform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPlateform.swift; sourceTree = "<group>"; };
 		9BEBC75D2DF440720092B196 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachement.swift; sourceTree = "<group>"; };
-		9BEBC7602DF440720092B196 /* PortForwardingServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortForwardingServer.swift; sourceTree = "<group>"; };
 		9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandle.swift; sourceTree = "<group>"; };
 		9BEBC7622DF440720092B196 /* ServiceError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceError.swift; sourceTree = "<group>"; };
 		9BEBC7632DF440720092B196 /* Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shell.swift; sourceTree = "<group>"; };
@@ -1697,17 +1687,6 @@
 			path = Sockets;
 			sourceTree = "<group>";
 		};
-		9BEBC7462DF440720092B196 /* Tunnel */ = {
-			isa = PBXGroup;
-			children = (
-				9BEBC7422DF440720092B196 /* CakedChannelTunnelHandlerAdapter.swift */,
-				9BEBC7432DF440720092B196 /* CakedPortForwarder.swift */,
-				9BEBC7442DF440720092B196 /* CakedTCPPortForwardingServer.swift */,
-				9BEBC7452DF440720092B196 /* CakedUDPPortForwardingServer.swift */,
-			);
-			path = Tunnel;
-			sourceTree = "<group>";
-		};
 		9BEBC74C2DF440720092B196 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -1746,7 +1725,6 @@
 				9B20D6052E01A74000BEFB41 /* INI.swift */,
 				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */,
-				9BEBC7602DF440720092B196 /* PortForwardingServer.swift */,
 				9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */,
 				9BEBC7622DF440720092B196 /* ServiceError.swift */,
 				9BEBC7632DF440720092B196 /* Shell.swift */,
@@ -1763,7 +1741,6 @@
 				9BEBC7322DF440720092B196 /* IP */,
 				9BFE81A62EC8F8C500767615 /* OCI */,
 				9BEBC7412DF440720092B196 /* Sockets */,
-				9BEBC7462DF440720092B196 /* Tunnel */,
 				9BEBC74C2DF440720092B196 /* UI */,
 				9BEBC7522DF440720092B196 /* VMNet */,
 				9BEBC73C2DF440720092B196 /* VMRunService */,
@@ -2373,7 +2350,6 @@
 				9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */,
 				9BEBC7732DF440720092B196 /* IP.swift in Sources */,
 				9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */,
-				9BEBC7752DF440720092B196 /* CakedPortForwarder.swift in Sources */,
 				9BEBC7762DF440720092B196 /* ServiceError.swift in Sources */,
 				9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */,
 				9BEBC7772DF440720092B196 /* Curl.swift in Sources */,
@@ -2397,7 +2373,6 @@
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
 				9BEBC78A2DF440720092B196 /* ConfigureHandler.swift in Sources */,
 				9BEBC78B2DF440720092B196 /* GuestPlateform.swift in Sources */,
-				9BEBC78C2DF440720092B196 /* CakedChannelTunnelHandlerAdapter.swift in Sources */,
 				9BEBC78D2DF440720092B196 /* IP.V4.swift in Sources */,
 				9BEBC78F2DF440720092B196 /* ConsoleDevice.swift in Sources */,
 				9BEBC7902DF440720092B196 /* LoginHandler.swift in Sources */,
@@ -2405,7 +2380,6 @@
 				9BEBC7922DF440720092B196 /* StopHandler.swift in Sources */,
 				9BEBC7932DF440720092B196 /* VZVMNetHandler.swift in Sources */,
 				9BEBC7942DF440720092B196 /* LaunchHandler.swift in Sources */,
-				9BEBC7952DF440720092B196 /* CakedUDPPortForwardingServer.swift in Sources */,
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
 				9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
@@ -2450,7 +2424,6 @@
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */,
 				9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */,
-				9BEBC7B12DF440720092B196 /* PortForwardingServer.swift in Sources */,
 				9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */,
 				9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */,
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
@@ -2459,7 +2432,6 @@
 				9BEBC7B42DF440720092B196 /* StorageLocation.swift in Sources */,
 				9BB144D42EC33A3C0094D950 /* Sudo.swift in Sources */,
 				9BEBC7B52DF440720092B196 /* MountHandler.swift in Sources */,
-				9BEBC7B62DF440720092B196 /* CakedTCPPortForwardingServer.swift in Sources */,
 				9BEBC7B72DF440720092B196 /* LogoutHandler.swift in Sources */,
 				9BDA12AF2EE5832C00357544 /* VNCFixedWidthInteger.swift in Sources */,
 				9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */,
