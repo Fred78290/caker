@@ -3183,7 +3183,7 @@
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = ab423247d2f5ca4608ecb03d0e23d0957ce530c4;
+				revision = 7f7541ae0c0ab9835b964f0d4c913bc3ce68833b;
 			};
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
