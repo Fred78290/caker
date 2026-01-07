@@ -1,17 +1,18 @@
-import Containerization
-import ContainerizationArchive
-import ContainerizationError
-import ContainerizationExtras
-import ContainerizationOCI
-import Foundation
 //
 //  PullHandler.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 14/11/2025.
 //
+import Containerization
+import ContainerizationArchive
+import ContainerizationError
+import ContainerizationExtras
+import ContainerizationOCI
+import Foundation
 import GRPCLib
 import Virtualization
+import CakeAgentLib
 
 public struct PullHandler {
 	static func withAuthentication<T>(ref: String, _ body: @Sendable @escaping (_ auth: Authentication?) async throws -> T) async throws -> T {

@@ -2,6 +2,7 @@ import CakedLib
 import Foundation
 import SwiftUI
 import Virtualization
+import CakeAgentLib
 
 class AppState: ObservableObject, Observable {
 	@Published var status: VMLocation.Status

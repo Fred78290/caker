@@ -4,6 +4,7 @@ import GRPCLib
 import NIOCore
 import Shout
 import SystemConfiguration
+import CakeAgentLib
 
 public struct SuspendHandler {
 	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendedObject {

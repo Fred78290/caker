@@ -3,6 +3,7 @@ import GRPCLib
 import NIO
 import Virtualization
 import vmnet
+import CakeAgentLib
 
 public var phUseLimaVMNet = false
 

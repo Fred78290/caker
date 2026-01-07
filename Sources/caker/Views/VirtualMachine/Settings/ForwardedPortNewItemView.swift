@@ -9,6 +9,7 @@ import CakeAgentLib
 import GRPCLib
 import NIOPortForwarding
 import SwiftUI
+import CakeAgentLib
 
 extension [TunnelAttachement] {
 	func editItem(_ editItem: TunnelAttachement.ID?) -> TunnelAttachement {

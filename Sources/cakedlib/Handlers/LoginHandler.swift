@@ -5,6 +5,7 @@ import GRPCLib
 import NIOCore
 import Synchronization
 import SystemConfiguration
+import CakeAgentLib
 
 public struct LoginHandler {
 	@discardableResult

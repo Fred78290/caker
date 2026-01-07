@@ -3,6 +3,7 @@ import CryptoKit
 import Foundation
 import Synchronization
 
+
 extension CGImageAlphaInfo {
 	var isFirst: Bool {
 		return self == .first || self == .premultipliedFirst

@@ -10,6 +10,7 @@ import Foundation
 import GRPC
 import GRPCLib
 import NIO
+import CakeAgentLib
 
 public struct ExecuteHandler {
 	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection)

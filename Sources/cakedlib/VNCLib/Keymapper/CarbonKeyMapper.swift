@@ -1,5 +1,3 @@
-import AppKit
-import Carbon
 //
 //  CarbonKeyMapper.swift
 //  Caker
@@ -7,6 +5,9 @@ import Carbon
 //  Created by Frederic BOLTZ on 08/12/2025.
 //
 import Foundation
+import AppKit
+import Carbon
+import CakeAgentLib
 
 enum CarbonKeyCode: CGKeyCode {
 	/* keycodes for keys that are dependent on keyboard layout*/

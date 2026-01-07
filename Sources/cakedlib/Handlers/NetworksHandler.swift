@@ -1,7 +1,6 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
-import Logging
 import NIOCore
 import NIOPosix
 import SystemConfiguration
@@ -9,6 +8,7 @@ import TextTable
 import UniformTypeIdentifiers
 import Virtualization
 import vmnet
+import CakeAgentLib
 
 public typealias ReferencedNetworks = [String: Int]
 

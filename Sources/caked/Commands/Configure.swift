@@ -1,7 +1,7 @@
 import ArgumentParser
 import CakedLib
 import GRPCLib
-import Logging
+import CakeAgentLib
 import Virtualization
 
 struct Configure: ParsableCommand {

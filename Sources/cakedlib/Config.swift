@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import NIOPortForwarding
 import Virtualization
+import CakeAgentLib
 
 public typealias DisplaySize = [String: Int]
 

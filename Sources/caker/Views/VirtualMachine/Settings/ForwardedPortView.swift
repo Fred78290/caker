@@ -7,6 +7,7 @@
 
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 struct ForwardedPortView: View {
 	@Binding var forwardPorts: [TunnelAttachement]

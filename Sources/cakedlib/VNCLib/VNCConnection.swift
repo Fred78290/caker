@@ -5,6 +5,7 @@ import Foundation
 import Network
 import Semaphore
 import System
+import CakeAgentLib
 
 extension [UInt8] {
 	mutating func rfbSetBit(_ position: Int) {
@@ -109,7 +110,7 @@ final class VNCConnection: @unchecked Sendable {
 					do {
 						try await self?.handleInitialHandshake()
 					} catch {
-						self?.logger.logger.error("Failed to complete initial handshake: \(error)")
+						self?.logger.error("Failed to complete initial handshake: \(error)")
 						self?.didReceiveError(error)
 						self?.disconnect()
 
@@ -119,7 +120,7 @@ final class VNCConnection: @unchecked Sendable {
 					do {
 						try await self?.pollClientMessage()
 					} catch {
-						self?.logger.logger.error("Failed to handle client messages: \(error)")
+						self?.logger.error("Failed to handle client messages: \(error)")
 						self?.didReceiveError(error)
 						self?.disconnect()
 					}

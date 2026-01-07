@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import Virtualization
+import CakeAgentLib
 
 private typealias MultipassRegisteredInstances = [String: MultipassRegisteredInstance]  // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json
 private typealias MultipassInstances = [String: MultipassInstance]  // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json

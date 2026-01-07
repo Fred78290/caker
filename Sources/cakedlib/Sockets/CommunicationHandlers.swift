@@ -1,4 +1,5 @@
 import NIOCore
+import CakeAgentLib
 
 // Protocol that allows a delegate to be notified when a channel is closed by the remote peer.
 protocol CatchRemoteCloseDelegate {

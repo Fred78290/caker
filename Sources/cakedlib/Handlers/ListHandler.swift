@@ -3,6 +3,7 @@ import Foundation
 import GRPCLib
 import NIOCore
 import SystemConfiguration
+import CakeAgentLib
 
 public struct ListHandler {
 	public static func list(vmonly: Bool, runMode: Utils.RunMode) -> VirtualMachineInfoReply {

@@ -1,4 +1,5 @@
 import Foundation
+import CakeAgentLib
 
 // and any other primitives you pass to receiveDatas(...)
 // Authentication types

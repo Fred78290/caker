@@ -1,7 +1,7 @@
 import ArgumentParser
 import CakedLib
 import GRPCLib
-import Logging
+import CakeAgentLib
 import SwiftTerm
 import SwiftUI
 import SwifterSwiftUI
@@ -71,7 +71,7 @@ struct Defaults {
 
 struct MainAppParseArgument: ParsableCommand {
 	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	var logLevel: Logger.LogLevel = .info
 
 	func validate() throws {
 		Logger.setLevel(self.logLevel)

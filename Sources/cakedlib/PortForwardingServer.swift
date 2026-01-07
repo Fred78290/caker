@@ -4,6 +4,7 @@ import GRPCLib
 import NIOCore
 import NIOPortForwarding
 import NIOPosix
+import CakeAgentLib
 
 nonisolated(unsafe) var portForwardingServer: PortForwardingServer? = nil
 

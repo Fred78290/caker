@@ -9,6 +9,7 @@ import CakedLib
 import Foundation
 import RoyalVNCKit
 import SwiftUI
+import CakeAgentLib
 
 class VNCConnectionLogger: VNCLogger {
 	let logger: Logger = Logger("VNCConnectionLogger")

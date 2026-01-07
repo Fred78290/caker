@@ -1,12 +1,13 @@
-import QuartzCore
 //
 //  VMView.swift
 //  Caker
 //
 //  Created by Frederic BOLTZ on 31/05/2025.
 //
+import QuartzCore
 import SwiftUI
 import Virtualization
+import CakeAgentLib
 
 @objc protocol _VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafeMutableRawPointer?)

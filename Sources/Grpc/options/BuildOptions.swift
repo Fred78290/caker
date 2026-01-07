@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import NIOPortForwarding
+import CakeAgentLib
 
 public struct BuildOptions: ParsableArguments {
 	public static let configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")

@@ -1,5 +1,6 @@
 import Foundation
 import GRPCLib
+import CakeAgentLib
 
 public struct SimpleStreamError: Error {
 	let description: String

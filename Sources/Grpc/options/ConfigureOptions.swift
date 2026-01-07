@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import NIOPortForwarding
+import CakeAgentLib
 
 public struct ConfigureOptions: ParsableArguments, Sendable {
 	public static let configuration = CommandConfiguration(abstract: "Reconfigure VM")

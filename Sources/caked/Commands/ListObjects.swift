@@ -3,7 +3,7 @@ import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct ListObjects: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs")

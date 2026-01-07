@@ -5,6 +5,7 @@ import Foundation
 import Metal
 import Network
 import QuartzCore
+import CakeAgentLib
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }

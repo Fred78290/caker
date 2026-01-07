@@ -6,6 +6,7 @@ import GRPCLib
 //  Created by Frederic BOLTZ on 31/07/2025.
 //
 import Virtualization
+import CakeAgentLib
 
 #if arch(arm64)
 	public class IPSWInstaller: @unchecked Sendable {

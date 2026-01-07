@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import CakeAgentLib
 
 /* Decode mobileprovision plist file
 

@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import NIOCore
+import CakeAgentLib
 
 public struct RemoteHandler {
 	public static func addRemote(name: String, url: URL, runMode: Utils.RunMode) -> CreateRemoteReply {

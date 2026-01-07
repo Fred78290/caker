@@ -3,6 +3,7 @@ import Foundation
 import NIO
 import Virtualization
 import vmnet
+import CakeAgentLib
 
 public final class VZVMNetFileHandle: VZVMNet, @unchecked Sendable {
 	private let fileDescriptor: CInt

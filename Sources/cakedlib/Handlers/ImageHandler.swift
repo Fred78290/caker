@@ -2,6 +2,7 @@ import Foundation
 import GRPCLib
 import NIOCore
 import TextTable
+import CakeAgentLib
 
 extension ImageInfo {
 	public init(product: SimpleStreamProduct) throws {

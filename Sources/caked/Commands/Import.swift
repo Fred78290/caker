@@ -2,7 +2,7 @@ import ArgumentParser
 import CakedLib
 import Foundation
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct Import: ParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "import", abstract: "Import an external VM from a file or URL.")
@@ -37,7 +37,7 @@ struct Import: ParsableCommand {
 	@Argument(help: "The name of the virtual machine to create.")
 	var name: String
 
-	var logLevel: Logging.Logger.Level {
+	var logLevel: Logger.LogLevel {
 		self.common.logLevel
 	}
 

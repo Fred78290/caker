@@ -4,6 +4,7 @@ import NIOCore
 import NIOPosix
 import Semaphore
 import Virtualization
+import CakeAgentLib
 
 extension Error {
 	var isLoggable: Bool {

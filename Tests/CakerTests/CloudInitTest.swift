@@ -5,6 +5,7 @@ import XCTest
 @testable import NIOCore
 @testable import NIOPortForwarding
 @testable import NIOPosix
+@testable import CakeAgentLib
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"

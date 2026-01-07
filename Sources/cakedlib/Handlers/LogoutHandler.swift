@@ -3,6 +3,7 @@ import ContainerizationOCI
 import Foundation
 import GRPCLib
 import NIOCore
+import CakeAgentLib
 
 public struct LogoutHandler {
 	@discardableResult

@@ -8,6 +8,7 @@
 import CakedLib
 import GRPCLib
 import SwiftUI
+import CakeAgentLib
 
 func viewLog(_ text: String) -> some View {
 	#if DEBUG

@@ -4,13 +4,13 @@ import Darwin
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
 import NIO
 import CakeAgentLib
+import Logging
 
 struct CommonOptions: ParsableArguments {
 	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logging.Logger.Level = .info
+	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text

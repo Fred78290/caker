@@ -1,8 +1,8 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
-import Logging
 import Virtualization
+import CakeAgentLib
 
 struct VMXMap: Sendable {
 	var baseURL: URL

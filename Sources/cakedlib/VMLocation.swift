@@ -3,6 +3,7 @@ import GRPCLib
 import NIO
 import Shout
 import Virtualization
+import CakeAgentLib
 
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void

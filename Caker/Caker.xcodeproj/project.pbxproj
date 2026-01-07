@@ -340,7 +340,6 @@
 		9BEBC7942DF440720092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC71E2DF440720092B196 /* LaunchHandler.swift */; };
 		9BEBC7952DF440720092B196 /* CakedUDPPortForwardingServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7452DF440720092B196 /* CakedUDPPortForwardingServer.swift */; };
 		9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7562DF440720092B196 /* CakeAgentConnection.swift */; };
-		9BEBC7972DF440720092B196 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC75E2DF440720092B196 /* Logger.swift */; };
 		9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7192DF440720092B196 /* DeleteHandler.swift */; };
 		9BEBC7992DF440720092B196 /* Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7632DF440720092B196 /* Shell.swift */; };
 		9BEBC79A2DF440720092B196 /* RenameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC7262DF440720092B196 /* RenameHandler.swift */; };
@@ -867,7 +866,6 @@
 		9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmbedProvisionProfile.swift; sourceTree = "<group>"; };
 		9BEBC75C2DF440720092B196 /* GuestPlateform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPlateform.swift; sourceTree = "<group>"; };
 		9BEBC75D2DF440720092B196 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
-		9BEBC75E2DF440720092B196 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkAttachement.swift; sourceTree = "<group>"; };
 		9BEBC7602DF440720092B196 /* PortForwardingServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortForwardingServer.swift; sourceTree = "<group>"; };
 		9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessWithSharedFileHandle.swift; sourceTree = "<group>"; };
@@ -1747,7 +1745,6 @@
 				9BEBC75D2DF440720092B196 /* Home.swift */,
 				9B20D6052E01A74000BEFB41 /* INI.swift */,
 				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
-				9BEBC75E2DF440720092B196 /* Logger.swift */,
 				9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */,
 				9BEBC7602DF440720092B196 /* PortForwardingServer.swift */,
 				9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */,
@@ -2411,7 +2408,6 @@
 				9BEBC7952DF440720092B196 /* CakedUDPPortForwardingServer.swift in Sources */,
 				9BEBC7962DF440720092B196 /* CakeAgentConnection.swift in Sources */,
 				9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */,
-				9BEBC7972DF440720092B196 /* Logger.swift in Sources */,
 				9BEBC7982DF440720092B196 /* DeleteHandler.swift in Sources */,
 				9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */,
 				9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */,
@@ -3223,7 +3219,7 @@
 			repositoryURL = "https://github.com/Fred78290/containerization";
 			requirement = {
 				kind = revision;
-				revision = 6af98c0bd2635bc209541626f087f712df400834;
+				revision = c829f8d7b56b405c2e80b0b5e29fdde679dc73cc;
 			};
 		};
 		9BDFBF102DE4CDBC001616BA /* XCRemoteSwiftPackageReference "Multipart" */ = {
@@ -3239,7 +3235,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 8f3f5bb2b8c664311dc10d32285bc3638eddffd9;
+				revision = b2fc26ae43fcdc40c58b7169aa1b66d8084bb2cc;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

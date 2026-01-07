@@ -3,6 +3,7 @@ import GRPCLib
 import NIO
 import System
 import Virtualization
+import CakeAgentLib
 
 // This is a simple ChannelDuplexHandler that glues two channels together.
 // It is used to create a forwarder that forwards all data from one channel to another.
@@ -33,7 +34,7 @@ public final class VZVMNetHandlerClient: ChannelDuplexHandler {
 		self.useLimaVMNet = useLimaVMNet
 		self.side = side
 		self.delegate = delegate
-		self.trace = Logger.Level() >= LogLevel.trace
+		self.trace = Logger.Level() >= Logger.LogLevel.trace
 	}
 
 	static func matchedPair(useLimaVMNet: Bool, delegate: CloseDelegate?) -> (VZVMNetHandlerClient, VZVMNetHandlerClient) {

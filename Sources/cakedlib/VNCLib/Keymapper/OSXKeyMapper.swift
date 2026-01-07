@@ -8,6 +8,7 @@
 import AppKit
 import Carbon
 import Foundation
+import CakeAgentLib
 
 class OSXKeyMapper: Keymapper {
 	static let keyTableSize = 65536

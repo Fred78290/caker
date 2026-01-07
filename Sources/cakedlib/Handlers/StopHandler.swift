@@ -4,6 +4,7 @@ import GRPCLib
 import NIOCore
 import Shout
 import SystemConfiguration
+import CakeAgentLib
 
 public struct StopHandler {
 	public static func restart(name: String, force: Bool, runMode: Utils.RunMode) throws -> StoppedObject {

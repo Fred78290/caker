@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import CakeAgentLib
 
 public struct RenameHandler {
 	public static func rename(oldname: String, newname: String, runMode: Utils.RunMode) -> RenameReply {

@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import GRPCLib
+import CakeAgentLib
 
 // /var/root/Library/Application Support/multipassd/qemu/multipassd-vm-instances.json
 // /var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json

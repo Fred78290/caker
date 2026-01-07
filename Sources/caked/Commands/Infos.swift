@@ -4,7 +4,6 @@ import CakedLib
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
 import NIO
 
 struct Infos: CakeAgentAsyncParsableCommand {
@@ -21,7 +20,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 
 	var createVM: Bool = false
 
-	var logLevel: Logging.Logger.Level {
+	var logLevel: Logger.LogLevel {
 		self.common.logLevel
 	}
 

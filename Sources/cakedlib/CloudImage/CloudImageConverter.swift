@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import Qcow2convert
+import CakeAgentLib
 
 class CloudImageConverter {
 	private static func step(_ message: String, progressHandler: ProgressObserver.BuildProgressHandler?) {

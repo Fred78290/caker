@@ -9,6 +9,7 @@ import CakedLib
 import GRPCLib
 import SwiftUI
 import Virtualization
+import CakeAgentLib
 
 class CakerVZVirtualMachineView: VZVirtualMachineView {
 	private var liveViewResize: Bool = false

@@ -3,7 +3,7 @@ import CakedLib
 import Dispatch
 import GRPC
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct Login: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(abstract: "Login to a registry")

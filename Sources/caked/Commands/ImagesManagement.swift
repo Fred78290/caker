@@ -2,7 +2,7 @@ import ArgumentParser
 import CakedLib
 import Foundation
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct ImagesManagement: ParsableCommand {
 	static let configuration = CommandConfiguration(

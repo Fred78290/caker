@@ -9,6 +9,7 @@ import GRPC
 import GRPCLib
 import NIO
 import NIOSSL
+import CakeAgentLib
 
 public struct ServiceHandler {
 	struct LaunchAgent: Codable {
@@ -122,7 +123,7 @@ public struct ServiceHandler {
 			try Self.findMe(),
 			"service",
 			"listen",
-			"--log-level=\(Logger.Level().rawValue)",
+			"--log-level=\(Logger.Level().description)",
 		]
 
 		listenAddress.forEach {

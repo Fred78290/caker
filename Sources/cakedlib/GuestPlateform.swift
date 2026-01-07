@@ -1,5 +1,6 @@
 import Foundation
 import Virtualization
+import CakeAgentLib
 
 public protocol GuestPlateForm {
 	func bootLoader() throws -> VZBootLoader

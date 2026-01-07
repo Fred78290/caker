@@ -3,6 +3,7 @@ import Foundation
 import NIOCore
 import NIOPosix
 import Virtualization
+import CakeAgentLib
 
 final class ConsoleDevice: CatchRemoteCloseDelegate {
 	let mainGroup: EventLoopGroup

@@ -12,7 +12,6 @@ import Cocoa
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
 import NIO
 import RoyalVNCKit
 
@@ -136,7 +135,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 
 	var createVM: Bool = false
 
-	var logLevel: Logging.Logger.Level {
+	var logLevel: Logger.LogLevel {
 		self.common.logLevel
 	}
 

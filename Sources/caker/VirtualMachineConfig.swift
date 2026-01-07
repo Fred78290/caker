@@ -11,6 +11,7 @@ import Foundation
 import GRPCLib
 import SwiftUI
 import Virtualization
+import CakeAgentLib
 
 struct VirtualMachineConfig: Hashable {
 	var os: VirtualizedOS = .linux

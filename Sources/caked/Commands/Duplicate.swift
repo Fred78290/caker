@@ -9,7 +9,7 @@ import ArgumentParser
 import CakedLib
 import Foundation
 import GRPCLib
-import Logging
+import CakeAgentLib
 import TextTable
 
 struct Duplicate: ParsableCommand {

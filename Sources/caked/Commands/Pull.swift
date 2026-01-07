@@ -7,7 +7,7 @@
 import ArgumentParser
 import CakedLib
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct Pull: AsyncParsableCommand {
 	static let configuration = PullOptions.configuration

@@ -3,6 +3,7 @@ import Foundation
 import NIO
 import Virtualization
 import vmnet
+import CakeAgentLib
 
 let MAX_PACKET_COUNT_AT_ONCE: UInt64 = 32
 
@@ -86,7 +87,7 @@ public class VZVMNet: @unchecked Sendable {
 		public typealias OutboundOut = ByteBuffer
 
 		internal let logger: Logger
-		internal let trace: Bool = Logger.Level() >= LogLevel.trace
+		internal let trace: Bool = Logger.Level() >= Logger.LogLevel.trace
 		internal let vzvmnet: VZVMNet
 
 		init(vzvmnet: VZVMNet) {
@@ -148,7 +149,7 @@ public class VZVMNet: @unchecked Sendable {
 		self.networkConfig = networkConfig
 		self.hostQueue = DispatchQueue(label: "com.aldunelabs.caker.vmnet.host", qos: .userInitiated)
 		self.pidFile = pidFile
-		self.trace = Logger.Level() >= LogLevel.trace
+		self.trace = Logger.Level() >= Logger.LogLevel.trace
 		self.sigcaught = [SIGINT, SIGHUP, SIGQUIT, SIGTERM].map {
 			signal($0, SIG_IGN)
 

@@ -2,6 +2,7 @@ import AppKit
 import Carbon
 import Foundation
 import RoyalVNCKit
+import CakeAgentLib
 
 let kVK_ANSI_Exclam = kVK_ANSI_1
 let kVK_ANSI_Number = kVK_ANSI_3

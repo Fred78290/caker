@@ -1,7 +1,7 @@
 import ArgumentParser
 import CakedLib
 import GRPCLib
-import Logging
+import CakeAgentLib
 
 struct WaitIP: ParsableCommand {
 	static let configuration = WaitIPOptions.configuration

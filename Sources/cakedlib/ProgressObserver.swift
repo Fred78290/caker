@@ -5,6 +5,7 @@
 //  Created by Frederic BOLTZ on 07/01/2026.
 //
 import Foundation
+import CakeAgentLib
 
 public final class ProgressObserver: NSObject, @unchecked Sendable {
 	public enum ProgressValue: Sendable {

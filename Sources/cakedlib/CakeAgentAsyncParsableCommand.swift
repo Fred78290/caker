@@ -3,7 +3,6 @@ import CakeAgentLib
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
 import NIO
 
 public protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
@@ -11,7 +10,7 @@ public protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var createVM: Bool { get }
 	var runMode: Utils.RunMode { get }
 	var options: CakeAgentClientOptions { set get }
-	var logLevel: Logging.Logger.Level { get }
+	var logLevel: Logger.LogLevel { get }
 	var retries: ConnectionBackoff.Retries { get }
 	var callOptions: CallOptions? { get }
 	var interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? { get }

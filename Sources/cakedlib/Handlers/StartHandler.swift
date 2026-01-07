@@ -6,6 +6,7 @@ import NIOPortForwarding
 import Semaphore
 import Shout
 import SystemConfiguration
+import CakeAgentLib
 
 public struct StartHandler {
 	public enum StartMode: Int {

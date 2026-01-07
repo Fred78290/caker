@@ -4,6 +4,7 @@ import Foundation
 import GRPCLib
 import NIO
 import Shout
+import CakeAgentLib
 
 private let cloudInitCleanup = [
 	"systemctl disable cakeagent",

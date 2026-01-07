@@ -1,6 +1,7 @@
 import Foundation
 import GRPCLib
 import NIOCore
+import CakeAgentLib
 
 public struct LaunchHandler {
 	public static func buildAndLaunchVM(runMode: Utils.RunMode, options: BuildOptions, waitIPTimeout: Int, startMode: StartHandler.StartMode) async -> LaunchReply {

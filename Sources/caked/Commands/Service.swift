@@ -1,10 +1,10 @@
 import ArgumentParser
 import CakedLib
+import CakeAgentLib
 import Crypto
 import Foundation
 import GRPC
 import GRPCLib
-import Logging
 import NIOCore
 import NIOPosix
 import NIOSSL
@@ -28,7 +28,7 @@ struct Service: ParsableCommand {
 extension Service {
 	struct ServiceOptions: ParsableArguments {
 		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		var logLevel: Logger.LogLevel = .info
 
 		@Flag(name: [.customLong("system"), .customShort("s")], help: "Install caked as system agent, need sudo")
 		var asSystem: Bool = false
@@ -126,7 +126,7 @@ extension Service {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "caked daemon listening")
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logging.Logger.Level = .info
+		var logLevel: Logger.LogLevel = .info
 
 		@Flag(help: .hidden)
 		var secure: Bool = false
