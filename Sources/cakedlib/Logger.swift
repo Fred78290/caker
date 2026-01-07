@@ -65,18 +65,21 @@ public final class Logger {
 	nonisolated(unsafe) private static var logLevel: Logging.Logger.Level = .info
 	nonisolated(unsafe) private static var intLogLevel = LogLevel.info
 
-	let label = "com.aldunelabs.caker"
-	var logger: Logging.Logger
+	private let label = "com.aldunelabs.caker"
+	private var logger: Logging.Logger
+	private let isTTY: Bool
 
 	public init(_ target: Any) {
 		let thisType = type(of: target)
 		self.logger = Logging.Logger(label: "com.aldunelabs.caker.\(String(describing: thisType))")
 		self.logger.logLevel = Self.logLevel
+		self.isTTY = FileHandle.standardOutput.isTTY()
 	}
 
 	public init(_ label: String) {
 		self.logger = Logging.Logger(label: "com.aldunelabs.caker.\(label)")
 		self.logger.logLevel = Self.logLevel
+		self.isTTY = FileHandle.standardOutput.isTTY()
 	}
 
 	static public func Level() -> LogLevel {
@@ -86,6 +89,7 @@ public final class Logger {
 	static public func LoggingLevel() -> Logging.Logger.Level {
 		Self.logLevel
 	}
+
 	static public func setLevel(_ level: Logging.Logger.Level) {
 		Self.logLevel = level
 		Self.intLogLevel = level.level
@@ -93,19 +97,31 @@ public final class Logger {
 
 	public func error(_ err: Error) {
 		if Self.intLogLevel >= LogLevel.error {
-			logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err.localizedDescription))\u{001B}[0m")
+			if self.isTTY {
+				logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err.localizedDescription))\u{001B}[0m")
+			} else {
+				logger.error(.init(stringLiteral: err.localizedDescription))
+			}
 		}
 	}
 
 	public func error(_ err: String) {
 		if Self.intLogLevel >= LogLevel.error {
-			logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err))\u{001B}[0m")
+			if self.isTTY {
+				logger.error("\u{001B}[0;31m\u{001B}[1m\(String(stringLiteral: err))\u{001B}[0m")
+			} else {
+				logger.error(.init(stringLiteral: err))
+			}
 		}
 	}
 
 	public func warn(_ line: String) {
 		if Self.intLogLevel >= LogLevel.warning {
-			logger.warning("\u{001B}[0;33m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			if self.isTTY {
+				logger.warning("\u{001B}[0;33m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			} else {
+				logger.warning(.init(stringLiteral: line))
+			}
 		}
 	}
 
@@ -117,13 +133,21 @@ public final class Logger {
 
 	public func debug(_ line: String) {
 		if Self.intLogLevel >= LogLevel.debug {
-			logger.debug("\u{001B}[0;32m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			if self.isTTY {
+				logger.debug("\u{001B}[0;32m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			} else {
+				logger.debug(.init(stringLiteral: line))
+			}
 		}
 	}
 
 	public func trace(_ line: String) {
 		if Self.intLogLevel >= LogLevel.trace {
-			logger.trace("\u{001B}[0;34m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			if self.isTTY {
+				logger.trace("\u{001B}[0;34m\u{001B}[1m\(String(stringLiteral: line))\u{001B}[0m")
+			} else {
+				logger.trace(.init(stringLiteral: line))
+			}
 		}
 	}
 
@@ -141,105 +165,5 @@ public final class Logger {
 		}
 
 		print(moveUp, moveBeginningOfLine, eraseCursorDown, line, separator: "", terminator: "\n")
-	}
-}
-
-public final class ProgressObserver: NSObject, @unchecked Sendable {
-	public enum ProgressValue: Sendable {
-		case progress(ProgressHandlerContext, Double)
-		case step(String)
-		case terminated(Result<VMLocation, any Error>, String?)
-	}
-
-	public final class ProgressHandlerContext: @unchecked Sendable {
-		public var oldFractionCompleted: Double = -1
-		public var lastCompleted10: Int
-		public var lastCompleted2: Int
-
-		public init() {
-			self.lastCompleted10 = 0
-			self.lastCompleted2 = 0
-		}
-	}
-
-	public typealias BuildProgressHandler = (ProgressValue) -> Void
-
-	@objc var progress: Progress
-	var observation: NSKeyValueObservation?
-	let progressHandler: BuildProgressHandler?
-
-	public static func progressHandler(_ result: ProgressValue) {
-		if case .progress(let context, let fractionCompleted) = result {
-			let completed = Int(100 * fractionCompleted)
-
-			if completed % 10 == 0 {
-				if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
-					if context.lastCompleted10 == 0 && completed == 100 {
-						print(String(format: "...%0.3d%%", completed), terminator: " complete\n")
-					} else if completed < 100 {
-						print(String(format: "%0.2d%%", completed), terminator: "")
-					} else {
-						print(String(format: "%0.3d%%", completed), terminator: " complete\n")
-					}
-
-					fflush(stdout)
-
-					context.lastCompleted10 = completed
-				}
-			} else if completed % 2 == 0 {
-				if completed - context.lastCompleted2 >= 2 {
-					context.lastCompleted2 = completed
-					print(".", terminator: "")
-					fflush(stdout)
-				}
-			}
-		} else if case .terminated(let result, let message) = result {
-			let logger = Logger("BuildHandler")
-
-			if case .failure(let error) = result {
-				if let message {
-					logger.error("\(message): \(error)")
-				} else {
-					logger.error("Installation failed: \(error)")
-				}
-			} else {
-				logger.info(message ?? "Installation succeeded")
-			}
-		} else if case .step(let message) = result {
-			Logger(self).info(message)
-		}
-	}
-
-	public init(progressHandler: ProgressObserver.BuildProgressHandler?) {
-		self.progress = Progress(totalUnitCount: 100)
-		self.progressHandler = progressHandler
-	}
-
-	public init(totalUnitCount unitCount: Int64) {
-		self.progress = Progress(totalUnitCount: unitCount)
-		self.progressHandler = nil
-	}
-
-	public func log(_ message: String) -> ProgressObserver {
-		if self.progressHandler == nil {
-			print(message + ":", terminator: "")
-		}
-
-		let context: ProgressHandlerContext = .init()
-
-		observation = progress.observe(\.fractionCompleted, options: [.initial, .new, .old]) { (progress, changed) in
-			if context.oldFractionCompleted != progress.fractionCompleted {
-
-				if let progressHandler = self.progressHandler {
-					progressHandler(.progress(context, progress.fractionCompleted))
-				} else {
-					Self.progressHandler(.progress(context, progress.fractionCompleted))
-				}
-
-				context.oldFractionCompleted = progress.fractionCompleted
-			}
-		}
-
-		return self
 	}
 }
