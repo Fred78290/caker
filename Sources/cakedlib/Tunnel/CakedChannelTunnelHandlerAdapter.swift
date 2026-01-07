@@ -1,5 +1,3 @@
-import CakeAgentLib
-import CryptoKit
 //
 //  CakedChannelTunnelHandlerAdapter.swift
 //  Caker
@@ -9,6 +7,8 @@ import CryptoKit
 import Foundation
 import GRPC
 import NIO
+import CakeAgentLib
+import CryptoKit
 
 class CakedChannelTunnelHandlerAdapter: ChannelInboundHandler {
 	public typealias InboundIn = ByteBuffer
