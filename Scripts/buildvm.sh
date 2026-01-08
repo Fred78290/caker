@@ -70,6 +70,7 @@ LXD_IMAGE=ubuntu:noble
 #LXD_IMAGE=images:fedora/41/cloud
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
+DOCKER=NO
 CMD="caked"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
@@ -143,19 +144,21 @@ write_files:
           echo "openstack-dev-k3s-worker-\$SUFFIX" > /etc/hostname
       fi
 
-      if test -n "\$(command -v curl)"
-      then
-          curl -fsSL https://get.docker.com | sh -
-      else
-          wget https://get.docker.com -O | sh -
-      fi
+      if [ "${DOCKER}" == "YES" ]; then
+        if test -n "\$(command -v curl)"
+        then
+            curl -fsSL https://get.docker.com | sh -
+        else
+            wget https://get.docker.com -O | sh -
+        fi
 
-      if test -n "\$(command -v systemctl)"
-      then
-          systemctl enable docker
-          systemctl start docker
-      else
-          service docker start
+        if test -n "\$(command -v systemctl)"
+        then
+            systemctl enable docker
+            systemctl start docker
+        else
+            service docker start
+        fi
       fi
     fi
 
@@ -187,18 +190,24 @@ packages:
 EOF
 fi
 
+COMMON_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --cloud-init=/tmp/user-data.yaml"
 NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --network=shared --network=host --console=file"
 NETWORKS_OPTIONS="--net.ifnames=${NETIFNAMES} --network=nat --network=en0 --console=file"
-#BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~ --network=nat --cloud-init=/tmp/user-data.yaml"
-#BUILD_OPTIONS="--user admin --password admin --clear-password --display-refit --publish 2222:22/tcp --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --network-config=/tmp/network-config.yaml --cloud-init=/tmp/user-data.yaml"
+MOUNT_OPTIONS="--mount=~/Projects --mount=~/Downloads"
+
+if [ "${DOCKER}" == "YES" ]; then
+  FORWARDS_OPTIONS="--dynamic-port-forwarding --publish 2222:22/tcp --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock"
+else
+  FORWARDS_OPTIONS=""
+fi
 
 ${BIN_PATH}/${CMD} delete ${VMNAME} 
 
 if [ -z "${CLOUD_IMAGE}" ]; then
-    BUILD_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit --dynamic-port-forwarding --publish 2222:22/tcp ${NETWORKS_OPTIONS} --publish tcp:~/.docker/run/docker.sock:/var/run/docker.sock --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+    BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
     ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
 else
-    BUILD_OPTIONS="--autostart --user admin --password admin --main-group=${MAINGROUP} --clear-password --display-refit ${NETWORKS_OPTIONS} --cpus=2 --memory=2048 --disk-size=${DISK_SIZE} --nested --ssh-authorized-key=$HOME/.ssh/id_rsa.pub --mount=~/Projects --mount=~/Downloads --cloud-init=/tmp/user-data.yaml"
+    BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
     ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
 
