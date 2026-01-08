@@ -131,15 +131,11 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 
 		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
-		let tlsCert = try NIOSSLCertificate(file: certLocation.clientCertURL.path, format: .pem)
-		let tlsKey = try NIOSSLPrivateKey(file: certLocation.clientKeyURL.path, format: .pem)
-		let trustRoots: NIOSSLTrustRoots = .certificates([try NIOSSLCertificate(file: certLocation.caCertURL.path, format: .pem)])
 
-		clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
-			certificateChain: [.certificate(tlsCert)],
-			privateKey: .privateKey(tlsKey),
-			trustRoots: trustRoots,
-			certificateVerification: .noHostnameVerification)
+		clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
+			caCert: certLocation.caCertURL.path,
+			tlsKey: certLocation.clientKeyURL.path,
+			tlsCert: certLocation.clientCertURL.path)
 
 		if retries != .unlimited {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout, minimumConnectionTimeout: connectionTimeout, retries: retries)
@@ -207,16 +203,9 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 		var serverConfiguration = Server.Configuration.default(target: target, eventLoopGroup: self.group, serviceProviders: [self])
 
-		let tlsCert = try NIOSSLCertificate(file: self.certLocation.serverCertURL.path, format: .pem)
-		let tlsKey = try NIOSSLPrivateKey(file: self.certLocation.serverKeyURL.path, format: .pem)
-		let trustRoots = NIOSSLTrustRoots.certificates([try NIOSSLCertificate(file: self.certLocation.caCertURL.path, format: .pem)])
-
-		serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
-			certificateChain: [.certificate(tlsCert)],
-			privateKey: .privateKey(tlsKey),
-			trustRoots: trustRoots,
-			certificateVerification: CertificateVerification.none,
-			requireALPN: false)
+		serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: self.certLocation.caCertURL.path,
+																								tlsKey: self.certLocation.serverKeyURL.path,
+																								tlsCert: self.certLocation.serverCertURL.path)
 
 		return Server.start(configuration: serverConfiguration)
 	}

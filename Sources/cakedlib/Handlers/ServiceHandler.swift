@@ -86,22 +86,7 @@ public struct ServiceHandler {
 				serviceProviders: serviceProviders)
 
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
-				let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
-				let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
-				let trustRoots: NIOSSLTrustRoots
-
-				if let caCert: String = caCert {
-					trustRoots = .certificates([try NIOSSLCertificate(file: caCert, format: .pem)])
-				} else {
-					trustRoots = NIOSSLTrustRoots.default
-				}
-
-				serverConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeServerConfigurationBackedByNIOSSL(
-					certificateChain: [.certificate(tlsCert)],
-					privateKey: .privateKey(tlsKey),
-					trustRoots: trustRoots,
-					certificateVerification: CertificateVerification.none,
-					requireALPN: false)
+				serverConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeServerConfiguration(caCert: caCert, tlsKey: tlsKey, tlsCert: tlsCert)
 			}
 
 			return Server.start(configuration: serverConfiguration)

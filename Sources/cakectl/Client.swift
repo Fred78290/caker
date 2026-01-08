@@ -250,21 +250,10 @@ struct Client: AsyncParsableCommand {
 			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
 
 			if let tlsCert = tlsCert, let tlsKey = tlsKey {
-				let tlsCert = try NIOSSLCertificate(file: tlsCert, format: .pem)
-				let tlsKey = try NIOSSLPrivateKey(file: tlsKey, format: .pem)
-				let trustRoots: NIOSSLTrustRoots
-
-				if let caCert: String = caCert {
-					trustRoots = .certificates([try NIOSSLCertificate(file: caCert, format: .pem)])
-				} else {
-					trustRoots = NIOSSLTrustRoots.default
-				}
-
-				clientConfiguration.tlsConfiguration = GRPCTLSConfiguration.makeClientConfigurationBackedByNIOSSL(
-					certificateChain: [.certificate(tlsCert)],
-					privateKey: .privateKey(tlsKey),
-					trustRoots: trustRoots,
-					certificateVerification: .noHostnameVerification)
+				clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
+					caCert: caCert,
+					tlsKey: tlsKey,
+					tlsCert: tlsCert)
 			}
 
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
