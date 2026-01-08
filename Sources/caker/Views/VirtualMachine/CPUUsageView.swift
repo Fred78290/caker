@@ -169,7 +169,7 @@ struct CPUUsageView: View {
 
 			self.handleAgentHealthCheckSuccess(info: try helper.info(callOptions: callOptions))
 
-			try helper.currentUsage(frequency: 20, callOptions: CallOptions(timeLimit: .none), continuation: stream.continuation)
+			try helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: stream.continuation)
 
 			continueMonitoring = false
 
