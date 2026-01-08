@@ -63,7 +63,6 @@ struct CPUUsageView: View {
 				.padding(.horizontal, 6)
 				.padding(.vertical, 4)
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
-				.log("CPUUsageView", text: "Update")
 			}
 		}.task {
 			await monitorCurrentUsage()
