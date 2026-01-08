@@ -421,7 +421,7 @@ extension VirtualMachineDocument {
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
 		// Start agent monitoring when VM is running
-		if self.agent == .installed {
+		if self.agent != .none {
 			self.startAgentMonitoring()
 		}
 	}
