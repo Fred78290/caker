@@ -252,7 +252,6 @@ struct HostVirtualMachineView: View {
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
-
 						Button("Settings", systemImage: "gear") {
 							displaySettings = true
 						}
@@ -495,11 +494,13 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
-		if self.document.agent == .installed {
+		if self.document.agent == .installed && document.vmInfos != nil {
 			ExternalVirtualMachineView(document: document, size: size, dismiss: dismiss)
 				.colorPicker(placement: .secondaryAction)
 				.fontPicker(placement: .secondaryAction)
 				.frame(size: size)
+		} else if self.document.agent == .installed {
+			LabelView("Waiting for agent ready...", size: size)
 		} else if self.document.agent == .installing {
 			LabelView("Installing agent...", size: size)
 		} else {

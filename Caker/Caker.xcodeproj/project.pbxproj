@@ -149,6 +149,7 @@
 		9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37752ED4BDA8007B59B0 /* VNC.swift */; };
 		9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */; };
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
+		9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
@@ -655,6 +656,7 @@
 		9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeyMapper.swift; sourceTree = "<group>"; };
 		9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCProtocol.swift; sourceTree = "<group>"; };
 		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
+		9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCTLSConfiguration.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
@@ -1346,17 +1348,18 @@
 		9B464ADB2D5A3E0300164BF5 /* grpc */ = {
 			isa = PBXGroup;
 			children = (
+				9B464AD72D5A3E0300164BF5 /* service.proto */,
+				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
-				9B464AD62D5A3E0300164BF5 /* generate.sh */,
-				9B21ABD12DF4A2C5000B3B40 /* Model */,
-				9BB3BE1C2DB3F17500799A6A /* options */,
+				9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */,
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
-				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
+				9B21ABD12DF4A2C5000B3B40 /* Model */,
+				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
 			path = grpc;
 			sourceTree = "<group>";
@@ -1710,7 +1713,6 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
-				9BF639F62F0E6E4E00FB6155 /* ProgressObserver.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -1726,6 +1728,7 @@
 				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */,
 				9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */,
+				9BF639F62F0E6E4E00FB6155 /* ProgressObserver.swift */,
 				9BEBC7622DF440720092B196 /* ServiceError.swift */,
 				9BEBC7632DF440720092B196 /* Shell.swift */,
 				9BEBC7642DF440720092B196 /* StorageLocation.swift */,
@@ -2261,6 +2264,7 @@
 				9BB3BE272DB3F17500799A6A /* MountOptions.swift in Sources */,
 				9BB3BE282DB3F17500799A6A /* PushOptions.swift in Sources */,
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
+				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
 				9BB3BE2A2DB3F17500799A6A /* WaitIPOptions.swift in Sources */,
 				9BB3BE2B2DB3F17500799A6A /* RenameOptions.swift in Sources */,
 				9BB3BE2C2DB3F17500799A6A /* StopOptions.swift in Sources */,
@@ -3207,7 +3211,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = b2fc26ae43fcdc40c58b7169aa1b66d8084bb2cc;
+				revision = cb8f54d571e908a5a391a6689b0622485c13f8e7;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
