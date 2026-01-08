@@ -226,11 +226,10 @@ struct HostVirtualMachineView: View {
 							},
 							label: {
 								ZStack {
-									Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
-										.opacity(self.appState.isAgentInstalling ? 0 : 1)
-
 									if self.appState.isAgentInstalling {
-										ProgressView().frame(height: 10).scaleEffect(0.5)
+										Image(systemName: "person.badge.clock")
+									} else {
+										Image(systemName: agentCondition.needUpdate ? "person.2.badge.plus" : "person.badge.plus")
 									}
 								}
 							}
