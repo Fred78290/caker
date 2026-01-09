@@ -92,8 +92,16 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 
 class AppState: ObservableObject, Observable {
 	private var agentStatusTimer: Timer?
+	private static var _shared: AppState! = nil
 
-	static var shared = AppState()
+	static var shared: AppState {
+		guard let shared = _shared else {
+			_shared = AppState()
+			return _shared
+		}
+
+		return shared
+	}
 
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
 	@AppStorage("ClipboardRedirectionEnabled") var isClipboardRedirectionEnabled = false

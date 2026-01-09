@@ -82,13 +82,14 @@ struct MainAppParseArgument: ParsableCommand {
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
-	@State var appState = AppState.shared
+	@State var appState: AppState
 	@State var createTemplate = false
 
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
+		self.appState = AppState.shared
 
 		DispatchQueue.main.async {
 			EnvironmentValues().openWindow(id: "home")
