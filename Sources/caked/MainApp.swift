@@ -69,6 +69,12 @@ struct MainApp: App, VirtualMachineDelegate {
 				.frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: .infinity, minHeight: minHeight, idealHeight: idealHeight, maxHeight: .infinity)
 				.toolbar {
 					ToolbarItemGroup(placement: .navigation) {
+						#if DEBUG
+						Button("Screenshot", systemImage: "photo") {
+							self.takeScreenshot()
+						}.help("Take a screenshot")
+						#endif
+
 						if self.appState.status == .running {
 							Button("Stop", systemImage: "stop") {
 								self.requestStopFromUI()
@@ -130,6 +136,9 @@ struct MainApp: App, VirtualMachineDelegate {
 		}
 	}
 
+	func takeScreenshot() {
+		MainApp.vm.takeScreenshot()
+	}
 	func startFromUI() {
 		MainApp.vm.startFromUI()
 	}

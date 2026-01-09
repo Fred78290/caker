@@ -8,6 +8,7 @@ import QuartzCore
 import SwiftUI
 import Virtualization
 import CakeAgentLib
+import Dynamic
 
 @objc protocol _VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafeMutableRawPointer?)
@@ -16,7 +17,42 @@ import CakeAgentLib
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: Any)
 }
 
+
+extension VZGraphicsDisplay {
+	typealias TakeScreenshotCompletionBlock = @convention(block) (_ result: NSImage) -> Void
+
+	func takeScreenshot(completionHandler: @escaping (NSImage) -> Void) {
+		Dynamic(self)._takeScreenshot(withCompletionHandler: { value in
+			completionHandler(value)
+		} as TakeScreenshotCompletionBlock)
+	}
+}
+
 extension VZVirtualMachineView {
+	public func takeScreenshot(completionHandler: @escaping (NSObject) -> Void) {
+		self.graphicsDisplay?.takeScreenshot(completionHandler: completionHandler)
+	}
+
+	public var graphicsDisplay: VZGraphicsDisplay? {
+		guard let prop = class_getProperty(VZVirtualMachineView.self, "_graphicsDisplay") else {
+			return nil
+		}
+		
+		let cname = property_getName(prop) // UnsafePointer<CChar>
+		let name = String(cString: cname)
+
+		// Often, the backing ivar is "_\(name)"
+		guard let ivar = class_getInstanceVariable(VZVirtualMachineView.self, name) else {
+			return nil
+		}
+
+		guard let value = object_getIvar(self, ivar) as? VZGraphicsDisplay else {
+			return nil
+		}
+
+		return value
+	}
+
 	public var framebufferView: NSView? {
 		guard let field = class_getInstanceVariable(VZVirtualMachineView.self, "_framebufferView") else {
 			return nil
