@@ -58,6 +58,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu-desktop-25.10"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

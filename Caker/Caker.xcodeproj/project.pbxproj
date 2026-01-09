@@ -3187,7 +3187,7 @@
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = 7f7541ae0c0ab9835b964f0d4c913bc3ce68833b;
+				revision = 5e9b2e31fc893021c7d081c4b52bf383fc654a80;
 			};
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
@@ -3211,7 +3211,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = cb8f54d571e908a5a391a6689b0622485c13f8e7;
+				revision = 2c1f920898d765ffc35d55a4b334630b2abf6222;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
