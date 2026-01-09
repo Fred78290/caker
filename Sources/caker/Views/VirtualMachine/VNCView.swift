@@ -60,7 +60,7 @@ struct VNCView: NSViewRepresentable {
 		self.document.vncView = view
 
 		#if DEBUG
-			self.logger.debug("makeNSView: \(view.frame), \(framebuffer.cgSize)")
+			self.logger.trace("makeNSView: \(view.frame), \(framebuffer.cgSize)")
 		#endif
 
 		return view
@@ -87,9 +87,9 @@ struct VNCView: NSViewRepresentable {
 		#if DEBUG
 			if nsView.isLiveViewResize == false {
 				if let connection = self.document.connection, let framebuffer = connection.framebuffer {
-					self.logger.debug("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
+					self.logger.trace("updateNSView: \(nsView.frame), framebuffer: \(framebuffer.cgSize)")
 				} else {
-					self.logger.debug("updateNSView: \(nsView.frame), framebuffer: nil")
+					self.logger.trace("updateNSView: \(nsView.frame), framebuffer: nil")
 				}
 			}
 		#endif

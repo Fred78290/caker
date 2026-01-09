@@ -118,6 +118,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VZVirtualMachineView! = nil
 	var timer: Timer? = nil
+	let logger = Logger("VirtualMachineEnvironment")
 
 	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
@@ -231,7 +232,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 																			 forwardedPorts: self.config.forwardedPorts,
 																			 dynamicPortForwarding: config.dynamicPortForwarding)
 			} catch {
-				Logger(self).error(error)
+				self.logger.error(error)
 			}
 		}
 	}
@@ -239,13 +240,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	func startCommunicationDevices(_ virtualMachine: VZVirtualMachine) {
 		if let communicationDevices = self.communicationDevices {
 			communicationDevices.connect(virtualMachine: virtualMachine)
-			Logger(self).info("Communication devices \(self.location.name) connected")
+			self.logger.info("Communication devices \(self.location.name) connected")
 		}
 	}
 
 	func stopCommunicationDevices() {
 		if let communicationDevices = self.communicationDevices {
-			Logger(self).info("Close communication devices for VM \(self.location.name)")
+			self.logger.info("Close communication devices for VM \(self.location.name)")
 			communicationDevices.close()
 		}
 	}
@@ -256,7 +257,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 
 	func stopVMRunService() {
 		if let service = self.vmrunService {
-			Logger(self).info("Stopping infos service for VM \(self.location.name)...")
+			self.logger.info("Stopping infos service for VM \(self.location.name)...")
 			service.stop()
 		}
 	}
@@ -294,7 +295,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 
 	func signalStop() {
-		Logger(self).info("Signal VM \(self.location.name) stopped...")
+		self.logger.info("Signal VM \(self.location.name) stopped...")
 		stopServices()
 
 		if self.requestStopFromUIPending == false {
@@ -338,6 +339,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
+	private let logger = Logger("VirtualMachine")
 
 	public var suspendable: Bool {
 		return self.config.suspendable
@@ -425,7 +427,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		#if arch(arm64)
 			if #available(macOS 14, *) {
 				if FileManager.default.fileExists(atPath: location.stateURL.path) {
-					Logger(self).info("Restore VM \(self.location.name) snapshot...")
+					self.logger.info("Restore VM \(self.location.name) snapshot...")
 
 					try await virtualMachine.restoreMachineStateFrom(url: location.stateURL)
 					try FileManager.default.removeItem(at: location.stateURL)
@@ -435,14 +437,14 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			}
 
 			if resumeVM {
-				Logger(self).info("Resume VM \(self.location.name)...")
+				self.logger.info("Resume VM \(self.location.name)...")
 				self.resumeVM(completionHandler: completionHandler)
 			} else {
-				Logger(self).info("Start VM \(self.location.name)...")
+				self.logger.info("Start VM \(self.location.name)...")
 				self.startVM(completionHandler: completionHandler)
 			}
 		#else
-			Logger(self).info("Start VM \(self.location.name)...")
+			self.logger.info("Start VM \(self.location.name)...")
 			self.startVM(completionHandler: completionHandler)
 		#endif
 
@@ -450,12 +452,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 		if Task.isCancelled {
 			if virtualMachine.state == VZVirtualMachine.State.running {
-				Logger(self).info("Stopping VM \(self.location.name)...")
+				self.logger.info("Stopping VM \(self.location.name)...")
 				self.stopVM()
 			}
 		}
 
-		Logger(self).info("VM \(self.location.name) exited")
+		self.logger.info("VM \(self.location.name) exited")
 	}
 
 	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
@@ -465,12 +467,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 		switch result {
 		case .success:
-			Logger(self).info("VM \(self.location.name) started")
+			self.logger.info("VM \(self.location.name) started")
 			self.env.timer = self.startScreenshotTimer()
 			self.env.startCommunicationDevices(self.virtualMachine)
 			break
 		case .failure(let error):
-			Logger(self).error("VM \(self.location.name) failed to start: \(error)")
+			self.logger.error("VM \(self.location.name) failed to start: \(error)")
 		}
 
 		if let completionHandler: VirtualMachine.StartCompletionHandler = completionHandler {
@@ -508,13 +510,19 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return self.env.vncServer.connectionURL()
 	}
 
+	public func takeScreenshot() {
+		self.env.vzMachineView?.takeScreenshot { obj in
+			print(String(describing: obj))
+		}
+	}
+
 	public func startFromUI() {
 		self.vmQueue.async {
 			self.virtualMachine.start { result in
 				self.startCompletionHandler(result: result) { result in
 					if case .success = result {
 						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
-							Logger(self).error("VM \(self.location.name) failed to get primary IP")
+							self.logger.error("VM \(self.location.name) failed to get primary IP")
 							return
 						}
 					}
@@ -548,9 +556,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			let pauseVM = {
 				self.virtualMachine.pause { result in
 					if case .failure(let err) = result {
-						Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
+						self.logger.error("Failed to pause VM \(self.location.name) \(err)")
 					} else {
-						Logger(self).info("VM \(self.location.name) paused")
+						self.logger.info("VM \(self.location.name) paused")
 
 						self.env.stopServices()
 
@@ -574,12 +582,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						self.virtualMachine.pause { result in
 
 							if case .failure(let err) = result {
-								Logger(self).error("Failed to pause VM \(self.location.name) \(err)")
+								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
 								if let completionHandler = completionHandler {
 									completionHandler(result)
 								}
 							} else {
-								Logger(self).info("VM \(self.location.name) paused")
+								self.logger.info("VM \(self.location.name) paused")
 
 								self.env.stopServices()
 
@@ -592,7 +600,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 											completionHandler(.failure(error))
 										}
 									} else {
-										Logger(self).info("Snap created successfully...")
+										self.logger.info("Snap created successfully...")
 
 										if let completionHandler = completionHandler {
 											completionHandler(.success(()))
@@ -604,7 +612,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 							self.didChangedState()
 						}
 					} catch {
-						Logger(self).warn("Snapshot is only supported on macOS 14 or newer")
+						self.logger.warn("Snapshot is only supported on macOS 14 or newer")
 
 						if let completionHandler = completionHandler {
 							completionHandler(.failure(error))
@@ -628,7 +636,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	public func resumeVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canResume {
-				Logger(self).info("VM \(self.location.name) can resume")
+				self.logger.info("VM \(self.location.name) can resume")
 
 				self.virtualMachine.resume { result in
 					self.startCompletionHandler(result: result, completionHandler: completionHandler)
@@ -642,9 +650,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 		self.virtualMachine.stop { error in
 			if let error = error {
-				Logger(self).error("VM \(self.location.name) failed to stop, \(error)")
+				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
 			} else {
-				Logger(self).info("VM \(self.location.name) stopped")
+				self.logger.info("VM \(self.location.name) stopped")
 
 				self.location.removePID()
 			}
@@ -676,7 +684,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 	func setScreenSize(width: Int, height: Int) {
 		guard width != 0 && height != 0 else {
-			Logger(self).info("Try resizing screen to zero size, but nothing to do.")
+			self.logger.info("Try resizing screen to zero size, but nothing to do.")
 			return
 		}
 
@@ -752,12 +760,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		try? self.saveScreenshot()
 
 		if self.virtualMachine.canRequestStop {
-			Logger(self).info("Requesting stop VM \(self.location.name)...")
+			self.logger.info("Requesting stop VM \(self.location.name)...")
 			try self.virtualMachine.requestStop()
 			self.didChangedState()
 		} else if self.virtualMachine.canStop {
 			self.virtualMachine.stop { result in
-				Logger(self).info("VM \(self.location.name) stopped")
+				self.logger.info("VM \(self.location.name) stopped")
 
 				self.env.stopServices()
 				self.didChangedState()
@@ -767,7 +775,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				}
 			}
 		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
-			Logger(self).error("VM \(self.location.name) can't be stopped")
+			self.logger.error("VM \(self.location.name) can't be stopped")
 
 			if self.env.runMode != .app {
 				throw ExitCode(EXIT_FAILURE)
@@ -824,7 +832,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						let config = self.config
 
 						guard let runningIP = runningIP else {
-							Logger(self).error("VM \(self.location.name) failed to get primary IP")
+							self.logger.error("VM \(self.location.name) failed to get primary IP")
 							return false
 						}
 
@@ -873,7 +881,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						do {
 							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
 						} catch {
-							Logger(self).error("VM \(self.location.name) failed to install agent: \(error)")
+							self.logger.error("VM \(self.location.name) failed to install agent: \(error)")
 						}
 					}
 				}
@@ -898,7 +906,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 				self.location.vmInfos(runMode: runMode) { result in
 					switch result {
 					case .failure(let error):
-						Logger(self).error("VM \(self.location.name) failed to get vm infos: \(error)")
+						self.logger.error("VM \(self.location.name) failed to get vm infos: \(error)")
 					case .success(let infos):
 						config.osName = infos.osname
 						config.osRelease = infos.release
@@ -921,7 +929,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 			self.didChangedState()
 
-			Logger(self).error("VM \(self.location.name) failed to get primary IP: \(error)")
+			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
 		}
 
 		return response
@@ -954,17 +962,17 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	public func guestDidStop(_ virtualMachine: VZVirtualMachine) {
-		Logger(self).info("VM \(self.location.name) stopped")
+		self.logger.info("VM \(self.location.name) stopped")
 		self.didChangedStateOnStop()
 	}
 
 	public func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
-		Logger(self).error(error)
+		self.logger.error(error)
 		self.didChangedStateOnStop()
 	}
 
 	public func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
-		Logger(self).error(error)
+		self.logger.error(error)
 	}
 
 	func didChangedStateOnStop() {

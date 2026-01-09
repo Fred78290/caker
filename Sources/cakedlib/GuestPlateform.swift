@@ -36,7 +36,7 @@ struct LinuxPlateform: GuestPlateForm {
 		let result: VZVirtioGraphicsDeviceConfiguration = VZVirtioGraphicsDeviceConfiguration()
 
 		#if DEBUG
-			Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+			Logger(self).trace("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
 		#endif
 
 		result.scanouts = [
@@ -88,8 +88,9 @@ struct LinuxPlateform: GuestPlateForm {
 
 			if let hostMainScreen = NSScreen.main {
 				let vmScreenSize = NSSize(width: screenSize.width, height: screenSize.height)
-
-				Logger(self).debug("Create graphics device configuration for \(vmScreenSize.width)x\(vmScreenSize.height)")
+				#if DEBUG
+					Logger(self).trace("Create graphics device configuration for \(vmScreenSize.width)x\(vmScreenSize.height)")
+				#endif
 
 				result.displays = [
 					VZMacGraphicsDisplayConfiguration(for: hostMainScreen, sizeInPoints: vmScreenSize)
@@ -99,7 +100,7 @@ struct LinuxPlateform: GuestPlateForm {
 			}
 
 			#if DEBUG
-				Logger(self).debug("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
+				Logger(self).trace("Create graphics device configuration for \(screenSize.width)x\(screenSize.height)")
 			#endif
 
 			result.displays = [

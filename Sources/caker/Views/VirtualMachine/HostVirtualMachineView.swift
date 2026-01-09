@@ -29,7 +29,7 @@ extension View {
 
 	func frame(_ label: String = "View", minSize: CGSize, idealSize: CGSize) -> some View {
 		#if DEBUG
-			Logger(label).debug("frame(minSize: \(minSize), idealSize: \(idealSize))")
+			Logger(label).trace("frame(minSize: \(minSize), idealSize: \(idealSize))")
 		#endif
 
 		return frame(minWidth: minSize.width, idealWidth: idealSize.width, maxWidth: .infinity, minHeight: minSize.height, idealHeight: idealSize.height, maxHeight: .infinity)
@@ -37,7 +37,7 @@ extension View {
 
 	func frame(_ label: String = "View", minSize: CGSize) -> some View {
 		#if DEBUG
-			Logger(label).debug("frame(minSize: \(minSize)")
+			Logger(label).trace("frame(minSize: \(minSize)")
 		#endif
 
 		return frame(minWidth: minSize.width, maxWidth: .infinity, minHeight: minSize.height, maxHeight: .infinity)
@@ -103,7 +103,7 @@ struct HostVirtualMachineView: View {
 			let view = vmView(geom.size)
 				.windowAccessor($window) {
 					#if DEBUG
-						self.logger.debug("\(self.id) Attaching window accessor: \(String(describing: $0))")
+						self.logger.trace("\(self.id) Attaching window accessor: \(String(describing: $0))")
 					#endif
 
 					if let window = $0 {
@@ -279,7 +279,7 @@ struct HostVirtualMachineView: View {
 	func setContentSize(_ size: CGSize, animated: Bool) {
 		if let window = self.window {
 			#if DEBUG
-				self.logger.debug("\(self.id) Resize window: \(size)")
+				self.logger.trace("\(self.id) Resize window: \(size)")
 			#endif
 
 			self.needsResize = false
