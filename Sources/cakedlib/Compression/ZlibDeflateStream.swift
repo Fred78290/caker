@@ -65,7 +65,7 @@ final class ZlibDeflateStream: ZlibStream {
 
 	func compressedData(data: Data, offset: Int, length: Int, flush: ZlibFlush = .finish) throws -> Data {
 		var flush = flush
-		var mutableData = data
+		//var mutableData = data
 		let expectedCompressedSize: UInt = UInt(length + ((length + 99) / 100) + 12)
 		var output = Data(count: .init(expectedCompressedSize))
 
@@ -73,7 +73,8 @@ final class ZlibDeflateStream: ZlibStream {
 			throw ZlibError.dataError(message: "Out of bounds")
 		}
 
-		let written = try mutableData.withUnsafeMutableBytes { inputPtr in
+		let written = try data.withUnsafeBytes { inputPtr in
+		//let written = try mutableData.withUnsafeMutableBytes { inputPtr in
 			let inputBytes = inputPtr.baseAddress!.assumingMemoryBound(to: Bytef.self).advanced(by: offset)
 
 			return try output.withUnsafeMutableBytes { outPtr in
@@ -81,7 +82,7 @@ final class ZlibDeflateStream: ZlibStream {
 
 				self.totalOut = 0
 				self.totalIn = 0
-				self.nextIn = inputBytes
+				self.nextIn = UnsafeMutablePointer(mutating: inputBytes)
 				self.availIn = .init(length)
 				self.availOut = 0
 				self.dataType = Z_BINARY
