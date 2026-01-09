@@ -111,7 +111,7 @@ class SocketState {
 		}
 
 		#if DEBUG
-			Logger(self).debug("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
+			Logger(self).trace("Socket connection on \(self.description) via fd:\(fd) is closed by remote")
 		#endif
 
 		return connection.channel
@@ -127,7 +127,9 @@ class SocketState {
 
 		return self.connections.compactMap { connection in
 			if connection.haveBeenDisconnected() {
-				Logger(self).info("Socket connection on \(self.description) was closed by remote")
+				#if DEBUG
+					Logger(self).trace("Socket connection on \(self.description) was closed by remote")
+				#endif
 
 				return connection.channel
 			}
@@ -195,7 +197,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 	func closedByRemote(port: Int, fd: Int32) {
 		#if DEBUG
-			Logger(self).debug("Closed socket connection on port:\(port) via fd:\(fd) is closed by remote")
+			Logger(self).trace("Closed socket connection on port:\(port) via fd:\(fd) is closed by remote")
 		#endif
 
 		if let socket = sockets[port] {
@@ -223,7 +225,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		-> EventLoopFuture<Void>
 	{
 		#if DEBUG
-			Logger(self).debug("Guest connected on \(socket.description) via fd:\(connection.fileDescriptor)")
+			Logger(self).trace("Guest connected on \(socket.description) via fd:\(connection.fileDescriptor)")
 		#endif
 
 		let bootstrap = NIOPipeBootstrap(group: inboundChannel.eventLoop)
@@ -271,7 +273,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 				socket.addNewConnection(EstablishedConnection(connection: connection, channel: inboundChannel))
 
 				#if DEBUG
-					Logger(self).debug("Host connected on \(socket.description) via fd:\(connection.fileDescriptor)")
+					Logger(self).trace("Host connected on \(socket.description) via fd:\(connection.fileDescriptor)")
 				#endif
 
 				do {
@@ -402,7 +404,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 							case .success(let channel):
 								self.channels.append(channel)
 								#if DEBUG
-									Logger(self).debug("Socket device connected on \(socket.description)")
+									Logger(self).trace("Socket device connected on \(socket.description)")
 								#endif
 							case .failure(let error):
 								Logger(self).error("Failed to connect socket device on \(socket.description), \(error)")
@@ -421,13 +423,13 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		from socketDevice: VZVirtioSocketDevice
 	) -> Bool {
 		#if DEBUG
-			Logger(self).debug("Socket device connection on port:\(connection.destinationPort) via fd:\(connection.fileDescriptor) should be accepted")
+			Logger(self).trace("Socket device connection on port:\(connection.destinationPort) via fd:\(connection.fileDescriptor) should be accepted")
 		#endif
 
 		// The connection is initiated by the guest
 		guard let socket = sockets[Int(connection.destinationPort)] else {
 			#if DEBUG
-				Logger(self).debug("Unbound socket port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
+				Logger(self).trace("Unbound socket port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
 			#endif
 			// Unbound socket port
 			return false
@@ -435,7 +437,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 		if socket.mode == .connect {
 			do {
-				Logger(self).debug("Connect to the unix socket:\(socket.description) via fd:\(connection.fileDescriptor)")
+				Logger(self).trace("Connect to the unix socket:\(socket.description) via fd:\(connection.fileDescriptor)")
 				// Connect to the unix socket
 				return try self.queue.sync {
 					let channel = try ClientBootstrap(group: mainGroup)
@@ -459,7 +461,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 		} else if socket.mode == .fd {
 			// The connection is initiated by the guest
 			#if DEBUG
-				Logger(self).debug("Connect to the host file descriptor:\(socket.description) via fd:\(connection.fileDescriptor)")
+				Logger(self).trace("Connect to the host file descriptor:\(socket.description) via fd:\(connection.fileDescriptor)")
 			#endif
 
 			do {
@@ -487,7 +489,7 @@ class VirtioSocketDevices: NSObject, VZVirtioSocketListenerDelegate, CatchRemote
 
 		} else {
 			#if DEBUG
-				Logger(self).debug("Assume the connection is possible in bind mode on \(socket.description), port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
+				Logger(self).trace("Assume the connection is possible in bind mode on \(socket.description), port:\(connection.destinationPort) via fd:\(connection.fileDescriptor)")
 			#endif
 		}
 
