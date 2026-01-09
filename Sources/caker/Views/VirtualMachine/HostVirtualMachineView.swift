@@ -246,8 +246,7 @@ struct HostVirtualMachineView: View {
 
 					if document.status == .running && document.vmInfos != nil {
 						ToolbarItemGroup(placement: .status) {
-							// CPU Usage Status Bar
-							CPUUsageView(name: document.name)
+							CPUUsageView(name: document.name, firstIP: document.vmInfos?.ipaddresses.first)
 						}
 					}
 

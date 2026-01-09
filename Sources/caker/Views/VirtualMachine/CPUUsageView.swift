@@ -11,27 +11,45 @@ import GRPC
 import GRPCLib
 import SwiftUI
 import SwiftletUtilities
+import NIO
 
 struct CPUUsageView: View {
-	let name: String
+	private let name: String
+	private let firstIP: String?
+	private let eventLoop: EventLoop
 
-	@StateObject private var vmInfos = VirtualMachineInformations()
+	@State private var cpuInfos = CpuInfos()
 	#if DEBUG
 		private let logger = Logger("CPUUsageView")
 	#endif
 
+	init(name: String, firstIP: String?) {
+		self.name = name
+		self.firstIP = firstIP
+		self.eventLoop = Utilities.group.next()
+	}
+
 	var body: some View {
 		HStack {
-			if vmInfos.cpuInfos.cores.isEmpty {
-				EmptyView()
-					.padding(.horizontal, 6)
-					.padding(.vertical, 4)
-					.help("CPU usage unavailable")
+			if cpuInfos.cores.isEmpty {
+				if let firstIP = self.firstIP {
+					HStack(spacing: 2) {
+						Image(systemName: "network")
+							.foregroundColor(.secondary)
+							.font(.caption)
+						Text(firstIP)
+							.foregroundColor(.secondary)
+							.font(.caption)
+					}.help("CPU usage unavailable")
+				} else {
+					EmptyView()
+						.padding(.horizontal, 6)
+						.padding(.vertical, 4)
+						.help("CPU usage unavailable")
+				}
 			} else {
-				let cpuInfos = vmInfos.cpuInfos
-
 				HStack(spacing: 2) {
-					if let firstIP = vmInfos.ipaddresses?.first {
+					if let firstIP = firstIP {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
 							.font(.caption)
@@ -46,7 +64,7 @@ struct CPUUsageView: View {
 					// Vertical bars for each CPU core
 					HStack(spacing: 1) {
 						GeometryReader { proxy in
-							ForEach(Array(cpuInfos.cores.enumerated()), id: \.offset) { index, core in
+							ForEach(Array(self.cpuInfos.cores.enumerated()), id: \.offset) { index, core in
 								let height = proxy.size.height * core.usagePercent / 100
 								
 								Rectangle()
@@ -70,6 +88,12 @@ struct CPUUsageView: View {
 	}
 
 	func monitorCurrentUsage() async {
+		#if DEBUG
+		let debugLogger = self.logger
+
+		debugLogger.debug("Start monitoring current CPU usage, VM: \(self.name)")
+		#endif
+
 		let stream = AsyncStream.makeStream(of: CakeAgent.CurrentUsageReply.self)
 
 		await withTaskCancellationHandler(operation: {
@@ -79,51 +103,42 @@ struct CPUUsageView: View {
 				isWaitingForAgent = await self.performAgentHealthCheck(stream: stream)
 
 				if isWaitingForAgent {
+					#if DEBUG
+						debugLogger.debug("Monitoring agent not ready, VM: \(self.name), waiting...")
+					#endif
 					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
 			}
 		}, onCancel: {
+		#if DEBUG
+			debugLogger.debug("Monitoring canceled, VM: \(self.name)")
+		#endif
 			stream.continuation.finish()
 		})
 	}
 
-	static func createHelper(name: String) throws -> CakeAgentHelper {
-		let eventLoop = Utilities.group.next()
+	func createHelper() throws -> CakeAgentHelper {
 		let client = try Utilities.createCakeAgentClient(
-			on: eventLoop,
+			on: self.eventLoop,
 			runMode: .app,
 			name: name,
 			connectionTimeout: 5,
 			retries: .upTo(1)
 		)
 
-		return CakeAgentHelper(on: eventLoop, client: client)
+		return CakeAgentHelper(on: self.eventLoop.next(), client: client)
 	}
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-		self.vmInfos.update(from: usage)
-	}
-
-	@MainActor
-	private func handleAgentHealthCheckSuccess(info: InfoReply) {
-		// Agent is responding - optionally update VM info if needed
-		// For example, you could update IP addresses or system info
-		#if DEBUG
-			self.logger.debug("Agent monitoring: VM \(self.name) is healthy, uptime: \(info.uptime ?? 0)s")
-		#endif
-
-		self.vmInfos.update(from: info)
-
-		// Update IP addresses if they changed
-		#if DEBUG
-			if let firstIP = info.ipaddresses.first {
-				self.logger.debug("VM \(self.name) current IP address: \(firstIP)")
-			}
-		#endif
+		self.cpuInfos.update(from: usage.cpuInfos)
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error, continueMonitoring: Bool) -> Bool {
+#if DEBUG
+		self.logger.debug("Agent monitoring: VM \(self.name) is not ready")
+#endif
+
 		func handleGrpcStatus(_ grpcError: GRPCStatus) {
 			switch grpcError.code {
 			case .unavailable:
@@ -160,16 +175,17 @@ struct CPUUsageView: View {
 		var continueMonitoring = true
 
 		do {
-			let callOptions = CallOptions(timeLimit: .timeout(.seconds(10)))
-			let helper = try Self.createHelper(name: self.name)
+			let helper = try self.createHelper()
 
 			defer {
 				try? helper.closeSync()
 			}
 
-			self.handleAgentHealthCheckSuccess(info: try helper.info(callOptions: callOptions))
-
 			try helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: stream.continuation)
+
+#if DEBUG
+			self.logger.debug("Agent monitoring: VM \(self.name) is ready")
+#endif
 
 			continueMonitoring = false
 
@@ -177,6 +193,9 @@ struct CPUUsageView: View {
 				self.handleAgentHealthCurrentUsage(usage: currentUsage)
 			}
 
+			#if DEBUG
+				self.logger.debug("Exit agent monitoring: VM \(self.name)")
+			#endif
 		} catch {
 			return handleAgentHealthCheckFailure(error: error, continueMonitoring: continueMonitoring)
 		}
