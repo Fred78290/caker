@@ -1112,7 +1112,7 @@ extension VirtualMachineDocument {
 		// Create a short-lived client for the health check
 		let eventLoop = Utilities.group.next()
 		let client = try Utilities.createCakeAgentClient(
-			on: eventLoop,
+			on: eventLoop.next(),
 			runMode: .app,
 			name: self.name,
 			connectionTimeout: connectionTimeout,
@@ -1157,6 +1157,10 @@ extension VirtualMachineDocument {
 		#endif
 
 		self.vmInfos = .init(from: infos)
+
+		if let firstIP = self.vmInfos!.ipaddresses.first {
+			self.logger.debug("VM \(self.name) is ready with IP: \(firstIP)")
+		}
 
 		if infos.agentVersion.isEmpty == false && infos.agentVersion.contains(CAKEAGENT_SNAPSHOT) == false {
 			#if DEBUG
