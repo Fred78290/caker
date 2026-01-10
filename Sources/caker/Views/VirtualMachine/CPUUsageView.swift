@@ -19,6 +19,7 @@ struct CPUUsageView: View {
 	private let eventLoop: EventLoop
 
 	@State private var cpuInfos = CpuInfos()
+	@State private var monitoringTask: Task<Void, Never>? = nil
 	#if DEBUG
 		private let logger = Logger("CPUUsageView")
 	#endif
@@ -82,8 +83,18 @@ struct CPUUsageView: View {
 				.padding(.vertical, 4)
 				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
 			}
-		}.task {
-			await monitorCurrentUsage()
+		}
+		.task {
+			// Cancel any existing monitoring task before starting a new one
+			monitoringTask?.cancel()
+			monitoringTask = Task.detached(name: "cpuUsageMonitor-\(self.name)", priority: .background) {
+				await monitorCurrentUsage()
+			}
+		}
+		.onDisappear {
+			// Cancel monitoring when the view disappears
+			monitoringTask?.cancel()
+			monitoringTask = nil
 		}
 	}
 
@@ -203,3 +214,4 @@ struct CPUUsageView: View {
 		return false
 	}
 }
+
