@@ -15,11 +15,13 @@ typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (stream: AsyncThrowing
 
 final class CPUUsageMonitor: ObservableObject, Observable {
 	@Published var cpuInfos = CpuInfos()
+	@Published var memoryInfos = MemoryInfo()
 
 	private let name: String
 	private let taskQueue = TaskQueue()
 	private let eventLoop: EventLoop
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
+	private var helper: CakeAgentHelper! = nil
 
 #if DEBUG
 	private let logger = Logger("CPUUsageMonitor")
@@ -39,6 +41,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	}
 
 	func cancel() {
+		try? helper?.close().wait()
 		taskQueue.close()
 	}
 
@@ -51,14 +54,20 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 
 		await withTaskCancellationHandler(operation: {
 			while Task.isCancelled == false {
-				self.stream = self.performAgentHealthCheck()
-
 				do {
+					self.helper = try self.createHelper()
+					self.stream = self.performAgentHealthCheck(helper: self.helper)
+
 					for try await currentUsage in stream!.stream {
 						await self.handleAgentHealthCurrentUsage(usage: currentUsage)
 					}
+
+					try? await helper?.close().get()
 				} catch {
+					try? await helper?.close().get()
+
 					self.stream = nil
+					self.helper = nil
 
 					guard self.handleAgentHealthCheckFailure(error: error) else {
 						return
@@ -80,11 +89,13 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
 		self.cpuInfos.update(from: usage.cpuInfos)
+		self.memoryInfos.update(infos: usage.memory)
 	}
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: InfoReply) {
 		self.cpuInfos.update(from: usage.cpuInfo)
+		self.memoryInfos.update(infos: usage.memory)
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
@@ -136,66 +147,16 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		return CakeAgentHelper(on: self.eventLoop, client: client)
 	}
 
-	private func performAgentHealthCheck() -> AsyncThrowingStreamCakeAgentCurrentUsageReply {
+	private func performAgentHealthCheck(helper: CakeAgentHelper) -> AsyncThrowingStreamCakeAgentCurrentUsageReply {
 		return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation) in
-			let stream: CakeAgentCurrentUsageStream
-			let name = self.name
-			let logger = self.logger
-
 			do {
-				let helper = try self.createHelper()
-
-				defer {
-					helper.close(promise: self.eventLoop.makePromise())
-				}
-
 				let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
 				DispatchQueue.main.sync {
 					self.handleAgentHealthCurrentUsage(usage: infos)
 				}
 
-				try helper.currentUsage(frequency: 1) { reply in
-					continuation.yield(reply)
-				}
-				//helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
-
-				/*stream = helper.client.currentUsage(CakeAgent.CurrentUsageRequest.with { $0.frequency = 1 }, callOptions: CallOptions(timeLimit: .none)) { reply in
-					continuation.yield(reply)
-				}
-				
-				let subchannel = try stream.subchannel.wait()
-				
-				continuation.onTermination = { _ in
-					continuation.onTermination = nil
-					subchannel.close(promise: nil)
-				}
-				
-#if DEBUG
-				self.logger.debug("Agent monitoring: VM \(self.name) is ready")
-#endif
-
-				stream.status.whenComplete { result in
-					continuation.onTermination = nil
-
-					switch result {
-					case .failure(let err):
-#if DEBUG
-						logger.debug("Exit agent monitoring VM \(name) on error: \(err)")
-#endif
-
-						subchannel.close(promise: nil)
-						continuation.finish(throwing: err)
-					case .success(let status):
-#if DEBUG
-						logger.debug("Exit agent monitoring: VM \(name) code: \(status.code)")
-#endif
-						if status.code != .ok {
-							subchannel.close(promise: nil)
-							continuation.finish(throwing: status)
-						}
-					}
-				}*/
+				helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
 			} catch {
 				continuation.finish(throwing: error)
 			}
