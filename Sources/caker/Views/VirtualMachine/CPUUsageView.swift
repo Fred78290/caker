@@ -18,7 +18,7 @@ struct CPUUsageView: View {
 	private let firstIP: String?
 	private let eventLoop: EventLoop
 
-	@State private var cpuInfos = CpuInfos()
+	//@State private var cpuInfos = CpuInfos()
 	@State private var monitoringTask: CPUUsageMonitor? = nil
 	#if DEBUG
 		private let logger = Logger("CPUUsageView")
@@ -32,7 +32,9 @@ struct CPUUsageView: View {
 
 	var body: some View {
 		HStack {
-			if cpuInfos.cores.isEmpty {
+			let cores = (monitoringTask != nil) ? monitoringTask!.cpuInfos.cores : []
+
+			if cores.isEmpty {
 				if let firstIP = self.firstIP {
 					HStack(spacing: 2) {
 						Image(systemName: "network")
@@ -65,7 +67,7 @@ struct CPUUsageView: View {
 					// Vertical bars for each CPU core
 					HStack(spacing: 1) {
 						GeometryReader { proxy in
-							ForEach(Array(self.cpuInfos.cores.enumerated()), id: \.offset) { index, core in
+							ForEach(Array(cores.enumerated()), id: \.offset) { index, core in
 								let height = proxy.size.height * core.usagePercent / 100
 								
 								Rectangle()
@@ -76,12 +78,12 @@ struct CPUUsageView: View {
 							}
 						}
 						.foregroundColor(Color.systemGray)
-						.frame(width: CGFloat(cpuInfos.cores.count * 8))
+						.frame(width: CGFloat(cores.count * 8))
 					}
 				}
 				.padding(.horizontal, 6)
 				.padding(.vertical, 4)
-				.help("CPU Cores Usage (\(cpuInfos.cores.count) cores total)")
+				.help("CPU Cores Usage (\(cores.count) cores total)")
 			}
 		}
 		.task {
@@ -141,7 +143,7 @@ struct CPUUsageView: View {
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-		self.cpuInfos.update(from: usage.cpuInfos)
+		//self.cpuInfos.update(from: usage.cpuInfos)
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error, continueMonitoring: Bool) -> Bool {
