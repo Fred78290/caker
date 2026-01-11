@@ -49,6 +49,39 @@ final class CoreInfo: ObservableObject, Observable {
 	}
 }
 
+final class MemoryInfo: ObservableObject, Observable {
+	public var total: UInt64 = 0
+	public var free: UInt64 = 0
+	public var used: UInt64 = 0
+	
+	init() {
+	}
+	
+	init(from infos: InfoReply.MemoryInfo) {
+		self.total = infos.total ?? 0
+		self.free = infos.free ?? 0
+		self.used = infos.used ?? 0
+	}
+	
+	init(from infos: CakeAgent.InfoReply.MemoryInfo) {
+		self.total = infos.total
+		self.free = infos.free
+		self.used = infos.used
+	}
+	
+	func update(infos: CakeAgent.InfoReply.MemoryInfo?) {
+		self.total = infos?.total ?? self.total
+		self.free = infos?.free ?? self.free
+		self.used = infos?.used ?? self.used
+	}
+	
+	func update(infos: InfoReply.MemoryInfo?) {
+		self.total = infos?.total ?? self.total
+		self.free = infos?.free ?? self.free
+		self.used = infos?.used ?? self.used
+	}
+}
+
 final class CpuInfos: ObservableObject, Observable {
 	@Published var totalUsagePercent: Double = 0
 	@Published var user: Double = 0
