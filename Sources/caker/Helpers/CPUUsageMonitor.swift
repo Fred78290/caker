@@ -68,6 +68,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 
 					self.stream = nil
 					self.helper = nil
+					self.cpuInfos.cores = []
 
 					guard self.handleAgentHealthCheckFailure(error: error) else {
 						return
