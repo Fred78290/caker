@@ -82,6 +82,11 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		self.cpuInfos.update(from: usage.cpuInfos)
 	}
 
+	@MainActor
+	private func handleAgentHealthCurrentUsage(usage: InfoReply) {
+		self.cpuInfos.update(from: usage.cpuInfo)
+	}
+
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
 #if DEBUG
 		self.logger.debug("Agent monitoring: VM \(self.name) is not ready")
@@ -119,7 +124,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		return true
 	}
 
-	private func createHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+	private func createHelper(connectionTimeout: Int64 = 5) throws -> CakeAgentHelper {
 		let client = try Utilities.createCakeAgentClient(
 			on: self.eventLoop.next(),
 			runMode: .app,
@@ -144,9 +149,16 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 					helper.close(promise: self.eventLoop.makePromise())
 				}
 
-				_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
+				let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
-				helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
+				DispatchQueue.main.sync {
+					self.handleAgentHealthCurrentUsage(usage: infos)
+				}
+
+				try helper.currentUsage(frequency: 1) { reply in
+					continuation.yield(reply)
+				}
+				//helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
 
 				/*stream = helper.client.currentUsage(CakeAgent.CurrentUsageRequest.with { $0.frequency = 1 }, callOptions: CallOptions(timeLimit: .none)) { reply in
 					continuation.yield(reply)
