@@ -510,6 +510,10 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return self.env.vncServer.connectionURL()
 	}
 
+	public func createVirtualMachineView() {
+		self.env.vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
+	}
+
 	public func takeScreenshot() {
 		self.env.vzMachineView?.takeScreenshot { obj in
 			print(String(describing: obj))
