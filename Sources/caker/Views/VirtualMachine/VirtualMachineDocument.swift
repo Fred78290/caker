@@ -1058,13 +1058,15 @@ extension VirtualMachineDocument {
 
 		self.stream = nil
 
-		let promise = stream.eventLoop.makePromise(of: Void.self)
+		stream.sendEof().whenComplete {_ in
+			let promise = stream.eventLoop.makePromise(of: Void.self)
 
-		promise.futureResult.whenComplete { _ in
-			closeClient()
+			promise.futureResult.whenComplete { _ in
+				closeClient()
+			}
+
+			stream.cancel(promise: promise)
 		}
-
-		stream.cancel(promise: promise)
 	}
 
 	@MainActor
