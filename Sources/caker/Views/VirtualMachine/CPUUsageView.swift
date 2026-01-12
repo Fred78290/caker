@@ -89,7 +89,7 @@ struct CPUUsageView: View {
 					HStack(spacing: 2) {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
-							.font(.subheadline)
+							.font(.headline)
 						Text(firstIP)
 							.foregroundColor(.secondary)
 							.font(.subheadline)
@@ -105,7 +105,7 @@ struct CPUUsageView: View {
 					if let firstIP = firstIP {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
-							.font(.subheadline)
+							.font(.headline)
 						Text(firstIP)
 							.foregroundColor(.secondary)
 							.font(.subheadline)
@@ -114,7 +114,7 @@ struct CPUUsageView: View {
 					// Vertical bars for each CPU core
 					Image(systemName: "cpu")
 						.foregroundColor(.secondary)
-						.font(.subheadline)
+						.font(.headline)
 					
 					cpuGraph(cores: cores)
 						.frame(width: CGFloat(cores.count * 10), height: 20)
@@ -122,7 +122,7 @@ struct CPUUsageView: View {
 					if let memoryInfos = memoryInfos {
 						Image(systemName: "memorychip")
 							.foregroundColor(.secondary)
-							.font(.subheadline)
+							.font(.headline)
 						
 						memGraph(memoryInfos: memoryInfos)
 							.frame(width: 8, height: 20)
