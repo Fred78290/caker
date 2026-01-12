@@ -18,8 +18,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	@Published var memoryInfos = MemoryInfo()
 
 	private let name: String
-	private let taskQueue = TaskQueue()
-	private let eventLoop: EventLoop
+	private var taskQueue: TaskQueue! = nil
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 	private var helper: CakeAgentHelper! = nil
 
@@ -28,12 +27,11 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 #endif
 
 	deinit {
-		taskQueue.close()
+		self.cancel()
 	}
 
 	init(name: String) {
 		self.name = name
-		self.eventLoop = Utilities.group.next()
 	}
 
 	func start() async {
@@ -41,19 +39,32 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	}
 
 	func cancel() {
-		try? helper?.close().wait()
-		taskQueue.close()
+		if let helper {
+			self.helper = nil
+			try? helper.close().wait()
+		}
+
+		if let taskQueue {
+			self.taskQueue = nil
+			taskQueue.close()
+		}
 	}
 
 	func monitorCurrentUsage() async {
+		guard taskQueue == nil else {
+			return
+		}
+
 		#if DEBUG
 		let debugLogger = self.logger
 
 		debugLogger.debug("Start monitoring current CPU usage, VM: \(self.name)")
 		#endif
 
+		self.taskQueue = .init(label: "CakeAgent.CPUUsageMonitor.\(self.name)")
+
 		await withTaskCancellationHandler(operation: {
-			while Task.isCancelled == false {
+			while Task.isCancelled == false && self.taskQueue != nil {
 				do {
 					self.helper = try self.createHelper()
 					self.stream = self.performAgentHealthCheck(helper: self.helper)
@@ -61,24 +72,34 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 					for try await currentUsage in stream!.stream {
 						await self.handleAgentHealthCurrentUsage(usage: currentUsage)
 					}
-
+					
 					try? await helper?.close().get()
+					break
 				} catch {
-					try? await helper?.close().get()
+					if self.taskQueue != nil {
+						try? await helper?.close().get()
 
-					self.stream = nil
-					self.helper = nil
-					self.cpuInfos.cores = []
+						self.stream = nil
+						self.helper = nil
+						self.cpuInfos.cores = []
 
-					guard self.handleAgentHealthCheckFailure(error: error) else {
-						return
+						guard self.handleAgentHealthCheckFailure(error: error) else {
+							return
+						}
+						#if DEBUG
+							debugLogger.debug("Monitoring agent not ready, VM: \(self.name), waiting...")
+						#endif
+						try? await Task.sleep(nanoseconds: 1_000_000_000)
 					}
-					#if DEBUG
-						debugLogger.debug("Monitoring agent not ready, VM: \(self.name), waiting...")
-					#endif
-					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
 			}
+
+			self.helper = nil
+			self.stream = nil
+
+#if DEBUG
+			debugLogger.debug("Monitoring ended, VM: \(self.name)")
+#endif
 		}, onCancel: {
 		#if DEBUG
 			debugLogger.debug("Monitoring canceled, VM: \(self.name)")
@@ -137,15 +158,17 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	}
 
 	private func createHelper(connectionTimeout: Int64 = 5) throws -> CakeAgentHelper {
+		let eventLoop = Utilities.group.next()
+
 		let client = try Utilities.createCakeAgentClient(
-			on: self.eventLoop.next(),
+			on: eventLoop.next(),
 			runMode: .app,
 			name: name,
 			connectionTimeout: connectionTimeout,
 			retries: .unlimited// .upTo(1)
 		)
 
-		return CakeAgentHelper(on: self.eventLoop, client: client)
+		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
 	private func performAgentHealthCheck(helper: CakeAgentHelper) -> AsyncThrowingStreamCakeAgentCurrentUsageReply {

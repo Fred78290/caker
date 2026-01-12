@@ -83,6 +83,7 @@ struct HostVirtualMachineView: View {
 	@State var liveResizeWindow: Bool = false
 	@State var needsResize: Bool = false
 	@State var launchExternally: Bool = false
+	@State var monitoringTask: CPUUsageMonitor
 
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -96,6 +97,7 @@ struct HostVirtualMachineView: View {
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
+		self.monitoringTask = CPUUsageMonitor(name: document.name)
 	}
 
 	var body: some View {
@@ -246,7 +248,7 @@ struct HostVirtualMachineView: View {
 
 					if document.status == .running && document.vmInfos != nil {
 						ToolbarItemGroup(placement: .status) {
-							CPUUsageView(name: document.name, firstIP: document.vmInfos?.ipaddresses.first)
+							CPUUsageView(name: document.name, firstIP: document.vmInfos?.ipaddresses.first, $monitoringTask)
 						}
 					}
 
@@ -326,6 +328,8 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleDisappear() {
+		self.monitoringTask.cancel()
+
 		if self.appState.currentDocument == self.document {
 			self.appState.currentDocument = nil
 		}
@@ -499,7 +503,7 @@ struct HostVirtualMachineView: View {
 				.fontPicker(placement: .secondaryAction)
 				.frame(size: size)
 		} else if self.document.agent == .installed {
-			LabelView("Waiting for agent ready...", size: size)
+			LabelView("Waiting for agent to be ready...", size: size)
 		} else if self.document.agent == .installing {
 			LabelView("Installing agent...", size: size)
 		} else {

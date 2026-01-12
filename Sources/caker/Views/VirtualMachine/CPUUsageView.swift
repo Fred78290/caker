@@ -18,32 +18,48 @@ let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink, .b
 struct CPUUsageView: View {
 	private let name: String
 	private let firstIP: String?
-	private let eventLoop: EventLoop
+	private static let barColor = Color(fromHex: "0076fFFF")!
+	private static var borderColor:Color {
+		switch Color.colorScheme {
+		case .dark:
+			return .white
+		default:
+			return .black
+		}
+	}
+	private static var bgColor:Color {
+		switch Color.colorScheme {
+		case .dark:
+			return Color(fromHex: "C7C7CCFF")!
+		default:
+			return Color(fromHex: "636366FF")!
+		}
+	}
 
-	//@State private var cpuInfos = CpuInfos()
-	@State private var monitoringTask: CPUUsageMonitor? = nil
+	@Binding private var monitoringTask: CPUUsageMonitor
+
 	#if DEBUG
 		private let logger = Logger("CPUUsageView")
 	#endif
 
-	init(name: String, firstIP: String?) {
+	init(name: String, firstIP: String?, _ monitoringTask: Binding<CPUUsageMonitor>) {
 		self.name = name
 		self.firstIP = firstIP
-		self.eventLoop = Utilities.group.next()
+		self._monitoringTask = monitoringTask
 	}
 
 	private func memGraph(memoryInfos: MemoryInfo) -> some View {
 		GeometryReader { proxy in
 			HStack(alignment: .top, spacing: max(1, proxy.size.width / 120)) {
-				let height = memoryInfos.total != 0 ? (proxy.size.height - 2) * CGFloat(memoryInfos.used) / CGFloat(memoryInfos.total) : 0
+				let height = memoryInfos.total != 0 ? (proxy.size.height - 1) * CGFloat(memoryInfos.used) / CGFloat(memoryInfos.total) : 0
 				
 				Rectangle()
-					.fill(.gray.opacity(0.4))
+					.fill(Self.bgColor.opacity(0.4))
 					.frame(width: 8, height: proxy.size.height)
-					.border(.black.opacity(0.8), width: 1)
+					.border(Self.borderColor.opacity(0.6), width: 0.5)
 					.overlay {
 						Rectangle()
-							.fill(.green)
+							.fill(Self.barColor)
 							.frame(width: 6, height: height)
 							.offset(x: 0, y: ((proxy.size.height - height) / 2) - 1)
 							.animation(Animation.easeInOut(duration: 0.1), value: height)
@@ -57,15 +73,15 @@ struct CPUUsageView: View {
 		GeometryReader { proxy in
 			HStack(alignment: .top, spacing: max(1, proxy.size.width / 120)) {
 				ForEach(Array(cores.enumerated()), id: \.offset) { index, core in
-					let height = ((proxy.size.height - 2) * core.usagePercent) / 100
+					let height = ((proxy.size.height - 1) * core.usagePercent) / 100
 
 					Rectangle()
-						.fill(.gray.opacity(0.4))
+						.fill(Self.bgColor.opacity(0.4))
 						.frame(width: 8, height: proxy.size.height)
-						.border(.black.opacity(0.8), width: 1)
+						.border(Self.borderColor.opacity(0.6), width: 0.5)
 						.overlay {
 							Rectangle()
-								.fill(.green)
+								.fill(Self.barColor)
 								.frame(width: 6, height: height)
 								.offset(x:0, y: ((proxy.size.height - height) / 2) - 1)
 								.animation(Animation.easeInOut(duration: 0.1), value: height)
@@ -80,16 +96,16 @@ struct CPUUsageView: View {
 	}
 
 	var body: some View {
-		HStack {
-			let cores = (monitoringTask != nil) ? monitoringTask!.cpuInfos.cores : []
-			let memoryInfos = monitoringTask?.memoryInfos
+		let cores = monitoringTask.cpuInfos.cores
+		let memoryInfos = monitoringTask.memoryInfos
 
+		HStack(alignment: .center, spacing: 6) {
 			if cores.isEmpty {
 				if let firstIP = self.firstIP {
-					HStack(spacing: 2) {
+					HStack(alignment: .center, spacing: 2) {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
-							.font(.headline)
+							.font(.title2)
 						Text(firstIP)
 							.foregroundColor(.secondary)
 							.font(.subheadline)
@@ -101,48 +117,48 @@ struct CPUUsageView: View {
 						.help("CPU usage unavailable")
 				}
 			} else {
-				HStack(alignment: .center, spacing: 2) {
-					if let firstIP = firstIP {
+				if let firstIP = firstIP {
+					HStack(alignment: .center, spacing: 2) {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
-							.font(.headline)
+							.font(.title2)
 						Text(firstIP)
 							.foregroundColor(.secondary)
 							.font(.subheadline)
 					}
-					
-					// Vertical bars for each CPU core
+				}
+				
+				// Vertical bars for each CPU core
+				HStack(alignment: .center, spacing: 2) {
 					Image(systemName: "cpu")
 						.foregroundColor(.secondary)
-						.font(.headline)
+						.font(.title2)
 					
 					cpuGraph(cores: cores)
 						.frame(width: CGFloat(cores.count * 10), height: 20)
-					
-					if let memoryInfos = memoryInfos {
-						Image(systemName: "memorychip")
-							.foregroundColor(.secondary)
-							.font(.headline)
-						
-						memGraph(memoryInfos: memoryInfos)
-							.frame(width: 8, height: 20)
-					}
 				}
-				.padding(.horizontal, 6)
-				.padding(.vertical, 4)
-				.help("CPU Cores Usage (\(cores.count) cores total)")
+
+				HStack(alignment: .center, spacing: 2) {
+					Image(systemName: "memorychip")
+						.foregroundColor(.secondary)
+						.font(.title2)
+					
+					memGraph(memoryInfos: memoryInfos)
+						.frame(width: 8, height: 20)
+				}
 			}
 		}
+		.padding(.horizontal, 8)
+		.padding(.vertical, 4)
+		.help("CPU Cores Usage (\(cores.count) cores total)")
 		.task {
 			// Cancel any existing monitoring task before starting a new one
-			monitoringTask?.cancel()
-			monitoringTask = CPUUsageMonitor(name: self.name)
-			await monitoringTask?.monitorCurrentUsage()
+			monitoringTask.cancel()
+			await monitoringTask.monitorCurrentUsage()
 		}
 		.onDisappear {
 			// Cancel monitoring when the view disappears
-			monitoringTask?.cancel()
-			monitoringTask = nil
+			monitoringTask.cancel()
 		}
 	}
 }
