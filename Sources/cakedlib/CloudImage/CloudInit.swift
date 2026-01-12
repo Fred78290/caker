@@ -6,7 +6,7 @@ import Multipart
 import Virtualization
 import Yams
 
-public let CAKEAGENT_SNAPSHOT = "56250ab8"
+public let CAKEAGENT_SNAPSHOT = "2ed87617"
 
 let emptyCloudInit = "#cloud-config\n{}".data(using: .ascii)!
 
