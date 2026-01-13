@@ -129,13 +129,12 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 
 		await self.interactiveShell.runShell(rows: terminal.rows, cols: terminal.cols) { response in
 			if case .established(let established) = response.response {
-				if established == false {
-					DispatchQueue.main.async {
-						alertError(ServiceError("Shell closed unexpectedly"))
-					}
-
+				if established.success == false {
 					self.interactiveShell.closeShell {
-						self.dismiss()
+						DispatchQueue.main.async {
+							alertError(ServiceError(established.reason))
+							self.dismiss()
+						}
 					}
 				}
 			} else if case .exitCode(let code) = response.response {
