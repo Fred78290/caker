@@ -90,6 +90,7 @@ struct HostVirtualMachineView: View {
 	@State var needsResize: Bool = false
 	@State var launchExternally: Bool = false
 	@State var monitoringTask: CPUUsageMonitor
+	@State var interactiveShell: InteractiveShell
 
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -104,6 +105,7 @@ struct HostVirtualMachineView: View {
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 		self.monitoringTask = CPUUsageMonitor(name: document.name)
+		self.interactiveShell = InteractiveShell(name: document.name)
 	}
 
 	var body: some View {
@@ -504,9 +506,8 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
 		if self.document.agent == .installed && document.vmInfos != nil {
-			ExternalVirtualMachineView(document: document, size: size, dismiss: dismiss)
-				.colorPicker(placement: .secondaryAction)
-				.fontPicker(placement: .secondaryAction)
+			ExternalVirtualMachineView(interactiveShell: self.interactiveShell, size: size, dismiss: dismiss)
+				.addModifiers(placement: .secondaryAction)
 				.frame(size: size)
 		} else if self.document.agent == .installed {
 			LabelView("Waiting for agent to be ready...", size: size)
@@ -550,24 +551,27 @@ struct HostVirtualMachineView: View {
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.externalRunning {
-			externalView(size)
-				.frame(size: size)
-				.toolbar {
-					ToolbarItem(placement: .secondaryAction) {
-						Picker("Mode", selection: $externalModeView) {
-							Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
-							if self.document.vncURL != nil {
+			if self.document.vncURL != nil {
+				externalView(size)
+					.frame(size: size)
+					.toolbar {
+						ToolbarItem(placement: .secondaryAction) {
+							Picker("Mode", selection: $externalModeView) {
+								Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
 								Image(systemName: "play.display").tag(ExternalModeView.vnc)
-							}
-						}.pickerStyle(.segmented).labelsHidden()
+							}.pickerStyle(.segmented).labelsHidden()
+						}
 					}
-				}
+			} else {
+				externalView(size)
+					.frame(size: size)
+			}
 		} else if self.document.isLaunchVMExternally {
 			LabelView(self.vmStatus(), progress: self.document.status == .starting)
 		} else if document.virtualMachine != nil {
 			if self.document.status != .running {
 				LabelView(self.vmStatus(), progress: false)
-			} else {
+			} else if self.document.vmInfos != nil {
 				internalView(size)
 					.frame(size: size)
 					.toolbar {
@@ -580,6 +584,9 @@ struct HostVirtualMachineView: View {
 					}
 				//InternalVirtualMachineView(document: document)
 				//	.frame(size: size)
+			} else {
+				InternalVirtualMachineView(document: document)
+					.frame(size: size)
 			}
 		} else {
 			LabelView("Virtual machine not loaded", size: size)

@@ -171,6 +171,7 @@
 		9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */; };
 		9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */; };
 		9B7C7B6B2E0FC7DA009D0A26 /* Steps in Frameworks */ = {isa = PBXBuildFile; productRef = 9B7C7B6A2E0FC7DA009D0A26 /* Steps */; };
+		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
@@ -677,6 +678,7 @@
 		9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditableListNewItem.swift; sourceTree = "<group>"; };
 		9B7C7B652E0D804F009D0A26 /* VirtualMachineWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineWizard.swift; sourceTree = "<group>"; };
 		9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfig.swift; sourceTree = "<group>"; };
+		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
@@ -1234,6 +1236,7 @@
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
 				9B30BA482E0BDB5600256A9D /* FileHelpers.swift */,
+				9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */,
 				9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */,
 				9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */,
 				9B75A6D22E2A2C45000AA773 /* Pty.swift */,
@@ -2158,6 +2161,7 @@
 				9B7C7B682E0E80BE009D0A26 /* VirtualMachineConfig.swift in Sources */,
 				9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */,
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
+				9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
 				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,

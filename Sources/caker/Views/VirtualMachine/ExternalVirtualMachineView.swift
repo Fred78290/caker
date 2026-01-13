@@ -51,7 +51,7 @@ extension SwiftTerm.Color {
 }
 
 class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
-	private var document: VirtualMachineDocument!
+	private var interactiveShell: InteractiveShell
 	private let dismiss: DismissAction!
 
 	var fontColor: SwiftTerm.Color {
@@ -63,8 +63,8 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		}
 	}
 
-	init(document: VirtualMachineDocument, frame: CGRect, font: NSFont, color: SwiftTerm.Color, dismiss: DismissAction) {
-		self.document = document
+	init(interactiveShell: InteractiveShell, frame: CGRect, font: NSFont, color: SwiftTerm.Color, dismiss: DismissAction) {
+		self.interactiveShell = interactiveShell
 		self.dismiss = dismiss
 		super.init(frame: frame, font: font)
 
@@ -73,14 +73,11 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	}
 
 	public required init?(coder: NSCoder) {
-		self.dismiss = nil
-
-		super.init(coder: coder)
-		self.terminalDelegate = self
+		fatalError("Unimplemented")
 	}
 
 	func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
-		self.document.sendTerminalSize(rows: newRows, cols: newCols)
+		self.interactiveShell.sendTerminalSize(rows: newRows, cols: newCols)
 	}
 
 	func setTerminalTitle(source: TerminalView, title: String) {
@@ -90,7 +87,7 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	}
 
 	func send(source: TerminalView, data: ArraySlice<UInt8>) {
-		self.document.sendDatas(data: data)
+		self.interactiveShell.sendDatas(data: data)
 	}
 
 	func scrolled(source: TerminalView, position: Double) {
@@ -111,45 +108,49 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		print("terminalViewDidChangeSize")
 	}
 
-	override func viewDidMoveToWindow() {
-		super.viewDidMoveToWindow()
+	func startShell() async {
+		let terminal = self.getTerminal()
 
-		if self.window != nil {
-			let display: (Data) -> Void = { datas in
-				var converted: [UInt8] = []
+		func displayDatas(_ datas: Data) -> Void {
+			var converted: [UInt8] = []
 
-				datas.forEach {
-					if $0 == 0x0a {
-						converted.append(0x0d)
-					}
-
-					converted.append($0)
+			datas.forEach {
+				if $0 == 0x0a {
+					converted.append(0x0d)
 				}
 
-				DispatchQueue.main.async {
-					self.feed(byteArray: converted[...])
-				}
+				converted.append($0)
 			}
 
-			try? self.document.startShell(rows: self.getTerminal().rows, cols: self.getTerminal().cols) { response in
-				if case .exitCode(let code) = response.response {
-					#if DEBUG
-						Logger(self).debug("Shell exited with code \(code) for \(self.document.name)")
-					#endif
-
-					self.document.closeShell {
-						DispatchQueue.main.async {
-							self.dismiss()
-						}
-					}
-				} else if case .stdout(let datas) = response.response {
-					display(datas)
-				} else if case .stderr(let datas) = response.response {
-					display(datas)
-				}
+			DispatchQueue.main.async {
+				self.feed(byteArray: converted[...])
 			}
-		} else {
-			self.document.closeShell()
+		}
+
+		await self.interactiveShell.runShell(rows: terminal.rows, cols: terminal.cols) { response in
+			if case .established(let established) = response.response {
+				if established == false {
+					DispatchQueue.main.async {
+						alertError(ServiceError("Shell closed unexpectedly"))
+					}
+
+					self.interactiveShell.closeShell {
+						self.dismiss()
+					}
+				}
+			} else if case .exitCode(let code) = response.response {
+				#if DEBUG
+					Logger(self).debug("Shell exited with code \(code) for \(self.interactiveShell.name)")
+				#endif
+
+				self.interactiveShell.closeShell {
+					self.dismiss()
+				}
+			} else if case .stdout(let datas) = response.response {
+				displayDatas(datas)
+			} else if case .stderr(let datas) = response.response {
+				displayDatas(datas)
+			}
 		}
 	}
 }
@@ -200,7 +201,6 @@ struct ColorWell: NSViewRepresentable {
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
 
-	private let document: VirtualMachineDocument
 	private var fontPickerDelegate: FontPickerDelegate!
 	private let fontManager = NSFontManager.shared
 	private let terminalView: NSViewType
@@ -254,9 +254,8 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		}
 	}
 
-	init(document: VirtualMachineDocument, size: CGSize, dismiss: DismissAction) {
-		self.document = document
-		self.terminalView = NSViewType(document: document, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
+	init(interactiveShell: InteractiveShell, size: CGSize, dismiss: DismissAction) {
+		self.terminalView = NSViewType(interactiveShell: interactiveShell, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
 
@@ -279,6 +278,10 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 		self.fontPickerDelegate.terminalView.font = font
 
 		Defaults.saveTerminalFont(font)
+	}
+	
+	func startShell() async {
+		await self.terminalView.startShell()
 	}
 }
 
@@ -314,10 +317,44 @@ struct ColorPickerModifier: ViewModifier {
 	}
 }
 
+struct InteractiveShellModifier: ViewModifier {
+	let target: ExternalVirtualMachineView?
+	@State private var task: Task<Void, Never>? = nil
+
+	init<Content, Modifier>(modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
+		self.init(modifier.content)
+	}
+
+	init(_ view: any View) {
+		if let target = view as? ExternalVirtualMachineView {
+			self.target = target
+		} else {
+			self.target = nil
+		}
+	}
+	
+	func body(content: Content) -> some View {
+		if let target {
+			content
+				.onAppear() {
+					task = Task {
+						await target.startShell()
+					}
+				}
+				.onDisappear() {
+					task?.cancel()
+					task = nil
+				}
+		} else {
+			content
+		}
+	}
+}
+
 struct ColorWellModifier: ViewModifier {
 	@State var color: SwiftUI.Color
-	var placement: ToolbarItemPlacement
-	var target: ExternalVirtualMachineView?
+	let placement: ToolbarItemPlacement
+	let target: ExternalVirtualMachineView?
 
 	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
 		self.init(placement: placement, modifier.content)
@@ -330,6 +367,7 @@ struct ColorWellModifier: ViewModifier {
 			self.target = target
 			self.color = target.terminalColor
 		} else {
+			self.target = nil
 			self.color = .black
 		}
 	}
@@ -413,6 +451,14 @@ struct FontPickerModifier: ViewModifier {
 }
 
 extension View where Self == ExternalVirtualMachineView {
+	func addModifiers(placement: ToolbarItemPlacement) -> some View {
+		self.modifier(InteractiveShellModifier(self).concat(ColorWellModifier(placement: placement, self)).concat(FontPickerModifier(placement: placement, self)))
+	}
+
+	func interactiveShell() -> ModifiedContent<ExternalVirtualMachineView, InteractiveShellModifier> {
+		self.modifier(InteractiveShellModifier(self))
+	}
+
 	func colorPicker(placement: ToolbarItemPlacement) -> ModifiedContent<ExternalVirtualMachineView, ColorWellModifier> {
 		self.modifier(ColorWellModifier(placement: placement, self))
 	}
@@ -423,6 +469,10 @@ extension View where Self == ExternalVirtualMachineView {
 }
 
 extension ModifiedContent where Content: View, Modifier: ViewModifier {
+	func interactiveShell() -> some View {
+		self.modifier(InteractiveShellModifier(modifier: self))
+	}
+
 	func colorPicker(placement: ToolbarItemPlacement) -> some View {
 		self.modifier(ColorWellModifier(placement: placement, modifier: self))
 	}

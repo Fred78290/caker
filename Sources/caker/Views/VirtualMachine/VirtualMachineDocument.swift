@@ -1091,7 +1091,7 @@ extension VirtualMachineDocument {
 		}
 	}
 
-	func startShell(rows: Int, cols: Int, handler: @escaping (Cakeagent_CakeAgent.ExecuteResponse) -> Void) throws {
+	func startShell(rows: Int, cols: Int, handler: @escaping (CakeAgent.ExecuteResponse) -> Void) throws {
 		self.shellHandlerResponse = handler
 
 		guard self.stream == nil else {
@@ -1110,13 +1110,13 @@ extension VirtualMachineDocument {
 
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
-	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+	static func createCakeAgentHelper(name: String, connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
 		// Create a short-lived client for the health check
 		let eventLoop = Utilities.group.next()
 		let client = try Utilities.createCakeAgentClient(
 			on: eventLoop.next(),
 			runMode: .app,
-			name: self.name,
+			name: name,
 			connectionTimeout: connectionTimeout,
 			retries: .upTo(1)
 		)
@@ -1124,6 +1124,10 @@ extension VirtualMachineDocument {
 		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
+	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+		try Self.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout)
+	}
+	
 	func installAgent(updateAgent: Bool, _ done: @escaping () -> Void) {
 		if let virtualMachine = self.virtualMachine {
 			self.agent = .installing
@@ -1142,10 +1146,11 @@ extension VirtualMachineDocument {
 					
 					agent = .none
 				}
-				
-				self.agent = agent
 
-				DispatchQueue.main.async {
+				let status = agent
+
+				await MainActor.run {
+					self.agent = status
 					done()
 				}
 			}
