@@ -61,6 +61,11 @@ struct HostVirtualMachineView: View {
 		case vnc
 	}
 
+	enum InternalModeView: Int, Hashable {
+		case terminal
+		case vz
+	}
+
 	@AppStorage("VMLaunchMode") var launchVMExternally = false
 	@AppStorage("NoShutdownVMOnClose") var isNoShutdownVMOnClose = false
 
@@ -79,6 +84,7 @@ struct HostVirtualMachineView: View {
 	@State var displayFontPanel: Bool = false
 	@State var terminalColor: Color = .blue
 	@State var externalModeView: ExternalModeView
+	@State var internalModeView: InternalModeView = .vz
 	@State var documentSize: ViewSize
 	@State var liveResizeWindow: Bool = false
 	@State var needsResize: Bool = false
@@ -532,6 +538,16 @@ struct HostVirtualMachineView: View {
 	}
 
 	@ViewBuilder
+	func internalView(_ size: CGSize) -> some View {
+		if self.internalModeView == .terminal {
+			self.terminalView(size)
+		} else {
+			InternalVirtualMachineView(document: document)
+				.frame(size: size)
+		}
+	}
+
+	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
 		if self.document.externalRunning {
 			externalView(size)
@@ -552,8 +568,18 @@ struct HostVirtualMachineView: View {
 			if self.document.status != .running {
 				LabelView(self.vmStatus(), progress: false)
 			} else {
-				InternalVirtualMachineView(document: document)
+				internalView(size)
 					.frame(size: size)
+					.toolbar {
+						ToolbarItem(placement: .secondaryAction) {
+							Picker("Mode", selection: $internalModeView) {
+								Image(systemName: "apple.terminal").tag(InternalModeView.terminal)
+								Image(systemName: "play.display").tag(InternalModeView.vz)
+							}.pickerStyle(.segmented).labelsHidden()
+						}
+					}
+				//InternalVirtualMachineView(document: document)
+				//	.frame(size: size)
 			}
 		} else {
 			LabelView("Virtual machine not loaded", size: size)
