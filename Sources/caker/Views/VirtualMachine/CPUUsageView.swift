@@ -48,12 +48,29 @@ struct CPUUsageView: View {
 		self._monitoringTask = monitoringTask
 	}
 
+	private func bar(height: CGFloat) -> some View {
+		GeometryReader { proxy in
+			Rectangle()
+				.fill(Self.bgColor.opacity(0.4))
+				.frame(width: proxy.size.width, height: proxy.size.height)
+				.border(Self.borderColor.opacity(0.6), width: 0.5)
+				.overlay {
+					Rectangle()
+						.fill(Self.barColor)
+						.frame(width: proxy.size.width - 2, height: height)
+						.offset(x: 0, y: ((proxy.size.height - height) / 2) - 1)
+						.animation(Animation.easeInOut(duration: 0.1), value: height)
+				}
+		}
+	}
+
 	private func memGraph(memoryInfos: MemoryInfo) -> some View {
 		GeometryReader { proxy in
 			HStack(alignment: .top, spacing: max(1, proxy.size.width / 120)) {
 				let height = memoryInfos.total != 0 ? (proxy.size.height - 1) * CGFloat(memoryInfos.used) / CGFloat(memoryInfos.total) : 0
 				
-				Rectangle()
+				self.bar(height: height).frame(width: 8, height: proxy.size.height)
+				/*Rectangle()
 					.fill(Self.bgColor.opacity(0.4))
 					.frame(width: 8, height: proxy.size.height)
 					.border(Self.borderColor.opacity(0.6), width: 0.5)
@@ -63,7 +80,7 @@ struct CPUUsageView: View {
 							.frame(width: 6, height: height)
 							.offset(x: 0, y: ((proxy.size.height - height) / 2) - 1)
 							.animation(Animation.easeInOut(duration: 0.1), value: height)
-					}
+					}*/
 			}.padding(0)
 
 		}
@@ -75,7 +92,9 @@ struct CPUUsageView: View {
 				ForEach(Array(cores.enumerated()), id: \.offset) { index, core in
 					let height = ((proxy.size.height - 1) * core.usagePercent) / 100
 
-					Rectangle()
+					self.bar(height: height).frame(width: 8, height: proxy.size.height)
+
+					/*Rectangle()
 						.fill(Self.bgColor.opacity(0.4))
 						.frame(width: 8, height: proxy.size.height)
 						.border(Self.borderColor.opacity(0.6), width: 0.5)
@@ -85,8 +104,8 @@ struct CPUUsageView: View {
 								.frame(width: 6, height: height)
 								.offset(x:0, y: ((proxy.size.height - height) / 2) - 1)
 								.animation(Animation.easeInOut(duration: 0.1), value: height)
-						}//.log(text: "core: proxy.size.height=\(proxy.size.height) height=\(height), core.usagePercent=\(core.usagePercent), offsetY: \(proxy.size.height - height)")
-
+						}*/
+					//.log(text: "core: proxy.size.height=\(proxy.size.height) height=\(height), core.usagePercent=\(core.usagePercent), offsetY: \(proxy.size.height - height)")
 				}
 			}
 			//.background(.red.opacity(0.4))
