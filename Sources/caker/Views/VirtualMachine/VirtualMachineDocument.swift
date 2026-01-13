@@ -1128,7 +1128,7 @@ extension VirtualMachineDocument {
 		try Self.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout)
 	}
 	
-	func installAgent(updateAgent: Bool, _ done: @escaping () -> Void) {
+	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {
 		if let virtualMachine = self.virtualMachine {
 			self.agent = .installing
 			
@@ -1151,7 +1151,7 @@ extension VirtualMachineDocument {
 
 				await MainActor.run {
 					self.agent = status
-					done()
+					done(status)
 				}
 			}
 		}

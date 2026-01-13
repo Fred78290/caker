@@ -177,7 +177,7 @@ struct MainApp: App {
 				Button(agentCondition.title) {
 					appState.isAgentInstalling = true
 
-					appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) {
+					appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
 						appState.isAgentInstalling = false
 					}
 				}

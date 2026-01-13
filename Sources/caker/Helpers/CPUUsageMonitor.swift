@@ -75,14 +75,16 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		await withTaskCancellationHandler(operation: {
 			while Task.isCancelled == false && self.taskQueue != nil {
 				do {
-					self.helper = try self.createHelper()
-					self.stream = self.performAgentHealthCheck(helper: self.helper)
+					let helper = try self.createHelper()
+
+					self.helper = helper
+					self.stream = self.performAgentHealthCheck(helper: helper)
 
 					for try await currentUsage in stream!.stream {
 						await self.handleAgentHealthCurrentUsage(usage: currentUsage)
 					}
 					
-					try? await helper?.close().get()
+					try? await helper.close().get()
 					break
 				} catch {
 					if self.taskQueue != nil {

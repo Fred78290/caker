@@ -230,7 +230,7 @@ struct HostVirtualMachineView: View {
 							action: {
 								self.appState.isAgentInstalling = true
 
-								self.document.installAgent(updateAgent: agentCondition.needUpdate) {
+								self.document.installAgent(updateAgent: agentCondition.needUpdate) { _ in
 									self.appState.isAgentInstalling = false
 								}
 							},
