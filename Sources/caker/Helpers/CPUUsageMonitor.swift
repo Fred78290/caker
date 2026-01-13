@@ -38,16 +38,25 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		await monitorCurrentUsage()
 	}
 
-	func cancel() {
-		if let helper {
-			self.helper = nil
-			try? helper.close().wait()
+	func cancel(_line: UInt = #line, _file: String = #file) {
+		guard self.taskQueue != nil else {
+			return
 		}
+
+		#if DEBUG
+			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.name), \(_file):\(_line)")
+		#endif
 
 		if let taskQueue {
 			self.taskQueue = nil
 			taskQueue.close()
 		}
+
+		if let helper {
+			self.helper = nil
+			try? helper.close().wait()
+		}
+
 	}
 
 	func monitorCurrentUsage() async {
@@ -94,8 +103,11 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 				}
 			}
 
+			self.taskQueue?.close()
+
 			self.helper = nil
 			self.stream = nil
+			self.taskQueue = nil
 
 #if DEBUG
 			debugLogger.debug("Monitoring ended, VM: \(self.name)")
