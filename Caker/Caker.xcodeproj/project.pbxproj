@@ -2936,10 +2936,10 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/aus-der-Technik/FileMonitor.git";
+			repositoryURL = "https://github.com/Fred78290/FileMonitor.git";
 			requirement = {
-				kind = exactVersion;
-				version = 1.2.0;
+				kind = revision;
+				revision = 82bf1ff8dbaccac3359cfd6b49f30db690c8dc38;
 			};
 		};
 		9B28BFA02DDB259D00B5A0AF /* XCRemoteSwiftPackageReference "swift-argument-parser" */ = {
