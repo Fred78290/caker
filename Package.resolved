@@ -1,5 +1,5 @@
 {
-  "originHash" : "318e7566f56964edc32348e857fe1f9d0314d5ff8d77340e783e453ca77e9187",
+  "originHash" : "864a5945f1b4f87200b9ed562a28ea2cd3d5af54dd9be31869ebb1d28f740a7f",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -33,7 +33,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Fred78290/cakeagent.git",
       "state" : {
-        "revision" : "c2e53257bb87755d8c95225141bfb436d25d9b2e"
+        "revision" : "827451bbc7c7f9876a324eac26721dd5f935a10e"
       }
     },
     {
@@ -56,10 +56,9 @@
     {
       "identity" : "filemonitor",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/aus-der-Technik/FileMonitor.git",
+      "location" : "https://github.com/Fred78290/FileMonitor.git",
       "state" : {
-        "revision" : "ef22f1487d07fbff0a7a5f743d42611bfd03b5e8",
-        "version" : "1.2.0"
+        "revision" : "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"
       }
     },
     {

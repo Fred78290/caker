@@ -13,6 +13,7 @@ let package = Package(
 		.executable(name: "cakectl", targets: ["cakectl"]),
 		.library(name: "CakedLib", targets: ["CakedLib"]),
 		.library(name: "GRPCLib", targets: ["GRPCLib"]),
+		.library(name: "SharedPtrBridge", targets: ["SharedPtrBridge"]),
 	],
 	dependencies: [
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
@@ -59,6 +60,15 @@ let package = Package(
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
+		.target(name: "SharedPtrBridge", 
+			path: "Sources/SharedPtrBridge",
+			sources: ["SharedPtrBridge.mm"],
+			publicHeadersPath: ".",
+			cxxSettings: [
+				.headerSearchPath("."),
+				.define("_LIBCPP_HAS_NO_CHAR8_T")
+			]
+		),
 		.target(name: "GRPCLib", dependencies: [
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
 			.product(name: "Dynamic", package: "Dynamic"),
@@ -74,6 +84,7 @@ let package = Package(
 		.target(name: "CakedLib", dependencies: [
 			.target(name: "GRPCLib"),
 			.target(name: "Qcow2convert"),
+			.target(name: "SharedPtrBridge"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),
