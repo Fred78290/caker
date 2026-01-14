@@ -21,6 +21,7 @@ class CakerVZVirtualMachineView: VZVirtualMachineView {
 		super.init(frame: .init(origin: .zero, size: document.documentSize.cgSize))
 		self.virtualMachine = document.virtualMachine.getVM()
 		self.document.virtualMachine.vzMachineView = self
+		self.wantsLayer = true
 
 		if #available(macOS 14.0, *) {
 			self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
