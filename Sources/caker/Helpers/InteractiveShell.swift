@@ -127,9 +127,13 @@ self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 
 		await withTaskCancellationHandler(operation: {
 			while Task.isCancelled == false && self.taskQueue != nil {
+				var helper: CakeAgentHelper! = nil
+
 				do {
-					self.helper = try VirtualMachineDocument.createCakeAgentHelper(name: self.name)
-					self.stream = self.startShell(rows: rows, cols: cols, helper: self.helper!)
+					helper = try VirtualMachineDocument.createCakeAgentHelper(name: self.name)
+
+					self.stream = self.startShell(rows: rows, cols: cols, helper: helper)
+					self.helper = helper
 
 					for try await response in stream!.stream {
 						await handler(response)
@@ -137,11 +141,13 @@ self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 					break
 				} catch {
 					if self.taskQueue != nil {
-						try? await helper?.close().get()
-						
+						if let helper {
+							self.helper = nil
+							try? await helper.close().get()
+						}
+
 						self.stream = nil
 						self.shellStream = nil
-						self.helper = nil
 
 						guard self.handleAgentHealthCheckFailure(error: error) else {
 							return

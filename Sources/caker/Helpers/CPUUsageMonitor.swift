@@ -74,24 +74,27 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 
 		await withTaskCancellationHandler(operation: {
 			while Task.isCancelled == false && self.taskQueue != nil {
-				do {
-					let helper = try self.createHelper()
+				var helper: CakeAgentHelper! = nil
 
-					self.helper = helper
+				do {
+					helper = try self.createHelper()
+
 					self.stream = self.performAgentHealthCheck(helper: helper)
+					self.helper = helper
 
 					for try await currentUsage in stream!.stream {
 						await self.handleAgentHealthCurrentUsage(usage: currentUsage)
 					}
 					
-					try? await helper.close().get()
 					break
 				} catch {
 					if self.taskQueue != nil {
-						try? await helper?.close().get()
+						if let helper {
+							self.helper = nil
+							try? await helper.close().get()
+						}
 
 						self.stream = nil
-						self.helper = nil
 						self.cpuInfos.cores = []
 
 						guard self.handleAgentHealthCheckFailure(error: error) else {
@@ -106,6 +109,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 			}
 
 			self.taskQueue?.close()
+			try? await self.helper?.close().get()
 
 			self.helper = nil
 			self.stream = nil
