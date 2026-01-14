@@ -1131,7 +1131,7 @@ extension VirtualMachineDocument {
 	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {
 		if let virtualMachine = self.virtualMachine {
 			self.agent = .installing
-			
+
 			Task {
 				var agent: AgentStatus = .installing
 				
@@ -1151,6 +1151,11 @@ extension VirtualMachineDocument {
 
 				await MainActor.run {
 					self.agent = status
+					if updateAgent {
+						self.agentCondition = (status != .installed ? "Update agent" : "Install agent", status != .installed, status != .none)
+					} else {
+						self.agentCondition = ("Install agent", status != .installed, status != .none)
+					}
 					done(status)
 				}
 			}
