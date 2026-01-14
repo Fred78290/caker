@@ -728,7 +728,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 			chmod 755 /usr/local/bin/cakeagent
 
-			if $UPDATE -eq 1
+			if [ $UPDATE -eq 1 ]
 			then
 				/usr/local/bin/cakeagent service start
 			else
