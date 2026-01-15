@@ -91,6 +91,7 @@ struct HostVirtualMachineView: View {
 	@State var launchExternally: Bool = false
 	@State var monitoringTask: CPUUsageMonitor
 	@State var interactiveShell: InteractiveShell
+	@State var showsHostCursor: Bool = false
 
 	private let logger = Logger("HostVirtualMachineView")
 	private let delegate: CustomWindowDelegate = CustomWindowDelegate()
@@ -205,6 +206,15 @@ struct HostVirtualMachineView: View {
 						}
 						.help("Create template from virtual machine")
 						.disabled(self.appState.isRunning)
+						
+						if self.document.externalRunning == false {
+							Spacer()
+							Button("Show cursor", systemImage: self.showsHostCursor ? "pointer.arrow.slash" : "pointer.arrow") {
+								self.showsHostCursor.toggle()
+							}
+							.help("Show/Hide host cursor in VM vi")
+							.disabled(self.appState.isRunning == false)
+						}
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
@@ -543,7 +553,7 @@ struct HostVirtualMachineView: View {
 		if self.internalModeView == .terminal {
 			self.terminalView(size)
 		} else {
-			InternalVirtualMachineView(document: document)
+			InternalVirtualMachineView(document: document, showsHostCursor: self.showsHostCursor)
 				.frame(size: size)
 		}
 	}
@@ -585,7 +595,7 @@ struct HostVirtualMachineView: View {
 				//InternalVirtualMachineView(document: document)
 				//	.frame(size: size)
 			} else {
-				InternalVirtualMachineView(document: document)
+				InternalVirtualMachineView(document: document, showsHostCursor: self.showsHostCursor)
 					.frame(size: size)
 			}
 		} else {

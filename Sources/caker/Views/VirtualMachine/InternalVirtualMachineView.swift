@@ -49,15 +49,20 @@ struct InternalVirtualMachineView: NSViewRepresentable {
 
 	private let document: VirtualMachineDocument
 	private let logger = Logger("InternalVirtualMachineView")
-
-	init(document: VirtualMachineDocument) {
+	private let view: CakerVZVirtualMachineView
+	private let showsHostCursor: Bool
+	
+	init(document: VirtualMachineDocument, showsHostCursor: Bool) {
 		self.document = document
+		self.view = CakerVZVirtualMachineView(document: self.document)
+		self.showsHostCursor = showsHostCursor
 	}
 
 	public func makeNSView(context: Context) -> NSViewType {
-		return CakerVZVirtualMachineView(document: self.document)
+		return self.view
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
+		nsView.showsHostCursor = self.showsHostCursor
 	}
 }
