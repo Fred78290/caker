@@ -515,8 +515,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	public func takeScreenshot() {
-		self.env.vzMachineView?.takeScreenshot { obj in
-			print(String(describing: obj))
+		if let image = self.env.vzMachineView?.superview?.image() {
+			// Notify delegate with the captured image
+			self.delegate?.didScreenshot(self, screenshot: image)
+			// Persist the image to disk if PNG data is available
+			if let data = image.pngData {
+				try? data.write(to: self.location.screenshotURL)
+			}
 		}
 	}
 
