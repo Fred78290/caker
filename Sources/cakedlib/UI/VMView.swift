@@ -273,8 +273,6 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 			if let rawPtr {
 				let addr = UInt(bitPattern: rawPtr)
 				print(String(format: "frame shared_ptr.get()=0x%016llx use_count=%ld", addr, useCount))
-			} else {
-				print("frame shared_ptr.get()=nil use_count=\(useCount)")
 			}
 		}
 	}
