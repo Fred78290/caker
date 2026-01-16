@@ -174,6 +174,7 @@
 		9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */; };
 		9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */; };
 		9B7D682D2F17E1A700FE1B0B /* SharedPtrBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */; };
+		9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */; };
 		9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */; };
 		9B8AC07C2DABC4F5009A8EEB /* Duplicate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */; };
 		9B9117782EC9D4510017791D /* RawDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9117772EC9D44C0017791D /* RawDisk.swift */; };
@@ -683,6 +684,7 @@
 		9B7D65AF2F163AA000FE1B0B /* InteractiveShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveShell.swift; sourceTree = "<group>"; };
 		9B7D68292F17E1A700FE1B0B /* SharedPtrBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedPtrBridge.h; sourceTree = "<group>"; };
 		9B7D682A2F17E1A700FE1B0B /* SharedPtrBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SharedPtrBridge.mm; sourceTree = "<group>"; };
+		9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHelper.swift; sourceTree = "<group>"; };
 		9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldStore.swift; sourceTree = "<group>"; };
 		9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Duplicate.swift; sourceTree = "<group>"; };
 		9B9117772EC9D44C0017791D /* RawDisk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawDisk.swift; sourceTree = "<group>"; };
@@ -1736,6 +1738,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -2425,6 +2428,7 @@
 				9BEBC79C2DF440720092B196 /* VirtualMachine.swift in Sources */,
 				9BF639F72F0E6E5400FB6155 /* ProgressObserver.swift in Sources */,
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,
+				9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */,
 				9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */,
 				9BEBC7A12DF440720092B196 /* BuildHandler.swift in Sources */,
 				9BEBC7A22DF440720092B196 /* SimpleStreams.swift in Sources */,

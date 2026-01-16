@@ -60,27 +60,10 @@ extension VZGraphicsDisplay {
 	}
 }
 
-extension NSObject {
-	func swizzleMethod(originalSelector: Selector, swizzledSelector: Selector) {
-		let cls: AnyClass = type(of: self)
-		
-		guard let originalMethod = class_getInstanceMethod(cls, originalSelector),
-			  let swizzledMethod = class_getInstanceMethod(cls, swizzledSelector) else {
-			return
-		}
-		
-		method_exchangeImplementations(originalMethod, swizzledMethod)
-	}
-}
-
 extension NSView {
 	
 	func swizzleFramebufferObserver() {
 		let protocols = protocolsImplemented(by: self)
-		
-		protocols.forEach {
-			print($0)
-		}
 		
 		// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
 		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
