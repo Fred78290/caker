@@ -460,7 +460,7 @@ extension NSView {
 		return imageRepresentationSync(in: bounds)
 	}
 
-	public func image(in bounds: NSRect) -> NSImage? {
+	@objc open func image(in bounds: NSRect) -> NSImage? {
 		if let imageRepresentation = imageRepresentation(in: bounds), let cgImage = imageRepresentation.cgImage {
 			return NSImage(cgImage: cgImage, size: bounds.size)
 		}
@@ -468,7 +468,7 @@ extension NSView {
 		return nil
 	}
 
-	public func image() -> NSImage {
+	@objc open func image() -> NSImage {
 		self.image(in: self.bounds)!
 	}
 }
