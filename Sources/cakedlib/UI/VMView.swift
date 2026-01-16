@@ -37,17 +37,17 @@ func protocolsImplemented(by object: AnyObject) -> [String] {
 
 #if DEBUG
 @objc protocol _VZFramebufferObserver {
-	@objc func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafePointer<UInt8>?)
-	@objc func framebuffer(_ framebuffer: Any, didUpdateFrame frame: UnsafePointer<UInt8>?)
-	@objc func framebuffer(_ framebuffer: Any, didUpdateGraphicsOrientation orientation: Int64)
-	@objc func framebufferDidUpdateColorSpace(_ framebuffer: Any)
+	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
+	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
+	@objc func framebuffer(_ framebuffer: NSObject, didUpdateGraphicsOrientation orientation: Int64)
+	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
 @objc protocol VZFramebufferObserver {
-	@objc func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafePointer<UInt8>?)
-	@objc func framebuffer(_ framebuffer: Any, didUpdateFrame frame: UnsafePointer<UInt8>?)
-	@objc func framebuffer(_ framebuffer: Any, didUpdateGraphicsOrientation orientation: Int64)
-	@objc func framebufferDidUpdateColorSpace(_ framebuffer: Any)
+	@objc func framebuffer(_ framebufferView: NSView, didUpdateCursor cursor: UnsafePointer<UInt8>?)
+	@objc func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?)
+	@objc func framebuffer(_ framebufferView: NSView, didUpdateGraphicsOrientation orientation: Int64)
+	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
 extension VZGraphicsDisplay {
@@ -94,31 +94,46 @@ extension NSView {
 		}
 	}
 
-	@objc func swizzled_framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
+	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 		self.swizzled_framebuffer(framebuffer, didUpdateCursor: cursor)
 
 		if let observer = self.superview as? VZFramebufferObserver {
-			observer.framebuffer(framebuffer, didUpdateCursor: cursor)
+			observer.framebuffer(self, didUpdateCursor: cursor)
 		}
 	}
 
-	@objc func swizzled_framebuffer(_ framebuffer: Any, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+		struct FrameBuffer {
+			var a: UnsafePointer<UInt8>?
+			var b: UnsafePointer<UInt8>?
+			var c: UnsafePointer<UInt8>?
+			var d: UnsafePointer<UInt8>?
+			var e: UnsafePointer<UInt8>?
+			var f: UnsafePointer<UInt8>?
+		}
+
+		frame?.withMemoryRebound(to: FrameBuffer.self, capacity: 1) { p in
+			let ptr = p.pointee
+
+			print("\(#function): \(ptr)")
+		}
+
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
 		if let observer = self.superview as? VZFramebufferObserver {
-			observer.framebuffer(framebuffer, didUpdateFrame: frame)
+			observer.framebuffer(self, didUpdateFrame: frame)
 		}
 	}
 
-	@objc func swizzled_framebuffer(_ framebuffer: Any, didUpdateGraphicsOrientation orientation: Int64) {
+	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateGraphicsOrientation orientation: Int64) {
 		self.swizzled_framebuffer(framebuffer, didUpdateGraphicsOrientation: orientation)
 
 		if let observer = self.superview as? VZFramebufferObserver {
-			observer.framebuffer(framebuffer, didUpdateGraphicsOrientation: orientation)
+			observer.framebuffer(self, didUpdateGraphicsOrientation: orientation)
 		}
 	}
 
-	@objc func swizzled_framebufferDidUpdateColorSpace(_ framebuffer: Any) {
+	@objc func swizzled_framebufferDidUpdateColorSpace(_ framebuffer: NSObject) {
 		self.swizzled_framebufferDidUpdateColorSpace(framebuffer)
 
 		if let observer = self.superview as? VZFramebufferObserver {
@@ -204,21 +219,9 @@ extension VZVirtualMachineView {
 			}
 
 			object_setIvar(self, field, newValue)
+			
+			Dynamic(self.framebufferView).showsCursor = newValue
 		}
-	}
-
-	public var ivars: [Ivar] {
-		var count: UInt32 = 0
-		var ivars: [Ivar] = []
-		let result = class_copyIvarList(type(of: self), &count)
-
-		for index in 0..<Int(count) {
-			if let ivar = result?[index] {
-				ivars.append(ivar)
-			}
-		}
-
-		return ivars
 	}
 }
 
@@ -243,27 +246,19 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 		fatalError("init(coder:) has not been implemented")
 	}
 
-	func framebuffer(_ framebuffer: Any, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
+	func framebuffer(_ framebufferView: NSView, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 	}
 	
-	func framebuffer(_ framebuffer: Any, didUpdateFrame frame: UnsafePointer<UInt8>?) {
-		if let spAddr = frame {
-			// spAddr is assumed to be the address of a std::shared_ptr<T> object.
-			// Use the ObjC++ bridge to fetch the managed raw pointer and use_count.
-			let rawPtr = SPBGetSharedPtrRawPointer(spAddr)
-			let useCount = SPBGetSharedPtrUseCount(spAddr)
-
-			if let rawPtr {
-				let addr = UInt(bitPattern: rawPtr)
-				print(String(format: "frame shared_ptr.get()=0x%016llx use_count=%ld", addr, useCount))
-			}
+	func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+		if let surface = framebufferView.layer?.contents as? IOSurface {
+			print("found surface: \(surface) \(surface.pixelFormat.hexa)")
 		}
 	}
 	
-	func framebuffer(_ framebuffer: Any, didUpdateGraphicsOrientation orientation: Int64) {
+	func framebuffer(_ framebufferView: NSView, didUpdateGraphicsOrientation orientation: Int64) {
 	}
 	
-	func framebufferDidUpdateColorSpace(_ framebuffer: Any) {
+	func framebufferDidUpdateColorSpace(_ framebufferView: NSObject) {
 	}
 
 	#if DEBUG
