@@ -521,15 +521,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 
 		if let pixels = vzMachineView.contents() {
-			try? pixels.write(to: self.location.rootURL.appendingPathComponent("screenshot.raw"))
+			try? pixels.write(to: self.location.rootURL.appendingPathComponent("screen.data"))
 		}
 
 		if let image = vzMachineView.image() {
-			// Notify delegate with the captured image
-			self.delegate?.didScreenshot(self, screenshot: image)
 			// Persist the image to disk if PNG data is available
 			if let data = image.pngData {
-				try? data.write(to: self.location.screenshotURL)
+				try? data.write(to: self.location.rootURL.appendingPathComponent("screen.png"))
 			}
 		}
 	}

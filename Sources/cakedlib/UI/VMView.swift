@@ -11,30 +11,6 @@ import CakeAgentLib
 import Dynamic
 import ObjectiveC.runtime
 
-@_silgen_name("SPBGetSharedPtrRawPointer")
-func SPBGetSharedPtrRawPointer(_ sharedPtrObjectAddr: UnsafePointer<UInt8>?) -> UnsafeRawPointer?
-
-@_silgen_name("SPBGetSharedPtrUseCount")
-func SPBGetSharedPtrUseCount(_ sharedPtrObjectAddr: UnsafePointer<UInt8>?) -> Int
-
-func protocolsImplemented(by object: AnyObject) -> [String] {
-	var count: UInt32 = 0
-	guard let protocolList = class_copyProtocolList(type(of: object), &count) else {
-		return []
-	}
-
-	var names: [String] = []
-
-	for i in 0..<Int(count) {
-		let proto = protocolList[i]
-
-		let cname = protocol_getName(proto)
-		names.append(String(cString: cname))
-	}
-
-	return names
-}
-
 #if DEBUG
 @objc protocol _VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -60,32 +36,72 @@ extension VZGraphicsDisplay {
 	}
 }
 
-extension IOSurface {
-	var contents: Data {
-		let bytesPerRow = Int(self.width) * self.bytesPerElement
-		var pixels = Data(count: Int(self.height) * bytesPerRow)
-
-		pixels.withUnsafeMutableBytes { ptr in
-			guard var dstPtr = ptr.bindMemory(to: UInt8.self).baseAddress else {
-				return
-			}
-
-			var srcPtr = self.baseAddress.bindMemory(to: UInt8.self, capacity: Int(self.height) * self.bytesPerRow)
-
-			for lines in 0..<Int(self.height) {
-				dstPtr.update(from: srcPtr, count: bytesPerRow)
-				srcPtr = srcPtr.advanced(by: self.bytesPerRow)
-				dstPtr = dstPtr.advanced(by: bytesPerRow)
-			}
+open class VZFramebufferLayer: CALayer {
+	// Intercept framebuffer contents changes (e.g., IOSurface) for observation/customization
+	var image: NSImage? = nil
+	
+	open override var contents: Any? {
+		get {
+			super.contents
 		}
+		set {
+			if let surface = newValue as? IOSurface {
+				self.image = surface.image
+			}
+			
+			// Forward to CALayer so the view renders normally
+			super.contents = newValue
+			
+			// If you need to react (e.g., mark as needing display or notify observers), do it here
+			// setNeedsDisplay() // Usually not needed for IOSurface-backed contents
+		}
+	}
+	
+	func createImage() -> NSImage? {
+        // Prefer cached IOSurface-derived image if present
+        if let img = self.image {
+            return img
+        }
 
-		return pixels
+        // Determine layer size
+        let pixelSize = CGSize(width: max(1, Int(self.bounds.width)),
+                               height: max(1, Int(self.bounds.height)))
+        guard pixelSize.width > 0, pixelSize.height > 0 else { return nil }
+
+        // Create a bitmap context (RGBA8, premultipliedFirst, device RGB)
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bytesPerPixel = 4
+        let bytesPerRow = Int(pixelSize.width) * bytesPerPixel
+        let bitmapData = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pixelSize.height) * bytesPerRow)
+        defer { bitmapData.deallocate() }
+
+        guard let ctx = CGContext(data: bitmapData,
+                                  width: Int(pixelSize.width),
+                                  height: Int(pixelSize.height),
+                                  bitsPerComponent: 8,
+                                  bytesPerRow: bytesPerRow,
+                                  space: colorSpace,
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else {
+            return nil
+        }
+
+        // Render the layer into the context
+        ctx.clear(CGRect(origin: .zero, size: pixelSize))
+        ctx.translateBy(x: 0, y: pixelSize.height)
+        ctx.scaleBy(x: 1, y: -1) // Flip to match AppKit coordinate system
+        self.render(in: ctx)
+
+        // Create CGImage from context
+        guard let cgImage = ctx.makeImage() else { return nil }
+        // Wrap into NSImage
+        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: pixelSize.width, height: pixelSize.height))
+        return nsImage
 	}
 }
 
 extension NSView {
 	func swizzleFramebufferObserver() {
-		let protocols = protocolsImplemented(by: self)
+		let protocols = self.protocolNames
 		
 		// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
 		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
@@ -125,7 +141,7 @@ extension NSView {
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
-		struct FrameBuffer {
+		/*struct FrameBuffer {
 			var a: UnsafePointer<UInt8>?
 			var b: UnsafePointer<UInt8>?
 			var c: UnsafePointer<UInt8>?
@@ -138,7 +154,7 @@ extension NSView {
 			let ptr = p.pointee
 
 			print("\(#function): \(ptr)")
-		}
+		}*/
 
 		self.swizzled_framebuffer(framebuffer, didUpdateFrame: frame)
 
@@ -247,63 +263,27 @@ extension VZVirtualMachineView {
 	}
 	
 	func contents() -> Data? {
-		guard let contents = self.framebufferView?.layer?.contents else {
-			return nil
-		}
-		
-		guard let surface = contents as? IOSurface else {
+		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
 		}
 
-		let bytesPerRow = Int(surface.width) * surface.bytesPerElement
-		var pixels = Data(count: Int(surface.height) * bytesPerRow)
+		return surface.contents
+	}
 
-		pixels.withUnsafeMutableBytes { ptr in
-			guard var dstPtr = ptr.bindMemory(to: UInt8.self).baseAddress else {
-				return
-			}
-
-			var srcPtr = surface.baseAddress.bindMemory(to: UInt8.self, capacity: Int(surface.height) * surface.bytesPerRow)
-
-			for lines in 0..<Int(surface.height) {
-				dstPtr.update(from: srcPtr, count: bytesPerRow)
-				srcPtr = srcPtr.advanced(by: surface.bytesPerRow)
-				dstPtr = dstPtr.advanced(by: bytesPerRow)
-			}
+	override public func image() -> NSImage? {
+		guard let layer = self.framebufferView?.layer as? VZFramebufferLayer else {
+			return nil
 		}
 
-		return pixels
+		return layer.renderIntoImage()
 	}
 
 	override public func image(in bounds: NSRect) -> NSImage? {
-		guard let contents = self.framebufferView?.layer?.contents else {
-			return nil
-		}
-		
-		guard let surface = contents as? IOSurface else {
+		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
 		}
 
-        // Create a CIImage backed by the IOSurface
-        let ciImage = CIImage(ioSurface: surface)
-
-        // Create a CIContext and generate a CGImage
-        let context = CIContext(options: nil)
-
-        // Determine the rect we want to capture: intersect requested bounds with the image extent
-        let imageExtent = ciImage.extent
-        let requestedRect = CGRect(origin: bounds.origin, size: bounds.size).integral
-        let drawRect = requestedRect.isEmpty ? imageExtent : imageExtent.intersection(requestedRect)
-        guard !drawRect.isEmpty else { return nil }
-
-        guard let cgImage = context.createCGImage(ciImage, from: drawRect) else {
-            return nil
-        }
-
-        // Wrap the CGImage in an NSImage matching the drawn rect size
-        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: drawRect.width, height: drawRect.height))
-
-		return nsImage
+		return surface.image(in: bounds)
     }
 }
 
@@ -318,6 +298,11 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 
 		#if DEBUG
 			if let framebufferView = self.framebufferView, !ExVZVirtualMachineView.swizzled {
+				let newLayer = VZFramebufferLayer()
+				framebufferView.layer?.removeFromSuperlayer()
+				
+				newLayer.delegate = framebufferView.layer?.delegate
+				framebufferView.layer = newLayer
 				framebufferView.swizzleFramebufferObserver()
 
 				ExVZVirtualMachineView.swizzled = true
@@ -334,7 +319,7 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 	
 	func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?) {
 		if let surface = framebufferView.layer?.contents as? IOSurface {
-			print("found surface: \(surface) \(surface.pixelFormat.hexa)")
+			print(surface.description)
 		}
 	}
 	
