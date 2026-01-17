@@ -60,8 +60,30 @@ extension VZGraphicsDisplay {
 	}
 }
 
+extension IOSurface {
+	var contents: Data {
+		let bytesPerRow = Int(self.width) * self.bytesPerElement
+		var pixels = Data(count: Int(self.height) * bytesPerRow)
+
+		pixels.withUnsafeMutableBytes { ptr in
+			guard var dstPtr = ptr.bindMemory(to: UInt8.self).baseAddress else {
+				return
+			}
+
+			var srcPtr = self.baseAddress.bindMemory(to: UInt8.self, capacity: Int(self.height) * self.bytesPerRow)
+
+			for lines in 0..<Int(self.height) {
+				dstPtr.update(from: srcPtr, count: bytesPerRow)
+				srcPtr = srcPtr.advanced(by: self.bytesPerRow)
+				dstPtr = dstPtr.advanced(by: bytesPerRow)
+			}
+		}
+
+		return pixels
+	}
+}
+
 extension NSView {
-	
 	func swizzleFramebufferObserver() {
 		let protocols = protocolsImplemented(by: self)
 		
@@ -223,10 +245,71 @@ extension VZVirtualMachineView {
 			Dynamic(self.framebufferView).showsCursor = newValue
 		}
 	}
+	
+	func contents() -> Data? {
+		guard let contents = self.framebufferView?.layer?.contents else {
+			return nil
+		}
+		
+		guard let surface = contents as? IOSurface else {
+			return nil
+		}
+
+		let bytesPerRow = Int(surface.width) * surface.bytesPerElement
+		var pixels = Data(count: Int(surface.height) * bytesPerRow)
+
+		pixels.withUnsafeMutableBytes { ptr in
+			guard var dstPtr = ptr.bindMemory(to: UInt8.self).baseAddress else {
+				return
+			}
+
+			var srcPtr = surface.baseAddress.bindMemory(to: UInt8.self, capacity: Int(surface.height) * surface.bytesPerRow)
+
+			for lines in 0..<Int(surface.height) {
+				dstPtr.update(from: srcPtr, count: bytesPerRow)
+				srcPtr = srcPtr.advanced(by: surface.bytesPerRow)
+				dstPtr = dstPtr.advanced(by: bytesPerRow)
+			}
+		}
+
+		return pixels
+	}
+
+	override public func image(in bounds: NSRect) -> NSImage? {
+		guard let contents = self.framebufferView?.layer?.contents else {
+			return nil
+		}
+		
+		guard let surface = contents as? IOSurface else {
+			return nil
+		}
+
+        // Create a CIImage backed by the IOSurface
+        let ciImage = CIImage(ioSurface: surface)
+
+        // Create a CIContext and generate a CGImage
+        let context = CIContext(options: nil)
+
+        // Determine the rect we want to capture: intersect requested bounds with the image extent
+        let imageExtent = ciImage.extent
+        let requestedRect = CGRect(origin: bounds.origin, size: bounds.size).integral
+        let drawRect = requestedRect.isEmpty ? imageExtent : imageExtent.intersection(requestedRect)
+        guard !drawRect.isEmpty else { return nil }
+
+        guard let cgImage = context.createCGImage(ciImage, from: drawRect) else {
+            return nil
+        }
+
+        // Wrap the CGImage in an NSImage matching the drawn rect size
+        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: drawRect.width, height: drawRect.height))
+
+		return nsImage
+    }
 }
 
 class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 	var onDisconnect: (() -> Void)?
+	var contents: Data?
 
 	static var swizzled = false
 
