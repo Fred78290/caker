@@ -468,8 +468,8 @@ extension NSView {
 		return nil
 	}
 
-	@objc open func image() -> NSImage {
-		self.image(in: self.bounds)!
+	@objc open func image() -> NSImage? {
+		self.image(in: self.bounds)
 	}
 }
 
