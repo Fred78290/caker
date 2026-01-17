@@ -515,7 +515,16 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 	}
 
 	public func takeScreenshot() {
-		if let image = self.env.vzMachineView?.superview?.image() {
+		guard let vzMachineView = self.env.vzMachineView else {
+			return
+
+		}
+
+		if let pixels = vzMachineView.contents() {
+			try? pixels.write(to: self.location.rootURL.appendingPathComponent("screenshot.raw"))
+		}
+
+		if let image = vzMachineView.image() {
 			// Notify delegate with the captured image
 			self.delegate?.didScreenshot(self, screenshot: image)
 			// Persist the image to disk if PNG data is available
@@ -1051,8 +1060,8 @@ extension VirtualMachine {
 	}
 
 	@MainActor func takeScreenshot() async {
-		if let vzMachineView = self.env.vzMachineView {
-			self.delegate?.didScreenshot(self, screenshot: vzMachineView.image())
+		if let image = self.env.vzMachineView.image() {
+			self.delegate?.didScreenshot(self, screenshot: image)
 		}
 	}
 }
