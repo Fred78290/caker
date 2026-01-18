@@ -277,9 +277,9 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 	}
 	
 	func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?) {
-		if let surface = framebufferView.layer?.contents as? IOSurface {
-			print(surface.description)
-		}
+		//if let surface = framebufferView.layer?.contents as? IOSurface {
+		//	print(surface.description)
+		//}
 	}
 	
 	func framebuffer(_ framebufferView: NSView, didUpdateGraphicsOrientation orientation: Int64) {
