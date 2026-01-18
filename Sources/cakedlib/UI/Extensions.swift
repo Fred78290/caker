@@ -9,12 +9,65 @@ import Foundation
 import QuartzCore
 import GRPCLib
 
+class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
+	let surface: UnsafeMutablePointer<UInt8>
+
+	deinit {
+		surface.deallocate()
+	}
+
+	init?(ioSurface: IOSurface) {
+		let bytesPerRow = ioSurface.bytesPerRow
+		let data = UnsafeMutablePointer<UInt8>.allocate(capacity: ioSurface.allocationSize)
+		var planes: [UnsafeMutablePointer<UInt8>?] = [data]
+		var srcPtr = ioSurface.baseAddress.bindMemory(to: UInt8.self, capacity: ioSurface.allocationSize)
+		var dstPtr = data
+		
+		self.surface = data
+
+		for _ in 0..<ioSurface.height {
+			dstPtr.update(from: srcPtr, count: bytesPerRow)
+			var count = 0
+
+			while count < bytesPerRow {
+				dstPtr[count + 3] = 255
+				count += 4
+			}
+
+			srcPtr = srcPtr.advanced(by: bytesPerRow)
+			dstPtr = dstPtr.advanced(by: bytesPerRow)
+		}
+
+		//planes = [ioSurface.baseAddress.assumingMemoryBound(to: UInt8.self)]
+
+		super.init(bitmapDataPlanes: &planes,
+					pixelsWide: ioSurface.width,
+					pixelsHigh: ioSurface.height,
+					bitsPerSample: 8,
+					samplesPerPixel: ioSurface.bytesPerElement,
+					hasAlpha: true,
+					isPlanar: false,
+					colorSpaceName: .deviceRGB,
+					bitmapFormat: .thirtyTwoBitBigEndian,
+					bytesPerRow: ioSurface.bytesPerRow,
+					bitsPerPixel: ioSurface.bytesPerElement * 8)
+	}
+
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+}
+
+
 extension CALayer {
 	func renderIntoImage() -> NSImage? {
         // Ensure we have a valid, non-zero size to render
         let width = Int(ceil(self.bounds.width))
         let height = Int(ceil(self.bounds.height))
-        guard width > 0, height > 0 else { return nil }
+
+		guard width > 0, height > 0 else {
+			return nil
+		}
 
         // Create an RGBA8 bitmap context
         let colorSpace = CGColorSpaceCreateDeviceRGB()
@@ -34,7 +87,7 @@ extension CALayer {
                                   bitsPerComponent: 8,
                                   bytesPerRow: bytesPerRow,
                                   space: colorSpace,
-                                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else {
+                                  bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue) else {
             return nil
         }
 
@@ -73,6 +126,11 @@ extension OSType {
 }
 
 extension IOSurface {
+	var bitmapRepresentation: NSBitmapImageRep? {
+		IOSurfaceNSBitmapImageRep(ioSurface: self)
+	}
+
+	#if false
 	open override var description: String {
 		return """
 \(self.className): \(self.width)x\(self.height)
@@ -88,8 +146,51 @@ extension IOSurface {
   planeCount: \(self.planeCount)
   seed: \(self.seed)
   surfaceID: \(self.surfaceID)
+  IOSurfaceGetSubsampling: \(IOSurfaceGetSubsampling(self))
+  IOSurfaceGetBitDepthOfComponentOfPlane[0]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 0))
+  IOSurfaceGetBitDepthOfComponentOfPlane[1]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 1))
+  IOSurfaceGetBitDepthOfComponentOfPlane[2]: \(IOSurfaceGetBitDepthOfComponentOfPlane(self, 0, 2))
+  IOSurfaceGetBitOffsetOfComponentOfPlane[0]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 0))
+  IOSurfaceGetBitOffsetOfComponentOfPlane[1]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 1))
+  IOSurfaceGetBitOffsetOfComponentOfPlane[2]: \(IOSurfaceGetBitOffsetOfComponentOfPlane(self, 0, 2))
+  IOSurfaceGetTypeOfComponentOfPlane[0]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 0))
+  IOSurfaceGetTypeOfComponentOfPlane[1]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 1))
+  IOSurfaceGetTypeOfComponentOfPlane[2]: \(IOSurfaceGetTypeOfComponentOfPlane(self, 0, 2))
+  IOSurfaceComponentRange[0]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 0))
+  IOSurfaceComponentRange[1]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 1))
+  IOSurfaceComponentRange[2]: \(IOSurfaceGetRangeOfComponentOfPlane(self, 0, 2))
+
   attachments: \(self.allAttachments())
 """
+	}
+	#endif
+
+	var cgImage: CGImage? {
+		guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
+			return nil
+		}
+
+		guard let provider = CGDataProvider( dataInfo: nil, data: self.baseAddress, size: self.allocationSize, releaseData: { _, _, _ in }) else {
+			return nil
+		}
+
+		let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(
+			CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
+		)
+
+		return CGImage(
+			width: self.width,
+			height: self.height,
+			bitsPerComponent: 8,
+			bitsPerPixel: 32,
+			bytesPerRow: self.bytesPerRow,
+			space: colorSpace,
+			bitmapInfo: bitmapInfo,
+			provider: provider,
+			decode: nil,
+			shouldInterpolate: true,
+			intent: .defaultIntent
+		)
 	}
 
 	func write(path: String) {
@@ -111,6 +212,14 @@ extension IOSurface {
 
 			for _ in 0..<Int(self.height) {
 				dstPtr.update(from: srcPtr, count: bytesPerRow)
+
+				var count = 0
+
+				while count < bytesPerRow {
+					dstPtr[count + 3] = 255
+					count += 4
+				}
+
 				srcPtr = srcPtr.advanced(by: self.bytesPerRow)
 				dstPtr = dstPtr.advanced(by: bytesPerRow)
 			}
@@ -120,28 +229,22 @@ extension IOSurface {
 	}
 
 	public var image: NSImage? {
-		return image(in: .init(origin: .zero, size: .init(width: self.width, height: self.height)))
-	}
-
-	public func image(in bounds: NSRect) -> NSImage? {
-		// Create a CIImage backed by the IOSurface
-		let ciImage = CIImage(ioSurface: self)
-
-		// Create a CIContext and generate a CGImage
-		let context = CIContext(options: nil)
-
-		// Determine the rect we want to capture: intersect requested bounds with the image extent
-		let imageExtent = ciImage.extent
-		let requestedRect = CGRect(origin: bounds.origin, size: bounds.size).integral
-		let drawRect = requestedRect.isEmpty ? imageExtent : imageExtent.intersection(requestedRect)
-		guard !drawRect.isEmpty else { return nil }
-
-		guard let cgImage = context.createCGImage(ciImage, from: drawRect) else {
+		guard var cgImage = self.cgImage else {
 			return nil
 		}
 
-		// Wrap the CGImage in an NSImage matching the drawn rect size
-		return NSImage(cgImage: cgImage, size: NSSize(width: drawRect.width, height: drawRect.height))
+		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
+	}
+
+	public func image(in bounds: NSRect) -> NSImage? {
+		guard var cgImage = self.cgImage else {
+			return nil
+		}
+
+		guard let croppedCgImage = cgImage.cropping(to: bounds) else {
+			return nil
+		}
+
+		return NSImage(cgImage: croppedCgImage, size: .init(width: croppedCgImage.width, height: croppedCgImage.height))
 	}
 }
-
