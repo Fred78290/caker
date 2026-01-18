@@ -144,7 +144,7 @@ class NSVNCView: NSView {
 	public override func viewWillStartLiveResize() {
 		self.liveViewResize = true
 		self.layer?.contentsGravity = .resize
-		if let blurred = self.image().blurred() {
+		if let blurred = self.image()?.blurred() {
 			self.updateImage(blurred.cgImage, animated: true, duration: 0.2)
 		}
 	}
