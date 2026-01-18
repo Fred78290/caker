@@ -11,7 +11,7 @@ import SwiftUI
 import Virtualization
 import CakeAgentLib
 
-class CakerVZVirtualMachineView: VZVirtualMachineView {
+class CakerVZVirtualMachineView: ExVZVirtualMachineView {
 	private var liveViewResize: Bool = false
 	private let document: VirtualMachineDocument
 
