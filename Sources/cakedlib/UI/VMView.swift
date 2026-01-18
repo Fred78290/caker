@@ -56,47 +56,6 @@ open class VZFramebufferLayer: CALayer {
 			// setNeedsDisplay() // Usually not needed for IOSurface-backed contents
 		}
 	}
-	
-	func createImage() -> NSImage? {
-        // Prefer cached IOSurface-derived image if present
-        if let img = self.image {
-            return img
-        }
-
-        // Determine layer size
-        let pixelSize = CGSize(width: max(1, Int(self.bounds.width)),
-                               height: max(1, Int(self.bounds.height)))
-        guard pixelSize.width > 0, pixelSize.height > 0 else { return nil }
-
-        // Create a bitmap context (RGBA8, premultipliedFirst, device RGB)
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bytesPerPixel = 4
-        let bytesPerRow = Int(pixelSize.width) * bytesPerPixel
-        let bitmapData = UnsafeMutablePointer<UInt8>.allocate(capacity: Int(pixelSize.height) * bytesPerRow)
-        defer { bitmapData.deallocate() }
-
-        guard let ctx = CGContext(data: bitmapData,
-                                  width: Int(pixelSize.width),
-                                  height: Int(pixelSize.height),
-                                  bitsPerComponent: 8,
-                                  bytesPerRow: bytesPerRow,
-                                  space: colorSpace,
-                                  bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else {
-            return nil
-        }
-
-        // Render the layer into the context
-        ctx.clear(CGRect(origin: .zero, size: pixelSize))
-        ctx.translateBy(x: 0, y: pixelSize.height)
-        ctx.scaleBy(x: 1, y: -1) // Flip to match AppKit coordinate system
-        self.render(in: ctx)
-
-        // Create CGImage from context
-        guard let cgImage = ctx.makeImage() else { return nil }
-        // Wrap into NSImage
-        let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: pixelSize.width, height: pixelSize.height))
-        return nsImage
-	}
 }
 
 extension NSView {
