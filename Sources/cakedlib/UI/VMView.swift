@@ -221,6 +221,14 @@ extension VZVirtualMachineView {
 		}
 	}
 	
+	func surface() -> IOSurface? {
+		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
+			return nil
+		}
+
+		return surface
+	}
+
 	func contents() -> Data? {
 		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
@@ -230,7 +238,7 @@ extension VZVirtualMachineView {
 	}
 
 	override public func image() -> NSImage? {
-		guard let layer = self.framebufferView?.layer as? VZFramebufferLayer else {
+		guard let layer = self.framebufferView?.layer else {
 			return nil
 		}
 
@@ -257,11 +265,11 @@ class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 
 		#if DEBUG
 			if let framebufferView = self.framebufferView, !ExVZVirtualMachineView.swizzled {
-				let newLayer = VZFramebufferLayer()
+				/*let newLayer = VZFramebufferLayer()
 				framebufferView.layer?.removeFromSuperlayer()
 				
 				newLayer.delegate = framebufferView.layer?.delegate
-				framebufferView.layer = newLayer
+				framebufferView.layer = newLayer*/
 				framebufferView.swizzleFramebufferObserver()
 
 				ExVZVirtualMachineView.swizzled = true
