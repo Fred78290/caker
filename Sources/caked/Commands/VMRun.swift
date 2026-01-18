@@ -62,9 +62,6 @@ struct VMRun: AsyncParsableCommand {
 	@Option(help: ArgumentHelp("VNC Server port", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var vncPort: Int = 0
 
-	@Option(help: ArgumentHelp("VNC capture method", discussion: "This option allow choose the capture method of vnc", visibility: .hidden))
-	var captureMethod: VNCCaptureMethod = .coreGraphics
-
 	@Option(help: ArgumentHelp("Screen size", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var screenSize: ViewSize?
 
@@ -146,7 +143,6 @@ struct VMRun: AsyncParsableCommand {
 			screenSize: displaySize,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
-			captureMethod: captureMethod,
 			runMode: self.common.runMode)
 
 		try handler.run { address, vm in
@@ -157,7 +153,7 @@ struct VMRun: AsyncParsableCommand {
 			}
 
 			if display == .all {
-				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod)
+				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
 
 				Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
 			} else if display == .ui {

@@ -14,15 +14,6 @@ public protocol VZVNCServer {
 	func connectionURL() -> URL
 }
 
-public enum VNCCaptureMethod: String, CustomStringConvertible, ExpressibleByArgument, CaseIterable {
-	public var description: String {
-		self.rawValue
-	}
-
-	case coreGraphics = "cg"
-	case metal = "metal"
-}
-
 public protocol VNCServerDelegate: AnyObject, Sendable {
 	func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String)
 	func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String)
@@ -38,7 +29,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public private(set) var port: UInt16
 	public private(set) var isRunning = false
 	public var allowRemoteInput = true  // Controls if remote inputs are accepted
-	public let captureMethod: VNCCaptureMethod
 	public var password: String?  // VNC Auth password
 
 	private let logger = Logger("VNCServer")
@@ -63,11 +53,10 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
 	}
 
-	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, captureMethod: VNCCaptureMethod = .coreGraphics) throws {
+	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0) throws {
 		try newKeyMapper().setupKeyMapper()
 
 		self.sourceView = sourceView
-		self.captureMethod = captureMethod
 		self.password = password
 		self.name = name
 
@@ -269,7 +258,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private func handleViewSizeChange() {
 	}
 
-	private func updateFramebuffer() async throws {
+	func updateFramebuffer() async throws {
 		while isRunning && Task.isCancelled == false {
 			let result = await self.framebuffer.updateFromView()
 

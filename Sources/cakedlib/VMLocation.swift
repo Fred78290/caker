@@ -408,7 +408,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func startVirtualMachine(
-		_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, captureMethod: VNCCaptureMethod, internalCall: Bool, runMode: Utils.RunMode,
+		_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode,
 		completionHandler: StartCompletionHandler? = nil
 	) throws -> (
 		address: EventLoopFuture<String?>, vm: VirtualMachine
@@ -419,7 +419,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			if case .success = $0 {
 				if display == .vnc {
 					DispatchQueue.main.async {
-						let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort, captureMethod: captureMethod)
+						let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
 
 						Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
 					}

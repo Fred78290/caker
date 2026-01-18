@@ -489,9 +489,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func startVncServer(_ vzMachineView: VZVirtualMachineView, vncPassword: String, port: Int, captureMethod: VNCCaptureMethod) throws -> URL {
+	public func startVncServer(_ vzMachineView: VZVirtualMachineView, vncPassword: String, port: Int) throws -> URL {
 		if self.env.vncServer == nil {
-			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, captureMethod: captureMethod, queue: DispatchQueue.global())
+			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
 			self.env.vzMachineView = vzMachineView
 			self.env.vncServer.delegate = self
 			try self.env.vncServer.start()
@@ -500,11 +500,11 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return self.env.vncServer.connectionURL()
 	}
 
-	public func startVncServer(vncPassword: String, port: Int, captureMethod: VNCCaptureMethod) throws -> URL {
+	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
 		if self.env.vncServer == nil {
 			let vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
 
-			return try self.startVncServer(vzMachineView, vncPassword: vncPassword, port: port, captureMethod: captureMethod)
+			return try self.startVncServer(vzMachineView, vncPassword: vncPassword, port: port)
 		}
 
 		return self.env.vncServer.connectionURL()
