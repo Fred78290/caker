@@ -26,32 +26,25 @@ import ObjectiveC.runtime
 	@objc func framebufferDidUpdateColorSpace(_ framebuffer: NSObject)
 }
 
-extension VZGraphicsDisplay {
-	typealias TakeScreenshotCompletionBlock = @convention(block) (_ result: NSImage) -> Void
-
-	func takeScreenshot(completionHandler: @escaping (NSImage) -> Void) {
-		Dynamic(self)._takeScreenshot(withCompletionHandler: { value in
-			completionHandler(value)
-		} as TakeScreenshotCompletionBlock)
-	}
-}
-
 open class VZFramebufferLayer: CALayer {
 	// Intercept framebuffer contents changes (e.g., IOSurface) for observation/customization
-	var image: NSImage? = nil
+	var image: CGImage? = nil
 	
 	open override var contents: Any? {
 		get {
 			super.contents
 		}
 		set {
+			var newValue = newValue
+
 			if let surface = newValue as? IOSurface {
-				self.image = surface.image
+				self.image = surface.cgImage
+				newValue = self.image
 			}
-			
+
 			// Forward to CALayer so the view renders normally
 			super.contents = newValue
-			
+
 			// If you need to react (e.g., mark as needing display or notify observers), do it here
 			// setNeedsDisplay() // Usually not needed for IOSurface-backed contents
 		}
@@ -141,10 +134,6 @@ extension NSView {
 #endif
 
 extension VZVirtualMachineView {
-	public func takeScreenshot(completionHandler: @escaping (NSObject) -> Void) {
-		self.graphicsDisplay?.takeScreenshot(completionHandler: completionHandler)
-	}
-
 	public var graphicsDisplay: VZGraphicsDisplay? {
 		guard let prop = class_getProperty(type(of: self), "_graphicsDisplay") else {
 			return nil
@@ -220,7 +209,8 @@ extension VZVirtualMachineView {
 			Dynamic(self.framebufferView).showsCursor = newValue
 		}
 	}
-	
+
+#if DEBUG
 	func surface() -> IOSurface? {
 		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
@@ -236,7 +226,9 @@ extension VZVirtualMachineView {
 
 		return surface.contents
 	}
+	#endif
 
+	#if false
 	override public func image() -> NSImage? {
 		guard let layer = self.framebufferView?.layer else {
 			return nil
@@ -252,48 +244,50 @@ extension VZVirtualMachineView {
 
 		return surface.image(in: bounds)
     }
+	#endif
 }
 
-class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
+open class ExVZVirtualMachineView: VZVirtualMachineView, VZFramebufferObserver {
 	var onDisconnect: (() -> Void)?
 	var contents: Data?
 
 	static var swizzled = false
 
-	override init(frame frameRect: NSRect) {
+	public override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 
-		#if DEBUG
-			if let framebufferView = self.framebufferView, !ExVZVirtualMachineView.swizzled {
-				/*let newLayer = VZFramebufferLayer()
-				framebufferView.layer?.removeFromSuperlayer()
-				
-				newLayer.delegate = framebufferView.layer?.delegate
-				framebufferView.layer = newLayer*/
+		if let framebufferView = self.framebufferView, !ExVZVirtualMachineView.swizzled {
+			let newLayer = VZFramebufferLayer()
+			framebufferView.layer?.removeFromSuperlayer()
+			
+			newLayer.delegate = framebufferView.layer?.delegate
+			framebufferView.layer = newLayer
+
+			if ExVZVirtualMachineView.swizzled == false {
 				framebufferView.swizzleFramebufferObserver()
 
 				ExVZVirtualMachineView.swizzled = true
 			}
-		#endif
+		}
 	}
 
-	required init?(coder: NSCoder) {
+	public required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
 
-	func framebuffer(_ framebufferView: NSView, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
+	open func framebuffer(_ framebufferView: NSView, didUpdateCursor cursor: UnsafePointer<UInt8>?) {
 	}
 	
-	func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?) {
-		//if let surface = framebufferView.layer?.contents as? IOSurface {
+	open func framebuffer(_ framebufferView: NSView, didUpdateFrame frame: UnsafePointer<UInt8>?) {
+		//if let surface = self.surface {
 		//	print(surface.description)
 		//}
 	}
 	
-	func framebuffer(_ framebufferView: NSView, didUpdateGraphicsOrientation orientation: Int64) {
+	open func framebuffer(_ framebufferView: NSView, didUpdateGraphicsOrientation orientation: Int64) {
 	}
 	
-	func framebufferDidUpdateColorSpace(_ framebufferView: NSObject) {
+	open func framebufferDidUpdateColorSpace(_ framebufferView: NSObject) {
 	}
 
 	#if DEBUG
@@ -324,11 +318,7 @@ public struct VMView: NSViewRepresentable {
 	public var params: VMRunHandler
 
 	public static func createView(vm: VirtualMachine, frame: NSRect) -> VZVirtualMachineView {
-		#if DEBUG
-			let vzMachineView = ExVZVirtualMachineView(frame: frame)
-		#else
-			let vzMachineView = VZVirtualMachineView(frame: frame)
-		#endif
+		let vzMachineView = ExVZVirtualMachineView(frame: frame)
 
 		vzMachineView.virtualMachine = vm.virtualMachine
 		vzMachineView.autoresizingMask = [.width, .height]
@@ -346,7 +336,7 @@ public struct VMView: NSViewRepresentable {
 
 	public func makeNSView(context: Context) -> VZVirtualMachineView {
 		guard let vmView = self.virtualMachine.env.vzMachineView else {
-			return NSViewType()
+			return Self.createView(vm: self.virtualMachine, frame: .zero)
 		}
 
 		return vmView
