@@ -462,7 +462,7 @@ extension NSView {
 
 	@objc open func image(in bounds: NSRect) -> NSImage? {
 		if let imageRepresentation = imageRepresentation(in: bounds), let cgImage = imageRepresentation.cgImage {
-			return NSImage(cgImage: cgImage, size: bounds.size)
+			return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
 		}
 
 		return nil
