@@ -253,7 +253,7 @@ final class VNCConnection: @unchecked Sendable {
 			pixelFormat = VNCPixelFormat(bitsPerPixel: 8, depth: 8, bigEndianFlag: 0, trueColorFlag: 1, redMax: 7, greenMax: 7, blueMax: 3, redShift: 0, greenShift: 3, blueShift: 6)
 		}
 
-		let serverPixelFormat = framebuffer.getPixelFormat()
+		let serverPixelFormat = framebuffer.pixelFormat
 
 		guard pixelFormat == serverPixelFormat else {
 			if serverPixelFormat.bitsPerPixel <= 16 {
@@ -766,7 +766,11 @@ extension VNCConnection {
 		}
 
 		// Send framebuffer update
-		try await self.sendFramebufferUpdateThrowing(newSizePending)
+		let (pixelData, width, height) = self.framebuffer.pixelData.withLock {
+			return ($0, self.framebuffer.width, self.framebuffer.height)
+		}
+
+		try await self.sendFramebufferUpdateThrowing(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
 	}
 
 	private func receiveFramebufferUpdateContinue() async throws {
@@ -965,46 +969,45 @@ extension VNCConnection {
 		}
 	}
 
-	func sendFramebufferUpdateThrowing(_ newSizePending: Bool) async throws {
+	func sendFramebufferUpdateThrowing(pixelData: Data, width: Int, height: Int, newSizePending: Bool) async throws {
 		if isAuthenticated && self.connection.state == .ready {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
-			let state = await framebuffer.getCurrentState()
 
 			if self.encodings.enableSupportedEncodings {
 				sendSupportedEncodings = true
 				self.encodings.enableSupportedEncodings = false
 			}
-
+			
 			if self.encodings.enableSupportedMessages {
 				sendSupportedMessages = true
 				self.encodings.enableSupportedMessages = false
 			}
-
+			
 			if newSizePending && self.encodings.useNewFBSize {
 				if self.encodings.useExtDesktopSize {
-					try await sendExDesktopSize(width: UInt16(state.width), height: UInt16(state.height))
+					try await sendExDesktopSize(width: UInt16(width), height: UInt16(height))
 				} else {
-					try await sendNewFBSize(width: UInt16(state.width), height: UInt16(state.height))
+					try await sendNewFBSize(width: UInt16(width), height: UInt16(height))
 				}
 			}
-
-			try await sendUpdateBuffer(state.data, width: state.width, height: state.height)
-
+			
+			try await sendUpdateBuffer(pixelData, width: width, height: height)
+			
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
 			}
-
+			
 			if sendSupportedEncodings {
 				try await self.sendSupportedEncodings()
 			}
 		}
 	}
 
-	func sendFramebufferUpdate(_ newSizePending: Bool) async {
+	func sendFramebufferUpdate(pixelData: Data, width: Int, height: Int, newSizePending: Bool) async {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
-				try await self.sendFramebufferUpdateThrowing(newSizePending)
+				try await self.sendFramebufferUpdateThrowing(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
 			} catch {
 				self.logger.error("send framebuffer failed error: \(error)")
 				self.didReceiveError(error)

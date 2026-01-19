@@ -23,6 +23,14 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 	func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop])
 }
 
+public protocol VNCFrameBufferProducer {
+	var bitmapInfos: CGBitmapInfo { get }
+	var cgImage: CGImage? { get }
+
+	func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation)
+	func stopFramebufferUpdate()
+}
+
 public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
 	public private(set) var sourceView: NSView
@@ -40,6 +48,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
 	private var updateBufferTask: Task<Void, Never>?
+	private var taskQueue: TaskQueue! = nil
 	private var activeConnections: [VNCConnection] {
 		self.connections.compactMap {
 			if $0.connectionState == .ready {
@@ -70,80 +79,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.framebuffer = VNCFramebuffer(view: sourceView)
 
 		super.init()
-
-		setupViewObservers()
-	}
-
-	private func setupViewObservers() {
-		// Observer for size changes
-		NotificationCenter.default.removeObserver(self)
-		NotificationCenter.default.addObserver(
-			self,
-			selector: #selector(viewBoundsDidChange),
-			name: NSView.boundsDidChangeNotification,
-			object: sourceView
-		)
-
-		NotificationCenter.default.addObserver(
-			self,
-			selector: #selector(viewFrameDidChange),
-			name: NSView.frameDidChangeNotification,
-			object: sourceView
-		)
-
-		NotificationCenter.default.addObserver(
-			self,
-			selector: #selector(viewWillStartLiveResize),
-			name: NSWindow.willStartLiveResizeNotification,
-			object: nil
-		)
-
-		NotificationCenter.default.addObserver(
-			self,
-			selector: #selector(viewDidEndLiveResize),
-			name: NSWindow.didEndLiveResizeNotification,
-			object: nil
-		)
-
-		// Enable notifications
-		sourceView.postsFrameChangedNotifications = true
-		sourceView.postsBoundsChangedNotifications = true
-	}
-
-	func isMyWindowKey(_ notification: Notification) -> Bool {
-		guard let sourceWindow = self.sourceView.window else {
-			return false
-		}
-
-		if let window = notification.object as? NSWindow, window.windowNumber == sourceWindow.windowNumber {
-			return true
-		}
-
-		return false
-	}
-	@objc private func viewWillStartLiveResize(_ notification: Notification) {
-		if self.isMyWindowKey(notification) {
-			self.isLiveResize = true
-		}
-	}
-
-	@objc private func viewDidEndLiveResize(_ notification: Notification) {
-		if self.isMyWindowKey(notification) {
-			self.isLiveResize = false
-			handleViewSizeChange()
-		}
-	}
-
-	@objc private func viewBoundsDidChange() {
-		if self.isLiveResize == false {
-			handleViewSizeChange()
-		}
-	}
-
-	@objc private func viewFrameDidChange() {
-		if self.isLiveResize == false {
-			handleViewSizeChange()
-		}
 	}
 
 	public func connectionURL() -> URL {
@@ -192,9 +127,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				case .failed(let error):
 					self.delegate?.vncServer(self, didReceiveError: error)
 				case .cancelled:
-					self.isRunning = false
-					self.updateBufferTask?.cancel()
-					self.updateBufferTask = nil
+					self.stopFramebufferUpdates()
 				default:
 					break
 				}
@@ -242,20 +175,84 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	}
 
 	private func startFramebufferUpdates() {
+		guard isRunning == false else {
+			return
+		}
+	
 		self.isRunning = true
-		self.updateBufferTask?.cancel()
-		self.updateBufferTask = Task { [weak self] in
-			guard let self else { return }
+		self.updateBufferTask = Task {
+			if let producer = self.sourceView as? VNCFrameBufferProducer {
+				let stream = AsyncStream<CGImage>.makeStream(of: CGImage.self)
+				
+				producer.startFramebufferUpdate(continuation: stream.continuation)
 
-			do {
-				try await self.updateFramebuffer()
-			} catch {
-				self.logger.error("Framebuffer update failed: \(error)")
+				await withTaskCancellationHandler(operation: {
+					for await image in stream.stream {
+						await self.updateFramebufferRequest(cgImage: image)
+					}
+					producer.stopFramebufferUpdate()
+				}, onCancel: {
+					stream.continuation.finish()
+				})
+			} else {
+				do {
+					try await self.updateFramebuffer()
+				} catch {
+					self.logger.error("Framebuffer update failed: \(error)")
+				}
 			}
 		}
 	}
 
-	private func handleViewSizeChange() {
+	private func stopFramebufferUpdates() {
+		self.isRunning = false
+		self.updateBufferTask?.cancel()
+		self.updateBufferTask = nil
+	}
+	
+	func sendFrameBufferUpdate(connections: [VNCConnection], newSizePending: Bool) async {
+		guard connections.isEmpty == false else {
+			return
+		}
+		await withTaskGroup(of: Void.self) { group in
+			self.framebuffer.pixelData.withLock { pixelData in
+				let pixelData = pixelData
+				let width = self.framebuffer.width
+				let height = self.framebuffer.height
+				
+				connections.forEach { connection in
+					group.addTask {
+						await connection.sendFramebufferUpdate(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
+					}
+				}
+			}
+
+			await group.waitForAll()
+		}
+	}
+
+	func updateFramebufferRequest(cgImage: CGImage) async {
+		let newSizePending = self.framebuffer.updateSize(width: cgImage.width, height: cgImage.height)
+		self.framebuffer.convertImageToPixelData(cgImage: cgImage)
+
+		let connections = self.activeConnections.filter {
+			$0.sendFramebufferContinous || newSizePending
+		}
+
+		await self.sendFrameBufferUpdate(connections: connections, newSizePending: newSizePending)
+	}
+
+	func updateFramebufferRequest(imageRepresentation: NSBitmapImageRep, newSizePending: Bool) async {
+		if self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation) {
+			#if DEBUG
+				self.logger.trace("updateFramebuffer")
+			#endif
+			let connections = self.activeConnections.filter {
+				$0.sendFramebufferContinous || newSizePending
+			}
+
+			await self.sendFrameBufferUpdate(connections: connections, newSizePending: newSizePending)
+		}
 	}
 
 	func updateFramebuffer() async throws {
@@ -266,39 +263,13 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 				continue
 			}
 
-			if self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation) {
-				#if DEBUG
-					self.logger.trace("updateFramebuffer")
-				#endif
-				let connections = self.activeConnections.filter {
-					$0.sendFramebufferContinous || result.sizeChanged
-				}
-
-				if connections.isEmpty == false {
-					await withTaskGroup(of: Void.self) { group in
-						connections.forEach { connection in
-							group.addTask {
-								await connection.sendFramebufferUpdate(result.sizeChanged)
-							}
-						}
-
-						await group.waitForAll()
-					}
-				}
-			}
-
-			await self.framebuffer.markAsProcessed()
+			await updateFramebufferRequest(imageRepresentation: imageRepresentation, newSizePending: result.sizeChanged)
 
 			try await Task.sleep(nanoseconds: 300_000)
 		}
 	}
 
-	deinit {
-		NotificationCenter.default.removeObserver(self)
-	}
-
 	// MARK: - Port Availability
-
 	private static func isPortAvailable(_ port: UInt16) -> Bool {
 		let socketFD = socket(AF_INET, SOCK_STREAM, 0)
 		guard socketFD != -1 else { return false }

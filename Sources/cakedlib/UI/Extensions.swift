@@ -124,7 +124,7 @@ extension OSType {
 }
 
 extension IOSurface {
-	var bitmapRepresentation: NSBitmapImageRep? {
+	public var bitmapRepresentation: NSBitmapImageRep? {
 		IOSurfaceNSBitmapImageRep(ioSurface: self)
 	}
 
@@ -163,24 +163,22 @@ extension IOSurface {
 	}
 	#endif
 
-	var cgImage: CGImage? {
+	public var cgImage: CGImage? {
 		guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
 			return nil
 		}
 
-		guard let provider = CGDataProvider( dataInfo: nil, data: self.baseAddress, size: self.allocationSize, releaseData: { _, _, _ in }) else {
+		guard let provider = CGDataProvider(data: Data(bytes: self.baseAddress, count: self.allocationSize) as CFData) else {
 			return nil
 		}
 
-		let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(
-			CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
-		)
+		let bitmapInfo = CGBitmapInfo.byteOrder32Little.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipFirst.rawValue))
 
 		return CGImage(
 			width: self.width,
 			height: self.height,
 			bitsPerComponent: 8,
-			bitsPerPixel: 32,
+			bitsPerPixel: self.bytesPerElement * 8,
 			bytesPerRow: self.bytesPerRow,
 			space: colorSpace,
 			bitmapInfo: bitmapInfo,
@@ -227,7 +225,7 @@ extension IOSurface {
 	}
 
 	public var image: NSImage? {
-		guard var cgImage = self.cgImage else {
+		guard let cgImage = self.cgImage else {
 			return nil
 		}
 
@@ -235,7 +233,7 @@ extension IOSurface {
 	}
 
 	public func image(in bounds: NSRect) -> NSImage? {
-		guard var cgImage = self.cgImage else {
+		guard let cgImage = self.cgImage else {
 			return nil
 		}
 

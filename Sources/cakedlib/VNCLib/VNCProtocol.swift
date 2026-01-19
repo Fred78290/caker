@@ -1,5 +1,6 @@
 import Foundation
 import CakeAgentLib
+import AppKit
 
 // and any other primitives you pass to receiveDatas(...)
 // Authentication types
@@ -222,6 +223,105 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 		self.redShift = redShift
 		self.greenShift = greenShift
 		self.blueShift = blueShift
+	}
+
+	init(bitmapInfo: CGBitmapInfo) {
+		self.bitsPerPixel = 32
+		self.depth = 32
+		self.redMax = 255
+		self.greenMax = 255
+		self.blueMax = 255
+		self.bigEndianFlag = VNCServer.littleEndian ? 0 : 1
+		self.redShift = 16
+		self.greenShift = 8
+		self.blueShift = 0
+		self.trueColorFlag = 1
+
+		if bitmapInfo.byteOrder == .orderDefault {
+			self.bitsPerPixel = 32
+			self.depth = 32
+			self.redMax = 255
+			self.greenMax = 255
+			self.blueMax = 255
+			self.bigEndianFlag = VNCServer.littleEndian ? 0 : 1
+
+			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
+				self.redShift = 16
+				self.greenShift = 8
+				self.blueShift = 0
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 24
+				self.greenShift = 16
+				self.blueShift = 8
+			}
+		} else if bitmapInfo.byteOrder == .order32Little {
+			self.bitsPerPixel = 32
+			self.depth = 32
+			self.redMax = 255
+			self.greenMax = 255
+			self.blueMax = 255
+			self.bigEndianFlag = 0
+
+			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
+				self.redShift = 16
+				self.greenShift = 8
+				self.blueShift = 0
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 24
+				self.greenShift = 16
+				self.blueShift = 8
+			}
+		} else if bitmapInfo.byteOrder == .order32Big {
+			self.bitsPerPixel = 32
+			self.depth = 32
+			self.redMax = 255
+			self.greenMax = 255
+			self.blueMax = 255
+			self.bigEndianFlag = 1
+
+			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
+				self.redShift = 0
+				self.greenShift = 8
+				self.blueShift = 16
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 8
+				self.greenShift = 16
+				self.blueShift = 24
+			}
+		} else if bitmapInfo.byteOrder == .order16Little {
+			self.bitsPerPixel = 16
+			self.depth = 16
+			self.redMax = 16
+			self.greenMax = 16
+			self.blueMax = 16
+
+			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
+				self.redShift = 8
+				self.greenShift = 4
+				self.blueShift = 0
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 12
+				self.greenShift = 8
+				self.blueShift = 4
+			}
+		} else if bitmapInfo.byteOrder == .order16Big {
+			self.bitsPerPixel = 16
+			self.depth = 16
+			self.redMax = 16
+			self.greenMax = 16
+			self.blueMax = 16
+			self.bigEndianFlag = 1
+
+			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
+				self.redShift = 8
+				self.greenShift = 4
+				self.blueShift = 0
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 12
+				self.greenShift = 8
+				self.blueShift = 4
+			}
+		}
 	}
 
 	var bigEndian: Self {
