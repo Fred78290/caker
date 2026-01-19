@@ -38,6 +38,7 @@
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
 		9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1501382E6C2AE000B23147 /* LabelView.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
+		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
 		9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FF2E019FA400BEFB41 /* Multipass.swift */; };
@@ -151,7 +152,6 @@
 		9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */; };
 		9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */; };
 		9B5C53CF2F124A82002D628C /* CPUUsageMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */; };
-		9B5C53D12F125A92002D628C /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C53D02F125A8F002D628C /* TaskQueue.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
@@ -252,6 +252,7 @@
 		9BDA13A92EE6D48D00357544 /* CarbonKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */; };
 		9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */; };
 		9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */; };
+		9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
 		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; };
@@ -573,6 +574,7 @@
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1501382E6C2AE000B23147 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
+		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
 		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
 		9B20D6002E019FA400BEFB41 /* VMWare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMWare.swift; sourceTree = "<group>"; };
@@ -665,7 +667,6 @@
 		9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCServer.swift; sourceTree = "<group>"; };
 		9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCTLSConfiguration.swift; sourceTree = "<group>"; };
 		9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageMonitor.swift; sourceTree = "<group>"; };
-		9B5C53D02F125A8F002D628C /* TaskQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskQueue.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
@@ -759,6 +760,7 @@
 		9BDA13A82EE6D48B00357544 /* CarbonKeyMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonKeyMapper.swift; sourceTree = "<group>"; };
 		9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineInformations.swift; sourceTree = "<group>"; };
 		9BDBAC2C2E15618000215DF5 /* MemorySizeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySizeStyle.swift; sourceTree = "<group>"; };
+		9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskQueue.swift; sourceTree = "<group>"; };
 		9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PIDLock.swift; sourceTree = "<group>"; };
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
@@ -1253,7 +1255,6 @@
 				9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */,
 				9B0202722EA8D08800053712 /* RoundedTextField.swift */,
 				9B3601A02E21169200889BFD /* Settings.swift */,
-				9B5C53D02F125A8F002D628C /* TaskQueue.swift */,
 				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
 				9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */,
@@ -1420,6 +1421,7 @@
 				9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */,
 				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
 				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
+				9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */,
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
@@ -1762,6 +1764,7 @@
 				9BEBC7632DF440720092B196 /* Shell.swift */,
 				9BEBC7642DF440720092B196 /* StorageLocation.swift */,
 				9BB144D32EC33A320094D950 /* Sudo.swift */,
+				9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */,
 				9BEBC7652DF440720092B196 /* Utilities.swift */,
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
@@ -2151,7 +2154,6 @@
 			files = (
 				9BDA14BF2EEAC18900357544 /* VirtualMachineInformations.swift in Sources */,
 				9B7C7B662E0D804F009D0A26 /* VirtualMachineWizard.swift in Sources */,
-				9B5C53D12F125A92002D628C /* TaskQueue.swift in Sources */,
 				9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */,
 				9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */,
 				9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */,
@@ -2404,11 +2406,13 @@
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,
+				9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */,
 				9BEBC7852DF440720092B196 /* CloudImageConverter.swift in Sources */,
 				9BEBC7862DF440720092B196 /* CloudInit.swift in Sources */,
 				9BEBC7872DF440720092B196 /* CommunicationDevices.swift in Sources */,
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
+				9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */,
 				9BEBC78A2DF440720092B196 /* ConfigureHandler.swift in Sources */,
 				9BEBC78B2DF440720092B196 /* GuestPlateform.swift in Sources */,
 				9BEBC78D2DF440720092B196 /* IP.V4.swift in Sources */,
