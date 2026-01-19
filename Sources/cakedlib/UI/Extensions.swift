@@ -60,7 +60,7 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 
 
 extension CALayer {
-	func renderIntoImage() -> NSImage? {
+	func renderIntoImage() -> CGImage? {
         // Ensure we have a valid, non-zero size to render
         let width = Int(ceil(self.bounds.width))
         let height = Int(ceil(self.bounds.height))
@@ -100,9 +100,7 @@ extension CALayer {
         self.render(in: ctx)
 
         // Create CGImage and wrap in NSImage
-        guard let cgImage = ctx.makeImage() else { return nil }
-
-		return NSImage(cgImage: cgImage, size: NSSize(width: width, height: height))
+        return ctx.makeImage()
 	}
 }
 
