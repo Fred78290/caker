@@ -33,8 +33,8 @@ public class VNCFramebuffer {
 		self.height = Int(view.bounds.height)
 		self.pixelData = .init(Data(count: width * height * 4))  // RGBA
 
-		if let producer = self.sourceView as? VNCFrameBufferProducer {
-			cgImage = producer.cgImage
+		if let producer = self.sourceView as? VNCFrameBufferProducer, let img = producer.cgImage {
+			cgImage = img
 		} else if let imageRepresentation = view.imageRepresentationSync(in: NSRect(x: 0, y: 0, width: 4, height: 4)) {
 			cgImage = imageRepresentation.cgImage
 		}
@@ -92,6 +92,7 @@ public class VNCFramebuffer {
 
 		self.bitsPerPixels = cgImage.bitsPerPixel
 		self.bitmapInfo = cgImage.bitmapInfo
+		self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
 
 		if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
 			imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
@@ -100,40 +101,34 @@ public class VNCFramebuffer {
 						return
 					}
 
-					/*let rowWidth = self.width * 4
-
-					for row in 0..<height {
-						var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
-						var dstPtr = dp.advanced(by: rowWidth * row)
-
-						var i = 0
-
-						while i < rowWidth {
-							let r = srcPtr[0]
-							let g = srcPtr[1]
-							let b = srcPtr[2]
-							let a = srcPtr[3]
-
-							dstPtr[0] = b  // B
-							dstPtr[1] = g  // G
-							dstPtr[2] = r  // R
-							dstPtr[3] = a  // A
-
-							srcPtr = srcPtr.advanced(by: 4)
-							dstPtr = dstPtr.advanced(by: 4)
-
-							i += 4
-						}
-					}*/
-
-					if cgImage.bytesPerRow == bytesPerRow {
-						dp.update(from: sp, count: bufferSize)
-					} else {
+					if self.bitmapInfo?.byteOrder == .order32Big {
 						for _ in 0..<height {
-							dp.update(from: sp, count: bytesPerRow)
-							
+							var srcPtr = dp
+							var dstPtr = sp
+
+							for i in 0..<self.width {
+								dstPtr[0] = srcPtr[2]  // B
+								dstPtr[1] = srcPtr[1]  // G
+								dstPtr[2] = srcPtr[0]  // R
+								dstPtr[3] = srcPtr[3]  // A
+
+								srcPtr = srcPtr.advanced(by: 4)
+								dstPtr = dstPtr.advanced(by: 4)
+							}
+
 							dp = dp.advanced(by: bytesPerRow)
 							sp = sp.advanced(by: cgImage.bytesPerRow)
+						}
+					} else {
+						if cgImage.bytesPerRow == bytesPerRow {
+							dp.update(from: sp, count: bufferSize)
+						} else {
+							for _ in 0..<height {
+								dp.update(from: sp, count: bytesPerRow)
+								
+								dp = dp.advanced(by: bytesPerRow)
+								sp = sp.advanced(by: cgImage.bytesPerRow)
+							}
 						}
 					}
 				}

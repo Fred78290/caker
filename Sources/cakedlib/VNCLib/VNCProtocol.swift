@@ -231,7 +231,7 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 		self.redMax = 255
 		self.greenMax = 255
 		self.blueMax = 255
-		self.bigEndianFlag = VNCServer.littleEndian ? 0 : 1
+		self.bigEndianFlag = 0
 		self.redShift = 16
 		self.greenShift = 8
 		self.blueShift = 0
