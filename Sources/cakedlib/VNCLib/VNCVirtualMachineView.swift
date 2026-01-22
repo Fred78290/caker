@@ -11,7 +11,7 @@ import QuartzCore
 import Dynamic
 import ObjectiveC.runtime
 
-@objc protocol _VZFramebufferObserver {
+@objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateGraphicsOrientation orientation: Int64)
@@ -25,10 +25,10 @@ extension NSView {
 		// Check if `self` conforms to the private framebuffer observer protocol using a safe cast
 		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
 			// Only attempt to swizzle if the selectors exist on this instance
-			let hasFrameSel = self.responds(to: #selector(_VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
+			let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
 
 			if hasFrameSel {
-				self.swizzleMethod(originalSelector: #selector(_VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
+				self.swizzleMethod(originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
 								   swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
 
 				VNCVirtualMachineView.swizzled = true
@@ -225,6 +225,10 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 }
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
+	public var checkIfImageIsChanged: Bool {
+		false
+	}
+	
 	public var cgImage: CGImage? {
 		self.framebufferView?.layer?.renderIntoImage()
 	}
