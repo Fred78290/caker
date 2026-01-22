@@ -26,7 +26,7 @@ public protocol VNCServerDelegate: AnyObject, Sendable {
 public protocol VNCFrameBufferProducer {
 	var bitmapInfos: CGBitmapInfo { get }
 	var cgImage: CGImage? { get }
-
+	var checkIfImageIsChanged: Bool { get }
 	func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation)
 	func stopFramebufferUpdate()
 }
@@ -386,46 +386,5 @@ extension VNCServer: VNCInputDelegate {
 				delegate.vncServer(self, didReceiveMouseEvent: x, y: Int(buttonMask), buttonMask: buttonMask)
 			}
 		}
-	}
-}
-
-// MARK: - VNCFrameBufferProducer
-extension VNCServer: VNCFrameBufferProducer {
-	public var bitmapInfos: CGBitmapInfo {
-		guard let bitmapInof = self.cgImage?.bitmapInfo else {
-			return .byteOrderDefault
-		}
-
-		return bitmapInof
-	}
-	
-	public var cgImage: CGImage? {
-		self.sourceView.image()?.cgImage
-	}
-	
-	public func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation) {
-		// Schedule a repeating timer every 1 second
-		self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-			Task { @MainActor in
-				guard let self = self else { return }
-				// If you have a CGImage to push periodically, call continuation.yield(cgImage)
-				// For now, this is a placeholder to demonstrate the 1-second interval
-				// Example:
-				let result = self.framebuffer.updateFromView()
-
-				guard let imageRepresentation = result.imageRepresentation, let cgImage = imageRepresentation.cgImage else {
-					return
-				}
-
-				if result.sizeChanged {
-					continuation.yield(cgImage)
-				}
-			}
-		}
-	}
-	
-	public func stopFramebufferUpdate() {
-		self.timer?.invalidate()
-		self.timer = nil
 	}
 }

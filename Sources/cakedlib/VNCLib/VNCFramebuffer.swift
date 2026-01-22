@@ -19,11 +19,12 @@ public class VNCFramebuffer {
 	public internal(set) var height: Int
 	internal let pixelData: Mutex<Data>
 	internal weak var sourceView: NSView!
-	internal let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
+	private let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
 	internal var pixelFormat = VNCPixelFormat()
-	internal var bitmapInfo: CGBitmapInfo? = nil
-	internal var bitsPerPixels: Int = 0
-	internal let logger = Logger("VNCFramebuffer")
+	private var bitmapInfo: CGBitmapInfo? = nil
+	private var bitsPerPixels: Int = 0
+	private let logger = Logger("VNCFramebuffer")
+	private var timer: Timer? = nil
 
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
@@ -66,7 +67,7 @@ public class VNCFramebuffer {
 	}
 
 	@MainActor
-	public func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
+	func updateFromView() -> (imageRepresentation: NSBitmapImageRep?, sizeChanged: Bool) {
 		let bounds = sourceView.bounds
 		let newWidth = Int(bounds.width)
 		let newHeight = Int(bounds.height)
@@ -85,7 +86,7 @@ public class VNCFramebuffer {
 		return (imageRepresentation, updateSize(width: newWidth, height: newHeight))
 	}
 
-	func convertImageToPixelData(cgImage: CGImage) {
+	func convertImageToPixelData(cgImage: CGImage) -> Data {
 		let bytesPerRow = width * 4
 		let bufferSize = bytesPerRow * height
 		var pixelData = Data(count: bufferSize)
@@ -94,41 +95,21 @@ public class VNCFramebuffer {
 		self.bitmapInfo = cgImage.bitmapInfo
 		self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
 
-		if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
-			imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
-				pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+		if let provider = cgImage.dataProvider, var imageSource = provider.data as? Data {
+			imageSource.withUnsafeMutableBytes { srcRaw in
+				pixelData.withUnsafeMutableBytes { dstRaw in
 					guard var sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, var dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else {
 						return
 					}
 
-					if self.bitmapInfo?.byteOrder == .order32Big {
+					if cgImage.bytesPerRow == bytesPerRow {
+						dp.update(from: sp, count: bufferSize)
+					} else {
 						for _ in 0..<height {
-							var srcPtr = dp
-							var dstPtr = sp
-
-							for i in 0..<self.width {
-								dstPtr[0] = srcPtr[2]  // B
-								dstPtr[1] = srcPtr[1]  // G
-								dstPtr[2] = srcPtr[0]  // R
-								dstPtr[3] = srcPtr[3]  // A
-
-								srcPtr = srcPtr.advanced(by: 4)
-								dstPtr = dstPtr.advanced(by: 4)
-							}
-
+							dp.update(from: sp, count: bytesPerRow)
+							
 							dp = dp.advanced(by: bytesPerRow)
 							sp = sp.advanced(by: cgImage.bytesPerRow)
-						}
-					} else {
-						if cgImage.bytesPerRow == bytesPerRow {
-							dp.update(from: sp, count: bufferSize)
-						} else {
-							for _ in 0..<height {
-								dp.update(from: sp, count: bytesPerRow)
-								
-								dp = dp.advanced(by: bytesPerRow)
-								sp = sp.advanced(by: cgImage.bytesPerRow)
-							}
 						}
 					}
 				}
@@ -138,6 +119,8 @@ public class VNCFramebuffer {
 		self.pixelData.withLock {
 			$0 = pixelData
 		}
+
+		return pixelData
 	}
 
 	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) -> Bool {
@@ -248,5 +231,65 @@ public class VNCFramebuffer {
 		}
 
 		return self.pixelFormat.transform(pixelData)
+	}
+}
+
+// MARK: - VNCFrameBufferProducer
+extension VNCFramebuffer: VNCFrameBufferProducer {
+	public var checkIfImageIsChanged: Bool {
+		true
+	}
+
+	public var bitmapInfos: CGBitmapInfo {
+		guard let bitmapInof = self.cgImage?.bitmapInfo else {
+			return .byteOrderDefault
+		}
+
+		return bitmapInof
+	}
+	
+	public var cgImage: CGImage? {
+		self.sourceView.image()?.cgImage
+	}
+	
+	public func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation) {
+		let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
+			guard let self = self else {
+				return
+			}
+			let bounds = self.sourceView.bounds
+			let newWidth = Int(bounds.width)
+			let newHeight = Int(bounds.height)
+
+			guard newWidth != 0 && newHeight != 0 else {
+				#if DEBUG
+					self.logger.debug("View size is zero, skipping frame capture.")
+				#endif
+				return
+			}
+
+			guard let cgImage = self.sourceView.layer?.renderIntoImage() else {
+				guard let imageRepresentation = self.sourceView.imageRepresentationSync(in: bounds) else {
+					return
+				}
+
+				if let cgImage = imageRepresentation.cgImage {
+					continuation.yield(cgImage)
+				}
+
+				return
+			}
+
+			continuation.yield(cgImage)
+		}
+
+		RunLoop.main.add(timer, forMode: .common)
+
+		self.timer = timer
+	}
+	
+	public func stopFramebufferUpdate() {
+		self.timer?.invalidate()
+		self.timer = nil
 	}
 }
