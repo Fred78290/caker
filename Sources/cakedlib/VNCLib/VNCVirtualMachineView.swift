@@ -140,23 +140,33 @@ extension VZVirtualMachineView {
 	}
 	#endif
 
-	#if false
 	override public func image() -> NSImage? {
 		guard let layer = self.framebufferView?.layer else {
 			return nil
 		}
 
-		return layer.renderIntoImage()
+		guard let cgImage = layer.renderIntoImage() else {
+			return nil
+		}
+		
+		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
 	}
 
 	override public func image(in bounds: NSRect) -> NSImage? {
-		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
+		guard let layer = self.framebufferView?.layer else {
 			return nil
 		}
 
-		return surface.image(in: bounds)
+		guard let cgImage = layer.renderIntoImage() else {
+			return nil
+		}
+
+		guard let cgImage = cgImage.cropping(to: bounds) else {
+			return nil
+		}
+		
+		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
 	}
-	#endif
 }
 
 @objc protocol VNCFramebufferObserver {
