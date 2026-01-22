@@ -48,7 +48,6 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let eventLoop = Utilities.group.next()
 	private var isLiveResize = false
 	private var updateBufferTask: Task<Void, Never>?
-	private var timer: Timer? = nil
 	private var activeConnections: [VNCConnection] {
 		self.connections.compactMap {
 			if $0.connectionState == .ready {
@@ -182,14 +181,15 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.isRunning = true
 
 		let stream = AsyncStream<CGImage>.makeStream(of: CGImage.self)
-		let producer = (self.sourceView as? VNCFrameBufferProducer) ?? self
+		let producer = (self.sourceView as? VNCFrameBufferProducer) ?? self.framebuffer
+		let checkIfImageIsChanged = producer.checkIfImageIsChanged
 
 		producer.startFramebufferUpdate(continuation: stream.continuation)
 
 		self.updateBufferTask = Task {
 			await withTaskCancellationHandler(operation: {
 				for await image in stream.stream {
-					await self.updateFramebufferRequest(cgImage: image)
+					await self.updateFramebufferRequest(cgImage: image, checkIfImageIsChanged: checkIfImageIsChanged)
 				}
 
 				producer.stopFramebufferUpdate()
@@ -205,7 +205,7 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.updateBufferTask = nil
 	}
 	
-	func sendFrameBufferUpdate(connections: [VNCConnection], newSizePending: Bool) async {
+	private func sendFrameBufferUpdate(connections: [VNCConnection], newSizePending: Bool) async {
 		guard connections.isEmpty == false else {
 			return
 		}
@@ -226,42 +226,21 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 	}
 
-	func updateFramebufferRequest(cgImage: CGImage) async {
+	private func updateFramebufferRequest(cgImage: CGImage, checkIfImageIsChanged: Bool) async {
 		let newSizePending = self.framebuffer.updateSize(width: cgImage.width, height: cgImage.height)
-		self.framebuffer.convertImageToPixelData(cgImage: cgImage)
+		let newPixels = self.framebuffer.convertImageToPixelData(cgImage: cgImage)
+
+		if checkIfImageIsChanged {
+			guard self.framebuffer.pixelData.withLock({ newPixels != $0 }) else  {
+				return
+			}
+		}
 
 		let connections = self.activeConnections.filter {
 			$0.sendFramebufferContinous || newSizePending
 		}
 
 		await self.sendFrameBufferUpdate(connections: connections, newSizePending: newSizePending)
-	}
-
-	func updateFramebufferRequest(imageRepresentation: NSBitmapImageRep, newSizePending: Bool) async {
-		if self.framebuffer.convertBitmapToPixelData(bitmap: imageRepresentation) {
-			#if DEBUG
-				self.logger.trace("updateFramebuffer")
-			#endif
-			let connections = self.activeConnections.filter {
-				$0.sendFramebufferContinous || newSizePending
-			}
-
-			await self.sendFrameBufferUpdate(connections: connections, newSizePending: newSizePending)
-		}
-	}
-
-	func updateFramebuffer() async throws {
-		while isRunning && Task.isCancelled == false {
-			let result = await self.framebuffer.updateFromView()
-
-			guard let imageRepresentation = result.imageRepresentation else {
-				continue
-			}
-
-			await updateFramebufferRequest(imageRepresentation: imageRepresentation, newSizePending: result.sizeChanged)
-
-			try await Task.sleep(nanoseconds: 300_000)
-		}
 	}
 
 	// MARK: - Port Availability
