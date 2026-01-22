@@ -38,8 +38,6 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 			dstPtr = dstPtr.advanced(by: bytesPerRow)
 		}
 
-		//planes = [ioSurface.baseAddress.assumingMemoryBound(to: UInt8.self)]
-
 		super.init(bitmapDataPlanes: &planes,
 					pixelsWide: ioSurface.width,
 					pixelsHigh: ioSurface.height,
