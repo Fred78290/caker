@@ -19,10 +19,12 @@ class CakerVZVirtualMachineView: VNCVirtualMachineView {
 		self.document = document
 
 		super.init(frame: .init(origin: .zero, size: document.documentSize.cgSize))
+	}
+
+	func attachtoDocument(showsHostCursor: Bool) {
 		self.virtualMachine = document.virtualMachine.getVM()
 		self.document.virtualMachine.vzMachineView = self
-		self.wantsLayer = true
-
+		self.showsHostCursor = showsHostCursor
 		if #available(macOS 14.0, *) {
 			self.automaticallyReconfiguresDisplay = document.virtualMachineConfig.displayRefit || (document.virtualMachineConfig.os == .darwin)
 		}
@@ -63,6 +65,6 @@ struct InternalVirtualMachineView: NSViewRepresentable {
 	}
 
 	public func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.showsHostCursor = self.showsHostCursor
+		nsView.attachtoDocument(showsHostCursor: self.showsHostCursor)
 	}
 }
