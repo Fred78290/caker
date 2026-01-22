@@ -82,29 +82,6 @@ struct ScreenshotLoader: Hashable, Identifiable {
 
 		return NSImage(contentsOfFile: screenshotURL.path)
 	}
-
-	@ViewBuilder
-	var image: some View {
-		GeometryReader { geom in
-			if let image = self.nsImage {
-				Rectangle()
-					.fill(.black)
-					.frame(size: geom.size)
-					.overlay {
-						Image(nsImage: image)
-							.resizable()
-							.blur(radius: 8)
-							.aspectRatio(contentMode: .fit)
-							.scaledToFit()
-					}
-					.clipped()
-			} else {
-				Rectangle()
-					.fill(.black)
-					.frame(size: geom.size)
-			}
-		}
-	}
 }
 
 // MARK: - VirtualMachineDocument
