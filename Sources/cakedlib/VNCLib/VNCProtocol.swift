@@ -263,13 +263,13 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 			self.bigEndianFlag = 0
 
 			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
-				self.redShift = 16
-				self.greenShift = 8
-				self.blueShift = 0
-			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
 				self.redShift = 24
 				self.greenShift = 16
 				self.blueShift = 8
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 16
+				self.greenShift = 8
+				self.blueShift = 0
 			}
 		} else if bitmapInfo.byteOrder == .order32Big {
 			self.bitsPerPixel = 32
@@ -296,13 +296,13 @@ struct VNCPixelFormat: VNCLoadMessage, Equatable {
 			self.blueMax = 16
 
 			if bitmapInfo.alpha.isLast || bitmapInfo.alpha == .noneSkipLast {
-				self.redShift = 8
-				self.greenShift = 4
-				self.blueShift = 0
-			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
 				self.redShift = 12
 				self.greenShift = 8
 				self.blueShift = 4
+			} else if bitmapInfo.alpha.isFirst || bitmapInfo.alpha == .noneSkipFirst {
+				self.redShift = 8
+				self.greenShift = 4
+				self.blueShift = 0
 			}
 		} else if bitmapInfo.byteOrder == .order16Big {
 			self.bitsPerPixel = 16
