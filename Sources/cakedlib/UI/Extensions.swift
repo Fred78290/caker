@@ -166,7 +166,34 @@ extension IOSurface {
 			return nil
 		}
 
-		guard let provider = CGDataProvider(data: Data(bytes: self.baseAddress, count: self.allocationSize) as CFData) else {
+#if XDEBUG
+		var pixels = Data(count: self.allocationSize)
+
+		pixels.withUnsafeMutableBytes { ptr in
+			guard var baseAddress = ptr.bindMemory(to: UInt8.self).baseAddress else {
+				return
+			}
+			
+			for line in 0..<self.height {
+				var pRow = baseAddress
+				let idx = line < self.height / 2 ? 0 : 2
+				let value: UInt8 = line < self.height / 2 ? 0x80 : 0x81
+				baseAddress = baseAddress.advanced(by: self.bytesPerRow)
+
+				for _ in 0..<Int(self.width) {
+					pRow[idx] = value
+					pRow[3] = 255
+
+					pRow = pRow.advanced(by: 4)
+				}
+			}
+		}
+
+#else
+		var pixels = Data(bytes: self.baseAddress, count: self.allocationSize)
+#endif
+
+		guard let provider = CGDataProvider(data: pixels as CFData) else {
 			return nil
 		}
 
