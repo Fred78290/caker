@@ -275,7 +275,7 @@ struct HostVirtualMachineView: View {
 							displaySettings = true
 						}
 						.help("Configure virtual machine")
-						.disabled(self.document.virtualMachine == nil)
+						.disabled(document.status.isStopped == false)
 					}
 				}.sheet(isPresented: $displaySettings) {
 					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)

@@ -120,6 +120,15 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	enum Status: Int, CustomStringConvertible {
+		var isStopped: Bool {
+			switch self {
+				case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+				return false
+			default:
+				return true
+			}
+		}
+
 		var description: String {
 			switch self {
 			case .running:
