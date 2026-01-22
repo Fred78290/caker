@@ -11,6 +11,8 @@ let cloudInitIso = "cloud-init.iso"
 #endif
 
 public struct VMBuilder {
+	public static let memoryMinSize: UInt64 = 512 * 1024 * 1024
+
 	public enum ImageSource: Int, Hashable, CaseIterable, CustomStringConvertible, Sendable {
 		public var description: String {
 			switch self {
@@ -114,8 +116,8 @@ public struct VMBuilder {
 					configuredPlatform: .unknown,
 					displayRefit: options.displayRefit,
 					ifname: options.netIfnames,
-					cpuCountMin: min(requirements.minimumSupportedCPUCount, Int(options.cpu)),
-					memorySize: min(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024),
+					cpuCountMin: max(requirements.minimumSupportedCPUCount, Int(options.cpu)),
+					memorySize: max(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024),
 					memorySizeMin: requirements.minimumSupportedMemorySize,
 					screenSize: options.screenSize
 				)
@@ -164,7 +166,7 @@ public struct VMBuilder {
 					ifname: options.netIfnames,
 					cpuCountMin: Int(options.cpu),
 					memorySize: options.memory * 1024 * 1024,
-					memorySizeMin: 512 * 1024 * 1024,
+					memorySizeMin: Self.memoryMinSize,
 					screenSize: options.screenSize)
 
 				config.useCloudInit = source != .iso || options.autoinstall

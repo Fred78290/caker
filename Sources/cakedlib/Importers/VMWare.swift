@@ -163,7 +163,7 @@ struct VMXMap: Sendable {
 			}
 		}
 
-		return 512 * 1024 * 1024  // Default to 512 MB
+		return VMBuilder.memoryMinSize  // Default to 512 MB
 	}
 
 	var sharedFolders: DirectorySharingAttachments {
@@ -333,7 +333,8 @@ struct VMWareImporter: Importer {
 			displayRefit: true,
 			ifname: false,
 			cpuCountMin: vmxMap.cpuCount,
-			memorySizeMin: vmxMap.memorySize,
+			memorySize: vmxMap.memorySize,
+			memorySizeMin: VMBuilder.memoryMinSize,
 			screenSize: .standard
 		)
 

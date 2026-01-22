@@ -311,7 +311,8 @@ struct MultipassImporter: Importer {
 			displayRefit: true,
 			ifname: false,
 			cpuCountMin: instance.numCores,
-			memorySizeMin: memorySize,
+			memorySize: memorySize,
+			memorySizeMin: VMBuilder.memoryMinSize,
 			screenSize: .standard
 		)
 

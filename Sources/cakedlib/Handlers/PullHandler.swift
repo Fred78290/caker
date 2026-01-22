@@ -120,7 +120,8 @@ public struct PullHandler {
 								displayRefit: true,
 								ifname: false,
 								cpuCountMin: Int(1),
-								memorySizeMin: 2 * 1024 * 1024,
+								memorySize: VMBuilder.memoryMinSize,
+								memorySizeMin: VMBuilder.memoryMinSize,
 								screenSize: .init(width: 1024, height: 768))
 
 							config.useCloudInit = false
