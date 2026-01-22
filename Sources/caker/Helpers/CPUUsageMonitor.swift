@@ -156,6 +156,9 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
 				self.logger.info("Agent monitoring: VM \(self.name) agent timeout")
+			case .unimplemented:
+				// unimplemented - Agent is too old, need update
+				self.logger.info("Agent monitoring: VM \(self.name) agent is too old, need update")
 			default:
 				// Other errors might indicate serious issues
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
