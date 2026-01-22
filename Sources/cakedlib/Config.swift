@@ -461,6 +461,7 @@ public final class CakeConfig {
 		displayRefit: Bool,
 		ifname: Bool,
 		cpuCountMin: Int,
+		memorySize: UInt64,
 		memorySizeMin: UInt64,
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
 		screenSize: VMScreenSize
@@ -474,7 +475,8 @@ public final class CakeConfig {
 		self.memorySizeMin = memorySizeMin
 		self.macAddress = macAddress
 		self.cpuCount = cpuCountMin
-		self.memorySize = memorySizeMin
+		self.memorySize = memorySize
+		self.memorySizeMin = memorySizeMin
 		self.displayRefit = displayRefit
 		self.configuredUser = configuredUser
 		self.configuredPassword = configuredPassword
