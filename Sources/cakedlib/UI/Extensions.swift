@@ -46,7 +46,7 @@ class IOSurfaceNSBitmapImageRep: NSBitmapImageRep {
 					hasAlpha: true,
 					isPlanar: false,
 					colorSpaceName: .deviceRGB,
-					bitmapFormat: .thirtyTwoBitBigEndian,
+					bitmapFormat: .thirtyTwoBitLittleEndian,
 					bytesPerRow: ioSurface.bytesPerRow,
 					bitsPerPixel: ioSurface.bytesPerElement * 8)
 	}
