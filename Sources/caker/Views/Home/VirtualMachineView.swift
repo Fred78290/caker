@@ -131,11 +131,17 @@ struct VirtualMachineView: View {
 
 	func imageName(_ status: VirtualMachineDocument.Status) -> String {
 		switch status {
-		case .running, .starting:
+		case .starting:
+			return "memories"
+		case .running:
 			return "stop.fill"
-		case .stopped, .stopping:
+		case .stopping:
 			return "play.fill"
-		case .paused, .pausing:
+		case .stopped:
+			return "play.fill"
+		case .pausing:
+			return "arrow.down.circle.badge.pause"
+		case .paused:
 			return "pause.fill"
 		case .error:
 			return "exclamationmark.triangle"
@@ -150,9 +156,13 @@ struct VirtualMachineView: View {
 
 	func lightColor(_ status: VirtualMachineDocument.Status) -> Color {
 		switch status {
-		case .running, .starting:
+		case .starting:
+			return Color.orange
+		case .running:
 			return Color.green
-		case .stopped, .stopping:
+		case .stopping:
+			return Color.brown
+		case .stopped:
 			return Color.red
 		case .paused, .pausing:
 			return Color.yellow
