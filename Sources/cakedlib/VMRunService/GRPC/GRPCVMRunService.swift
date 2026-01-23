@@ -119,7 +119,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		let listeningAddress = location.serviceURL
 		let target: ConnectionTarget
 		let connectionTimeout: TimeInterval = 5
-		let retries: ConnectionBackoff.Retries = .unlimited
+		let retries: ConnectionBackoff.Retries = .upTo(1)
 
 		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
