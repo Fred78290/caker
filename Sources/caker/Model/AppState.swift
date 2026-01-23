@@ -220,6 +220,14 @@ class AppState: ObservableObject, Observable {
 		self.virtualMachines[url]
 	}
 
+	func addVirtualMachineDocument(_ location: VMLocation) {
+		if self.virtualMachines[location.rootURL] == nil {
+			if let vm = try? VirtualMachineDocument(location: location) {
+				self.virtualMachines[location.rootURL] = vm
+			}
+		}
+	}
+
 	func removeVirtualMachineDocument(_ url: URL) {
 		if self.virtualMachines[url] != nil {
 			self.virtualMachines.removeValue(forKey: url)
@@ -245,7 +253,7 @@ class AppState: ObservableObject, Observable {
 		alert.messageText = "Create template"
 		alert.informativeText = "Name of the new template"
 		alert.alertStyle = .informational
-		alert.addButton(withTitle: "Delete")
+		alert.addButton(withTitle: "Create")
 		alert.addButton(withTitle: "Cancel")
 
 		alert.accessoryView = txt
@@ -260,7 +268,36 @@ class AppState: ObservableObject, Observable {
 				alert.informativeText = templateResult.reason ?? "Internal error"
 				alert.runModal()
 			} else {
-				self.reloadRemotes()
+				self.reloadTemplates()
+			}
+		}
+	}
+
+	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {
+		let alert = NSAlert()
+		let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+
+		alert.messageText = "Duplicate virtual machine"
+		alert.informativeText = "Name of the new vm"
+		alert.alertStyle = .informational
+		alert.addButton(withTitle: "Duplicate")
+		alert.addButton(withTitle: "Cancel")
+
+		alert.accessoryView = txt
+
+		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
+			let result = vm.duplicateFromUI(name: txt.stringValue)
+
+			if result.duplicated == false {
+				let alert = NSAlert()
+
+				alert.messageText = "Failed to duplicate virtual machine"
+				alert.informativeText = result.reason
+				alert.runModal()
+			} else {
+				let location = StorageLocation(runMode: .app).location(txt.stringValue)
+
+				self.addVirtualMachineDocument(location)
 			}
 		}
 	}
