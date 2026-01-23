@@ -862,7 +862,9 @@ struct VirtualMachineWizard: View {
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = false
 
-		if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
+		if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
+			valid = false
+		} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
 			if StorageLocation(runMode: .app, template: false).exists(vmname) == false {
 				valid = true
 			}
