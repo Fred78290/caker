@@ -141,28 +141,51 @@ extension VZVirtualMachineView {
 	#endif
 
 	override public func image() -> NSImage? {
-		guard let layer = self.framebufferView?.layer else {
-			return nil
-		}
-
-		guard let cgImage = layer.renderIntoImage() else {
-			return nil
-		}
-		
-		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
+		self.image(in: self.bounds)
 	}
 
 	override public func image(in bounds: NSRect) -> NSImage? {
-		guard let layer = self.framebufferView?.layer else {
+		var renderLayer: CALayer
+
+		guard let layer = self.layer else {
 			return nil
 		}
 
-		guard let cgImage = layer.renderIntoImage() else {
+		/*if let vncLayer = layer as? VNCFramebufferLayer {
+			renderLayer = vncLayer
+		} else {*/
+			guard let surface = self.surface() else {
+				return nil
+			}
+
+			guard let presented  = layer.presentation() else {
+				return nil
+			}
+			//renderLayer = CALayer(layer: layer)
+			renderLayer = presented
+			renderLayer.drawsAsynchronously = true
+			renderLayer.isOpaque = true
+			renderLayer.masksToBounds = false
+			renderLayer.allowsEdgeAntialiasing = false
+			renderLayer.backgroundColor = .clear
+
+			renderLayer.contentsScale = 1
+			renderLayer.contentsGravity = .center
+			renderLayer.contentsFormat = .RGBA8Uint
+			renderLayer.bounds = layer.bounds
+			renderLayer.contents = surface.cgImage
+		//}
+
+		guard var cgImage = renderLayer.renderIntoImage() else {
 			return nil
 		}
 
-		guard let cgImage = cgImage.cropping(to: bounds) else {
-			return nil
+		if self.bounds != bounds {
+			guard let croppedImage = cgImage.cropping(to: bounds) else {
+				return nil
+			}
+			
+			cgImage = croppedImage
 		}
 		
 		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
@@ -197,11 +220,11 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 		super.init(frame: frameRect)
 
 		if let framebufferView = self.framebufferView {
-			let newLayer = VNCFramebufferLayer()
+			/*let newLayer = VNCFramebufferLayer()
 			framebufferView.layer?.removeFromSuperlayer()
 			
 			newLayer.delegate = framebufferView.layer?.delegate
-			framebufferView.layer = newLayer
+			framebufferView.layer = newLayer*/
 
 			if VNCVirtualMachineView.swizzled == false {
 				framebufferView.swizzleFramebufferObserver()
@@ -213,7 +236,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 		fatalError("init(coder:) has not been implemented")
 	}
 
-	#if DEBUG
+	#if DEBUGKEYBOARD
 		public override func keyDown(with event: NSEvent) {
 			Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
 
