@@ -33,7 +33,7 @@ public struct DuplicateHandler {
 
 			try storageLocation.relocate(to, from: tmpLocation)
 
-			return DuplicatedReply(from: from, to: to, duplicated: false, reason: "VM duplicated")
+			return DuplicatedReply(from: from, to: to, duplicated: true, reason: "VM duplicated")
 		} catch {
 			return DuplicatedReply(from: from, to: to, duplicated: false, reason: "\(error)")
 		}
