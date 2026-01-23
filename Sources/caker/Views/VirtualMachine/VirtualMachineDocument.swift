@@ -1141,7 +1141,12 @@ extension VirtualMachineDocument {
 						self.agentCondition = (status != .installed ? "Update agent" : "Install agent", status != .installed, status != .none)
 					} else {
 						self.agentCondition = ("Install agent", status != .installed, status != .none)
+						
+						if status == .installed {
+							self.startAgentMonitoring()
+						}
 					}
+
 					done(status)
 				}
 			}
