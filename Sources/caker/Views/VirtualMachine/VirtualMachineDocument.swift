@@ -129,6 +129,15 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			}
 		}
 
+		var isRunning: Bool {
+			switch self {
+				case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+				return true
+			default:
+				return false
+			}
+		}
+
 		var description: String {
 			switch self {
 			case .running:
