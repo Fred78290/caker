@@ -698,6 +698,10 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	func duplicateFromUI(name: String) -> DuplicatedReply {
+		DuplicateHandler.duplicate(from: self.name, to: name, resetMacAddress: true, runMode: .app)
+	}
+
 	func createTemplateFromUI(name: String) -> CreateTemplateReply {
 		guard self.status == .running else {
 			return .init(name: name, created: false, reason: "VM is running")
