@@ -136,9 +136,12 @@ struct MainApp: App, VirtualMachineDelegate {
 		}
 	}
 
+	#if DEBUG
 	func takeScreenshot() {
-		MainApp.vm.takeScreenshot()
+		MainApp.vm.takeScreenshotDebug()
 	}
+	#endif
+	
 	func startFromUI() {
 		MainApp.vm.startFromUI()
 	}

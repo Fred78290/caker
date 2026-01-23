@@ -513,33 +513,24 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		self.env.vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
 	}
 
-	public func takeScreenshot() {
+	public func takeScreenshotDebug() {
 		guard let vzMachineView = self.env.vzMachineView else {
 			return
-
 		}
 
 		if let surface = vzMachineView.surface() {
-			if let bitmapRep = surface.bitmapRepresentation {
-				try? bitmapRep.tiffRepresentation?.write(to: self.location.rootURL.appendingPathComponent("surface.tiff"))
-				
-				if let cgImage = surface.cgImage {
-					let image = NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
+			try? surface.contents.write(to: self.location.rootURL.appendingPathComponent("surface.data"))
 
-					if let data = image.pngData {
-						try? data.write(to: self.location.rootURL.appendingPathComponent("surface.png"))
-					}
+			if let cgImage = surface.cgImage {
+				let image = NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
+
+				if let data = image.pngData {
+					try? data.write(to: self.location.rootURL.appendingPathComponent("surface.png"))
 				}
 			}
-		}
 
-		if let pixels = vzMachineView.contents() {
-			try? pixels.write(to: self.location.rootURL.appendingPathComponent("screen.data"))
-		}
-
-		if let surface = vzMachineView.framebufferView?.layer?.contents as? IOSurface {
-			if let data = surface.image?.pngData {
-				try? data.write(to: self.location.rootURL.appendingPathComponent("surface.png"))
+			if let bitmapRep = surface.bitmapRepresentation {
+				try? bitmapRep.tiffRepresentation?.write(to: self.location.rootURL.appendingPathComponent("surface.tiff"))
 			}
 		}
 
