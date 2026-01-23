@@ -116,6 +116,29 @@ struct VirtualMachineView: View {
 					}
 				}
 		}
+		.contextMenu {
+			Button("Start") {
+				self.vm.startFromUI()
+			}.disabled(self.vm.status.isRunning)
+
+			Button("Stop") {
+				self.vm.stopFromUI(force: vm.status != .running)
+			}.disabled(self.vm.status.isStopped)
+
+			Button("Pause") {
+				self.vm.suspendFromUI()
+			}.disabled(self.vm.status != .running)
+
+			Divider()
+			Button("Duplicate") {
+				AppState.shared.duplicateVirtualMachine(document: self.vm)
+			}.disabled(self.vm.status.isRunning)
+
+			Button("Delete VM") {
+				AppState.shared.deleteVirtualMachine(document: self.vm)
+			}.disabled(vm.status.isRunning)
+		}
+
 	}
 
 	func action() {
@@ -177,3 +200,4 @@ struct VirtualMachineView: View {
 
 	VirtualMachineView(appState.virtualMachines.first!.value, selected: false)
 }
+
