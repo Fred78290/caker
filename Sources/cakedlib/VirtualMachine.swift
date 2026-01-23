@@ -1040,9 +1040,7 @@ extension VirtualMachine {
 			}
 
 			if self.status == .running {
-				Task { @MainActor in
-					await self.takeScreenshot()
-				}
+				self.takeScreenshot()
 			}
 		}
 
@@ -1067,8 +1065,8 @@ extension VirtualMachine {
 		try self.location.screenshotURL.delete()
 	}
 
-	@MainActor func takeScreenshot() async {
-		if let image = self.env.vzMachineView.image() {
+	func takeScreenshot() {
+		if let image = self.env.vzMachineView?.image() {
 			self.delegate?.didScreenshot(self, screenshot: image)
 		}
 	}
