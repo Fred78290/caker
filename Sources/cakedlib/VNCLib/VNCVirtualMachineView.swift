@@ -10,6 +10,7 @@ import CakeAgentLib
 import QuartzCore
 import Dynamic
 import ObjectiveC.runtime
+import Synchronization
 
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
@@ -140,41 +141,33 @@ extension VZVirtualMachineView {
 	}
 	#endif
 
-	override public func image() -> NSImage? {
-		self.image(in: self.bounds)
-	}
-
-	override public func image(in bounds: NSRect) -> NSImage? {
+	public func render(in bounds: NSRect) -> CGImage? {
 		var renderLayer: CALayer
 
 		guard let layer = self.layer else {
 			return nil
 		}
 
-		/*if let vncLayer = layer as? VNCFramebufferLayer {
-			renderLayer = vncLayer
-		} else {*/
-			guard let surface = self.surface() else {
-				return nil
-			}
+		guard let surface = self.surface() else {
+			return nil
+		}
 
-			guard let presented  = layer.presentation() else {
-				return nil
-			}
-			//renderLayer = CALayer(layer: layer)
-			renderLayer = presented
-			renderLayer.drawsAsynchronously = true
-			renderLayer.isOpaque = true
-			renderLayer.masksToBounds = false
-			renderLayer.allowsEdgeAntialiasing = false
-			renderLayer.backgroundColor = .clear
-
-			renderLayer.contentsScale = 1
-			renderLayer.contentsGravity = .center
-			renderLayer.contentsFormat = .RGBA8Uint
-			renderLayer.bounds = layer.bounds
-			renderLayer.contents = surface.cgImage
+		//guard let presented  = layer.presentation() else {
+		//	return nil
 		//}
+		renderLayer = CALayer(layer: layer)
+		//renderLayer = presented
+		renderLayer.drawsAsynchronously = true
+		renderLayer.isOpaque = true
+		renderLayer.masksToBounds = false
+		renderLayer.allowsEdgeAntialiasing = false
+		renderLayer.backgroundColor = .clear
+
+		renderLayer.contentsScale = 1
+		renderLayer.contentsGravity = .center
+		renderLayer.contentsFormat = .RGBA8Uint
+		renderLayer.bounds = layer.bounds
+		renderLayer.contents = surface.cgImage
 
 		guard var cgImage = renderLayer.renderIntoImage() else {
 			return nil
@@ -186,6 +179,18 @@ extension VZVirtualMachineView {
 			}
 			
 			cgImage = croppedImage
+		}
+		
+		return cgImage
+	}
+
+	override public func image() -> NSImage? {
+		self.image(in: self.bounds)
+	}
+
+	override public func image(in bounds: NSRect) -> NSImage? {
+		guard let cgImage = self.render(in: bounds) else {
+			return nil
 		}
 		
 		return NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
@@ -214,7 +219,7 @@ open class VNCFramebufferLayer: CALayer {
 open class VNCVirtualMachineView: VZVirtualMachineView {
 	static var swizzled = false
 
-	private var continuation: AsyncStream<CGImage>.Continuation? = nil
+	private let continuation: Mutex<AsyncStream<CGImage>.Continuation?> = .init(nil)
 
 	public override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
@@ -263,7 +268,7 @@ extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	}
 	
 	public var cgImage: CGImage? {
-		self.framebufferView?.layer?.renderIntoImage()
+		return self.render(in: self.bounds)
 	}
 	
 	public var bitmapInfos: CGBitmapInfo {
@@ -271,24 +276,30 @@ extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	}
 
 	public func startFramebufferUpdate(continuation: AsyncStream<CGImage>.Continuation) {
-		self.continuation = continuation
+		self.continuation.withLock {
+			$0 = continuation
+		}
 	}
 	
 	public func stopFramebufferUpdate() {
-		self.continuation = nil
+		self.continuation.withLock {
+			$0 = nil
+		}
 	}
 }
 
 extension VNCVirtualMachineView: VNCFramebufferObserver {
 	open func didUpdateFrame(_ framebufferView: NSView) {
-		guard let continuation = self.continuation  else {
-			return
-		}
+		self.continuation.withLock {
+			guard let continuation = $0  else {
+				return
+			}
 
-		guard let cgImage = framebufferView.layer?.renderIntoImage() else {
-			return
-		}
+			guard let cgImage = self.cgImage else {
+				return
+			}
 
-		continuation.yield(cgImage)
+			continuation.yield(cgImage)
+		}
 	}
 }
