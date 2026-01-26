@@ -57,6 +57,7 @@ let package = Package(
 		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
 		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
 		.package(url: "https://github.com/Fred78290/containerization", revision: "c829f8d7b56b405c2e80b0b5e29fdde679dc73cc"),
+		.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	],
 	targets: [
 		.binaryTarget(name: "Qcow2convert", path: "qcow2convert/Qcow2convert.xcframework"),
