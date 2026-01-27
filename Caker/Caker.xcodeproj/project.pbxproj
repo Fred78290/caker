@@ -72,6 +72,8 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
+		9B35667F2F27DDE700C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B35667E2F27DDE700C5E12F /* ZLib */; };
+		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
 		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
 		9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */; };
@@ -1085,6 +1087,7 @@
 				9BEBC83C2DF44B9C0092B196 /* XAttr in Frameworks */,
 				9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */,
 				9BEBC85E2DF44B9D0092B196 /* Logging in Frameworks */,
+				9B3566812F27E12D00C5E12F /* ZLib in Frameworks */,
 				9BEBC86A2DF44B9D0092B196 /* CakeAgentLib in Frameworks */,
 				9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */,
 				9BEBC8442DF44B9C0092B196 /* Crypto in Frameworks */,
@@ -1132,6 +1135,7 @@
 				9BEBC7F32DF440BF0092B196 /* SwiftProtobuf in Frameworks */,
 				9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */,
 				9BEBC7C92DF440BF0092B196 /* Sysctl in Frameworks */,
+				9B35667F2F27DDE700C5E12F /* ZLib in Frameworks */,
 				9BEBC7F52DF440BF0092B196 /* Logging in Frameworks */,
 				9BEBC7FF2DF440BF0092B196 /* ArgumentParser in Frameworks */,
 				9BB149262EC876640094D950 /* ContainerizationEXT4 in Frameworks */,
@@ -1974,6 +1978,7 @@
 				9BEBC8672DF44B9D0092B196 /* Multipart */,
 				9BEBC8692DF44B9D0092B196 /* CakeAgentLib */,
 				9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */,
+				9B3566802F27E12D00C5E12F /* ZLib */,
 			);
 			productName = caked;
 			productReference = 9BEBC68E2DF43FEE0092B196 /* caked */;
@@ -2037,6 +2042,7 @@
 				9BB149272EC876640094D950 /* ContainerizationExtras */,
 				9BB149292EC876640094D950 /* ContainerizationIO */,
 				9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */,
+				9B35667E2F27DDE700C5E12F /* ZLib */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -2121,6 +2127,7 @@
 				9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */,
 				9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */,
 				9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */,
+				9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9B464A552D5A3DA000164BF5 /* Products */;
@@ -2990,6 +2997,14 @@
 				version = 2.0.6;
 			};
 		};
+		9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/the-swift-collective/zlib";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 		9B464B832D5A3F0300164BF5 /* XCRemoteSwiftPackageReference "Dynamic" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mhdhejazi/Dynamic";
@@ -3291,6 +3306,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */;
 			productName = SwiftletUtilities;
+		};
+		9B35667E2F27DDE700C5E12F /* ZLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */;
+			productName = ZLib;
+		};
+		9B3566802F27E12D00C5E12F /* ZLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */;
+			productName = ZLib;
 		};
 		9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,4 +1,4 @@
-import zlib
+import ZLib
 
 #if canImport(FoundationEssentials)
 	import FoundationEssentials

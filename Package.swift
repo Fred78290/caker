@@ -127,6 +127,7 @@ let package = Package(
 			.product(name: "ContainerizationExtras", package: "containerization"),
 			.product(name: "ContainerizationArchive", package: "containerization"),
 			.product(name: "ContainerizationOCI", package: "containerization"),
+			.product(name: "ZLib", package: "ZLib"),
 			],
 		path: "Sources/cakedlib",
 		exclude: [

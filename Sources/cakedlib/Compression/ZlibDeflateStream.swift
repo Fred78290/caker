@@ -1,4 +1,4 @@
-import zlib
+import ZLib
 
 #if canImport(Darwin)
 	import Darwin
@@ -21,7 +21,7 @@ final class ZlibDeflateStream: ZlibStream {
 	override func setupStream() throws {
 		var version = ZLIB_VERSION
 		let status = withUnsafeMutablePointer(to: &version) { versionPtr in
-			return zlib.deflateInit2_(streamPtr, ZlibCompressionLevel.defaultCompression.rawValue, Z_DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY, versionPtr, Int32(MemoryLayout<z_stream>.size))
+			return ZLib.deflateInit2_(streamPtr, ZlibCompressionLevel.defaultCompression.rawValue, Z_DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY, versionPtr, Int32(MemoryLayout<z_stream>.size))
 		}
 
 		guard status == Z_OK else {
@@ -34,7 +34,7 @@ final class ZlibDeflateStream: ZlibStream {
 	}
 
 	func deflateEnd() throws {
-		let status = zlib.deflateEnd(streamPtr)
+		let status = ZLib.deflateEnd(streamPtr)
 
 		guard status == Z_OK else {
 			throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
@@ -42,7 +42,7 @@ final class ZlibDeflateStream: ZlibStream {
 	}
 
 	func deflate(flush: ZlibFlush) throws -> Bool {
-		let status = zlib.deflate(streamPtr, flush.rawValue)
+		let status = ZLib.deflate(streamPtr, flush.rawValue)
 
 		if status == Z_BUF_ERROR {
 			if flush == .syncFlush || flush == .fullFlush {

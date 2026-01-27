@@ -1,4 +1,4 @@
-import zlib
+import ZLib
 
 #if canImport(FoundationEssentials)
 	import FoundationEssentials
@@ -33,7 +33,7 @@ final class ZlibInflateStream: ZlibStream {
 	func inflateEnd() throws {
 		let streamPtr = self.streamPtr
 
-		let status = zlib.inflateEnd(streamPtr)
+		let status = ZLib.inflateEnd(streamPtr)
 
 		guard ZlibError.isSuccess(status) else {
 			throw Self.error(streamPtr: streamPtr, status: status)
@@ -45,7 +45,7 @@ final class ZlibInflateStream: ZlibStream {
 
 		let flushValue = flush.rawValue
 
-		let status = zlib.inflate(streamPtr, flushValue)
+		let status = ZLib.inflate(streamPtr, flushValue)
 
 		if status == Z_STREAM_END {
 			return true

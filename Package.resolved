@@ -1,5 +1,5 @@
 {
-  "originHash" : "864a5945f1b4f87200b9ed562a28ea2cd3d5af54dd9be31869ebb1d28f740a7f",
+  "originHash" : "71529db101f6255ba5945e1efc083157de35f43bb6fd74bfc3c253ceb8e56e00",
   "pins" : [
     {
       "identity" : "antlr4",
@@ -476,6 +476,15 @@
       "state" : {
         "revision" : "3036ba9d69cf1fd04d433527bc339dc0dc75433d",
         "version" : "5.1.3"
+      }
+    },
+    {
+      "identity" : "zlib",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/the-swift-collective/zlib",
+      "state" : {
+        "branch" : "main",
+        "revision" : "f1d153b90420f9fcc6ef916cd67ea96f0e68d137"
       }
     }
   ],
