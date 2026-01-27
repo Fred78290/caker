@@ -1,4 +1,4 @@
-import ZLib
+import zlib
 
 #if canImport(FoundationEssentials)
 	import FoundationEssentials
@@ -24,28 +24,28 @@ final class ZlibInflateStream: ZlibStream {
 	}
 
 	override func end() {
-		try? self.inflateEnd()
+		try? self._inflateEnd()
 	}
 
 	/// All dynamically allocated data structures for this stream are freed.
 	/// This function discards any unprocessed input and does not flush any pending output.
 	/// inflateEnd returns Z_OK if success, or Z_STREAM_ERROR if the stream state was inconsistent.
-	func inflateEnd() throws {
+	private func _inflateEnd() throws {
 		let streamPtr = self.streamPtr
 
-		let status = ZLib.inflateEnd(streamPtr)
+		let status = inflateEnd(streamPtr)
 
 		guard ZlibError.isSuccess(status) else {
 			throw Self.error(streamPtr: streamPtr, status: status)
 		}
 	}
 
-	private func inflate(flush: ZlibFlush) throws -> Bool {
+	private func _inflate(flush: ZlibFlush) throws -> Bool {
 		let streamPtr = self.streamPtr
 
 		let flushValue = flush.rawValue
 
-		let status = ZLib.inflate(streamPtr, flushValue)
+		let status = inflate(streamPtr, flushValue)
 
 		if status == Z_STREAM_END {
 			return true
@@ -92,7 +92,7 @@ final class ZlibInflateStream: ZlibStream {
 				self.availOut = .init(bufferSize)
 
 				// Inflate another chunk.
-				isDone = try self.inflate(flush: flush)
+				isDone = try self._inflate(flush: flush)
 
 				if self.availOut >= 0 {
 					let availOut: UInt = .init(self.availOut)
@@ -135,7 +135,7 @@ final class ZlibInflateStream: ZlibStream {
 					let remainingBytes = uncompressedSize - doneBytes
 
 					if doneBytes > uncompressedSize {
-						throw ServiceError("ZLib described a larger decompressed size (\(uncompressedSize)) than the actual data (\(doneBytes))")
+						throw ServiceError("zlib described a larger decompressed size (\(uncompressedSize)) than the actual data (\(doneBytes))")
 					}
 
 					self.nextOut = decompressedDataBytes.advanced(by: .init(doneBytes))
@@ -146,7 +146,7 @@ final class ZlibInflateStream: ZlibStream {
 					}
 
 					// Inflate another chunk.
-					let isDone = try self.inflate(flush: flush)
+					let isDone = try self._inflate(flush: flush)
 
 					if isDone {
 						break
@@ -154,7 +154,7 @@ final class ZlibInflateStream: ZlibStream {
 				}
 
 				guard self.totalOut == uncompressedSize else {
-					throw ServiceError("ZLib did not decompress the expected number of bytes (\(uncompressedSize))")
+					throw ServiceError("zlib did not decompress the expected number of bytes (\(uncompressedSize))")
 				}
 			}
 		}

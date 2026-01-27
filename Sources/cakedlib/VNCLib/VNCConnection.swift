@@ -162,22 +162,11 @@ final class VNCConnection: @unchecked Sendable {
 	}
 
 	private func rfbSendRectEncodingZlib(_ pixelData: Data, width: Int, height: Int) async throws {
-		func zlibMaxSize(_ width: Int) -> Int {
-			let zlibMaxRectSize = 128 * 256
-
-			if width * 2 > zlibMaxRectSize {
-				return width * 2
-			}
-
-			return zlibMaxRectSize
-		}
-
-		let maxLines = zlibMaxSize(width)
-		var linesRemaining = height
 		var payload = VNCFramebufferUpdatePayloadZLib()
-		var posY = 0
 		let lineWidthBytes = width * (Int(self.clientPixelFormat.bitsPerPixel) / 8)
+		let compressed = try self.sharedZStream.compressedData(data: pixelData, offset: 0, length: height * lineWidthBytes, flush: .syncFlush)
 
+		payload.compressedSize = UInt32(compressed.count).bigEndian
 		payload.buffer.message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		payload.buffer.message.padding = 0
 		payload.buffer.message.numberOfRectangles = UInt16(1).bigEndian
@@ -188,20 +177,8 @@ final class VNCConnection: @unchecked Sendable {
 		payload.buffer.rectangle.height = UInt16(height).bigEndian
 		payload.buffer.rectangle.encoding = VNCSetEncoding.Encoding.rfbEncodingZlib.rawValue.bigEndian
 
-		while linesRemaining > 0 {
-			let linesToComp = min(maxLines, linesRemaining)
-			let compressed = try self.sharedZStream.compressedData(data: pixelData, offset: posY * lineWidthBytes, length: linesToComp * lineWidthBytes, flush: .syncFlush)
-
-			payload.buffer.rectangle.y = UInt16(posY).bigEndian
-			payload.buffer.rectangle.height = UInt16(linesToComp).bigEndian
-			payload.compressedSize = UInt32(compressed.count).bigEndian
-
-			try await self.sendDatas(payload)
-			try await self.sendDatas(compressed)
-
-			linesRemaining -= linesToComp
-			posY += linesToComp
-		}
+		try await self.sendDatas(payload)
+		try await self.sendDatas(compressed)
 	}
 
 	private func setClientColourMapBGR233() async throws {
@@ -956,6 +933,9 @@ extension VNCConnection {
 
 	private func sendUpdateBuffer(_ pixelData: Data, width: Int, height: Int) async throws {
 		let pixelData = transformPixel(pixelData, width: width, height: height)
+		#if false
+		try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
+		#else
 		let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
 
 		if preferredEncoding == .rfbEncodingZlib {
@@ -963,6 +943,7 @@ extension VNCConnection {
 		} else {
 			try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
 		}
+		#endif
 
 		if self.encodings.enableContinousUpdate && self.sendFramebufferContinous == false {
 			self.sendFramebufferContinous = true

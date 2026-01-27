@@ -25,6 +25,7 @@ public class VNCFramebuffer {
 	private var bitsPerPixels: Int = 0
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
+	private var previousPixel: Data? = nil
 
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
@@ -60,6 +61,7 @@ public class VNCFramebuffer {
 		self.pixelData.withLock {
 			self.width = width
 			self.height = height
+			self.previousPixel = $0
 			$0 = Data(count: width * height * 4)
 		}
 
@@ -117,6 +119,7 @@ public class VNCFramebuffer {
 		}
 
 		self.pixelData.withLock {
+			self.previousPixel = $0
 			$0 = pixelData
 		}
 
@@ -218,6 +221,7 @@ public class VNCFramebuffer {
 			}
 
 			self.pixelData.withLock {
+				self.previousPixel = $0
 				$0 = pixelData
 			}
 		}

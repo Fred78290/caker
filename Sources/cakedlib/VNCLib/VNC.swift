@@ -24,8 +24,8 @@ import Virtualization
 
 extension VZVNCServer {
 	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) throws -> VZVNCServer {
-		//return InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
-		return try VNCServer(view, name: name, password: password, port: UInt16(port))
+		return InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
+		//return try VNCServer(view, name: name, password: password, port: UInt16(port))
 	}
 }
 

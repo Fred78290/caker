@@ -1,4 +1,4 @@
-import ZLib
+import zlib
 
 #if canImport(Darwin)
 	import Darwin
@@ -18,10 +18,20 @@ enum ZlibCompressionLevel: Int32 {
 }
 
 final class ZlibDeflateStream: ZlibStream {
+	var encodedBuffer: UnsafeMutableBufferPointer<UInt8>! = nil
+	var currentCapacity: Int = 0
+
+	deinit {
+		if let buffer = encodedBuffer {
+			buffer.deallocate()
+			encodedBuffer = nil
+		}
+	}
+
 	override func setupStream() throws {
 		var version = ZLIB_VERSION
 		let status = withUnsafeMutablePointer(to: &version) { versionPtr in
-			return ZLib.deflateInit2_(streamPtr, ZlibCompressionLevel.defaultCompression.rawValue, Z_DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY, versionPtr, Int32(MemoryLayout<z_stream>.size))
+			return deflateInit2_(streamPtr, ZlibCompressionLevel.defaultCompression.rawValue, Z_DEFLATED, MAX_WBITS, MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY, versionPtr, Int32(MemoryLayout<z_stream>.size))
 		}
 
 		guard status == Z_OK else {
@@ -30,19 +40,19 @@ final class ZlibDeflateStream: ZlibStream {
 	}
 
 	override func end() {
-		try? deflateEnd()
+		try? _deflateEnd()
 	}
 
-	func deflateEnd() throws {
-		let status = ZLib.deflateEnd(streamPtr)
+	private func _deflateEnd() throws {
+		let status = deflateEnd(streamPtr)
 
 		guard status == Z_OK else {
 			throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
 		}
 	}
 
-	func deflate(flush: ZlibFlush) throws -> Bool {
-		let status = ZLib.deflate(streamPtr, flush.rawValue)
+	private func _deflate(flush: ZlibFlush) throws -> Bool {
+		let status = deflate(streamPtr, flush.rawValue)
 
 		if status == Z_BUF_ERROR {
 			if flush == .syncFlush || flush == .fullFlush {
@@ -64,61 +74,49 @@ final class ZlibDeflateStream: ZlibStream {
 	}
 
 	func compressedData(data: Data, offset: Int, length: Int, flush: ZlibFlush = .finish) throws -> Data {
-		var flush = flush
-		//var mutableData = data
+		var data = data
 		let expectedCompressedSize: UInt = UInt(length + ((length + 99) / 100) + 12)
-		var output = Data(count: .init(expectedCompressedSize))
+		let neededCapacity = Int(expectedCompressedSize)
 
 		if offset + length > data.count {
 			throw ZlibError.dataError(message: "Out of bounds")
 		}
 
-		let written = try data.withUnsafeBytes { inputPtr in
-		//let written = try mutableData.withUnsafeMutableBytes { inputPtr in
-			let inputBytes = inputPtr.baseAddress!.assumingMemoryBound(to: Bytef.self).advanced(by: offset)
-
-			return try output.withUnsafeMutableBytes { outPtr in
-				let outBytes = outPtr.baseAddress!.assumingMemoryBound(to: Bytef.self)
-
-				self.totalOut = 0
-				self.totalIn = 0
-				self.nextIn = UnsafeMutablePointer(mutating: inputBytes)
-				self.availIn = .init(length)
-				self.availOut = 0
-				self.dataType = Z_BINARY
-
-				while true {
-					let doneBytes = self.totalOut
-					let remaining = expectedCompressedSize - doneBytes
-
-					if doneBytes > expectedCompressedSize {
-						throw ZlibError.streamError(message: "ZLib produced more compressed bytes (\(doneBytes)) than expected (\(expectedCompressedSize))")
-					}
-
-					self.nextOut = outBytes.advanced(by: .init(doneBytes))
-					self.availOut = .init(remaining)
-
-					if remaining == 0 {
-						break
-					}
-
-					if try self.deflate(flush: flush) == false {
-						if self.availIn == 0 {
-							break
-						}
-						flush = .finish
-					} else {
-						break
-					}
-				}
-
-				return self.totalOut
-			}
+		if self.encodedBuffer == nil {
+			self.encodedBuffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: neededCapacity)
+			self.currentCapacity = neededCapacity
+		} else if self.currentCapacity < neededCapacity {
+			// Grow the buffer to the needed capacity
+			let oldBuffer = self.encodedBuffer
+			let newBuffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: neededCapacity)
+			
+			self.currentCapacity = neededCapacity
+			self.encodedBuffer = newBuffer
+			_ = newBuffer.initialize(from: oldBuffer!)
+			oldBuffer!.deallocate()
 		}
 
-		// In compression, exact size match isn't guaranteed, so we trim to totalOut
-		output.removeSubrange(Int(written)..<output.count)
+		return try data.withUnsafeMutableBytes { inputPtr in
+			guard let outBase = self.encodedBuffer.baseAddress else {
+				throw ZlibError.dataError(message: "Failed to access output buffer")
+			}
 
-		return output
+			let previousOut = self.totalOut
+
+			self.nextIn =  inputPtr.baseAddress!.assumingMemoryBound(to: UInt8.self).advanced(by: offset)
+			self.availIn = .init(length)
+			self.nextOut = outBase
+			self.availOut = .init(self.currentCapacity)
+			self.dataType = Z_BINARY
+
+			let status = deflate(streamPtr, flush.rawValue)
+
+			guard status == Z_OK || status == Z_STREAM_END else {
+				throw ZlibDeflateStream.error(streamPtr: streamPtr, status: status)
+			}
+
+			return Data(bytes: outBase, count: Int(self.totalOut - previousOut))
+		}
 	}
 }
+
