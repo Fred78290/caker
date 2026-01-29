@@ -72,7 +72,6 @@
 		9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */; };
 		9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B30BA512E0BF3D800256A9D /* OptionalStringFormatStyle.swift */; };
 		9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 9B30BA7C2E0C202A00256A9D /* SwiftletUtilities */; };
-		9B35667F2F27DDE700C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B35667E2F27DDE700C5E12F /* ZLib */; };
 		9B3566812F27E12D00C5E12F /* ZLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3566802F27E12D00C5E12F /* ZLib */; };
 		9B3600872E1FB1AE00889BFD /* DynamicList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600862E1FB1AC00889BFD /* DynamicList.swift */; };
 		9B3600892E1FC48D00889BFD /* AsyncButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3600882E1FC48D00889BFD /* AsyncButton.swift */; };
@@ -1135,7 +1134,6 @@
 				9BEBC7F32DF440BF0092B196 /* SwiftProtobuf in Frameworks */,
 				9BEBC7F72DF440BF0092B196 /* Shout in Frameworks */,
 				9BEBC7C92DF440BF0092B196 /* Sysctl in Frameworks */,
-				9B35667F2F27DDE700C5E12F /* ZLib in Frameworks */,
 				9BEBC7F52DF440BF0092B196 /* Logging in Frameworks */,
 				9BEBC7FF2DF440BF0092B196 /* ArgumentParser in Frameworks */,
 				9BB149262EC876640094D950 /* ContainerizationEXT4 in Frameworks */,
@@ -2042,7 +2040,6 @@
 				9BB149272EC876640094D950 /* ContainerizationExtras */,
 				9BB149292EC876640094D950 /* ContainerizationIO */,
 				9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */,
-				9B35667E2F27DDE700C5E12F /* ZLib */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -3306,11 +3303,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B30BA7B2E0C202A00256A9D /* XCRemoteSwiftPackageReference "SwiftletUtilities" */;
 			productName = SwiftletUtilities;
-		};
-		9B35667E2F27DDE700C5E12F /* ZLib */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9B35667D2F27DDE700C5E12F /* XCRemoteSwiftPackageReference "zlib" */;
-			productName = ZLib;
 		};
 		9B3566802F27E12D00C5E12F /* ZLib */ = {
 			isa = XCSwiftPackageProductDependency;
