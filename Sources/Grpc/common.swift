@@ -247,6 +247,10 @@ extension Data {
 	public func toHexString() -> String {
 		return self.map { String(format: "%02X ", $0) }.joined().trimmingCharacters(in: .whitespacesAndNewlines)
 	}
+
+	public var sha256str: String {
+		return SHA256.hash(data: self).map { String(format: "%02x", $0) }.joined()
+	}
 }
 
 extension String {
