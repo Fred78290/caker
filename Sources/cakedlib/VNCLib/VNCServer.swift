@@ -205,20 +205,15 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		self.updateBufferTask = nil
 	}
 	
-	private func sendFrameBufferUpdate(connections: [VNCConnection], newSizePending: Bool) async {
-		guard connections.isEmpty == false else {
-			return
-		}
+	private func sendFrameBufferUpdate(connections: [VNCConnection], tiles: [VNCFramebuffer.VNCFramebufferTile], newSizePending: Bool) async {
+
 		await withTaskGroup(of: Void.self) { group in
-			self.framebuffer.pixelData.withLock { pixelData in
-				let pixelData = pixelData
-				let width = self.framebuffer.width
-				let height = self.framebuffer.height
-				
-				connections.forEach { connection in
-					group.addTask {
-						await connection.sendFramebufferUpdate(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
-					}
+			let width = self.framebuffer.width
+			let height = self.framebuffer.height
+			
+			connections.forEach { connection in
+				group.addTask {
+					await connection.sendFramebufferUpdate(tiles: tiles, width: width, height: height, newSizePending: newSizePending)
 				}
 			}
 
@@ -227,20 +222,16 @@ public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	}
 
 	private func updateFramebufferRequest(cgImage: CGImage, checkIfImageIsChanged: Bool) async {
-		let newSizePending = self.framebuffer.updateSize(width: cgImage.width, height: cgImage.height)
-		let newPixels = self.framebuffer.convertImageToPixelData(cgImage: cgImage)
-
-		if checkIfImageIsChanged {
-			guard self.framebuffer.pixelData.withLock({ newPixels != $0 }) else  {
-				return
-			}
-		}
-
+		let changedTiles = self.framebuffer.convertImageToTiles(cgImage: cgImage)
 		let connections = self.activeConnections.filter {
-			$0.sendFramebufferContinous || newSizePending
+			$0.sendFramebufferContinous
 		}
 
-		await self.sendFrameBufferUpdate(connections: connections, newSizePending: newSizePending)
+		if changedTiles.tiles.isEmpty || connections.isEmpty {
+			return
+		}
+
+		await self.sendFrameBufferUpdate(connections: connections, tiles: changedTiles.tiles, newSizePending: changedTiles.newSize)
 	}
 
 	// MARK: - Port Availability

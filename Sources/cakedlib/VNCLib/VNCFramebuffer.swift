@@ -15,9 +15,34 @@ extension CGImageAlphaInfo {
 }
 
 public class VNCFramebuffer {
+	struct VNCFramebufferTile: Equatable {
+		let bounds: CGRect
+		let pixels: Data
+		let sha256: SHA256.Digest?
+
+		static func == (lhs: Self, rhs: Self) -> Bool {
+			guard lhs.bounds == rhs.bounds else {
+				return false
+			}
+
+			return lhs.sha256 == rhs.sha256
+		}
+
+		init(bounds: CGRect, pixels: Data, sha256: SHA256.Digest?) {
+			self.bounds = bounds
+			self.pixels = pixels
+			self.sha256 = sha256
+		}
+
+		init(bounds: CGRect, pixels: Data) {
+			self.init(bounds: bounds, pixels: pixels, sha256: SHA256.hash(data: pixels))
+		}
+	}
+
 	public internal(set) var width: Int
 	public internal(set) var height: Int
 	internal let pixelData: Mutex<Data>
+	internal var tiles: [VNCFramebufferTile]
 	internal weak var sourceView: NSView!
 	private let updateQueue = DispatchQueue(label: "vnc.framebuffer.update")
 	internal var pixelFormat = VNCPixelFormat()
@@ -33,7 +58,6 @@ public class VNCFramebuffer {
 		self.sourceView = view
 		self.width = Int(view.bounds.width)
 		self.height = Int(view.bounds.height)
-		self.pixelData = .init(Data(count: width * height * 4))  // RGBA
 
 		if let producer = self.sourceView as? VNCFrameBufferProducer, let img = producer.cgImage {
 			cgImage = img
@@ -46,10 +70,17 @@ public class VNCFramebuffer {
 			self.bitmapInfo = cgImage.bitmapInfo
 			
 			self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
+			self.pixelData = .init(Self.convertImageToPixelData(cgImage: cgImage))  // RGBA
+			self.tiles = Self.buildTiles(from: cgImage)  // RGBA
+		} else {
+			let pixels = Data(count: width * height * 4)
+
+			self.pixelData = .init(pixels)  // RGBA
+			self.tiles = Self.buildTiles(pixels, width: width, height: height, bytesPerRow: 4 * width, bytesPerPixel: 4)  // RGBA
 		}
 	}
 
-	public func updateSize(width: Int, height: Int) -> Bool {
+	private func updateSize(width: Int, height: Int) -> Bool {
 		guard self.width != width || self.height != height else { return false }
 
 		#if DEBUG
@@ -57,13 +88,6 @@ public class VNCFramebuffer {
 				self.logger.debug("View size is zero, skipping frame capture.")
 			}
 		#endif
-
-		self.pixelData.withLock {
-			self.width = width
-			self.height = height
-			self.previousPixel = $0
-			$0 = Data(count: width * height * 4)
-		}
 
 		return true
 	}
@@ -88,14 +112,10 @@ public class VNCFramebuffer {
 		return (imageRepresentation, updateSize(width: newWidth, height: newHeight))
 	}
 
-	func convertImageToPixelData(cgImage: CGImage) -> Data {
-		let bytesPerRow = width * 4
-		let bufferSize = bytesPerRow * height
+	static func convertImageToPixelData(cgImage: CGImage) -> Data {
+		let bytesPerRow = cgImage.width * (cgImage.bitsPerPixel / 8)
+		let bufferSize = bytesPerRow * cgImage.height
 		var pixelData = Data(count: bufferSize)
-
-		self.bitsPerPixels = cgImage.bitsPerPixel
-		self.bitmapInfo = cgImage.bitmapInfo
-		self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
 
 		if let provider = cgImage.dataProvider, var imageSource = provider.data as? Data {
 			imageSource.withUnsafeMutableBytes { srcRaw in
@@ -107,7 +127,7 @@ public class VNCFramebuffer {
 					if cgImage.bytesPerRow == bytesPerRow {
 						dp.update(from: sp, count: bufferSize)
 					} else {
-						for _ in 0..<height {
+						for _ in 0..<cgImage.height {
 							dp.update(from: sp, count: bytesPerRow)
 							
 							dp = dp.advanced(by: bytesPerRow)
@@ -118,13 +138,101 @@ public class VNCFramebuffer {
 			}
 		}
 
-		self.pixelData.withLock {
-			self.previousPixel = $0
-			$0 = pixelData
-		}
-
 		return pixelData
 	}
+
+	func convertImageToTiles(cgImage: CGImage) -> (tiles: [VNCFramebufferTile], newSize: Bool) {
+		let sizeChanged = updateSize(width: cgImage.width, height: cgImage.height)
+
+		return self.pixelData.withLock {
+			let pixelData = Self.convertImageToPixelData(cgImage: cgImage)
+			let oldTiles = self.tiles
+
+			self.previousPixel = $0
+			self.bitsPerPixels = cgImage.bitsPerPixel
+			self.bitmapInfo = cgImage.bitmapInfo
+			self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
+			self.tiles = Self.buildTiles(from: cgImage)
+
+			$0 = pixelData
+
+			if sizeChanged || oldTiles.count != self.tiles.count || self.tiles.isEmpty {
+				return ([VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: cgImage.width, height: cgImage.height), pixels: pixelData, sha256: nil)], sizeChanged)
+			} else {
+				var index = 0
+
+				return (self.tiles.compactMap { tile in
+					defer { index += 1 }
+
+					if tile != oldTiles[index] {
+						return tile
+					}
+					
+					return nil
+				}, sizeChanged)
+			}
+		}
+	}
+
+ 
+	/// Split the current framebuffer pixel data into 64x64 RGBA tiles.
+    /// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
+	static func buildTiles(_ pixelData: Data, tileSize: Int = 64, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> [VNCFramebufferTile] {
+		let srcTileStep = bytesPerRow * tileSize
+		let dstTileStep = bytesPerPixel * tileSize
+		let tilesAcross = (width + tileSize - 1) / tileSize
+		let tilesDown = (height + tileSize - 1) / tileSize
+		var tiles: [VNCFramebufferTile] = []
+
+		tiles.reserveCapacity(tilesAcross * tilesDown)
+
+		pixelData.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+			guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+
+			var srcRowPtr = sp
+
+			for tileY in 0..<tilesDown {
+				let startY = tileY * tileSize
+
+				for tileX in 0..<tilesAcross {
+					let startX = tileX * tileSize
+					let copyWidth = min(tileSize, width - startX)
+					let copyHeight = min(tileSize, height - startY)
+					let rowSize = copyWidth * bytesPerPixel
+					var tile = Data(count: rowSize * copyHeight)
+
+					tile.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+						guard var dstRowPtr = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+
+						var srcRowPtr = srcRowPtr
+
+						for _ in 0..<copyHeight {
+							dstRowPtr.update(from: srcRowPtr, count: rowSize)
+							
+							dstRowPtr = dstRowPtr.advanced(by: dstTileStep)
+							srcRowPtr = srcRowPtr.advanced(by: bytesPerRow)
+						}
+					}
+
+					tiles.append(.init(bounds: CGRect(x: startX, y: startY, width: copyWidth, height: copyHeight), pixels: tile))
+				}
+				
+				srcRowPtr = srcRowPtr.advanced(by: srcTileStep)
+			}
+		}
+
+		return tiles
+    }
+
+	/// Split a CGImage into 64x64 RGBA tiles using its provider data.
+    /// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
+    static func buildTiles(from cgImage: CGImage, tileSize: Int = 64) -> [VNCFramebufferTile] {
+        guard let provider = cgImage.dataProvider, let imageSource = provider.data as Data? else {
+            return []
+        }
+
+		return Self.buildTiles(imageSource, tileSize: tileSize, width: cgImage.width, height: cgImage.height, bytesPerRow: cgImage.bytesPerRow, bytesPerPixel: cgImage.bitsPerPixel/8)
+    }
 
 	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) -> Bool {
 		var changed = false
@@ -261,18 +369,17 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 			guard let self = self else {
 				return
 			}
-			let bounds = self.sourceView.bounds
-			let newWidth = Int(bounds.width)
-			let newHeight = Int(bounds.height)
 
-			guard newWidth != 0 && newHeight != 0 else {
+			let bounds = self.sourceView.bounds
+
+			guard bounds.width != 0 && bounds.height != 0 else {
 				#if DEBUG
 					self.logger.debug("View size is zero, skipping frame capture.")
 				#endif
 				return
 			}
 
-			guard let cgImage = self.sourceView.layer?.renderIntoImage() else {
+			guard let cgImage = self.cgImage else {
 				guard let imageRepresentation = self.sourceView.imageRepresentationSync(in: bounds) else {
 					return
 				}
@@ -297,3 +404,4 @@ extension VNCFramebuffer: VNCFrameBufferProducer {
 		self.timer = nil
 	}
 }
+

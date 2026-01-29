@@ -743,11 +743,11 @@ extension VNCConnection {
 		}
 
 		// Send framebuffer update
-		let (pixelData, width, height) = self.framebuffer.pixelData.withLock {
-			return ($0, self.framebuffer.width, self.framebuffer.height)
+		let tile = self.framebuffer.pixelData.withLock {
+			VNCFramebuffer.VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: self.framebuffer.width, height: self.framebuffer.height), pixels: $0, sha256: nil)
 		}
 
-		try await self.sendFramebufferUpdateThrowing(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
+		try await self.sendFramebufferUpdateThrowing(tiles: [tile], width: Int(tile.bounds.width), height: Int(tile.bounds.height), newSizePending: newSizePending)
 	}
 
 	private func receiveFramebufferUpdateContinue() async throws {
@@ -931,26 +931,48 @@ extension VNCConnection {
 		try await self.sendDatas(message)
 	}
 
-	private func sendUpdateBuffer(_ pixelData: Data, width: Int, height: Int) async throws {
-		let pixelData = transformPixel(pixelData, width: width, height: height)
-		#if false
-		try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
-		#else
+	private func sendUpdateBuffer(_ tiles: [VNCFramebuffer.VNCFramebufferTile]) async throws {
+		let transformedTiles = tiles.compactMap { tile in
+			VNCFramebuffer.VNCFramebufferTile(bounds: tile.bounds, pixels: transformPixel(tile.pixels, width: Int(tile.bounds.width), height: Int(tile.bounds.height)), sha256: nil)
+		}
+
+		var message: VNCFramebufferUpdateMsg = VNCFramebufferUpdateMsg()
+		var rectangle: VNCRectangleZLib = VNCRectangleZLib()
 		let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
 
-		if preferredEncoding == .rfbEncodingZlib {
-			try await rfbSendRectEncodingZlib(pixelData, width: width, height: height)
-		} else {
-			try await rfbSendRectEncodingRaw(pixelData, width: width, height: height)
+		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
+		message.padding = 0
+		message.numberOfRectangles = UInt16(tiles.count).bigEndian
+
+		try await self.sendDatas(message)
+
+		rectangle.rectangle.encoding = preferredEncoding.rawValue.bigEndian
+
+		for tile in transformedTiles {
+			rectangle.rectangle.x = UInt16(tile.bounds.origin.x).bigEndian
+			rectangle.rectangle.y = UInt16(tile.bounds.origin.y).bigEndian
+			rectangle.rectangle.width = UInt16(tile.bounds.width).bigEndian
+			rectangle.rectangle.height = UInt16(tile.bounds.height).bigEndian
+
+			if preferredEncoding == .rfbEncodingZlib {
+				let compressed = try self.sharedZStream.compressedData(data: tile.pixels, offset: 0, length: tile.pixels.count, flush: .syncFlush)
+
+				rectangle.compressedSize = UInt32(compressed.count.bigEndian)
+
+				try await self.sendDatas(rectangle)
+				try await self.sendDatas(compressed)
+			} else {
+				try await self.sendDatas(rectangle.rectangle)
+				try await self.sendDatas(tile.pixels)
+			}
 		}
-		#endif
 
 		if self.encodings.enableContinousUpdate && self.sendFramebufferContinous == false {
 			self.sendFramebufferContinous = true
 		}
 	}
 
-	func sendFramebufferUpdateThrowing(pixelData: Data, width: Int, height: Int, newSizePending: Bool) async throws {
+	func sendFramebufferUpdateThrowing(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async throws {
 		if isAuthenticated && self.connection.state == .ready {
 			var sendSupportedMessages = false
 			var sendSupportedEncodings = false
@@ -973,7 +995,7 @@ extension VNCConnection {
 				}
 			}
 			
-			try await sendUpdateBuffer(pixelData, width: width, height: height)
+			try await sendUpdateBuffer(tiles)
 			
 			if sendSupportedMessages {
 				try await self.sendSupportedMessages()
@@ -985,10 +1007,10 @@ extension VNCConnection {
 		}
 	}
 
-	func sendFramebufferUpdate(pixelData: Data, width: Int, height: Int, newSizePending: Bool) async {
+	func sendFramebufferUpdate(tiles: [VNCFramebuffer.VNCFramebufferTile], width: Int, height: Int, newSizePending: Bool) async {
 		if isAuthenticated && self.connection.state == .ready {
 			do {
-				try await self.sendFramebufferUpdateThrowing(pixelData: pixelData, width: width, height: height, newSizePending: newSizePending)
+				try await self.sendFramebufferUpdateThrowing(tiles: tiles, width: width, height: height, newSizePending: newSizePending)
 			} catch {
 				self.logger.error("send framebuffer failed error: \(error)")
 				self.didReceiveError(error)

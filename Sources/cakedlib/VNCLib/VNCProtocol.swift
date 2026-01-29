@@ -428,6 +428,11 @@ struct VNCRectangle: VNCLoadMessage {
 	var encoding: Int32 = 0
 }
 
+struct VNCRectangleZLib {
+	var rectangle: VNCRectangle = VNCRectangle()
+	var compressedSize: UInt32 = 0
+}
+
 struct VNCFramebufferUpdatePayload: VNCLoadMessage {
 	static func load(from data: UnsafeRawBufferPointer) -> VNCFramebufferUpdatePayload {
 		var value = VNCFramebufferUpdatePayload()
