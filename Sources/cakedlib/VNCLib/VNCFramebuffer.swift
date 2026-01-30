@@ -50,7 +50,6 @@ public class VNCFramebuffer {
 	private var bitsPerPixels: Int = 0
 	private let logger = Logger("VNCFramebuffer")
 	private var timer: Timer? = nil
-	private var previousPixel: Data? = nil
 
 	public init(view: NSView) {
 		var cgImage: CGImage? = nil
@@ -112,7 +111,7 @@ public class VNCFramebuffer {
 		return (imageRepresentation, updateSize(width: newWidth, height: newHeight))
 	}
 
-	static func convertImageToPixelData(cgImage: CGImage) -> Data {
+	static func convertImageToPixels(cgImage: CGImage) -> Data {
 		let bytesPerRow = cgImage.width * (cgImage.bitsPerPixel / 8)
 		let bufferSize = bytesPerRow * cgImage.height
 		var pixelData = Data(count: bufferSize)
@@ -145,10 +144,9 @@ public class VNCFramebuffer {
 		let sizeChanged = updateSize(width: cgImage.width, height: cgImage.height)
 
 		return self.pixelData.withLock {
-			let pixelData = Self.convertImageToPixelData(cgImage: cgImage)
+			let pixelData = Self.convertImageToPixels(cgImage: cgImage)
 			let oldTiles = self.tiles
 
-			self.previousPixel = $0
 			self.bitsPerPixels = cgImage.bitsPerPixel
 			self.bitmapInfo = cgImage.bitmapInfo
 			self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
@@ -179,7 +177,7 @@ public class VNCFramebuffer {
     /// - Returns: Array of Data, each tile is 64x64 pixels in RGBA (4 bytes per pixel). Edge tiles are smaller if width/height are not multiples of 64.
 	static func buildTiles(_ pixelData: Data, tileSize: Int = 64, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> [VNCFramebufferTile] {
 		let srcTileStep = bytesPerRow * tileSize
-		let dstTileStep = bytesPerPixel * tileSize
+		let srcTileRowSize = bytesPerPixel * tileSize
 		let tilesAcross = (width + tileSize - 1) / tileSize
 		let tilesDown = (height + tileSize - 1) / tileSize
 		var tiles: [VNCFramebufferTile] = []
@@ -193,30 +191,39 @@ public class VNCFramebuffer {
 
 			for tileY in 0..<tilesDown {
 				let startY = tileY * tileSize
+				let copyHeight = min(tileSize, height - startY)
+				var startX = 0
+				var tileSrcRowPtr = srcRowPtr
 
 				for tileX in 0..<tilesAcross {
-					let startX = tileX * tileSize
 					let copyWidth = min(tileSize, width - startX)
-					let copyHeight = min(tileSize, height - startY)
 					let rowSize = copyWidth * bytesPerPixel
-					var tile = Data(count: rowSize * copyHeight)
+					var srcRowPtr = tileSrcRowPtr
 
-					tile.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
-						guard var dstRowPtr = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-
-						var srcRowPtr = srcRowPtr
-
-						for _ in 0..<copyHeight {
-							dstRowPtr.update(from: srcRowPtr, count: rowSize)
-							
-							dstRowPtr = dstRowPtr.advanced(by: dstTileStep)
-							srcRowPtr = srcRowPtr.advanced(by: bytesPerRow)
+					if copyWidth > 0 && copyHeight > 0 {
+						var tile = Data(count: rowSize * copyHeight)
+						
+						tile.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
+							guard var dstRowPtr = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
+										
+							// Each line in tile
+							for _ in 0..<copyHeight {
+								dstRowPtr.update(from: srcRowPtr, count: rowSize)
+								
+								dstRowPtr = dstRowPtr.advanced(by: rowSize)
+								srcRowPtr = srcRowPtr.advanced(by: bytesPerRow)
+							}
 						}
+						
+						tiles.append(.init(bounds: CGRect(x: startX, y: startY, width: copyWidth, height: copyHeight), pixels: tile))
 					}
 
-					tiles.append(.init(bounds: CGRect(x: startX, y: startY, width: copyWidth, height: copyHeight), pixels: tile))
+					// Next tile
+					startX += tileSize
+					tileSrcRowPtr = tileSrcRowPtr.advanced(by: srcTileRowSize)
 				}
-				
+
+				// Next band
 				srcRowPtr = srcRowPtr.advanced(by: srcTileStep)
 			}
 		}
@@ -233,109 +240,6 @@ public class VNCFramebuffer {
 
 		return Self.buildTiles(imageSource, tileSize: tileSize, width: cgImage.width, height: cgImage.height, bytesPerRow: cgImage.bytesPerRow, bytesPerPixel: cgImage.bitsPerPixel/8)
     }
-
-	func convertBitmapToPixelData(bitmap: NSBitmapImageRep) -> Bool {
-		var changed = false
-
-		guard let cgImage = bitmap.cgImage else {
-			return false
-		}
-
-		if cgImage.bitmapInfo != self.bitmapInfo || cgImage.width != self.width || cgImage.height != self.height {
-			changed = true
-		}
-
-		self.bitsPerPixels = cgImage.bitsPerPixel
-		self.bitmapInfo = cgImage.bitmapInfo
-
-		if let provider = cgImage.dataProvider, let imageSource = provider.data as Data? {
-			var pixelData = Data(count: width * height * 4)
-
-			if changed {
-				imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
-					pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
-						guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-						let rowWidth = self.width * 4
-
-						for row in 0..<height {
-							var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
-							var dstPtr = dp.advanced(by: rowWidth * row)
-
-							var i = 0
-
-							while i < rowWidth {
-								let r = srcPtr[0]
-								let g = srcPtr[1]
-								let b = srcPtr[2]
-								let a = srcPtr[3]
-
-								dstPtr[0] = b  // B
-								dstPtr[1] = g  // G
-								dstPtr[2] = r  // R
-								dstPtr[3] = a  // A
-
-								srcPtr = srcPtr.advanced(by: 4)
-								dstPtr = dstPtr.advanced(by: 4)
-
-								i += 4
-							}
-						}
-					}
-				}
-			} else {
-				self.pixelData.withLock {
-					$0.withUnsafeBytes { originalPixelsPtr in
-						var originalPixelPtr = originalPixelsPtr.baseAddress!.assumingMemoryBound(to: UInt32.self)
-						
-						imageSource.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
-							pixelData.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
-								guard let sp = srcRaw.bindMemory(to: UInt8.self).baseAddress, let dp = dstRaw.bindMemory(to: UInt8.self).baseAddress else { return }
-								let rowWidth = self.width * 4
-								
-								for row in 0..<height {
-									var srcPtr = sp.advanced(by: cgImage.bytesPerRow * row)
-									var dstPtr = dp.advanced(by: rowWidth * row)
-									
-									var i = 0
-									
-									while i < rowWidth {
-										let r = srcPtr[0]
-										let g = srcPtr[1]
-										let b = srcPtr[2]
-										let a = srcPtr[3]
-										
-										dstPtr[0] = b  // B
-										dstPtr[1] = g  // G
-										dstPtr[2] = r  // R
-										dstPtr[3] = a  // A
-										
-										dstPtr.withMemoryRebound(to: UInt32.self, capacity: 1) { ptr in
-											if ptr.pointee != originalPixelPtr.pointee {
-												changed = true
-											}
-										}
-										
-										originalPixelPtr = originalPixelPtr.advanced(by: 1)
-										srcPtr = srcPtr.advanced(by: 4)
-										dstPtr = dstPtr.advanced(by: 4)
-										
-										i += 4
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			self.pixelData.withLock {
-				self.previousPixel = $0
-				$0 = pixelData
-			}
-		}
-
-		return changed
-	}
 
 	func convertToClient(_ pixelData: Data, clientFormat: VNCPixelFormat?) -> Data {
 		if let clientFormat = clientFormat {

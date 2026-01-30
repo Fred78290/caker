@@ -946,6 +946,11 @@ extension VNCConnection {
 
 		try await self.sendDatas(message)
 
+#if DEBUG
+		var index = 0
+		self.logger.debug("Send tiles: \(transformedTiles.count)")
+#endif
+
 		rectangle.rectangle.encoding = preferredEncoding.rawValue.bigEndian
 
 		for tile in transformedTiles {
@@ -954,10 +959,15 @@ extension VNCConnection {
 			rectangle.rectangle.width = UInt16(tile.bounds.width).bigEndian
 			rectangle.rectangle.height = UInt16(tile.bounds.height).bigEndian
 
+			#if DEBUG
+			self.logger.debug("Send tile[\(index)]: \(tile.bounds)")
+			index += 1
+			#endif
+
 			if preferredEncoding == .rfbEncodingZlib {
 				let compressed = try self.sharedZStream.compressedData(data: tile.pixels, offset: 0, length: tile.pixels.count, flush: .syncFlush)
 
-				rectangle.compressedSize = UInt32(compressed.count.bigEndian)
+				rectangle.compressedSize = UInt32(compressed.count).bigEndian
 
 				try await self.sendDatas(rectangle)
 				try await self.sendDatas(compressed)
