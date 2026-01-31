@@ -938,7 +938,8 @@ extension VNCConnection {
 
 		var message: VNCFramebufferUpdateMsg = VNCFramebufferUpdateMsg()
 		var rectangle: VNCRectangleZLib = VNCRectangleZLib()
-		let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
+		//let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
+		let preferredEncoding: VNCSetEncoding.Encoding = VNCSetEncoding.Encoding.rfbEncodingRaw
 
 		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		message.padding = 0

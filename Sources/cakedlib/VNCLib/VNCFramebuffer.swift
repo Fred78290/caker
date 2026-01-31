@@ -69,7 +69,7 @@ public class VNCFramebuffer {
 			self.bitmapInfo = cgImage.bitmapInfo
 			
 			self.pixelFormat = VNCPixelFormat(bitmapInfo: cgImage.bitmapInfo)
-			self.pixelData = .init(Self.convertImageToPixelData(cgImage: cgImage))  // RGBA
+			self.pixelData = .init(Self.convertImageToPixels(cgImage: cgImage))  // RGBA
 			self.tiles = Self.buildTiles(from: cgImage)  // RGBA
 		} else {
 			let pixels = Data(count: width * height * 4)
@@ -87,6 +87,9 @@ public class VNCFramebuffer {
 				self.logger.debug("View size is zero, skipping frame capture.")
 			}
 		#endif
+
+		self.width = width
+		self.height = height
 
 		return true
 	}
@@ -141,7 +144,7 @@ public class VNCFramebuffer {
 	}
 
 	func convertImageToTiles(cgImage: CGImage) -> (tiles: [VNCFramebufferTile], newSize: Bool) {
-		let sizeChanged = updateSize(width: cgImage.width, height: cgImage.height)
+		var sizeChanged: Bool = false
 
 		return self.pixelData.withLock {
 			let pixelData = Self.convertImageToPixels(cgImage: cgImage)
@@ -153,6 +156,8 @@ public class VNCFramebuffer {
 			self.tiles = Self.buildTiles(from: cgImage)
 
 			$0 = pixelData
+
+			sizeChanged = updateSize(width: cgImage.width, height: cgImage.height)
 
 			if sizeChanged || oldTiles.count != self.tiles.count || self.tiles.isEmpty {
 				return ([VNCFramebufferTile(bounds: .init(x: 0, y: 0, width: cgImage.width, height: cgImage.height), pixels: pixelData, sha256: nil)], sizeChanged)
@@ -220,11 +225,11 @@ public class VNCFramebuffer {
 
 					// Next tile
 					startX += tileSize
-					tileSrcRowPtr = tileSrcRowPtr.advanced(by: srcTileRowSize)
+					tileSrcRowPtr = tileSrcRowPtr.advanced(by: srcTileRowSize) // tile * pixel size in byte
 				}
 
 				// Next band
-				srcRowPtr = srcRowPtr.advanced(by: srcTileStep)
+				srcRowPtr = srcRowPtr.advanced(by: srcTileStep) // bytesPerRow * tileSize
 			}
 		}
 
