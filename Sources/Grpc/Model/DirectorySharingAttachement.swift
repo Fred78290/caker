@@ -117,10 +117,10 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 		self.description
 	}
 
-	public init(source: String = "~".expandingTildeInPath, destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
+	public init(source: String = "~", destination: String? = nil, readOnly: Bool = false, name: String? = nil, uid: Int? = nil, gid: Int? = nil) {
 		self.readOnly = readOnly
 		self._name = name
-		self._source = source
+		self._source = source.expandingTildeInPath
 		self._destination = destination
 		self._uid = uid
 		self._gid = gid
@@ -135,11 +135,12 @@ public struct DirectorySharingAttachment: CustomStringConvertible, ExpressibleBy
 	}
 
 	public init(parseFrom: String) throws {
-		(self.readOnly, self._name, self._source, self._destination, self._uid, self._gid) = try Self.parseOptions(parseFrom)
+		let arguments = try Self.parseOptions(parseFrom)
+		self.init(source: arguments.source, destination: arguments.destination, readOnly: arguments.readOnly, name: arguments.name, uid: arguments.uid, gid: arguments.gid)
 	}
 
 	// format = source:destination,ro,tag=tag,name=name,uid=uid,gid=gid
-	private static func parseOptions(_ description: String) throws -> (Bool, String?, String, String?, Int?, Int?) {
+	private static func parseOptions(_ description: String) throws -> (readOnly: Bool, name: String?, source: String, destination: String?, uid: Int?, gid: Int?) {
 		let options = description.split(separator: ",")
 		let arguments = options.first!.split(separator: ":")
 		var readOnly: Bool = false
