@@ -70,6 +70,7 @@ message Caked {
 			optional bool suspendable = 24;
 			optional ScreenSize screenSize = 25;
 			optional bool displayRefit = 26;
+			optional string otherGroups = 27;
 		}
 
 		message BuildRequest {

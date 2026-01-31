@@ -247,6 +247,12 @@ public final class CakeConfig {
 		get { self.cake["configuredGroup"] as? String ?? "adm" }
 	}
 
+	public var configuredGroups: [String]? {
+		set { self.cake["configuredGroups"] = newValue }
+		get { self.cake["configuredGroups"] as? [String] }
+	}
+
+
 	public var configuredPlatform: SupportedPlatform {
 		set { self.cake["configuredPlatform"] = newValue.rawValue }
 		get { SupportedPlatform(stringValue: self.cake["configuredPlatform"] as? String) }
@@ -457,6 +463,7 @@ public final class CakeConfig {
 		configuredUser: String,
 		configuredPassword: String?,
 		configuredGroup: String,
+		configuredGroups: [String]?,
 		configuredPlatform: SupportedPlatform,
 		displayRefit: Bool,
 		ifname: Bool,
@@ -481,6 +488,7 @@ public final class CakeConfig {
 		self.configuredUser = configuredUser
 		self.configuredPassword = configuredPassword
 		self.configuredGroup = configuredGroup
+		self.configuredGroups = configuredGroups
 		self.configuredPlatform = configuredPlatform
 		self.ifname = ifname
 		self.autostart = autostart
@@ -529,6 +537,7 @@ public final class CakeConfig {
 		self.configuredUser = options.user
 		self.configuredPassword = options.password
 		self.configuredGroup = options.mainGroup
+		self.configuredGroups = options.otherGroup
 		self.configuredPlatform = SupportedPlatform(rawValue: options.image)
 		self.ifname = options.netIfnames
 		self.autostart = options.autostart

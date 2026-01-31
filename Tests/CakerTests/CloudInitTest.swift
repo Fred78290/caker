@@ -169,7 +169,8 @@ final class CloudInitTests: XCTestCase {
 		options.attachedDisks = []
 		options.user = "admin"
 		options.password = nil
-		options.mainGroup = "admin"
+		options.mainGroup = "adm"
+		options.otherGroup = ["sudo"]
 		options.clearPassword = true
 		options.image = image
 		options.nested = true

@@ -39,6 +39,7 @@ struct VirtualMachineConfig: Hashable {
 	var configuredUser: String
 	var configuredPassword: String?
 	var mainGroup: String
+	var otherGroups: [String]?
 	var clearPassword: Bool
 	var diskSize: UInt16 = 20
 	var netIfnames: Bool = false
@@ -75,6 +76,7 @@ struct VirtualMachineConfig: Hashable {
 		configuredUser = "admin"
 		configuredPassword = nil
 		mainGroup = "adm"
+		otherGroups = ["sudo"]
 		clearPassword = true
 		diskSize = 20
 		autoinstall = false
@@ -107,7 +109,8 @@ struct VirtualMachineConfig: Hashable {
 		self.vmname = location.name
 		self.configuredUser = config.configuredUser
 		self.configuredPassword = config.configuredPassword
-		self.mainGroup = "adm"
+		self.mainGroup = config.configuredGroup
+		self.otherGroups = config.configuredGroups
 		self.clearPassword = true
 		self.diskSize = UInt16(try location.diskURL.fileSize() / (1024 * 1024 * 1024))
 		self.agent = config.agent
@@ -164,6 +167,7 @@ struct VirtualMachineConfig: Hashable {
 			user: self.configuredUser,
 			password: self.configuredPassword,
 			mainGroup: self.mainGroup,
+			otherGroups: self.otherGroups ?? ["sudo"],
 			clearPassword: self.clearPassword,
 			autostart: self.autostart,
 			nested: self.nestedVirtualization,

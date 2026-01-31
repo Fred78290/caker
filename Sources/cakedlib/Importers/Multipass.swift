@@ -307,6 +307,7 @@ struct MultipassImporter: Importer {
 			configuredUser: userName,
 			configuredPassword: password,
 			configuredGroup: "adm",
+			configuredGroups: ["sudo"],
 			configuredPlatform: .ubuntu,
 			displayRefit: true,
 			ifname: false,

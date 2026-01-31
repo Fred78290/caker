@@ -272,6 +272,15 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `displayRefit`. Subsequent reads from it will return its default value.
       public mutating func clearDisplayRefit() {_uniqueStorage()._displayRefit = nil}
 
+      public var otherGroups: String {
+        get {return _storage._otherGroups ?? String()}
+        set {_uniqueStorage()._otherGroups = newValue}
+      }
+      /// Returns true if `otherGroups` has been explicitly set.
+      public var hasOtherGroups: Bool {return _storage._otherGroups != nil}
+      /// Clears the value of `otherGroups`. Subsequent reads from it will return its default value.
+      public mutating func clearOtherGroups() {_uniqueStorage()._otherGroups = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public struct ScreenSize: Sendable {
@@ -3910,7 +3919,7 @@ extension Caked_Caked.VMRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
 extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".CommonBuildRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}cpu\0\u{1}memory\0\u{1}user\0\u{1}mainGroup\0\u{1}sshPwAuth\0\u{1}image\0\u{1}sshAuthorizedKey\0\u{1}vendorData\0\u{1}userData\0\u{1}networkConfig\0\u{1}diskSize\0\u{1}autostart\0\u{1}nested\0\u{1}forwardedPort\0\u{1}mounts\0\u{1}networks\0\u{1}sockets\0\u{1}console\0\u{1}attachedDisks\0\u{1}dynamicPortForwarding\0\u{1}password\0\u{1}ifnames\0\u{1}suspendable\0\u{1}screenSize\0\u{1}displayRefit\0\u{1}otherGroups\0")
 
   fileprivate class _StorageClass {
     var _name: String = String()
@@ -3939,6 +3948,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _suspendable: Bool? = nil
     var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
     var _displayRefit: Bool? = nil
+    var _otherGroups: String? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -3975,6 +3985,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       _suspendable = source._suspendable
       _screenSize = source._screenSize
       _displayRefit = source._displayRefit
+      _otherGroups = source._otherGroups
     }
   }
 
@@ -4019,6 +4030,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 24: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
         case 25: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
         case 26: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
+        case 27: try { try decoder.decodeSingularStringField(value: &_storage._otherGroups) }()
         default: break
         }
       }
@@ -4109,6 +4121,9 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
       try { if let v = _storage._displayRefit {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 26)
       } }()
+      try { if let v = _storage._otherGroups {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 27)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -4144,6 +4159,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         if _storage._suspendable != rhs_storage._suspendable {return false}
         if _storage._screenSize != rhs_storage._screenSize {return false}
         if _storage._displayRefit != rhs_storage._displayRefit {return false}
+        if _storage._otherGroups != rhs_storage._otherGroups {return false}
         return true
       }
       if !storagesAreEqual {return false}

@@ -546,6 +546,7 @@ struct CloudConfigData: Codable {
 		defaultUser: String = "admin",
 		password: String? = nil,
 		mainGroup: String = "adm",
+		groups: [String]?,
 		clearPassword: Bool = false,
 		sshAuthorizedKeys: [String]? = nil,
 		tz: String = "UTC",
@@ -575,7 +576,7 @@ struct CloudConfigData: Codable {
 					shell: "/bin/sh",
 					sshAuthorizedKeys: sshAuthorizedKeys,
 					primaryGroup: mainGroup,
-					groups: nil,
+					groups: groups,
 					sudo: true))
 		]
 
@@ -893,6 +894,7 @@ class CloudInit {
 	var userName: String = "admin"
 	var password: String? = nil
 	var mainGroup: String = "adm"
+	var groups: [String]? = nil
 	var sshAuthorizedKeys: [String]?
 	var clearPassword: Bool = false
 	var runMode: Utils.RunMode = .user
@@ -922,12 +924,13 @@ class CloudInit {
 	}
 
 	init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKey: [String]?, vendorData: Data?, userData: Data?, networkConfig: Data?, netIfnames: Bool = true, runMode: Utils.RunMode
 	) throws {
 		self.platform = plateform
 		self.userName = userName
 		self.password = password
 		self.mainGroup = mainGroup
+		self.groups = otherGroups
 		self.clearPassword = clearPassword
 		self.sshAuthorizedKeys = sshAuthorizedKey
 		self.userData = userData
@@ -938,7 +941,7 @@ class CloudInit {
 	}
 
 	convenience init(
-		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true,
+		plateform: SupportedPlatform, userName: String, password: String?, mainGroup: String, otherGroups: [String]?, clearPassword: Bool, sshAuthorizedKeyPath: String?, vendorDataPath: String?, userDataPath: String?, networkConfigPath: String?, netIfnames: Bool = true,
 		runMode: Utils.RunMode
 	)
 		throws
@@ -948,6 +951,7 @@ class CloudInit {
 			userName: userName,
 			password: password,
 			mainGroup: mainGroup,
+			otherGroups: otherGroups,
 			clearPassword: clearPassword,
 			sshAuthorizedKey: try Self.sshAuthorizedKeys(sshAuthorizedKeyPath: sshAuthorizedKeyPath, runMode: runMode),
 			vendorData: vendorDataPath != nil ? try Data(contentsOf: URL(fileURLWithPath: vendorDataPath!)) : nil,
@@ -1022,6 +1026,7 @@ class CloudInit {
 			defaultUser: self.userName,
 			password: self.password,
 			mainGroup: self.mainGroup,
+			groups: self.groups,
 			clearPassword: self.clearPassword,
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,
@@ -1232,6 +1237,7 @@ class CloudInit {
 			defaultUser: self.userName,
 			password: self.password,
 			mainGroup: self.mainGroup,
+			groups: self.groups,
 			clearPassword: self.clearPassword,
 			sshAuthorizedKeys: sshAuthorizedKeys,
 			tz: TimeZone.current.identifier,

@@ -30,6 +30,9 @@ public struct BuildOptions: ParsableArguments {
 	@Option(name: [.long, .customShort("g")], help: "The main existing group for the user")
 	public var mainGroup: String = "adm"
 
+	@Option(name: [.customLong("other-group"), .customShort("o")], help: "The other existing group for the user")
+	public var otherGroup: [String] = ["sudo"]
+
 	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
 	public var clearPassword: Bool = false
 
@@ -105,6 +108,7 @@ public struct BuildOptions: ParsableArguments {
 		user: String = "admin",
 		password: String? = "nil",
 		mainGroup: String = "admin",
+		otherGroups: [String] = ["sudo"],
 		clearPassword: Bool = false,
 		autostart: Bool = true,
 		nested: Bool = true,
@@ -131,6 +135,7 @@ public struct BuildOptions: ParsableArguments {
 		self.user = user
 		self.password = password
 		self.mainGroup = mainGroup
+		self.otherGroup = otherGroups
 		self.clearPassword = clearPassword
 		self.autostart = autostart
 		self.nested = nested
@@ -198,7 +203,13 @@ public struct BuildOptions: ParsableArguments {
 		if request.hasMainGroup {
 			self.mainGroup = request.mainGroup
 		} else {
-			self.mainGroup = "admin"
+			self.mainGroup = "adm"
+		}
+
+		if request.hasOtherGroups {
+			self.otherGroup = request.otherGroups.split(separator: ",", omittingEmptySubsequences: true).map { String($0) }
+		} else {
+			self.otherGroup = ["sudo"]
 		}
 
 		if request.hasSshPwAuth {

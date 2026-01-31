@@ -329,6 +329,7 @@ struct VMWareImporter: Importer {
 			configuredUser: userName,
 			configuredPassword: password,
 			configuredGroup: "adm",
+			configuredGroups: ["sudo"],
 			configuredPlatform: .unknown,
 			displayRefit: true,
 			ifname: false,

@@ -80,6 +80,7 @@ extension Caked_CommonBuildRequest {
 		self.diskSize = Int32(buildOptions.diskSize)
 		self.user = buildOptions.user
 		self.mainGroup = buildOptions.mainGroup
+		self.otherGroups = buildOptions.otherGroup.joined(separator: ",")
 		self.sshPwAuth = buildOptions.clearPassword
 		self.autostart = buildOptions.autostart
 		self.nested = buildOptions.nested
