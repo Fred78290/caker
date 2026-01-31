@@ -869,7 +869,7 @@ extension VirtualMachineDocument {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
-			#if DEBUG
+			#if DEBUGVNC
 				let isDebugLoggingEnabled = AppState.shared.debugVNCMessageEnabled
 			#else
 				let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug

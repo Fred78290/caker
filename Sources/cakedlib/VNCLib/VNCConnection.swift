@@ -938,8 +938,8 @@ extension VNCConnection {
 
 		var message: VNCFramebufferUpdateMsg = VNCFramebufferUpdateMsg()
 		var rectangle: VNCRectangleZLib = VNCRectangleZLib()
-		//let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
-		let preferredEncoding: VNCSetEncoding.Encoding = VNCSetEncoding.Encoding.rfbEncodingRaw
+		let preferredEncoding: VNCSetEncoding.Encoding = self.encodings.preferredEncoding
+		//let preferredEncoding: VNCSetEncoding.Encoding = VNCSetEncoding.Encoding.rfbEncodingRaw
 
 		message.messageType = 0  // VNC_MSG_FRAMEBUFFER_UPDATE
 		message.padding = 0
@@ -947,7 +947,7 @@ extension VNCConnection {
 
 		try await self.sendDatas(message)
 
-#if DEBUG
+#if DEBUGVNC
 		var index = 0
 		self.logger.debug("Send tiles: \(transformedTiles.count)")
 #endif
@@ -960,7 +960,7 @@ extension VNCConnection {
 			rectangle.rectangle.width = UInt16(tile.bounds.width).bigEndian
 			rectangle.rectangle.height = UInt16(tile.bounds.height).bigEndian
 
-			#if DEBUG
+			#if DEBUGVNC
 			self.logger.debug("Send tile[\(index)]: \(tile.bounds)")
 			index += 1
 			#endif
@@ -1056,6 +1056,7 @@ extension VNCConnection {
 		client2server.rfbSetBit(Int(VNCClientMessageType.pointerEvent.rawValue))
 		client2server.rfbSetBit(Int(VNCClientMessageType.clientCutText.rawValue))
 		client2server.rfbSetBit(Int(VNCClientMessageType.setDesktopSize.rawValue))
+		client2server.rfbSetBit(Int(VNCClientMessageType.framebufferUpdateContinue.rawValue))
 
 		server2client.rfbSetBit(Int(VNCServerMessageType.rfbFramebufferUpdate.rawValue))
 		server2client.rfbSetBit(Int(VNCServerMessageType.rfbResizeFrameBuffer.rawValue))
