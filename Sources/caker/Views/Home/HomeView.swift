@@ -12,7 +12,7 @@ struct HomeView: View {
 	@Binding var appState: AppState
 	@State private var navigationModel = NavigationModel()
 	@State private var presented: Bool = false
-	@State private var mustShowDetailView: Bool?
+	@State private var mustShowDetailView: Bool = true
 	@State private var window: NSWindow? = nil
 
 	private var deleteButtonDisabled: Bool {
@@ -51,14 +51,10 @@ struct HomeView: View {
 					}
 				}
 
-				if self.showDetailView {
-					ToolbarItem(placement: .primaryAction) {
+				if self.haveDetailView {
+					ToolbarItem(placement: .automatic) {
 						Button("Detail", systemImage: "sidebar.squares.right") {
-							if self.mustShowDetailView == nil {
-								mustShowDetailView = false
-							} else {
-								self.mustShowDetailView?.toggle()
-							}
+							self.mustShowDetailView.toggle()
 						}
 					}
 				}
@@ -105,21 +101,34 @@ struct HomeView: View {
 		clearSelectection(newValue)
 	}
 
+	var haveDetailView: Bool {
+		guard navigationModel.selectedCategory != .virtualMachine else {
+			return false
+		}
+
+		return true
+	}
+
+
 	var showDetailView: Bool {
 		guard navigationModel.selectedCategory != .virtualMachine else {
 			return false
 		}
 
-		guard let mustShowDetailView else {
-			switch navigationModel.selectedCategory {
-			case .virtualMachine:
+		switch navigationModel.selectedCategory {
+		case .virtualMachine:
+			return false
+		case .networks:
+			guard navigationModel.selectedNetwork != nil else {
 				return false
-			case .networks:
-				return true
-			case .images:
-				return navigationModel.selectedRemote != nil
-			case .templates:
-				return navigationModel.selectedTemplate != nil
+			}
+		case .images:
+			guard navigationModel.selectedRemote != nil else {
+				return false
+			}
+		case .templates:
+			guard navigationModel.selectedTemplate != nil else {
+				return false
 			}
 		}
 
