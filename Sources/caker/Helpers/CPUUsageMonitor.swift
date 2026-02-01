@@ -18,9 +18,8 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	@Published var memoryInfos = MemoryInfo()
 
 	private let name: String
-	private var taskQueue: TaskQueue! = nil
+	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
-	private var helper: CakeAgentHelper! = nil
 
 #if DEBUG
 	private let logger = Logger("CPUUsageMonitor")
@@ -39,28 +38,23 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	}
 
 	func cancel(_line: UInt = #line, _file: String = #file) {
-		guard self.taskQueue != nil else {
+		guard self.isMonitoring else {
 			return
 		}
+
+		self.isMonitoring = false
 
 		#if DEBUG
 			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.name), \(_file):\(_line)")
 		#endif
 
-		if let taskQueue {
-			self.taskQueue = nil
-			taskQueue.close()
+		if let stream {
+			stream.continuation.finish(throwing: GRPCStatus(code: .cancelled, message: "Cancelled"))
 		}
-
-		if let helper {
-			self.helper = nil
-			try? helper.close().wait()
-		}
-
 	}
 
 	func monitorCurrentUsage() async {
-		guard taskQueue == nil else {
+		guard self.isMonitoring == false else {
 			return
 		}
 
@@ -70,17 +64,38 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		debugLogger.debug("Start monitoring current CPU usage, VM: \(self.name)")
 		#endif
 
-		self.taskQueue = .init(label: "CakeAgent.CPUUsageMonitor.\(self.name)")
-
 		await withTaskCancellationHandler(operation: {
-			while Task.isCancelled == false && self.taskQueue != nil {
-				var helper: CakeAgentHelper! = nil
+			let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(self.name)")
+			var helper: CakeAgentHelper! = nil
+
+			self.isMonitoring = true
+
+			func performAgentHealthCheck() -> AsyncThrowingStreamCakeAgentCurrentUsageReply {
+				return taskQueue.dispatchStream { [weak self] (continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation) in
+					guard let self = self else {
+						return
+					}
+
+					do {
+						let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
+
+						DispatchQueue.main.sync {
+							self.handleAgentHealthCurrentUsage(usage: infos)
+						}
+
+						helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
+					} catch {
+						continuation.finish(throwing: error)
+					}
+				}
+			}
+
+			while Task.isCancelled == false && self.isMonitoring {
 
 				do {
 					helper = try self.createHelper()
 
-					self.stream = self.performAgentHealthCheck(helper: helper)
-					self.helper = helper
+					self.stream = performAgentHealthCheck()
 
 					for try await currentUsage in stream!.stream {
 						await self.handleAgentHealthCurrentUsage(usage: currentUsage)
@@ -88,11 +103,8 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 					
 					break
 				} catch {
-					if self.taskQueue != nil {
-						if let helper {
-							self.helper = nil
-							try? await helper.close().get()
-						}
+					if self.isMonitoring {
+						try? await helper?.close().get()
 
 						self.stream = nil
 						self.cpuInfos.cores = []
@@ -108,12 +120,11 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 				}
 			}
 
-			self.taskQueue?.close()
-			try? await self.helper?.close().get()
+			taskQueue.close()
+			try? await helper?.close().get()
 
-			self.helper = nil
+			self.isMonitoring = false
 			self.stream = nil
-			self.taskQueue = nil
 
 #if DEBUG
 			debugLogger.debug("Monitoring ended, VM: \(self.name)")
@@ -143,39 +154,41 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		self.logger.debug("Agent monitoring: VM \(self.name) is not ready")
 #endif
 
-		func handleGrpcStatus(_ grpcError: GRPCStatus) {
+		func handleGrpcStatus(_ grpcError: GRPCStatus) -> Bool {
 			switch grpcError.code {
 			case .unavailable:
 				// These could be temporary - continue monitoring
 				self.logger.info("Agent monitoring: VM \(self.name) agent unvailable")
-				break
+				return true
 			case .cancelled:
 				// These could be temporary - continue monitoring
 				self.logger.info("Agent monitoring: VM \(self.name) agent cancelled")
-				break
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
 				self.logger.info("Agent monitoring: VM \(self.name) agent timeout")
+				return true
 			case .unimplemented:
 				// unimplemented - Agent is too old, need update
 				self.logger.info("Agent monitoring: VM \(self.name) agent is too old, need update")
+				return true
 			default:
 				// Other errors might indicate serious issues
 				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
+
+			return false
 		}
 
 		if let grpcError = error as? any GRPCStatusTransformable {
-			handleGrpcStatus(grpcError.makeGRPCStatus())
+			return handleGrpcStatus(grpcError.makeGRPCStatus())
 		} else if let grpcError = error as? GRPCStatus {
-			handleGrpcStatus(grpcError)
+			return handleGrpcStatus(grpcError)
 		} else {
 			// Agent is not responding - could indicate VM issues
 			self.logger.error("Agent monitoring: VM \(self.name) agent not responding: \(error)")  // Check if it's a permanent failure (connection refused, etc.)
-			return false
 		}
 		
-		return true
+		return false
 	}
 
 	private func createHelper(connectionTimeout: Int64 = 5) throws -> CakeAgentHelper {
@@ -190,21 +203,5 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		)
 
 		return CakeAgentHelper(on: eventLoop, client: client)
-	}
-
-	private func performAgentHealthCheck(helper: CakeAgentHelper) -> AsyncThrowingStreamCakeAgentCurrentUsageReply {
-		return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation) in
-			do {
-				let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
-
-				DispatchQueue.main.sync {
-					self.handleAgentHealthCurrentUsage(usage: infos)
-				}
-
-				helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
-			} catch {
-				continuation.finish(throwing: error)
-			}
-		}
 	}
 }
