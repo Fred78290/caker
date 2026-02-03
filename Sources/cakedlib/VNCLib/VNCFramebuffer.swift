@@ -60,7 +60,7 @@ public class VNCFramebuffer {
 
 		if let producer = self.sourceView as? VNCFrameBufferProducer, let img = producer.cgImage {
 			cgImage = img
-		} else if let imageRepresentation = view.imageRepresentationSync(in: NSRect(x: 0, y: 0, width: 4, height: 4)) {
+		} else if let imageRepresentation = view.imageRepresentationSync(in: view.bounds) {
 			cgImage = imageRepresentation.cgImage
 		}
 

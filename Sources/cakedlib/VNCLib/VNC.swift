@@ -23,9 +23,9 @@ import Foundation
 import Virtualization
 
 extension VZVNCServer {
-	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) throws -> VZVNCServer {
-		//return InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
-		return try VNCServer(view, name: name, password: password, port: UInt16(port))
+	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VMView.NSViewType, password: String, port: Int, queue: dispatch_queue_t) throws -> VZVNCServer {
+		return InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
+		//return try VZVNCServerImpl(view, name: name, password: password, port: UInt16(port))
 	}
 }
 
@@ -34,12 +34,14 @@ class InternalVNCServer: VZVNCServer {
 
 	private let vnc: Dynamic
 	private let password: String  // = UUID().uuidString
+	private let view: VMView.NSViewType
 
-	init(_ virtualMachine: VZVirtualMachine, view: VZVirtualMachineView, password: String, port: Int, queue: dispatch_queue_t) {
+	init(_ virtualMachine: VZVirtualMachine, view: VMView.NSViewType, password: String, port: Int, queue: dispatch_queue_t) {
 		let securityConfiguration = Dynamic._VZVNCAuthenticationSecurityConfiguration(password: password)
 		self.password = password
 		self.vnc = Dynamic._VZVNCServer(port: port, queue: queue, securityConfiguration: securityConfiguration)
 		self.vnc.virtualMachine = virtualMachine
+		self.view = view
 	}
 
 	func connectionURL() -> URL {
@@ -57,6 +59,11 @@ class InternalVNCServer: VZVNCServer {
 	}
 
 	func start() throws {
+		if let display = self.view.graphicsDisplay, let observer = self.view as? VZGraphicsDisplayObserver {
+			observer.displayDidBeginReconfiguration?(display)
+			observer.displayDidEndReconfiguration?(display)
+		}
+
 		self.vnc.start()
 	}
 

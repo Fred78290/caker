@@ -13,14 +13,62 @@ func SPBGetSharedPtrRawPointer(_ sharedPtrObjectAddr: UnsafePointer<UInt8>?) -> 
 @_silgen_name("SPBGetSharedPtrUseCount")
 func SPBGetSharedPtrUseCount(_ sharedPtrObjectAddr: UnsafePointer<UInt8>?) -> Int
 
+public typealias Ivars = [String: Ivar]
+
+extension Ivar {
+	public var name: String {
+		guard let name = ivar_getName(self) else {
+			return "<unknown>"
+		}
+
+		return String(cString: name)
+	}
+}
+
 extension NSObject {
-	public var ivars: [Ivar] {
+	public func getIvar(name: String) -> Any? {
+		guard let field = class_getInstanceVariable(type(of: self), name) else {
+			return nil
+		}
+
+		return object_getIvar(self, field)
+	}
+
+	public func setIvar(name: String, value: Any?) {
+		guard let field = class_getInstanceVariable(type(of: self), name) else {
+			return
+		}
+
+		object_setIvar(self, field, value)
+	}
+
+	public func getIvar<T>(_ name: String) -> T? {
+		guard let field = class_getInstanceVariable(type(of: self), name) else {
+			return nil
+		}
+
+		guard let value = object_getIvar(self, field) as? T else {
+			return nil
+		}
+
+		return value
+	}
+
+	public func setIvar<T>(_ name: String, value: T) {
+		self.setIvar(name: name, value: value)
+	}
+
+	public var ivars: Ivars {
 		var count: UInt32 = 0
-		var ivars: [Ivar] = []
+		var ivars: Ivars = [:]
 
 		if let list = class_copyIvarList(type(of: self), &count) {
 			for index in 0..<Int(count) {
-				ivars.append(list[index])
+				let ivar = list[index]
+
+				if let name = ivar_getName(ivar) {
+					ivars[String(cString: name)] = ivar
+				}
 			}
 		}
 
@@ -28,12 +76,8 @@ extension NSObject {
 	}
 	
 	public var ivarNames: [String] {
-		return self.ivars.compactMap {
-			guard let value = ivar_getName($0) else {
-				return nil
-			}
-
-			return String(cString: value)
+		self.ivars.keys.map {
+			String($0)
 		}
 	}
 

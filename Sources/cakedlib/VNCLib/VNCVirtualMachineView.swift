@@ -12,6 +12,11 @@ import Dynamic
 import ObjectiveC.runtime
 import Synchronization
 
+@objc protocol VZFramebuffer {
+	@objc func suppressFrameUpdates() -> Bool
+	@objc func setSuppressFrameUpdates(_: Bool)
+}
+
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
@@ -27,14 +32,25 @@ extension NSView {
 		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
 			// Only attempt to swizzle if the selectors exist on this instance
 			let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
+			let hasSuppressFrameUpdatesSel = self.responds(to: #selector(VZFramebuffer.setSuppressFrameUpdates(_:)))
 
 			if hasFrameSel {
 				self.swizzleMethod(originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
 								   swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
-
-				VNCVirtualMachineView.swizzled = true
 			}
+
+			if hasSuppressFrameUpdatesSel {
+				self.swizzleMethod(originalSelector: #selector(VZFramebuffer.setSuppressFrameUpdates(_:)),
+								   swizzledSelector: #selector(swizzled_setSuppressFrameUpdates(_:)))
+			}
+
+			VNCVirtualMachineView.swizzled = true
 		}
+	}
+
+	@objc func swizzled_setSuppressFrameUpdates(_ value: Bool) {
+		print("setSuppressFrameUpdates: \(value)")
+		self.swizzled_setSuppressFrameUpdates(value)
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
@@ -61,6 +77,22 @@ extension VZVirtualMachineView {
 		}
 
 		guard let value = object_getIvar(self, ivar) as? VZGraphicsDisplay else {
+			return nil
+		}
+
+		return value
+	}
+
+	public var framebuffer: NSObject? {
+		guard let framebufferView = self.framebufferView else {
+			return nil
+		}
+
+		guard let field = class_getInstanceVariable(type(of: framebufferView), "_framebuffer") else {
+			return nil
+		}
+
+		guard let value = object_getIvar(framebufferView, field) as? NSObject else {
 			return nil
 		}
 
@@ -220,11 +252,37 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	static var swizzled = false
 
 	private let continuation: Mutex<AsyncStream<CGImage>.Continuation?> = .init(nil)
+	private var frameBufferViewDynamic: Dynamic! = nil
+	public var inReconfiguration: Bool = false
+
+	public var suppressFrameUpdates: Bool {
+		get {
+			self.frameBufferViewDynamic.suppressFrameUpdates.asBool ?? false
+		}
+		set {
+			self.frameBufferViewDynamic.suppressFrameUpdates = newValue
+		}
+	}
 
 	public override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 
+		let hasDisplayDidBeginReconfigurationSel = self.responds(to: #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:)))
+		let hasDisplayDidEndReconfigurationSel = self.responds(to: #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:)))
+
+		if hasDisplayDidBeginReconfigurationSel {
+			self.swizzleMethod(originalSelector: #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:)),
+							   swizzledSelector: #selector(catch_displayDidBeginReconfiguration(_:)))
+		}
+
+		if hasDisplayDidEndReconfigurationSel {
+			self.swizzleMethod(originalSelector: #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:)),
+							   swizzledSelector: #selector(catch_displayDidEndReconfiguration(_:)))
+		}
+
 		if let framebufferView = self.framebufferView {
+			self.frameBufferViewDynamic = Dynamic(framebufferView)
+
 			/*let newLayer = VNCFramebufferLayer()
 			framebufferView.layer?.removeFromSuperlayer()
 			
@@ -240,26 +298,40 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	public required init?(coder: NSCoder) {
 		fatalError("init(coder:) has not been implemented")
 	}
+}
 
-	#if DEBUGKEYBOARD
-		public override func keyDown(with event: NSEvent) {
-			Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
+#if DEBUGKEYBOARD
+extension VNCVirtualMachineView {
+	public override func keyDown(with event: NSEvent) {
+		Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
 
-			super.keyDown(with: event)
-		}
+		super.keyDown(with: event)
+	}
 
-		public override func flagsChanged(with event: NSEvent) {
-			Logger(self).debug("flagsChanged: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+	public override func flagsChanged(with event: NSEvent) {
+		Logger(self).debug("flagsChanged: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
 
-			super.flagsChanged(with: event)
-		}
+		super.flagsChanged(with: event)
+	}
 
-		public override func scrollWheel(with event: NSEvent) {
-			Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+	public override func scrollWheel(with event: NSEvent) {
+		Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
 
-			super.scrollWheel(with: event)
-		}
-	#endif
+		super.scrollWheel(with: event)
+	}
+}
+#endif
+
+extension VNCVirtualMachineView {
+	@objc func catch_displayDidBeginReconfiguration(_ display: VZGraphicsDisplay) {
+		self.inReconfiguration = true
+		self.catch_displayDidBeginReconfiguration(display)
+	}
+
+	@objc func catch_displayDidEndReconfiguration(_ display: VZGraphicsDisplay) {
+		self.inReconfiguration = false
+		self.catch_displayDidEndReconfiguration(display)
+	}
 }
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
@@ -303,3 +375,4 @@ extension VNCVirtualMachineView: VNCFramebufferObserver {
 		}
 	}
 }
+

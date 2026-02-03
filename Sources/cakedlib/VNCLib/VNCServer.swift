@@ -31,7 +31,7 @@ public protocol VNCFrameBufferProducer {
 	func stopFramebufferUpdate()
 }
 
-public final class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
+open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public weak var delegate: VNCServerDelegate?
 	public private(set) var sourceView: NSView
 	public private(set) var port: UInt16
