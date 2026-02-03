@@ -12,11 +12,6 @@ import Dynamic
 import ObjectiveC.runtime
 import Synchronization
 
-@objc protocol VZFramebuffer {
-	@objc func suppressFrameUpdates() -> Bool
-	@objc func setSuppressFrameUpdates(_: Bool)
-}
-
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
@@ -32,25 +27,14 @@ extension NSView {
 		if protocols.first(where: { $0 == "_VZFramebufferObserver" }) != nil {
 			// Only attempt to swizzle if the selectors exist on this instance
 			let hasFrameSel = self.responds(to: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)))
-			let hasSuppressFrameUpdatesSel = self.responds(to: #selector(VZFramebuffer.setSuppressFrameUpdates(_:)))
 
 			if hasFrameSel {
 				self.swizzleMethod(originalSelector: #selector(VZFramebufferObserver.framebuffer(_:didUpdateFrame:)),
 								   swizzledSelector: #selector(swizzled_framebuffer(_:didUpdateFrame:)))
 			}
 
-			if hasSuppressFrameUpdatesSel {
-				self.swizzleMethod(originalSelector: #selector(VZFramebuffer.setSuppressFrameUpdates(_:)),
-								   swizzledSelector: #selector(swizzled_setSuppressFrameUpdates(_:)))
-			}
-
 			VNCVirtualMachineView.swizzled = true
 		}
-	}
-
-	@objc func swizzled_setSuppressFrameUpdates(_ value: Bool) {
-		print("setSuppressFrameUpdates: \(value)")
-		self.swizzled_setSuppressFrameUpdates(value)
 	}
 
 	@objc func swizzled_framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?) {
@@ -253,7 +237,6 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 
 	private let continuation: Mutex<AsyncStream<CGImage>.Continuation?> = .init(nil)
 	private var frameBufferViewDynamic: Dynamic! = nil
-	public var inReconfiguration: Bool = false
 
 	public var suppressFrameUpdates: Bool {
 		get {
@@ -267,27 +250,8 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	public override init(frame frameRect: NSRect) {
 		super.init(frame: frameRect)
 
-		let hasDisplayDidBeginReconfigurationSel = self.responds(to: #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:)))
-		let hasDisplayDidEndReconfigurationSel = self.responds(to: #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:)))
-
-		if hasDisplayDidBeginReconfigurationSel {
-			self.swizzleMethod(originalSelector: #selector(VZGraphicsDisplayObserver.displayDidBeginReconfiguration(_:)),
-							   swizzledSelector: #selector(catch_displayDidBeginReconfiguration(_:)))
-		}
-
-		if hasDisplayDidEndReconfigurationSel {
-			self.swizzleMethod(originalSelector: #selector(VZGraphicsDisplayObserver.displayDidEndReconfiguration(_:)),
-							   swizzledSelector: #selector(catch_displayDidEndReconfiguration(_:)))
-		}
-
 		if let framebufferView = self.framebufferView {
 			self.frameBufferViewDynamic = Dynamic(framebufferView)
-
-			/*let newLayer = VNCFramebufferLayer()
-			framebufferView.layer?.removeFromSuperlayer()
-			
-			newLayer.delegate = framebufferView.layer?.delegate
-			framebufferView.layer = newLayer*/
 
 			if VNCVirtualMachineView.swizzled == false {
 				framebufferView.swizzleFramebufferObserver()
@@ -321,18 +285,6 @@ extension VNCVirtualMachineView {
 	}
 }
 #endif
-
-extension VNCVirtualMachineView {
-	@objc func catch_displayDidBeginReconfiguration(_ display: VZGraphicsDisplay) {
-		self.inReconfiguration = true
-		self.catch_displayDidBeginReconfiguration(display)
-	}
-
-	@objc func catch_displayDidEndReconfiguration(_ display: VZGraphicsDisplay) {
-		self.inReconfiguration = false
-		self.catch_displayDidEndReconfiguration(display)
-	}
-}
 
 extension VNCVirtualMachineView: VNCFrameBufferProducer {
 	public var checkIfImageIsChanged: Bool {

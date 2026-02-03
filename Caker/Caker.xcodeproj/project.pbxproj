@@ -29,7 +29,7 @@
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
-		9B0A84F62F32532A00E061EE /* VZVNCServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A84F52F32532400E061EE /* VZVNCServer.swift */; };
+		9B0A84F62F32532A00E061EE /* VZVNCServerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0A84F52F32532400E061EE /* VZVNCServerImpl.swift */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3422F0AD87C0099F00F /* CakeAgentLib */; };
@@ -570,7 +570,7 @@
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
-		9B0A84F52F32532400E061EE /* VZVNCServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVNCServer.swift; sourceTree = "<group>"; };
+		9B0A84F52F32532400E061EE /* VZVNCServerImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VZVNCServerImpl.swift; sourceTree = "<group>"; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -1414,7 +1414,6 @@
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
 			isa = PBXGroup;
 			children = (
-				9B0A84F52F32532400E061EE /* VZVNCServer.swift */,
 				9BDA13A52EE6D42300357544 /* Keymapper */,
 				9B5A37752ED4BDA8007B59B0 /* VNC.swift */,
 				9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */,
@@ -1427,6 +1426,7 @@
 				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
 				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
 				9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */,
+				9B0A84F52F32532400E061EE /* VZVNCServerImpl.swift */,
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
@@ -2393,7 +2393,7 @@
 				9BEBC76F2DF440720092B196 /* IP.Address.swift in Sources */,
 				9BEBC7702DF440720092B196 /* PurgeHandler.swift in Sources */,
 				9BEBC7712DF440720092B196 /* DuplicateHandler.swift in Sources */,
-				9B0A84F62F32532A00E061EE /* VZVNCServer.swift in Sources */,
+				9B0A84F62F32532A00E061EE /* VZVNCServerImpl.swift in Sources */,
 				9BEBC7722DF440720092B196 /* EmbedProvisionProfile.swift in Sources */,
 				9BEBC7732DF440720092B196 /* IP.swift in Sources */,
 				9BEBC7742DF440720092B196 /* CertificatesLocation.swift in Sources */,
