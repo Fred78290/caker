@@ -24,7 +24,6 @@ public struct VMView: NSViewRepresentable {
 		vzMachineView.autoresizingMask = [.width, .height]
 		vzMachineView.automaticallyReconfiguresDisplay = true
 		vzMachineView.capturesSystemKeys = true
-		vzMachineView.suppressFrameUpdates = false
 		//vzMachineView.showsHostCursor = false
 
 		guard let fb = vzMachineView.framebuffer else {
