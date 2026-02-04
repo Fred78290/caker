@@ -1069,7 +1069,11 @@ extension VirtualMachine {
 
 	func takeScreenshot() {
 		if let image = self.env.vzMachineView?.image() {
-			self.delegate?.didScreenshot(self, screenshot: image)
+			if let delegate = self.delegate {
+				delegate.didScreenshot(self, screenshot: image)
+			} else {
+				try? image.pngData?.write(to: self.location.screenshotURL)
+			}
 		}
 	}
 }

@@ -225,7 +225,13 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var screenshot: ScreenshotLoader!
 	
 	var lastScreenshot: NSImage? {
-		self.screenshot?.nsImage
+		let screenshotURL = self.location.screenshotURL
+
+		guard let exist = try? screenshotURL.exists(), exist else {
+			return nil
+		}
+
+		return NSImage(contentsOfFile: screenshotURL.path)
 	}
 	
 	var osImage: some View {
@@ -869,10 +875,10 @@ extension VirtualMachineDocument {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
-			#if DEBUGVNC
+			#if DEBUG
 				let isDebugLoggingEnabled = AppState.shared.debugVNCMessageEnabled
 			#else
-				let isDebugLoggingEnabled = Logger.LoggingLevel() == .debug
+				let isDebugLoggingEnabled = false
 			#endif
 
 			let settings = RoyalVNCKit.VNCConnection.Settings(

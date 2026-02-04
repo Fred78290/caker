@@ -35,9 +35,11 @@ struct VirtualMachineView: View {
 	@State var screenshot: NSImage?
 
 	init(_ vm: VirtualMachineDocument, selected: Bool) {
+		let lastScreenshot = vm.lastScreenshot
+
 		self.vm = vm
 		self.selected = selected
-		self.screenshot = vm.lastScreenshot
+		_screenshot = State(initialValue: lastScreenshot)
 	}
 
 	var body: some View {
