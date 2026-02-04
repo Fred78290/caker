@@ -115,12 +115,13 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	var requestStopFromUIPending = false
 	var runningIP: String = ""
 	let runMode: Utils.RunMode
+	let display: VMRunHandler.DisplayMode
 	var vncServer: VZVNCServer! = nil
 	var vzMachineView: VMView.NSViewType! = nil
 	var timer: Timer? = nil
 	let logger = Logger("VirtualMachineEnvironment")
 
-	init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode) throws {
+	init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode) throws {
 		let suspendable = config.suspendable
 		let networks: [any NetworkAttachement] = try config.collectNetworks(runMode: runMode)
 		let additionalDiskAttachments = try config.additionalDiskAttachments()
@@ -208,6 +209,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		self.networks = networks
 		self.sigcaught = sigcaught
 		self.screenSize = screenSize
+		self.display = display
 
 		if location.template == false && (config.forwardedPorts.isEmpty == false || config.dynamicPortForwarding) {
 			communicationDevices.delegate = self
@@ -392,7 +394,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		return cdrom
 	}
 
-	public init(location: VMLocation, config: CakeConfig, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
+	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
 
 		if config.arch != Architecture.current() {
 			throw ServiceError("Unsupported architecture")
@@ -400,7 +402,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 		self.config = config
 		self.location = location
-		self.env = try VirtualMachineEnvironment(location: location, config: config, screenSize: screenSize, runMode: runMode)
+		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, runMode: runMode)
 
 		if let queue = queue {
 			self.vmQueue = queue
@@ -1087,6 +1089,36 @@ extension VirtualMachine {
 }
 
 extension VirtualMachine: VNCServerDelegate {
+	public func willStart(_ server: VNCServer) {
+		if self.env.display == .vnc {
+			let vmView = self.env.vzMachineView!
+
+			if let framebufferView = self.env.vzMachineView {
+				vmView.autoresizesSubviews = true
+				framebufferView.autoresizingMask = [.width, .height]
+				framebufferView.frame = NSRect(origin: .zero, size: vmView.bounds.size)
+			}
+
+			let window: NSWindow = NSWindow(contentRect: vmView.bounds, styleMask: .borderless, backing: .buffered, defer: false)
+
+			window.hidesOnDeactivate = true
+			window.canHide = true
+			window.contentView = vmView
+			window.makeKeyAndOrderFront(nil)
+		}
+	}
+
+	public func didStart(_ server: VNCServer) {
+		if self.env.display == .vnc {
+		}
+	}
+	
+	public func willStop(_ server: VNCServer) {
+	}
+	
+	public func didStop(_ server: VNCServer) {
+	}
+	
 	public func vncServer(_ server: VNCServer, clientDidResizeDesktop screens: [VNCScreenDesktop]) {
 		if let screen = screens.first {
 			setScreenSize(width: Int(screen.width), height: Int(screen.height))

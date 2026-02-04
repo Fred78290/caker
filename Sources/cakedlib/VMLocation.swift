@@ -413,7 +413,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	) throws -> (
 		address: EventLoopFuture<String?>, vm: VirtualMachine
 	) {
-		let vm = try VirtualMachine(location: self, config: config, screenSize: screenSize, runMode: runMode)
+		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, runMode: runMode)
 
 		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall) {
 			if case .success = $0 {

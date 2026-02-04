@@ -448,7 +448,7 @@ extension VirtualMachineDocument {
 	
 	private func createVirtualMachine() throws {
 		let config = try! location.config()
-		let virtualMachine = try VirtualMachine(location: location, config: config, screenSize: config.display.cgSize, runMode: .app)
+		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, runMode: .app)
 		
 		self.virtualMachine = virtualMachine
 		self.vncURL = nil

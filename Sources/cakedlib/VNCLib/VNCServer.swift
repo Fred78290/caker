@@ -15,6 +15,10 @@ public protocol VZVNCServer {
 }
 
 public protocol VNCServerDelegate: AnyObject, Sendable {
+	func willStart(_ server: VNCServer)
+	func didStart(_ server: VNCServer)
+	func willStop(_ server: VNCServer)
+	func didStop(_ server: VNCServer)
 	func vncServer(_ server: VNCServer, clientDidConnect clientAddress: String)
 	func vncServer(_ server: VNCServer, clientDidDisconnect clientAddress: String)
 	func vncServer(_ server: VNCServer, didReceiveError error: Error)
@@ -91,6 +95,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public func start() throws {
 		guard !isRunning else { return }
 
+		self.delegate?.willStart(self)
+
 		// Check if port is available before starting
 		if !Self.isPortAvailable(port) {
 			throw VNCServerError.portNotAvailable(port)
@@ -122,6 +128,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 				switch state {
 				case .ready:
+					self.delegate?.didStart(self)
 					self.startFramebufferUpdates()
 				case .failed(let error):
 					self.delegate?.vncServer(self, didReceiveError: error)
@@ -139,6 +146,8 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	public func stop() {
 		guard isRunning else { return }
 
+		self.delegate?.willStop(self)
+
 		listener?.cancel()
 		listener = nil
 
@@ -152,6 +161,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		}
 
 		isRunning = false
+		self.delegate?.didStop(self)
 	}
 
 	private func handleNewConnection(_ nwConnection: NWConnection) {

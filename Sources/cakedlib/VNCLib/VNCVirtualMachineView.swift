@@ -236,14 +236,18 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	static var swizzled = false
 
 	private let continuation: Mutex<AsyncStream<CGImage>.Continuation?> = .init(nil)
-	private var frameBufferViewDynamic: Dynamic! = nil
 
 	public var suppressFrameUpdates: Bool {
 		get {
-			self.frameBufferViewDynamic.suppressFrameUpdates.asBool ?? false
+			guard let view = self.framebufferView else {
+				return false
+			}
+			return Dynamic(view).suppressFrameUpdates.asBool ?? false
 		}
 		set {
-			self.frameBufferViewDynamic.suppressFrameUpdates = newValue
+			if let view = self.framebufferView {
+				Dynamic(view).suppressFrameUpdates = newValue
+			}
 		}
 	}
 
@@ -251,8 +255,6 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 		super.init(frame: frameRect)
 
 		if let framebufferView = self.framebufferView {
-			self.frameBufferViewDynamic = Dynamic(framebufferView)
-
 			if VNCVirtualMachineView.swizzled == false {
 				framebufferView.swizzleFramebufferObserver()
 			}
