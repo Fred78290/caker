@@ -315,7 +315,7 @@ extension VNCVirtualMachineView {
 			Logger(self).debug("scrollWheel from cgEvent: deltaX=\(event.deltaX):\(event.scrollingDeltaX), deltaY=\(event.deltaY):\(event.scrollingDeltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), event=\(event)")
 
 		} else {
-			Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+			Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), event=\(event)")
 		}
 
 		super.scrollWheel(with: event)
