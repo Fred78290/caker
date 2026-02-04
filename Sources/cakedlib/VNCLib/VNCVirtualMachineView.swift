@@ -266,7 +266,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	}
 }
 
-#if DEBUGKEYBOARD
+#if DEBUG
 extension VNCVirtualMachineView {
 	public override func keyDown(with event: NSEvent) {
 		Logger(self).debug("keyDown: keyCode=\(event.keyCode), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), characters='\(event.characters ?? "none")' charactersIgnoringModifiers='\(event.charactersIgnoringModifiers ?? "none")'")
@@ -281,7 +281,42 @@ extension VNCVirtualMachineView {
 	}
 
 	public override func scrollWheel(with event: NSEvent) {
-		Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+		if let cgEvent = event.cgEvent {
+			let fields: [CGEventField] = [
+				.scrollWheelEventDeltaAxis1,
+				.scrollWheelEventDeltaAxis2,
+				.scrollWheelEventDeltaAxis3,
+				.scrollWheelEventFixedPtDeltaAxis1,
+				.scrollWheelEventFixedPtDeltaAxis2,
+				.scrollWheelEventFixedPtDeltaAxis3,
+				.scrollWheelEventPointDeltaAxis1,
+				.scrollWheelEventPointDeltaAxis2,
+				.scrollWheelEventPointDeltaAxis3,
+				.scrollWheelEventAcceleratedDeltaAxis1,
+				.scrollWheelEventAcceleratedDeltaAxis2,
+				.scrollWheelEventRawDeltaAxis1,
+				.scrollWheelEventRawDeltaAxis2,
+				.scrollWheelEventScrollPhase,
+				.scrollWheelEventScrollCount,
+				.scrollWheelEventMomentumPhase,
+				.scrollWheelEventInstantMouser,
+				.scrollWheelEventIsContinuous,
+				.scrollWheelEventMomentumOptionPhase
+			]
+
+			for field in fields {
+				let value = cgEvent.getDoubleValueField(field)
+
+				if value != 0 {
+					print("\(field)=\(value)")
+				}
+			}
+
+			Logger(self).debug("scrollWheel from cgEvent: deltaX=\(event.deltaX):\(event.scrollingDeltaX), deltaY=\(event.deltaY):\(event.scrollingDeltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), event=\(event)")
+
+		} else {
+			Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16))")
+		}
 
 		super.scrollWheel(with: event)
 	}

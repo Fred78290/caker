@@ -32,17 +32,34 @@ extension NSView {
 	}
 
 	func postScrollEvent(deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
-		guard let event = CGEvent(scrollWheelEvent2Source: CGEventSource(stateID: .privateState), units: .pixel, wheelCount: 1, wheel1: deltaX, wheel2: deltaY, wheel3: 0) else {
+		print("postScrollEvent: deltaX:\(deltaX), deltaY:\(deltaY)")
+
+		guard let event = CGEvent(scrollWheelEvent2Source: CGEventSource(stateID: .hidSystemState), units: .line, wheelCount: 2, wheel1: deltaY, wheel2: deltaX, wheel3: 0) else {
 			return nil
 		}
 
+		event.type = .scrollWheel
 		event.flags = modifierFlags.cgEventFlag
 		event.location = CGPoint(x: viewPoint.x, y: viewPoint.y)
-		event.timestamp = CGEventTimestamp(ProcessInfo.processInfo.systemUptime)
-		event.setIntegerValueField(.mouseEventDeltaX, value: Int64(deltaX))
-		event.setIntegerValueField(.mouseEventDeltaY, value: Int64(deltaY))
+		event.timestamp = CGEventTimestamp(CACurrentMediaTime() * 1_000_000_000)
+		event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 0)
 
-		return NSEvent(cgEvent: event)
+		event.setDoubleValueField(.scrollWheelEventDeltaAxis1, value: Double(deltaY))
+		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1, value: Double(deltaY) * 0.1)
+		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis1, value: Double(deltaY))
+		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis1, value: Double(deltaY) * 0.001)
+		event.setDoubleValueField(.scrollWheelEventRawDeltaAxis1, value: Double(deltaY))
+
+		event.setDoubleValueField(.scrollWheelEventDeltaAxis2, value: Double(deltaX))
+		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis2, value: Double(deltaX) * 0.1)
+		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis2, value: Double(deltaX))
+		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis2, value: Double(deltaX) * 0.001)
+		event.setDoubleValueField(.scrollWheelEventRawDeltaAxis2, value: Double(deltaX))
+
+		guard let nsEvent = NSEvent(cgEvent: event) else {
+			return nil
+		}
+		return nsEvent
 	}
 }
 
