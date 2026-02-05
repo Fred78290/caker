@@ -12,6 +12,127 @@ import Dynamic
 import ObjectiveC.runtime
 import Synchronization
 
+extension NSEvent {
+	open override var description: String {
+		var parts: [String] = []
+
+		parts.append("type=\(self.type.rawValue)")
+		parts.append("subtype=\(self.subtype.rawValue)")
+		parts.append("timestamp=\(self.timestamp)")
+		parts.append("modifierFlags=\(self.modifierFlags)")
+		parts.append("windowNumber=\(self.windowNumber)")
+		if let window = self.window { parts.append("windowFrame=\(NSStringFromRect(window.frame))") }
+		parts.append("locationInWindow=\(NSStringFromPoint(self.locationInWindow))")
+		//if let chars = self.characters { parts.append("characters=\(chars)") }
+		//if let charsIM = self.charactersIgnoringModifiers { parts.append("charactersIgnoringModifiers=\(charsIM)") }
+		parts.append("keyCode=\(self.keyCode)")
+		parts.append("isARepeat=\(self.isARepeat)")
+		parts.append("buttonNumber=\(self.buttonNumber)")
+		parts.append("clickCount=\(self.clickCount)")
+		parts.append("pressure=\(self.pressure)")
+		parts.append("deltaX=\(self.deltaX)")
+		parts.append("deltaY=\(self.deltaY)")
+		parts.append("deltaZ=\(self.deltaZ)")
+		parts.append("scrollingDeltaX=\(self.scrollingDeltaX)")
+		parts.append("scrollingDeltaY=\(self.scrollingDeltaY)")
+		parts.append("hasPreciseScrollingDeltas=\(self.hasPreciseScrollingDeltas)")
+		parts.append("phase=\(self.phase.rawValue)")
+		parts.append("momentumPhase=\(self.momentumPhase)")
+		parts.append("isDirectionInvertedFromDevice=\(self.isDirectionInvertedFromDevice)")
+
+		if let cgEvent = self.cgEvent {
+			parts.append("CGEvent{")
+			parts.append("  flags=\(cgEvent.flags)")
+			parts.append("  type=\(cgEvent.type)")
+			parts.append("  location=\(cgEvent.location)")
+			parts.append("  timestamp=\(cgEvent.timestamp)")
+
+			parts.append("  CGEventField{")
+				for field in CGEventField.allCases {
+					let value = cgEvent.getDoubleValueField(field)
+
+					if value != 0 {
+						parts.append("    \(field)=\(value)")
+					}
+				}
+			parts.append("  }")
+			parts.append("}")
+		}
+
+		return "NSEvent{ " + parts.joined(separator: ", ") + " }"
+	}
+}
+
+extension CGEventField: @retroactive CaseIterable {
+    public static let allCases: [CGEventField] = [
+		.mouseEventNumber,
+		.mouseEventClickState,
+		.mouseEventPressure,
+		.mouseEventButtonNumber,
+		.mouseEventDeltaX,
+		.mouseEventDeltaY,
+		.mouseEventInstantMouser,
+		.mouseEventSubtype,
+		.keyboardEventAutorepeat,
+		.keyboardEventKeycode,
+		.keyboardEventKeyboardType,
+		.scrollWheelEventDeltaAxis1,
+		.scrollWheelEventDeltaAxis2,
+		.scrollWheelEventDeltaAxis3,
+		.scrollWheelEventFixedPtDeltaAxis1,
+		.scrollWheelEventFixedPtDeltaAxis2,
+		.scrollWheelEventFixedPtDeltaAxis3,
+		.scrollWheelEventPointDeltaAxis1,
+		.scrollWheelEventPointDeltaAxis2,
+		.scrollWheelEventPointDeltaAxis3,
+		.scrollWheelEventScrollPhase,
+		.scrollWheelEventScrollCount,
+		.scrollWheelEventMomentumPhase,
+		.scrollWheelEventInstantMouser,
+		.tabletEventPointX,
+		.tabletEventPointY,
+		.tabletEventPointZ,
+		.tabletEventPointButtons,
+		.tabletEventPointPressure,
+		.tabletEventTiltX,
+		.tabletEventTiltY,
+		.tabletEventRotation,
+		.tabletEventTangentialPressure,
+		.tabletEventDeviceID,
+		.tabletEventVendor1,
+		.tabletEventVendor2,
+		.tabletEventVendor3,
+		.tabletProximityEventVendorID,
+		.tabletProximityEventTabletID,
+		.tabletProximityEventPointerID,
+		.tabletProximityEventDeviceID,
+		.tabletProximityEventSystemTabletID,
+		.tabletProximityEventVendorPointerType,
+		.tabletProximityEventVendorPointerSerialNumber,
+		.tabletProximityEventVendorUniqueID,
+		.tabletProximityEventCapabilityMask,
+		.tabletProximityEventPointerType,
+		.tabletProximityEventEnterProximity,
+		.eventTargetProcessSerialNumber,
+		.eventTargetUnixProcessID,
+		.eventSourceUnixProcessID,
+		.eventSourceUserData,
+		.eventSourceUserID,
+		.eventSourceGroupID,
+		.eventSourceStateID,
+		.scrollWheelEventIsContinuous,
+		.mouseEventWindowUnderMousePointer,
+		.mouseEventWindowUnderMousePointerThatCanHandleThisEvent,
+		.eventUnacceleratedPointerMovementX,
+		.eventUnacceleratedPointerMovementY,
+		.scrollWheelEventMomentumOptionPhase,
+		.scrollWheelEventAcceleratedDeltaAxis1,
+		.scrollWheelEventAcceleratedDeltaAxis2,
+		.scrollWheelEventRawDeltaAxis1,
+		.scrollWheelEventRawDeltaAxis2
+	]
+}
+
 @objc protocol VZFramebufferObserver {
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateCursor cursor: UnsafePointer<UInt8>?)
 	@objc func framebuffer(_ framebuffer: NSObject, didUpdateFrame frame: UnsafePointer<UInt8>?)
@@ -281,44 +402,69 @@ extension VNCVirtualMachineView {
 	}
 
 	public override func scrollWheel(with event: NSEvent) {
-		if let cgEvent = event.cgEvent {
-			let fields: [CGEventField] = [
-				.scrollWheelEventDeltaAxis1,
-				.scrollWheelEventDeltaAxis2,
-				.scrollWheelEventDeltaAxis3,
-				.scrollWheelEventFixedPtDeltaAxis1,
-				.scrollWheelEventFixedPtDeltaAxis2,
-				.scrollWheelEventFixedPtDeltaAxis3,
-				.scrollWheelEventPointDeltaAxis1,
-				.scrollWheelEventPointDeltaAxis2,
-				.scrollWheelEventPointDeltaAxis3,
-				.scrollWheelEventAcceleratedDeltaAxis1,
-				.scrollWheelEventAcceleratedDeltaAxis2,
-				.scrollWheelEventRawDeltaAxis1,
-				.scrollWheelEventRawDeltaAxis2,
-				.scrollWheelEventScrollPhase,
-				.scrollWheelEventScrollCount,
-				.scrollWheelEventMomentumPhase,
-				.scrollWheelEventInstantMouser,
-				.scrollWheelEventIsContinuous,
-				.scrollWheelEventMomentumOptionPhase
-			]
-
-			for field in fields {
-				let value = cgEvent.getDoubleValueField(field)
-
-				if value != 0 {
-					print("\(field)=\(value)")
-				}
-			}
-
-			Logger(self).debug("scrollWheel from cgEvent: deltaX=\(event.deltaX):\(event.scrollingDeltaX), deltaY=\(event.deltaY):\(event.scrollingDeltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), event=\(event)")
-
-		} else {
-			Logger(self).debug("scrollWheel: deltaX=\(event.deltaX), deltaY=\(event.deltaY), deltaZ=\(event.deltaZ), modifiers=\(String(event.modifierFlags.rawValue, radix: 16)), event=\(event)")
-		}
+		Logger(self).debug("scrollWheel: \(event.description)")
 
 		super.scrollWheel(with: event)
+	}
+
+	private func debugDescription(for event: NSEvent) -> String {
+	    var parts: [String] = []
+	    parts.append("type=\(event.type.rawValue)")
+	    parts.append("subtype=\(event.subtype.rawValue)")
+	    parts.append("timestamp=\(event.timestamp)")
+	    parts.append(String(format: "modifierFlags=0x%llx", event.modifierFlags.rawValue))
+	    parts.append("windowNumber=\(event.windowNumber)")
+	    if let window = event.window { parts.append("windowFrame=\(NSStringFromRect(window.frame))") }
+	    parts.append("locationInWindow=\(NSStringFromPoint(event.locationInWindow))")
+	    if let chars = event.characters { parts.append("characters=\(chars)") }
+	    if let charsIM = event.charactersIgnoringModifiers { parts.append("charactersIgnoringModifiers=\(charsIM)") }
+	    parts.append("keyCode=\(event.keyCode)")
+	    parts.append("isARepeat=\(event.isARepeat)")
+	    parts.append("buttonNumber=\(event.buttonNumber)")
+	    parts.append("clickCount=\(event.clickCount)")
+	    parts.append("pressure=\(event.pressure)")
+	    parts.append("deltaX=\(event.deltaX)")
+	    parts.append("deltaY=\(event.deltaY)")
+	    parts.append("deltaZ=\(event.deltaZ)")
+	    parts.append("scrollingDeltaX=\(event.scrollingDeltaX)")
+	    parts.append("scrollingDeltaY=\(event.scrollingDeltaY)")
+	    parts.append("hasPreciseScrollingDeltas=\(event.hasPreciseScrollingDeltas)")
+	    parts.append("phase=\(event.phase.rawValue)")
+	    parts.append("momentumPhase=\(event.momentumPhase.rawValue)")
+	    parts.append("isDirectionInvertedFromDevice=\(event.isDirectionInvertedFromDevice)")
+		
+	    if let cgEvent = event.cgEvent {
+	        let fields: [CGEventField] = [
+	            .scrollWheelEventDeltaAxis1,
+	            .scrollWheelEventDeltaAxis2,
+	            .scrollWheelEventDeltaAxis3,
+	            .scrollWheelEventFixedPtDeltaAxis1,
+	            .scrollWheelEventFixedPtDeltaAxis2,
+	            .scrollWheelEventFixedPtDeltaAxis3,
+	            .scrollWheelEventPointDeltaAxis1,
+	            .scrollWheelEventPointDeltaAxis2,
+	            .scrollWheelEventPointDeltaAxis3,
+	            .scrollWheelEventAcceleratedDeltaAxis1,
+	            .scrollWheelEventAcceleratedDeltaAxis2,
+	            .scrollWheelEventRawDeltaAxis1,
+	            .scrollWheelEventRawDeltaAxis2,
+	            .scrollWheelEventScrollPhase,
+	            .scrollWheelEventScrollCount,
+	            .scrollWheelEventMomentumPhase,
+	            .scrollWheelEventInstantMouser,
+	            .scrollWheelEventIsContinuous,
+	            .scrollWheelEventMomentumOptionPhase
+	        ]
+	        var cgParts: [String] = []
+	        for field in fields {
+	            let value = cgEvent.getDoubleValueField(field)
+	            if value != 0 {
+	                cgParts.append("\(field)=\(value)")
+	            }
+	        }
+	        if !cgParts.isEmpty { parts.append("cgEvent{ " + cgParts.joined(separator: ", ") + " }") }
+	    }
+	    return "NSEvent{ " + parts.joined(separator: ", ") + " }"
 	}
 }
 #endif
