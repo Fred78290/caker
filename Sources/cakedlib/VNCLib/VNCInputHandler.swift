@@ -31,10 +31,8 @@ extension NSView {
 		)
 	}
 
-	func postScrollEvent(deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
-		print("postScrollEvent: deltaX:\(deltaX), deltaY:\(deltaY)")
-
-		guard let event = CGEvent(scrollWheelEvent2Source: CGEventSource(stateID: .hidSystemState), units: .line, wheelCount: 2, wheel1: deltaY, wheel2: deltaX, wheel3: 0) else {
+	func postScrollEvent(eventSource: CGEventSource?, deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
+		guard let event = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 2, wheel1: deltaY, wheel2: deltaX, wheel3: 0) else {
 			return nil
 		}
 
@@ -92,13 +90,16 @@ public class VNCInputHandler {
 	// MARK: - First Responder
 	@discardableResult
 	private func ensureFirstResponder() -> Bool {
-		guard let view = targetView else { return false }
-		// If the view is not already first responder, ask the window to make it so
-		if view.window?.firstResponder !== view {
-			return view.window?.makeFirstResponder(view) ?? false
+		guard let view = targetView, let window = view.window else {
+			return false
 		}
 
-		return false
+		// If the view is not already first responder, ask the window to make it so
+		if window.firstResponder !== view {
+			return window.makeFirstResponder(view)
+		}
+
+		return true
 	}
 
 	init(targetView: NSView?) {
@@ -346,20 +347,20 @@ public class VNCInputHandler {
 
 		// Scroll wheel (bits 3 and 4)
 		if (buttonMask & 0x08) != 0 {  // Scroll up
-			dispatchEvent(view.postScrollEvent(deltaX: 0, deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 0, deltaY: 1, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		if (buttonMask & 0x10) != 0 {  // Scroll down
-			dispatchEvent(view.postScrollEvent(deltaX: 0, deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 0, deltaY: -1, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		// Scroll wheel (bits 5 and 6)
 		if (buttonMask & 0x20) != 0 {  // Scroll up
-			dispatchEvent(view.postScrollEvent(deltaX: 1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: 1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		if (buttonMask & 0x40) != 0 {  // Scroll down
-			dispatchEvent(view.postScrollEvent(deltaX: -1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
+			dispatchEvent(view.postScrollEvent(eventSource: eventSource, deltaX: -1, deltaY: 0, at: viewPoint, modifierFlags: self.modifiers), view: view)
 		}
 
 		return buttonEvent
