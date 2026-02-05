@@ -40,15 +40,21 @@ extension NSView {
 		event.flags = modifierFlags.cgEventFlag
 		event.location = CGPoint(x: viewPoint.x, y: viewPoint.y)
 		event.timestamp = CGEventTimestamp(CACurrentMediaTime() * 1_000_000_000)
-		event.setIntegerValueField(.scrollWheelEventIsContinuous, value: 0)
 
-		event.setDoubleValueField(.scrollWheelEventDeltaAxis1, value: Double(deltaY))
+		event.setIntegerValueField(.eventTargetProcessSerialNumber, value: Int64(ProcessInfo.processInfo.processIdentifier))
+		event.setIntegerValueField(.eventTargetUnixProcessID, value: Int64(ProcessInfo.processInfo.processIdentifier))
+		event.setIntegerValueField(.eventSourceStateID, value: 1)
+
+		event.setIntegerValueField(.eventSourceUserID, value: 0)
+		event.setIntegerValueField(.eventSourceGroupID, value: 0)
+
+		event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: Int64(deltaY))
 		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1, value: Double(deltaY) * 0.1)
 		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis1, value: Double(deltaY))
 		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis1, value: Double(deltaY) * 0.001)
 		event.setDoubleValueField(.scrollWheelEventRawDeltaAxis1, value: Double(deltaY))
 
-		event.setDoubleValueField(.scrollWheelEventDeltaAxis2, value: Double(deltaX))
+		event.setIntegerValueField(.scrollWheelEventDeltaAxis2, value: Int64(deltaX))
 		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis2, value: Double(deltaX) * 0.1)
 		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis2, value: Double(deltaX))
 		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis2, value: Double(deltaX) * 0.001)
@@ -85,7 +91,7 @@ public class VNCInputHandler {
 	private var modifiers: NSEvent.ModifierFlags = []
 	private var characters: String = ""
 	private var trackingNumber: Int = 0
-	private let eventSource = CGEventSource(stateID: .privateState)
+	private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
 	// MARK: - First Responder
 	@discardableResult
@@ -422,3 +428,4 @@ public class VNCInputHandler {
 		pasteboard.setString(text, forType: .string)
 	}
 }
+
