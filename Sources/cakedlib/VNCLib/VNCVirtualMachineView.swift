@@ -266,7 +266,7 @@ open class VNCVirtualMachineView: VZVirtualMachineView {
 	}
 }
 
-#if DEBUG
+#if DEBUGEVENT
 extension VNCVirtualMachineView {
 	public override func keyDown(with event: NSEvent) {
 		Logger(self).debug("keyDown: \(event.dumpEvent)")
