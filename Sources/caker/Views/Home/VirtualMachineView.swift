@@ -31,6 +31,7 @@ struct VirtualMachineView: View {
 	private var selected: Bool
 	private var vm: VirtualMachineDocument
 	private let radius: CGFloat = 12
+	private let selectedSystemFill = Color(NSColor.secondarySystemFill)
 	private let secondarySystemFill = Color(NSColor.tertiarySystemFill)
 	@State var screenshot: NSImage?
 
@@ -48,7 +49,7 @@ struct VirtualMachineView: View {
 
 		GeometryReader { geometry in
 			RoundedRectangle(cornerRadius: radius)
-				.fill(self.selected ? Color.secondary : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
+				.fill(self.selected ? selectedSystemFill : secondarySystemFill, strokeBorder: .white, lineWidth: 0.2)
 				.overlay {
 					VStack {
 						HStack(alignment: .center) {
