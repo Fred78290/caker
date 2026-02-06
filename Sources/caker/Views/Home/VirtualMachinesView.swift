@@ -48,14 +48,15 @@ struct VirtualMachinesView: View {
 				LazyVGrid(columns: self.columns, alignment: .leading, spacing: Self.cellSpacing) {
 					ForEach(appState.virtualMachines.vms) { vm in
 						self.virtualMachineView(vm.document)
-							.onTapGesture {
-								self.navigationModel.selectedVirtualMachine = vm.document
-								print("selected: \(vm.document.name)")
-							}
 							.onTapGesture(count: 2) {
+								self.navigationModel.selectedVirtualMachine = vm.document
+
 								Task {
 									try? await self.openDocument(at: vm.document.location.rootURL)
 								}
+							}
+							.onTapGesture {
+								self.navigationModel.selectedVirtualMachine = vm.document
 							}
 					}
 				}
