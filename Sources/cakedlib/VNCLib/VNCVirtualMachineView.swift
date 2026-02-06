@@ -139,7 +139,7 @@ extension VZVirtualMachineView {
 		}
 	}
 
-#if DEBUG
+	#if DEBUG
 	func surface() -> IOSurface? {
 		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
