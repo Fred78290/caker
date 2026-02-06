@@ -54,7 +54,7 @@ struct NetworkDetailView: View {
 		@Bindable var model = self.model
 
 		GeometryReader { geometry in
-			let contentWidth = geometry.size.width - 160
+			let contentWidth = max(0, geometry.size.width - 160)
 
 			VStack {
 				Form {
