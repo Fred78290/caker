@@ -2,6 +2,9 @@ import AppKit
 import Carbon
 import Foundation
 
+@_silgen_name("GetCurrentProcess")
+func DeGetCurrentProcess(_ psn: UnsafePointer<ProcessSerialNumber>?) -> OSErr
+
 extension NSView {
 	func postEnterExitEvent(type: NSEvent.EventType, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags, trackingNumber: Int) -> NSEvent? {
 		return NSEvent.enterExitEvent(
@@ -32,33 +35,43 @@ extension NSView {
 	}
 
 	func postScrollEvent(eventSource: CGEventSource?, deltaX: Int32, deltaY: Int32, at viewPoint: NSPoint, modifierFlags: NSEvent.ModifierFlags) -> NSEvent? {
-		guard let event = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 2, wheel1: deltaY, wheel2: deltaX, wheel3: 0) else {
+		guard let event = CGEvent(scrollWheelEvent2Source: eventSource, units: .line, wheelCount: 1, wheel1: deltaY, wheel2: deltaX, wheel3: 0) else {
 			return nil
 		}
 
-		event.type = .scrollWheel
+		var psn = ProcessSerialNumber(highLongOfPSN: 0, lowLongOfPSN: 0)
+		_ = DeGetCurrentProcess(&psn)
+		let psnCombined = (UInt64(psn.highLongOfPSN) << 32) | UInt64(psn.lowLongOfPSN)
+
 		event.flags = modifierFlags.cgEventFlag
 		event.location = CGPoint(x: viewPoint.x, y: viewPoint.y)
 		event.timestamp = CGEventTimestamp(CACurrentMediaTime() * 1_000_000_000)
 
-		event.setIntegerValueField(.eventTargetProcessSerialNumber, value: Int64(ProcessInfo.processInfo.processIdentifier))
+		event.setIntegerValueField(.eventTargetProcessSerialNumber, value: Int64(bitPattern: psnCombined))
 		event.setIntegerValueField(.eventTargetUnixProcessID, value: Int64(ProcessInfo.processInfo.processIdentifier))
+		event.setIntegerValueField(.eventSourceUnixProcessID, value: 0)
 		event.setIntegerValueField(.eventSourceStateID, value: 1)
 
 		event.setIntegerValueField(.eventSourceUserID, value: 0)
 		event.setIntegerValueField(.eventSourceGroupID, value: 0)
 
-		event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: Int64(deltaY))
-		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis1, value: Double(deltaY) * 0.1)
-		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis1, value: Double(deltaY))
-		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis1, value: Double(deltaY) * 0.001)
-		event.setDoubleValueField(.scrollWheelEventRawDeltaAxis1, value: Double(deltaY))
+		event.setIntegerValueField(.mouseEventWindowUnderMousePointer, value: Int64(self.window?.windowNumber ?? 0))
 
-		event.setIntegerValueField(.scrollWheelEventDeltaAxis2, value: Int64(deltaX))
-		event.setDoubleValueField(.scrollWheelEventFixedPtDeltaAxis2, value: Double(deltaX) * 0.1)
-		event.setDoubleValueField(.scrollWheelEventPointDeltaAxis2, value: Double(deltaX))
-		event.setDoubleValueField(.scrollWheelEventAcceleratedDeltaAxis2, value: Double(deltaX) * 0.001)
-		event.setDoubleValueField(.scrollWheelEventRawDeltaAxis2, value: Double(deltaX))
+		if deltaY != 0 {
+			//event.setIntegerValueField(.scrollWheelEventDeltaAxis1, value: Int64(deltaY))
+			//event.setIntegerValueField(.scrollWheelEventFixedPtDeltaAxis1, value: Int64(deltaY << 16))
+			//event.setIntegerValueField(.scrollWheelEventPointDeltaAxis1, value: Int64(deltaY))
+			event.setIntegerValueField(.scrollWheelEventAcceleratedDeltaAxis1, value: Int64(deltaY << 16))
+			event.setIntegerValueField(.scrollWheelEventRawDeltaAxis1, value: Int64(deltaY))
+		}
+
+		if deltaX != 0 {
+			//event.setIntegerValueField(.scrollWheelEventDeltaAxis2, value: Int64(deltaX))
+			//event.setIntegerValueField(.scrollWheelEventFixedPtDeltaAxis2, value: Int64(deltaY << 16))
+			//event.setIntegerValueField(.scrollWheelEventPointDeltaAxis2, value: Int64(deltaX))
+			event.setIntegerValueField(.scrollWheelEventAcceleratedDeltaAxis2, value: Int64(deltaY << 16))
+			event.setIntegerValueField(.scrollWheelEventRawDeltaAxis2, value: Int64(deltaX))
+		}
 
 		guard let nsEvent = NSEvent(cgEvent: event) else {
 			return nil
