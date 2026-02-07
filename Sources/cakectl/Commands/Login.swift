@@ -21,7 +21,7 @@ struct Login: GrpcParsableCommand {
 		throw GrpcError(code: 0, reason: "nothing here")
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.login(Caked_LoginRequest(command: self), callOptions: callOptions).response.wait().oci.login)
 	}
 }

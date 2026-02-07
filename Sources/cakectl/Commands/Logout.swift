@@ -17,7 +17,7 @@ struct Logout: GrpcParsableCommand {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.logout(Caked_LogoutRequest(command: self), callOptions: callOptions).response.wait().oci.logout)
 	}
 }

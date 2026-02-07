@@ -17,7 +17,7 @@ struct Infos: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.info(Caked_InfoRequest(command: self), callOptions: callOptions).response.wait().vms.status
 
 		if result.success {

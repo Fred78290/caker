@@ -25,15 +25,15 @@ protocol GrpcParsableCommand: ParsableCommand {
 	var callOptions: CallOptions? { get }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String
 }
 
 protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcParsableCommand {
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> String
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String
 }
 
 extension AsyncGrpcParsableCommand {
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		throw CleanExit.helpRequest(self)
 	}
 
@@ -126,7 +126,7 @@ struct Client: AsyncParsableCommand {
 		@Option(name: [.customLong("tls-key")], help: ArgumentHelp("Client private key", valueName: "path"))
 		public var tlsKey: String? = nil
 
-		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeAgentClient) {
+		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakeServiceClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 			let connection = try Client.createClient(
 				on: group,
@@ -137,7 +137,7 @@ struct Client: AsyncParsableCommand {
 				tlsCert: self.tlsCert,
 				tlsKey: self.tlsKey)
 
-			return (group, CakeAgentClient(channel: connection, interceptors: interceptors))
+			return (group, CakeServiceClient(channel: connection, interceptors: interceptors))
 		}
 
 		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {

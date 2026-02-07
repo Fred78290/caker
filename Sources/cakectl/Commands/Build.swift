@@ -24,7 +24,7 @@ struct Build: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.build(Caked_BuildRequest(buildOptions: self.buildOptions), callOptions: callOptions).response.wait().vms.builded)
 	}
 }

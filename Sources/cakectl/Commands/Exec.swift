@@ -16,7 +16,7 @@ struct Exec: AsyncGrpcParsableCommand {
 		try? CakeServiceClientInterceptorFactory(inputHandle: FileHandle.standardInput)
 	}
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
 		Foundation.exit(try await client.exec(name: self.execute.name, command: self.execute.arguments.first!, arguments: self.execute.arguments.dropFirst().map { $0 }, callOptions: callOptions))
 	}
 }

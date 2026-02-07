@@ -17,7 +17,7 @@ struct Duplicate: GrpcParsableCommand {
 	@Flag(help: "Output format")
 	var format: Format = .text
 
-	func run(client: CakeAgentClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.duplicate(Caked_DuplicateRequest(command: self), callOptions: callOptions).response.wait().vms.duplicated)
 	}
 }
