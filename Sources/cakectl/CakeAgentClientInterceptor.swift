@@ -19,7 +19,7 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 
 		init(state: termios, inputHandle: FileHandle) {
 			self.state = state
-			self.inputHandle = FileHandle.standardInput
+			self.inputHandle = inputHandle
 			super.init()
 		}
 
