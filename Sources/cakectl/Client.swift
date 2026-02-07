@@ -9,16 +9,6 @@ import NIOPosix
 import NIOSSL
 import SwiftDate
 
-class GrpcError: Error {
-	let code: Int
-	let reason: String
-
-	init(code: Int, reason: String) {
-		self.code = code
-		self.reason = reason
-	}
-}
-
 protocol GrpcParsableCommand: ParsableCommand {
 	var options: Client.Options { get }
 	var retries: ConnectionBackoff.Retries { get }
@@ -128,16 +118,17 @@ struct Client: AsyncParsableCommand {
 
 		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakedServiceClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-			let connection = try Client.createClient(
+			let connection = try Caked.createClient(
 				on: group,
 				listeningAddress: URL(string: self.address),
 				connectionTimeout: self.timeout,
 				retries: retries,
 				caCert: self.caCert,
 				tlsCert: self.tlsCert,
-				tlsKey: self.tlsKey)
+				tlsKey: self.tlsKey,
+				interceptors: interceptors)
 
-			return (group, CakedServiceClient(channel: connection, interceptors: interceptors))
+			return (group, connection)
 		}
 
 		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
@@ -223,46 +214,6 @@ struct Client: AsyncParsableCommand {
 			Pull.self,
 			Push.self,
 		])
-
-	static func createClient(
-		on: EventLoopGroup,
-		listeningAddress: URL?,
-		connectionTimeout: Int64 = 60,
-		retries: ConnectionBackoff.Retries,
-		caCert: String?,
-		tlsCert: String?,
-		tlsKey: String?
-	) throws -> ClientConnection {
-		if let listeningAddress = listeningAddress {
-			let target: ConnectionTarget
-
-			if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
-				target = ConnectionTarget.unixDomainSocket(listeningAddress.path)
-			} else if listeningAddress.scheme == "tcp" {
-				target = ConnectionTarget.hostAndPort(listeningAddress.host ?? "127.0.0.1", listeningAddress.port ?? 5000)
-			} else {
-				throw GrpcError(
-					code: -1,
-					reason:
-						"unsupported address scheme: \(String(describing: listeningAddress.scheme))")
-			}
-
-			var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: on)
-
-			if let tlsCert = tlsCert, let tlsKey = tlsKey {
-				clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
-					caCert: caCert,
-					tlsKey: tlsKey,
-					tlsCert: tlsCert)
-			}
-
-			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: TimeInterval(connectionTimeout), minimumConnectionTimeout: TimeInterval(connectionTimeout), retries: retries)
-
-			return ClientConnection(configuration: clientConfiguration)
-		}
-
-		throw GrpcError(code: -1, reason: "connection address must be specified")
-	}
 
 	static func parse() throws -> GrpcParsableCommand? {
 		do {
