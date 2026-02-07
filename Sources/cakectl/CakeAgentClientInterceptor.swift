@@ -9,11 +9,11 @@ import GRPC
 import GRPCLib
 import NIO
 
-final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {
+final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorFactoryProtocol {
 	internal let inputHandle: FileHandle
 	internal let state: termios
 
-	class CakeAgentClientInterceptor<Request, Response>: ClientInterceptor<Request, Response>, @unchecked Sendable {
+	class CakeServiceClientInterceptor<Request, Response>: ClientInterceptor<Request, Response>, @unchecked Sendable {
 		let state: termios
 		let inputHandle: FileHandle
 
@@ -88,102 +88,102 @@ final class CakeAgentClientInterceptorFactory: Caked_ServiceClientInterceptorFac
 	}
 
 	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_BuildRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_BuildRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_LaunchRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_LaunchRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_LoginRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_LoginRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeLogoutInterceptors() -> [ClientInterceptor<Caked_LogoutRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_LogoutRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_LogoutRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeCloneInterceptors() -> [ClientInterceptor<Caked_CloneRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_CloneRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makePushInterceptors() -> [ClientInterceptor<Caked_PushRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_PushRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_PushRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makePurgeInterceptors() -> [ClientInterceptor<Caked_PurgeRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_PurgeRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_PurgeRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeConfigureInterceptors() -> [ClientInterceptor<Caked_ConfigureRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_ConfigureRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_ConfigureRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeWaitIPInterceptors() -> [ClientInterceptor<Caked_WaitIPRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_WaitIPRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_WaitIPRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeSuspendInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>] {
-		[CakeAgentClientInterceptor<Caked_SuspendRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_SuspendRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_StopRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_StopRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeListInterceptors() -> [ClientInterceptor<Caked_ListRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_ListRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_ListRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeDeleteInterceptors() -> [ClientInterceptor<Caked_DeleteRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_DeleteRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_DeleteRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeImageInterceptors() -> [ClientInterceptor<Caked_ImageRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_ImageRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_ImageRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeRemoteInterceptors() -> [ClientInterceptor<Caked_RemoteRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_RemoteRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_RemoteRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeNetworksInterceptors() -> [ClientInterceptor<Caked_NetworkRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_NetworkRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_NetworkRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeTemplateInterceptors() -> [ClientInterceptor<Caked_TemplateRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_TemplateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_TemplateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeRenameInterceptors() -> [ClientInterceptor<Caked_RenameRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_RenameRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_RenameRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeInfoInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeRunInterceptors() -> [ClientInterceptor<Caked_RunCommand, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_RunCommand, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_RunCommand, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeExecuteInterceptors() -> [ClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>] {
-		[CakeAgentClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_ExecuteRequest, Caked_ExecuteResponse>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeMountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_MountRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_MountRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
 	func makeUmountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>] {
-		[CakeAgentClientInterceptor<Caked_MountRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+		[CakeServiceClientInterceptor<Caked_MountRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 }
