@@ -1467,11 +1467,11 @@
 		9B9C4E612E23BD8900C13D23 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */,
 				9B9C4E8E2E23BF1300C13D23 /* AppState.swift */,
 				9B9C4E622E23BDA400C13D23 /* NavigationModel.swift */,
 				9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */,
 				9B57E9CF2E745FB600C5601D /* ViewSize.swift */,
+				9BDA14BE2EEAC17F00357544 /* VirtualMachineInformations.swift */,
 				9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */,
 			);
 			path = Model;
