@@ -225,6 +225,13 @@
 		9BB149262EC876640094D950 /* ContainerizationEXT4 in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB149252EC876640094D950 /* ContainerizationEXT4 */; };
 		9BB149282EC876640094D950 /* ContainerizationExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB149272EC876640094D950 /* ContainerizationExtras */; };
 		9BB1492A2EC876640094D950 /* ContainerizationIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9BB149292EC876640094D950 /* ContainerizationIO */; };
+		9BB213CF2F37548300B45692 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CC2F37548300B45692 /* RemoteHandler.swift */; };
+		9BB213D02F37548300B45692 /* ListHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CA2F37548300B45692 /* ListHandler.swift */; };
+		9BB213D12F37548300B45692 /* NetworksHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CB2F37548300B45692 /* NetworksHandler.swift */; };
+		9BB213D22F37548300B45692 /* DeleteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213C92F37548300B45692 /* DeleteHandler.swift */; };
+		9BB213D32F37548300B45692 /* TemplateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213CD2F37548300B45692 /* TemplateHandler.swift */; };
+		9BB213D52F375CC700B45692 /* DuplicateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213D42F375CC700B45692 /* DuplicateHandler.swift */; };
+		9BB213D72F37838400B45692 /* ImageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB213D62F37838400B45692 /* ImageHandler.swift */; };
 		9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE132DB3F17500799A6A /* PurgeOptions.swift */; };
 		9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0D2DB3F17500799A6A /* DuplicateOptions.swift */; };
 		9BB3BE202DB3F17500799A6A /* LoginOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE0F2DB3F17500799A6A /* LoginOptions.swift */; };
@@ -734,6 +741,13 @@
 		9BB1491D2EC74BA30094D950 /* PushHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushHandler.swift; sourceTree = "<group>"; };
 		9BB1491F2EC760F20094D950 /* Pull.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pull.swift; sourceTree = "<group>"; };
 		9BB149212EC760FC0094D950 /* Push.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Push.swift; sourceTree = "<group>"; };
+		9BB213C92F37548300B45692 /* DeleteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteHandler.swift; sourceTree = "<group>"; };
+		9BB213CA2F37548300B45692 /* ListHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListHandler.swift; sourceTree = "<group>"; };
+		9BB213CB2F37548300B45692 /* NetworksHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksHandler.swift; sourceTree = "<group>"; };
+		9BB213CC2F37548300B45692 /* RemoteHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteHandler.swift; sourceTree = "<group>"; };
+		9BB213CD2F37548300B45692 /* TemplateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateHandler.swift; sourceTree = "<group>"; };
+		9BB213D42F375CC700B45692 /* DuplicateHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateHandler.swift; sourceTree = "<group>"; };
+		9BB213D62F37838400B45692 /* ImageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageHandler.swift; sourceTree = "<group>"; };
 		9BB3BE092DB3F17500799A6A /* BuildOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0B2DB3F17500799A6A /* ConfigureOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigureOptions.swift; sourceTree = "<group>"; };
 		9BB3BE0C2DB3F17500799A6A /* DeleteOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteOptions.swift; sourceTree = "<group>"; };
@@ -1233,6 +1247,7 @@
 				9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
+				9BB213CE2F37548300B45692 /* Handlers */,
 				9B30BA492E0BDB5600256A9D /* Helpers */,
 				9B9C4E612E23BD8900C13D23 /* Model */,
 				9BAF74B52EBBD7CC0036CE1B /* MultiplatformTabBar */,
@@ -1498,6 +1513,20 @@
 				9BAF74B42EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift */,
 			);
 			path = MultiplatformTabBar;
+			sourceTree = "<group>";
+		};
+		9BB213CE2F37548300B45692 /* Handlers */ = {
+			isa = PBXGroup;
+			children = (
+				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
+				9BB213D42F375CC700B45692 /* DuplicateHandler.swift */,
+				9BB213D62F37838400B45692 /* ImageHandler.swift */,
+				9BB213CA2F37548300B45692 /* ListHandler.swift */,
+				9BB213CB2F37548300B45692 /* NetworksHandler.swift */,
+				9BB213CC2F37548300B45692 /* RemoteHandler.swift */,
+				9BB213CD2F37548300B45692 /* TemplateHandler.swift */,
+			);
+			path = Handlers;
 			sourceTree = "<group>";
 		};
 		9BB3BE1C2DB3F17500799A6A /* options */ = {
@@ -2165,11 +2194,17 @@
 				9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */,
 				9B2BFABB2DFED25E000045C3 /* MainApp.swift in Sources */,
 				9B2BFABC2DFED25E000045C3 /* EditableList.swift in Sources */,
+				9BB213D52F375CC700B45692 /* DuplicateHandler.swift in Sources */,
 				9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */,
 				9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */,
 				9B2BFABD2DFED25E000045C3 /* ForwardedPortView.swift in Sources */,
 				9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */,
 				9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */,
+				9BB213CF2F37548300B45692 /* RemoteHandler.swift in Sources */,
+				9BB213D02F37548300B45692 /* ListHandler.swift in Sources */,
+				9BB213D12F37548300B45692 /* NetworksHandler.swift in Sources */,
+				9BB213D22F37548300B45692 /* DeleteHandler.swift in Sources */,
+				9BB213D32F37548300B45692 /* TemplateHandler.swift in Sources */,
 				9B0202712EA8CBDD00053712 /* NetworkDetailView.swift in Sources */,
 				9B2BFABE2DFED25E000045C3 /* VirtualMachineDocument.swift in Sources */,
 				9B30BA4E2E0BF37300256A9D /* RegexParseableFormatStyle.swift in Sources */,
@@ -2180,6 +2215,7 @@
 				9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */,
 				9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
+				9BB213D72F37838400B45692 /* ImageHandler.swift in Sources */,
 				9B88A8972E16AF2F00E3A97E /* TextFieldStore.swift in Sources */,
 				9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */,
 				9B9C4E632E23BDAA00C13D23 /* NavigationModel.swift in Sources */,
