@@ -703,18 +703,6 @@ extension VirtualMachineDocument {
 			virtualMachine.suspendFromUI()
 		}
 	}
-
-	func duplicateFromUI(name: String) -> DuplicatedReply {
-		DuplicateHandler.duplicate(from: self.name, to: name, resetMacAddress: true, runMode: .app)
-	}
-
-	func createTemplateFromUI(name: String) -> CreateTemplateReply {
-		guard self.status == .running else {
-			return .init(name: name, created: false, reason: "VM is running")
-		}
-
-		return TemplateHandler.createTemplate(on: Utilities.group.next(), sourceName: self.virtualMachine!.location.name, templateName: name, runMode: .app)
-	}
 }
 
 // MARK: - VirtualMachineDelegate

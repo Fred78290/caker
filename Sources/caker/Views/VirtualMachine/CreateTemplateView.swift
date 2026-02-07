@@ -20,10 +20,18 @@ struct CreateTemplateView: View {
 		AsyncButton(
 			"Create",
 			action: { done in
-				await createTemplate(done)
+				await createTemplate { result in
+					switch result {
+					case .success(let value):
+						self.templateResult = value
+						self.appState.reloadRemotes()
+					case .failure(let error):
+						alertError(error)
+					}
+				}
 			}
 		)
-		.disabled(templateName.isEmpty || TemplateHandler.exists(name: templateName, runMode: .app))
+		.disabled(templateName.isEmpty || self.appState.templateExists(name: templateName))
 		.onChange(of: templateResult) { _, newValue in
 			isCreateTemplatFailed(templateResult: newValue)
 		}
@@ -43,10 +51,23 @@ struct CreateTemplateView: View {
 		}
 	}
 
-	private func createTemplate(_ done: @escaping () -> Void) async {
+	private func createTemplate(_ done: @escaping (Result<CreateTemplateReply, Error>) -> Void) async {
 		DispatchQueue.main.async {
-			self.templateResult = self.appState.currentDocument?.createTemplateFromUI(name: self.templateName)
-			done()
+			do {
+				guard let currentDocument = self.appState.currentDocument else {
+					done(.failure(ServiceError("No VM found")))
+					return
+				}
+
+				guard currentDocument.status.isStopped else {
+					done(.failure(ServiceError("VM is running")))
+					return
+				}
+
+				done(.success(try TemplateHandler.createTemplate(client: self.appState.cakedServiceClient, sourceName: self.appState.currentDocument!.name, templateName: self.templateName, runMode: self.appState.runMode)))
+			} catch {
+				done(.failure(error))
+			}
 		}
 	}
 }

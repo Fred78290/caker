@@ -20,7 +20,7 @@ public struct InfosHandler {
 
 		if location.status == .running {
 			infos = .init(from: try client.info(callOptions: callOptions))
-			infos.vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: .app).vncURL()?.absoluteString
+			infos.vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL()?.absoluteString
 		} else {
 			var diskInfos: [DiskInfo] = []
 

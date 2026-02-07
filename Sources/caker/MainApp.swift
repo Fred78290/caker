@@ -7,6 +7,15 @@ import SwiftUI
 import SwifterSwiftUI
 
 @MainActor
+func alertError(_ messageText: String, _ informativeText: String) {
+	let alert = NSAlert()
+
+	alert.messageText = messageText
+	alert.informativeText = informativeText
+	alert.runModal()
+}
+
+@MainActor
 func alertError(_ error: Error) {
 	let informativeText: String
 

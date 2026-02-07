@@ -161,7 +161,7 @@ struct NetworkDetailView: View {
 
 					if currentItem.endpoint.isEmpty {
 						Button("Start network") {
-							let result = NetworksHandler.start(networkName: self.currentItem.name, runMode: .app)
+							let result = AppState.shared.startNetwork(networkName: self.currentItem.name)
 
 							if result.started == false {
 								alertError(ServiceError(result.reason))
@@ -172,7 +172,7 @@ struct NetworkDetailView: View {
 						}
 					} else {
 						Button("Stop network") {
-							let result = NetworksHandler.stop(networkName: self.currentItem.name, runMode: .app)
+							let result = AppState.shared.stopNetwork(networkName: self.currentItem.name)
 
 							if result.stopped == false {
 								alertError(ServiceError(result.reason))

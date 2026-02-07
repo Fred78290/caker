@@ -20,14 +20,14 @@ class RemoteData: ObservableObject, Observable {
 	}
 
 	convenience init(remote: String) {
-		let remotes = RemoteHandler.listRemote(runMode: .app)
+		let remotes = AppState.shared.loadRemotes()
 
-		guard remotes.success else {
+		guard remotes.isEmpty == false else {
 			self.init(name: remote, url: "")
 			return
 		}
 
-		guard let entry = remotes.remotes.first(where: { $0.name == remote }) else {
+		guard let entry = remotes.first(where: { $0.name == remote }) else {
 			self.init(name: remote, url: "")
 			return
 		}
@@ -37,10 +37,6 @@ class RemoteData: ObservableObject, Observable {
 
 	@MainActor
 	func loadImages() async {
-		let result = await ImageHandler.listImage(remote: self.name, runMode: .app)
-
-		if result.success {
-			self.images = result.infos
-		}
+		self.images = await AppState.shared.loadImages(remote: self.name)
 	}
 }

@@ -109,6 +109,8 @@ class AppState: ObservableObject, Observable {
 
 	@Published var cakedServiceInstalled: Bool = false
 	@Published var cakedServiceRunning: Bool = false
+	@Published var cakedServiceClient: CakedServiceClient? = nil
+	@Published var runMode: Utils.RunMode = .app
 	@Published var currentDocument: VirtualMachineDocument!
 	@Published var isAgentInstalling: Bool = false
 	@Published var isStopped: Bool = true
@@ -125,68 +127,83 @@ class AppState: ObservableObject, Observable {
 	}
 
 	init() {
-		let machines = Self.loadVirtualMachines()
-
-		self.virtualMachines = machines
-		self.networks = Self.loadNetworks()
-		self.remotes = Self.loadRemotes()
-		self.templates = Self.loadTemplates()
+		self.runMode = ServiceHandler.runningMode
 		self.cakedServiceInstalled = ServiceHandler.isAgentInstalled
-		self.cakedServiceRunning = ServiceHandler.isAgentRunning
+		self.cakedServiceRunning = self.runMode != .app
+
+		if self.cakedServiceRunning {
+			self.cakedServiceClient = ServiceHandler.serviceClient
+		}
+
+		self.virtualMachines = Self.loadVirtualMachines(client: self.cakedServiceClient, runMode: self.runMode)
+		self.networks = Self.loadNetworks(client: self.cakedServiceClient, runMode: self.runMode)
+		self.remotes = Self.loadRemotes(client: self.cakedServiceClient, runMode: self.runMode)
+		self.templates = Self.loadTemplates(client: self.cakedServiceClient, runMode: self.runMode)
 
 		// Start polling agent running status every second
 		self.agentStatusTimer?.invalidate()
 		self.agentStatusTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
 			guard let self = self else { return }
 
-			let running = ServiceHandler.isAgentRunning
+			let runMode = ServiceHandler.runningMode
 			let installed = ServiceHandler.isAgentInstalled
 
-			if self.cakedServiceInstalled != installed || self.cakedServiceRunning != running {
+			if self.cakedServiceInstalled != installed || self.runMode != runMode {
 				DispatchQueue.main.async {
+					if runMode != .app {
+						self.cakedServiceClient = ServiceHandler.serviceClient
+					}
+
 					self.cakedServiceInstalled = installed
-					self.cakedServiceRunning = running
+					self.cakedServiceRunning = runMode != .app
+					self.runMode = runMode
+
+					self.virtualMachines = Self.loadVirtualMachines(client: self.cakedServiceClient, runMode: runMode)
+					self.networks = Self.loadNetworks(client: self.cakedServiceClient, runMode: runMode)
+					self.remotes = Self.loadRemotes(client: self.cakedServiceClient, runMode: runMode)
+					self.templates = Self.loadTemplates(client: self.cakedServiceClient, runMode: runMode)
 				}
 			}
 		}
 	}
 
-	static func loadNetworks() -> [BridgedNetwork] {
-		let result = NetworksHandler.networks(runMode: .app)
-
-		if result.success {
-			return result.networks.sorted(using: BridgedNetworkComparator())
+	static func loadNetworks(client: CakedServiceClient?, runMode: Utils.RunMode) -> [BridgedNetwork] {
+		guard let result = try? NetworksHandler.networks(client: client, runMode: runMode) else {
+			return []
 		}
 
-		return []
+		return result.networks.sorted(using: BridgedNetworkComparator())
 	}
 
-	static func loadRemotes() -> [RemoteEntry] {
-		let result = RemoteHandler.listRemote(runMode: .app)
-
-		if result.success {
-			return result.remotes.sorted(using: RemoteHandlerComparator())
+	static func loadRemotes(client: CakedServiceClient?, runMode: Utils.RunMode) -> [RemoteEntry] {
+		guard let result = try? RemoteHandler.listRemote(client: client, runMode: runMode) else {
+			return []
 		}
 
-		return []
+		return result.remotes.sorted(using: RemoteHandlerComparator())
 	}
 
-	static func loadTemplates() -> [TemplateEntry] {
-		let result = TemplateHandler.listTemplate(runMode: .app)
-
-		if result.success {
-			return result.templates.sorted(using: TemplateEntryComparator())
+	static func loadTemplates(client: CakedServiceClient?, runMode: Utils.RunMode) -> [TemplateEntry] {
+		guard let result = try? TemplateHandler.listTemplate(client: client, runMode: runMode) else {
+			return []
 		}
 
-		return []
+		return result.templates.sorted(using: TemplateEntryComparator())
 	}
 
-	static func loadVirtualMachines() -> ([URL: VirtualMachineDocument]) {
-		let result = ListHandler.list(vmonly: true, runMode: .app)
+	static func loadImages(client: CakedServiceClient?, remote: String, runMode: Utils.RunMode) async -> [ImageInfo] {
+		await ImageHandler.listImage(client: client, remote: remote, runMode: runMode).infos
+	}
+
+	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) -> ([URL: VirtualMachineDocument]) {
+		guard let result = try? ListHandler.list(client: client, vmonly: true, runMode: runMode) else {
+			return [:]
+		}
+
 		var vms: [URL: VirtualMachineDocument] = [:]
 
 		if result.success {
-			let storage = StorageLocation(runMode: .app)
+			let storage = StorageLocation(runMode: runMode)
 
 			result.infos.compactMap {
 				if let location = try? storage.find($0.name) {
@@ -204,18 +221,45 @@ class AppState: ObservableObject, Observable {
 		return vms
 	}
 
+	func loadNetworks() -> [BridgedNetwork] {
+		Self.loadNetworks(client: self.cakedServiceClient, runMode: self.runMode)
+	}
+
 	func reloadNetworks() {
-		self.networks = Self.loadNetworks()
+		self.networks = self.loadNetworks()
+	}
+
+	func loadRemotes() -> [RemoteEntry] {
+		Self.loadRemotes(client: self.cakedServiceClient, runMode: self.runMode)
 	}
 
 	func reloadRemotes() {
-		self.remotes = Self.loadRemotes()
+		self.remotes = self.loadRemotes()
+	}
+
+	func loadTemplates() -> [TemplateEntry] {
+		Self.loadTemplates(client: self.cakedServiceClient, runMode: self.runMode)
 	}
 
 	func reloadTemplates() {
-		self.templates = Self.loadTemplates()
+		self.templates = self.loadTemplates()
 	}
 
+	func loadImages(remote: String) async -> [ImageInfo] {
+		await Self.loadImages(client: self.cakedServiceClient, remote: remote, runMode: self.runMode)
+	}
+
+	func startNetwork(networkName: String) -> StartedNetworkReply {
+		NetworksHandler.start(client: self.cakedServiceClient, networkName: networkName, runMode: self.runMode)
+	}
+
+	func stopNetwork(networkName: String) -> StoppedNetworkReply {
+		NetworksHandler.stop(client: self.cakedServiceClient, networkName: networkName, runMode: self.runMode)
+	}
+
+	func templateExists(name: String) -> Bool {
+		TemplateHandler.exists(client: self.cakedServiceClient, name: name, runMode: self.runMode)
+	}
 	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
 		self.virtualMachines[url]
 	}
@@ -259,16 +303,20 @@ class AppState: ObservableObject, Observable {
 		alert.accessoryView = txt
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let templateResult = vm.createTemplateFromUI(name: txt.stringValue)
-
-			if templateResult.created == false {
-				let alert = NSAlert()
-
-				alert.messageText = "Failed to create template"
-				alert.informativeText = templateResult.reason ?? "Internal error"
-				alert.runModal()
-			} else {
-				self.reloadTemplates()
+			do {
+				let templateResult = try TemplateHandler.createTemplate(client: self.cakedServiceClient, sourceName: vm.name, templateName: txt.stringValue, runMode: self.runMode)
+				
+				if templateResult.created == false {
+					self.reloadTemplates()
+				} else {
+					DispatchQueue.main.async {
+						alertError("Failed to create template", templateResult.reason ?? "Internal error")
+					}
+				}
+			} catch {
+				DispatchQueue.main.async {
+					alertError(error)
+				}
 			}
 		}
 	}
@@ -286,18 +334,21 @@ class AppState: ObservableObject, Observable {
 		alert.accessoryView = txt
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = vm.duplicateFromUI(name: txt.stringValue)
-
-			if result.duplicated == false {
-				let alert = NSAlert()
-
-				alert.messageText = "Failed to duplicate virtual machine"
-				alert.informativeText = result.reason
-				alert.runModal()
-			} else {
-				let location = StorageLocation(runMode: .app).location(txt.stringValue)
-
-				self.addVirtualMachineDocument(location)
+			do {
+				let result = try DuplicateHandler.duplicate(client: self.cakedServiceClient, from: vm.name, to: txt.stringValue, resetMacAddress: true, runMode: self.runMode)
+				if result.duplicated {
+					let location = StorageLocation(runMode: self.runMode).location(txt.stringValue)
+					
+					self.addVirtualMachineDocument(location)
+				} else {
+					DispatchQueue.main.async {
+						alertError("Failed to duplicate virtual machine", result.reason)
+					}
+				}
+			} catch {
+				DispatchQueue.main.async {
+					alertError(error)
+				}
 			}
 		}
 	}
@@ -315,17 +366,15 @@ class AppState: ObservableObject, Observable {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm.name, userInfo: ["document": vm.name])
 
-				let result = try DeleteHandler.delete(names: [vm.name], runMode: .app)
+				let result = try DeleteHandler.delete(client: self.cakedServiceClient, name: vm.name, runMode: self.runMode)
 
-				if let first = result.first {
-					if first.deleted {
-						let location = StorageLocation(runMode: .app).location(vm.name)
+				if result.success {
+					let location = StorageLocation(runMode: self.runMode).location(vm.name)
 
-						self.removeVirtualMachineDocument(location.rootURL)
-					} else {
-						DispatchQueue.main.async {
-							alertError(ServiceError(first.reason))
-						}
+					self.removeVirtualMachineDocument(location.rootURL)
+				} else {
+					DispatchQueue.main.async {
+						alertError(ServiceError(result.reason))
 					}
 				}
 			} catch {
@@ -346,7 +395,7 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: "Cancel")
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = NetworksHandler.delete(networkName: name, runMode: .app)
+			let result = NetworksHandler.delete(networkName: name, runMode: self.runMode)
 
 			if result.deleted {
 				self.reloadNetworks()
@@ -368,7 +417,7 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: "Cancel")
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: .app)
+			let result = TemplateHandler.deleteTemplate(templateName: name, runMode: self.runMode)
 
 			if result.deleted {
 				self.reloadTemplates()
@@ -390,7 +439,7 @@ class AppState: ObservableObject, Observable {
 		alert.addButton(withTitle: "Cancel")
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
-			let result = RemoteHandler.deleteRemote(name: name, runMode: .app)
+			let result = RemoteHandler.deleteRemote(name: name, runMode: self.runMode)
 
 			if result.deleted {
 				self.reloadTemplates()
@@ -404,7 +453,7 @@ class AppState: ObservableObject, Observable {
 
 	func installCakedService() {
 		do {
-			try ServiceHandler.installAgent(runMode: .app)
+			try ServiceHandler.installAgent(runMode: .user)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -414,7 +463,7 @@ class AppState: ObservableObject, Observable {
 
 	func removeCakedService() {
 		do {
-			try ServiceHandler.uninstallAgent(runMode: .app)
+			try ServiceHandler.uninstallAgent(runMode: self.runMode)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -424,7 +473,7 @@ class AppState: ObservableObject, Observable {
 
 	func stopCakedService() {
 		do {
-			try ServiceHandler.stopAgent(runMode: .app)
+			try ServiceHandler.stopAgent(runMode: self.runMode)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
@@ -434,7 +483,7 @@ class AppState: ObservableObject, Observable {
 
 	func startCakedService() {
 		do {
-			try ServiceHandler.launchAgent(runMode: .app)
+			try ServiceHandler.launchAgent(runMode: self.runMode)
 		} catch {
 			DispatchQueue.main.async {
 				alertError(error)
