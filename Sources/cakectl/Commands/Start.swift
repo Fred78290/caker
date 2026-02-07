@@ -16,7 +16,7 @@ struct Start: GrpcParsableCommand {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.start(Caked_StartRequest(command: self), callOptions: callOptions).response.wait().vms.started)
 	}
 }

@@ -16,7 +16,7 @@ struct Configure: AsyncParsableCommand {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		return self.format.render(try client.configure(Caked_ConfigureRequest(options: self.configure), callOptions: callOptions).response.wait().vms.configured)
 	}
 

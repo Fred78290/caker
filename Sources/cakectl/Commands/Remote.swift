@@ -24,7 +24,7 @@ struct Remote: ParsableCommand {
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.created)
 		}
 	}
@@ -41,7 +41,7 @@ struct Remote: ParsableCommand {
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			return self.format.render(try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.deleted)
 		}
 	}
@@ -55,7 +55,7 @@ struct Remote: ParsableCommand {
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.remote(Caked_RemoteRequest(command: self), callOptions: callOptions).response.wait().remotes.list
 
 			if result.success {

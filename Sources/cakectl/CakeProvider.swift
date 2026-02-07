@@ -7,8 +7,6 @@ import NIOPosix
 import NIOSSL
 import Semaphore
 
-typealias CakeServiceClient = Caked_ServiceNIOClient
-
 extension Caked_RenameRequest {
 	init(command: Rename) {
 		self.init()
@@ -509,7 +507,7 @@ extension Caked_MountRequest {
 	}
 }
 
-extension CakeServiceClient {
+extension CakedServiceClient {
 	internal func exec(
 		name: String,
 		command: CakedChannelStreamer.ExecuteCommand,

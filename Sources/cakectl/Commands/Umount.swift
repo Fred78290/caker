@@ -17,7 +17,7 @@ struct Umount: GrpcParsableCommand {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.umount(Caked_MountRequest(command: self), callOptions: callOptions).response.wait().mounts
 
 		if result.success {

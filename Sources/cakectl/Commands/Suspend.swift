@@ -16,7 +16,7 @@ struct Suspend: GrpcParsableCommand {
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
-	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.suspend(Caked_SuspendRequest(command: self), callOptions: callOptions).response.wait().vms.suspend
 
 		if result.success {

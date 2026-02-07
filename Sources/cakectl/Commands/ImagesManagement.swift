@@ -21,7 +21,7 @@ struct ImagesManagement: ParsableCommand {
 		@Argument(help: "Remote name")
 		var name: String
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.list
 
 			if result.success {
@@ -44,7 +44,7 @@ struct ImagesManagement: ParsableCommand {
 		@Argument(help: "Image name")
 		var name: String
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.infos
 
 			if result.success {
@@ -67,7 +67,7 @@ struct ImagesManagement: ParsableCommand {
 		@Argument(help: "Image name")
 		var name: String
 
-		func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+		func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 			let result = try client.image(Caked_ImageRequest(command: self), callOptions: callOptions).response.wait().images.pull
 
 			if result.success {

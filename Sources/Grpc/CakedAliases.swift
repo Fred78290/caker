@@ -1,6 +1,8 @@
 import Foundation
 import GRPC
 
+public typealias CakedServiceClient = Caked_ServiceNIOClient
+
 public typealias Caked = Caked_Caked
 
 public typealias Caked_ImageRequest = Caked.ImageRequest

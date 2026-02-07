@@ -17,7 +17,7 @@ struct Delete: GrpcParsableCommand {
 	@Flag(help: "Output format")
 	var format: Format = .text
 
-	func run(client: CakeServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
 		let result = try client.delete(Caked_DeleteRequest(command: self), callOptions: callOptions).response.wait().vms.delete
 
 		if result.success {
