@@ -26,7 +26,7 @@ public struct ExecuteHandler {
 
 				if StorageLocation(runMode: runMode).exists(vmname) == false {
 					Logger(self).info("Creating primary VM")
-					let build = await BuildHandler.build(name: vmname, options: .init(name: vmname), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+					let build = await BuildHandler.build(options: .init(name: vmname), runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 					if build.builded == false {
 						throw ServiceError(build.reason)

@@ -7,11 +7,11 @@ import SwiftUI
 import Virtualization
 
 public struct BuildHandler {
-	public static func build(name: String, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> BuildedReply {
+	public static func build(options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> BuildedReply {
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 
-			if storageLocation.exists(name) {
+			if storageLocation.exists(options.name) {
 				return BuildedReply(name: options.name, builded: false, reason: "VM already exists")
 			}
 
@@ -24,10 +24,10 @@ public struct BuildHandler {
 			try await withTaskCancellationHandler(
 				operation: {
 					do {
-						let location = storageLocation.location(name)
-						_ = try await VMBuilder.buildVM(vmName: name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
+						let location = storageLocation.location(options.name)
+						_ = try await VMBuilder.buildVM(vmName: options.name, location: tempVMLocation, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
-						try storageLocation.relocate(name, from: tempVMLocation)
+						try storageLocation.relocate(options.name, from: tempVMLocation)
 
 						progressHandler(.terminated(.success(location), "Build VM finished successfully"))
 					} catch {

@@ -9,7 +9,7 @@ public struct LaunchHandler {
 			let location = try StorageLocation(runMode: runMode).find(options.name)
 			let config = try location.config()
 
-			let build = await BuildHandler.build(name: options.name, options: options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+			let build = await BuildHandler.build(options: options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 			if build.builded {
 				let reply = StartHandler.startVM(on: Utilities.group.next(), location: location, config: config, waitIPTimeout: 180, startMode: startMode, runMode: runMode)

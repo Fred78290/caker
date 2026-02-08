@@ -260,8 +260,15 @@ class AppState: ObservableObject, Observable {
 	func templateExists(name: String) -> Bool {
 		TemplateHandler.exists(client: self.cakedServiceClient, name: name, runMode: self.runMode)
 	}
+
 	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
 		self.virtualMachines[url]
+	}
+
+	func findVirtualMachineDocument(_ name: String) -> VirtualMachineDocument? {
+		self.virtualMachines.values.first {
+			$0.name == name
+		}
 	}
 
 	func addVirtualMachineDocument(_ location: VMLocation) {
@@ -319,6 +326,11 @@ class AppState: ObservableObject, Observable {
 				}
 			}
 		}
+	}
+
+	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
+		
+		await try BuildHandler.build(client: self.cakedServiceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
 	}
 
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {

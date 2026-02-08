@@ -865,7 +865,7 @@ struct VirtualMachineWizard: View {
 		if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
 			valid = false
 		} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
-			if StorageLocation(runMode: .app, template: false).exists(vmname) == false {
+			if self.appState.findVirtualMachineDocument(vmname) == nil {
 				valid = true
 			}
 		}
@@ -906,28 +906,34 @@ struct VirtualMachineWizard: View {
 	}
 
 	func createVirtualMachine(progressHandler: @escaping ProgressObserver.BuildProgressHandler) async {
-		await withTaskCancellationHandler(
-			operation: {
-				let options = self.config.buildOptions()
-				var ipswQueue: DispatchQueue!
-
-				#if arch(arm64)
+		do {
+			try await withTaskCancellationHandler(
+				operation: {
+					let options = self.config.buildOptions()
+					var ipswQueue: DispatchQueue!
+					
+#if arch(arm64)
 					if self.model.imageSource == .ipsw {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
-				#endif
-
-				let build = await BuildHandler.build(name: self.config.vmname, options: options, runMode: .app, queue: ipswQueue) { result in
-					progressHandler(result)
-				}
-
-				if build.builded == false {
-					progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
-				}
-			},
-			onCancel: {
-				progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
-			})
+#endif
+					
+					let build = try await self.appState.buildVirtualMachine(options: options, queue: ipswQueue) { result in
+						progressHandler(result)
+					}
+					
+					if build.builded == false {
+						progressHandler(.terminated(.failure(ServiceError(build.reason)), "Create virtual machine failed"))
+					}
+				},
+				onCancel: {
+					progressHandler(.terminated(.failure(ServiceError("Cancelled")), "Create virtual machine cancelled"))
+				})
+		} catch {
+			await MainActor.run {
+				alertError(error)
+			}
+		}
 	}
 
 	func chooseDiskImage(ofTypes: [UTType]) -> String? {
@@ -963,35 +969,19 @@ struct VirtualMachineWizard: View {
 	}
 
 	func templates() -> [TemplateEntry] {
-		let result = TemplateHandler.listTemplate(runMode: .app)
-
-		if result.success {
-			return result.templates
-		}
-
-		return []
+		return self.appState.loadTemplates()
 	}
 
 	func remotes() -> [RemoteEntry] {
-		let result = RemoteHandler.listRemote(runMode: .app)
-
-		if result.success {
-			return result.remotes
-		}
-
-		return []
+		return self.appState.loadRemotes()
 	}
 
 	func images(remote: String) async -> [ShortImageInfo] {
-		let result = await ImageHandler.listImage(remote: remote, runMode: .app)
+		let result = await self.appState.loadImages(remote: remote)
 
-		if result.success {
-			return result.infos.compactMap {
-				ShortImageInfo(imageInfo: $0)
-			}.sorted(using: [ShortImageInfoComparator(order: .forward)])
-		}
-
-		return []
+		return result.compactMap {
+			ShortImageInfo(imageInfo: $0)
+		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
 	}
 
 	var hasPrevious: Bool {

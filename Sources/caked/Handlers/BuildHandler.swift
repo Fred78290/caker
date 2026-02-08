@@ -20,7 +20,7 @@ struct BuildHandler: CakedCommandAsync {
 
 	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
 		return on.makeFutureWithTask {
-			let result = await CakedLib.BuildHandler.build(name: self.options.name, options: self.options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+			let result = await CakedLib.BuildHandler.build(options: self.options, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
 
 			return Caked_Reply.with {
 				$0.vms = Caked_VirtualMachineReply.with {
