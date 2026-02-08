@@ -267,6 +267,7 @@
 		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
+		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
 		9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */; };
@@ -780,6 +781,7 @@
 		9BE2E7C12D5F85FD000CA07F /* Template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Template.swift; sourceTree = "<group>"; };
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
 		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
+		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEBC68E2DF43FEE0092B196 /* caked */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = caked; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BEBC6952DF4400A0092B196 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9BEBC6972DF4400A0092B196 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -1518,6 +1520,7 @@
 		9BB213CE2F37548300B45692 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
 				9BB213D42F375CC700B45692 /* DuplicateHandler.swift */,
 				9BB213D62F37838400B45692 /* ImageHandler.swift */,
@@ -2226,6 +2229,7 @@
 				9B3601A12E21169500889BFD /* Settings.swift in Sources */,
 				9B7D65B02F163AB900FE1B0B /* InteractiveShell.swift in Sources */,
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
+				9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */,
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
 				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,
 				9B7999072E48A27900147500 /* NSVNCView.swift in Sources */,
