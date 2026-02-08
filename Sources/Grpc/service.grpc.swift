@@ -18,8 +18,9 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
 
   func build(
     _ request: Caked_Caked.VMRequest.BuildRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>
 
   func configure(
     _ request: Caked_Caked.VMRequest.ConfigureRequest,
@@ -147,21 +148,24 @@ extension Caked_ServiceClientProtocol {
     return "caked.Service"
   }
 
-  /// Unary call to Build
+  /// Server streaming call to Build
   ///
   /// - Parameters:
   ///   - request: Request to send to Build.
   ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
   public func build(
     _ request: Caked_Caked.VMRequest.BuildRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply> {
-    return self.makeUnaryCall(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply> {
+    return self.makeServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeBuildInterceptors() ?? []
+      interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
+      handler: handler
     )
   }
 
@@ -666,7 +670,7 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   func makeBuildCall(
     _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>
 
   func makeConfigureCall(
     _ request: Caked_Caked.VMRequest.ConfigureRequest,
@@ -801,8 +805,8 @@ extension Caked_ServiceAsyncClientProtocol {
   public func makeBuildCall(
     _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply> {
-    return self.makeAsyncUnaryCall(
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply> {
+    return self.makeAsyncServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1112,8 +1116,8 @@ extension Caked_ServiceAsyncClientProtocol {
   public func build(
     _ request: Caked_Caked.VMRequest.BuildRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Caked.Reply {
-    return try await self.performAsyncUnaryCall(
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply> {
+    return self.performAsyncServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.build.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1442,7 +1446,7 @@ public struct Caked_ServiceAsyncClient: Caked_ServiceAsyncClientProtocol {
 public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'build'.
-  func makeBuildInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>]
+  func makeBuildInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>]
 
   /// - Returns: Interceptors to use when invoking 'configure'.
   func makeConfigureInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ConfigureRequest, Caked_Caked.Reply>]
@@ -1554,7 +1558,7 @@ public enum Caked_ServiceClientMetadata {
     public static let build = GRPCMethodDescriptor(
       name: "Build",
       path: "/caked.Service/Build",
-      type: GRPCCallType.unary
+      type: GRPCCallType.serverStreaming
     )
 
     public static let configure = GRPCMethodDescriptor(
@@ -1707,7 +1711,7 @@ public enum Caked_ServiceClientMetadata {
 public protocol Caked_ServiceProvider: CallHandlerProvider {
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
-  func build(request: Caked_Caked.VMRequest.BuildRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+  func build(request: Caked_Caked.VMRequest.BuildRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>) -> EventLoopFuture<GRPCStatus>
 
   func configure(request: Caked_Caked.VMRequest.ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
@@ -1771,10 +1775,10 @@ extension Caked_ServiceProvider {
   ) -> GRPCServerHandlerProtocol? {
     switch name {
     case "Build":
-      return UnaryServerHandler(
+      return ServerStreamingServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
         userFunction: self.build(request:context:)
       )
@@ -2009,8 +2013,9 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   func build(
     request: Caked_Caked.VMRequest.BuildRequest,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Caked.Reply
+  ) async throws
 
   func configure(
     request: Caked_Caked.VMRequest.ConfigureRequest,
@@ -2157,9 +2162,9 @@ extension Caked_ServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.BuildRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>(),
         interceptors: self.interceptors?.makeBuildInterceptors() ?? [],
-        wrapping: { try await self.build(request: $0, context: $1) }
+        wrapping: { try await self.build(request: $0, responseStream: $1, context: $2) }
       )
 
     case "Configure":
@@ -2388,7 +2393,7 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'build'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeBuildInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply>]
+  func makeBuildInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.BuildRequest, Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>]
 
   /// - Returns: Interceptors to use when handling 'configure'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -2524,7 +2529,7 @@ public enum Caked_ServiceServerMetadata {
     public static let build = GRPCMethodDescriptor(
       name: "Build",
       path: "/caked.Service/Build",
-      type: GRPCCallType.unary
+      type: GRPCCallType.serverStreaming
     )
 
     public static let configure = GRPCMethodDescriptor(

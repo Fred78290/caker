@@ -4,7 +4,7 @@ import Foundation
 import GRPCLib
 import NIOCore
 
-struct ConfigureHandler: CakedCommandAsync, Sendable {
+struct ConfigureHandler: CakedCommand, Sendable {
 	var options: ConfigureOptions
 
 	func replyError(error: any Error) -> Caked_Reply {
@@ -18,12 +18,10 @@ struct ConfigureHandler: CakedCommandAsync, Sendable {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
-		return on.submit {
-			return Caked_Reply.with {
-				$0.vms = Caked_VirtualMachineReply.with {
-					$0.configured = CakedLib.ConfigureHandler.configure(name: self.options.name, options: options, runMode: runMode).caked
-				}
+	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
+		return Caked_Reply.with {
+			$0.vms = Caked_VirtualMachineReply.with {
+				$0.configured = CakedLib.ConfigureHandler.configure(name: self.options.name, options: options, runMode: runMode).caked
 			}
 		}
 	}

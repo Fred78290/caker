@@ -9,7 +9,7 @@ option objc_class_prefix = "caked";
 package caked;
 
 service Service {
-	rpc Build (Caked.VMRequest.BuildRequest) returns (Caked.Reply) {}
+	rpc Build (Caked.VMRequest.BuildRequest) returns (stream Caked.Reply.VirtualMachineReply.BuildStreamReply) {}
 	rpc Configure (Caked.VMRequest.ConfigureRequest) returns (Caked.Reply) {}
 	rpc Delete(Caked.VMRequest.DeleteRequest) returns (Caked.Reply) {}
 	rpc Duplicate (Caked.VMRequest.DuplicateRequest) returns (Caked.Reply) {}
@@ -426,6 +426,29 @@ message Caked {
 				optional string reason = 3;
 			}
 
+			message BuildProgressValue {
+				double oldFractionCompleted = 1;
+				double fractionCompleted = 2;
+				int32 lastCompleted10 = 3;
+				int32 lastCompleted2 = 4;
+			}
+
+			message BuildTerminatedReply {
+				oneof result {
+				  string success = 1;
+				  string failure = 2;
+				}
+			}
+
+			message BuildStreamReply {
+				oneof current {
+					BuildProgressValue progress = 1;
+					BuildTerminatedReply terminated = 3;
+					string step = 2;
+					BuildedReply builded = 4;
+				}
+			}
+
 			message ClonedReply {
 				string sourceName = 1;
 				string targetName = 2;
@@ -480,7 +503,7 @@ message Caked {
 				StatusReply status = 5;
 				LaunchReply launched = 6;
 				StartedReply started = 7;
-				BuildedReply builded = 8;
+				BuildStreamReply build = 8;
 				ClonedReply cloned = 9;
 				ConfiguredReply configured = 10;
 				DuplicatedReply duplicated = 11;

@@ -43,241 +43,241 @@ public struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var name: String {
-        get {return _storage._name}
+        get {_storage._name}
         set {_uniqueStorage()._name = newValue}
       }
 
       public var cpu: Int32 {
-        get {return _storage._cpu ?? 0}
+        get {_storage._cpu ?? 0}
         set {_uniqueStorage()._cpu = newValue}
       }
       /// Returns true if `cpu` has been explicitly set.
-      public var hasCpu: Bool {return _storage._cpu != nil}
+      public var hasCpu: Bool {_storage._cpu != nil}
       /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
       public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
       public var memory: Int32 {
-        get {return _storage._memory ?? 0}
+        get {_storage._memory ?? 0}
         set {_uniqueStorage()._memory = newValue}
       }
       /// Returns true if `memory` has been explicitly set.
-      public var hasMemory: Bool {return _storage._memory != nil}
+      public var hasMemory: Bool {_storage._memory != nil}
       /// Clears the value of `memory`. Subsequent reads from it will return its default value.
       public mutating func clearMemory() {_uniqueStorage()._memory = nil}
 
       public var user: String {
-        get {return _storage._user ?? String()}
+        get {_storage._user ?? String()}
         set {_uniqueStorage()._user = newValue}
       }
       /// Returns true if `user` has been explicitly set.
-      public var hasUser: Bool {return _storage._user != nil}
+      public var hasUser: Bool {_storage._user != nil}
       /// Clears the value of `user`. Subsequent reads from it will return its default value.
       public mutating func clearUser() {_uniqueStorage()._user = nil}
 
       public var password: String {
-        get {return _storage._password ?? String()}
+        get {_storage._password ?? String()}
         set {_uniqueStorage()._password = newValue}
       }
       /// Returns true if `password` has been explicitly set.
-      public var hasPassword: Bool {return _storage._password != nil}
+      public var hasPassword: Bool {_storage._password != nil}
       /// Clears the value of `password`. Subsequent reads from it will return its default value.
       public mutating func clearPassword() {_uniqueStorage()._password = nil}
 
       public var mainGroup: String {
-        get {return _storage._mainGroup ?? String()}
+        get {_storage._mainGroup ?? String()}
         set {_uniqueStorage()._mainGroup = newValue}
       }
       /// Returns true if `mainGroup` has been explicitly set.
-      public var hasMainGroup: Bool {return _storage._mainGroup != nil}
+      public var hasMainGroup: Bool {_storage._mainGroup != nil}
       /// Clears the value of `mainGroup`. Subsequent reads from it will return its default value.
       public mutating func clearMainGroup() {_uniqueStorage()._mainGroup = nil}
 
       public var sshPwAuth: Bool {
-        get {return _storage._sshPwAuth ?? false}
+        get {_storage._sshPwAuth ?? false}
         set {_uniqueStorage()._sshPwAuth = newValue}
       }
       /// Returns true if `sshPwAuth` has been explicitly set.
-      public var hasSshPwAuth: Bool {return _storage._sshPwAuth != nil}
+      public var hasSshPwAuth: Bool {_storage._sshPwAuth != nil}
       /// Clears the value of `sshPwAuth`. Subsequent reads from it will return its default value.
       public mutating func clearSshPwAuth() {_uniqueStorage()._sshPwAuth = nil}
 
       public var image: String {
-        get {return _storage._image ?? String()}
+        get {_storage._image ?? String()}
         set {_uniqueStorage()._image = newValue}
       }
       /// Returns true if `image` has been explicitly set.
-      public var hasImage: Bool {return _storage._image != nil}
+      public var hasImage: Bool {_storage._image != nil}
       /// Clears the value of `image`. Subsequent reads from it will return its default value.
       public mutating func clearImage() {_uniqueStorage()._image = nil}
 
       public var sshAuthorizedKey: Data {
-        get {return _storage._sshAuthorizedKey ?? Data()}
+        get {_storage._sshAuthorizedKey ?? Data()}
         set {_uniqueStorage()._sshAuthorizedKey = newValue}
       }
       /// Returns true if `sshAuthorizedKey` has been explicitly set.
-      public var hasSshAuthorizedKey: Bool {return _storage._sshAuthorizedKey != nil}
+      public var hasSshAuthorizedKey: Bool {_storage._sshAuthorizedKey != nil}
       /// Clears the value of `sshAuthorizedKey`. Subsequent reads from it will return its default value.
       public mutating func clearSshAuthorizedKey() {_uniqueStorage()._sshAuthorizedKey = nil}
 
       public var vendorData: Data {
-        get {return _storage._vendorData ?? Data()}
+        get {_storage._vendorData ?? Data()}
         set {_uniqueStorage()._vendorData = newValue}
       }
       /// Returns true if `vendorData` has been explicitly set.
-      public var hasVendorData: Bool {return _storage._vendorData != nil}
+      public var hasVendorData: Bool {_storage._vendorData != nil}
       /// Clears the value of `vendorData`. Subsequent reads from it will return its default value.
       public mutating func clearVendorData() {_uniqueStorage()._vendorData = nil}
 
       public var userData: Data {
-        get {return _storage._userData ?? Data()}
+        get {_storage._userData ?? Data()}
         set {_uniqueStorage()._userData = newValue}
       }
       /// Returns true if `userData` has been explicitly set.
-      public var hasUserData: Bool {return _storage._userData != nil}
+      public var hasUserData: Bool {_storage._userData != nil}
       /// Clears the value of `userData`. Subsequent reads from it will return its default value.
       public mutating func clearUserData() {_uniqueStorage()._userData = nil}
 
       public var networkConfig: Data {
-        get {return _storage._networkConfig ?? Data()}
+        get {_storage._networkConfig ?? Data()}
         set {_uniqueStorage()._networkConfig = newValue}
       }
       /// Returns true if `networkConfig` has been explicitly set.
-      public var hasNetworkConfig: Bool {return _storage._networkConfig != nil}
+      public var hasNetworkConfig: Bool {_storage._networkConfig != nil}
       /// Clears the value of `networkConfig`. Subsequent reads from it will return its default value.
       public mutating func clearNetworkConfig() {_uniqueStorage()._networkConfig = nil}
 
       public var diskSize: Int32 {
-        get {return _storage._diskSize ?? 0}
+        get {_storage._diskSize ?? 0}
         set {_uniqueStorage()._diskSize = newValue}
       }
       /// Returns true if `diskSize` has been explicitly set.
-      public var hasDiskSize: Bool {return _storage._diskSize != nil}
+      public var hasDiskSize: Bool {_storage._diskSize != nil}
       /// Clears the value of `diskSize`. Subsequent reads from it will return its default value.
       public mutating func clearDiskSize() {_uniqueStorage()._diskSize = nil}
 
       public var autostart: Bool {
-        get {return _storage._autostart ?? false}
+        get {_storage._autostart ?? false}
         set {_uniqueStorage()._autostart = newValue}
       }
       /// Returns true if `autostart` has been explicitly set.
-      public var hasAutostart: Bool {return _storage._autostart != nil}
+      public var hasAutostart: Bool {_storage._autostart != nil}
       /// Clears the value of `autostart`. Subsequent reads from it will return its default value.
       public mutating func clearAutostart() {_uniqueStorage()._autostart = nil}
 
       public var nested: Bool {
-        get {return _storage._nested ?? false}
+        get {_storage._nested ?? false}
         set {_uniqueStorage()._nested = newValue}
       }
       /// Returns true if `nested` has been explicitly set.
-      public var hasNested: Bool {return _storage._nested != nil}
+      public var hasNested: Bool {_storage._nested != nil}
       /// Clears the value of `nested`. Subsequent reads from it will return its default value.
       public mutating func clearNested() {_uniqueStorage()._nested = nil}
 
       public var forwardedPort: String {
-        get {return _storage._forwardedPort ?? String()}
+        get {_storage._forwardedPort ?? String()}
         set {_uniqueStorage()._forwardedPort = newValue}
       }
       /// Returns true if `forwardedPort` has been explicitly set.
-      public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
+      public var hasForwardedPort: Bool {_storage._forwardedPort != nil}
       /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
       public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
       public var mounts: String {
-        get {return _storage._mounts ?? String()}
+        get {_storage._mounts ?? String()}
         set {_uniqueStorage()._mounts = newValue}
       }
       /// Returns true if `mounts` has been explicitly set.
-      public var hasMounts: Bool {return _storage._mounts != nil}
+      public var hasMounts: Bool {_storage._mounts != nil}
       /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
       public mutating func clearMounts() {_uniqueStorage()._mounts = nil}
 
       public var networks: String {
-        get {return _storage._networks ?? String()}
+        get {_storage._networks ?? String()}
         set {_uniqueStorage()._networks = newValue}
       }
       /// Returns true if `networks` has been explicitly set.
-      public var hasNetworks: Bool {return _storage._networks != nil}
+      public var hasNetworks: Bool {_storage._networks != nil}
       /// Clears the value of `networks`. Subsequent reads from it will return its default value.
       public mutating func clearNetworks() {_uniqueStorage()._networks = nil}
 
       public var sockets: String {
-        get {return _storage._sockets ?? String()}
+        get {_storage._sockets ?? String()}
         set {_uniqueStorage()._sockets = newValue}
       }
       /// Returns true if `sockets` has been explicitly set.
-      public var hasSockets: Bool {return _storage._sockets != nil}
+      public var hasSockets: Bool {_storage._sockets != nil}
       /// Clears the value of `sockets`. Subsequent reads from it will return its default value.
       public mutating func clearSockets() {_uniqueStorage()._sockets = nil}
 
       public var console: String {
-        get {return _storage._console ?? String()}
+        get {_storage._console ?? String()}
         set {_uniqueStorage()._console = newValue}
       }
       /// Returns true if `console` has been explicitly set.
-      public var hasConsole: Bool {return _storage._console != nil}
+      public var hasConsole: Bool {_storage._console != nil}
       /// Clears the value of `console`. Subsequent reads from it will return its default value.
       public mutating func clearConsole() {_uniqueStorage()._console = nil}
 
       public var attachedDisks: String {
-        get {return _storage._attachedDisks ?? String()}
+        get {_storage._attachedDisks ?? String()}
         set {_uniqueStorage()._attachedDisks = newValue}
       }
       /// Returns true if `attachedDisks` has been explicitly set.
-      public var hasAttachedDisks: Bool {return _storage._attachedDisks != nil}
+      public var hasAttachedDisks: Bool {_storage._attachedDisks != nil}
       /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
       public mutating func clearAttachedDisks() {_uniqueStorage()._attachedDisks = nil}
 
       public var dynamicPortForwarding: Bool {
-        get {return _storage._dynamicPortForwarding ?? false}
+        get {_storage._dynamicPortForwarding ?? false}
         set {_uniqueStorage()._dynamicPortForwarding = newValue}
       }
       /// Returns true if `dynamicPortForwarding` has been explicitly set.
-      public var hasDynamicPortForwarding: Bool {return _storage._dynamicPortForwarding != nil}
+      public var hasDynamicPortForwarding: Bool {_storage._dynamicPortForwarding != nil}
       /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
       public mutating func clearDynamicPortForwarding() {_uniqueStorage()._dynamicPortForwarding = nil}
 
       public var ifnames: Bool {
-        get {return _storage._ifnames ?? false}
+        get {_storage._ifnames ?? false}
         set {_uniqueStorage()._ifnames = newValue}
       }
       /// Returns true if `ifnames` has been explicitly set.
-      public var hasIfnames: Bool {return _storage._ifnames != nil}
+      public var hasIfnames: Bool {_storage._ifnames != nil}
       /// Clears the value of `ifnames`. Subsequent reads from it will return its default value.
       public mutating func clearIfnames() {_uniqueStorage()._ifnames = nil}
 
       public var suspendable: Bool {
-        get {return _storage._suspendable ?? false}
+        get {_storage._suspendable ?? false}
         set {_uniqueStorage()._suspendable = newValue}
       }
       /// Returns true if `suspendable` has been explicitly set.
-      public var hasSuspendable: Bool {return _storage._suspendable != nil}
+      public var hasSuspendable: Bool {_storage._suspendable != nil}
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
       public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
 
       public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
-        get {return _storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+        get {_storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
         set {_uniqueStorage()._screenSize = newValue}
       }
       /// Returns true if `screenSize` has been explicitly set.
-      public var hasScreenSize: Bool {return _storage._screenSize != nil}
+      public var hasScreenSize: Bool {_storage._screenSize != nil}
       /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
       public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
 
       public var displayRefit: Bool {
-        get {return _storage._displayRefit ?? false}
+        get {_storage._displayRefit ?? false}
         set {_uniqueStorage()._displayRefit = newValue}
       }
       /// Returns true if `displayRefit` has been explicitly set.
-      public var hasDisplayRefit: Bool {return _storage._displayRefit != nil}
+      public var hasDisplayRefit: Bool {_storage._displayRefit != nil}
       /// Clears the value of `displayRefit`. Subsequent reads from it will return its default value.
       public mutating func clearDisplayRefit() {_uniqueStorage()._displayRefit = nil}
 
       public var otherGroups: String {
-        get {return _storage._otherGroups ?? String()}
+        get {_storage._otherGroups ?? String()}
         set {_uniqueStorage()._otherGroups = newValue}
       }
       /// Returns true if `otherGroups` has been explicitly set.
-      public var hasOtherGroups: Bool {return _storage._otherGroups != nil}
+      public var hasOtherGroups: Bool {_storage._otherGroups != nil}
       /// Clears the value of `otherGroups`. Subsequent reads from it will return its default value.
       public mutating func clearOtherGroups() {_uniqueStorage()._otherGroups = nil}
 
@@ -308,11 +308,11 @@ public struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var options: Caked_Caked.VMRequest.CommonBuildRequest {
-        get {return _options ?? Caked_Caked.VMRequest.CommonBuildRequest()}
+        get {_options ?? Caked_Caked.VMRequest.CommonBuildRequest()}
         set {_options = newValue}
       }
       /// Returns true if `options` has been explicitly set.
-      public var hasOptions: Bool {return self._options != nil}
+      public var hasOptions: Bool {self._options != nil}
       /// Clears the value of `options`. Subsequent reads from it will return its default value.
       public mutating func clearOptions() {self._options = nil}
 
@@ -331,11 +331,11 @@ public struct Caked_Caked: Sendable {
       public var name: String = String()
 
       public var waitIptimeout: Int32 {
-        get {return _waitIptimeout ?? 0}
+        get {_waitIptimeout ?? 0}
         set {_waitIptimeout = newValue}
       }
       /// Returns true if `waitIptimeout` has been explicitly set.
-      public var hasWaitIptimeout: Bool {return self._waitIptimeout != nil}
+      public var hasWaitIptimeout: Bool {self._waitIptimeout != nil}
       /// Clears the value of `waitIptimeout`. Subsequent reads from it will return its default value.
       public mutating func clearWaitIptimeout() {self._waitIptimeout = nil}
 
@@ -356,29 +356,29 @@ public struct Caked_Caked: Sendable {
       public var targetName: String = String()
 
       public var insecure: Bool {
-        get {return _insecure ?? false}
+        get {_insecure ?? false}
         set {_insecure = newValue}
       }
       /// Returns true if `insecure` has been explicitly set.
-      public var hasInsecure: Bool {return self._insecure != nil}
+      public var hasInsecure: Bool {self._insecure != nil}
       /// Clears the value of `insecure`. Subsequent reads from it will return its default value.
       public mutating func clearInsecure() {self._insecure = nil}
 
       public var concurrency: UInt32 {
-        get {return _concurrency ?? 0}
+        get {_concurrency ?? 0}
         set {_concurrency = newValue}
       }
       /// Returns true if `concurrency` has been explicitly set.
-      public var hasConcurrency: Bool {return self._concurrency != nil}
+      public var hasConcurrency: Bool {self._concurrency != nil}
       /// Clears the value of `concurrency`. Subsequent reads from it will return its default value.
       public mutating func clearConcurrency() {self._concurrency = nil}
 
       public var deduplicate: Bool {
-        get {return _deduplicate ?? false}
+        get {_deduplicate ?? false}
         set {_deduplicate = newValue}
       }
       /// Returns true if `deduplicate` has been explicitly set.
-      public var hasDeduplicate: Bool {return self._deduplicate != nil}
+      public var hasDeduplicate: Bool {self._deduplicate != nil}
       /// Clears the value of `deduplicate`. Subsequent reads from it will return its default value.
       public mutating func clearDeduplicate() {self._deduplicate = nil}
 
@@ -413,20 +413,20 @@ public struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var options: Caked_Caked.VMRequest.CommonBuildRequest {
-        get {return _options ?? Caked_Caked.VMRequest.CommonBuildRequest()}
+        get {_options ?? Caked_Caked.VMRequest.CommonBuildRequest()}
         set {_options = newValue}
       }
       /// Returns true if `options` has been explicitly set.
-      public var hasOptions: Bool {return self._options != nil}
+      public var hasOptions: Bool {self._options != nil}
       /// Clears the value of `options`. Subsequent reads from it will return its default value.
       public mutating func clearOptions() {self._options = nil}
 
       public var waitIptimeout: Int32 {
-        get {return _waitIptimeout ?? 0}
+        get {_waitIptimeout ?? 0}
         set {_waitIptimeout = newValue}
       }
       /// Returns true if `waitIptimeout` has been explicitly set.
-      public var hasWaitIptimeout: Bool {return self._waitIptimeout != nil}
+      public var hasWaitIptimeout: Bool {self._waitIptimeout != nil}
       /// Clears the value of `waitIptimeout`. Subsequent reads from it will return its default value.
       public mutating func clearWaitIptimeout() {self._waitIptimeout = nil}
 
@@ -444,169 +444,169 @@ public struct Caked_Caked: Sendable {
       // methods supported on all messages.
 
       public var name: String {
-        get {return _storage._name}
+        get {_storage._name}
         set {_uniqueStorage()._name = newValue}
       }
 
       public var cpu: Int32 {
-        get {return _storage._cpu ?? 0}
+        get {_storage._cpu ?? 0}
         set {_uniqueStorage()._cpu = newValue}
       }
       /// Returns true if `cpu` has been explicitly set.
-      public var hasCpu: Bool {return _storage._cpu != nil}
+      public var hasCpu: Bool {_storage._cpu != nil}
       /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
       public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
       public var memory: Int32 {
-        get {return _storage._memory ?? 0}
+        get {_storage._memory ?? 0}
         set {_uniqueStorage()._memory = newValue}
       }
       /// Returns true if `memory` has been explicitly set.
-      public var hasMemory: Bool {return _storage._memory != nil}
+      public var hasMemory: Bool {_storage._memory != nil}
       /// Clears the value of `memory`. Subsequent reads from it will return its default value.
       public mutating func clearMemory() {_uniqueStorage()._memory = nil}
 
       public var diskSize: Int32 {
-        get {return _storage._diskSize ?? 0}
+        get {_storage._diskSize ?? 0}
         set {_uniqueStorage()._diskSize = newValue}
       }
       /// Returns true if `diskSize` has been explicitly set.
-      public var hasDiskSize: Bool {return _storage._diskSize != nil}
+      public var hasDiskSize: Bool {_storage._diskSize != nil}
       /// Clears the value of `diskSize`. Subsequent reads from it will return its default value.
       public mutating func clearDiskSize() {_uniqueStorage()._diskSize = nil}
 
       public var displayRefit: Bool {
-        get {return _storage._displayRefit ?? false}
+        get {_storage._displayRefit ?? false}
         set {_uniqueStorage()._displayRefit = newValue}
       }
       /// Returns true if `displayRefit` has been explicitly set.
-      public var hasDisplayRefit: Bool {return _storage._displayRefit != nil}
+      public var hasDisplayRefit: Bool {_storage._displayRefit != nil}
       /// Clears the value of `displayRefit`. Subsequent reads from it will return its default value.
       public mutating func clearDisplayRefit() {_uniqueStorage()._displayRefit = nil}
 
       public var autostart: Bool {
-        get {return _storage._autostart ?? false}
+        get {_storage._autostart ?? false}
         set {_uniqueStorage()._autostart = newValue}
       }
       /// Returns true if `autostart` has been explicitly set.
-      public var hasAutostart: Bool {return _storage._autostart != nil}
+      public var hasAutostart: Bool {_storage._autostart != nil}
       /// Clears the value of `autostart`. Subsequent reads from it will return its default value.
       public mutating func clearAutostart() {_uniqueStorage()._autostart = nil}
 
       public var nested: Bool {
-        get {return _storage._nested ?? false}
+        get {_storage._nested ?? false}
         set {_uniqueStorage()._nested = newValue}
       }
       /// Returns true if `nested` has been explicitly set.
-      public var hasNested: Bool {return _storage._nested != nil}
+      public var hasNested: Bool {_storage._nested != nil}
       /// Clears the value of `nested`. Subsequent reads from it will return its default value.
       public mutating func clearNested() {_uniqueStorage()._nested = nil}
 
       public var mounts: String {
-        get {return _storage._mounts ?? String()}
+        get {_storage._mounts ?? String()}
         set {_uniqueStorage()._mounts = newValue}
       }
       /// Returns true if `mounts` has been explicitly set.
-      public var hasMounts: Bool {return _storage._mounts != nil}
+      public var hasMounts: Bool {_storage._mounts != nil}
       /// Clears the value of `mounts`. Subsequent reads from it will return its default value.
       public mutating func clearMounts() {_uniqueStorage()._mounts = nil}
 
       public var networks: String {
-        get {return _storage._networks ?? String()}
+        get {_storage._networks ?? String()}
         set {_uniqueStorage()._networks = newValue}
       }
       /// Returns true if `networks` has been explicitly set.
-      public var hasNetworks: Bool {return _storage._networks != nil}
+      public var hasNetworks: Bool {_storage._networks != nil}
       /// Clears the value of `networks`. Subsequent reads from it will return its default value.
       public mutating func clearNetworks() {_uniqueStorage()._networks = nil}
 
       public var sockets: String {
-        get {return _storage._sockets ?? String()}
+        get {_storage._sockets ?? String()}
         set {_uniqueStorage()._sockets = newValue}
       }
       /// Returns true if `sockets` has been explicitly set.
-      public var hasSockets: Bool {return _storage._sockets != nil}
+      public var hasSockets: Bool {_storage._sockets != nil}
       /// Clears the value of `sockets`. Subsequent reads from it will return its default value.
       public mutating func clearSockets() {_uniqueStorage()._sockets = nil}
 
       public var console: String {
-        get {return _storage._console ?? String()}
+        get {_storage._console ?? String()}
         set {_uniqueStorage()._console = newValue}
       }
       /// Returns true if `console` has been explicitly set.
-      public var hasConsole: Bool {return _storage._console != nil}
+      public var hasConsole: Bool {_storage._console != nil}
       /// Clears the value of `console`. Subsequent reads from it will return its default value.
       public mutating func clearConsole() {_uniqueStorage()._console = nil}
 
       public var randomMac: Bool {
-        get {return _storage._randomMac ?? false}
+        get {_storage._randomMac ?? false}
         set {_uniqueStorage()._randomMac = newValue}
       }
       /// Returns true if `randomMac` has been explicitly set.
-      public var hasRandomMac: Bool {return _storage._randomMac != nil}
+      public var hasRandomMac: Bool {_storage._randomMac != nil}
       /// Clears the value of `randomMac`. Subsequent reads from it will return its default value.
       public mutating func clearRandomMac() {_uniqueStorage()._randomMac = nil}
 
       public var forwardedPort: String {
-        get {return _storage._forwardedPort ?? String()}
+        get {_storage._forwardedPort ?? String()}
         set {_uniqueStorage()._forwardedPort = newValue}
       }
       /// Returns true if `forwardedPort` has been explicitly set.
-      public var hasForwardedPort: Bool {return _storage._forwardedPort != nil}
+      public var hasForwardedPort: Bool {_storage._forwardedPort != nil}
       /// Clears the value of `forwardedPort`. Subsequent reads from it will return its default value.
       public mutating func clearForwardedPort() {_uniqueStorage()._forwardedPort = nil}
 
       public var attachedDisks: String {
-        get {return _storage._attachedDisks ?? String()}
+        get {_storage._attachedDisks ?? String()}
         set {_uniqueStorage()._attachedDisks = newValue}
       }
       /// Returns true if `attachedDisks` has been explicitly set.
-      public var hasAttachedDisks: Bool {return _storage._attachedDisks != nil}
+      public var hasAttachedDisks: Bool {_storage._attachedDisks != nil}
       /// Clears the value of `attachedDisks`. Subsequent reads from it will return its default value.
       public mutating func clearAttachedDisks() {_uniqueStorage()._attachedDisks = nil}
 
       public var dynamicPortForwarding: Bool {
-        get {return _storage._dynamicPortForwarding ?? false}
+        get {_storage._dynamicPortForwarding ?? false}
         set {_uniqueStorage()._dynamicPortForwarding = newValue}
       }
       /// Returns true if `dynamicPortForwarding` has been explicitly set.
-      public var hasDynamicPortForwarding: Bool {return _storage._dynamicPortForwarding != nil}
+      public var hasDynamicPortForwarding: Bool {_storage._dynamicPortForwarding != nil}
       /// Clears the value of `dynamicPortForwarding`. Subsequent reads from it will return its default value.
       public mutating func clearDynamicPortForwarding() {_uniqueStorage()._dynamicPortForwarding = nil}
 
       public var suspendable: Bool {
-        get {return _storage._suspendable ?? false}
+        get {_storage._suspendable ?? false}
         set {_uniqueStorage()._suspendable = newValue}
       }
       /// Returns true if `suspendable` has been explicitly set.
-      public var hasSuspendable: Bool {return _storage._suspendable != nil}
+      public var hasSuspendable: Bool {_storage._suspendable != nil}
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
       public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
 
       public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
-        get {return _storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+        get {_storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
         set {_uniqueStorage()._screenSize = newValue}
       }
       /// Returns true if `screenSize` has been explicitly set.
-      public var hasScreenSize: Bool {return _storage._screenSize != nil}
+      public var hasScreenSize: Bool {_storage._screenSize != nil}
       /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
       public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
 
       public var user: String {
-        get {return _storage._user ?? String()}
+        get {_storage._user ?? String()}
         set {_uniqueStorage()._user = newValue}
       }
       /// Returns true if `user` has been explicitly set.
-      public var hasUser: Bool {return _storage._user != nil}
+      public var hasUser: Bool {_storage._user != nil}
       /// Clears the value of `user`. Subsequent reads from it will return its default value.
       public mutating func clearUser() {_uniqueStorage()._user = nil}
 
       public var password: String {
-        get {return _storage._password ?? String()}
+        get {_storage._password ?? String()}
         set {_uniqueStorage()._password = newValue}
       }
       /// Returns true if `password` has been explicitly set.
-      public var hasPassword: Bool {return _storage._password != nil}
+      public var hasPassword: Bool {_storage._password != nil}
       /// Clears the value of `password`. Subsequent reads from it will return its default value.
       public mutating func clearPassword() {_uniqueStorage()._password = nil}
 
@@ -879,11 +879,11 @@ public struct Caked_Caked: Sendable {
       public var args: [String] = []
 
       public var input: Data {
-        get {return _input ?? Data()}
+        get {_input ?? Data()}
         set {_input = newValue}
       }
       /// Returns true if `input` has been explicitly set.
-      public var hasInput: Bool {return self._input != nil}
+      public var hasInput: Bool {self._input != nil}
       /// Clears the value of `input`. Subsequent reads from it will return its default value.
       public mutating func clearInput() {self._input = nil}
 
@@ -1220,12 +1220,12 @@ public struct Caked_Caked: Sendable {
         set {response = .started(newValue)}
       }
 
-      public var builded: Caked_Caked.Reply.VirtualMachineReply.BuildedReply {
+      public var build: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply {
         get {
-          if case .builded(let v)? = response {return v}
-          return Caked_Caked.Reply.VirtualMachineReply.BuildedReply()
+          if case .build(let v)? = response {return v}
+          return Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply()
         }
-        set {response = .builded(newValue)}
+        set {response = .build(newValue)}
       }
 
       public var cloned: Caked_Caked.Reply.VirtualMachineReply.ClonedReply {
@@ -1294,7 +1294,7 @@ public struct Caked_Caked: Sendable {
         case status(Caked_Caked.Reply.VirtualMachineReply.StatusReply)
         case launched(Caked_Caked.Reply.VirtualMachineReply.LaunchReply)
         case started(Caked_Caked.Reply.VirtualMachineReply.StartedReply)
-        case builded(Caked_Caked.Reply.VirtualMachineReply.BuildedReply)
+        case build(Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply)
         case cloned(Caked_Caked.Reply.VirtualMachineReply.ClonedReply)
         case configured(Caked_Caked.Reply.VirtualMachineReply.ConfiguredReply)
         case duplicated(Caked_Caked.Reply.VirtualMachineReply.DuplicatedReply)
@@ -1313,11 +1313,11 @@ public struct Caked_Caked: Sendable {
         public var infos: [Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo] = []
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -1339,11 +1339,11 @@ public struct Caked_Caked: Sendable {
           public var fqn: [String] = []
 
           public var instanceID: String {
-            get {return _instanceID ?? String()}
+            get {_instanceID ?? String()}
             set {_instanceID = newValue}
           }
           /// Returns true if `instanceID` has been explicitly set.
-          public var hasInstanceID: Bool {return self._instanceID != nil}
+          public var hasInstanceID: Bool {self._instanceID != nil}
           /// Clears the value of `instanceID`. Subsequent reads from it will return its default value.
           public mutating func clearInstanceID() {self._instanceID = nil}
 
@@ -1354,20 +1354,20 @@ public struct Caked_Caked: Sendable {
           public var state: String = String()
 
           public var ip: String {
-            get {return _ip ?? String()}
+            get {_ip ?? String()}
             set {_ip = newValue}
           }
           /// Returns true if `ip` has been explicitly set.
-          public var hasIp: Bool {return self._ip != nil}
+          public var hasIp: Bool {self._ip != nil}
           /// Clears the value of `ip`. Subsequent reads from it will return its default value.
           public mutating func clearIp() {self._ip = nil}
 
           public var fingerprint: String {
-            get {return _fingerprint ?? String()}
+            get {_fingerprint ?? String()}
             set {_fingerprint = newValue}
           }
           /// Returns true if `fingerprint` has been explicitly set.
-          public var hasFingerprint: Bool {return self._fingerprint != nil}
+          public var hasFingerprint: Bool {self._fingerprint != nil}
           /// Clears the value of `fingerprint`. Subsequent reads from it will return its default value.
           public mutating func clearFingerprint() {self._fingerprint = nil}
 
@@ -1393,11 +1393,11 @@ public struct Caked_Caked: Sendable {
         public var objects: [Caked_Caked.Reply.VirtualMachineReply.DeleteReply.DeletedObject] = []
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -1436,11 +1436,11 @@ public struct Caked_Caked: Sendable {
         public var success: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -1477,11 +1477,11 @@ public struct Caked_Caked: Sendable {
         public var objects: [Caked_Caked.Reply.VirtualMachineReply.SuspendReply.SuspendedObject] = []
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -1516,20 +1516,20 @@ public struct Caked_Caked: Sendable {
         // methods supported on all messages.
 
         public var status: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply {
-          get {return _status ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply()}
+          get {_status ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply()}
           set {_status = newValue}
         }
         /// Returns true if `status` has been explicitly set.
-        public var hasStatus: Bool {return self._status != nil}
+        public var hasStatus: Bool {self._status != nil}
         /// Clears the value of `status`. Subsequent reads from it will return its default value.
         public mutating func clearStatus() {self._status = nil}
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -1543,134 +1543,134 @@ public struct Caked_Caked: Sendable {
           // methods supported on all messages.
 
           public var version: String {
-            get {return _storage._version ?? String()}
+            get {_storage._version ?? String()}
             set {_uniqueStorage()._version = newValue}
           }
           /// Returns true if `version` has been explicitly set.
-          public var hasVersion: Bool {return _storage._version != nil}
+          public var hasVersion: Bool {_storage._version != nil}
           /// Clears the value of `version`. Subsequent reads from it will return its default value.
           public mutating func clearVersion() {_uniqueStorage()._version = nil}
 
           public var uptime: UInt64 {
-            get {return _storage._uptime ?? 0}
+            get {_storage._uptime ?? 0}
             set {_uniqueStorage()._uptime = newValue}
           }
           /// Returns true if `uptime` has been explicitly set.
-          public var hasUptime: Bool {return _storage._uptime != nil}
+          public var hasUptime: Bool {_storage._uptime != nil}
           /// Clears the value of `uptime`. Subsequent reads from it will return its default value.
           public mutating func clearUptime() {_uniqueStorage()._uptime = nil}
 
           public var memory: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo {
-            get {return _storage._memory ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo()}
+            get {_storage._memory ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo()}
             set {_uniqueStorage()._memory = newValue}
           }
           /// Returns true if `memory` has been explicitly set.
-          public var hasMemory: Bool {return _storage._memory != nil}
+          public var hasMemory: Bool {_storage._memory != nil}
           /// Clears the value of `memory`. Subsequent reads from it will return its default value.
           public mutating func clearMemory() {_uniqueStorage()._memory = nil}
 
           public var cpuCount: Int32 {
-            get {return _storage._cpuCount}
+            get {_storage._cpuCount}
             set {_uniqueStorage()._cpuCount = newValue}
           }
 
           public var diskInfos: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.DiskInfo] {
-            get {return _storage._diskInfos}
+            get {_storage._diskInfos}
             set {_uniqueStorage()._diskInfos = newValue}
           }
 
           public var ipaddresses: [String] {
-            get {return _storage._ipaddresses}
+            get {_storage._ipaddresses}
             set {_uniqueStorage()._ipaddresses = newValue}
           }
 
           public var osname: String {
-            get {return _storage._osname}
+            get {_storage._osname}
             set {_uniqueStorage()._osname = newValue}
           }
 
           public var hostname: String {
-            get {return _storage._hostname ?? String()}
+            get {_storage._hostname ?? String()}
             set {_uniqueStorage()._hostname = newValue}
           }
           /// Returns true if `hostname` has been explicitly set.
-          public var hasHostname: Bool {return _storage._hostname != nil}
+          public var hasHostname: Bool {_storage._hostname != nil}
           /// Clears the value of `hostname`. Subsequent reads from it will return its default value.
           public mutating func clearHostname() {_uniqueStorage()._hostname = nil}
 
           public var release: String {
-            get {return _storage._release ?? String()}
+            get {_storage._release ?? String()}
             set {_uniqueStorage()._release = newValue}
           }
           /// Returns true if `release` has been explicitly set.
-          public var hasRelease: Bool {return _storage._release != nil}
+          public var hasRelease: Bool {_storage._release != nil}
           /// Clears the value of `release`. Subsequent reads from it will return its default value.
           public mutating func clearRelease() {_uniqueStorage()._release = nil}
 
           public var status: String {
-            get {return _storage._status}
+            get {_storage._status}
             set {_uniqueStorage()._status = newValue}
           }
 
           public var mounts: [String] {
-            get {return _storage._mounts}
+            get {_storage._mounts}
             set {_uniqueStorage()._mounts = newValue}
           }
 
           public var name: String {
-            get {return _storage._name}
+            get {_storage._name}
             set {_uniqueStorage()._name = newValue}
           }
 
           public var networks: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.AttachedNetwork] {
-            get {return _storage._networks}
+            get {_storage._networks}
             set {_uniqueStorage()._networks = newValue}
           }
 
           public var tunnels: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo] {
-            get {return _storage._tunnels}
+            get {_storage._tunnels}
             set {_uniqueStorage()._tunnels = newValue}
           }
 
           public var sockets: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo] {
-            get {return _storage._sockets}
+            get {_storage._sockets}
             set {_uniqueStorage()._sockets = newValue}
           }
 
           public var cpu: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo {
-            get {return _storage._cpu ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo()}
+            get {_storage._cpu ?? Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo()}
             set {_uniqueStorage()._cpu = newValue}
           }
           /// Returns true if `cpu` has been explicitly set.
-          public var hasCpu: Bool {return _storage._cpu != nil}
+          public var hasCpu: Bool {_storage._cpu != nil}
           /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
           public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
           public var vncURL: String {
-            get {return _storage._vncURL ?? String()}
+            get {_storage._vncURL ?? String()}
             set {_uniqueStorage()._vncURL = newValue}
           }
           /// Returns true if `vncURL` has been explicitly set.
-          public var hasVncURL: Bool {return _storage._vncURL != nil}
+          public var hasVncURL: Bool {_storage._vncURL != nil}
           /// Clears the value of `vncURL`. Subsequent reads from it will return its default value.
           public mutating func clearVncURL() {_uniqueStorage()._vncURL = nil}
 
           public var agentVersion: String {
-            get {return _storage._agentVersion}
+            get {_storage._agentVersion}
             set {_uniqueStorage()._agentVersion = newValue}
           }
 
           public var reason: String {
-            get {return _storage._reason ?? String()}
+            get {_storage._reason ?? String()}
             set {_uniqueStorage()._reason = newValue}
           }
           /// Returns true if `reason` has been explicitly set.
-          public var hasReason: Bool {return _storage._reason != nil}
+          public var hasReason: Bool {_storage._reason != nil}
           /// Clears the value of `reason`. Subsequent reads from it will return its default value.
           public mutating func clearReason() {_uniqueStorage()._reason = nil}
 
           public var success: Bool {
-            get {return _storage._success}
+            get {_storage._success}
             set {_uniqueStorage()._success = newValue}
           }
 
@@ -1748,20 +1748,20 @@ public struct Caked_Caked: Sendable {
             public var total: UInt64 = 0
 
             public var free: UInt64 {
-              get {return _free ?? 0}
+              get {_free ?? 0}
               set {_free = newValue}
             }
             /// Returns true if `free` has been explicitly set.
-            public var hasFree: Bool {return self._free != nil}
+            public var hasFree: Bool {self._free != nil}
             /// Clears the value of `free`. Subsequent reads from it will return its default value.
             public mutating func clearFree() {self._free = nil}
 
             public var used: UInt64 {
-              get {return _used ?? 0}
+              get {_used ?? 0}
               set {_used = newValue}
             }
             /// Returns true if `used` has been explicitly set.
-            public var hasUsed: Bool {return self._used != nil}
+            public var hasUsed: Bool {self._used != nil}
             /// Clears the value of `used`. Subsequent reads from it will return its default value.
             public mutating func clearUsed() {self._used = nil}
 
@@ -1803,20 +1803,20 @@ public struct Caked_Caked: Sendable {
             public var network: String = String()
 
             public var mode: String {
-              get {return _mode ?? String()}
+              get {_mode ?? String()}
               set {_mode = newValue}
             }
             /// Returns true if `mode` has been explicitly set.
-            public var hasMode: Bool {return self._mode != nil}
+            public var hasMode: Bool {self._mode != nil}
             /// Clears the value of `mode`. Subsequent reads from it will return its default value.
             public mutating func clearMode() {self._mode = nil}
 
             public var macAddress: String {
-              get {return _macAddress ?? String()}
+              get {_macAddress ?? String()}
               set {_macAddress = newValue}
             }
             /// Returns true if `macAddress` has been explicitly set.
-            public var hasMacAddress: Bool {return self._macAddress != nil}
+            public var hasMacAddress: Bool {self._macAddress != nil}
             /// Clears the value of `macAddress`. Subsequent reads from it will return its default value.
             public mutating func clearMacAddress() {self._macAddress = nil}
 
@@ -2005,22 +2005,22 @@ public struct Caked_Caked: Sendable {
         public var name: String = String()
 
         public var address: String {
-          get {return _address ?? String()}
+          get {_address ?? String()}
           set {_address = newValue}
         }
         /// Returns true if `address` has been explicitly set.
-        public var hasAddress: Bool {return self._address != nil}
+        public var hasAddress: Bool {self._address != nil}
         /// Clears the value of `address`. Subsequent reads from it will return its default value.
         public mutating func clearAddress() {self._address = nil}
 
         public var launched: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2040,22 +2040,22 @@ public struct Caked_Caked: Sendable {
         public var name: String = String()
 
         public var address: String {
-          get {return _address ?? String()}
+          get {_address ?? String()}
           set {_address = newValue}
         }
         /// Returns true if `address` has been explicitly set.
-        public var hasAddress: Bool {return self._address != nil}
+        public var hasAddress: Bool {self._address != nil}
         /// Clears the value of `address`. Subsequent reads from it will return its default value.
         public mutating func clearAddress() {self._address = nil}
 
         public var started: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2077,11 +2077,11 @@ public struct Caked_Caked: Sendable {
         public var builded: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2090,6 +2090,110 @@ public struct Caked_Caked: Sendable {
         public init() {}
 
         fileprivate var _reason: String? = nil
+      }
+
+      public struct BuildProgressValue: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var oldFractionCompleted: Double = 0
+
+        public var fractionCompleted: Double = 0
+
+        public var lastCompleted10: Int32 = 0
+
+        public var lastCompleted2: Int32 = 0
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+      }
+
+      public struct BuildTerminatedReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var result: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply.OneOf_Result? = nil
+
+        public var success: String {
+          get {
+            if case .success(let v)? = result {return v}
+            return String()
+          }
+          set {result = .success(newValue)}
+        }
+
+        public var failure: String {
+          get {
+            if case .failure(let v)? = result {return v}
+            return String()
+          }
+          set {result = .failure(newValue)}
+        }
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public enum OneOf_Result: Equatable, Sendable {
+          case success(String)
+          case failure(String)
+
+        }
+
+        public init() {}
+      }
+
+      public struct BuildStreamReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var current: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply.OneOf_Current? = nil
+
+        public var progress: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue {
+          get {
+            if case .progress(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue()
+          }
+          set {current = .progress(newValue)}
+        }
+
+        public var terminated: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply {
+          get {
+            if case .terminated(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply()
+          }
+          set {current = .terminated(newValue)}
+        }
+
+        public var step: String {
+          get {
+            if case .step(let v)? = current {return v}
+            return String()
+          }
+          set {current = .step(newValue)}
+        }
+
+        public var builded: Caked_Caked.Reply.VirtualMachineReply.BuildedReply {
+          get {
+            if case .builded(let v)? = current {return v}
+            return Caked_Caked.Reply.VirtualMachineReply.BuildedReply()
+          }
+          set {current = .builded(newValue)}
+        }
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public enum OneOf_Current: Equatable, Sendable {
+          case progress(Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue)
+          case terminated(Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply)
+          case step(String)
+          case builded(Caked_Caked.Reply.VirtualMachineReply.BuildedReply)
+
+        }
+
+        public init() {}
       }
 
       public struct ClonedReply: Sendable {
@@ -2104,11 +2208,11 @@ public struct Caked_Caked: Sendable {
         public var cloned: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2129,11 +2233,11 @@ public struct Caked_Caked: Sendable {
         public var configured: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2156,11 +2260,11 @@ public struct Caked_Caked: Sendable {
         public var duplicated: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2183,11 +2287,11 @@ public struct Caked_Caked: Sendable {
         public var imported: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2210,11 +2314,11 @@ public struct Caked_Caked: Sendable {
         public var success: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2233,11 +2337,11 @@ public struct Caked_Caked: Sendable {
         public var purged: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2260,11 +2364,11 @@ public struct Caked_Caked: Sendable {
         public var renamed: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2338,29 +2442,29 @@ public struct Caked_Caked: Sendable {
         public var type: String = String()
 
         public var created: String {
-          get {return _created ?? String()}
+          get {_created ?? String()}
           set {_created = newValue}
         }
         /// Returns true if `created` has been explicitly set.
-        public var hasCreated: Bool {return self._created != nil}
+        public var hasCreated: Bool {self._created != nil}
         /// Clears the value of `created`. Subsequent reads from it will return its default value.
         public mutating func clearCreated() {self._created = nil}
 
         public var expires: String {
-          get {return _expires ?? String()}
+          get {_expires ?? String()}
           set {_expires = newValue}
         }
         /// Returns true if `expires` has been explicitly set.
-        public var hasExpires: Bool {return self._expires != nil}
+        public var hasExpires: Bool {self._expires != nil}
         /// Clears the value of `expires`. Subsequent reads from it will return its default value.
         public mutating func clearExpires() {self._expires = nil}
 
         public var uploaded: String {
-          get {return _uploaded ?? String()}
+          get {_uploaded ?? String()}
           set {_uploaded = newValue}
         }
         /// Returns true if `uploaded` has been explicitly set.
-        public var hasUploaded: Bool {return self._uploaded != nil}
+        public var hasUploaded: Bool {self._uploaded != nil}
         /// Clears the value of `uploaded`. Subsequent reads from it will return its default value.
         public mutating func clearUploaded() {self._uploaded = nil}
 
@@ -2383,11 +2487,11 @@ public struct Caked_Caked: Sendable {
         public var success: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2406,20 +2510,20 @@ public struct Caked_Caked: Sendable {
         // methods supported on all messages.
 
         public var info: Caked_Caked.Reply.ImageReply.ImageInfo {
-          get {return _info ?? Caked_Caked.Reply.ImageReply.ImageInfo()}
+          get {_info ?? Caked_Caked.Reply.ImageReply.ImageInfo()}
           set {_info = newValue}
         }
         /// Returns true if `info` has been explicitly set.
-        public var hasInfo: Bool {return self._info != nil}
+        public var hasInfo: Bool {self._info != nil}
         /// Clears the value of `info`. Subsequent reads from it will return its default value.
         public mutating func clearInfo() {self._info = nil}
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2439,20 +2543,20 @@ public struct Caked_Caked: Sendable {
         // methods supported on all messages.
 
         public var info: Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo {
-          get {return _info ?? Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo()}
+          get {_info ?? Caked_Caked.Reply.ImageReply.PulledImageInfoReply.PulledImageInfo()}
           set {_info = newValue}
         }
         /// Returns true if `info` has been explicitly set.
-        public var hasInfo: Bool {return self._info != nil}
+        public var hasInfo: Bool {self._info != nil}
         /// Clears the value of `info`. Subsequent reads from it will return its default value.
         public mutating func clearInfo() {self._info = nil}
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2466,11 +2570,11 @@ public struct Caked_Caked: Sendable {
           // methods supported on all messages.
 
           public var alias: String {
-            get {return _alias ?? String()}
+            get {_alias ?? String()}
             set {_alias = newValue}
           }
           /// Returns true if `alias` has been explicitly set.
-          public var hasAlias: Bool {return self._alias != nil}
+          public var hasAlias: Bool {self._alias != nil}
           /// Clears the value of `alias`. Subsequent reads from it will return its default value.
           public mutating func clearAlias() {self._alias = nil}
 
@@ -2610,20 +2714,20 @@ public struct Caked_Caked: Sendable {
         // methods supported on all messages.
 
         public var info: Caked_Caked.Reply.NetworksReply.NetworkInfo {
-          get {return _info ?? Caked_Caked.Reply.NetworksReply.NetworkInfo()}
+          get {_info ?? Caked_Caked.Reply.NetworksReply.NetworkInfo()}
           set {_info = newValue}
         }
         /// Returns true if `info` has been explicitly set.
-        public var hasInfo: Bool {return self._info != nil}
+        public var hasInfo: Bool {self._info != nil}
         /// Clears the value of `info`. Subsequent reads from it will return its default value.
         public mutating func clearInfo() {self._info = nil}
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2645,11 +2749,11 @@ public struct Caked_Caked: Sendable {
         public var networks: [Caked_Caked.Reply.NetworksReply.NetworkInfo] = []
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2672,11 +2776,11 @@ public struct Caked_Caked: Sendable {
         public var started: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2697,11 +2801,11 @@ public struct Caked_Caked: Sendable {
         public var stopped: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2722,11 +2826,11 @@ public struct Caked_Caked: Sendable {
         public var created: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2747,11 +2851,11 @@ public struct Caked_Caked: Sendable {
         public var configured: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2772,11 +2876,11 @@ public struct Caked_Caked: Sendable {
         public var deleted: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2840,11 +2944,11 @@ public struct Caked_Caked: Sendable {
         public var success: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2879,11 +2983,11 @@ public struct Caked_Caked: Sendable {
         public var deleted: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2904,11 +3008,11 @@ public struct Caked_Caked: Sendable {
         public var created: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -2972,11 +3076,11 @@ public struct Caked_Caked: Sendable {
         public var success: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -3015,11 +3119,11 @@ public struct Caked_Caked: Sendable {
         public var created: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -3040,11 +3144,11 @@ public struct Caked_Caked: Sendable {
         public var deleted: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -3082,11 +3186,11 @@ public struct Caked_Caked: Sendable {
       public var success: Bool = false
 
       public var reason: String {
-        get {return _reason ?? String()}
+        get {_reason ?? String()}
         set {_reason = newValue}
       }
       /// Returns true if `reason` has been explicitly set.
-      public var hasReason: Bool {return self._reason != nil}
+      public var hasReason: Bool {self._reason != nil}
       /// Clears the value of `reason`. Subsequent reads from it will return its default value.
       public mutating func clearReason() {self._reason = nil}
 
@@ -3102,11 +3206,11 @@ public struct Caked_Caked: Sendable {
         public var mounted: Bool = false
 
         public var reason: String {
-          get {return _reason ?? String()}
+          get {_reason ?? String()}
           set {_reason = newValue}
         }
         /// Returns true if `reason` has been explicitly set.
-        public var hasReason: Bool {return self._reason != nil}
+        public var hasReason: Bool {self._reason != nil}
         /// Clears the value of `reason`. Subsequent reads from it will return its default value.
         public mutating func clearReason() {self._reason = nil}
 
@@ -3377,56 +3481,56 @@ public struct Caked_Caked: Sendable {
       public var name: String = String()
 
       public var gateway: String {
-        get {return _gateway ?? String()}
+        get {_gateway ?? String()}
         set {_gateway = newValue}
       }
       /// Returns true if `gateway` has been explicitly set.
-      public var hasGateway: Bool {return self._gateway != nil}
+      public var hasGateway: Bool {self._gateway != nil}
       /// Clears the value of `gateway`. Subsequent reads from it will return its default value.
       public mutating func clearGateway() {self._gateway = nil}
 
       public var dhcpEnd: String {
-        get {return _dhcpEnd ?? String()}
+        get {_dhcpEnd ?? String()}
         set {_dhcpEnd = newValue}
       }
       /// Returns true if `dhcpEnd` has been explicitly set.
-      public var hasDhcpEnd: Bool {return self._dhcpEnd != nil}
+      public var hasDhcpEnd: Bool {self._dhcpEnd != nil}
       /// Clears the value of `dhcpEnd`. Subsequent reads from it will return its default value.
       public mutating func clearDhcpEnd() {self._dhcpEnd = nil}
 
       public var netmask: String {
-        get {return _netmask ?? String()}
+        get {_netmask ?? String()}
         set {_netmask = newValue}
       }
       /// Returns true if `netmask` has been explicitly set.
-      public var hasNetmask: Bool {return self._netmask != nil}
+      public var hasNetmask: Bool {self._netmask != nil}
       /// Clears the value of `netmask`. Subsequent reads from it will return its default value.
       public mutating func clearNetmask() {self._netmask = nil}
 
       public var uuid: String {
-        get {return _uuid ?? String()}
+        get {_uuid ?? String()}
         set {_uuid = newValue}
       }
       /// Returns true if `uuid` has been explicitly set.
-      public var hasUuid: Bool {return self._uuid != nil}
+      public var hasUuid: Bool {self._uuid != nil}
       /// Clears the value of `uuid`. Subsequent reads from it will return its default value.
       public mutating func clearUuid() {self._uuid = nil}
 
       public var nat66Prefix: String {
-        get {return _nat66Prefix ?? String()}
+        get {_nat66Prefix ?? String()}
         set {_nat66Prefix = newValue}
       }
       /// Returns true if `nat66Prefix` has been explicitly set.
-      public var hasNat66Prefix: Bool {return self._nat66Prefix != nil}
+      public var hasNat66Prefix: Bool {self._nat66Prefix != nil}
       /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
       public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
 
       public var dhcpLease: Int32 {
-        get {return _dhcpLease ?? 0}
+        get {_dhcpLease ?? 0}
         set {_dhcpLease = newValue}
       }
       /// Returns true if `dhcpLease` has been explicitly set.
-      public var hasDhcpLease: Bool {return self._dhcpLease != nil}
+      public var hasDhcpLease: Bool {self._dhcpLease != nil}
       /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
       public mutating func clearDhcpLease() {self._dhcpLease = nil}
 
@@ -3458,29 +3562,29 @@ public struct Caked_Caked: Sendable {
       public var netmask: String = String()
 
       public var uuid: String {
-        get {return _uuid ?? String()}
+        get {_uuid ?? String()}
         set {_uuid = newValue}
       }
       /// Returns true if `uuid` has been explicitly set.
-      public var hasUuid: Bool {return self._uuid != nil}
+      public var hasUuid: Bool {self._uuid != nil}
       /// Clears the value of `uuid`. Subsequent reads from it will return its default value.
       public mutating func clearUuid() {self._uuid = nil}
 
       public var nat66Prefix: String {
-        get {return _nat66Prefix ?? String()}
+        get {_nat66Prefix ?? String()}
         set {_nat66Prefix = newValue}
       }
       /// Returns true if `nat66Prefix` has been explicitly set.
-      public var hasNat66Prefix: Bool {return self._nat66Prefix != nil}
+      public var hasNat66Prefix: Bool {self._nat66Prefix != nil}
       /// Clears the value of `nat66Prefix`. Subsequent reads from it will return its default value.
       public mutating func clearNat66Prefix() {self._nat66Prefix = nil}
 
       public var dhcpLease: Int32 {
-        get {return _dhcpLease ?? 0}
+        get {_dhcpLease ?? 0}
         set {_dhcpLease = newValue}
       }
       /// Returns true if `dhcpLease` has been explicitly set.
-      public var hasDhcpLease: Bool {return self._dhcpLease != nil}
+      public var hasDhcpLease: Bool {self._dhcpLease != nil}
       /// Clears the value of `dhcpLease`. Subsequent reads from it will return its default value.
       public mutating func clearDhcpLease() {self._dhcpLease = nil}
 
@@ -3650,38 +3754,38 @@ public struct Caked_Caked: Sendable {
     // methods supported on all messages.
 
     public var entries: String {
-      get {return _entries ?? String()}
+      get {_entries ?? String()}
       set {_entries = newValue}
     }
     /// Returns true if `entries` has been explicitly set.
-    public var hasEntries: Bool {return self._entries != nil}
+    public var hasEntries: Bool {self._entries != nil}
     /// Clears the value of `entries`. Subsequent reads from it will return its default value.
     public mutating func clearEntries() {self._entries = nil}
 
     public var olderThan: Int32 {
-      get {return _olderThan ?? 0}
+      get {_olderThan ?? 0}
       set {_olderThan = newValue}
     }
     /// Returns true if `olderThan` has been explicitly set.
-    public var hasOlderThan: Bool {return self._olderThan != nil}
+    public var hasOlderThan: Bool {self._olderThan != nil}
     /// Clears the value of `olderThan`. Subsequent reads from it will return its default value.
     public mutating func clearOlderThan() {self._olderThan = nil}
 
     public var spaceBudget: Int32 {
-      get {return _spaceBudget ?? 0}
+      get {_spaceBudget ?? 0}
       set {_spaceBudget = newValue}
     }
     /// Returns true if `spaceBudget` has been explicitly set.
-    public var hasSpaceBudget: Bool {return self._spaceBudget != nil}
+    public var hasSpaceBudget: Bool {self._spaceBudget != nil}
     /// Clears the value of `spaceBudget`. Subsequent reads from it will return its default value.
     public mutating func clearSpaceBudget() {self._spaceBudget = nil}
 
     public var gc: Bool {
-      get {return _gc ?? false}
+      get {_gc ?? false}
       set {_gc = newValue}
     }
     /// Returns true if `gc` has been explicitly set.
-    public var hasGc: Bool {return self._gc != nil}
+    public var hasGc: Bool {self._gc != nil}
     /// Clears the value of `gc`. Subsequent reads from it will return its default value.
     public mutating func clearGc() {self._gc = nil}
 
@@ -3822,38 +3926,38 @@ public struct Caked_Caked: Sendable {
       public var source: String = String()
 
       public var target: String {
-        get {return _target ?? String()}
+        get {_target ?? String()}
         set {_target = newValue}
       }
       /// Returns true if `target` has been explicitly set.
-      public var hasTarget: Bool {return self._target != nil}
+      public var hasTarget: Bool {self._target != nil}
       /// Clears the value of `target`. Subsequent reads from it will return its default value.
       public mutating func clearTarget() {self._target = nil}
 
       public var name: String {
-        get {return _name ?? String()}
+        get {_name ?? String()}
         set {_name = newValue}
       }
       /// Returns true if `name` has been explicitly set.
-      public var hasName: Bool {return self._name != nil}
+      public var hasName: Bool {self._name != nil}
       /// Clears the value of `name`. Subsequent reads from it will return its default value.
       public mutating func clearName() {self._name = nil}
 
       public var uid: Int32 {
-        get {return _uid ?? 0}
+        get {_uid ?? 0}
         set {_uid = newValue}
       }
       /// Returns true if `uid` has been explicitly set.
-      public var hasUid: Bool {return self._uid != nil}
+      public var hasUid: Bool {self._uid != nil}
       /// Clears the value of `uid`. Subsequent reads from it will return its default value.
       public mutating func clearUid() {self._uid = nil}
 
       public var gid: Int32 {
-        get {return _gid ?? 0}
+        get {_gid ?? 0}
         set {_gid = newValue}
       }
       /// Returns true if `gid` has been explicitly set.
-      public var hasGid: Bool {return self._gid != nil}
+      public var hasGid: Bool {self._gid != nil}
       /// Clears the value of `gid`. Subsequent reads from it will return its default value.
       public mutating func clearGid() {self._gid = nil}
 
@@ -5597,7 +5701,7 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
 
 extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}builded\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5697,16 +5801,16 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
         }
       }()
       case 8: try {
-        var v: Caked_Caked.Reply.VirtualMachineReply.BuildedReply?
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply?
         var hadOneofValue = false
         if let current = self.response {
           hadOneofValue = true
-          if case .builded(let m) = current {v = m}
+          if case .build(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.response = .builded(v)
+          self.response = .build(v)
         }
       }()
       case 9: try {
@@ -5839,8 +5943,8 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
       guard case .started(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
     }()
-    case .builded?: try {
-      guard case .builded(let v)? = self.response else { preconditionFailure() }
+    case .build?: try {
+      guard case .build(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     }()
     case .cloned?: try {
@@ -7145,6 +7249,204 @@ extension Caked_Caked.Reply.VirtualMachineReply.BuildedReply: SwiftProtobuf.Mess
     if lhs.name != rhs.name {return false}
     if lhs.builded != rhs.builded {return false}
     if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildProgressValue"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}oldFractionCompleted\0\u{1}fractionCompleted\0\u{1}lastCompleted10\0\u{1}lastCompleted2\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularDoubleField(value: &self.oldFractionCompleted) }()
+      case 2: try { try decoder.decodeSingularDoubleField(value: &self.fractionCompleted) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self.lastCompleted10) }()
+      case 4: try { try decoder.decodeSingularInt32Field(value: &self.lastCompleted2) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.oldFractionCompleted.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.oldFractionCompleted, fieldNumber: 1)
+    }
+    if self.fractionCompleted.bitPattern != 0 {
+      try visitor.visitSingularDoubleField(value: self.fractionCompleted, fieldNumber: 2)
+    }
+    if self.lastCompleted10 != 0 {
+      try visitor.visitSingularInt32Field(value: self.lastCompleted10, fieldNumber: 3)
+    }
+    if self.lastCompleted2 != 0 {
+      try visitor.visitSingularInt32Field(value: self.lastCompleted2, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue, rhs: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue) -> Bool {
+    if lhs.oldFractionCompleted != rhs.oldFractionCompleted {return false}
+    if lhs.fractionCompleted != rhs.fractionCompleted {return false}
+    if lhs.lastCompleted10 != rhs.lastCompleted10 {return false}
+    if lhs.lastCompleted2 != rhs.lastCompleted2 {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildTerminatedReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}failure\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.result != nil {try decoder.handleConflictingOneOf()}
+          self.result = .success(v)
+        }
+      }()
+      case 2: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.result != nil {try decoder.handleConflictingOneOf()}
+          self.result = .failure(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.result {
+    case .success?: try {
+      guard case .success(let v)? = self.result else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 1)
+    }()
+    case .failure?: try {
+      guard case .failure(let v)? = self.result else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply, rhs: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply) -> Bool {
+    if lhs.result != rhs.result {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".BuildStreamReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}progress\0\u{1}step\0\u{1}terminated\0\u{1}builded\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildProgressValue?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .progress(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .progress(v)
+        }
+      }()
+      case 2: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.current != nil {try decoder.handleConflictingOneOf()}
+          self.current = .step(v)
+        }
+      }()
+      case 3: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildTerminatedReply?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .terminated(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .terminated(v)
+        }
+      }()
+      case 4: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.BuildedReply?
+        var hadOneofValue = false
+        if let current = self.current {
+          hadOneofValue = true
+          if case .builded(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.current = .builded(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.current {
+    case .progress?: try {
+      guard case .progress(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    }()
+    case .step?: try {
+      guard case .step(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    }()
+    case .terminated?: try {
+      guard case .terminated(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case .builded?: try {
+      guard case .builded(let v)? = self.current else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply, rhs: Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply) -> Bool {
+    if lhs.current != rhs.current {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

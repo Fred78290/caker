@@ -19,14 +19,12 @@ struct LaunchHandler: CakedCommandAsync {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
-		return on.makeFutureWithTask {
-			let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: .service)
+	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: .service)
 
-			return Caked_Reply.with { reply in
-				reply.vms = Caked_VirtualMachineReply.with {
-					$0.launched = result.caked
-				}
+		return Caked_Reply.with { reply in
+			reply.vms = Caked_VirtualMachineReply.with {
+				$0.launched = result.caked
 			}
 		}
 	}

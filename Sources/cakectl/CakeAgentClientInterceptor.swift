@@ -87,10 +87,10 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		try inputHandle.restoreState(&state)
 	}
 
-	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_Reply>] {
-		[CakeServiceClientInterceptor<Caked_BuildRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_BuildStreamReply>] {
+		[CakeServiceClientInterceptor<Caked_BuildRequest, Caked_BuildStreamReply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-
+	
 	func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

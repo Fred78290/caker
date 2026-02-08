@@ -88,6 +88,7 @@ public typealias Caked_SuspendedObject = Caked.Reply.VirtualMachineReply.Suspend
 public typealias Caked_VirtualMachineInfoReply = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply
 public typealias Caked_VirtualMachineInfo = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo
 public typealias Caked_VirtualMachineStatusReply = Caked.Reply.VirtualMachineReply.StatusReply
+public typealias Caked_BuildStreamReply = Caked.Reply.VirtualMachineReply.BuildStreamReply
 
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest

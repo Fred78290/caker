@@ -30,14 +30,7 @@ struct InfosHandler: CakedCommand {
 				}
 			}
 		} catch {
-			return Caked_Reply.with {
-				$0.vms = Caked_VirtualMachineReply.with {
-					$0.status = .with {
-						$0.success = false
-						$0.reason = "\(error)"
-					}
-				}
-			}
+			return replyError(error: error)
 		}
 	}
 }

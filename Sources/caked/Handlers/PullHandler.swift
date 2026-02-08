@@ -11,13 +11,11 @@ import NIOCore
 struct PullHandler: CakedCommandAsync {
 	var request: Caked_CloneRequest
 
-	func run(on: any EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
-		return on.makeFutureWithTask {
-			let result = await CakedLib.PullHandler.pull(name: request.name, image: request.image, insecure: request.insecure, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
-			return Caked_Reply.with {
-				$0.oci = .with {
-					$0.pull = result.caked
-				}
+	func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		let result = await CakedLib.PullHandler.pull(name: request.name, image: request.image, insecure: request.insecure, runMode: runMode, progressHandler: ProgressObserver.progressHandler)
+		return Caked_Reply.with {
+			$0.oci = .with {
+				$0.pull = result.caked
 			}
 		}
 	}

@@ -36,7 +36,13 @@ struct ExecuteHandler: CakedCommandAsync {
 		self.vmname = vmname
 	}
 
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
-		return CakedLib.ExecuteHandler.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		do {
+			try await CakedLib.ExecuteHandler.execute(on: on, runMode: runMode, requestStream: requestStream, responseStream: responseStream, vmname: vmname, client: client)
+		} catch {
+			return replyError(error: error)
+		}
+		
+		return .init()
 	}
 }

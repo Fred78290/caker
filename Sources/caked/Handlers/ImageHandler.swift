@@ -73,9 +73,7 @@ struct ImageHandler: CakedCommandAsync {
 		}
 	}
 
-	func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply> {
-		return on.makeFutureWithTask {
-			await self.execute(command: request.command, name: request.name, runMode: runMode)
-		}
+	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
+		await self.execute(command: request.command, name: request.name, runMode: runMode)
 	}
 }

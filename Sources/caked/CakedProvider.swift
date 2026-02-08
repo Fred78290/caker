@@ -14,7 +14,7 @@ public protocol CakedCommand {
 }
 
 public protocol CakedCommandAsync: CakedCommand {
-	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> EventLoopFuture<Caked_Reply>
+	mutating func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply
 }
 
 extension CakedCommand {
@@ -34,7 +34,15 @@ extension CakedCommand {
 
 extension CakedCommandAsync {
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
-		return try! self.run(on: on, runMode: runMode).wait()
+		do {
+			var handler = self
+
+			return try on.makeFutureWithTask {
+				return await handler.run(on: on, runMode: runMode)
+			}.wait()
+		} catch {
+			return self.replyError(error: error)
+		}
 	}
 }
 
@@ -95,12 +103,6 @@ extension Caked_RenameRequest: CreateCakedCommand {
 extension Caked_CommonBuildRequest {
 	func buildOptions() throws -> BuildOptions {
 		try BuildOptions(request: self)
-	}
-}
-
-extension Caked_BuildRequest: CreateCakedCommand {
-	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return BuildHandler(options: try self.options.buildOptions())
 	}
 }
 
@@ -245,21 +247,17 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 
 		Logger(self).debug("execute: \(command)")
 
-		if var cmd = command as? CakedCommandAsync {
-			return try cmd.run(on: eventLoop, runMode: self.runMode).wait()
-		} else {
-			return command.run(on: eventLoop, runMode: self.runMode)
-		}
+		return command.run(on: eventLoop, runMode: self.runMode)
 	}
 
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
 		try self.execute(command: command.createCommand(provider: self))
 	}
 
-	func build(request: Caked_BuildRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
+		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context))
 	}
-
+	
 	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
