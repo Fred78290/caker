@@ -274,7 +274,7 @@ struct HomeView: View {
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)
 		case .networks:
-			NetworkWizard(appState: _appState)
+			NetworkWizard()
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(size: CGSize(width: 600, height: 400))

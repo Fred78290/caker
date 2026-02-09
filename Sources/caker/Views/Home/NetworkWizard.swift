@@ -12,22 +12,17 @@ import SwiftUI
 
 struct NetworkWizard: View {
 	@Environment(\.dismiss) private var dismiss
-	@Binding var appState: AppState
 	@State private var vzNetwork: VZSharedNetwork?
 	@State private var currentItem: BridgedNetwork
 	@State private var reason: String?
-	private var networkConfig: VZVMNetConfig
 
-	init(appState: Binding<AppState>) {
+	init() {
 		let network = BridgedNetwork(name: "private", mode: .host, description: "Hosted network", gateway: "192.168.111.1/24", dhcpEnd: "192.168.111.254/24", dhcpLease: Self.getDhcpLease(), interfaceID: UUID().uuidString, endpoint: "", usedBy: 0)
-		let networkConfig = try! Home(runMode: .app).sharedNetworks()
-		let valid = Self.validate(network, networkConfig: networkConfig)
+		let valid = Self.validate(network)
 
 		self.vzNetwork = valid.0
 		self.reason = valid.1
-		self._appState = appState
 		self.currentItem = network
-		self.networkConfig = networkConfig
 	}
 
 	var body: some View {
@@ -41,7 +36,7 @@ struct NetworkWizard: View {
 					set: { newValue in
 						if newValue {
 							DispatchQueue.main.async {
-								self.appState.reloadNetworks()
+								AppState.shared.reloadNetworks()
 							}
 						}
 					}
@@ -64,17 +59,13 @@ struct NetworkWizard: View {
 		}
 		.padding()
 		.onChange(of: currentItem) { _, newValue in
-			(self.vzNetwork, self.reason) = Self.validate(newValue, networkConfig: self.networkConfig)
+			(self.vzNetwork, self.reason) = Self.validate(newValue)
 		}
 	}
 
-	static func validate(_ network: BridgedNetwork, networkConfig: VZVMNetConfig) -> (VZSharedNetwork?, String?) {
+	static func validate(_ network: BridgedNetwork) -> (VZSharedNetwork?, String?) {
 		do {
-			if CakedLib.NetworksHandler.isPhysicalInterface(name: network.name) {
-				throw ValidationError("Network \(network.name) is a physical interface")
-			}
-
-			if networkConfig.sharedNetworks[network.name] != nil {
+			guard AppState.shared.networks.first(where: { $0.name == network.name }) == nil else {
 				throw ValidationError("Network \(network.name) already exist")
 			}
 
@@ -94,11 +85,7 @@ struct NetworkWizard: View {
 				throw ValidationError("Invalid address \(network.dhcpEnd)")
 			}
 
-			let networks = VZSharedNetwork.networkInterfaces(networkConfig: networkConfig).map {
-				$0.value.network
-			}
-
-			guard networks.first(where: { $0.contains(dhcpStart) }) == nil else {
+			guard AppState.shared.networks.first(where: { $0.gateway == network.gateway }) == nil else {
 				throw ValidationError("Gateway \(dhcpStart) is already in use")
 			}
 
@@ -133,13 +120,7 @@ struct NetworkWizard: View {
 
 	func createNetwork() {
 		do {
-			let home: Home = try Home(runMode: .app)
-			let name = self.currentItem.name
-			var networkConfig = self.networkConfig
-
-			networkConfig.userNetworks[name] = self.vzNetwork!
-			try home.setSharedNetworks(networkConfig)
-			appState.reloadNetworks()
+			try AppState.shared.createNetwork(network: self.currentItem)
 		} catch {
 			alertError(error)
 		}
@@ -156,5 +137,5 @@ struct NetworkWizard: View {
 }
 
 #Preview {
-	NetworkWizard(appState: .constant(AppState.shared))
+	NetworkWizard()
 }

@@ -249,6 +249,22 @@ class AppState: ObservableObject, Observable {
 		await Self.loadImages(client: self.cakedServiceClient, remote: remote, runMode: self.runMode)
 	}
 
+	func createNetwork(network: BridgedNetwork) throws {
+		let vzNetwork = VZSharedNetwork(
+			mode: network.mode == .shared ? .shared : .host,
+			netmask: network.netmask,
+			dhcpStart: network.dhcpStart,
+			dhcpEnd: network.dhcpEnd,
+			dhcpLease: Int32(network.dhcpLease),
+			interfaceID: network.interfaceID,
+			nat66Prefix: nil
+		)
+
+		_ = try NetworksHandler.create(client: self.cakedServiceClient, networkName: network.name, network: vzNetwork, runMode: self.runMode)
+
+		self.reloadNetworks()
+	}
+
 	func startNetwork(networkName: String) -> StartedNetworkReply {
 		NetworksHandler.start(client: self.cakedServiceClient, networkName: networkName, runMode: self.runMode)
 	}

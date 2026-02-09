@@ -3,6 +3,27 @@ import CakedLib
 import GRPCLib
 
 extension NetworksHandler {
+	public static func create(client: CakedServiceClient?, networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> CreatedNetworkReply {
+		guard let client = client, runMode != .app else {
+			return self.create(networkName: networkName, network: network, runMode: runMode)
+		}
+
+		return try CreatedNetworkReply(from: client.networks(.with {
+			$0.command = .new
+			$0.create = Caked_NetworkRequest.CreateNetworkRequest.with {
+				$0.mode = network.mode == .shared ? .shared : .host
+				$0.name = networkName
+				$0.gateway = network.dhcpStart
+				$0.dhcpEnd = network.dhcpEnd
+				$0.netmask = network.netmask
+				$0.uuid = network.interfaceID
+				if let nat66Prefix = network.nat66Prefix {
+					$0.nat66Prefix = nat66Prefix
+				}
+			}
+		}).response.wait().networks.created)
+	}
+
 	public static func networks(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListNetworksReply {
 		guard let client = client, runMode != .app else {
 			return self.networks(runMode: runMode)
