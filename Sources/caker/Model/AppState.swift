@@ -257,6 +257,18 @@ class AppState: ObservableObject, Observable {
 		NetworksHandler.stop(client: self.cakedServiceClient, networkName: networkName, runMode: self.runMode)
 	}
 
+	func createTemplate(templateName: String) throws -> CreateTemplateReply {
+		guard let currentDocument = self.currentDocument else {
+			throw ServiceError("No VM found")
+		}
+		
+		guard currentDocument.status.isStopped else {
+			throw ServiceError("VM is running")
+		}
+		
+		return try TemplateHandler.createTemplate(client: self.cakedServiceClient, sourceName: currentDocument.name, templateName: templateName, runMode: self.runMode)
+	}
+
 	func templateExists(name: String) -> Bool {
 		TemplateHandler.exists(client: self.cakedServiceClient, name: name, runMode: self.runMode)
 	}

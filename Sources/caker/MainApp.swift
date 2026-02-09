@@ -176,7 +176,7 @@ struct MainApp: App {
 				}
 				.disabled(appState.isRunning || appState.currentDocument == nil)
 				.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView(appState: $appState)
+					CreateTemplateView()
 				}
 
 				Divider()
@@ -192,7 +192,7 @@ struct MainApp: App {
 				}
 				.disabled(agentCondition.disabled)
 				.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView(appState: $appState)
+					CreateTemplateView()
 				}
 			}
 

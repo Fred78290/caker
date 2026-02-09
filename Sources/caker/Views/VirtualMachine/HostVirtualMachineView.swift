@@ -280,7 +280,7 @@ struct HostVirtualMachineView: View {
 				}.sheet(isPresented: $displaySettings) {
 					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView(appState: $appState)
+					CreateTemplateView()
 				}.onGeometryChange(for: CGRect.self) { proxy in
 					proxy.frame(in: .global)
 				} action: { newValue in

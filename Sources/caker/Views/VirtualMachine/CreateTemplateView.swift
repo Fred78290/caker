@@ -10,7 +10,6 @@ import GRPCLib
 import SwiftUI
 
 struct CreateTemplateView: View {
-	@Binding var appState: AppState
 	@State private var templateName: String = ""
 	@State private var templateResult: CreateTemplateReply?
 
@@ -24,14 +23,14 @@ struct CreateTemplateView: View {
 					switch result {
 					case .success(let value):
 						self.templateResult = value
-						self.appState.reloadRemotes()
+						AppState.shared.reloadRemotes()
 					case .failure(let error):
 						alertError(error)
 					}
 				}
 			}
 		)
-		.disabled(templateName.isEmpty || self.appState.templateExists(name: templateName))
+		.disabled(templateName.isEmpty || AppState.shared.templateExists(name: templateName))
 		.onChange(of: templateResult) { _, newValue in
 			isCreateTemplatFailed(templateResult: newValue)
 		}
@@ -47,24 +46,14 @@ struct CreateTemplateView: View {
 			alert.informativeText = templateResult.reason ?? "Internal error"
 			alert.runModal()
 		} else {
-			self.appState.reloadRemotes()
+			AppState.shared.reloadRemotes()
 		}
 	}
 
 	private func createTemplate(_ done: @escaping (Result<CreateTemplateReply, Error>) -> Void) async {
 		DispatchQueue.main.async {
 			do {
-				guard let currentDocument = self.appState.currentDocument else {
-					done(.failure(ServiceError("No VM found")))
-					return
-				}
-
-				guard currentDocument.status.isStopped else {
-					done(.failure(ServiceError("VM is running")))
-					return
-				}
-
-				done(.success(try TemplateHandler.createTemplate(client: self.appState.cakedServiceClient, sourceName: self.appState.currentDocument!.name, templateName: self.templateName, runMode: self.appState.runMode)))
+				done(.success(try AppState.shared.createTemplate(templateName: self.templateName)))
 			} catch {
 				done(.failure(error))
 			}
