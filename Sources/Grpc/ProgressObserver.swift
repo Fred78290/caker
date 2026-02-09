@@ -11,7 +11,7 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 	public enum ProgressValue: Sendable {
 		case progress(ProgressHandlerContext, Double)
 		case step(String)
-		case terminated(Result<VMLocation, any Error>, String?)
+		case terminated(Result<Sendable?, any Error>, String?)
 	}
 
 	public final class ProgressHandlerContext: @unchecked Sendable {
@@ -27,9 +27,9 @@ public final class ProgressObserver: NSObject, @unchecked Sendable {
 
 	public typealias BuildProgressHandler = (ProgressValue) -> Void
 
-	@objc var progress: Progress
-	var observation: NSKeyValueObservation?
-	let progressHandler: BuildProgressHandler?
+	@objc public var progress: Progress
+	public var observation: NSKeyValueObservation?
+	public let progressHandler: BuildProgressHandler?
 
 	public static func progressHandler(_ result: ProgressValue) {
 		if case .progress(let context, let fractionCompleted) = result {

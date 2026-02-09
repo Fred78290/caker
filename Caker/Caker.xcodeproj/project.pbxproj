@@ -268,6 +268,7 @@
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
+		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
 		9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */; };
@@ -461,7 +462,6 @@
 		9BEBC86B2DF44B9D0092B196 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
-		9BF639F72F0E6E5400FB6155 /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF639F62F0E6E4E00FB6155 /* ProgressObserver.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 /* End PBXBuildFile section */
 
@@ -782,6 +782,7 @@
 		9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListObjects.swift; sourceTree = "<group>"; };
 		9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSchemeModifier.swift; sourceTree = "<group>"; };
 		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
+		9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
 		9BEBC68E2DF43FEE0092B196 /* caked */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = caked; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BEBC6952DF4400A0092B196 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9BEBC6972DF4400A0092B196 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
@@ -901,7 +902,6 @@
 		9BEBC7662DF440720092B196 /* VirtualMachine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachine.swift; sourceTree = "<group>"; };
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
-		9BF639F62F0E6E4E00FB6155 /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1393,6 +1393,7 @@
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
 				9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */,
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
+				9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
 				9B21ABD12DF4A2C5000B3B40 /* Model */,
@@ -1793,7 +1794,6 @@
 				9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */,
 				9BEBC75F2DF440720092B196 /* NetworkAttachement.swift */,
 				9BEBC7612DF440720092B196 /* ProcessWithSharedFileHandle.swift */,
-				9BF639F62F0E6E4E00FB6155 /* ProgressObserver.swift */,
 				9BEBC7622DF440720092B196 /* ServiceError.swift */,
 				9BEBC7632DF440720092B196 /* Shell.swift */,
 				9BEBC7642DF440720092B196 /* StorageLocation.swift */,
@@ -2332,6 +2332,7 @@
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */,
 				9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */,
+				9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */,
 				9BB3BE1F2DB3F17500799A6A /* DuplicateOptions.swift in Sources */,
 				9BB3BE202DB3F17500799A6A /* LoginOptions.swift in Sources */,
 				9BB3BE212DB3F17500799A6A /* BuildOptions.swift in Sources */,
@@ -2477,7 +2478,6 @@
 				9BEBC79A2DF440720092B196 /* RenameHandler.swift in Sources */,
 				9BEBC79B2DF440720092B196 /* Certificate.swift in Sources */,
 				9BEBC79C2DF440720092B196 /* VirtualMachine.swift in Sources */,
-				9BF639F72F0E6E5400FB6155 /* ProgressObserver.swift in Sources */,
 				9BEBC79D2DF440720092B196 /* VZVMNetFileHandle.swift in Sources */,
 				9B7D68A92F1A890100FE1B0B /* DebugHelper.swift in Sources */,
 				9BEBC79F2DF440720092B196 /* ProcessWithSharedFileHandle.swift in Sources */,
