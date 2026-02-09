@@ -330,7 +330,7 @@ class AppState: ObservableObject, Observable {
 
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		
-		await try BuildHandler.build(client: self.cakedServiceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
+		try await BuildHandler.build(client: self.cakedServiceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
 	}
 
 	func duplicateVirtualMachine(document vm: VirtualMachineDocument) {

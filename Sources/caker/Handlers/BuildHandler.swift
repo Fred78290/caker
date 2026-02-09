@@ -12,7 +12,7 @@ extension BuildHandler {
 		return try await withThrowingTaskGroup(of: Void.self, returning: BuildedReply.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
 			let vmLocation: VMLocation = StorageLocation(runMode: runMode).location(options.name)
-			var (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
+			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: BuildedReply? = nil
 
 			group.addTask {

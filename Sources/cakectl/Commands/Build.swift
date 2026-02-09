@@ -3,7 +3,6 @@ import Foundation
 import GRPC
 import GRPCLib
 import CakeAgentLib
-import CakedLib
 
 struct Build: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.configuration
@@ -26,14 +25,13 @@ struct Build: AsyncGrpcParsableCommand {
 	}
 
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
-		return try await withTaskGroup { group in
+		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
-			let vmLocation: VMLocation = StorageLocation(runMode: runMode).location(options.name)
-			var (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
+			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: String = ""
 
 			group.addTask {
-				let stream = try client.build(Caked_BuildRequest(buildOptions: options)) { stream in
+				let stream = try client.build(Caked_BuildRequest(buildOptions: self.buildOptions)) { stream in
 					continuation.yield(stream.current)
 				}
 				
@@ -44,14 +42,14 @@ struct Build: AsyncGrpcParsableCommand {
 
 			for try await current in stream {
 				if case .progress(let progress) = current {
-					progressHandler(.progress(context, progress.fractionCompleted))
+					ProgressObserver.progressHandler(.progress(context, progress.fractionCompleted))
 				} else if case .step(let step) = current {
-					progressHandler(.step(step))
+					ProgressObserver.progressHandler(.step(step))
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
-						progressHandler(.terminated(.init(value: vmLocation, error: nil), v))
+						ProgressObserver.progressHandler(.terminated(.success(self.buildOptions.name), v))
 					} else if case .failure(let v)? = status.result {
-						progressHandler(.terminated(.init(value: vmLocation, error: ServiceError(v)), nil))
+						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .builded(let builded) = current {
 					result = self.format.render(BuildedReply(from: builded))
