@@ -269,7 +269,7 @@ struct HomeView: View {
 	var sheet: some View {
 		switch navigationModel.selectedCategory {
 		case .virtualMachine:
-			VirtualMachineWizard(appState: _appState, sheet: true)
+			VirtualMachineWizard(sheet: true)
 				.colorSchemeForColor()
 				.restorationState(.disabled)
 				.frame(minWidth: 700, minHeight: 670)

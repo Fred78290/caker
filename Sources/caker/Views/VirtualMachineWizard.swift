@@ -251,7 +251,6 @@ struct VirtualMachineWizard: View {
 
 	private let vmQueue = DispatchQueue(label: "VZVirtualMachineQueue", qos: .userInteractive)
 
-	@Binding var appState: AppState
 	var sheet: Bool = false
 
 	@ViewBuilder
@@ -723,7 +722,7 @@ struct VirtualMachineWizard: View {
 
 				case .template:
 					Picker("Select a template", selection: $config.imageName) {
-						ForEach(self.appState.templates, id: \.self) { template in
+						ForEach(AppState.shared.templates, id: \.self) { template in
 							Text(template.name).tag(template.fqn)
 						}
 					}
@@ -733,7 +732,7 @@ struct VirtualMachineWizard: View {
 				case .stream:
 					VStack {
 						Picker("Select remote sources", selection: $model.remoteImage) {
-							ForEach(self.appState.remotes, id: \.self) { remote in
+							ForEach(AppState.shared.remotes, id: \.self) { remote in
 								Text(remote.name).tag(remote.name)
 							}
 						}
@@ -865,7 +864,7 @@ struct VirtualMachineWizard: View {
 		if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
 			valid = false
 		} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
-			if self.appState.findVirtualMachineDocument(vmname) == nil {
+			if AppState.shared.findVirtualMachineDocument(vmname) == nil {
 				valid = true
 			}
 		}
@@ -918,7 +917,7 @@ struct VirtualMachineWizard: View {
 					}
 #endif
 					
-					let build = try await self.appState.buildVirtualMachine(options: options, queue: ipswQueue) { result in
+					let build = try await AppState.shared.buildVirtualMachine(options: options, queue: ipswQueue) { result in
 						progressHandler(result)
 					}
 					
@@ -969,15 +968,15 @@ struct VirtualMachineWizard: View {
 	}
 
 	func templates() -> [TemplateEntry] {
-		return self.appState.loadTemplates()
+		return AppState.shared.loadTemplates()
 	}
 
 	func remotes() -> [RemoteEntry] {
-		return self.appState.loadRemotes()
+		return AppState.shared.loadRemotes()
 	}
 
 	func images(remote: String) async -> [ShortImageInfo] {
-		let result = await self.appState.loadImages(remote: remote)
+		let result = await AppState.shared.loadImages(remote: remote)
 
 		return result.compactMap {
 			ShortImageInfo(imageInfo: $0)
@@ -1012,5 +1011,5 @@ struct VirtualMachineWizard: View {
 }
 
 #Preview {
-	VirtualMachineWizard(appState: .constant(AppState.shared))
+	VirtualMachineWizard()
 }

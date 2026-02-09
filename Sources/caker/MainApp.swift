@@ -256,7 +256,7 @@ struct MainApp: App {
 	}
 
 	func newDocWizard() -> some View {
-		VirtualMachineWizard(appState: $appState)
+		VirtualMachineWizard()
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
