@@ -3,7 +3,7 @@ codesign --sign - --entitlements Resources/dev.entitlements --force ${BUILDDIR}/
 codesign --sign - --entitlements Resources/dev.entitlements --force ${BUILDDIR}/cakectl
 
 rm -Rf ${PKGDIR}
-mkdir -p ${ASSETS} ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/Resources ${PKGDIR}/Contents/Resources/Icons
+mkdir -p ${ASSETS} ${PKGDIR}/Contents/MacOS ${PKGDIR}/Contents/PlugIns ${PKGDIR}/Contents/Resources ${PKGDIR}/Contents/Resources/Icons
 
 actool ${RESOURCESDIR}/Assets.xcassets \
 	--compile ${ASSETS} \
@@ -21,8 +21,8 @@ actool ${RESOURCESDIR}/Assets.xcassets \
 	--platform macosx
 
 cp -c ${BUILDDIR}/caker ${PKGDIR}/Contents/MacOS/caker
-cp -c ${BUILDDIR}/caked ${PKGDIR}/Contents/MacOS/caked
-cp -c ${BUILDDIR}/cakectl ${PKGDIR}/Contents/MacOS/cakectl
+cp -c ${BUILDDIR}/caked ${PKGDIR}/Contents/PlugIns/caked
+cp -c ${BUILDDIR}/cakectl ${PKGDIR}/Contents/PlugIns/cakectl
 cp -c ${RESOURCESDIR}/Document.icns ${PKGDIR}/Contents/Resources/Document.icns
 cp -c ${RESOURCESDIR}/MenuBarIcon.png ${PKGDIR}/Contents/Resources/MenuBarIcon.png
 cp -c ${ASSETS}/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
