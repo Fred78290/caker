@@ -277,10 +277,21 @@ extension URL: Purgeable {
 
 	public static func binary(_ name: String) -> URL? {
 		if let executablePath = Bundle.main.path(forAuxiliaryExecutable: name) {
-			return URL(fileURLWithPath: executablePath).resolvingSymlinksInPath().absoluteURL
+			let url = URL(fileURLWithPath: executablePath).resolvingSymlinksInPath().absoluteURL
+			
+			if FileManager.default.fileExists(atPath: url.path) {
+				return url
+			}
 		}
 
-		let pathd = [ProcessInfo.processInfo.environment["PATH"], "/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"]
+		let pathd = [
+			Bundle.main.builtInPlugInsPath,
+			Bundle.main.privateFrameworksPath,
+			Bundle.main.sharedFrameworksPath,
+			Bundle.main.sharedSupportPath,
+			Bundle.main.resourcePath,
+			ProcessInfo.processInfo.environment["PATH"],
+			"/usr/bin:/usr/local/bin:/usr/local/sbin:/bin:/sbin:/usr/sbin:/opt/bin:/opt/sbin"]
 
 		return pathd.compactMap {
 			guard let path = $0 else {
@@ -291,7 +302,7 @@ extension URL: Purgeable {
 				let url: URL = URL(fileURLWithPath: String(dir)).appendingPathComponent(name, isDirectory: false).resolvingSymlinksInPath().absoluteURL
 
 				if FileManager.default.fileExists(atPath: url.path) {
-					return url.absoluteURL
+					return url
 				}
 
 				return nil
@@ -305,6 +316,14 @@ extension URL: Purgeable {
 
 	public var name: String {
 		self.lastPathComponent.stringBeforeLast(before: ".")
+	}
+
+	public var fileExists: Bool {
+		guard let found = try? self.exists() else {
+			return false
+		}
+
+		return found
 	}
 
 	public func exists() throws -> Bool {
