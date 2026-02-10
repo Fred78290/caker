@@ -263,8 +263,8 @@
 		9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE0B6FD2F1E4CBD0040EDD4 /* TaskQueue.swift */; };
 		9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */; };
 		9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE2E7C12D5F85FD000CA07F /* Template.swift */; };
-		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; };
-		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; };
+		9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9B464B4F2D5A3E5C00164BF5 /* cakectl */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */ = {isa = PBXBuildFile; fileRef = 9BEBC68E2DF43FEE0092B196 /* caked */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE569EE2DFEFA470086B9C7 /* ListObjects.swift */; };
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
@@ -554,7 +554,7 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
-			dstSubfolderSpec = 6;
+			dstSubfolderSpec = 13;
 			files = (
 				9BE569EC2DFEF9840086B9C7 /* cakectl in CopyFiles */,
 				9BE569ED2DFEF9840086B9C7 /* caked in CopyFiles */,
