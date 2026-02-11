@@ -90,7 +90,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeBuildInterceptors() -> [ClientInterceptor<Caked_BuildRequest, Caked_BuildStreamReply>] {
 		[CakeServiceClientInterceptor<Caked_BuildRequest, Caked_BuildStreamReply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
 	func makeStartInterceptors() -> [ClientInterceptor<Caked_StartRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_StartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
@@ -186,4 +186,13 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeUmountInterceptors() -> [ClientInterceptor<Caked_MountRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_MountRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
+
+	func makePingInterceptors() -> [ClientInterceptor<Caked_PingRequest, Caked_Reply>] {
+		[CakeServiceClientInterceptor<Caked_PingRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
+
+	func makeCurrentStatusInterceptors() -> [ClientInterceptor<Caked_CurrentStatusRequest, Caked_Reply>] {
+		[CakeServiceClientInterceptor<Caked_CurrentStatusRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
+
 }

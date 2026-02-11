@@ -230,6 +230,12 @@ extension Caked_SuspendRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_PingRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return PingHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.name))
+	}
+}
+
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -354,6 +360,13 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 
+	func ping(request: Caked_PingRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		Caked_Reply()
+	}
+	
+	func currentStatus(request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
+	}
+	
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
 

@@ -150,7 +150,7 @@ extension InfoReply {
 			$0.osname = infos.osname
 			$0.hostname = infos.hasHostname ? infos.hostname : nil
 			$0.release = infos.hasRelease ? infos.release : nil
-			$0.status = .init(rawValue: infos.status) ?? .unknown
+			$0.status = infos.status.agentStatus
 			$0.mounts = infos.mounts
 			$0.memory = memory
 			$0.attachedNetworks = infos.networks.compactMap { CakeAgentLib.AttachedNetwork(from: $0) }
@@ -213,7 +213,7 @@ extension InfoReply {
 				reply.mounts = mounts
 			}
 
-			reply.status = self.status.rawValue
+			reply.status = .init(agentStatus: self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
 				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }

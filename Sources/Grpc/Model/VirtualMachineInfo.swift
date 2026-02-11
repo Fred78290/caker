@@ -223,7 +223,7 @@ public struct VMInformations: Sendable, Codable {
 				reply.mounts = mounts
 			}
 
-			reply.status = self.status.rawValue
+			reply.status = .init(agentStatus: self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
 				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }

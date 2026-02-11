@@ -11,6 +11,8 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 
 
+/// Service provides RPC methods for managing virtual machines, container images, networks, and related infrastructure.
+///
 /// Usage: instantiate `Caked_ServiceClient`, then call methods of this protocol to make API calls.
 public protocol Caked_ServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
@@ -147,11 +149,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply>
 
-  func currentUsage(
-    _ request: Caked_Caked.CurrentUsageRequest,
+  func currentStatus(
+    _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions?,
     handler: @escaping (Caked_Caked.Reply) -> Void
-  ) -> ServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>
+  ) -> ServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -159,7 +161,7 @@ extension Caked_ServiceClientProtocol {
     return "caked.Service"
   }
 
-  /// Server streaming call to Build
+  /// Build creates a new virtual machine with the specified configuration.
   ///
   /// - Parameters:
   ///   - request: Request to send to Build.
@@ -180,7 +182,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Configure
+  /// Configure modifies the configuration of an existing virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Configure.
@@ -198,7 +200,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Delete
+  /// Delete removes one or more virtual machines.
   ///
   /// - Parameters:
   ///   - request: Request to send to Delete.
@@ -216,7 +218,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Duplicate
+  /// Duplicate creates a copy of an existing virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Duplicate.
@@ -234,7 +236,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Bidirectional streaming call to Execute
+  /// Execute runs a command on a virtual machine with bidirectional streaming.
   ///
   /// Callers should use the `send` method on the returned object to send messages
   /// to the server. The caller should send an `.end` after the final message has been sent.
@@ -255,7 +257,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Info
+  /// Info retrieves detailed information about a virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Info.
@@ -273,7 +275,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Launch
+  /// Launch creates and starts a new virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Launch.
@@ -291,7 +293,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to List
+  /// List returns all virtual machines or images.
   ///
   /// - Parameters:
   ///   - request: Request to send to List.
@@ -309,7 +311,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Rename
+  /// Rename changes the name of a virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Rename.
@@ -327,7 +329,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Run
+  /// Run executes a command on a virtual machine without streaming.
   ///
   /// - Parameters:
   ///   - request: Request to send to Run.
@@ -345,7 +347,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Start
+  /// Start boots up a stopped virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Start.
@@ -363,7 +365,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Stop
+  /// Stop shuts down one or more running virtual machines.
   ///
   /// - Parameters:
   ///   - request: Request to send to Stop.
@@ -381,7 +383,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Suspend
+  /// Suspend pauses one or more running virtual machines.
   ///
   /// - Parameters:
   ///   - request: Request to send to Suspend.
@@ -399,7 +401,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Template
+  /// Template manages virtual machine templates.
   ///
   /// - Parameters:
   ///   - request: Request to send to Template.
@@ -417,7 +419,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to WaitIP
+  /// WaitIP waits for a virtual machine to obtain an IP address.
   ///
   /// - Parameters:
   ///   - request: Request to send to WaitIP.
@@ -435,7 +437,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Image
+  /// Image manages container images.
   ///
   /// - Parameters:
   ///   - request: Request to send to Image.
@@ -453,7 +455,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Login
+  /// Login authenticates to a remote registry.
   ///
   /// - Parameters:
   ///   - request: Request to send to Login.
@@ -471,7 +473,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Logout
+  /// Logout removes authentication credentials for a remote registry.
   ///
   /// - Parameters:
   ///   - request: Request to send to Logout.
@@ -489,7 +491,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Clone
+  /// Clone creates a copy of an image from a remote source.
   ///
   /// - Parameters:
   ///   - request: Request to send to Clone.
@@ -507,7 +509,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Push
+  /// Push uploads an image to a remote registry.
   ///
   /// - Parameters:
   ///   - request: Request to send to Push.
@@ -525,7 +527,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Purge
+  /// Purge removes old or unused images.
   ///
   /// - Parameters:
   ///   - request: Request to send to Purge.
@@ -543,7 +545,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Remote
+  /// Remote manages remote image registries.
   ///
   /// - Parameters:
   ///   - request: Request to send to Remote.
@@ -561,7 +563,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Networks
+  /// Networks manages virtual networks.
   ///
   /// - Parameters:
   ///   - request: Request to send to Networks.
@@ -579,7 +581,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Mount
+  /// Mount attaches a VirtioFS mount to a virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Mount.
@@ -597,7 +599,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Umount
+  /// Umount detaches a VirtioFS mount from a virtual machine.
   ///
   /// - Parameters:
   ///   - request: Request to send to Umount.
@@ -615,7 +617,7 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Ping
+  /// Ping checks connectivity to the service.
   ///
   /// - Parameters:
   ///   - request: Request to send to Ping.
@@ -633,23 +635,23 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// Server streaming call to CurrentUsage
+  /// CurrentStatus streams current system resource usage information.
   ///
   /// - Parameters:
-  ///   - request: Request to send to CurrentUsage.
+  ///   - request: Request to send to CurrentStatus.
   ///   - callOptions: Call options.
   ///   - handler: A closure called when each response is received from the server.
   /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
-  public func currentUsage(
-    _ request: Caked_Caked.CurrentUsageRequest,
+  public func currentStatus(
+    _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions? = nil,
     handler: @escaping (Caked_Caked.Reply) -> Void
-  ) -> ServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply> {
+  ) -> ServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply> {
     return self.makeServerStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      path: Caked_ServiceClientMetadata.Methods.currentStatus.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
+      interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? [],
       handler: handler
     )
   }
@@ -712,6 +714,7 @@ public struct Caked_ServiceNIOClient: Caked_ServiceClientProtocol {
   }
 }
 
+/// Service provides RPC methods for managing virtual machines, container images, networks, and related infrastructure.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
@@ -846,10 +849,10 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply>
 
-  func makeCurrentUsageCall(
-    _ request: Caked_Caked.CurrentUsageRequest,
+  func makeCurrentStatusCall(
+    _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1182,15 +1185,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeCurrentUsageCall(
-    _ request: Caked_Caked.CurrentUsageRequest,
+  public func makeCurrentStatusCall(
+    _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply> {
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply> {
     return self.makeAsyncServerStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      path: Caked_ServiceClientMetadata.Methods.currentStatus.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? []
+      interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? []
     )
   }
 }
@@ -1521,15 +1524,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func currentUsage(
-    _ request: Caked_Caked.CurrentUsageRequest,
+  public func currentStatus(
+    _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncResponseStream<Caked_Caked.Reply> {
     return self.performAsyncServerStreamingCall(
-      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      path: Caked_ServiceClientMetadata.Methods.currentStatus.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? []
+      interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? []
     )
   }
 }
@@ -1631,8 +1634,8 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'ping'.
   func makePingInterceptors() -> [ClientInterceptor<Caked_Caked.PingRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'currentUsage'.
-  func makeCurrentUsageInterceptors() -> [ClientInterceptor<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>]
+  /// - Returns: Interceptors to use when invoking 'currentStatus'.
+  func makeCurrentStatusInterceptors() -> [ClientInterceptor<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1666,7 +1669,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.mount,
       Caked_ServiceClientMetadata.Methods.umount,
       Caked_ServiceClientMetadata.Methods.ping,
-      Caked_ServiceClientMetadata.Methods.currentUsage,
+      Caked_ServiceClientMetadata.Methods.currentStatus,
     ]
   )
 
@@ -1827,71 +1830,100 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let currentUsage = GRPCMethodDescriptor(
-      name: "CurrentUsage",
-      path: "/caked.Service/CurrentUsage",
+    public static let currentStatus = GRPCMethodDescriptor(
+      name: "CurrentStatus",
+      path: "/caked.Service/CurrentStatus",
       type: GRPCCallType.serverStreaming
     )
   }
 }
 
+/// Service provides RPC methods for managing virtual machines, container images, networks, and related infrastructure.
+///
 /// To build a server, implement a class that conforms to this protocol.
 public protocol Caked_ServiceProvider: CallHandlerProvider {
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
+  /// Build creates a new virtual machine with the specified configuration.
   func build(request: Caked_Caked.VMRequest.BuildRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>) -> EventLoopFuture<GRPCStatus>
 
+  /// Configure modifies the configuration of an existing virtual machine.
   func configure(request: Caked_Caked.VMRequest.ConfigureRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Delete removes one or more virtual machines.
   func delete(request: Caked_Caked.VMRequest.DeleteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Duplicate creates a copy of an existing virtual machine.
   func duplicate(request: Caked_Caked.VMRequest.DuplicateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Execute runs a command on a virtual machine with bidirectional streaming.
   func execute(context: StreamingResponseCallContext<Caked_Caked.VMRequest.ExecuteResponse>) -> EventLoopFuture<(StreamEvent<Caked_Caked.VMRequest.ExecuteRequest>) -> Void>
 
+  /// Info retrieves detailed information about a virtual machine.
   func info(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Launch creates and starts a new virtual machine.
   func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// List returns all virtual machines or images.
   func list(request: Caked_Caked.VMRequest.ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Rename changes the name of a virtual machine.
   func rename(request: Caked_Caked.VMRequest.RenameRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Run executes a command on a virtual machine without streaming.
   func run(request: Caked_Caked.VMRequest.RunCommand, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Start boots up a stopped virtual machine.
   func start(request: Caked_Caked.VMRequest.StartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Stop shuts down one or more running virtual machines.
   func stop(request: Caked_Caked.VMRequest.StopRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Suspend pauses one or more running virtual machines.
   func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Template manages virtual machine templates.
   func template(request: Caked_Caked.VMRequest.TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// WaitIP waits for a virtual machine to obtain an IP address.
   func waitIP(request: Caked_Caked.VMRequest.WaitIPRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Image manages container images.
   func image(request: Caked_Caked.ImageRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Login authenticates to a remote registry.
   func login(request: Caked_Caked.LoginRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Logout removes authentication credentials for a remote registry.
   func logout(request: Caked_Caked.LogoutRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Clone creates a copy of an image from a remote source.
   func clone(request: Caked_Caked.CloneRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Push uploads an image to a remote registry.
   func push(request: Caked_Caked.PushRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Purge removes old or unused images.
   func purge(request: Caked_Caked.PurgeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Remote manages remote image registries.
   func remote(request: Caked_Caked.RemoteRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Networks manages virtual networks.
   func networks(request: Caked_Caked.NetworkRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Mount attaches a VirtioFS mount to a virtual machine.
   func mount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Umount detaches a VirtioFS mount from a virtual machine.
   func umount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// Ping checks connectivity to the service.
   func ping(request: Caked_Caked.PingRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  func currentUsage(request: Caked_Caked.CurrentUsageRequest, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
+  /// CurrentStatus streams current system resource usage information.
+  func currentStatus(request: Caked_Caked.CurrentStatusRequest, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
 }
 
 extension Caked_ServiceProvider {
@@ -2140,13 +2172,13 @@ extension Caked_ServiceProvider {
         userFunction: self.ping(request:context:)
       )
 
-    case "CurrentUsage":
+    case "CurrentStatus":
       return ServerStreamingServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentUsageRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentStatusRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
-        userFunction: self.currentUsage(request:context:)
+        interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? [],
+        userFunction: self.currentStatus(request:context:)
       )
 
     default:
@@ -2155,146 +2187,175 @@ extension Caked_ServiceProvider {
   }
 }
 
+/// Service provides RPC methods for managing virtual machines, container images, networks, and related infrastructure.
+///
 /// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Caked_ServiceServerInterceptorFactoryProtocol? { get }
 
+  /// Build creates a new virtual machine with the specified configuration.
   func build(
     request: Caked_Caked.VMRequest.BuildRequest,
     responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply.VirtualMachineReply.BuildStreamReply>,
     context: GRPCAsyncServerCallContext
   ) async throws
 
+  /// Configure modifies the configuration of an existing virtual machine.
   func configure(
     request: Caked_Caked.VMRequest.ConfigureRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Delete removes one or more virtual machines.
   func delete(
     request: Caked_Caked.VMRequest.DeleteRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Duplicate creates a copy of an existing virtual machine.
   func duplicate(
     request: Caked_Caked.VMRequest.DuplicateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Execute runs a command on a virtual machine with bidirectional streaming.
   func execute(
     requestStream: GRPCAsyncRequestStream<Caked_Caked.VMRequest.ExecuteRequest>,
     responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.VMRequest.ExecuteResponse>,
     context: GRPCAsyncServerCallContext
   ) async throws
 
+  /// Info retrieves detailed information about a virtual machine.
   func info(
     request: Caked_Caked.VMRequest.InfoRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Launch creates and starts a new virtual machine.
   func launch(
     request: Caked_Caked.VMRequest.LaunchRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// List returns all virtual machines or images.
   func list(
     request: Caked_Caked.VMRequest.ListRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Rename changes the name of a virtual machine.
   func rename(
     request: Caked_Caked.VMRequest.RenameRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Run executes a command on a virtual machine without streaming.
   func run(
     request: Caked_Caked.VMRequest.RunCommand,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Start boots up a stopped virtual machine.
   func start(
     request: Caked_Caked.VMRequest.StartRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Stop shuts down one or more running virtual machines.
   func stop(
     request: Caked_Caked.VMRequest.StopRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Suspend pauses one or more running virtual machines.
   func suspend(
     request: Caked_Caked.VMRequest.SuspendRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Template manages virtual machine templates.
   func template(
     request: Caked_Caked.VMRequest.TemplateRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// WaitIP waits for a virtual machine to obtain an IP address.
   func waitIP(
     request: Caked_Caked.VMRequest.WaitIPRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Image manages container images.
   func image(
     request: Caked_Caked.ImageRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Login authenticates to a remote registry.
   func login(
     request: Caked_Caked.LoginRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Logout removes authentication credentials for a remote registry.
   func logout(
     request: Caked_Caked.LogoutRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Clone creates a copy of an image from a remote source.
   func clone(
     request: Caked_Caked.CloneRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Push uploads an image to a remote registry.
   func push(
     request: Caked_Caked.PushRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Purge removes old or unused images.
   func purge(
     request: Caked_Caked.PurgeRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Remote manages remote image registries.
   func remote(
     request: Caked_Caked.RemoteRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Networks manages virtual networks.
   func networks(
     request: Caked_Caked.NetworkRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Mount attaches a VirtioFS mount to a virtual machine.
   func mount(
     request: Caked_Caked.MountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Umount detaches a VirtioFS mount from a virtual machine.
   func umount(
     request: Caked_Caked.MountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// Ping checks connectivity to the service.
   func ping(
     request: Caked_Caked.PingRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
-  func currentUsage(
-    request: Caked_Caked.CurrentUsageRequest,
+  /// CurrentStatus streams current system resource usage information.
+  func currentStatus(
+    request: Caked_Caked.CurrentStatusRequest,
     responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply>,
     context: GRPCAsyncServerCallContext
   ) async throws
@@ -2553,13 +2614,13 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.ping(request: $0, context: $1) }
       )
 
-    case "CurrentUsage":
+    case "CurrentStatus":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentUsageRequest>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentStatusRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
-        wrapping: { try await self.currentUsage(request: $0, responseStream: $1, context: $2) }
+        interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? [],
+        wrapping: { try await self.currentStatus(request: $0, responseStream: $1, context: $2) }
       )
 
     default:
@@ -2674,9 +2735,9 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makePingInterceptors() -> [ServerInterceptor<Caked_Caked.PingRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when handling 'currentUsage'.
+  /// - Returns: Interceptors to use when handling 'currentStatus'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeCurrentUsageInterceptors() -> [ServerInterceptor<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>]
+  func makeCurrentStatusInterceptors() -> [ServerInterceptor<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -2710,7 +2771,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.mount,
       Caked_ServiceServerMetadata.Methods.umount,
       Caked_ServiceServerMetadata.Methods.ping,
-      Caked_ServiceServerMetadata.Methods.currentUsage,
+      Caked_ServiceServerMetadata.Methods.currentStatus,
     ]
   )
 
@@ -2871,9 +2932,9 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let currentUsage = GRPCMethodDescriptor(
-      name: "CurrentUsage",
-      path: "/caked.Service/CurrentUsage",
+    public static let currentStatus = GRPCMethodDescriptor(
+      name: "CurrentStatus",
+      path: "/caked.Service/CurrentStatus",
       type: GRPCCallType.serverStreaming
     )
   }

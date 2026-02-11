@@ -8,44 +8,74 @@ option objc_class_prefix = "caked";
 
 package caked;
 
+// Service provides RPC methods for managing virtual machines, container images, networks, and related infrastructure.
 service Service {
+	// Build creates a new virtual machine with the specified configuration.
 	rpc Build (Caked.VMRequest.BuildRequest) returns (stream Caked.Reply.VirtualMachineReply.BuildStreamReply) {}
+	// Configure modifies the configuration of an existing virtual machine.
 	rpc Configure (Caked.VMRequest.ConfigureRequest) returns (Caked.Reply) {}
+	// Delete removes one or more virtual machines.
 	rpc Delete(Caked.VMRequest.DeleteRequest) returns (Caked.Reply) {}
+	// Duplicate creates a copy of an existing virtual machine.
 	rpc Duplicate (Caked.VMRequest.DuplicateRequest) returns (Caked.Reply) {}
+	// Execute runs a command on a virtual machine with bidirectional streaming.
 	rpc Execute (stream Caked.VMRequest.ExecuteRequest) returns (stream Caked.VMRequest.ExecuteResponse);
+	// Info retrieves detailed information about a virtual machine.
 	rpc Info (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
+	// Launch creates and starts a new virtual machine.
 	rpc Launch (Caked.VMRequest.LaunchRequest) returns (Caked.Reply) {}
+	// List returns all virtual machines or images.
 	rpc List(Caked.VMRequest.ListRequest) returns (Caked.Reply) {}
+	// Rename changes the name of a virtual machine.
 	rpc Rename(Caked.VMRequest.RenameRequest) returns (Caked.Reply);
+	// Run executes a command on a virtual machine without streaming.
 	rpc Run (Caked.VMRequest.RunCommand) returns (Caked.Reply);
+	// Start boots up a stopped virtual machine.
 	rpc Start (Caked.VMRequest.StartRequest) returns (Caked.Reply) {}
+	// Stop shuts down one or more running virtual machines.
 	rpc Stop (Caked.VMRequest.StopRequest) returns (Caked.Reply) {}
+	// Suspend pauses one or more running virtual machines.
 	rpc Suspend (Caked.VMRequest.SuspendRequest) returns (Caked.Reply) {}
+	// Template manages virtual machine templates.
 	rpc Template(Caked.VMRequest.TemplateRequest) returns (Caked.Reply) {}
+	// WaitIP waits for a virtual machine to obtain an IP address.
 	rpc WaitIP (Caked.VMRequest.WaitIPRequest) returns (Caked.Reply) {}
+	// Image manages container images.
 	rpc Image(Caked.ImageRequest) returns (Caked.Reply) {}
+	// Login authenticates to a remote registry.
 	rpc Login (Caked.LoginRequest) returns (Caked.Reply) {}
+	// Logout removes authentication credentials for a remote registry.
 	rpc Logout (Caked.LogoutRequest) returns (Caked.Reply) {}
+	// Clone creates a copy of an image from a remote source.
 	rpc Clone (Caked.CloneRequest) returns (Caked.Reply) {}
+	// Push uploads an image to a remote registry.
 	rpc Push (Caked.PushRequest) returns (Caked.Reply) {}
+	// Purge removes old or unused images.
 	rpc Purge (Caked.PurgeRequest) returns (Caked.Reply) {}
+	// Remote manages remote image registries.
 	rpc Remote(Caked.RemoteRequest) returns (Caked.Reply) {}
+	// Networks manages virtual networks.
 	rpc Networks(Caked.NetworkRequest) returns (Caked.Reply) {}
+	// Mount attaches a VirtioFS mount to a virtual machine.
 	rpc Mount(Caked.MountRequest) returns (Caked.Reply);
+	// Umount detaches a VirtioFS mount from a virtual machine.
 	rpc Umount(Caked.MountRequest) returns (Caked.Reply);
+	// Ping checks connectivity to the service.
 	rpc Ping (Caked.PingRequest) returns (Caked.Reply);
-	rpc CurrentUsage(Caked.CurrentUsageRequest) returns (stream Caked.Reply);
+	// CurrentStatus streams current system resource usage information.
+	rpc CurrentStatus(Caked.CurrentStatusRequest) returns (stream Caked.Reply);
 }
 
 message Caked {
 	message PingRequest {
-		string message = 1;
-		int64 timestamp = 2;
+		string name = 1;
+		string message = 2;
+		int64 timestamp = 3;
 	}
 
-	message CurrentUsageRequest {
-		int32 frequency = 1;
+	message CurrentStatusRequest {
+		string name = 1;
+		int32 frequency = 2;
 	}
 
 	message VMRequest {
@@ -252,10 +282,21 @@ message Caked {
 			Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo memory = 3;
 		}
 
+		message CurrentStatusReply {
+			oneof response {
+				CurrentUsageReply usage = 1;
+				bytes screenshot = 2;
+				Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus currentStatus = 3;
+				string failure = 4;
+			}
+		}
+
 		message PingReply {
-			string message = 1;
-			int64 request_timestamp = 2;
-			int64 response_timestamp = 3;
+			bool success = 1;
+			string message = 2;
+			Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus currentStatus = 3;
+			int64 request_timestamp = 4;
+			int64 response_timestamp = 5;
 		}
 
 		message VirtualMachineReply {
@@ -316,6 +357,13 @@ message Caked {
 
 			message StatusReply {
 				message InfoReply {
+					enum VirtualMachineStatus {
+						stopped = 0;
+						running = 1;
+						paused = 2;
+						error = 3;
+					}
+
 					message CpuCoreInfo {
 						int32 core_id = 1;
 						double usage_percent = 2;
@@ -411,7 +459,7 @@ message Caked {
 					string osname = 7;
 					optional string hostname = 8;
 					optional string release = 9;
-					string status = 10;
+					VirtualMachineStatus status = 10;
 					repeated string mounts = 11;
 					string name = 12;
 					repeated AttachedNetwork networks = 13;
@@ -775,7 +823,7 @@ message Caked {
 			MountReply mounts = 7;
 			OCIReply oci = 8;
 			PingReply ping = 9;
-			CurrentUsageReply usage = 10;
+			CurrentStatusReply status = 10;
 		}
 	}
 

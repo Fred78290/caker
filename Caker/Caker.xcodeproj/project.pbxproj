@@ -205,6 +205,9 @@
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
+		9BA941172F3C891100B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941162F3C890C00B51543 /* PingHandler.swift */; };
+		9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941182F3C896E00B51543 /* PingHandler.swift */; };
+		9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */; };
 		9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */; };
 		9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */; };
 		9BAF74B62EBBD7CC0036CE1B /* MultiplatformTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BAF74AF2EBBD7CC0036CE1B /* MultiplatformTab.swift */; };
@@ -727,6 +730,9 @@
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
+		9BA941182F3C896E00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
+		9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
 		9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardModel.swift; sourceTree = "<group>"; };
 		9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgeVirtualDocument.swift; sourceTree = "<group>"; };
 		9BAF74AF2EBBD7CC0036CE1B /* MultiplatformTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiplatformTab.swift; sourceTree = "<group>"; };
@@ -1628,6 +1634,7 @@
 				9BEBC6BD2DF4400A0092B196 /* LogoutHandler.swift */,
 				9BEBC6BE2DF4400A0092B196 /* MountHandler.swift */,
 				9BEBC6BF2DF4400A0092B196 /* NetworksHandler.swift */,
+				9BA941182F3C896E00B51543 /* PingHandler.swift */,
 				9BB149172EC74B7F0094D950 /* PullHandler.swift */,
 				9BEBC6C02DF4400A0092B196 /* PurgeHandler.swift */,
 				9BB149192EC74B880094D950 /* PushHandler.swift */,
@@ -1671,6 +1678,8 @@
 		9BEBC72D2DF440720092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
+				9BA941162F3C890C00B51543 /* PingHandler.swift */,
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
@@ -2400,6 +2409,7 @@
 				9BEBC6F22DF4400A0092B196 /* ConfigureHandler.swift in Sources */,
 				9BEBC6F32DF4400A0092B196 /* WaitIPHandler.swift in Sources */,
 				9BE569EF2DFEFA470086B9C7 /* ListObjects.swift in Sources */,
+				9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */,
 				9BEBC6F42DF4400A0092B196 /* Root.swift in Sources */,
 				9BEBC6F52DF4400A0092B196 /* MainApp.swift in Sources */,
 				9BEBC6F62DF4400A0092B196 /* Delete.swift in Sources */,
@@ -2427,6 +2437,7 @@
 				9BEBC76B2DF440720092B196 /* ImageHandler.swift in Sources */,
 				9BEBC76C2DF440720092B196 /* VMView.swift in Sources */,
 				9BEBC76D2DF440720092B196 /* Home.swift in Sources */,
+				9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */,
 				9BEBC76E2DF440720092B196 /* VMBuilder.swift in Sources */,
 				9BEBC76F2DF440720092B196 /* IP.Address.swift in Sources */,
 				9BEBC7702DF440720092B196 /* PurgeHandler.swift in Sources */,
@@ -2501,6 +2512,7 @@
 				9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */,
 				9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */,
 				9B5A37832ED4BDA8007B59B0 /* VNCConnection.swift in Sources */,
+				9BA941172F3C891100B51543 /* PingHandler.swift in Sources */,
 				9B5A37842ED4BDA8007B59B0 /* VNCFramebuffer.swift in Sources */,
 				9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */,
 				9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */,
@@ -3303,7 +3315,7 @@
 			repositoryURL = "https://github.com/Fred78290/cakeagent.git";
 			requirement = {
 				kind = revision;
-				revision = 827451bbc7c7f9876a324eac26721dd5f935a10e;
+				revision = 664c9bfb0c215c586ba53a8d30a9d28004c1f4de;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

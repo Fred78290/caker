@@ -1,5 +1,6 @@
 import Foundation
 import GRPC
+import CakeAgentLib
 
 public typealias CakedServiceClient = Caked_ServiceNIOClient
 
@@ -88,7 +89,11 @@ public typealias Caked_SuspendedObject = Caked.Reply.VirtualMachineReply.Suspend
 public typealias Caked_VirtualMachineInfoReply = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply
 public typealias Caked_VirtualMachineInfo = Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo
 public typealias Caked_VirtualMachineStatusReply = Caked.Reply.VirtualMachineReply.StatusReply
+public typealias Caked_VirtualMachineStatus = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus
 public typealias Caked_BuildStreamReply = Caked.Reply.VirtualMachineReply.BuildStreamReply
+public typealias Caked_CurrentStatusReply = Caked_Caked.Reply.CurrentStatusReply
+public typealias Caked_CurrentUsageReply = Caked_Caked.Reply.CurrentUsageReply
+public typealias Caked_PingReply = Caked.Reply.PingReply
 
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest
@@ -111,7 +116,32 @@ public typealias Caked_StopRequest = Caked.VMRequest.StopRequest
 public typealias Caked_SuspendRequest = Caked.VMRequest.SuspendRequest
 public typealias Caked_TemplateRequest = Caked.VMRequest.TemplateRequest
 public typealias Caked_WaitIPRequest = Caked.VMRequest.WaitIPRequest
+public typealias Caked_PingRequest = Caked_Caked.PingRequest
+public typealias Caked_CurrentStatusRequest = Caked_Caked.CurrentStatusRequest
 
+extension Caked_VirtualMachineStatus {
+	init (agentStatus: CakeAgentLib.Status) {
+		switch agentStatus {
+		case .running:
+			self = .running
+		case .stopped:
+			self = .stopped
+		default:
+			self = .UNRECOGNIZED(-1)
+		}
+	}
+
+	var agentStatus: CakeAgentLib.Status {
+		switch self {
+			case .running:
+				return .running
+			case .stopped:
+				return .stopped
+			default:
+				return .unknown
+		}
+	}
+}
 extension Caked_CommonBuildRequest {
 	public init(buildOptions: BuildOptions) throws {
 		let mounts = buildOptions.mounts.map { $0.description }
