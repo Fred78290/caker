@@ -141,6 +141,17 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
+
+  func ping(
+    _ request: Caked_Caked.PingRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply>
+
+  func currentUsage(
+    _ request: Caked_Caked.CurrentUsageRequest,
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -603,6 +614,45 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  /// Unary call to Ping
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Ping.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func ping(
+    _ request: Caked_Caked.PingRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.ping.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePingInterceptors() ?? []
+    )
+  }
+
+  /// Server streaming call to CurrentUsage
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to CurrentUsage.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func currentUsage(
+    _ request: Caked_Caked.CurrentUsageRequest,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply> {
+    return self.makeServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
+      handler: handler
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -790,6 +840,16 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.MountRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.MountRequest, Caked_Caked.Reply>
+
+  func makePingCall(
+    _ request: Caked_Caked.PingRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply>
+
+  func makeCurrentUsageCall(
+    _ request: Caked_Caked.CurrentUsageRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1109,6 +1169,30 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  public func makePingCall(
+    _ request: Caked_Caked.PingRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.PingRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.ping.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePingInterceptors() ?? []
+    )
+  }
+
+  public func makeCurrentUsageCall(
+    _ request: Caked_Caked.CurrentUsageRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply> {
+    return self.makeAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1424,6 +1508,30 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  public func ping(
+    _ request: Caked_Caked.PingRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.ping.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makePingInterceptors() ?? []
+    )
+  }
+
+  public func currentUsage(
+    _ request: Caked_Caked.CurrentUsageRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply> {
+    return self.performAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.currentUsage.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1519,6 +1627,12 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'umount'.
   func makeUmountInterceptors() -> [ClientInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'ping'.
+  func makePingInterceptors() -> [ClientInterceptor<Caked_Caked.PingRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'currentUsage'.
+  func makeCurrentUsageInterceptors() -> [ClientInterceptor<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1551,6 +1665,8 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.networks,
       Caked_ServiceClientMetadata.Methods.mount,
       Caked_ServiceClientMetadata.Methods.umount,
+      Caked_ServiceClientMetadata.Methods.ping,
+      Caked_ServiceClientMetadata.Methods.currentUsage,
     ]
   )
 
@@ -1704,6 +1820,18 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/Umount",
       type: GRPCCallType.unary
     )
+
+    public static let ping = GRPCMethodDescriptor(
+      name: "Ping",
+      path: "/caked.Service/Ping",
+      type: GRPCCallType.unary
+    )
+
+    public static let currentUsage = GRPCMethodDescriptor(
+      name: "CurrentUsage",
+      path: "/caked.Service/CurrentUsage",
+      type: GRPCCallType.serverStreaming
+    )
   }
 }
 
@@ -1760,6 +1888,10 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func mount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   func umount(request: Caked_Caked.MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  func ping(request: Caked_Caked.PingRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  func currentUsage(request: Caked_Caked.CurrentUsageRequest, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
 }
 
 extension Caked_ServiceProvider {
@@ -1999,6 +2131,24 @@ extension Caked_ServiceProvider {
         userFunction: self.umount(request:context:)
       )
 
+    case "Ping":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.PingRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makePingInterceptors() ?? [],
+        userFunction: self.ping(request:context:)
+      )
+
+    case "CurrentUsage":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentUsageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
+        userFunction: self.currentUsage(request:context:)
+      )
+
     default:
       return nil
     }
@@ -2137,6 +2287,17 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Caked_Caked.MountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
+
+  func ping(
+    request: Caked_Caked.PingRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  func currentUsage(
+    request: Caked_Caked.CurrentUsageRequest,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2383,6 +2544,24 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.umount(request: $0, context: $1) }
       )
 
+    case "Ping":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.PingRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makePingInterceptors() ?? [],
+        wrapping: { try await self.ping(request: $0, context: $1) }
+      )
+
+    case "CurrentUsage":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.CurrentUsageRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeCurrentUsageInterceptors() ?? [],
+        wrapping: { try await self.currentUsage(request: $0, responseStream: $1, context: $2) }
+      )
+
     default:
       return nil
     }
@@ -2490,6 +2669,14 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'umount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeUmountInterceptors() -> [ServerInterceptor<Caked_Caked.MountRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'ping'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makePingInterceptors() -> [ServerInterceptor<Caked_Caked.PingRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'currentUsage'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeCurrentUsageInterceptors() -> [ServerInterceptor<Caked_Caked.CurrentUsageRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -2522,6 +2709,8 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.networks,
       Caked_ServiceServerMetadata.Methods.mount,
       Caked_ServiceServerMetadata.Methods.umount,
+      Caked_ServiceServerMetadata.Methods.ping,
+      Caked_ServiceServerMetadata.Methods.currentUsage,
     ]
   )
 
@@ -2674,6 +2863,18 @@ public enum Caked_ServiceServerMetadata {
       name: "Umount",
       path: "/caked.Service/Umount",
       type: GRPCCallType.unary
+    )
+
+    public static let ping = GRPCMethodDescriptor(
+      name: "Ping",
+      path: "/caked.Service/Ping",
+      type: GRPCCallType.unary
+    )
+
+    public static let currentUsage = GRPCMethodDescriptor(
+      name: "CurrentUsage",
+      path: "/caked.Service/CurrentUsage",
+      type: GRPCCallType.serverStreaming
     )
   }
 }

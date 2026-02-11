@@ -34,9 +34,20 @@ service Service {
 	rpc Networks(Caked.NetworkRequest) returns (Caked.Reply) {}
 	rpc Mount(Caked.MountRequest) returns (Caked.Reply);
 	rpc Umount(Caked.MountRequest) returns (Caked.Reply);
+	rpc Ping (Caked.PingRequest) returns (Caked.Reply);
+	rpc CurrentUsage(Caked.CurrentUsageRequest) returns (stream Caked.Reply);
 }
 
 message Caked {
+	message PingRequest {
+		string message = 1;
+		int64 timestamp = 2;
+	}
+
+	message CurrentUsageRequest {
+		int32 frequency = 1;
+	}
+
 	message VMRequest {
 		message CommonBuildRequest {
 			message ScreenSize {
@@ -235,6 +246,18 @@ message Caked {
 	}
 
 	message Reply {		
+		message CurrentUsageReply {
+			int32 cpuCount = 1;
+			Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo cpuInfos = 2;
+			Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo memory = 3;
+		}
+
+		message PingReply {
+			string message = 1;
+			int64 request_timestamp = 2;
+			int64 response_timestamp = 3;
+		}
+
 		message VirtualMachineReply {
 			message VirtualMachineInfoReply {
 				message VirtualMachineInfo {
@@ -751,6 +774,8 @@ message Caked {
 			RunReply run = 6;
 			MountReply mounts = 7;
 			OCIReply oci = 8;
+			PingReply ping = 9;
+			CurrentUsageReply usage = 10;
 		}
 	}
 
