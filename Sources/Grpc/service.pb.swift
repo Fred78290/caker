@@ -1834,6 +1834,7 @@ public struct Caked_Caked: Sendable {
             case stopped // = 0
             case running // = 1
             case paused // = 2
+            case error // = 3
             case UNRECOGNIZED(Int)
 
             public init() {
@@ -1845,6 +1846,7 @@ public struct Caked_Caked: Sendable {
               case 0: self = .stopped
               case 1: self = .running
               case 2: self = .paused
+              case 3: self = .error
               default: self = .UNRECOGNIZED(rawValue)
               }
             }
@@ -1854,6 +1856,7 @@ public struct Caked_Caked: Sendable {
               case .stopped: return 0
               case .running: return 1
               case .paused: return 2
+              case .error: return 3
               case .UNRECOGNIZED(let i): return i
               }
             }
@@ -1863,6 +1866,7 @@ public struct Caked_Caked: Sendable {
               .stopped,
               .running,
               .paused,
+              .error,
             ]
 
           }
@@ -7095,7 +7099,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}error\0")
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
