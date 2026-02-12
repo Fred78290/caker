@@ -272,6 +272,7 @@
 		9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */; };
 		9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */; };
 		9BEAA2462F38FCEE005ACC9D /* ProgressObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */; };
+		9BEAA4302F3D022A005ACC9D /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9BEAA42F2F3D022A005ACC9D /* FileMonitor */; };
 		9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */; };
 		9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B02DF4400A0092B196 /* WaitIP.swift */; };
 		9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */; };
@@ -1164,6 +1165,7 @@
 				9BEBC8012DF440BF0092B196 /* Multipart in Frameworks */,
 				9BEBC8032DF440BF0092B196 /* CakeAgentLib in Frameworks */,
 				9BB1492A2EC876640094D950 /* ContainerizationIO in Frameworks */,
+				9BEAA4302F3D022A005ACC9D /* FileMonitor in Frameworks */,
 				9BEBC7DD2DF440BF0092B196 /* GRPC in Frameworks */,
 				9BEBC7E32DF440BF0092B196 /* NIOCore in Frameworks */,
 				9BEBC7BD2DF440BF0092B196 /* AsyncAlgorithms in Frameworks */,
@@ -1678,10 +1680,9 @@
 		9BEBC72D2DF440720092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
-				9BA941162F3C890C00B51543 /* PingHandler.swift */,
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
+				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
 				9BEBC7192DF440720092B196 /* DeleteHandler.swift */,
 				9BEBC71A2DF440720092B196 /* DuplicateHandler.swift */,
 				9BEBC71B2DF440720092B196 /* ExecuteHandler.swift */,
@@ -1694,6 +1695,7 @@
 				9BEBC7212DF440720092B196 /* LogoutHandler.swift */,
 				9BEBC7222DF440720092B196 /* MountHandler.swift */,
 				9BEBC7232DF440720092B196 /* NetworksHandler.swift */,
+				9BA941162F3C890C00B51543 /* PingHandler.swift */,
 				9BB1491B2EC74B9B0094D950 /* PullHandler.swift */,
 				9BEBC7242DF440720092B196 /* PurgeHandler.swift */,
 				9BB1491D2EC74BA30094D950 /* PushHandler.swift */,
@@ -2081,6 +2083,7 @@
 				9BB149272EC876640094D950 /* ContainerizationExtras */,
 				9BB149292EC876640094D950 /* ContainerizationIO */,
 				9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */,
+				9BEAA42F2F3D022A005ACC9D /* FileMonitor */,
 			);
 			productName = CakedLib;
 			productReference = 9BEBC7072DF440560092B196 /* libCakedLib.a */;
@@ -3550,6 +3553,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B8509C32E450AC9004999B6 /* XCRemoteSwiftPackageReference "royalvnc" */;
 			productName = RoyalVNCKitStatic;
+		};
+		9BEAA42F2F3D022A005ACC9D /* FileMonitor */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B0D1A442E2BAA2700D70267 /* XCRemoteSwiftPackageReference "FileMonitor" */;
+			productName = FileMonitor;
 		};
 		9BEBC7B82DF440BF0092B196 /* Dynamic */ = {
 			isa = XCSwiftPackageProductDependency;

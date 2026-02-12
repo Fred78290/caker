@@ -125,9 +125,6 @@ extension Service {
 	struct Listen: AsyncParsableCommand {
 		static let configuration: CommandConfiguration = CommandConfiguration(abstract: "caked daemon listening")
 
-		@Option(name: [.customLong("log-level")], help: "Log level")
-		var logLevel: Logger.LogLevel = .info
-
 		@Flag(help: .hidden)
 		var secure: Bool = false
 
@@ -136,8 +133,6 @@ extension Service {
 
 		mutating func validate() throws {
 			let runMode: Utils.RunMode = self.options.runMode
-
-			Logger.setLevel(self.logLevel)
 
 			if self.secure {
 				let certs = try CertificatesLocation.createCertificats(runMode: runMode)
