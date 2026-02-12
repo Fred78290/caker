@@ -36,6 +36,8 @@ service Service {
 	rpc Stop (Caked.VMRequest.StopRequest) returns (Caked.Reply) {}
 	// Suspend pauses one or more running virtual machines.
 	rpc Suspend (Caked.VMRequest.SuspendRequest) returns (Caked.Reply) {}
+	// Restart reboots one or more running virtual machines.
+	rpc Restart (Caked.VMRequest.RestartRequest) returns (Caked.Reply) {}
 	// Template manages virtual machine templates.
 	rpc Template(Caked.VMRequest.TemplateRequest) returns (Caked.Reply) {}
 	// WaitIP waits for a virtual machine to obtain an IP address.
@@ -123,6 +125,12 @@ message Caked {
 			optional int32 waitIPTimeout = 2;
 		}
 		
+		message RestartRequest {
+			repeated string names = 1;
+			bool force = 2;
+			optional int32 waitIPTimeout = 3;
+		}
+
 		message CloneRequest {
 			string sourceName = 1;
 			string targetName = 2;
@@ -351,6 +359,18 @@ message Caked {
 				}
 				
 				repeated SuspendedObject objects = 1;
+				optional string reason = 2;
+				bool success = 3;
+			}
+
+			message RestartReply {
+				message RestartedObject {
+					string name = 1;
+					bool restarted = 2;
+					string reason = 3;
+				}
+				
+				repeated RestartedObject objects = 1;
 				optional string reason = 2;
 				bool success = 3;
 			}

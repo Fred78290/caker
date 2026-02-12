@@ -95,6 +95,15 @@ extension Caked_StopRequest {
 	}
 }
 
+extension Caked_RestartRequest {
+	init(command: Restart) {
+		self.init()
+		self.names = command.names
+		self.force = command.force
+		self.waitIptimeout = Int32(command.waitIPTimeout)
+	}
+}
+
 extension Caked_SuspendRequest {
 	init(command: Suspend) {
 		self.init()

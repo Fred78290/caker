@@ -135,6 +135,10 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_SuspendRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
+	func makeRestartInterceptors() -> [ClientInterceptor<Caked_RestartRequest, Caked_Reply>] {
+		[CakeServiceClientInterceptor<Caked_RestartRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
+	
 	func makeStopInterceptors() -> [ClientInterceptor<Caked_StopRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_StopRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}

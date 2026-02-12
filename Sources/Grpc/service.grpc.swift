@@ -84,6 +84,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>
 
+  func restart(
+    _ request: Caked_Caked.VMRequest.RestartRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply>
+
   func template(
     _ request: Caked_Caked.VMRequest.TemplateRequest,
     callOptions: CallOptions?
@@ -275,6 +280,24 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
+  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to VncURL.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func vncURL(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
+    )
+  }
+
   /// Launch creates and starts a new virtual machine.
   ///
   /// - Parameters:
@@ -398,6 +421,24 @@ extension Caked_ServiceClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+    )
+  }
+
+  /// Restart reboots one or more running virtual machines.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Restart.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func restart(
+    _ request: Caked_Caked.VMRequest.RestartRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
 
@@ -784,6 +825,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>
 
+  func makeRestartCall(
+    _ request: Caked_Caked.VMRequest.RestartRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply>
+
   func makeTemplateCall(
     _ request: Caked_Caked.VMRequest.TemplateRequest,
     callOptions: CallOptions?
@@ -1016,6 +1062,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+    )
+  }
+
+  public func makeRestartCall(
+    _ request: Caked_Caked.VMRequest.RestartRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
 
@@ -1595,6 +1653,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'suspend'.
   func makeSuspendInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'restart'.
+  func makeRestartInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when invoking 'template'.
   func makeTemplateInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
 
@@ -1656,6 +1717,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.start,
       Caked_ServiceClientMetadata.Methods.stop,
       Caked_ServiceClientMetadata.Methods.suspend,
+      Caked_ServiceClientMetadata.Methods.restart,
       Caked_ServiceClientMetadata.Methods.template,
       Caked_ServiceClientMetadata.Methods.waitIP,
       Caked_ServiceClientMetadata.Methods.image,
@@ -1749,6 +1811,12 @@ public enum Caked_ServiceClientMetadata {
     public static let suspend = GRPCMethodDescriptor(
       name: "Suspend",
       path: "/caked.Service/Suspend",
+      type: GRPCCallType.unary
+    )
+
+    public static let restart = GRPCMethodDescriptor(
+      name: "Restart",
+      path: "/caked.Service/Restart",
       type: GRPCCallType.unary
     )
 
@@ -1882,6 +1950,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// Suspend pauses one or more running virtual machines.
   func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// Restart reboots one or more running virtual machines.
+  func restart(request: Caked_Caked.VMRequest.RestartRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   /// Template manages virtual machine templates.
   func template(request: Caked_Caked.VMRequest.TemplateRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
@@ -2053,6 +2124,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeSuspendInterceptors() ?? [],
         userFunction: self.suspend(request:context:)
+      )
+
+    case "Restart":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RestartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRestartInterceptors() ?? [],
+        userFunction: self.restart(request:context:)
       )
 
     case "Template":
@@ -2272,6 +2352,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// Suspend pauses one or more running virtual machines.
   func suspend(
     request: Caked_Caked.VMRequest.SuspendRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// Restart reboots one or more running virtual machines.
+  func restart(
+    request: Caked_Caked.VMRequest.RestartRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
@@ -2497,6 +2583,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.suspend(request: $0, context: $1) }
       )
 
+    case "Restart":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.RestartRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeRestartInterceptors() ?? [],
+        wrapping: { try await self.restart(request: $0, context: $1) }
+      )
+
     case "Template":
       return GRPCAsyncServerHandler(
         context: context,
@@ -2683,6 +2778,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeSuspendInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when handling 'restart'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeRestartInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.RestartRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when handling 'template'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeTemplateInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.TemplateRequest, Caked_Caked.Reply>]
@@ -2758,6 +2857,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.start,
       Caked_ServiceServerMetadata.Methods.stop,
       Caked_ServiceServerMetadata.Methods.suspend,
+      Caked_ServiceServerMetadata.Methods.restart,
       Caked_ServiceServerMetadata.Methods.template,
       Caked_ServiceServerMetadata.Methods.waitIP,
       Caked_ServiceServerMetadata.Methods.image,
@@ -2851,6 +2951,12 @@ public enum Caked_ServiceServerMetadata {
     public static let suspend = GRPCMethodDescriptor(
       name: "Suspend",
       path: "/caked.Service/Suspend",
+      type: GRPCCallType.unary
+    )
+
+    public static let restart = GRPCMethodDescriptor(
+      name: "Restart",
+      path: "/caked.Service/Restart",
       type: GRPCCallType.unary
     )
 

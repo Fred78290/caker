@@ -339,6 +339,14 @@ extension CakeAgentLib.Format {
 		return self.renderList(data.map { DeletedObject(from: $0) })
 	}
 
+	public func render(_ data: [RestartedObject]) -> String {
+		return self.renderList(data)
+	}
+
+	public func render(_ data: [Caked_RestartObject]) -> String {
+		return self.renderList(data.map { RestartedObject(from: $0) })
+	}
+
 	public func render(_ data: [SuspendedObject]) -> String {
 		return self.renderList(data)
 	}
