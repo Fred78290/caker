@@ -95,6 +95,7 @@ let package = Package(
 			.product(name: "Crypto", package: "swift-crypto"),
 			.product(name: "DMRetry", package: "swift-retry"),
 			.product(name: "Dynamic", package: "Dynamic"),
+			.product(name: "FileMonitor", package: "FileMonitor"),
 			.product(name: "GRPC", package: "grpc-swift"),
 			.product(name: "Gzip", package: "GzipSwift"),
 			.product(name: "ISO9660", package: "iso9660-swift"),
