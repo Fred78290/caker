@@ -49,6 +49,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
 
+  func vncURL(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
+
   func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?
@@ -790,6 +795,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
 
+  func makeVncURLCall(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
+
   func makeLaunchCall(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?
@@ -978,6 +988,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeInfoInterceptors() ?? []
+    )
+  }
+
+  public func makeVncURLCall(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
     )
   }
 
@@ -1342,6 +1364,18 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
+  public func vncURL(
+    _ request: Caked_Caked.VMRequest.InfoRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
+    )
+  }
+
   public func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
@@ -1423,6 +1457,18 @@ extension Caked_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeSuspendInterceptors() ?? []
+    )
+  }
+
+  public func restart(
+    _ request: Caked_Caked.VMRequest.RestartRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.restart.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeRestartInterceptors() ?? []
     )
   }
 
@@ -1632,6 +1678,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'info'.
   func makeInfoInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when invoking 'vncURL'.
+  func makeVncURLInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when invoking 'launch'.
   func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
 
@@ -1710,6 +1759,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.duplicate,
       Caked_ServiceClientMetadata.Methods.execute,
       Caked_ServiceClientMetadata.Methods.info,
+      Caked_ServiceClientMetadata.Methods.vncURL,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.list,
       Caked_ServiceClientMetadata.Methods.rename,
@@ -1769,6 +1819,12 @@ public enum Caked_ServiceClientMetadata {
     public static let info = GRPCMethodDescriptor(
       name: "Info",
       path: "/caked.Service/Info",
+      type: GRPCCallType.unary
+    )
+
+    public static let vncURL = GRPCMethodDescriptor(
+      name: "VncURL",
+      path: "/caked.Service/VncURL",
       type: GRPCCallType.unary
     )
 
@@ -1930,6 +1986,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   /// Info retrieves detailed information about a virtual machine.
   func info(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
+  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
+  func vncURL(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
   /// Launch creates and starts a new virtual machine.
   func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
@@ -2061,6 +2120,15 @@ extension Caked_ServiceProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
         userFunction: self.info(request:context:)
+      )
+
+    case "VncURL":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeVncURLInterceptors() ?? [],
+        userFunction: self.vncURL(request:context:)
       )
 
     case "Launch":
@@ -2313,6 +2381,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
+  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
+  func vncURL(
+    request: Caked_Caked.VMRequest.InfoRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
   /// Launch creates and starts a new virtual machine.
   func launch(
     request: Caked_Caked.VMRequest.LaunchRequest,
@@ -2518,6 +2592,15 @@ extension Caked_ServiceAsyncProvider {
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
         interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
         wrapping: { try await self.info(request: $0, context: $1) }
+      )
+
+    case "VncURL":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeVncURLInterceptors() ?? [],
+        wrapping: { try await self.vncURL(request: $0, context: $1) }
       )
 
     case "Launch":
@@ -2750,6 +2833,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeInfoInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
+  /// - Returns: Interceptors to use when handling 'vncURL'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeVncURLInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeLaunchInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
@@ -2850,6 +2937,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.duplicate,
       Caked_ServiceServerMetadata.Methods.execute,
       Caked_ServiceServerMetadata.Methods.info,
+      Caked_ServiceServerMetadata.Methods.vncURL,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.list,
       Caked_ServiceServerMetadata.Methods.rename,
@@ -2909,6 +2997,12 @@ public enum Caked_ServiceServerMetadata {
     public static let info = GRPCMethodDescriptor(
       name: "Info",
       path: "/caked.Service/Info",
+      type: GRPCCallType.unary
+    )
+
+    public static let vncURL = GRPCMethodDescriptor(
+      name: "VncURL",
+      path: "/caked.Service/VncURL",
       type: GRPCCallType.unary
     )
 

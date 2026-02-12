@@ -1497,6 +1497,7 @@ public struct Caked_Caked: Sendable {
         case purged(Caked_Caked.Reply.VirtualMachineReply.PurgeReply)
         case renamed(Caked_Caked.Reply.VirtualMachineReply.RenameReply)
         case restarted(Caked_Caked.Reply.VirtualMachineReply.RestartReply)
+        case vncURL(String)
 
       }
 
@@ -5929,7 +5930,7 @@ extension Caked_Caked.VMRequest.ExecuteRequest.TerminalSize: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Reply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vms\0\u{1}images\0\u{1}networks\0\u{1}remotes\0\u{1}templates\0\u{1}run\0\u{1}mounts\0\u{1}oci\0\u{1}ping\0\u{1}status\0\u{1}unexpected\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6312,7 +6313,7 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
 
 extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6610,6 +6611,10 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
     case .restarted?: try {
       guard case .restarted(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+    }()
+    case .vncURL?: try {
+      guard case .vncURL(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 17)
     }()
     case nil: break
     }

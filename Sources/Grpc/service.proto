@@ -22,6 +22,8 @@ service Service {
 	rpc Execute (stream Caked.VMRequest.ExecuteRequest) returns (stream Caked.VMRequest.ExecuteResponse);
 	// Info retrieves detailed information about a virtual machine.
 	rpc Info (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
+	// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
+	rpc VncURL (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
 	// Launch creates and starts a new virtual machine.
 	rpc Launch (Caked.VMRequest.LaunchRequest) returns (Caked.Reply) {}
 	// List returns all virtual machines or images.
@@ -602,6 +604,8 @@ message Caked {
 				WaitIPReply waitip = 13;
 				PurgeReply purged = 14;
 				RenameReply renamed = 15;
+				RestartReply restarted = 16;
+				string vncURL = 17;
 			}
 		}	
 
