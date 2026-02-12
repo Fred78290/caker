@@ -7,26 +7,20 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct StopHandler {
-	public static func restart(name: String, force: Bool, runMode: Utils.RunMode) throws -> StoppedObject {
-		let location = try StorageLocation(runMode: runMode).find(name)
-
-		if location.status == .running {
-			try location.restartVirtualMachine(force: force, runMode: runMode)
-			return StoppedObject(name: name, stopped: true, reason: "")
+	public static func stopVM(name: String, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
+		do {
+			let location = try StorageLocation(runMode: runMode).find(name)
+			
+			if location.status == .running {
+				try location.stopVirtualMachine(force: force, runMode: runMode)
+				
+				return StoppedObject(name: name, stopped: true, reason: "")
+			}
+			
+			return StoppedObject(name: name, stopped: false, reason: "VM is not running")
+		} catch {
+			return StoppedObject(name: name, stopped: false, reason: "\(error)")
 		}
-
-		return StoppedObject(name: name, stopped: false, reason: "VM is not running")
-	}
-
-	public static func stopVM(name: String, force: Bool, runMode: Utils.RunMode) throws -> StoppedObject {
-		let location = try StorageLocation(runMode: runMode).find(name)
-
-		if location.status == .running {
-			try location.stopVirtualMachine(force: force, runMode: runMode)
-			return StoppedObject(name: name, stopped: true, reason: "")
-		}
-
-		return StoppedObject(name: name, stopped: false, reason: "VM is not running")
 	}
 
 	public static func stopVMs(all: Bool, names: [String], force: Bool, runMode: Utils.RunMode) -> StopReply {
@@ -34,18 +28,12 @@ public struct StopHandler {
 			let stopped: [StoppedObject]
 
 			if all {
-				stopped = try StorageLocation(runMode: runMode).list().compactMap { (key: String, value: VMLocation) in
-					if value.status == .running {
-						try value.stopVirtualMachine(force: force, runMode: runMode)
-
-						return StoppedObject(name: key, stopped: true, reason: "")
-					}
-
-					return nil
+				stopped = try StorageLocation(runMode: runMode).list().keys.map {
+					return StopHandler.stopVM(name: $0, force: force, runMode: runMode)
 				}
 			} else {
-				stopped = try names.map {
-					try StopHandler.stopVM(name: $0, force: force, runMode: runMode)
+				stopped = names.uniqued().map {
+					return StopHandler.stopVM(name: $0, force: force, runMode: runMode)
 				}
 			}
 

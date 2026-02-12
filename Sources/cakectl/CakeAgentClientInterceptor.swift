@@ -131,7 +131,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_WaitIPRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
-	func makeSuspendInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.SuspendRequest, Caked_Caked.Reply>] {
+	func makeSuspendInterceptors() -> [ClientInterceptor<Caked_SuspendRequest, Caked_Caked.Reply>] {
 		[CakeServiceClientInterceptor<Caked_SuspendRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
@@ -199,4 +199,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_CurrentStatusRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 
+	func makeVncURLInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>] {
+		[CakeServiceClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
 }

@@ -634,18 +634,8 @@ extension VirtualMachineDocument {
 		}
 
 		if self.externalRunning {
-			do {
-				let result = try StopHandler.restart(name: self.name, force: false, runMode: .app)
-
-				if result.stopped == false {
-					MainActor.assumeIsolated {
-						alertError(ServiceError(result.reason))
-					}
-				}
-			} catch {
-				MainActor.assumeIsolated {
-					alertError(error)
-				}
+			Task {
+				await AppState.shared.restartVirtualMachine(name: self.name)
 			}
 		} else if let virtualMachine = self.virtualMachine {
 			virtualMachine.restartFromUI()
@@ -659,16 +649,10 @@ extension VirtualMachineDocument {
 
 		if self.externalRunning {
 			Task {
-				do {
-					let result = try StopHandler.stopVM(name: self.name, force: force, runMode: .app)
+				let result = await AppState.shared.stopVirtualMachine(name: self.name)
 
-					if result.stopped == false {
-						await alertError(ServiceError(result.reason))
-					} else {
-						await self.setStateAsStopped()
-					}
-				} catch {
-					await alertError(error)
+				if result.success {
+					await self.setStateAsStopped()
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {
@@ -687,16 +671,10 @@ extension VirtualMachineDocument {
 
 		if self.externalRunning {
 			Task {
-				do {
-					let result = try SuspendHandler.suspendVM(name: self.name, runMode: .app)
+				let result = await AppState.shared.suspendVirtualMachine(name: self.name)
 
-					if result.suspended == false {
-						await alertError(ServiceError(result.reason))
-					} else {
-						await self.setStateAsStopped(.paused)
-					}
-				} catch {
-					await alertError(error)
+				if result.success {
+					await self.setStateAsStopped(.paused)
 				}
 			}
 		} else if let virtualMachine = self.virtualMachine {

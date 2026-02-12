@@ -1214,6 +1214,14 @@ public struct Caked_Caked: Sendable {
       set {response = .status(newValue)}
     }
 
+    public var unexpected: String {
+      get {
+        if case .unexpected(let v)? = response {return v}
+        return String()
+      }
+      set {response = .unexpected(newValue)}
+    }
+
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     public enum OneOf_Response: Equatable, Sendable {
@@ -1227,6 +1235,7 @@ public struct Caked_Caked: Sendable {
       case oci(Caked_Caked.Reply.OCIReply)
       case ping(Caked_Caked.Reply.PingReply)
       case status(Caked_Caked.Reply.CurrentStatusReply)
+      case unexpected(String)
 
     }
 
@@ -6068,6 +6077,14 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
           self.response = .status(v)
         }
       }()
+      case 11: try {
+        var v: String?
+        try decoder.decodeSingularStringField(value: &v)
+        if let v = v {
+          if self.response != nil {try decoder.handleConflictingOneOf()}
+          self.response = .unexpected(v)
+        }
+      }()
       default: break
       }
     }
@@ -6118,6 +6135,10 @@ extension Caked_Caked.Reply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     case .status?: try {
       guard case .status(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
+    }()
+    case .unexpected?: try {
+      guard case .unexpected(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 11)
     }()
     case nil: break
     }

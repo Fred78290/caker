@@ -848,6 +848,7 @@ message Caked {
 			OCIReply oci = 8;
 			PingReply ping = 9;
 			CurrentStatusReply status = 10;
+			string unexpected = 11;
 		}
 	}
 

@@ -356,8 +356,63 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
+	@discardableResult
+	func startVirtualMachine(name: String) async throws -> StartedReply {
+		StartedReply(name: name, ip: "", started: false, reason: "Not yet implemented")
+	}
+
+	@discardableResult
+	func restartVirtualMachine(name: String, force: Bool = false, waitIPTimeout: Int = 30) async -> RestartReply {
+		do {
+			let result = try RestartHandler.restart(client: self.cakedServiceClient, name: name, force: force, waitIPTimeout: 30, runMode: self.runMode)
+			
+			if result.success == false {
+				await alertError(result.reason, "Failed to restart VM")
+			}
+			
+			return result
+		} catch {
+			await alertError(error)
+			
+			return .init(objects: [], success: false, reason: "\(error)")
+		}
+	}
+
+	@discardableResult
+	func stopVirtualMachine(name: String, force: Bool = false) async -> StopReply {
+		do {
+			let result = try StopHandler.stopVM(client: self.cakedServiceClient, name: name, force: force, runMode: self.runMode)
+
+			if result.success == false {
+				await alertError(result.reason, "Failed to stop VM")
+			}
+
+			return result
+		} catch {
+			await alertError(error)
+			
+			return .init(objects: [], success: false, reason: "\(error)")
+		}
+	}
+
+	@discardableResult
+	func suspendVirtualMachine(name: String) async -> SuspendReply {
+		do {
+			let result = try SuspendHandler.suspendVM(client: self.cakedServiceClient, name: name, runMode: self.runMode)
+
+			if result.success == false {
+				await alertError(result.reason, "Failed to suspend VM")
+			}
+
+			return result
+		} catch {
+			await alertError(error)
+			
+			return .init(objects: [], success: false, reason: "\(error)")
+		}
+	}
+
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
-		
 		try await BuildHandler.build(client: self.cakedServiceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
 	}
 

@@ -13,6 +13,9 @@ struct Start: GrpcParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
+	@Option(help: ArgumentHelp("Max time to wait for IP", valueName: "seconds"))
+	var waitIPTimeout = 180
+
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 

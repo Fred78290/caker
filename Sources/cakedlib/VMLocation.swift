@@ -299,7 +299,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		try FileManager.default.removeItem(at: rootURL)
 	}
 
-	public func restartVirtualMachine(force: Bool, runMode: Utils.RunMode) throws {
+	public func restartVirtualMachine(force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws {
 		let config = try self.config()
 		let home = try Home(runMode: runMode)
 		let killVMRun: () -> Void = {
@@ -310,7 +310,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
-						_ = StartHandler.startVM(location: self, config: config, waitIPTimeout: 30, startMode: .background, runMode: runMode, promise: nil)
+						_ = StartHandler.startVM(location: self, config: config, waitIPTimeout: waitIPTimeout, startMode: .background, runMode: runMode, promise: nil)
 					}
 				}
 			}

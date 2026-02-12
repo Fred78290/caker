@@ -378,6 +378,58 @@ public struct StopReply: Codable {
 	}
 }
 
+public struct RestartedObject: Codable {
+	public var name: String
+	public var restarted: Bool
+	public var reason: String
+	
+	public init(from: Caked_RestartObject) {
+		self.name = from.name
+		self.restarted = from.restarted
+		self.reason = from.reason
+	}
+
+	public init(name: String, restarted: Bool, reason: String) {
+		self.name = name
+		self.restarted = restarted
+		self.reason = reason
+	}
+
+	public var caked: Caked_RestartObject {
+		Caked_RestartObject.with { object in
+			object.name = name
+			object.restarted = restarted
+			object.reason = reason
+		}
+	}
+}
+
+public struct RestartReply: Codable {
+	public let objects: [RestartedObject]
+	public let success: Bool
+	public let reason: String
+
+	public init(objects: [RestartedObject], success: Bool, reason: String) {
+		self.objects = objects
+		self.reason = reason
+		self.success = success
+	}
+
+	public init(from: Caked_RestartReply) {
+		self.objects = from.objects.map(RestartedObject.init(from:))
+		self.success = from.success
+		self.reason = from.reason
+	}
+
+	public var caked: Caked_RestartReply {
+		Caked_RestartReply.with { object in
+			object.objects = self.objects.map(\.caked)
+			object.success = self.success
+			object.reason = self.reason
+		}
+	}
+}
+
 public struct DeletedObject: Codable {
 	public let source: String
 	public let name: String

@@ -83,7 +83,7 @@ public struct CurrentStatusHandler {
 							case .stopped:
 								$0.currentStatus = .stopped
 							default:
-								$0.currentStatus = .UNRECOGNIZED(0)
+								$0.currentStatus = .paused
 							}
 						}
 					})

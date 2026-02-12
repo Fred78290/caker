@@ -77,6 +77,7 @@ extension Caked_StartRequest {
 	init(command: Start) {
 		self.init()
 		self.name = command.name
+		self.waitIptimeout = Int32(command.waitIPTimeout)
 	}
 }
 
