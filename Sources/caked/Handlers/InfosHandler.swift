@@ -9,7 +9,7 @@ struct InfosHandler: CakedCommand {
 	var request: Caked_InfoRequest
 	var client: CakeAgentConnection
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
 				$0.status = .with {
