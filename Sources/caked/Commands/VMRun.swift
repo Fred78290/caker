@@ -8,33 +8,6 @@ import NIOPortForwarding
 import System
 import Virtualization
 
-struct ViewSize: Codable, Identifiable, Hashable, ExpressibleByArgument {
-	var id: String {
-		"\(width)x\(height)"
-	}
-	var width: Int
-	var height: Int
-	var size: CGSize {
-		.init(width: CGFloat(width), height: CGFloat(height))
-	}
-
-	init(width: Int, height: Int) {
-		self.width = width
-		self.height = height
-	}
-
-	init(argument: String) {
-		let parts = argument.components(separatedBy: "x").map {
-			Int($0) ?? 0
-		}
-
-		self = ViewSize(
-			width: parts.first ?? 0,
-			height: parts.count > 0 ? parts[1] : 0
-		)
-	}
-}
-
 struct VMRun: AsyncParsableCommand {
 	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
 
@@ -134,7 +107,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		let handler = CakedLib.VMRunHandler(
-			mode,
+			mode: mode,
 			storageLocation: storageLocation,
 			location: location,
 			name: location.name,
@@ -152,7 +125,7 @@ struct VMRun: AsyncParsableCommand {
 				}
 			}
 
-			if display == .all {
+			if display == .all || display == .vnc {
 				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
 
 				Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")

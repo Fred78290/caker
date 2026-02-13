@@ -331,7 +331,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		lhs.location.rootURL == rhs.location.rootURL
 	}
 
-	public typealias StartCompletionHandler = (Result<Void, any Error>) -> Void
+	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
 
 	public var virtualMachine: VZVirtualMachine
@@ -477,8 +477,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			self.logger.error("VM \(self.location.name) failed to start: \(error)")
 		}
 
-		if let completionHandler: VirtualMachine.StartCompletionHandler = completionHandler {
-			completionHandler(result)
+		if let completionHandler {
+			switch result {
+			case .success:
+				completionHandler(.success(self))
+			case .failure(let error):
+				completionHandler(.failure(error))
+			}
 		}
 	}
 
@@ -594,8 +599,13 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 						self.env.timer = nil
 					}
 
-					if let completionHandler = completionHandler {
-						completionHandler(result)
+					if let completionHandler {
+						switch result {
+						case .success:
+							completionHandler(.success(self))
+						case .failure(let error):
+							completionHandler(.failure(error))
+						}
 					}
 
 					self.didChangedState()
@@ -611,8 +621,8 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 
 							if case .failure(let err) = result {
 								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
-								if let completionHandler = completionHandler {
-									completionHandler(result)
+								if let completionHandler {
+									completionHandler(.failure(err))
 								}
 							} else {
 								self.logger.info("VM \(self.location.name) paused")
@@ -631,7 +641,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 										self.logger.info("Snap created successfully...")
 
 										if let completionHandler = completionHandler {
-											completionHandler(.success(()))
+											completionHandler(.success(self))
 										}
 									}
 								}

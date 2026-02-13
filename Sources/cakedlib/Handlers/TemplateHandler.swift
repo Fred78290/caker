@@ -29,7 +29,7 @@ private let cloudInitCleanup = [
 public struct TemplateHandler {
 	static func cleanCloudInit(source: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws -> VMLocation {
 		let location = try source.duplicateTemporary(runMode: runMode)
-		let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
+		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
 		let conn = try CakeAgentConnection(eventLoop: Utilities.group.next(), listeningAddress: location.agentURL, runMode: runMode)
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")

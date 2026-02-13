@@ -9,12 +9,15 @@ import Shout
 import SystemConfiguration
 
 struct StartHandler: CakedCommand {
-	var startMode: CakedLib.StartHandler.StartMode = .background
-	var location: VMLocation
-	var config: CakeConfig
-	var waitIPTimeout: Int = 180
+	let startMode: CakedLib.StartHandler.StartMode
+	let location: VMLocation
+	let screenSize: ViewSize?
+	let vncPassword: String?
+	let vncPort: Int?
+	let config: CakeConfig
+	let waitIPTimeout: Int
 
-	init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode) {
+	/*init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode) {
 		self.startMode = startMode
 		self.location = location
 		self.config = config
@@ -26,15 +29,33 @@ struct StartHandler: CakedCommand {
 		self.config = try location.config()
 		self.waitIPTimeout = waitIPTimeout
 		self.startMode = startMode
-	}
+	}*/
 
-	init(name: String, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode, runMode: Utils.RunMode) throws {
-		let location: VMLocation = try StorageLocation(runMode: runMode).find(name)
+	init(request: Caked_StartRequest, startMode: CakedLib.StartHandler.StartMode, runMode: Utils.RunMode) throws {
+		let location: VMLocation = try StorageLocation(runMode: runMode).find(request.name)
 
 		self.location = location
 		self.config = try location.config()
-		self.waitIPTimeout = waitIPTimeout
+		self.waitIPTimeout = request.hasWaitIptimeout ? Int(request.waitIptimeout) : 120
 		self.startMode = startMode
+
+		if request.hasScreenSize {
+			self.screenSize = ViewSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
+		} else {
+			self.screenSize = nil
+		}
+
+		if request.hasVncPassword {
+			self.vncPassword = request.vncPassword
+		} else {
+			self.vncPassword = nil
+		}
+
+		if request.hasVncPort {
+			self.vncPort = Int(request.vncPort)
+		} else {
+			self.vncPort = nil
+		}
 	}
 
 	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
@@ -51,7 +72,7 @@ struct StartHandler: CakedCommand {
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
-				$0.started = CakedLib.StartHandler.startVM(on: on, location: self.location, config: self.config, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode).caked
+				$0.started = CakedLib.StartHandler.startVM(on: on, location: self.location, screenSize: self.screenSize, vncPassword: self.vncPassword, vncPort: self.vncPort, waitIPTimeout: waitIPTimeout, startMode: .service, runMode: runMode).caked
 			}
 		}
 	}

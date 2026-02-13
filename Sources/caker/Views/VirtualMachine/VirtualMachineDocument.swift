@@ -565,12 +565,8 @@ extension VirtualMachineDocument {
 								}
 							}
 
-							let extras = [
-								"--vnc-password=\(vncPassword)",
-								"--vnc-port=\(vncPort)",
-								"--screen-size=\(Int(self.documentSize.width))x\(Int(self.documentSize.height))",
-							]
-							let runningIP = try StartHandler.internalStartVM(location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise, extras: extras)
+							let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
+							let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise)
 							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
 
 							#if DEBUG

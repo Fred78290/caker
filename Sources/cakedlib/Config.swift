@@ -11,6 +11,10 @@ extension DisplaySize {
 		CGSize(width: CGFloat(width), height: CGFloat(height))
 	}
 
+	var screenSize: ViewSize {
+		ViewSize(width: width, height: height)
+	}
+
 	public var width: Int {
 		set { self["width"] = newValue }
 		get { self["width"]! }

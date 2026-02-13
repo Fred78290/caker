@@ -9,7 +9,7 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct StartHandler {
-	public enum StartMode: Int {
+	public enum StartMode: Int, Sendable {
 		case background = 0
 		case foreground = 1
 		case attach = 2
@@ -17,7 +17,25 @@ public struct StartHandler {
 	}
 
 	private final class StartHandlerVMRun: Sendable {
-		internal func start(location: VMLocation, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil, extras: [String]? = nil) throws -> String {
+		let location: VMLocation
+		let screenSize: ViewSize?
+		let vncPassword: String?
+		let vncPort: Int?
+		let waitIPTimeout: Int
+		let startMode: StartMode
+		let runMode: Utils.RunMode
+
+		internal init(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) {
+			self.location = location
+			self.screenSize = screenSize
+			self.vncPassword = vncPassword
+			self.vncPort = vncPort
+			self.waitIPTimeout = waitIPTimeout
+			self.startMode = startMode
+			self.runMode = runMode
+		}
+
+		internal func start(promise: EventLoopPromise<String>? = nil) throws -> String {
 			let config: CakeConfig = try location.config()
 			let log: String = URL(fileURLWithPath: "output.log", relativeTo: location.rootURL).absoluteURL.path
 
@@ -39,8 +57,16 @@ public struct StartHandler {
 				arguments.append("--vnc")
 			}
 
-			if let extras = extras {
-				arguments.append(contentsOf: extras)
+			if let screenSize {
+				arguments.append("--screen-size=\(Int(screenSize.width))x\(Int(screenSize.height))")
+			}
+
+			if let vncPassword {
+				arguments.append("--vnc-password=\(vncPassword)")
+			}
+
+			if let vncPort {
+				arguments.append("--vnc-port=\(vncPort)")
 			}
 
 			if startMode == .service || startMode == .background {
@@ -53,15 +79,16 @@ public struct StartHandler {
 				}
 			}
 
+			let vmName = location.name
 			let process: ProcessWithSharedFileHandle = try runProccess(arguments: arguments, sharedFileDescriptors: sharedFileDescriptors, startMode: startMode, runMode: runMode) { process in
 				#if DEBUG
-					Logger(self).debug("VM \(location.name) exited with code \(process.terminationStatus)")
+					Logger(self).debug("VM \(vmName) exited with code \(process.terminationStatus)")
 				#endif
 				if let promise = promise {
 					if process.terminationStatus == 0 {
-						promise.succeed(location.name)
+						promise.succeed(vmName)
 					} else {
-						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: location.name))
+						promise.fail(ShellError(terminationStatus: process.terminationStatus, error: "Failed", message: vmName))
 					}
 				}
 			}
@@ -105,7 +132,7 @@ public struct StartHandler {
 					Task {
 						Logger(self).info("VM \(name) starting")
 
-						let reply = StartHandler.startVM(on: on, location: location, config: config, waitIPTimeout: 120, startMode: .service, runMode: runMode)
+						let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display.screenSize, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, runMode: runMode)
 
 						if reply.started {
 							Logger(self).info("VM \(name) started with IP \(reply.ip)")
@@ -165,11 +192,11 @@ public struct StartHandler {
 		return process
 	}
 
-	public static func internalStartVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil, extras: [String]? = nil) throws -> String {
-		return try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise, extras: extras)
+	public static func internalStartVM(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> String {
+		return try StartHandlerVMRun(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode).start(promise: promise)
 	}
 
-	public static func startVM(on: EventLoop, location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) -> StartedReply {
+	public static func startVM(on: EventLoop, location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode) -> StartedReply {
 		let promise: EventLoopPromise<String> = on.makePromise(of: String.self)
 
 		promise.futureResult.whenComplete { result in
@@ -181,10 +208,10 @@ public struct StartHandler {
 			}
 		}
 
-		return startVM(location: location, config: config, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+		return startVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
-	public static func startVM(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
+	public static func startVM(location: VMLocation, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) -> StartedReply {
 		do {
 			if FileManager.default.fileExists(atPath: location.diskURL.path) == false {
 				return StartedReply(name: location.name, ip: "", started: false, reason: "VM not found")
@@ -195,7 +222,7 @@ public struct StartHandler {
 			if location.status == .running {
 				ip = try location.waitIP(wait: 180, runMode: runMode)
 			} else {
-				ip = try StartHandlerVMRun().start(location: location, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+				ip = try internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 			}
 
 			return StartedReply(name: location.name, ip: ip, started: true, reason: "VM started")
@@ -204,4 +231,7 @@ public struct StartHandler {
 		}
 	}
 
+	public static func startVM(name: String, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
+		try Self.startVM(location: StorageLocation(runMode: runMode).find(name), screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode)
+	}
 }

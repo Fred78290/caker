@@ -6,8 +6,6 @@ import Virtualization
 import CakeAgentLib
 
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
-	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
-
 	public enum Status: String {
 		case running
 		case paused
@@ -310,7 +308,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
-						_ = StartHandler.startVM(location: self, config: config, waitIPTimeout: waitIPTimeout, startMode: .background, runMode: runMode, promise: nil)
+						_ = StartHandler.startVM(location: self, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: waitIPTimeout, startMode: .background, runMode: runMode, promise: nil)
 					}
 				}
 			}
@@ -341,7 +339,6 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				killVMRun()
 			}
 		}
-
 	}
 
 	public func suspendVirtualMachine(runMode: Utils.RunMode) throws {
@@ -407,34 +404,19 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		removePID()
 	}
 
-	public func startVirtualMachine(
-		_ mode: VMRunServiceMode, on: EventLoop, config: CakeConfig, screenSize: CGSize, display: VMRunHandler.DisplayMode, vncPassword: String, vncPort: Int, internalCall: Bool, runMode: Utils.RunMode,
-		completionHandler: StartCompletionHandler? = nil
-	) throws -> (
-		address: EventLoopFuture<String?>, vm: VirtualMachine
-	) {
+	public func startVirtualMachine(mode: VMRunServiceMode,
+									on: EventLoop,
+									config: CakeConfig,
+									screenSize: CGSize,
+									display: VMRunHandler.DisplayMode,
+									vncPassword: String,
+									vncPort: Int,
+									internalCall: Bool,
+									runMode: Utils.RunMode,
+									completionHandler: VirtualMachine.StartCompletionHandler? = nil) throws -> (address: EventLoopFuture<String?>, vm: VirtualMachine) {
 		let vm = try VirtualMachine(location: self, config: config, display: display, screenSize: screenSize, runMode: runMode)
 
-		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall) {
-			if case .success = $0 {
-				if display == .vnc {
-					DispatchQueue.main.async {
-						let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
-
-						Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
-					}
-				}
-			}
-
-			if let handler = completionHandler {
-				switch $0 {
-				case .success:
-					handler(.success(vm))
-				case .failure(let error):
-					handler(.failure(error))
-				}
-			}
-		}
+		let runningIP = try vm.runInBackground(mode, on: on, internalCall: internalCall, completionHandler: completionHandler)
 
 		try self.writePID()
 
