@@ -924,3 +924,17 @@ public struct VirtualMachineInfoReply: Codable {
 		}
 	}
 }
+
+public struct ScreenSizeReply: Codable {
+	public let width: Int
+	public let height: Int
+	public let success: Bool
+	public let reason: String?
+	
+	public init(width: Int, height: Int, success: Bool, reason: String?) {
+		self.width = width
+		self.height = height
+		self.success = success
+		self.reason = reason
+	}
+}

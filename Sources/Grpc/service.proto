@@ -68,9 +68,26 @@ service Service {
 	rpc Ping (Caked.PingRequest) returns (Caked.Reply);
 	// CurrentStatus streams current system resource usage information.
 	rpc CurrentStatus(Caked.CurrentStatusRequest) returns (stream Caked.Reply);
+	// GetScreenSize retrieves the current screen size of a virtual machine.
+	rpc GetScreenSize(Caked.GetScreenSizeRequest) returns (Caked.Reply);
+	// SetScreenSize sets the screen size for a virtual machine.
+	rpc SetScreenSize(Caked.SetScreenSizeRequest) returns (Caked.Reply);
 }
 
 message Caked {
+	message GetScreenSizeRequest {
+		string name = 1;
+	}
+
+	message SetScreenSizeRequest {
+		message ScreenSize {
+			int32 width = 1;
+			int32 height = 2;
+		}
+		string name = 1;
+		ScreenSize screenSize = 2;	
+	}
+
 	message PingRequest {
 		string name = 1;
 		string message = 2;
@@ -837,6 +854,13 @@ message Caked {
 			}
 		}
 
+		message ScreenSizeReply{
+			string name = 1;
+			SetScreenSizeRequest.ScreenSize screenSize = 2;
+			bool success = 3;
+			optional string reason = 4;
+		}
+
 		oneof response {
 			VirtualMachineReply vms = 1;
 			ImageReply images = 2;
@@ -848,7 +872,8 @@ message Caked {
 			OCIReply oci = 8;
 			PingReply ping = 9;
 			CurrentStatusReply status = 10;
-			string unexpected = 11;
+			ScreenSizeReply screenSize = 11;
+			string unexpected = 12;
 		}
 	}
 

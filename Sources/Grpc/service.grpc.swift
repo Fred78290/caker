@@ -164,6 +164,16 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?,
     handler: @escaping (Caked_Caked.Reply) -> Void
   ) -> ServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>
+
+  func getScreenSize(
+    _ request: Caked_Caked.GetScreenSizeRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply>
+
+  func setScreenSize(
+    _ request: Caked_Caked.SetScreenSizeRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -701,6 +711,42 @@ extension Caked_ServiceClientProtocol {
       handler: handler
     )
   }
+
+  /// GetScreenSize retrieves the current screen size of a virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetScreenSize.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func getScreenSize(
+    _ request: Caked_Caked.GetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.getScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? []
+    )
+  }
+
+  /// SetScreenSize sets the screen size for a virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to SetScreenSize.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func setScreenSize(
+    _ request: Caked_Caked.SetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -909,6 +955,16 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.CurrentStatusRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncServerStreamingCall<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>
+
+  func makeGetScreenSizeCall(
+    _ request: Caked_Caked.GetScreenSizeRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply>
+
+  func makeSetScreenSizeCall(
+    _ request: Caked_Caked.SetScreenSizeRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1276,6 +1332,30 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? []
     )
   }
+
+  public func makeGetScreenSizeCall(
+    _ request: Caked_Caked.GetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.getScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? []
+    )
+  }
+
+  public func makeSetScreenSizeCall(
+    _ request: Caked_Caked.SetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1639,6 +1719,30 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeCurrentStatusInterceptors() ?? []
     )
   }
+
+  public func getScreenSize(
+    _ request: Caked_Caked.GetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.getScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? []
+    )
+  }
+
+  public func setScreenSize(
+    _ request: Caked_Caked.SetScreenSizeRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.setScreenSize.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1746,6 +1850,12 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'currentStatus'.
   func makeCurrentStatusInterceptors() -> [ClientInterceptor<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'getScreenSize'.
+  func makeGetScreenSizeInterceptors() -> [ClientInterceptor<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'setScreenSize'.
+  func makeSetScreenSizeInterceptors() -> [ClientInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1782,6 +1892,8 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.umount,
       Caked_ServiceClientMetadata.Methods.ping,
       Caked_ServiceClientMetadata.Methods.currentStatus,
+      Caked_ServiceClientMetadata.Methods.getScreenSize,
+      Caked_ServiceClientMetadata.Methods.setScreenSize,
     ]
   )
 
@@ -1959,6 +2071,18 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/CurrentStatus",
       type: GRPCCallType.serverStreaming
     )
+
+    public static let getScreenSize = GRPCMethodDescriptor(
+      name: "GetScreenSize",
+      path: "/caked.Service/GetScreenSize",
+      type: GRPCCallType.unary
+    )
+
+    public static let setScreenSize = GRPCMethodDescriptor(
+      name: "SetScreenSize",
+      path: "/caked.Service/SetScreenSize",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2054,6 +2178,12 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// CurrentStatus streams current system resource usage information.
   func currentStatus(request: Caked_Caked.CurrentStatusRequest, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
+
+  /// GetScreenSize retrieves the current screen size of a virtual machine.
+  func getScreenSize(request: Caked_Caked.GetScreenSizeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// SetScreenSize sets the screen size for a virtual machine.
+  func setScreenSize(request: Caked_Caked.SetScreenSizeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -2329,6 +2459,24 @@ extension Caked_ServiceProvider {
         userFunction: self.currentStatus(request:context:)
       )
 
+    case "GetScreenSize":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.GetScreenSizeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? [],
+        userFunction: self.getScreenSize(request:context:)
+      )
+
+    case "SetScreenSize":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.SetScreenSizeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? [],
+        userFunction: self.setScreenSize(request:context:)
+      )
+
     default:
       return nil
     }
@@ -2519,6 +2667,18 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply>,
     context: GRPCAsyncServerCallContext
   ) async throws
+
+  /// GetScreenSize retrieves the current screen size of a virtual machine.
+  func getScreenSize(
+    request: Caked_Caked.GetScreenSizeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// SetScreenSize sets the screen size for a virtual machine.
+  func setScreenSize(
+    request: Caked_Caked.SetScreenSizeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -2801,6 +2961,24 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.currentStatus(request: $0, responseStream: $1, context: $2) }
       )
 
+    case "GetScreenSize":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.GetScreenSizeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? [],
+        wrapping: { try await self.getScreenSize(request: $0, context: $1) }
+      )
+
+    case "SetScreenSize":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.SetScreenSizeRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? [],
+        wrapping: { try await self.setScreenSize(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -2924,6 +3102,14 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'currentStatus'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeCurrentStatusInterceptors() -> [ServerInterceptor<Caked_Caked.CurrentStatusRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'getScreenSize'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetScreenSizeInterceptors() -> [ServerInterceptor<Caked_Caked.GetScreenSizeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'setScreenSize'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeSetScreenSizeInterceptors() -> [ServerInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -2960,6 +3146,8 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.umount,
       Caked_ServiceServerMetadata.Methods.ping,
       Caked_ServiceServerMetadata.Methods.currentStatus,
+      Caked_ServiceServerMetadata.Methods.getScreenSize,
+      Caked_ServiceServerMetadata.Methods.setScreenSize,
     ]
   )
 
@@ -3136,6 +3324,18 @@ public enum Caked_ServiceServerMetadata {
       name: "CurrentStatus",
       path: "/caked.Service/CurrentStatus",
       type: GRPCCallType.serverStreaming
+    )
+
+    public static let getScreenSize = GRPCMethodDescriptor(
+      name: "GetScreenSize",
+      path: "/caked.Service/GetScreenSize",
+      type: GRPCCallType.unary
+    )
+
+    public static let setScreenSize = GRPCMethodDescriptor(
+      name: "SetScreenSize",
+      path: "/caked.Service/SetScreenSize",
+      type: GRPCCallType.unary
     )
   }
 }
