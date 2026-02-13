@@ -242,6 +242,18 @@ extension Caked_PingRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_GetScreenSizeRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return ScreenSizeHandler.GetScreenSizeHandler(request: self)
+	}
+}
+
+extension Caked_SetScreenSizeRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return ScreenSizeHandler.SetScreenSizeHandler(request: self)
+	}
+}
+
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -371,7 +383,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 
 	func ping(request: Caked_PingRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		Caked_Reply()
+		return try self.execute(command: request)
 	}
 	
 	func currentStatus(request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
@@ -383,6 +395,14 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: VncURLHandler(request: request))
 	}
 
+	func getScreenSize(request: Caked_GetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+	
+	func setScreenSize(request: Caked_SetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+	
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
 

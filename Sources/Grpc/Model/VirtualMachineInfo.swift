@@ -929,12 +929,30 @@ public struct ScreenSizeReply: Codable {
 	public let width: Int
 	public let height: Int
 	public let success: Bool
-	public let reason: String?
+	public let reason: String
 	
-	public init(width: Int, height: Int, success: Bool, reason: String?) {
+	public init(width: Int, height: Int, success: Bool, reason: String) {
 		self.width = width
 		self.height = height
 		self.success = success
 		self.reason = reason
+	}
+
+	public init(from: Caked_ScreenSizeReply) {
+		self.width = Int(from.screenSize.width)
+		self.height = Int(from.screenSize.height)
+		self.success = from.success
+		self.reason = from.reason
+	}
+
+	public var caked: Caked_ScreenSizeReply {
+		Caked_ScreenSizeReply.with {
+			$0.screenSize = .with {
+				$0.width = Int32(self.width)
+				$0.height = Int32(self.height)
+			}
+			$0.success = self.success
+			$0.reason = self.reason
+		}
 	}
 }

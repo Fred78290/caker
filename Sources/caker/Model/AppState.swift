@@ -412,6 +412,42 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
+	func setVncScreenSize(name: String, screenSize: ViewSize) async {
+		do {
+			let result = try ScreenSizeHandler.setScreenSize(client: self.cakedServiceClient, name: name, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
+
+			if result.success == false {
+				await alertError(result.reason, "Failed to set VM screen size")
+			}
+		} catch {
+			await alertError(error)
+		}
+	}
+
+	func getVncScreenSize(name: String, _ defaultSize: ViewSize = .zero) -> ViewSize {
+		do {
+			let result = try ScreenSizeHandler.getScreenSize(client: self.cakedServiceClient, name: name, runMode: self.runMode)
+			
+			if result.success == false {
+				DispatchQueue.main.async {
+					alertError(result.reason, "Failed to get VM screen size")
+				}
+			} else {
+				return .init(width: CGFloat(result.width), height: CGFloat(result.height))
+			}
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+
+		return defaultSize
+	}
+
+	func vncURL(name: String) -> URL? {
+		try? VncURLHandler.vncURL(client: self.cakedServiceClient, name: name, runMode: self.runMode)
+	}
+
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 		try await BuildHandler.build(client: self.cakedServiceClient, options: options, runMode: self.runMode, queue: queue, progressHandler: progressHandler)
 	}

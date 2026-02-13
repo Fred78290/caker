@@ -96,10 +96,11 @@ public typealias Caked_BuildStreamReply = Caked.Reply.VirtualMachineReply.BuildS
 public typealias Caked_CurrentStatusReply = Caked_Caked.Reply.CurrentStatusReply
 public typealias Caked_CurrentUsageReply = Caked_Caked.Reply.CurrentUsageReply
 public typealias Caked_PingReply = Caked.Reply.PingReply
+public typealias Caked_ScreenSizeReply = Caked_Caked.Reply.ScreenSizeReply
 
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest
-public typealias Caked_ScreenSize = Caked.VMRequest.CommonBuildRequest.ScreenSize
+public typealias Caked_ScreenSize = Caked.ScreenSize
 public typealias Caked_ConfigureRequest = Caked.VMRequest.ConfigureRequest
 public typealias Caked_DeleteRequest = Caked.VMRequest.DeleteRequest
 public typealias Caked_DuplicateRequest = Caked.VMRequest.DuplicateRequest
@@ -121,6 +122,8 @@ public typealias Caked_TemplateRequest = Caked.VMRequest.TemplateRequest
 public typealias Caked_WaitIPRequest = Caked.VMRequest.WaitIPRequest
 public typealias Caked_PingRequest = Caked_Caked.PingRequest
 public typealias Caked_CurrentStatusRequest = Caked_Caked.CurrentStatusRequest
+public typealias Caked_GetScreenSizeRequest = Caked_Caked.GetScreenSizeRequest
+public typealias Caked_SetScreenSizeRequest = Caked_Caked.SetScreenSizeRequest
 
 extension Caked_VirtualMachineStatus {
 	init (agentStatus: CakeAgentLib.Status) {

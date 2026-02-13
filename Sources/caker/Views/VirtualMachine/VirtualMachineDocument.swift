@@ -1,3 +1,11 @@
+//
+//  VirtualMachineDocument.swift
+//  Caker
+//
+//  Created by Frederic BOLTZ on 31/05/2025.
+//
+import SwiftUI
+import UniformTypeIdentifiers
 import CakeAgentLib
 import CakedLib
 import Dynamic
@@ -9,14 +17,6 @@ import GRPCLib
 import NIO
 import RoyalVNCKit
 import SwiftTerm
-//
-//  VirtualMachineDocument.swift
-//  Caker
-//
-//  Created by Frederic BOLTZ on 31/05/2025.
-//
-import SwiftUI
-import UniformTypeIdentifiers
 
 extension VNCConnection.Status: @retroactive CustomStringConvertible {
 	public var description: String {
@@ -763,23 +763,14 @@ extension VirtualMachineDocument {
 			#endif
 
 			Task {
-				try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).setScreenSize(width: Int(screenSize.width), height: Int(screenSize.height))
+				await AppState.shared.setVncScreenSize(name: self.name, screenSize: screenSize)
 			}
 		}
 	}
 
 	func getVncScreenSize() -> ViewSize {
-		var screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
-
-		if let size = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).getScreenSize() {
-			screenSize = ViewSize(width: CGFloat(size.0), height: CGFloat(size.1))
-		}
-
-		#if DEBUG
-			self.logger.debug("getVncScreenSize: \(screenSize.description)")
-		#endif
-
-		return screenSize
+		let screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
+		return AppState.shared.getVncScreenSize(name: self.name, screenSize)
 	}
 
 	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
@@ -793,22 +784,6 @@ extension VirtualMachineDocument {
 
 		self.setDocumentSize(size)
 		self.setVncScreenSize(size)
-	}
-
-	func retrieveVNCURLAsync() {
-		Task {
-			do {
-				if let url = try createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL() {
-					self.logger.info("Found VNC URL: \(url)")
-
-					await self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
-				} else {
-					await self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
-				}
-			} catch {
-				self.logger.error("Failed to retrieve VNC URL: \(error)")
-			}
-		}
 	}
 
 	func retrieveVNCURL() {
