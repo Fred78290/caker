@@ -75,15 +75,16 @@ service Service {
 }
 
 message Caked {
+	message ScreenSize {
+		int32 width = 1;
+		int32 height = 2;
+	}
+
 	message GetScreenSizeRequest {
 		string name = 1;
 	}
 
 	message SetScreenSizeRequest {
-		message ScreenSize {
-			int32 width = 1;
-			int32 height = 2;
-		}
 		string name = 1;
 		ScreenSize screenSize = 2;	
 	}
@@ -101,11 +102,6 @@ message Caked {
 
 	message VMRequest {
 		message CommonBuildRequest {
-			message ScreenSize {
-				int32 width = 1;
-				int32 height = 2;
-			}
-
 			string name = 1;
 			optional int32 cpu = 2;
 			optional int32 memory = 3;
@@ -142,6 +138,9 @@ message Caked {
 		message StartRequest {
 			string name = 1;
 			optional int32 waitIPTimeout = 2;
+			optional ScreenSize screenSize = 3;
+			optional string vncPassword = 4;
+			optional int32 vncPort = 5;
 		}
 		
 		message RestartRequest {
@@ -167,6 +166,9 @@ message Caked {
 		message LaunchRequest {
 			CommonBuildRequest options = 1;
 			optional int32 waitIPTimeout = 2;
+			optional ScreenSize screenSize = 3;
+			optional string vncPassword = 4;
+			optional int32 vncPort = 5;
 		}
 
 		message ConfigureRequest {
@@ -186,7 +188,7 @@ message Caked {
 			optional string attachedDisks = 14;
 			optional bool dynamicPortForwarding = 15;
 			optional bool suspendable = 16;
-			optional CommonBuildRequest.ScreenSize screenSize = 17;
+			optional ScreenSize screenSize = 17;
 			optional string user = 18;
 			optional string password = 19;
 		}
@@ -856,7 +858,7 @@ message Caked {
 
 		message ScreenSizeReply{
 			string name = 1;
-			SetScreenSizeRequest.ScreenSize screenSize = 2;
+			ScreenSize screenSize = 2;
 			bool success = 3;
 			optional string reason = 4;
 		}

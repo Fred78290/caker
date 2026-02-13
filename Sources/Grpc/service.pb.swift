@@ -30,6 +30,20 @@ public struct Caked_Caked: Sendable {
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
+  public struct ScreenSize: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var width: Int32 = 0
+
+    public var height: Int32 = 0
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
   public struct GetScreenSizeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -49,8 +63,8 @@ public struct Caked_Caked: Sendable {
 
     public var name: String = String()
 
-    public var screenSize: Caked_Caked.SetScreenSizeRequest.ScreenSize {
-      get {_screenSize ?? Caked_Caked.SetScreenSizeRequest.ScreenSize()}
+    public var screenSize: Caked_Caked.ScreenSize {
+      get {_screenSize ?? Caked_Caked.ScreenSize()}
       set {_screenSize = newValue}
     }
     /// Returns true if `screenSize` has been explicitly set.
@@ -60,23 +74,9 @@ public struct Caked_Caked: Sendable {
 
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    public struct ScreenSize: Sendable {
-      // SwiftProtobuf.Message conformance is added in an extension below. See the
-      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-      // methods supported on all messages.
-
-      public var width: Int32 = 0
-
-      public var height: Int32 = 0
-
-      public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-      public init() {}
-    }
-
     public init() {}
 
-    fileprivate var _screenSize: Caked_Caked.SetScreenSizeRequest.ScreenSize? = nil
+    fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
   }
 
   public struct PingRequest: Sendable {
@@ -333,8 +333,8 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
       public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
 
-      public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
-        get {_storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+      public var screenSize: Caked_Caked.ScreenSize {
+        get {_storage._screenSize ?? Caked_Caked.ScreenSize()}
         set {_uniqueStorage()._screenSize = newValue}
       }
       /// Returns true if `screenSize` has been explicitly set.
@@ -361,20 +361,6 @@ public struct Caked_Caked: Sendable {
       public mutating func clearOtherGroups() {_uniqueStorage()._otherGroups = nil}
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-      public struct ScreenSize: Sendable {
-        // SwiftProtobuf.Message conformance is added in an extension below. See the
-        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-        // methods supported on all messages.
-
-        public var width: Int32 = 0
-
-        public var height: Int32 = 0
-
-        public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-        public init() {}
-      }
 
       public init() {}
 
@@ -418,11 +404,41 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `waitIptimeout`. Subsequent reads from it will return its default value.
       public mutating func clearWaitIptimeout() {self._waitIptimeout = nil}
 
+      public var screenSize: Caked_Caked.ScreenSize {
+        get {_screenSize ?? Caked_Caked.ScreenSize()}
+        set {_screenSize = newValue}
+      }
+      /// Returns true if `screenSize` has been explicitly set.
+      public var hasScreenSize: Bool {self._screenSize != nil}
+      /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+      public mutating func clearScreenSize() {self._screenSize = nil}
+
+      public var vncPassword: String {
+        get {_vncPassword ?? String()}
+        set {_vncPassword = newValue}
+      }
+      /// Returns true if `vncPassword` has been explicitly set.
+      public var hasVncPassword: Bool {self._vncPassword != nil}
+      /// Clears the value of `vncPassword`. Subsequent reads from it will return its default value.
+      public mutating func clearVncPassword() {self._vncPassword = nil}
+
+      public var vncPort: Int32 {
+        get {_vncPort ?? 0}
+        set {_vncPort = newValue}
+      }
+      /// Returns true if `vncPort` has been explicitly set.
+      public var hasVncPort: Bool {self._vncPort != nil}
+      /// Clears the value of `vncPort`. Subsequent reads from it will return its default value.
+      public mutating func clearVncPort() {self._vncPort = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
 
       fileprivate var _waitIptimeout: Int32? = nil
+      fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
+      fileprivate var _vncPassword: String? = nil
+      fileprivate var _vncPort: Int32? = nil
     }
 
     public struct RestartRequest: Sendable {
@@ -534,12 +550,42 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `waitIptimeout`. Subsequent reads from it will return its default value.
       public mutating func clearWaitIptimeout() {self._waitIptimeout = nil}
 
+      public var screenSize: Caked_Caked.ScreenSize {
+        get {_screenSize ?? Caked_Caked.ScreenSize()}
+        set {_screenSize = newValue}
+      }
+      /// Returns true if `screenSize` has been explicitly set.
+      public var hasScreenSize: Bool {self._screenSize != nil}
+      /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+      public mutating func clearScreenSize() {self._screenSize = nil}
+
+      public var vncPassword: String {
+        get {_vncPassword ?? String()}
+        set {_vncPassword = newValue}
+      }
+      /// Returns true if `vncPassword` has been explicitly set.
+      public var hasVncPassword: Bool {self._vncPassword != nil}
+      /// Clears the value of `vncPassword`. Subsequent reads from it will return its default value.
+      public mutating func clearVncPassword() {self._vncPassword = nil}
+
+      public var vncPort: Int32 {
+        get {_vncPort ?? 0}
+        set {_vncPort = newValue}
+      }
+      /// Returns true if `vncPort` has been explicitly set.
+      public var hasVncPort: Bool {self._vncPort != nil}
+      /// Clears the value of `vncPort`. Subsequent reads from it will return its default value.
+      public mutating func clearVncPort() {self._vncPort = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
 
       fileprivate var _options: Caked_Caked.VMRequest.CommonBuildRequest? = nil
       fileprivate var _waitIptimeout: Int32? = nil
+      fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
+      fileprivate var _vncPassword: String? = nil
+      fileprivate var _vncPort: Int32? = nil
     }
 
     public struct ConfigureRequest: @unchecked Sendable {
@@ -687,8 +733,8 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `suspendable`. Subsequent reads from it will return its default value.
       public mutating func clearSuspendable() {_uniqueStorage()._suspendable = nil}
 
-      public var screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize {
-        get {_storage._screenSize ?? Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize()}
+      public var screenSize: Caked_Caked.ScreenSize {
+        get {_storage._screenSize ?? Caked_Caked.ScreenSize()}
         set {_uniqueStorage()._screenSize = newValue}
       }
       /// Returns true if `screenSize` has been explicitly set.
@@ -3693,8 +3739,8 @@ public struct Caked_Caked: Sendable {
 
       public var name: String = String()
 
-      public var screenSize: Caked_Caked.SetScreenSizeRequest.ScreenSize {
-        get {_screenSize ?? Caked_Caked.SetScreenSizeRequest.ScreenSize()}
+      public var screenSize: Caked_Caked.ScreenSize {
+        get {_screenSize ?? Caked_Caked.ScreenSize()}
         set {_screenSize = newValue}
       }
       /// Returns true if `screenSize` has been explicitly set.
@@ -3717,7 +3763,7 @@ public struct Caked_Caked: Sendable {
 
       public init() {}
 
-      fileprivate var _screenSize: Caked_Caked.SetScreenSizeRequest.ScreenSize? = nil
+      fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
       fileprivate var _reason: String? = nil
     }
 
@@ -4383,6 +4429,41 @@ extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
+extension Caked_Caked.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".ScreenSize"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt32Field(value: &self.width) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.height) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.width != 0 {
+      try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 1)
+    }
+    if self.height != 0 {
+      try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.ScreenSize, rhs: Caked_Caked.ScreenSize) -> Bool {
+    if lhs.width != rhs.width {return false}
+    if lhs.height != rhs.height {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_Caked.GetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".GetScreenSizeRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0")
@@ -4447,41 +4528,6 @@ extension Caked_Caked.SetScreenSizeRequest: SwiftProtobuf.Message, SwiftProtobuf
   public static func ==(lhs: Caked_Caked.SetScreenSizeRequest, rhs: Caked_Caked.SetScreenSizeRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs._screenSize != rhs._screenSize {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Caked_Caked.SetScreenSizeRequest.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.SetScreenSizeRequest.protoMessageName + ".ScreenSize"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularInt32Field(value: &self.width) }()
-      case 2: try { try decoder.decodeSingularInt32Field(value: &self.height) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.width != 0 {
-      try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 1)
-    }
-    if self.height != 0 {
-      try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Caked_Caked.SetScreenSizeRequest.ScreenSize, rhs: Caked_Caked.SetScreenSizeRequest.ScreenSize) -> Bool {
-    if lhs.width != rhs.width {return false}
-    if lhs.height != rhs.height {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4610,7 +4656,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _dynamicPortForwarding: Bool? = nil
     var _ifnames: Bool? = nil
     var _suspendable: Bool? = nil
-    var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
+    var _screenSize: Caked_Caked.ScreenSize? = nil
     var _displayRefit: Bool? = nil
     var _otherGroups: String? = nil
 
@@ -4833,41 +4879,6 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
   }
 }
 
-extension Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.VMRequest.CommonBuildRequest.protoMessageName + ".ScreenSize"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}width\0\u{1}height\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularInt32Field(value: &self.width) }()
-      case 2: try { try decoder.decodeSingularInt32Field(value: &self.height) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.width != 0 {
-      try visitor.visitSingularInt32Field(value: self.width, fieldNumber: 1)
-    }
-    if self.height != 0 {
-      try visitor.visitSingularInt32Field(value: self.height, fieldNumber: 2)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize, rhs: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize) -> Bool {
-    if lhs.width != rhs.width {return false}
-    if lhs.height != rhs.height {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
 extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".BuildRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0")
@@ -4904,7 +4915,7 @@ extension Caked_Caked.VMRequest.BuildRequest: SwiftProtobuf.Message, SwiftProtob
 
 extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".StartRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4914,6 +4925,9 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self._waitIptimeout) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._vncPassword) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self._vncPort) }()
       default: break
       }
     }
@@ -4930,12 +4944,24 @@ extension Caked_Caked.VMRequest.StartRequest: SwiftProtobuf.Message, SwiftProtob
     try { if let v = self._waitIptimeout {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
     } }()
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._vncPassword {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._vncPort {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.VMRequest.StartRequest, rhs: Caked_Caked.VMRequest.StartRequest) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs._waitIptimeout != rhs._waitIptimeout {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
+    if lhs._vncPassword != rhs._vncPassword {return false}
+    if lhs._vncPort != rhs._vncPort {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5081,7 +5107,7 @@ extension Caked_Caked.VMRequest.DuplicateRequest: SwiftProtobuf.Message, SwiftPr
 
 extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".LaunchRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}options\0\u{1}waitIPTimeout\0\u{1}screenSize\0\u{1}vncPassword\0\u{1}vncPort\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5091,6 +5117,9 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularMessageField(value: &self._options) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self._waitIptimeout) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self._vncPassword) }()
+      case 5: try { try decoder.decodeSingularInt32Field(value: &self._vncPort) }()
       default: break
       }
     }
@@ -5107,12 +5136,24 @@ extension Caked_Caked.VMRequest.LaunchRequest: SwiftProtobuf.Message, SwiftProto
     try { if let v = self._waitIptimeout {
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
     } }()
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try { if let v = self._vncPassword {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+    } }()
+    try { if let v = self._vncPort {
+      try visitor.visitSingularInt32Field(value: v, fieldNumber: 5)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.VMRequest.LaunchRequest, rhs: Caked_Caked.VMRequest.LaunchRequest) -> Bool {
     if lhs._options != rhs._options {return false}
     if lhs._waitIptimeout != rhs._waitIptimeout {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
+    if lhs._vncPassword != rhs._vncPassword {return false}
+    if lhs._vncPort != rhs._vncPort {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5139,7 +5180,7 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
     var _attachedDisks: String? = nil
     var _dynamicPortForwarding: Bool? = nil
     var _suspendable: Bool? = nil
-    var _screenSize: Caked_Caked.VMRequest.CommonBuildRequest.ScreenSize? = nil
+    var _screenSize: Caked_Caked.ScreenSize? = nil
     var _user: String? = nil
     var _password: String? = nil
 
