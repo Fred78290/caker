@@ -26,7 +26,7 @@ extension VNCConnection.Status: @retroactive CustomStringConvertible {
 		case .connecting:
 			return "connecting"
 		case .disconnected:
-			return "Disconnected"
+			return "disconnected"
 		case .disconnecting:
 			return "disconnecting"
 		}
