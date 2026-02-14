@@ -452,6 +452,22 @@ extension VirtualMachineDocument {
 		}
 	}
 	
+	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
+		#if DEBUG
+			self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
+		#endif
+
+		if size.width == 0 && size.height == 0 {
+			return
+		}
+
+		self.setDocumentSize(size)
+		self.setVncScreenSize(size)
+	}
+}
+
+// MARK: - Embeded VirtualMachine
+extension VirtualMachineDocument {
 	private func createVirtualMachine() throws {
 		let config = try! location.config()
 		let virtualMachine = try VirtualMachine(location: location, config: config, display: .ui, screenSize: config.display.cgSize, runMode: .app)
@@ -771,19 +787,6 @@ extension VirtualMachineDocument {
 	func getVncScreenSize() -> ViewSize {
 		let screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
 		return AppState.shared.getVncScreenSize(name: self.name, screenSize)
-	}
-
-	func setScreenSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
-		#if DEBUG
-			self.logger.debug("Setting screen size to \(size.description) at \(_file):\(_line)")
-		#endif
-
-		if size.width == 0 && size.height == 0 {
-			return
-		}
-
-		self.setDocumentSize(size)
-		self.setVncScreenSize(size)
 	}
 
 	func retrieveVNCURL() {
