@@ -282,7 +282,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func isPIDRunning() -> Bool {
-		pidFile.isPIDRunning().0
+		pidFile.isPIDRunning(Home.cakedCommandName)
 	}
 
 	public func removePID() {
