@@ -720,8 +720,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caked",
-			"program": "${workspaceFolder:caker}/.build/debug/caked",
-			"preLaunchTask": "swift: Build Debug caked"
+			"preLaunchTask": "swift: Build Debug caked",
+			"target": "caked",
+			"configuration": "debug"
 		},
 		{
 			"type": "swift",
@@ -729,8 +730,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Release caked",
-			"program": "${workspaceFolder:caker}/.build/release/caked",
-			"preLaunchTask": "swift: Build Release caked"
+			"preLaunchTask": "swift: Build Release caked",
+			"target": "caked",
+			"configuration": "release"
 		},
 		{
 			"type": "swift",
@@ -738,8 +740,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug cakectl",
-			"program": "${workspaceFolder:caker}/.build/debug/cakectl",
-			"preLaunchTask": "swift: Build Debug cakectl"
+			"preLaunchTask": "swift: Build Debug cakectl",
+			"target": "cakectl",
+			"configuration": "debug"
 		},
 		{
 			"type": "swift",
@@ -747,8 +750,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Release cakectl",
-			"program": "${workspaceFolder:caker}/.build/release/cakectl",
-			"preLaunchTask": "swift: Build Release cakectl"
+			"preLaunchTask": "swift: Build Release cakectl",
+			"target": "cakectl",
+			"configuration": "release"
 		},
 		{
 			"type": "swift",
@@ -756,8 +760,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Debug caker",
-			"program": "${workspaceFolder:caker}/.build/debug/caker",
-			"preLaunchTask": "swift: Build Debug caker"
+			"preLaunchTask": "swift: Build Debug caker",
+			"target": "caker",
+			"configuration": "debug"
 		},
 		{
 			"type": "swift",
@@ -765,8 +770,9 @@
 			"args": [],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "Release caker",
-			"program": "${workspaceFolder:caker}/.build/release/caker",
-			"preLaunchTask": "swift: Build Release caker"
+			"preLaunchTask": "swift: Build Release caker",
+			"target": "caker",
+			"configuration": "release"
 		}
 	]
 }
