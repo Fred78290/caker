@@ -174,6 +174,11 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.SetScreenSizeRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>
+
+  func installAgent(
+    _ request: Caked_Caked.InstallAgentRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -747,6 +752,24 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
+
+  /// InstallAgent installs the agent on a virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to InstallAgent.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func installAgent(
+    _ request: Caked_Caked.InstallAgentRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply> {
+    return self.makeUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -965,6 +988,11 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.SetScreenSizeRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>
+
+  func makeInstallAgentCall(
+    _ request: Caked_Caked.InstallAgentRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1356,6 +1384,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
+
+  public func makeInstallAgentCall(
+    _ request: Caked_Caked.InstallAgentRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply> {
+    return self.makeAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1743,6 +1783,18 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeSetScreenSizeInterceptors() ?? []
     )
   }
+
+  public func installAgent(
+    _ request: Caked_Caked.InstallAgentRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Caked.Reply {
+    return try await self.performAsyncUnaryCall(
+      path: Caked_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1856,6 +1908,9 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'setScreenSize'.
   func makeSetScreenSizeInterceptors() -> [ClientInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'installAgent'.
+  func makeInstallAgentInterceptors() -> [ClientInterceptor<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1894,6 +1949,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.currentStatus,
       Caked_ServiceClientMetadata.Methods.getScreenSize,
       Caked_ServiceClientMetadata.Methods.setScreenSize,
+      Caked_ServiceClientMetadata.Methods.installAgent,
     ]
   )
 
@@ -2083,6 +2139,12 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/SetScreenSize",
       type: GRPCCallType.unary
     )
+
+    public static let installAgent = GRPCMethodDescriptor(
+      name: "InstallAgent",
+      path: "/caked.Service/InstallAgent",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2184,6 +2246,9 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// SetScreenSize sets the screen size for a virtual machine.
   func setScreenSize(request: Caked_Caked.SetScreenSizeRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// InstallAgent installs the agent on a virtual machine.
+  func installAgent(request: Caked_Caked.InstallAgentRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 }
 
 extension Caked_ServiceProvider {
@@ -2477,6 +2542,15 @@ extension Caked_ServiceProvider {
         userFunction: self.setScreenSize(request:context:)
       )
 
+    case "InstallAgent":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.InstallAgentRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? [],
+        userFunction: self.installAgent(request:context:)
+      )
+
     default:
       return nil
     }
@@ -2677,6 +2751,12 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// SetScreenSize sets the screen size for a virtual machine.
   func setScreenSize(
     request: Caked_Caked.SetScreenSizeRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Caked.Reply
+
+  /// InstallAgent installs the agent on a virtual machine.
+  func installAgent(
+    request: Caked_Caked.InstallAgentRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 }
@@ -2979,6 +3059,15 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.setScreenSize(request: $0, context: $1) }
       )
 
+    case "InstallAgent":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.InstallAgentRequest>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? [],
+        wrapping: { try await self.installAgent(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3110,6 +3199,10 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'setScreenSize'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeSetScreenSizeInterceptors() -> [ServerInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'installAgent'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeInstallAgentInterceptors() -> [ServerInterceptor<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3148,6 +3241,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.currentStatus,
       Caked_ServiceServerMetadata.Methods.getScreenSize,
       Caked_ServiceServerMetadata.Methods.setScreenSize,
+      Caked_ServiceServerMetadata.Methods.installAgent,
     ]
   )
 
@@ -3335,6 +3429,12 @@ public enum Caked_ServiceServerMetadata {
     public static let setScreenSize = GRPCMethodDescriptor(
       name: "SetScreenSize",
       path: "/caked.Service/SetScreenSize",
+      type: GRPCCallType.unary
+    )
+
+    public static let installAgent = GRPCMethodDescriptor(
+      name: "InstallAgent",
+      path: "/caked.Service/InstallAgent",
       type: GRPCCallType.unary
     )
   }

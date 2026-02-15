@@ -268,6 +268,8 @@
 		9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */; };
 		9BBF7CB12F3F1F5500F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */; };
 		9BBF7CB32F3F28F600F37D2C /* VncURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */; };
+		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
+		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
@@ -804,6 +806,8 @@
 		9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VncURLHandler.swift; sourceTree = "<group>"; };
+		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
@@ -1669,6 +1673,7 @@
 				9BEBC6B72DF4400A0092B196 /* ExecuteHandler.swift */,
 				9BEBC6B82DF4400A0092B196 /* ImageHandler.swift */,
 				9BEBC6B92DF4400A0092B196 /* InfosHandler.swift */,
+				9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */,
 				9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */,
 				9BEBC6BB2DF4400A0092B196 /* ListHandler.swift */,
 				9BEBC6BC2DF4400A0092B196 /* LoginHandler.swift */,
@@ -1731,6 +1736,7 @@
 				9BEBC71C2DF440720092B196 /* ImageHandler.swift */,
 				9B9711C12DFF32A0005B161B /* ImportHandler.swift */,
 				9BEBC71D2DF440720092B196 /* InfosHandler.swift */,
+				9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */,
 				9BEBC71E2DF440720092B196 /* LaunchHandler.swift */,
 				9BEBC71F2DF440720092B196 /* ListHandler.swift */,
 				9BEBC7202DF440720092B196 /* LoginHandler.swift */,
@@ -2428,6 +2434,7 @@
 				9BEBC6CE2DF4400A0092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC6CF2DF4400A0092B196 /* WaitIP.swift in Sources */,
 				9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */,
+				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
 				9BBF7BB92F3E0F6200F37D2C /* VncURLHandler.swift in Sources */,
@@ -2521,6 +2528,7 @@
 				9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */,
 				9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */,
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
+				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
 				9B7D682C2F17E1A700FE1B0B /* SharedPtrBridge.mm in Sources */,
 				9BEBC7842DF440720092B196 /* VMLocation.swift in Sources */,

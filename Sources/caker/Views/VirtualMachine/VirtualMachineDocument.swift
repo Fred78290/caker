@@ -197,6 +197,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	var isLaunchVMExternally: Bool {
+		guard AppState.shared.runMode == .app else {
+			return true
+		}
+
 		guard let launchVMExternally = self.launchVMExternally else {
 			return AppState.shared.launchVMExternally
 		}
@@ -350,8 +354,6 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
-		
-		self.closeShell()
 	}
 
 	func close() {
@@ -373,8 +375,6 @@ extension VirtualMachineDocument {
 			self.connection = nil
 			connection.disconnect()
 		}
-		
-		self.closeShell()
 	}
 	
 	@MainActor
@@ -961,96 +961,6 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 		vncView?.connection(connection, didUpdateCursor: cursor)
 	}
 
-}
-
-// MARK: - Shell
-extension VirtualMachineDocument {
-	func sendTerminalSize(rows: Int, cols: Int) {
-		if let stream = self.stream {
-			stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-		}
-	}
-
-	func sendDatas(data: ArraySlice<UInt8>) {
-		if let stream = self.stream {
-			data.withUnsafeBytes { ptr in
-				let message = CakeAgent.ExecuteRequest.with {
-					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-				}
-
-				try? stream.sendMessage(message).wait()
-			}
-		}
-	}
-
-	func closeShell(_ completionHandler: (() -> Void)? = nil) {
-		func closeClient() {
-			if let shellClient {
-				self.shellClient = nil
-
-				shellClient.close().whenComplete { _ in
-					DispatchQueue.main.async {
-						completionHandler?()
-					}
-				}
-			}
-		}
-
-		guard let stream else {
-			closeClient()
-			return
-		}
-
-		self.stream = nil
-
-		stream.sendEof().whenComplete {_ in
-			let promise = stream.eventLoop.makePromise(of: Void.self)
-
-			promise.futureResult.whenComplete { _ in
-				closeClient()
-			}
-
-			stream.cancel(promise: promise)
-		}
-	}
-
-	@MainActor
-	func heartBeatShell(rows: Int, cols: Int) {
-		do {
-			let helper = try self.createCakeAgentHelper()
-				
-			_ = try helper.info()
-
-			DispatchQueue.main.async {
-				self.stream = self.shellClient.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-					self.shellHandlerResponse(response)
-				}
-
-				self.stream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-				self.stream.sendShell()
-			}
-		} catch {
-			DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-				self.heartBeatShell(rows: rows, cols: cols)
-			}
-		}
-	}
-
-	func startShell(rows: Int, cols: Int, handler: @escaping (CakeAgent.ExecuteResponse) -> Void) throws {
-		self.shellHandlerResponse = handler
-
-		guard self.stream == nil else {
-			return
-		}
-
-		if self.shellClient == nil {
-			self.shellClient = try Utilities.createCakeAgentClient(on: Utilities.group.next(), runMode: .app, name: name)
-		}
-
-		Task { [weak self] in
-			await self?.heartBeatShell(rows: rows, cols: cols)
-		}
-	}
 }
 
 // MARK: - Agent Monitoring

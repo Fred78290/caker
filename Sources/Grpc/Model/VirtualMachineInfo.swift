@@ -956,3 +956,23 @@ public struct ScreenSizeReply: Codable {
 		}
 	}
 }
+
+public struct InstalledAgentReply {
+	public let name: String
+	public let installed: Bool
+	public let reason: String
+	
+	public init(name: String, installed: Bool, reason: String) {
+		self.name = name
+		self.installed = installed
+		self.reason = reason
+	}
+	
+	public var caked: Caked_InstalledAgentReply {
+		Caked_InstalledAgentReply.with {
+			$0.name = self.name
+			$0.installed = self.installed
+			$0.reason = self.reason
+		}
+	}
+}

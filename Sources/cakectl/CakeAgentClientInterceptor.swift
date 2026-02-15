@@ -203,12 +203,15 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
-	func makeGetScreenSizeInterceptors() -> [ClientInterceptor<Caked_Caked.GetScreenSizeRequest, Caked_Reply>] {
+	func makeGetScreenSizeInterceptors() -> [ClientInterceptor<Caked_GetScreenSizeRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_Caked.GetScreenSizeRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
-	func makeSetScreenSizeInterceptors() -> [ClientInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Reply>] {
+	func makeSetScreenSizeInterceptors() -> [ClientInterceptor<Caked_SetScreenSizeRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_Caked.SetScreenSizeRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
+
+	func makeInstallAgentInterceptors() -> [ClientInterceptor<Caked_InstallAgentRequest, Caked_Reply>] {
+		[CakeServiceClientInterceptor<Caked_InstallAgentRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+	}
 }

@@ -14,6 +14,7 @@ public protocol VMRunServiceClient {
 	func getScreenSize() throws -> (Int, Int)
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos
+	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String)
 }
 
 extension VMRunServiceClient {
@@ -230,6 +231,9 @@ class VMRunService: NSObject {
 		return vm.getScreenSize()
 	}
 
+	func installAgent(timeout: UInt) async throws -> Bool {
+		try await self.vm.installAgent(updateAgent: self.vm.env.config.agent, timeout: timeout, runMode: self.runMode)
+	}
 }
 
 public func createVMRunServiceClient(_ mode: VMRunServiceMode, location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {

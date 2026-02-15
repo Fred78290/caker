@@ -44,6 +44,20 @@ public struct Caked_Caked: Sendable {
     public init() {}
   }
 
+  public struct InstallAgentRequest: Sendable {
+    // SwiftProtobuf.Message conformance is added in an extension below. See the
+    // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+    // methods supported on all messages.
+
+    public var name: String = String()
+
+    public var timeout: Int32 = 0
+
+    public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+    public init() {}
+  }
+
   public struct GetScreenSizeRequest: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1591,6 +1605,14 @@ public struct Caked_Caked: Sendable {
         set {response = .vncURL(newValue)}
       }
 
+      public var installedAgent: Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply {
+        get {
+          if case .installedAgent(let v)? = response {return v}
+          return Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply()
+        }
+        set {response = .installedAgent(newValue)}
+      }
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public enum OneOf_Response: Equatable, Sendable {
@@ -1611,6 +1633,7 @@ public struct Caked_Caked: Sendable {
         case renamed(Caked_Caked.Reply.VirtualMachineReply.RenameReply)
         case restarted(Caked_Caked.Reply.VirtualMachineReply.RestartReply)
         case vncURL(String)
+        case installedAgent(Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply)
 
       }
 
@@ -2754,6 +2777,31 @@ public struct Caked_Caked: Sendable {
         public var newName: String = String()
 
         public var renamed: Bool = false
+
+        public var reason: String {
+          get {_reason ?? String()}
+          set {_reason = newValue}
+        }
+        /// Returns true if `reason` has been explicitly set.
+        public var hasReason: Bool {self._reason != nil}
+        /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+        public mutating func clearReason() {self._reason = nil}
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
+
+        fileprivate var _reason: String? = nil
+      }
+
+      public struct InstalledAgentReply: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var name: String = String()
+
+        public var installed: Bool = false
 
         public var reason: String {
           get {_reason ?? String()}
@@ -4459,6 +4507,41 @@ extension Caked_Caked.ScreenSize: SwiftProtobuf.Message, SwiftProtobuf._MessageI
   public static func ==(lhs: Caked_Caked.ScreenSize, rhs: Caked_Caked.ScreenSize) -> Bool {
     if lhs.width != rhs.width {return false}
     if lhs.height != rhs.height {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.InstallAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.protoMessageName + ".InstallAgentRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}timeout\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.timeout) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.timeout != 0 {
+      try visitor.visitSingularInt32Field(value: self.timeout, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.InstallAgentRequest, rhs: Caked_Caked.InstallAgentRequest) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.timeout != rhs.timeout {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6589,7 +6672,7 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
 
 extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".VirtualMachineReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}list\0\u{1}delete\0\u{1}stop\0\u{1}suspend\0\u{1}status\0\u{1}launched\0\u{1}started\0\u{1}build\0\u{1}cloned\0\u{1}configured\0\u{1}duplicated\0\u{1}imported\0\u{1}waitip\0\u{1}purged\0\u{1}renamed\0\u{1}restarted\0\u{1}vncURL\0\u{1}installedAgent\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6813,6 +6896,19 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
           self.response = .vncURL(v)
         }
       }()
+      case 18: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .installedAgent(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.response = .installedAgent(v)
+        }
+      }()
       default: break
       }
     }
@@ -6891,6 +6987,10 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
     case .vncURL?: try {
       guard case .vncURL(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 17)
+    }()
+    case .installedAgent?: try {
+      guard case .installedAgent(let v)? = self.response else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 18)
     }()
     case nil: break
     }
@@ -8779,6 +8879,50 @@ extension Caked_Caked.Reply.VirtualMachineReply.RenameReply: SwiftProtobuf.Messa
     if lhs.oldName != rhs.oldName {return false}
     if lhs.newName != rhs.newName {return false}
     if lhs.renamed != rhs.renamed {return false}
+    if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".InstalledAgentReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}installed\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.installed) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    if self.installed != false {
+      try visitor.visitSingularBoolField(value: self.installed, fieldNumber: 2)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply, rhs: Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply) -> Bool {
+    if lhs.name != rhs.name {return false}
+    if lhs.installed != rhs.installed {return false}
     if lhs._reason != rhs._reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

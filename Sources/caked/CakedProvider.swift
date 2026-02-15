@@ -254,6 +254,12 @@ extension Caked_SetScreenSizeRequest: CreateCakedCommand {
 	}
 }
 
+extension Caked_InstallAgentRequest: CreateCakedCommand {
+	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
+		return InstallAgentHandler(request: self)
+	}
+}
+
 class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
@@ -400,6 +406,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func setScreenSize(request: Caked_SetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: request)
+	}
+	
+	func installAgent(request: Caked_InstallAgentRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 	

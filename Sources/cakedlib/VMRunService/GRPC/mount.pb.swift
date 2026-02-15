@@ -82,17 +82,52 @@ public struct Vmrun_Empty: Sendable {
   public init() {}
 }
 
+public struct Vmrun_InstalledAgentRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var timeout: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Vmrun_InstalledAgentReply: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var installed: Bool = false
+
+  public var reason: String {
+    get {_reason ?? String()}
+    set {_reason = newValue}
+  }
+  /// Returns true if `reason` has been explicitly set.
+  public var hasReason: Bool {self._reason != nil}
+  /// Clears the value of `reason`. Subsequent reads from it will return its default value.
+  public mutating func clearReason() {self._reason = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _reason: String? = nil
+}
+
 public struct Vmrun_VNCEndPointReply: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   public var vncURL: String {
-    get {return _vncURL ?? String()}
+    get {_vncURL ?? String()}
     set {_vncURL = newValue}
   }
   /// Returns true if `vncURL` has been explicitly set.
-  public var hasVncURL: Bool {return self._vncURL != nil}
+  public var hasVncURL: Bool {self._vncURL != nil}
   /// Clears the value of `vncURL`. Subsequent reads from it will return its default value.
   public mutating func clearVncURL() {self._vncURL = nil}
 
@@ -111,38 +146,38 @@ public struct Vmrun_MountVirtioFS: Sendable {
   public var source: String = String()
 
   public var target: String {
-    get {return _target ?? String()}
+    get {_target ?? String()}
     set {_target = newValue}
   }
   /// Returns true if `target` has been explicitly set.
-  public var hasTarget: Bool {return self._target != nil}
+  public var hasTarget: Bool {self._target != nil}
   /// Clears the value of `target`. Subsequent reads from it will return its default value.
   public mutating func clearTarget() {self._target = nil}
 
   public var name: String {
-    get {return _name ?? String()}
+    get {_name ?? String()}
     set {_name = newValue}
   }
   /// Returns true if `name` has been explicitly set.
-  public var hasName: Bool {return self._name != nil}
+  public var hasName: Bool {self._name != nil}
   /// Clears the value of `name`. Subsequent reads from it will return its default value.
   public mutating func clearName() {self._name = nil}
 
   public var uid: Int32 {
-    get {return _uid ?? 0}
+    get {_uid ?? 0}
     set {_uid = newValue}
   }
   /// Returns true if `uid` has been explicitly set.
-  public var hasUid: Bool {return self._uid != nil}
+  public var hasUid: Bool {self._uid != nil}
   /// Clears the value of `uid`. Subsequent reads from it will return its default value.
   public mutating func clearUid() {self._uid = nil}
 
   public var gid: Int32 {
-    get {return _gid ?? 0}
+    get {_gid ?? 0}
     set {_gid = newValue}
   }
   /// Returns true if `gid` has been explicitly set.
-  public var hasGid: Bool {return self._gid != nil}
+  public var hasGid: Bool {self._gid != nil}
   /// Clears the value of `gid`. Subsequent reads from it will return its default value.
   public mutating func clearGid() {self._gid = nil}
 
@@ -301,6 +336,75 @@ extension Vmrun_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 
   public static func ==(lhs: Vmrun_Empty, rhs: Vmrun_Empty) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmrun_InstalledAgentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InstalledAgentRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}timeout\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularInt32Field(value: &self.timeout) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.timeout != 0 {
+      try visitor.visitSingularInt32Field(value: self.timeout, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmrun_InstalledAgentRequest, rhs: Vmrun_InstalledAgentRequest) -> Bool {
+    if lhs.timeout != rhs.timeout {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Vmrun_InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InstalledAgentReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}installed\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.installed) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.installed != false {
+      try visitor.visitSingularBoolField(value: self.installed, fieldNumber: 1)
+    }
+    try { if let v = self._reason {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Vmrun_InstalledAgentReply, rhs: Vmrun_InstalledAgentReply) -> Bool {
+    if lhs.installed != rhs.installed {return false}
+    if lhs._reason != rhs._reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

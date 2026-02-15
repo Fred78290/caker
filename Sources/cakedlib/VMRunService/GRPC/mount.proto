@@ -7,11 +7,19 @@ option objc_class_prefix = "vmrun";
 
 package vmrun;
 
+// Service provides remote procedure calls for virtual machine management and display operations.
 service Service {
+	// Returns the VNC endpoint URL for connecting to the virtual machine display.
 	rpc VncEndPoint(Empty) returns (VNCEndPointReply);
+	// Sets the screen size of the virtual machine display.
 	rpc SetScreenSize(ScreenSize) returns (Empty);
+	// Gets the current screen size of the virtual machine display.
 	rpc GetScreenSize(Empty) returns (ScreenSize);
+	// Installs the agent on the virtual machine.
+	rpc InstallAgent(InstalledAgentRequest) returns (InstalledAgentReply);
+	// Mounts the specified virtual filesystem.
 	rpc Mount(MountRequest) returns (MountReply);
+	// Unmounts the specified virtual filesystem.
 	rpc Umount(MountRequest) returns (MountReply);
 }
 
@@ -21,6 +29,15 @@ message ScreenSize {
 }
 
 message Empty {
+}
+
+message InstalledAgentRequest {
+	int32 timeout = 1;
+}
+
+message InstalledAgentReply {
+	bool installed = 1;
+	optional string reason = 2;
 }
 
 message VNCEndPointReply {

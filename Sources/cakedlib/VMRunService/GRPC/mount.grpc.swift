@@ -11,6 +11,8 @@ import NIOConcurrencyHelpers
 import SwiftProtobuf
 
 
+/// Service provides remote procedure calls for virtual machine management and display operations.
+///
 /// Usage: instantiate `Vmrun_ServiceClient`, then call methods of this protocol to make API calls.
 public protocol Vmrun_ServiceClientProtocol: GRPCClient {
   var serviceName: String { get }
@@ -31,6 +33,11 @@ public protocol Vmrun_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Vmrun_Empty, Vmrun_ScreenSize>
 
+  func installAgent(
+    _ request: Vmrun_InstalledAgentRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply>
+
   func mount(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
@@ -47,7 +54,7 @@ extension Vmrun_ServiceClientProtocol {
     return "vmrun.Service"
   }
 
-  /// Unary call to VncEndPoint
+  /// Returns the VNC endpoint URL for connecting to the virtual machine display.
   ///
   /// - Parameters:
   ///   - request: Request to send to VncEndPoint.
@@ -65,7 +72,7 @@ extension Vmrun_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to SetScreenSize
+  /// Sets the screen size of the virtual machine display.
   ///
   /// - Parameters:
   ///   - request: Request to send to SetScreenSize.
@@ -83,7 +90,7 @@ extension Vmrun_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to GetScreenSize
+  /// Gets the current screen size of the virtual machine display.
   ///
   /// - Parameters:
   ///   - request: Request to send to GetScreenSize.
@@ -101,7 +108,25 @@ extension Vmrun_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Mount
+  /// Installs the agent on the virtual machine.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to InstallAgent.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func installAgent(
+    _ request: Vmrun_InstalledAgentRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply> {
+    return self.makeUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
+    )
+  }
+
+  /// Mounts the specified virtual filesystem.
   ///
   /// - Parameters:
   ///   - request: Request to send to Mount.
@@ -119,7 +144,7 @@ extension Vmrun_ServiceClientProtocol {
     )
   }
 
-  /// Unary call to Umount
+  /// Unmounts the specified virtual filesystem.
   ///
   /// - Parameters:
   ///   - request: Request to send to Umount.
@@ -195,6 +220,7 @@ public struct Vmrun_ServiceNIOClient: Vmrun_ServiceClientProtocol {
   }
 }
 
+/// Service provides remote procedure calls for virtual machine management and display operations.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Vmrun_ServiceAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
@@ -214,6 +240,11 @@ public protocol Vmrun_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Vmrun_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_ScreenSize>
+
+  func makeInstallAgentCall(
+    _ request: Vmrun_InstalledAgentRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply>
 
   func makeMountCall(
     _ request: Vmrun_MountRequest,
@@ -269,6 +300,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetScreenSizeInterceptors() ?? []
+    )
+  }
+
+  public func makeInstallAgentCall(
+    _ request: Vmrun_InstalledAgentRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply> {
+    return self.makeAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
     )
   }
 
@@ -335,6 +378,18 @@ extension Vmrun_ServiceAsyncClientProtocol {
     )
   }
 
+  public func installAgent(
+    _ request: Vmrun_InstalledAgentRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmrun_InstalledAgentReply {
+    return try await self.performAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.installAgent.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
+    )
+  }
+
   public func mount(
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions? = nil
@@ -388,6 +443,9 @@ public protocol Vmrun_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'getScreenSize'.
   func makeGetScreenSizeInterceptors() -> [ClientInterceptor<Vmrun_Empty, Vmrun_ScreenSize>]
 
+  /// - Returns: Interceptors to use when invoking 'installAgent'.
+  func makeInstallAgentInterceptors() -> [ClientInterceptor<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply>]
+
   /// - Returns: Interceptors to use when invoking 'mount'.
   func makeMountInterceptors() -> [ClientInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
 
@@ -403,6 +461,7 @@ public enum Vmrun_ServiceClientMetadata {
       Vmrun_ServiceClientMetadata.Methods.vncEndPoint,
       Vmrun_ServiceClientMetadata.Methods.setScreenSize,
       Vmrun_ServiceClientMetadata.Methods.getScreenSize,
+      Vmrun_ServiceClientMetadata.Methods.installAgent,
       Vmrun_ServiceClientMetadata.Methods.mount,
       Vmrun_ServiceClientMetadata.Methods.umount,
     ]
@@ -427,6 +486,12 @@ public enum Vmrun_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
+    public static let installAgent = GRPCMethodDescriptor(
+      name: "InstallAgent",
+      path: "/vmrun.Service/InstallAgent",
+      type: GRPCCallType.unary
+    )
+
     public static let mount = GRPCMethodDescriptor(
       name: "Mount",
       path: "/vmrun.Service/Mount",
@@ -441,18 +506,28 @@ public enum Vmrun_ServiceClientMetadata {
   }
 }
 
+/// Service provides remote procedure calls for virtual machine management and display operations.
+///
 /// To build a server, implement a class that conforms to this protocol.
 public protocol Vmrun_ServiceProvider: CallHandlerProvider {
   var interceptors: Vmrun_ServiceServerInterceptorFactoryProtocol? { get }
 
+  /// Returns the VNC endpoint URL for connecting to the virtual machine display.
   func vncEndPoint(request: Vmrun_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_VNCEndPointReply>
 
+  /// Sets the screen size of the virtual machine display.
   func setScreenSize(request: Vmrun_ScreenSize, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_Empty>
 
+  /// Gets the current screen size of the virtual machine display.
   func getScreenSize(request: Vmrun_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_ScreenSize>
 
+  /// Installs the agent on the virtual machine.
+  func installAgent(request: Vmrun_InstalledAgentRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_InstalledAgentReply>
+
+  /// Mounts the specified virtual filesystem.
   func mount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
 
+  /// Unmounts the specified virtual filesystem.
   func umount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
 }
 
@@ -495,6 +570,15 @@ extension Vmrun_ServiceProvider {
         userFunction: self.getScreenSize(request:context:)
       )
 
+    case "InstallAgent":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_InstalledAgentRequest>(),
+        responseSerializer: ProtobufSerializer<Vmrun_InstalledAgentReply>(),
+        interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? [],
+        userFunction: self.installAgent(request:context:)
+      )
+
     case "Mount":
       return UnaryServerHandler(
         context: context,
@@ -519,32 +603,45 @@ extension Vmrun_ServiceProvider {
   }
 }
 
+/// Service provides remote procedure calls for virtual machine management and display operations.
+///
 /// To implement a server, implement an object which conforms to this protocol.
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public protocol Vmrun_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Vmrun_ServiceServerInterceptorFactoryProtocol? { get }
 
+  /// Returns the VNC endpoint URL for connecting to the virtual machine display.
   func vncEndPoint(
     request: Vmrun_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_VNCEndPointReply
 
+  /// Sets the screen size of the virtual machine display.
   func setScreenSize(
     request: Vmrun_ScreenSize,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_Empty
 
+  /// Gets the current screen size of the virtual machine display.
   func getScreenSize(
     request: Vmrun_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_ScreenSize
 
+  /// Installs the agent on the virtual machine.
+  func installAgent(
+    request: Vmrun_InstalledAgentRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmrun_InstalledAgentReply
+
+  /// Mounts the specified virtual filesystem.
   func mount(
     request: Vmrun_MountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_MountReply
 
+  /// Unmounts the specified virtual filesystem.
   func umount(
     request: Vmrun_MountRequest,
     context: GRPCAsyncServerCallContext
@@ -597,6 +694,15 @@ extension Vmrun_ServiceAsyncProvider {
         wrapping: { try await self.getScreenSize(request: $0, context: $1) }
       )
 
+    case "InstallAgent":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_InstalledAgentRequest>(),
+        responseSerializer: ProtobufSerializer<Vmrun_InstalledAgentReply>(),
+        interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? [],
+        wrapping: { try await self.installAgent(request: $0, context: $1) }
+      )
+
     case "Mount":
       return GRPCAsyncServerHandler(
         context: context,
@@ -635,6 +741,10 @@ public protocol Vmrun_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetScreenSizeInterceptors() -> [ServerInterceptor<Vmrun_Empty, Vmrun_ScreenSize>]
 
+  /// - Returns: Interceptors to use when handling 'installAgent'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeInstallAgentInterceptors() -> [ServerInterceptor<Vmrun_InstalledAgentRequest, Vmrun_InstalledAgentReply>]
+
   /// - Returns: Interceptors to use when handling 'mount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeMountInterceptors() -> [ServerInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
@@ -652,6 +762,7 @@ public enum Vmrun_ServiceServerMetadata {
       Vmrun_ServiceServerMetadata.Methods.vncEndPoint,
       Vmrun_ServiceServerMetadata.Methods.setScreenSize,
       Vmrun_ServiceServerMetadata.Methods.getScreenSize,
+      Vmrun_ServiceServerMetadata.Methods.installAgent,
       Vmrun_ServiceServerMetadata.Methods.mount,
       Vmrun_ServiceServerMetadata.Methods.umount,
     ]
@@ -673,6 +784,12 @@ public enum Vmrun_ServiceServerMetadata {
     public static let getScreenSize = GRPCMethodDescriptor(
       name: "GetScreenSize",
       path: "/vmrun.Service/GetScreenSize",
+      type: GRPCCallType.unary
+    )
+
+    public static let installAgent = GRPCMethodDescriptor(
+      name: "InstallAgent",
+      path: "/vmrun.Service/InstallAgent",
       type: GRPCCallType.unary
     )
 

@@ -113,14 +113,14 @@ extension Vmrun_MountReply {
 class GRPCVMRunServiceClient: VMRunServiceClient {
 	let client: Vmrun_ServiceNIOClient
 	let location: VMLocation
-
+	
 	public static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> GRPCVMRunServiceClient {
-
+		
 		let listeningAddress = location.serviceURL
 		let target: ConnectionTarget
 		let connectionTimeout: TimeInterval = 5
 		let retries: ConnectionBackoff.Retries = .upTo(1)
-
+		
 		if listeningAddress.scheme == "unix" || listeningAddress.isFileURL {
 			target = ConnectionTarget.unixDomainSocket(listeningAddress.path())
 		} else if listeningAddress.scheme == "tcp" {
@@ -128,47 +128,47 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		} else {
 			throw ServiceError("unsupported address scheme: \(listeningAddress)")
 		}
-
+		
 		var clientConfiguration = ClientConnection.Configuration.default(target: target, eventLoopGroup: Utilities.group.next())
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
-
+		
 		clientConfiguration.tlsConfiguration = try GRPCTLSConfiguration.makeClientConfiguration(
 			caCert: certLocation.caCertURL.path,
 			tlsKey: certLocation.clientKeyURL.path,
 			tlsCert: certLocation.clientCertURL.path)
-
+		
 		if retries != .unlimited {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout, minimumConnectionTimeout: connectionTimeout, retries: retries)
 		} else {
 			clientConfiguration.connectionBackoff = ConnectionBackoff(maximumBackoff: connectionTimeout)
 		}
-
+		
 		return GRPCVMRunServiceClient(location: location, client: Vmrun_ServiceNIOClient(channel: ClientConnection(configuration: clientConfiguration)))
 	}
-
+	
 	private init(location: VMLocation, client: Vmrun_ServiceNIOClient) {
 		self.location = location
 		self.client = client
 	}
-
+	
 	func vncURL() throws -> URL? {
 		let result = try client.vncEndPoint(Vmrun_Empty()).response.wait()
-
+		
 		if result.hasVncURL {
 			return URL(string: result.vncURL)
 		}
-
+		
 		return nil
 	}
-
+	
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.wait().toMountInfos()
 	}
-
+	
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.wait().toMountInfos()
 	}
-
+	
 	func setScreenSize(width: Int, height: Int) throws {
 		_ = try client.setScreenSize(
 			Vmrun_ScreenSize.with {
@@ -177,11 +177,19 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			}
 		).response.wait()
 	}
-
+	
 	func getScreenSize() throws -> (Int, Int) {
 		let reply = try client.getScreenSize(Vmrun_Empty()).response.wait()
-
+		
 		return (Int(reply.width), Int(reply.height))
+	}
+
+	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
+		let reply = try client.installAgent(.with {
+			$0.timeout = Int32(timeout)
+		}).response.wait()
+		
+		return (reply.installed, reply.reason)
 	}
 }
 
@@ -244,6 +252,21 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		}
 	}
 
+	func installAgent(request: Vmrun_InstalledAgentRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Vmrun_InstalledAgentReply {
+		do {
+			let installed = try await self.installAgent(timeout: UInt(request.timeout))
+
+			return .with {
+				$0.installed = installed
+			}
+		} catch {
+			return .with {
+				$0.installed = false
+				$0.reason = "\(error)"
+			}
+		}
+	}
+	
 	func mount(request: Vmrun_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_MountReply {
 		return self.mount(request: request.toCaked(), umount: false).toCaked()
 	}

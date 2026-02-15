@@ -97,6 +97,7 @@ public typealias Caked_CurrentStatusReply = Caked_Caked.Reply.CurrentStatusReply
 public typealias Caked_CurrentUsageReply = Caked_Caked.Reply.CurrentUsageReply
 public typealias Caked_PingReply = Caked.Reply.PingReply
 public typealias Caked_ScreenSizeReply = Caked_Caked.Reply.ScreenSizeReply
+public typealias Caked_InstalledAgentReply = Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply
 
 public typealias Caked_BuildRequest = Caked.VMRequest.BuildRequest
 public typealias Caked_CommonBuildRequest = Caked.VMRequest.CommonBuildRequest
@@ -124,6 +125,7 @@ public typealias Caked_PingRequest = Caked_Caked.PingRequest
 public typealias Caked_CurrentStatusRequest = Caked_Caked.CurrentStatusRequest
 public typealias Caked_GetScreenSizeRequest = Caked_Caked.GetScreenSizeRequest
 public typealias Caked_SetScreenSizeRequest = Caked_Caked.SetScreenSizeRequest
+public typealias Caked_InstallAgentRequest = Caked_Caked.InstallAgentRequest
 
 extension Caked_VirtualMachineStatus {
 	init (agentStatus: CakeAgentLib.Status) {
