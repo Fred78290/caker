@@ -480,6 +480,22 @@ public struct Utilities {
 		return localAgent
 	}
 
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, rootURL: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+
+		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		let listeningAddress = try VMLocation.newVMLocation(rootURL: rootURL).agentURL
+
+		return try CakeAgentHelper.createClient(
+			on: on,
+			listeningAddress: listeningAddress,
+			connectionTimeout: connectionTimeout,
+			caCert: certificates.caCertURL.path,
+			tlsCert: certificates.clientCertURL.path,
+			tlsKey: certificates.clientKeyURL.path,
+			retries: retries
+		)
+	}
+
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
 		let certificates = try CertificatesLocation.createAgentCertificats(runMode: runMode)
 		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL

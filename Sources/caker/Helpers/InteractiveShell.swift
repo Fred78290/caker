@@ -14,6 +14,7 @@ typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingSt
 
 class InteractiveShell {
 	let name: String
+	let rootURL: URL
 
 	private var helper: CakeAgentHelper! = nil
 	private var shellStream: CakeAgentExecuteStream! = nil
@@ -27,8 +28,9 @@ class InteractiveShell {
 		self.closeShell()
 	}
 
-	init(name: String) {
-		self.name = name
+	init(rootURL: URL) {
+		self.rootURL = rootURL
+		self.name = rootURL.lastPathComponent.deletingPathExtension
 	}
 	
 	func sendTerminalSize(rows: Int, cols: Int) {
@@ -130,7 +132,7 @@ self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 				var helper: CakeAgentHelper! = nil
 
 				do {
-					helper = try VirtualMachineDocument.createCakeAgentHelper(name: self.name)
+					helper = try VirtualMachineDocument.createCakeAgentHelper(rootURL: self.rootURL)
 
 					self.stream = self.startShell(rows: rows, cols: cols, helper: helper)
 					self.helper = helper

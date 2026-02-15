@@ -972,6 +972,20 @@ extension VirtualMachineDocument {
 		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
+	static func createCakeAgentHelper(rootURL: URL, connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+		// Create a short-lived client for the health check
+		let eventLoop = Utilities.group.next()
+		let client = try Utilities.createCakeAgentClient(
+			on: eventLoop.next(),
+			runMode: .app,
+			rootURL: rootURL,
+			connectionTimeout: connectionTimeout,
+			retries: .upTo(1)
+		)
+
+		return CakeAgentHelper(on: eventLoop, client: client)
+	}
+
 	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
 		try Self.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout)
 	}

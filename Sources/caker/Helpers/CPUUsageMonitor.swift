@@ -18,6 +18,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	@Published var memoryInfos = MemoryInfo()
 
 	private let name: String
+	private let rootURL: URL
 	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 
@@ -29,8 +30,9 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		self.cancel()
 	}
 
-	init(name: String) {
-		self.name = name
+	init(rootURL: URL) {
+		self.rootURL = rootURL
+		self.name = rootURL.lastPathComponent.deletingPathExtension
 	}
 
 	func start() async {
@@ -197,7 +199,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		let client = try Utilities.createCakeAgentClient(
 			on: eventLoop.next(),
 			runMode: .app,
-			name: name,
+			rootURL: rootURL,
 			connectionTimeout: connectionTimeout,
 			retries: .unlimited// .upTo(1)
 		)
