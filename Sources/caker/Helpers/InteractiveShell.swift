@@ -10,6 +10,96 @@ import CakeAgentLib
 import GRPC
 import GRPCLib
 
+enum ExecuteResponse: Equatable, Sendable {
+	case exitCode(Int32)
+	case stdout(Data)
+	case stderr(Data)
+	case failure(String)
+	case established(Bool)
+	
+	public var exitCode: Int32 {
+	  get {
+		  if case .exitCode(let v) = self {
+			  return v
+		  }
+		return 0
+	  }
+		set {
+			self = .exitCode(newValue)
+		}
+	}
+
+	public var stdout: Data {
+	  get {
+		  if case .stdout(let v) = self {
+			  return v
+		  }
+		return Data()
+	  }
+		set {
+			self = .stdout(newValue)
+		}
+	}
+
+	public var stderr: Data {
+	  get {
+		  if case .stderr(let v) = self {
+			  return v
+		  }
+		return Data()
+	  }
+		set {
+			self = .stderr(newValue)
+		}
+	}
+
+	public var failure: String {
+	  get {
+		  if case .failure(let v) = self {
+			  return v
+		  }
+		return String()
+	  }
+	  set {self = .failure(newValue)}
+	}
+
+	public var established: Bool {
+	  get {
+		  if case .established(let v) = self {
+			  return v
+		  }
+		return false
+	  }
+		set {
+			self = .established(newValue)
+		}
+	}
+}
+
+enum ExecuteRequest: Sendable, Equatable {
+	struct TerminalSize: Sendable, Equatable {
+		var rows: Int32 = 0
+		var cols: Int32 = 0
+	}
+
+	enum ExecuteCommand: Sendable, Equatable {
+		struct Command: Sendable, Equatable {
+			var command: String = String()
+			var args: [String] = []
+		}
+
+		case command(ExecuteCommand.Command)
+		case shell(Bool)
+	}
+
+	case command(ExecuteCommand)
+	case input(Data)
+	case size(TerminalSize)
+	case eof(Bool)
+}
+
+typealias CakeAgentExecuteStream = BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>
+
 typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>, continuation: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>.Continuation)
 
 class InteractiveShell {
@@ -217,3 +307,4 @@ self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 		return true
 	}
 }
+

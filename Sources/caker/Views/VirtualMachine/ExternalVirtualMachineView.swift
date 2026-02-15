@@ -14,8 +14,6 @@ import NIO
 import SwiftTerm
 import SwiftUI
 
-typealias CakeAgentExecuteStream = BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>
-
 extension SwiftTerm.Color {
 	static var black: SwiftTerm.Color {
 		.init(red: 0, green: 0, blue: 0)
