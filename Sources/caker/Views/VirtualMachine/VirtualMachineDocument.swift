@@ -178,9 +178,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case restoring = 9
 	}
 	
-	private var shellClient: CakeAgentClient!
-	private var stream: CakeAgentExecuteStream!
-	private var shellHandlerResponse: ShellHandlerResponse!
 	private var monitor: FileMonitor?
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
@@ -288,10 +285,6 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 		if let monitor = self.monitor {
 			monitor.stop()
-		}
-		
-		if let client = self.shellClient {
-			_ = client.close()
 		}
 	}
 	
