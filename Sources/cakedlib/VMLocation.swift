@@ -18,6 +18,14 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		self.template ? "template" : "vm"
 	}
 
+	public static func newVMLocation(rootURL: URL) throws -> Self {
+		let location = VMLocation(rootURL: rootURL, template: false)
+
+		try location.validate().rootURL.updateAccessDate()
+
+		return location
+	}
+
 	public init(rootURL: URL, template: Bool = false) {
 		self.rootURL = rootURL
 		self.template = template
