@@ -784,17 +784,13 @@ extension VirtualMachineDocument {
 
 	func retrieveVNCURL() {
 		MainActor.assumeIsolated {
-			do {
-				if let url = try createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL() {
-					self.logger.info("Found VNC URL: \(url)")
+			if let url = AppState.shared.vncURL(name: self.name) {
+				self.logger.info("Found VNC URL: \(url)")
 
-					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
-					self.tryVNCConnect()
-				} else {
-					self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
-				}
-			} catch {
-				self.logger.error("Failed to retrieve VNC URL: \(error)")
+				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+				self.tryVNCConnect()
+			} else {
+				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 			}
 		}
 	}
