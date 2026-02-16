@@ -190,7 +190,6 @@
 		9B9711C02DFF3284005B161B /* Import.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711BF2DFF3284005B161B /* Import.swift */; };
 		9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9711C12DFF32A0005B161B /* ImportHandler.swift */; };
 		9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */; };
-		9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */; };
 		9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */; };
 		9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */; };
 		9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */; };
@@ -484,6 +483,7 @@
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
 		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
+		9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 /* End PBXBuildFile section */
 
@@ -731,7 +731,6 @@
 		9B9711BF2DFF3284005B161B /* Import.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Import.swift; sourceTree = "<group>"; };
 		9B9711C12DFF32A0005B161B /* ImportHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHandler.swift; sourceTree = "<group>"; };
 		9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentClientInterceptor.swift; sourceTree = "<group>"; };
-		9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9B9C4E552E23BC8B00C13D23 /* NetworksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworksView.swift; sourceTree = "<group>"; };
 		9B9C4E562E23BC8B00C13D23 /* RemotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemotesView.swift; sourceTree = "<group>"; };
 		9B9C4E572E23BC8B00C13D23 /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
@@ -945,6 +944,7 @@
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
+		9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedChannelStreamer.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1418,7 +1418,6 @@
 			isa = PBXGroup;
 			children = (
 				9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */,
-				9B98B7792D897123003C26F3 /* CakedChannelStreamer.swift */,
 				9B464A872D5A3E0300164BF5 /* CakeProvider.swift */,
 				9B464A882D5A3E0300164BF5 /* Client.swift */,
 				9B464A672D5A3E0300164BF5 /* CI */,
@@ -1433,6 +1432,7 @@
 				9B464AD72D5A3E0300164BF5 /* service.proto */,
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
+				9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
@@ -2377,7 +2377,6 @@
 				9BBF7B392F3E084A00F37D2C /* Restart.swift in Sources */,
 				9B98B77A2D897123003C26F3 /* CakeAgentClientInterceptor.swift in Sources */,
 				9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */,
-				9B98B77B2D897123003C26F3 /* CakedChannelStreamer.swift in Sources */,
 				9B464B722D5A3E8900164BF5 /* Purge.swift in Sources */,
 				9B464B742D5A3E8900164BF5 /* Networks.swift in Sources */,
 				9B464B752D5A3E8900164BF5 /* Build.swift in Sources */,
@@ -2419,6 +2418,7 @@
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
 				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
 				9BB3BE2A2DB3F17500799A6A /* WaitIPOptions.swift in Sources */,
+				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
 				9BB3BE2B2DB3F17500799A6A /* RenameOptions.swift in Sources */,
 				9BB3BE2C2DB3F17500799A6A /* StopOptions.swift in Sources */,
 				9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */,
