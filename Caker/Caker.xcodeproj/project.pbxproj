@@ -483,6 +483,7 @@
 		9BEBC86E2DF44B9D0092B196 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9BEBC8712DF44B9D0092B196 /* Virtualization.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C492D5A427100164BF5 /* Virtualization.framework */; };
 		9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */; };
+		9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */; };
 		9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */; };
 /* End PBXBuildFile section */
 
@@ -943,6 +944,7 @@
 		9BEBC7672DF440720092B196 /* VMBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMBuilder.swift; sourceTree = "<group>"; };
 		9BEBC7682DF440720092B196 /* VMLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMLocation.swift; sourceTree = "<group>"; };
 		9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
+		9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellHandler.swift; sourceTree = "<group>"; };
 		9BFE81A72EC8F8CF00767615 /* OCIManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCIManagement.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1727,6 +1729,7 @@
 		9BEBC72D2DF440720092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */,
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
@@ -2587,6 +2590,7 @@
 				9B5A37842ED4BDA8007B59B0 /* VNCFramebuffer.swift in Sources */,
 				9B5A37852ED4BDA8007B59B0 /* VNC.swift in Sources */,
 				9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */,
+				9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */,
 				9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */,
 				9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */,
 				9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */,
