@@ -10,18 +10,14 @@ import CakeAgentLib
 import GRPC
 import GRPCLib
 
-typealias CakeAgentExecuteStream = BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse>
-
 typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>, continuation: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>.Continuation)
 
 class InteractiveShell {
 	let name: String
 	let rootURL: URL
 
-	private var helper: CakeAgentHelper! = nil
-	private var shellStream: CakeAgentExecuteStream! = nil
-	private var stream: AsyncThrowingStreamCakeAgentExecuteResponse! = nil
-	private var taskQueue: TaskQueue! = nil
+	private var shellStream: ShellHandler.ShellHandlerProtocol! = nil
+
 #if DEBUG
 	private let logger = Logger("InteractiveShell")
 #endif
@@ -37,145 +33,55 @@ class InteractiveShell {
 	
 	func sendTerminalSize(rows: Int, cols: Int) {
 		if let shellStream = self.shellStream {
-			shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
+			shellStream.sendTerminalSize(rows: rows, cols: cols)
 		}
 	}
 	
 	func sendDatas(data: ArraySlice<UInt8>) {
 		if let shellStream = self.shellStream {
-			data.withUnsafeBytes { ptr in
-				let message = CakeAgent.ExecuteRequest.with {
-					$0.input = Data(bytes: ptr.baseAddress!, count: ptr.count)
-				}
-				
-				try? shellStream.sendMessage(message).wait()
-			}
+			shellStream.sendDatas(data: data)
 		}
 	}
 	
 	func closeShell(_line: UInt = #line, _file: String = #file,_ completionHandler: (@MainActor () -> Void)? = nil) {
-		func closeClient() {
-			if let taskQueue {
-				self.taskQueue = nil
-				taskQueue.close()
-			}
-
-			if let helper {
-				self.helper = nil
-				
-				helper.close().whenComplete { _ in
-					self.taskQueue = nil
-
-					DispatchQueue.main.async {
-						completionHandler?()
-					}
-				}
-			}
-		}
-		
 		guard let shellStream else {
-			closeClient()
 			return
 		}
 		
 #if DEBUG
-self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
+		self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 #endif
 
 		self.shellStream = nil
 		
-		shellStream.sendEof().whenComplete {_ in
-			let promise = shellStream.eventLoop.makePromise(of: Void.self)
+		shellStream.closeShell {
 			
-			promise.futureResult.whenComplete { _ in
-				closeClient()
-			}
-			
-			shellStream.cancel(promise: promise)
 		}
 	}
 
-	private func startShell(rows: Int, cols: Int, helper: CakeAgentHelper) -> AsyncThrowingStreamCakeAgentExecuteResponse {
-		return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>.Continuation) in
-			do {
-				_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
-
-				self.logger.debug("Start shell, VM: \(self.name)")
-
-				self.shellStream = helper.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
-					continuation.yield(response)
-				}
-				
-				self.shellStream.sendTerminalSize(rows: Int32(rows), cols: Int32(cols))
-				self.shellStream.sendShell()
-
-				self.logger.debug("Shell started, VM: \(self.name)")
-			} catch {
-				continuation.finish(throwing: error)
-			}
-		}
-	}
-
-	func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (CakeAgent.ExecuteResponse) -> Void) async {
-		guard taskQueue == nil else {
-			return
-		}
-
-		#if DEBUG
-		let debugLogger = self.logger
-
-		debugLogger.debug("Start shell, VM: \(self.name)")
-		#endif
-
-		self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.name)")
-
+	func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) async {
 		await withTaskCancellationHandler(operation: {
-			while Task.isCancelled == false && self.taskQueue != nil {
-				var helper: CakeAgentHelper! = nil
-
-				do {
-					helper = try VirtualMachineDocument.createCakeAgentHelper(rootURL: self.rootURL)
-
-					self.stream = self.startShell(rows: rows, cols: cols, helper: helper)
-					self.helper = helper
-
-					for try await response in stream!.stream {
-						await handler(response)
-					}
-					break
-				} catch {
-					if self.taskQueue != nil {
-						if let helper {
-							self.helper = nil
-							try? await helper.close().get()
-						}
-
-						self.stream = nil
-						self.shellStream = nil
-
-						guard self.handleAgentHealthCheckFailure(error: error) else {
-							return
-						}
-						#if DEBUG
-							debugLogger.debug("Shell not ready, VM: \(self.name), waiting...")
-						#endif
-						try? await Task.sleep(nanoseconds: 1_000_000_000)
-					}
+			do {
+				self.shellStream = try ShellHandler.shell(name: self.name, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
+				
+				try await self.shellStream.handleResponse { message in
+					await handler(message)
 				}
+			} catch {
+				guard self.handleAgentHealthCheckFailure(error: error) else {
+					return
+				}
+
+				self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
+
+				try? await Task.sleep(nanoseconds: 1_000_000_000)
 			}
 
-			self.closeShell {
-#if DEBUG
-				debugLogger.debug("Shell ended, VM: \(self.name)")
-#endif
+			self.shellStream?.closeShell {
+				self.logger.debug("Shell ended, VM: \(self.name)")
 			}
-
-			self.helper = nil
-			self.stream = nil
-			self.taskQueue = nil
-
 		}, onCancel: {
-			self.stream?.continuation.finish()
+			self.shellStream?.finish()
 		})
 	}
 	

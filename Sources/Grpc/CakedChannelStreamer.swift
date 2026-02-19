@@ -1,14 +1,13 @@
 import Foundation
 @preconcurrency import GRPC
-import GRPCLib
 import NIO
 import Semaphore
 
-typealias CakedExecuteStream = BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
+public typealias CakedExecuteStream = BidirectionalStreamingCall<Caked_ExecuteRequest, Caked_ExecuteResponse>
 
 extension CakedExecuteStream {
 	@discardableResult
-	func sendTerminalSize(rows: Int32, cols: Int32) -> EventLoopFuture<Void> {
+	public func sendTerminalSize(rows: Int32, cols: Int32) -> EventLoopFuture<Void> {
 		let message = Caked_ExecuteRequest.with {
 			$0.size = Caked_TerminalSize.with {
 				$0.rows = rows
@@ -20,7 +19,7 @@ extension CakedExecuteStream {
 	}
 
 	@discardableResult
-	func sendCommand(command: String, arguments: [String]) -> EventLoopFuture<Void> {
+	public func sendCommand(command: String, arguments: [String]) -> EventLoopFuture<Void> {
 		let message = Caked_ExecuteRequest.with {
 			$0.command = Caked_ExecuteCommand.with {
 				$0.command = Caked_Command.with {
@@ -34,7 +33,7 @@ extension CakedExecuteStream {
 	}
 
 	@discardableResult
-	func sendShell() -> EventLoopFuture<Void> {
+	public func sendShell() -> EventLoopFuture<Void> {
 		let message = Caked_ExecuteRequest.with {
 			$0.command = Caked_ExecuteCommand.with {
 				$0.shell = true
@@ -45,7 +44,7 @@ extension CakedExecuteStream {
 	}
 
 	@discardableResult
-	func sendBuffer(_ buffer: ByteBuffer) -> EventLoopFuture<Void> {
+	public func sendBuffer(_ buffer: ByteBuffer) -> EventLoopFuture<Void> {
 		let message = Caked_ExecuteRequest.with {
 			$0.input = Data(buffer: buffer)
 		}
@@ -54,7 +53,7 @@ extension CakedExecuteStream {
 	}
 
 	@discardableResult
-	func sendEof() -> EventLoopFuture<Void> {
+	public func sendEof() -> EventLoopFuture<Void> {
 		let message = Caked_ExecuteRequest.with {
 			$0.eof = true
 		}
@@ -63,7 +62,7 @@ extension CakedExecuteStream {
 	}
 
 	@discardableResult
-	func end() -> EventLoopFuture<Void> {
+	public func end() -> EventLoopFuture<Void> {
 		#if TRACE
 			redbold("Send end")
 		#endif
@@ -71,7 +70,7 @@ extension CakedExecuteStream {
 	}
 }
 
-final class CakedChannelStreamer: @unchecked Sendable {
+public final class CakedChannelStreamer: @unchecked Sendable {
 	let inputHandle: FileHandle
 	let outputHandle: FileHandle
 	let errorHandle: FileHandle
@@ -82,23 +81,23 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	let semaphore = AsyncSemaphore(value: 0)
 	var term: termios? = nil
 
-	enum ExecuteCommand: Equatable, Sendable {
+	public enum ExecuteCommand: Equatable, Sendable {
 		case execute(String, [String])
 		case shell(Bool = true)
 	}
 
-	init(inputHandle: FileHandle, outputHandle: FileHandle, errorHandle: FileHandle) {
+	public init(inputHandle: FileHandle, outputHandle: FileHandle, errorHandle: FileHandle) {
 		self.inputHandle = inputHandle
 		self.outputHandle = outputHandle
 		self.errorHandle = errorHandle
 		self.isTTY = inputHandle.isTTY() && outputHandle.isTTY()
 	}
 
-	func redbold(_ string: String) {
+	public func redbold(_ string: String) {
 		FileHandle.standardError.write("\u{001B}[0;31m\u{001B}[1m\(string)\u{001B}[0m\n".data(using: .utf8)!)
 	}
 
-	func printError(_ string: String) {
+	public func printError(_ string: String) {
 		let errMessage = "\(string)\n".data(using: .utf8)!
 
 		if FileHandle.standardError.fileDescriptor != self.errorHandle.fileDescriptor {
@@ -108,7 +107,7 @@ final class CakedChannelStreamer: @unchecked Sendable {
 		self.errorHandle.write(errMessage)
 	}
 
-	func handleResponse(response: Caked_ExecuteResponse) {
+	public func handleResponse(response: Caked_ExecuteResponse) {
 		guard let pipeChannel = self.pipeChannel else {
 			return
 		}
@@ -156,13 +155,13 @@ final class CakedChannelStreamer: @unchecked Sendable {
 	}
 
 	@discardableResult
-	func setTerminalSize(stream: CakedExecuteStream) -> EventLoopFuture<Void> {
+	public func setTerminalSize(stream: CakedExecuteStream) -> EventLoopFuture<Void> {
 		let size = self.isTTY ? self.outputHandle.getTermSize() : (rows: 0, cols: 0)
 
 		return stream.sendTerminalSize(rows: size.rows, cols: size.cols)
 	}
 
-	func stream(command: ExecuteCommand, handler: @escaping () -> CakedExecuteStream) async throws -> Int32 {
+	public func stream(command: ExecuteCommand, handler: @escaping () -> CakedExecuteStream) async throws -> Int32 {
 		let shellStream: CakedExecuteStream = handler()
 		let sigwinch: DispatchSourceSignal?
 
