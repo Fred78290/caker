@@ -117,7 +117,7 @@ struct Client: AsyncParsableCommand {
 		public var tlsKey: String? = nil
 
 		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakedServiceClient) {
-			let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
+			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 			let connection = try Caked.createClient(
 				on: group,
 				listeningAddress: URL(string: self.address),
