@@ -6,7 +6,7 @@ import Virtualization
 import CakeAgentLib
 
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
-	public enum Status: String {
+	public enum Status: String, Sendable {
 		case running
 		case paused
 		case stopped
