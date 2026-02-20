@@ -15,12 +15,10 @@ import NIO
 struct CurrentStatusHandler: CakedCommandAsync {
 	private let request: Caked_CurrentStatusRequest
 	private let responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>
-	private let client: CakeAgentConnection
 
 	init(provider: CakedProvider, request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>) throws {
 		self.request = request
 		self.responseStream = responseStream
-		self.client = try provider.createCakeAgentConnection(vmName: request.name)
 	}
 
 	func replyError(error: any Error) -> Caked_Reply {
@@ -31,7 +29,7 @@ struct CurrentStatusHandler: CakedCommandAsync {
 	
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
-			try await CakedLib.CurrentStatusHandler.currentStatus(on: on, vmname: self.request.name, frequency: self.request.frequency, responseStream: self.responseStream, client: client, runMode: runMode)
+			try await CakedLib.CurrentStatusHandler.currentStatus(on: on, vmname: self.request.name, frequency: self.request.frequency, responseStream: self.responseStream, runMode: runMode)
 		} catch {
 			try? await self.responseStream.send(replyError(error: error))
 		}
