@@ -16,7 +16,7 @@ public struct ListHandler {
 					type: "vm",
 					source: "vms",
 					name: name,
-					fqn: ["vm://\(name)"],
+					fqn: ["caked-vm:///\(name)"],
 					instanceID: config.instanceID,
 					diskSize: try location.diskSize(),
 					sizeOnDisk: try location.allocatedSize(),

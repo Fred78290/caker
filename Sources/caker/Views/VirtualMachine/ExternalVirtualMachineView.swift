@@ -126,16 +126,16 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		}
 
 		await self.interactiveShell.runShell(rows: terminal.rows, cols: terminal.cols) { response in
-			if case .established(let established) = response.response {
-				if established.success == false {
+			if case .established(let established, let reason) = response {
+				if established == false {
 					self.interactiveShell.closeShell {
 						DispatchQueue.main.async {
-							alertError(ServiceError(established.reason))
+							alertError(ServiceError(reason))
 							self.dismiss()
 						}
 					}
 				}
-			} else if case .exitCode(let code) = response.response {
+			} else if case .exitCode(let code) = response {
 				#if DEBUG
 					Logger(self).debug("Shell exited with code \(code) for \(self.interactiveShell.name)")
 				#endif
@@ -143,9 +143,9 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 				self.interactiveShell.closeShell {
 					self.dismiss()
 				}
-			} else if case .stdout(let datas) = response.response {
+			} else if case .stdout(let datas) = response {
 				displayDatas(datas)
-			} else if case .stderr(let datas) = response.response {
+			} else if case .stderr(let datas) = response {
 				displayDatas(datas)
 			}
 		}

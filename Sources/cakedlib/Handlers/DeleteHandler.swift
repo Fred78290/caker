@@ -21,7 +21,7 @@ public struct DeleteHandler {
 
 		if let location = try? StorageLocation(runMode: runMode).find(name) {
 			return doIt(location)
-		} else if let u = URL(string: name), u.scheme == "vm", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
+		} else if let u = URL(string: name), u.scheme == "caked-vm", let location = try? StorageLocation(runMode: runMode).find(u.host()!) {
 			return doIt(location)
 		}
 

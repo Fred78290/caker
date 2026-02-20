@@ -26,7 +26,7 @@ public struct ShellHandler {
 		case stdout(Data)
 		case stderr(Data)
 		case failure(String)
-		case established(Bool)
+		case established(Bool, String)
 		
 		public init(_ from: CakeAgent.ExecuteResponse) {
 			switch from.response {
@@ -37,7 +37,7 @@ public struct ShellHandler {
 			case .stderr(let v):
 				self = .stderr(v)
 			case .established(let v):
-				self = .established(v.success)
+				self = .established(v.success, v.reason)
 			case .none:
 				self = .failure("Unknown response from the shell")
 			}
@@ -52,10 +52,8 @@ public struct ShellHandler {
 			case .stderr(let v):
 				self = .stderr(Data(v))
 			case .established(let v):
-				self = .established(v)
+				self = .established(v.success, v.reason)
 			case .none:
-				self = .failure("Unknown response from the shell")
-			case .some(.failure(_)):
 				self = .failure("Unknown response from the shell")
 			}
 		}
@@ -106,15 +104,15 @@ public struct ShellHandler {
 			set {self = .failure(newValue)}
 		}
 		
-		public var established: Bool {
+		public var established: (Bool, String) {
 			get {
-				if case .established(let v) = self {
-					return v
+				if case .established(let established, let reason) = self {
+					return (established, reason)
 				}
-				return false
+				return (false, "Internal error")
 			}
 			set {
-				self = .established(newValue)
+				self = .established(newValue.0, newValue.1)
 			}
 		}
 	}
@@ -150,7 +148,7 @@ public struct ShellHandler {
 		if runMode == .app {
 			return try ShellCakeAgent(name: name).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
-			return try ShellCaked(name: name).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
+			return try ShellCaked(name: name, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 	}
 
@@ -163,8 +161,12 @@ public struct ShellHandler {
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 
-		init(name: String) {
+		init(name: String, runMode: Utils.RunMode) throws {
 			self.name = name
+		}
+
+		init(rootURL: URL) throws {
+			self.name = rootURL.lastPathComponent.deletingPathExtension
 		}
 
 		func createCakedServiceClient(connectionTimeout: Int64, runMode: Utils.RunMode) throws -> CakedServiceClient {
@@ -311,7 +313,7 @@ public struct ShellHandler {
 	}
 
 	internal class ShellCakeAgent: ShellHandlerProtocol {
-		private let name: String
+		private let location: VMLocation
 		private let runMode: Utils.RunMode = .app
 		private let logger = Logger("ShellHandler")
 		private var helper: CakeAgentHelper! = nil
@@ -319,17 +321,21 @@ public struct ShellHandler {
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 
-		init(name: String) {
-			self.name = name
+		init(name: String) throws {
+			self.location = try StorageLocation(runMode: runMode).find(name)
 		}
 
-		func createCakeAgentHelper(name: String, connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
+		init(rootURL: URL) throws {
+			self.location = try VMLocation.newVMLocation(rootURL: rootURL)
+		}
+
+		func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
 			// Create a short-lived client for the health check
 			let eventLoop = Utilities.group.next()
 			let client = try Utilities.createCakeAgentClient(
 				on: eventLoop.next(),
 				runMode: runMode,
-				name: name,
+				listeningAddress: self.location.agentURL,
 				connectionTimeout: connectionTimeout,
 				retries: .upTo(1)
 			)
@@ -338,13 +344,13 @@ public struct ShellHandler {
 		}
 		
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> ShellHandlerProtocol {
-			let cakeHelper = try self.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout)
+			let cakeHelper = try self.createCakeAgentHelper(connectionTimeout: connectionTimeout)
 			
 			guard taskQueue == nil else {
 				return self
 			}
 			
-			self.logger.debug("Start shell, VM: \(self.name)")
+			self.logger.debug("Start shell, VM: \(self.location.name)")
 			
 			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols, helper: cakeHelper)
 			self.helper = cakeHelper
@@ -419,7 +425,7 @@ public struct ShellHandler {
 				return
 			}
 			
-			self.logger.debug("Close shell: \(self.name)")
+			self.logger.debug("Close shell: \(self.location.name)")
 			
 			self.shellStream = nil
 			
@@ -435,13 +441,13 @@ public struct ShellHandler {
 		}
 		
 		private func startShell(rows: Int32, cols: Int32, helper: CakeAgentHelper) -> AsyncThrowingStreamShellResponse {
-			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.name)")
+			self.taskQueue = .init(label: "CakeAgent.InteractiveShell.\(self.location.name)")
 			
 			return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
 				do {
 					_ = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 					
-					self.logger.debug("Start shell, VM: \(self.name)")
+					self.logger.debug("Start shell, VM: \(self.location.name)")
 					
 					self.shellStream = helper.client.execute(callOptions: CallOptions(timeLimit: .none)) { response in
 						continuation.yield(ExecuteResponse(response))
@@ -451,7 +457,7 @@ public struct ShellHandler {
 					self.shellStream.sendTerminalSize(rows: rows, cols: cols)
 					self.shellStream.sendShell()
 					
-					self.logger.debug("Shell started, VM: \(self.name)")
+					self.logger.debug("Shell started, VM: \(self.location.name)")
 				} catch {
 					continuation.finish(throwing: error)
 				}
