@@ -274,12 +274,16 @@ message Caked {
 		}
 		
 		message ExecuteResponse {
+			message EstablishedResponse {
+				bool success = 1;
+				string reason = 2;
+			}
+
 			oneof response {
 				int32 exitCode = 1;
 				bytes stdout = 2;
 				bytes stderr = 3;
-				string failure = 4;
-				bool established = 5;
+				EstablishedResponse established = 4;
 			}
 		}
 		

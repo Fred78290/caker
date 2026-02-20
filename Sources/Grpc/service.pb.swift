@@ -1089,18 +1089,10 @@ public struct Caked_Caked: Sendable {
         set {response = .stderr(newValue)}
       }
 
-      public var failure: String {
-        get {
-          if case .failure(let v)? = response {return v}
-          return String()
-        }
-        set {response = .failure(newValue)}
-      }
-
-      public var established: Bool {
+      public var established: Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse {
         get {
           if case .established(let v)? = response {return v}
-          return false
+          return Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse()
         }
         set {response = .established(newValue)}
       }
@@ -1111,9 +1103,22 @@ public struct Caked_Caked: Sendable {
         case exitCode(Int32)
         case stdout(Data)
         case stderr(Data)
-        case failure(String)
-        case established(Bool)
+        case established(Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse)
 
+      }
+
+      public struct EstablishedResponse: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var success: Bool = false
+
+        public var reason: String = String()
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
       }
 
       public init() {}
@@ -5944,7 +5949,7 @@ extension Caked_Caked.VMRequest.RunCommand: SwiftProtobuf.Message, SwiftProtobuf
 
 extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ExecuteResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0\u{1}failure\0\u{1}established\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}exitCode\0\u{1}stdout\0\u{1}stderr\0\u{1}established\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -5977,18 +5982,15 @@ extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftPro
         }
       }()
       case 4: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
-        if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
-          self.response = .failure(v)
+        var v: Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .established(let m) = current {v = m}
         }
-      }()
-      case 5: try {
-        var v: Bool?
-        try decoder.decodeSingularBoolField(value: &v)
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
           self.response = .established(v)
         }
       }()
@@ -6015,13 +6017,9 @@ extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftPro
       guard case .stderr(let v)? = self.response else { preconditionFailure() }
       try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
     }()
-    case .failure?: try {
-      guard case .failure(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
-    }()
     case .established?: try {
       guard case .established(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     }()
     case nil: break
     }
@@ -6030,6 +6028,41 @@ extension Caked_Caked.VMRequest.ExecuteResponse: SwiftProtobuf.Message, SwiftPro
 
   public static func ==(lhs: Caked_Caked.VMRequest.ExecuteResponse, rhs: Caked_Caked.VMRequest.ExecuteResponse) -> Bool {
     if lhs.response != rhs.response {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.VMRequest.ExecuteResponse.protoMessageName + ".EstablishedResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}reason\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.reason) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    if !self.reason.isEmpty {
+      try visitor.visitSingularStringField(value: self.reason, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse, rhs: Caked_Caked.VMRequest.ExecuteResponse.EstablishedResponse) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.reason != rhs.reason {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

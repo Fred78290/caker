@@ -418,7 +418,10 @@ public final class CakeAgentConnection: Sendable {
 							case .stderr(let stderr):
 								reply.stderr = stderr
 							case .established:
-								reply.established = true
+								reply.established = .with {
+									$0.success = true
+									$0.reason = "Established"
+								}
 							case .none:
 								break
 							}
@@ -479,7 +482,10 @@ public final class CakeAgentConnection: Sendable {
 						if handleFailure(error) {
 							try? await responseStream.send(
 								Caked_ExecuteResponse.with {
-									$0.failure = error.localizedDescription
+									$0.established = .with {
+										$0.success = false
+										$0.reason = error.localizedDescription
+									}
 								})
 						}
 					}
@@ -498,7 +504,10 @@ public final class CakeAgentConnection: Sendable {
 						if handleFailure(error) {
 							try? await responseStream.send(
 								Caked_ExecuteResponse.with {
-									$0.failure = error.localizedDescription
+									$0.established = .with {
+										$0.success = false
+										$0.reason = error.localizedDescription
+									}
 								})
 						}
 					}
@@ -509,7 +518,10 @@ public final class CakeAgentConnection: Sendable {
 				if interceptor.errorCaught.load() == nil && exitCodeSent == false {
 					try? await responseStream.send(
 						Caked_ExecuteResponse.with {
-							$0.failure = "canceled"
+							$0.established = .with {
+								$0.success = false
+								$0.reason = "Canceled"
+							}
 						})
 				}
 
@@ -518,7 +530,10 @@ public final class CakeAgentConnection: Sendable {
 		} catch {
 			try? await responseStream.send(
 				Caked_ExecuteResponse.with {
-					$0.failure = error.localizedDescription
+					$0.established = .with {
+						$0.success = false
+						$0.reason = error.localizedDescription
+					}
 				})
 
 			await finish()

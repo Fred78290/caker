@@ -113,7 +113,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 		}
 
 		do {
-			if case .failure(let reason) = response.response {
+			/*if case .failure(let reason) = response.response {
 				#if TRACE
 					redbold("failure=\(code)")
 				#endif
@@ -121,7 +121,7 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 				self.exitCode = -1
 				_ = pipeChannel.channel.close()
 				self.semaphore.signal()
-			} else if case .exitCode(let code) = response.response {
+			} else */if case .exitCode(let code) = response.response {
 				#if TRACE
 					redbold("exitCode=\(code)")
 				#endif
@@ -136,12 +136,19 @@ public final class CakedChannelStreamer: @unchecked Sendable {
 				try self.outputHandle.write(contentsOf: datas)
 			} else if case .stderr(let datas) = response.response {
 				try self.errorHandle.write(contentsOf: datas)
-			} else if case .established = response.response {
-				#if TRACE
-					redbold("channel established")
-				#endif
-				if self.inputHandle.isTTY() {
-					term = try self.inputHandle.makeRaw()
+			} else if case .established(let established) = response.response {
+				if established.success {
+					#if TRACE
+						redbold("channel established")
+					#endif
+					if self.inputHandle.isTTY() {
+						term = try self.inputHandle.makeRaw()
+					}
+				} else {
+					printError("\(established.reason)")
+					self.exitCode = -1
+					_ = pipeChannel.channel.close()
+					self.semaphore.signal()
 				}
 			}
 		} catch {

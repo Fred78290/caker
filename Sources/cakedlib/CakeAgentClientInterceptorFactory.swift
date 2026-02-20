@@ -39,7 +39,10 @@ final class CakeAgentClientInterceptorFactory: CakeAgentServiceClientInterceptor
 				_ = context.eventLoop.makeFutureWithTask {
 					try? await self.responseStream.send(
 						Caked_ExecuteResponse.with {
-							$0.failure = error.localizedDescription
+							$0.established = .with {
+								$0.success = false
+								$0.reason = error.localizedDescription
+							}
 						})
 				}
 				return
@@ -48,7 +51,10 @@ final class CakeAgentClientInterceptorFactory: CakeAgentServiceClientInterceptor
 			_ = context.eventLoop.makeFutureWithTask {
 				try? await self.responseStream.send(
 					Caked_ExecuteResponse.with {
-						$0.failure = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
+						$0.established = .with {
+							$0.success = false
+							$0.reason = err.code == .unavailable || err.code == .cancelled ? "Connection refused" : err.description
+						}
 					})
 			}
 		}
