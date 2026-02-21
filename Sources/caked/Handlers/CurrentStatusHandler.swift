@@ -29,7 +29,7 @@ struct CurrentStatusHandler: CakedCommandAsync {
 	
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
-			try await CakedLib.CurrentStatusHandler.currentStatus(on: on, vmname: self.request.name, frequency: self.request.frequency, responseStream: self.responseStream, runMode: runMode)
+			try await CakedLib.CurrentStatusHandler.currentStatus(vmname: self.request.name, frequency: self.request.frequency, responseStream: self.responseStream, runMode: runMode)
 		} catch {
 			try? await self.responseStream.send(replyError(error: error))
 		}

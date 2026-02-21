@@ -31,6 +31,8 @@ extension Caked_VirtualMachineStatus {
 }
 
 public struct CurrentStatusHandler {
+	public typealias AsyncThrowingStreamCurrentStatusReplyYield = AsyncThrowingStream<CurrentStatusReply, Error>.Continuation
+	
 	private class CurrentUsageWatcher {
 		private let location: VMLocation
 		private var isMonitoring: Bool = false
@@ -236,7 +238,7 @@ public struct CurrentStatusHandler {
 				runMode: .app,
 				listeningAddress: self.location.agentURL,
 				connectionTimeout: connectionTimeout,
-				retries: .unlimited// .upTo(1)
+				retries: .upTo(1)
 			)
 
 			return CakeAgentHelper(on: eventLoop, client: client)
@@ -264,7 +266,11 @@ public struct CurrentStatusHandler {
 		case screenshot(Data)
 	}
 
-	public static func currentStatus(on: EventLoop, location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStream<CurrentStatusReply, Error>.Continuation, runMode: Utils.RunMode) async throws {
+	public static func currentStatus(rootURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws {
+		try await currentStatus(location: VMLocation.newVMLocation(rootURL: rootURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
+	}
+
+	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws {
 		var lastStatusSeen = location.status
 		let (stream, continuation) = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
 		let agentMonitor = Self.CurrentUsageWatcher(location: location, continuation: continuation)
@@ -291,7 +297,6 @@ public struct CurrentStatusHandler {
 			func check(_ file: URL) -> Void {
 				if file.lastPathComponent == location.pidFile.lastPathComponent {
 					let status = location.status
-					let reply: CurrentStatusReply
 
 					switch status {
 					case .running:
@@ -336,13 +341,13 @@ public struct CurrentStatusHandler {
 		}
 	}
 
-	public static func currentStatus(on: EventLoop, location: VMLocation, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
+	public static func currentStatus(location: VMLocation, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
 
 		try await withThrowingTaskGroup(of: Void.self) { group in
 			let (stream, continuation) = AsyncThrowingStream<CurrentStatusReply, Error>.makeStream()
 
 			group.addTask {
-				try await Self.currentStatus(on: on, location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
+				try await Self.currentStatus(location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
 			}
 
 			try await withTaskCancellationHandler(operation: {
@@ -383,12 +388,12 @@ public struct CurrentStatusHandler {
 		}
 	}
 
-	public static func currentStatus(on: EventLoop, vmname: String, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
-		try await currentStatus(on: on, location: try StorageLocation(runMode: runMode).find(vmname), frequency: frequency, responseStream: responseStream, runMode: runMode)
+	public static func currentStatus(vmname: String, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
+		try await currentStatus(location: try StorageLocation(runMode: runMode).find(vmname), frequency: frequency, responseStream: responseStream, runMode: runMode)
 	}
 	
 	public static func currentStatus(responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, vmname: String, frequency: Int32, runMode: Utils.RunMode) async throws {
-		try await self.currentStatus(on: Utilities.group.next(), vmname: vmname, frequency: frequency, responseStream: responseStream, runMode: runMode)
+		try await self.currentStatus(vmname: vmname, frequency: frequency, responseStream: responseStream, runMode: runMode)
 	}
 }
 

@@ -39,6 +39,7 @@
 		9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1501382E6C2AE000B23147 /* LabelView.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
+		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
 		9B20D6022E019FA400BEFB41 /* VMWare.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D6002E019FA400BEFB41 /* VMWare.swift */; };
 		9B20D6032E019FA400BEFB41 /* Importer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FE2E019FA400BEFB41 /* Importer.swift */; };
 		9B20D6042E019FA400BEFB41 /* Multipass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20D5FF2E019FA400BEFB41 /* Multipass.swift */; };
@@ -606,6 +607,7 @@
 		9B1501382E6C2AE000B23147 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
+		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
 		9B20D5FE2E019FA400BEFB41 /* Importer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Importer.swift; sourceTree = "<group>"; };
 		9B20D5FF2E019FA400BEFB41 /* Multipass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Multipass.swift; sourceTree = "<group>"; };
 		9B20D6002E019FA400BEFB41 /* VMWare.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMWare.swift; sourceTree = "<group>"; };
@@ -1566,6 +1568,7 @@
 		9BB213CE2F37548300B45692 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */,
 				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
 				9BB213D42F375CC700B45692 /* DuplicateHandler.swift */,
@@ -2319,6 +2322,7 @@
 				9B7C7ADB2E09B81A009D0A26 /* SocketsNewItemView.swift in Sources */,
 				9B7C7AD92E09B7FB009D0A26 /* NetworkAttachementNewItemView.swift in Sources */,
 				9BDBAC2D2E15618000215DF5 /* MemorySizeStyle.swift in Sources */,
+				9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */,
 				9BBF7CB12F3F1F5500F37D2C /* ScreenSizeHandler.swift in Sources */,
 				9B215B712E0C35D400AFC89D /* ForwardedPortDetailView.swift in Sources */,
 				9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */,
