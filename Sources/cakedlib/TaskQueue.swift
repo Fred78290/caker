@@ -112,7 +112,7 @@ public class TaskQueue {
 		}
 	}
 
-	public func dispatch(label: String? = nil, block: @escaping () async throws -> Void) {
+	public func dispatchSync(label: String? = nil, block: @escaping () async throws -> Void) {
 		//            print("yield directly \(label)")
 		pendingTasksContinuation.yield(AsyncTask(label: label, continuation: nil, block: block))
 	}
