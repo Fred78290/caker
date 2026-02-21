@@ -273,27 +273,35 @@ public struct ServiceHandler {
 
 		return .app
 	}
-
+	
 	public static var serviceClient: CakedServiceClient? {
-		guard isAgentRunning else {
+		for runMode in [Utils.RunMode.system, .user] {
+			if let client = try? self.serviceClient(runMode: runMode) {
+				return client
+			}
+		}
+		
+		return nil
+	}
+	
+	public static func serviceClient(runMode: Utils.RunMode) throws -> CakedServiceClient? {
+		guard isAgentRunning(runMode: runMode) else {
 			return nil
 		}
 
-		for runMode in [Utils.RunMode.system, .user] {
-			if let listenAddress = try? Utils.getDefaultServerAddress(runMode: runMode), let certs = try? ClientCertificatesLocation.getCertificats(runMode: runMode) {
+		if let listenAddress = try? Utils.getDefaultServerAddress(runMode: runMode), let certs = try? ClientCertificatesLocation.getCertificats(runMode: runMode) {
 
-				var caCert: String? = nil
-				var tlsCert: String? = nil
-				var tlsKey: String? = nil
+			var caCert: String? = nil
+			var tlsCert: String? = nil
+			var tlsKey: String? = nil
 
-				if certs.exists() {
-					caCert = certs.caCertURL.path
-					tlsCert = certs.clientCertURL.path
-					tlsKey = certs.clientKeyURL.path
-				}
-
-				return try? Caked.createClient(on: Utilities.group.next(), listeningAddress: URL(string: listenAddress), connectionTimeout: 5, retries: .upTo(1), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey)
+			if certs.exists() {
+				caCert = certs.caCertURL.path
+				tlsCert = certs.clientCertURL.path
+				tlsKey = certs.clientKeyURL.path
 			}
+
+			return try Caked.createClient(on: Utilities.group.next(), listeningAddress: URL(string: listenAddress), connectionTimeout: 5, retries: .upTo(1), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey)
 		}
 
 		return nil
