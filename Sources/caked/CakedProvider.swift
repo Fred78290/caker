@@ -264,130 +264,157 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
 	let certLocation: CertificatesLocation
+	let gcd: GrandCentralDispatch
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode) throws {
 		self.runMode = runMode
 		self.group = group
 		self.certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
+		self.gcd = .init(group: group, runMode: runMode)
 	}
-
+	
 	func execute(command: CakedCommand) throws -> Caked_Reply {
 		var command = command
 		let eventLoop = self.group.next()
-
+		
 		Logger(self).debug("execute: \(command)")
-
+		
 		return command.run(on: eventLoop, runMode: self.runMode)
 	}
-
+	
 	func execute(command: CreateCakedCommand) throws -> Caked_Reply {
 		try self.execute(command: command.createCommand(provider: self))
 	}
-
+	
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context))
+		
+		try await self.gcd.updateStatus(.with {
+			$0.name = request.options.name
+			$0.status = .stopped
+		})
 	}
 	
 	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func restart(request: Caked_RestartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
 	
 	func duplicate(request: Caked_DuplicateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
-	}
+		let reply = try self.execute(command: request)
 
+		if reply.vms.duplicated.duplicated {
+			try await self.gcd.updateStatus(.with {
+				$0.name = request.to
+				$0.status = .stopped
+			})
+		}
+
+		return reply
+	}
+	
 	func delete(request: Caked_DeleteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
-	}
+		let reply = try self.execute(command: request)
 
+		if reply.vms.delete.success {
+			for name in request.names.list {
+				try await self.gcd.updateStatus(.with {
+					$0.name = name
+					$0.status = .deleted
+				})
+			}
+		}
+
+		return reply
+	}
+	
 	func configure(request: Caked_ConfigureRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func purge(request: Caked_PurgeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func login(request: Caked_LoginRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func logout(request: Caked_LogoutRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func clone(request: Caked_CloneRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func push(request: Caked_PushRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func list(request: Caked_ListRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func image(request: Caked_ImageRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func remote(request: Caked_RemoteRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func template(request: Caked_TemplateRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func networks(request: Caked_NetworkRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func waitIP(request: Caked_WaitIPRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func stop(request: Caked_StopRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func suspend(request: Caked_Caked.VMRequest.SuspendRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Caked.Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func rename(request: Caked_RenameRequest, context: GRPC.GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func info(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func run(request: Caked_RunCommand, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) async throws {
 		_ = try self.execute(command: try ExecuteHandler(provider: self, requestStream: requestStream, responseStream: responseStream, context: context))
 	}
-
+	
 	func mount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func umount(request: Caked_MountRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
-
+	
 	func ping(request: Caked_PingRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -396,11 +423,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		_ = try self.execute(command: CurrentStatusHandler(provider: self, request: request, responseStream: responseStream))
 	}
-
+	
 	func vncURL(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: VncURLHandler(request: request))
 	}
-
+	
 	func getScreenSize(request: Caked_GetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}
@@ -415,7 +442,46 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	
 	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
-
+		
 		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
 	}
+	
+	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
+		
+		let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_Reply.self)
+		let id = gcd.addListener(continuation)
+		
+		defer {
+			continuation.finish()
+			self.gcd.removeListener(id)
+		}
+
+		let initialStatus = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
+			Caked_Reply.with {
+				$0.status = Caked_CurrentStatusReply.with {
+					$0.name = name
+					$0.status = .init(from: location.status)
+				}
+			}
+		}
+
+		for status in initialStatus {
+			try await responseStream.send(status)
+		}
+		
+		for try await reply in stream {
+			try await responseStream.send(reply)
+		}
+	}
+	
+	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatusReply>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
+		try await gcd.startGrandCentralDispatch()
+
+		for try await status in requestStream {
+			try await gcd.updateStatus(status)
+		}
+
+		return Caked_Empty()
+	}
+	
 }
