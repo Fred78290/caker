@@ -17,7 +17,7 @@ typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (
 	continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation
 )
 
-extension Caked_VirtualMachineStatus {
+public extension Caked_VirtualMachineStatus {
 	init(from: VMLocation.Status) {
 		switch from {
 		case .running:
@@ -370,7 +370,7 @@ public struct CurrentStatusHandler {
 					case .status(let status):
 						try await responseStream.send(.with {
 							$0.status = .with {
-								$0.currentStatus = .init(from:  status)
+								$0.status = .init(from:  status)
 							}
 						})
 

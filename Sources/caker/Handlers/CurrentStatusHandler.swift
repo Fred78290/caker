@@ -41,10 +41,14 @@ extension CurrentStatusHandler {
 			
 			continuation.yield(status)
 		}
-		
+
+		flux.status.whenFailure { error in
+			continuation.finish(throwing: error)
+		}
+
 		for try await status in stream {
-			switch status.status.response {
-			case .currentStatus(let status):
+			switch status.status.message {
+			case .status(let status):
 				statusStream.yield(.status(.init(from: status)))
 			case .screenshot(let png):
 				statusStream.yield(.screenshot(png))

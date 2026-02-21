@@ -23,7 +23,7 @@ public struct PingHandler {
 					$0.message = result.message
 					$0.requestTimestamp = result.requestTimestamp
 					$0.responseTimestamp = result.responseTimestamp
-					$0.currentStatus = .running
+					$0.status = .running
 				}
 			} else {
 				return Caked_PingReply.with {
@@ -34,11 +34,11 @@ public struct PingHandler {
 					
 					switch location.status {
 					case .stopped:
-						$0.currentStatus = .stopped
+						$0.status = .stopped
 					case .paused:
-						$0.currentStatus = .paused
+						$0.status = .paused
 					case .running:
-						$0.currentStatus = .running
+						$0.status = .running
 					}
 				}
 			}
@@ -48,7 +48,7 @@ public struct PingHandler {
 				$0.message = "\(error)"
 				$0.requestTimestamp = Int64(timestamp * 1_000_000_000)
 				$0.responseTimestamp = Int64(Date().timeIntervalSince1970 * 1_000_000_000)
-				$0.currentStatus = .error
+				$0.status = .error
 			}
 		}
 	}
