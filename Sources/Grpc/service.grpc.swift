@@ -179,6 +179,16 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     _ request: Caked_Caked.InstallAgentRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>
+
+  func grandCentralDispatcher(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply) -> Void
+  ) -> ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>
+
+  func grandCentralUpdate(
+    callOptions: CallOptions?
+  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -770,6 +780,45 @@ extension Caked_ServiceClientProtocol {
       interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
     )
   }
+
+  /// GrandCentralDispatcher dispatches all vm status to the appropriate handler.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GrandCentralDispatcher.
+  ///   - callOptions: Call options.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
+  public func grandCentralDispatcher(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply) -> Void
+  ) -> ServerStreamingCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralDispatcher.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralDispatcherInterceptors() ?? [],
+      handler: handler
+    )
+  }
+
+  /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
+  ///
+  /// Callers should use the `send` method on the returned object to send messages
+  /// to the server. The caller should send an `.end` after the final message has been sent.
+  ///
+  /// - Parameters:
+  ///   - callOptions: Call options.
+  /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
+  public func grandCentralUpdate(
+    callOptions: CallOptions? = nil
+  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty> {
+    return self.makeClientStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -993,6 +1042,15 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Caked_Caked.InstallAgentRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>
+
+  func makeGrandCentralDispatcherCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncServerStreamingCall<Caked_Empty, Caked_Caked.Reply>
+
+  func makeGrandCentralUpdateCall(
+    callOptions: CallOptions?
+  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1396,6 +1454,28 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
     )
   }
+
+  public func makeGrandCentralDispatcherCall(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncServerStreamingCall<Caked_Empty, Caked_Caked.Reply> {
+    return self.makeAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralDispatcher.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralDispatcherInterceptors() ?? []
+    )
+  }
+
+  public func makeGrandCentralUpdateCall(
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty> {
+    return self.makeAsyncClientStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1795,6 +1875,42 @@ extension Caked_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeInstallAgentInterceptors() ?? []
     )
   }
+
+  public func grandCentralDispatcher(
+    _ request: Caked_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply> {
+    return self.performAsyncServerStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralDispatcher.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralDispatcherInterceptors() ?? []
+    )
+  }
+
+  public func grandCentralUpdate<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Empty where RequestStream: Sequence, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply {
+    return try await self.performAsyncClientStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
+    )
+  }
+
+  public func grandCentralUpdate<RequestStream>(
+    _ requests: RequestStream,
+    callOptions: CallOptions? = nil
+  ) async throws -> Caked_Empty where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply {
+    return try await self.performAsyncClientStreamingCall(
+      path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
+      requests: requests,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1911,6 +2027,12 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'installAgent'.
   func makeInstallAgentInterceptors() -> [ClientInterceptor<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'grandCentralDispatcher'.
+  func makeGrandCentralDispatcherInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when invoking 'grandCentralUpdate'.
+  func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -1950,6 +2072,8 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.getScreenSize,
       Caked_ServiceClientMetadata.Methods.setScreenSize,
       Caked_ServiceClientMetadata.Methods.installAgent,
+      Caked_ServiceClientMetadata.Methods.grandCentralDispatcher,
+      Caked_ServiceClientMetadata.Methods.grandCentralUpdate,
     ]
   )
 
@@ -2145,6 +2269,18 @@ public enum Caked_ServiceClientMetadata {
       path: "/caked.Service/InstallAgent",
       type: GRPCCallType.unary
     )
+
+    public static let grandCentralDispatcher = GRPCMethodDescriptor(
+      name: "GrandCentralDispatcher",
+      path: "/caked.Service/GrandCentralDispatcher",
+      type: GRPCCallType.serverStreaming
+    )
+
+    public static let grandCentralUpdate = GRPCMethodDescriptor(
+      name: "GrandCentralUpdate",
+      path: "/caked.Service/GrandCentralUpdate",
+      type: GRPCCallType.clientStreaming
+    )
   }
 }
 
@@ -2249,6 +2385,12 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
 
   /// InstallAgent installs the agent on a virtual machine.
   func installAgent(request: Caked_Caked.InstallAgentRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+
+  /// GrandCentralDispatcher dispatches all vm status to the appropriate handler.
+  func grandCentralDispatcher(request: Caked_Empty, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
+
+  /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
+  func grandCentralUpdate(context: UnaryResponseCallContext<Caked_Empty>) -> EventLoopFuture<(StreamEvent<Caked_Caked.Reply.CurrentStatusReply>) -> Void>
 }
 
 extension Caked_ServiceProvider {
@@ -2551,6 +2693,24 @@ extension Caked_ServiceProvider {
         userFunction: self.installAgent(request:context:)
       )
 
+    case "GrandCentralDispatcher":
+      return ServerStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeGrandCentralDispatcherInterceptors() ?? [],
+        userFunction: self.grandCentralDispatcher(request:context:)
+      )
+
+    case "GrandCentralUpdate":
+      return ClientStreamingServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Empty>(),
+        interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? [],
+        observerFactory: self.grandCentralUpdate(context:)
+      )
+
     default:
       return nil
     }
@@ -2759,6 +2919,19 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Caked_Caked.InstallAgentRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
+
+  /// GrandCentralDispatcher dispatches all vm status to the appropriate handler.
+  func grandCentralDispatcher(
+    request: Caked_Empty,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply>,
+    context: GRPCAsyncServerCallContext
+  ) async throws
+
+  /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
+  func grandCentralUpdate(
+    requestStream: GRPCAsyncRequestStream<Caked_Caked.Reply.CurrentStatusReply>,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Caked_Empty
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -3068,6 +3241,24 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.installAgent(request: $0, context: $1) }
       )
 
+    case "GrandCentralDispatcher":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Empty>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        interceptors: self.interceptors?.makeGrandCentralDispatcherInterceptors() ?? [],
+        wrapping: { try await self.grandCentralDispatcher(request: $0, responseStream: $1, context: $2) }
+      )
+
+    case "GrandCentralUpdate":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply>(),
+        responseSerializer: ProtobufSerializer<Caked_Empty>(),
+        interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? [],
+        wrapping: { try await self.grandCentralUpdate(requestStream: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3203,6 +3394,14 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'installAgent'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeInstallAgentInterceptors() -> [ServerInterceptor<Caked_Caked.InstallAgentRequest, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'grandCentralDispatcher'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGrandCentralDispatcherInterceptors() -> [ServerInterceptor<Caked_Empty, Caked_Caked.Reply>]
+
+  /// - Returns: Interceptors to use when handling 'grandCentralUpdate'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGrandCentralUpdateInterceptors() -> [ServerInterceptor<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>]
 }
 
 public enum Caked_ServiceServerMetadata {
@@ -3242,6 +3441,8 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.getScreenSize,
       Caked_ServiceServerMetadata.Methods.setScreenSize,
       Caked_ServiceServerMetadata.Methods.installAgent,
+      Caked_ServiceServerMetadata.Methods.grandCentralDispatcher,
+      Caked_ServiceServerMetadata.Methods.grandCentralUpdate,
     ]
   )
 
@@ -3436,6 +3637,18 @@ public enum Caked_ServiceServerMetadata {
       name: "InstallAgent",
       path: "/caked.Service/InstallAgent",
       type: GRPCCallType.unary
+    )
+
+    public static let grandCentralDispatcher = GRPCMethodDescriptor(
+      name: "GrandCentralDispatcher",
+      path: "/caked.Service/GrandCentralDispatcher",
+      type: GRPCCallType.serverStreaming
+    )
+
+    public static let grandCentralUpdate = GRPCMethodDescriptor(
+      name: "GrandCentralUpdate",
+      path: "/caked.Service/GrandCentralUpdate",
+      type: GRPCCallType.clientStreaming
     )
   }
 }

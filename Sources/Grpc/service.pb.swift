@@ -23,6 +23,16 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+public struct Caked_Empty: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Caked_Caked: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1400,46 +1410,48 @@ public struct Caked_Caked: Sendable {
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
 
-      public var response: Caked_Caked.Reply.CurrentStatusReply.OneOf_Response? = nil
+      public var name: String = String()
+
+      public var message: Caked_Caked.Reply.CurrentStatusReply.OneOf_Message? = nil
 
       public var usage: Caked_Caked.Reply.CurrentUsageReply {
         get {
-          if case .usage(let v)? = response {return v}
+          if case .usage(let v)? = message {return v}
           return Caked_Caked.Reply.CurrentUsageReply()
         }
-        set {response = .usage(newValue)}
+        set {message = .usage(newValue)}
       }
 
       public var screenshot: Data {
         get {
-          if case .screenshot(let v)? = response {return v}
+          if case .screenshot(let v)? = message {return v}
           return Data()
         }
-        set {response = .screenshot(newValue)}
+        set {message = .screenshot(newValue)}
       }
 
-      public var currentStatus: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus {
+      public var status: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus {
         get {
-          if case .currentStatus(let v)? = response {return v}
+          if case .status(let v)? = message {return v}
           return .stopped
         }
-        set {response = .currentStatus(newValue)}
+        set {message = .status(newValue)}
       }
 
       public var failure: String {
         get {
-          if case .failure(let v)? = response {return v}
+          if case .failure(let v)? = message {return v}
           return String()
         }
-        set {response = .failure(newValue)}
+        set {message = .failure(newValue)}
       }
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Response: Equatable, Sendable {
+      public enum OneOf_Message: Equatable, Sendable {
         case usage(Caked_Caked.Reply.CurrentUsageReply)
         case screenshot(Data)
-        case currentStatus(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus)
+        case status(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus)
         case failure(String)
 
       }
@@ -1456,7 +1468,7 @@ public struct Caked_Caked: Sendable {
 
       public var message: String = String()
 
-      public var currentStatus: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus = .stopped
+      public var status: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus = .stopped
 
       public var requestTimestamp: Int64 = 0
 
@@ -2059,7 +2071,8 @@ public struct Caked_Caked: Sendable {
             case stopped // = 0
             case running // = 1
             case paused // = 2
-            case error // = 3
+            case deleted // = 3
+            case error // = 4
             case UNRECOGNIZED(Int)
 
             public init() {
@@ -2071,7 +2084,8 @@ public struct Caked_Caked: Sendable {
               case 0: self = .stopped
               case 1: self = .running
               case 2: self = .paused
-              case 3: self = .error
+              case 3: self = .deleted
+              case 4: self = .error
               default: self = .UNRECOGNIZED(rawValue)
               }
             }
@@ -2081,7 +2095,8 @@ public struct Caked_Caked: Sendable {
               case .stopped: return 0
               case .running: return 1
               case .paused: return 2
-              case .error: return 3
+              case .deleted: return 3
+              case .error: return 4
               case .UNRECOGNIZED(let i): return i
               }
             }
@@ -2091,6 +2106,7 @@ public struct Caked_Caked: Sendable {
               .stopped,
               .running,
               .paused,
+              .deleted,
               .error,
             ]
 
@@ -4463,6 +4479,25 @@ public struct Caked_Caked: Sendable {
 
 fileprivate let _protobuf_package = "caked"
 
+extension Caked_Empty: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".Empty"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Empty, rhs: Caked_Empty) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".Caked"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
@@ -6569,7 +6604,7 @@ extension Caked_Caked.Reply.CurrentUsageReply: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".CurrentStatusReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}usage\0\u{1}screenshot\0\u{1}currentStatus\0\u{1}failure\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6577,41 +6612,42 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 2: try {
         var v: Caked_Caked.Reply.CurrentUsageReply?
         var hadOneofValue = false
-        if let current = self.response {
+        if let current = self.message {
           hadOneofValue = true
           if case .usage(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.response = .usage(v)
-        }
-      }()
-      case 2: try {
-        var v: Data?
-        try decoder.decodeSingularBytesField(value: &v)
-        if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
-          self.response = .screenshot(v)
+          self.message = .usage(v)
         }
       }()
       case 3: try {
-        var v: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus?
-        try decoder.decodeSingularEnumField(value: &v)
+        var v: Data?
+        try decoder.decodeSingularBytesField(value: &v)
         if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
-          self.response = .currentStatus(v)
+          if self.message != nil {try decoder.handleConflictingOneOf()}
+          self.message = .screenshot(v)
         }
       }()
       case 4: try {
+        var v: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus?
+        try decoder.decodeSingularEnumField(value: &v)
+        if let v = v {
+          if self.message != nil {try decoder.handleConflictingOneOf()}
+          self.message = .status(v)
+        }
+      }()
+      case 5: try {
         var v: String?
         try decoder.decodeSingularStringField(value: &v)
         if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
-          self.response = .failure(v)
+          if self.message != nil {try decoder.handleConflictingOneOf()}
+          self.message = .failure(v)
         }
       }()
       default: break
@@ -6624,22 +6660,25 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.response {
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 1)
+    }
+    switch self.message {
     case .usage?: try {
-      guard case .usage(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      guard case .usage(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .screenshot?: try {
-      guard case .screenshot(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularBytesField(value: v, fieldNumber: 2)
+      guard case .screenshot(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularBytesField(value: v, fieldNumber: 3)
     }()
-    case .currentStatus?: try {
-      guard case .currentStatus(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 3)
+    case .status?: try {
+      guard case .status(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
     }()
     case .failure?: try {
-      guard case .failure(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 4)
+      guard case .failure(let v)? = self.message else { preconditionFailure() }
+      try visitor.visitSingularStringField(value: v, fieldNumber: 5)
     }()
     case nil: break
     }
@@ -6647,7 +6686,8 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
   }
 
   public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply, rhs: Caked_Caked.Reply.CurrentStatusReply) -> Bool {
-    if lhs.response != rhs.response {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.message != rhs.message {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -6655,7 +6695,7 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
 
 extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".PingReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0\u{1}currentStatus\0\u{3}request_timestamp\0\u{3}response_timestamp\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}message\0\u{1}status\0\u{3}request_timestamp\0\u{3}response_timestamp\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -6665,7 +6705,7 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.message) }()
-      case 3: try { try decoder.decodeSingularEnumField(value: &self.currentStatus) }()
+      case 3: try { try decoder.decodeSingularEnumField(value: &self.status) }()
       case 4: try { try decoder.decodeSingularInt64Field(value: &self.requestTimestamp) }()
       case 5: try { try decoder.decodeSingularInt64Field(value: &self.responseTimestamp) }()
       default: break
@@ -6680,8 +6720,8 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if !self.message.isEmpty {
       try visitor.visitSingularStringField(value: self.message, fieldNumber: 2)
     }
-    if self.currentStatus != .stopped {
-      try visitor.visitSingularEnumField(value: self.currentStatus, fieldNumber: 3)
+    if self.status != .stopped {
+      try visitor.visitSingularEnumField(value: self.status, fieldNumber: 3)
     }
     if self.requestTimestamp != 0 {
       try visitor.visitSingularInt64Field(value: self.requestTimestamp, fieldNumber: 4)
@@ -6695,7 +6735,7 @@ extension Caked_Caked.Reply.PingReply: SwiftProtobuf.Message, SwiftProtobuf._Mes
   public static func ==(lhs: Caked_Caked.Reply.PingReply, rhs: Caked_Caked.Reply.PingReply) -> Bool {
     if lhs.success != rhs.success {return false}
     if lhs.message != rhs.message {return false}
-    if lhs.currentStatus != rhs.currentStatus {return false}
+    if lhs.status != rhs.status {return false}
     if lhs.requestTimestamp != rhs.requestTimestamp {return false}
     if lhs.responseTimestamp != rhs.responseTimestamp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -7749,7 +7789,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}error\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0")
 }
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
