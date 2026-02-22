@@ -112,6 +112,18 @@ public class TaskQueue {
 		}
 	}
 
+	@discardableResult
+	public static func dispatch(label: String? = nil, handler: @escaping () async throws -> Void) -> TaskQueue {
+		let taskQueue = TaskQueue(label: label)
+		
+		taskQueue.dispatchSync {
+			try await handler()
+			taskQueue.close()
+		}
+
+		return taskQueue
+	}
+
 	public func dispatchSync(label: String? = nil, block: @escaping () async throws -> Void) {
 		//            print("yield directly \(label)")
 		pendingTasksContinuation.yield(AsyncTask(label: label, continuation: nil, block: block))
