@@ -249,7 +249,7 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let runningIP = try StartHandler.startVM(location: location, config: location.config(), waitIPTimeout: 180, startMode: .background, runMode: .user, promise: promise)
+		let runningIP = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, runMode: .user, promise: promise)
 
 		print("startVM got running ip: \(runningIP)")
 
@@ -270,5 +270,53 @@ final class CloudInitTests: XCTestCase {
 				XCTAssertFalse(storageLocation.exists(name), "VM \(name) should be deleted")
 			}
 		}
+	}
+
+	func testCurrentStatusUpdate() async throws {
+		try await buildVM(name: noble_cloud_image, image: ubuntuCloudImage)
+		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
+		let eventLoop = self.group.any()
+		let promise = eventLoop.makePromise(of: String.self)
+
+		promise.futureResult.whenComplete { result in
+			switch result {
+			case .success(let name):
+				print("VM starting: \(name)")
+				break
+			case .failure(let err):
+				XCTFail(err.localizedDescription)
+			}
+		}
+
+		let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
+
+		try await CurrentStatusHandler.currentStatus(location: location, frequency: 1, statusStream: continuation, runMode: .user)
+
+		// Start VM
+		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, runMode: .user, promise: promise)
+
+		XCTAssertTrue(result.started, "VM \(name) should be started")
+
+		print("startVM got running ip: \(result)")
+
+		var count = 0
+
+		for try await status in stream {
+			print("Current Status[\(count)]: \(status)")
+			count += 1
+			
+			if count > 9 {
+				break
+			}
+		}
+
+		continuation.finish()
+
+		try location.stopVirtualMachine(force: false, runMode: .user)
+
+		// Wait VM die
+		XCTAssertNoThrow(try promise.futureResult.wait())
+
+		XCTAssertNoThrow(try location.delete())
 	}
 }

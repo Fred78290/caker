@@ -4,6 +4,7 @@ import NIOCore
 import NIOPosix
 import Synchronization
 import XCTest
+import CakeAgentLib
 
 @testable import CakedLib
 @testable import GRPCLib
@@ -13,8 +14,8 @@ import XCTest
 class GrpcTestCase {
 	let certs: CertificatesLocation = try! CertificatesLocation.createCertificats(runMode: .user)
 
-	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> ClientConnection {
-		let client = try Client.createClient(
+	func createClient(listeningAddress: URL?, on: MultiThreadedEventLoopGroup, tls: Bool) throws -> CakedServiceClient {
+		let client = try Caked.createClient(
 			on: on,
 			listeningAddress: listeningAddress,
 			retries: .upTo(1),
@@ -53,13 +54,12 @@ class GrpcTestCase {
 		}
 
 		let client = try self.createClient(listeningAddress: listeningAddress, on: group, tls: tls)
-		let serviceNIOClient = Caked_ServiceNIOClient(channel: client)
 
 		defer {
-			XCTAssertNoThrow(try client.close().wait())
+			XCTAssertNoThrow(try client.channel.close().wait())
 		}
 
-		let reply = serviceNIOClient.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
+		let reply = client.list(Caked_ListRequest(), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(30))))
 		let result = try reply.response.wait().vms.list
 
 		if result.success {

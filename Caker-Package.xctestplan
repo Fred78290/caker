@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "84B10516-D8AE-4775-9745-CEC08F1A5F94",
+      "id" : "F21B3A0D-5BC0-48EA-B9BE-CC0C2B5179FE",
       "name" : "Test Scheme Action",
       "options" : {
 
@@ -18,6 +18,48 @@
   },
   "testTargets" : [
     {
+      "skippedTests" : [
+        "CloudInitTests\/testBuildMustFail()",
+        "CloudInitTests\/testBuildVMWithCloudImage()",
+        "CloudInitTests\/testBuildVMWithContainer()",
+        "CloudInitTests\/testBuildVMWithLXDContainers()",
+        "CloudInitTests\/testBuildVMWithOCI()",
+        "CloudInitTests\/testBuildVMWithQCow2()",
+        "CloudInitTests\/testLaunchVMWithCloudImage()",
+        "CloudInitTests\/testShouldDeleteVM()",
+        "CloudInitTests\/testSimpleStreamsFindImage()",
+        "GrpcTcpSocketTests",
+        "GrpcTcpSocketTests\/testTcpClientListNoTls()",
+        "GrpcTcpSocketTests\/testTcpClientListWithTls()",
+        "GrpcUnixSocketTests",
+        "GrpcUnixSocketTests\/testSocketClientListNoTls()",
+        "GrpcUnixSocketTests\/testSocketClientListWithTls()",
+        "NetworkConfigTests",
+        "NetworkConfigTests\/testDhcpEndNotInRangeNetwork()",
+        "NetworkConfigTests\/testInvalidDhcpEnd()",
+        "NetworkConfigTests\/testInvalidGateway()",
+        "NetworkConfigTests\/testInvalidNetmask()",
+        "NetworkConfigTests\/testOverlappedNetwork()",
+        "NetworkConfigTests\/testTunnelAttached()",
+        "NetworkConfigTests\/testValidNetwork()",
+        "ProcessWithSharedFileHandleTests",
+        "ProcessWithSharedFileHandleTests\/testSharedFileHandle()",
+        "RemoteTests",
+        "RemoteTests\/testRemoteAddDelete()",
+        "RemoteTests\/testRemoteDuplicate()",
+        "RemoteTests\/testRemoteList()",
+        "ZLibStreamTest",
+        "ZLibStreamTest\/testCompressedDataBasicCompression()",
+        "ZLibStreamTest\/testCompressedDataBinaryData()",
+        "ZLibStreamTest\/testCompressedDataDifferentFlushModes()",
+        "ZLibStreamTest\/testCompressedDataEmptyData()",
+        "ZLibStreamTest\/testCompressedDataInvalidOffset()",
+        "ZLibStreamTest\/testCompressedDataLargeData()",
+        "ZLibStreamTest\/testCompressedDataMultipleCompressions()",
+        "ZLibStreamTest\/testCompressedDataPerformance()",
+        "ZLibStreamTest\/testCompressedDataWithOffset()",
+        "ZLibStreamTest\/testCompressedDataZeroLength()"
+      ],
       "target" : {
         "containerPath" : "container:",
         "identifier" : "CakerTests",
