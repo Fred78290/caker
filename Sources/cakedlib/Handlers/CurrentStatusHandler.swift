@@ -17,6 +17,21 @@ typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (
 	continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation
 )
 
+public extension VMLocation.Status {
+	init(from: Caked_VirtualMachineStatus) {
+		switch from {
+		case .stopped:
+			self = .stopped
+		case .running:
+			self = .running
+		case .paused:
+			self = .paused
+		default:
+			self = .stopped
+		}
+	}
+}
+
 public extension Caked_VirtualMachineStatus {
 	init(from: VMLocation.Status) {
 		switch from {
@@ -34,8 +49,8 @@ public struct CurrentStatusHandler {
 	public typealias AsyncThrowingStreamCurrentStatusReplyYield = AsyncThrowingStream<CurrentStatusReply, Error>.Continuation
 	
 	private class CurrentUsageWatcher {
+		internal var isMonitoring: Bool = false
 		private let location: VMLocation
-		private var isMonitoring: Bool = false
 		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 		private let continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
 
@@ -271,73 +286,90 @@ public struct CurrentStatusHandler {
 	}
 
 	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws {
-		var lastStatusSeen = location.status
-		let (stream, continuation) = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
-		let agentMonitor = Self.CurrentUsageWatcher(location: location, continuation: continuation)
-
-		try await withThrowingTaskGroup(of: Void.self) { group in
-			var group = group
-			let monitor = try FileMonitor(directory: location.rootURL, delegate: Watcher(location: location) { event in
-				switch event {
-				case .added(let file):
-					check(file)
-				case .deleted(let file):
-					check(file)
-				case .changed(let file):
-					check(file)
-				}
-			})
-
-			defer {
-				monitor.stop()
-				agentMonitor.cancel()
-				group.cancelAll()
-			}
-
-			func check(_ file: URL) -> Void {
-				if file.lastPathComponent == location.pidFile.lastPathComponent {
-					let status = location.status
-
-					switch status {
-					case .running:
-						statusStream.yield(.status(.running))
-					case .stopped:
-						statusStream.yield(.status(.stopped))
-					default:
-						statusStream.yield(.status(.paused))
+		TaskQueue.dispatch {
+			try await withThrowingTaskGroup(of: Void.self) { group in
+				var group = group
+				let (stream, continuation) = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
+				let agentMonitor = Self.CurrentUsageWatcher(location: location, continuation: continuation)
+				let monitor = try FileMonitor(directory: location.rootURL, delegate: Watcher(location: location) { event in
+					switch event {
+					case .added(let file):
+						check(file)
+					case .deleted(let file):
+						check(file)
+					case .changed(let file):
+						check(file)
 					}
-
-					if status == .running && lastStatusSeen == .stopped {
-						group.addTask {
-							await agentMonitor.start()
+				})
+				
+				defer {
+					monitor.stop()
+					agentMonitor.cancel()
+					group.cancelAll()
+				}
+				
+				func check(_ file: URL) -> Void {
+					if file.lastPathComponent == location.pidFile.lastPathComponent {
+						switch location.status {
+						case .running:
+							continuation.yield(.with {
+								$0.status = .running
+							})
+						case .stopped:
+							continuation.yield(.with {
+								$0.status = .stopped
+							})
+						default:
+							continuation.yield(.with {
+								$0.status = .paused
+							})
 						}
-					} else if status != .running && lastStatusSeen == .running {
-						agentMonitor.cancel()
-					}
-
-					lastStatusSeen = status
-				} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
-					if let png = try? Data(contentsOf: location.screenshotURL) {
-						statusStream.yield(.screenshot(png))
+					} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
+						if let png = try? Data(contentsOf: location.screenshotURL) {
+							statusStream.yield(.screenshot(png))
+						}
 					}
 				}
-			}
-
-			try monitor.start()
-
-			if location.status == .running {
+				
+				try monitor.start()
+				
+				if location.status == .running {
+					group.addTask {
+						await agentMonitor.start()
+					}
+				}
+				
 				group.addTask {
-					await agentMonitor.start()
-				}
-			}
+					try await withTaskCancellationHandler(operation: {
+						for try await reply in stream {
+							switch reply.message {
+							case .usage(let usage):
+								statusStream.yield(.usage(usage))
+							case .screenshot(let png):
+								statusStream.yield(.screenshot(png))
+							case .status(let status):
+								statusStream.yield(.status(.init(from: status)))
 
-			try await withTaskCancellationHandler(operation: {
-				for try await reply in stream {
-					statusStream.yield(.usage(reply.usage))
+								if status == .running && agentMonitor.isMonitoring == false {
+									group.addTask {
+										await agentMonitor.start()
+									}
+								} else if status != .running && agentMonitor.isMonitoring {
+									agentMonitor.cancel()
+								}
+							case .failure(let reason):
+								statusStream.yield(.error(ServiceError(reason)))
+							default:
+								break
+							}
+						}
+					}, onCancel: {
+						continuation.finish(throwing: CancellationError())
+					})
 				}
-			}, onCancel: {
-				continuation.finish(throwing: CancellationError())
-			})
+				
+				try await group.waitForAll()
+			}
 		}
 	}
 
@@ -350,41 +382,45 @@ public struct CurrentStatusHandler {
 				try await Self.currentStatus(location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
 			}
 
-			try await withTaskCancellationHandler(operation: {
-				for try await reply in stream {
-					switch reply {
-					case .usage(let usage):
-						try await responseStream.send(.with {
-							$0.status = .with {
-								$0.usage = usage
-							}
-						})
-
-					case .error(let error):
-						try await responseStream.send(.with {
-							$0.status = .with {
-								$0.failure = "\(error)"
-							}
-						})
-
-					case .status(let status):
-						try await responseStream.send(.with {
-							$0.status = .with {
-								$0.status = .init(from:  status)
-							}
-						})
-
-					case .screenshot(let png):
-						try await responseStream.send(.with {
-							$0.status = .with {
-								$0.screenshot = png
-							}
-						})
+			group.addTask {
+				try await withTaskCancellationHandler(operation: {
+					for try await reply in stream {
+						switch reply {
+						case .usage(let usage):
+							try await responseStream.send(.with {
+								$0.status = .with {
+									$0.usage = usage
+								}
+							})
+							
+						case .error(let error):
+							try await responseStream.send(.with {
+								$0.status = .with {
+									$0.failure = "\(error)"
+								}
+							})
+							
+						case .status(let status):
+							try await responseStream.send(.with {
+								$0.status = .with {
+									$0.status = .init(from:  status)
+								}
+							})
+							
+						case .screenshot(let png):
+							try await responseStream.send(.with {
+								$0.status = .with {
+									$0.screenshot = png
+								}
+							})
+						}
 					}
-				}
-			}, onCancel: {
-				continuation.finish(throwing: CancellationError())
-			})
+				}, onCancel: {
+					continuation.finish(throwing: CancellationError())
+				})
+			}
+
+			try await group.waitForAll()
 		}
 	}
 

@@ -22,6 +22,8 @@ public struct GrandCentralUpdater {
 	}
 
 	public func start(frequency: Int32) async throws {
-		try await CurrentStatusHandler.currentStatus(location: self.location, frequency: frequency, statusStream: <#T##CurrentStatusHandler.AsyncThrowingStreamCurrentStatusReplyYield#>, runMode: self.runMode)
+	/*	let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
+
+		try await CurrentStatusHandler.currentStatus(location: self.location, frequency: frequency, statusStream: continuation, runMode: self.runMode)*/
 	}
 }
