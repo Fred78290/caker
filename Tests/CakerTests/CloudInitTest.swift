@@ -277,6 +277,13 @@ final class CloudInitTests: XCTestCase {
 		let location: VMLocation = try StorageLocation(runMode: .user).find(noble_cloud_image)
 		let eventLoop = self.group.any()
 		let promise = eventLoop.makePromise(of: String.self)
+		let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
+		let cancellable = try await CurrentStatusHandler.currentStatus(location: location, frequency: 1, statusStream: continuation, runMode: .user)
+
+		defer {
+			continuation.finish()
+			cancellable.cancel()
+		}
 
 		promise.futureResult.whenComplete { result in
 			switch result {
@@ -287,10 +294,6 @@ final class CloudInitTests: XCTestCase {
 				XCTFail(err.localizedDescription)
 			}
 		}
-
-		let (stream, continuation) = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
-
-		try await CurrentStatusHandler.currentStatus(location: location, frequency: 1, statusStream: continuation, runMode: .user)
 
 		// Start VM
 		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, runMode: .user, promise: promise)
@@ -309,8 +312,6 @@ final class CloudInitTests: XCTestCase {
 				break
 			}
 		}
-
-		continuation.finish()
 
 		try location.stopVirtualMachine(force: false, runMode: .user)
 
