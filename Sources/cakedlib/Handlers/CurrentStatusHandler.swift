@@ -406,24 +406,17 @@ public struct CurrentStatusHandler {
 		case screenshot(Data)
 	}
 
-	public static func currentStatus(rootURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws {
-		try await currentStatus(location: VMLocation.newVMLocation(rootURL: rootURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
+	public static func currentStatus(rootURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
+		return try await currentStatus(location: VMLocation.newVMLocation(rootURL: rootURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
 	}
 
 	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
-		AgentStatusWatcher(location: location, statusStream: statusStream, runMode: runMode).run(frequency: frequency)
+		return AgentStatusWatcher(location: location, statusStream: statusStream, runMode: runMode).run(frequency: frequency)
 	}
 
 	public static func currentStatus(location: VMLocation, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws -> Cancellable {
-		// Wrap the spawned Task into a Cancellable so the signature matches
-		struct TaskCancellable: Cancellable {
-			let task: Task<Void, Error>
-			func cancel() {
-				task.cancel()
-			}
-		}
 
-		return TaskCancellable(task: Task {
+		return TaskCancellable {
 			let (stream, continuation) = AsyncThrowingStream<CurrentStatusReply, Error>.makeStream()
 			let statusWatcher = try await Self.currentStatus(location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
 
@@ -463,7 +456,7 @@ public struct CurrentStatusHandler {
 				continuation.finish(throwing: CancellationError())
 				statusWatcher.cancel()
 			})
-		})
+		}
 	}
 
 	public static func currentStatus(vmname: String, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws -> Cancellable {
