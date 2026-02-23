@@ -53,6 +53,19 @@
 		9B21ABC72DF4A243000B3B40 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
+		9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFF92F4C651800870AD7 /* GRPC */; };
+		9B21DFFC2F4C654500870AD7 /* NIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFB2F4C654500870AD7 /* NIO */; };
+		9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFD2F4C659900870AD7 /* NIOExtras */; };
+		9B21E0002F4C65E900870AD7 /* NIOSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21DFFF2F4C65E900870AD7 /* NIOSSL */; };
+		9B21E0022F4C65E900870AD7 /* NIOHTTP2 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0012F4C65E900870AD7 /* NIOHTTP2 */; };
+		9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0032F4C663D00870AD7 /* NIOHTTPCompression */; };
+		9B21E0062F4C670E00870AD7 /* Containerization in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0052F4C670E00870AD7 /* Containerization */; };
+		9B21E0082F4C670E00870AD7 /* ContainerizationOCI in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0072F4C670E00870AD7 /* ContainerizationOCI */; };
+		9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
+		9B21E00C2F4C676800870AD7 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
+		9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; };
+		9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B21E0122F4C677700870AD7 /* CakeAgentLib */; };
 		9B28BFA22DDB259E00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA12DDB259E00B5A0AF /* ArgumentParser */; };
 		9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */; };
 		9B2BFABA2DFED25E000045C3 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2BFAB62DFED25E000045C3 /* MainView.swift */; };
@@ -264,6 +277,7 @@
 		9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB3BE122DB3F17500799A6A /* PullOptions.swift */; };
 		9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */; };
 		9BBE597A2F49B561005B3359 /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */; };
+		9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BBE5C6E2F4C544E005B3359 /* XCTest.framework */; };
 		9BBF79BD2F3DD73700F37D2C /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */; };
 		9BBF7A392F3DE0AF00F37D2C /* StopHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */; };
 		9BBF7A3B2F3DE0B800F37D2C /* StartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */; };
@@ -499,6 +513,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		9B21E00A2F4C676800870AD7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BEBC7062DF440560092B196;
+			remoteInfo = CakedLib;
+		};
+		9B21E00D2F4C676800870AD7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
+			remoteInfo = GRPCLib;
+		};
 		9B2BFA812DFED1D6000045C3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
@@ -572,6 +600,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		9B21E0112F4C676800870AD7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				9B21E0102F4C676800870AD7 /* Qcow2convert.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9B464B4D2D5A3E5C00164BF5 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -815,6 +854,7 @@
 		9BB3BE1B2DB3F17500799A6A /* WaitIPOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitIPOptions.swift; sourceTree = "<group>"; };
 		9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageView.swift; sourceTree = "<group>"; };
 		9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
+		9BBE5C6E2F4C544E005B3359 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/MacOSX.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		9BBF79BC2F3DD73500F37D2C /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
 		9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopHandler.swift; sourceTree = "<group>"; };
 		9BBF7A3A2F3DE0B300F37D2C /* StartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartHandler.swift; sourceTree = "<group>"; };
@@ -1140,6 +1180,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B21E0132F4C677700870AD7 /* CakeAgentLib in Frameworks */,
+				9B21E0002F4C65E900870AD7 /* NIOSSL in Frameworks */,
+				9B21E0082F4C670E00870AD7 /* ContainerizationOCI in Frameworks */,
+				9B21E0062F4C670E00870AD7 /* Containerization in Frameworks */,
+				9B21E00C2F4C676800870AD7 /* libGRPCLib.a in Frameworks */,
+				9B21DFFC2F4C654500870AD7 /* NIO in Frameworks */,
+				9B21E0022F4C65E900870AD7 /* NIOHTTP2 in Frameworks */,
+				9B21DFFA2F4C651800870AD7 /* GRPC in Frameworks */,
+				9B21DFFE2F4C659900870AD7 /* NIOExtras in Frameworks */,
+				9B21E00F2F4C676800870AD7 /* Qcow2convert.xcframework in Frameworks */,
+				9B21E0042F4C663D00870AD7 /* NIOHTTPCompression in Frameworks */,
+				9B21E0092F4C676800870AD7 /* libCakedLib.a in Frameworks */,
+				9BBE5C6F2F4C544E005B3359 /* XCTest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1502,6 +1555,7 @@
 		9B464C042D5A426200164BF5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9BBE5C6E2F4C544E005B3359 /* XCTest.framework */,
 				9BA22FFE2E26512500172D25 /* CoreAudio.framework */,
 				9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */,
 				9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */,
@@ -2068,17 +2122,29 @@
 				9B96B00B2F4B68380069C970 /* Sources */,
 				9B96B00C2F4B68380069C970 /* Frameworks */,
 				9B96B00D2F4B68380069C970 /* Resources */,
+				9B21E0112F4C676800870AD7 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				9B96B0142F4B68380069C970 /* PBXTargetDependency */,
+				9B21E00B2F4C676800870AD7 /* PBXTargetDependency */,
+				9B21E00E2F4C676800870AD7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				9B96B0102F4B68380069C970 /* CakerTests */,
 			);
 			name = CakerTests;
 			packageProductDependencies = (
+				9B21DFF92F4C651800870AD7 /* GRPC */,
+				9B21DFFB2F4C654500870AD7 /* NIO */,
+				9B21DFFD2F4C659900870AD7 /* NIOExtras */,
+				9B21DFFF2F4C65E900870AD7 /* NIOSSL */,
+				9B21E0012F4C65E900870AD7 /* NIOHTTP2 */,
+				9B21E0032F4C663D00870AD7 /* NIOHTTPCompression */,
+				9B21E0052F4C670E00870AD7 /* Containerization */,
+				9B21E0072F4C670E00870AD7 /* ContainerizationOCI */,
+				9B21E0122F4C677700870AD7 /* CakeAgentLib */,
 			);
 			productName = CakerTests;
 			productReference = 9B96B00F2F4B68380069C970 /* CakerTests.xctest */;
@@ -2230,7 +2296,6 @@
 					};
 					9B96B00E2F4B68380069C970 = {
 						CreatedOnToolsVersion = 26.2;
-						TestTargetID = 9B464A532D5A3DA000164BF5;
 					};
 					9BDD955E2DB8D41B00E46244 = {
 						CreatedOnToolsVersion = 16.3;
@@ -2710,6 +2775,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		9B21E00B2F4C676800870AD7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BEBC7062DF440560092B196 /* CakedLib */;
+			targetProxy = 9B21E00A2F4C676800870AD7 /* PBXContainerItemProxy */;
+		};
+		9B21E00E2F4C676800870AD7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
+			targetProxy = 9B21E00D2F4C676800870AD7 /* PBXContainerItemProxy */;
+		};
 		9B2BFA822DFED1D6000045C3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9B464B4E2D5A3E5C00164BF5 /* cakectl */;
@@ -3046,7 +3121,6 @@
 		9B96B0162F4B68380069C970 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = LE7988HTRN;
@@ -3060,14 +3134,12 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Caker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Caker";
 			};
 			name = Debug;
 		};
 		9B96B0172F4B68380069C970 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = LE7988HTRN;
@@ -3081,7 +3153,6 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Caker.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Caker";
 			};
 			name = Release;
 		};
@@ -3557,6 +3628,51 @@
 			productName = CakeAgentLib;
 		};
 		9B13C3422F0AD87C0099F00F /* CakeAgentLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
+			productName = CakeAgentLib;
+		};
+		9B21DFF92F4C651800870AD7 /* GRPC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC22D5A411900164BF5 /* XCRemoteSwiftPackageReference "grpc-swift" */;
+			productName = GRPC;
+		};
+		9B21DFFB2F4C654500870AD7 /* NIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */;
+			productName = NIO;
+		};
+		9B21DFFD2F4C659900870AD7 /* NIOExtras */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */;
+			productName = NIOExtras;
+		};
+		9B21DFFF2F4C65E900870AD7 /* NIOSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BB82D5A40DC00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-ssl" */;
+			productName = NIOSSL;
+		};
+		9B21E0012F4C65E900870AD7 /* NIOHTTP2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BD42D5A414600164BF5 /* XCRemoteSwiftPackageReference "swift-nio-http2" */;
+			productName = NIOHTTP2;
+		};
+		9B21E0032F4C663D00870AD7 /* NIOHTTPCompression */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B464BDA2D5A416F00164BF5 /* XCRemoteSwiftPackageReference "swift-nio-extras" */;
+			productName = NIOHTTPCompression;
+		};
+		9B21E0052F4C670E00870AD7 /* Containerization */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = Containerization;
+		};
+		9B21E0072F4C670E00870AD7 /* ContainerizationOCI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */;
+			productName = ContainerizationOCI;
+		};
+		9B21E0122F4C677700870AD7 /* CakeAgentLib */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9BDFBF112DE4CF66001616BA /* XCRemoteSwiftPackageReference "cakeagent" */;
 			productName = CakeAgentLib;

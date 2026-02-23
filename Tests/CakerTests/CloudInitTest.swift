@@ -3,10 +3,10 @@ import Combine
 
 @testable import CakedLib
 @testable import GRPCLib
-@testable import NIOCore
-@testable import NIOPortForwarding
-@testable import NIOPosix
-@testable import CakeAgentLib
+import NIOCore
+import NIOPortForwarding
+import NIOPosix
+import CakeAgentLib
 
 let ubuntuCloudImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 let defaultSimpleStreamsServer = "https://images.linuxcontainers.org/"
@@ -79,6 +79,8 @@ final class CloudInitTests: XCTestCase {
 
 	override func setUp() {
 		do {
+			Logger.setLevel(.debug)
+
 			var networkconfig = networkConfig
 			let sharedNetAddress = try CloudInitTests.getSharedNetAddress().split(separator: ".")
 			let sharedNetAddressStr = sharedNetAddress[0] + "." + sharedNetAddress[1] + "." + sharedNetAddress[2] + ".10"
@@ -289,7 +291,7 @@ final class CloudInitTests: XCTestCase {
 		promise.futureResult.whenComplete { result in
 			switch result {
 			case .success(let name):
-				print("VM starting: \(name)")
+				print("VM stopped: \(name)")
 				break
 			case .failure(let err):
 				XCTFail(err.localizedDescription)
