@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "75E4CF76-37C3-46F8-958C-EB421E68E873",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Caker.xcodeproj",
+        "identifier" : "9B96B00E2F4B68380069C970",
+        "name" : "CakerTests"
+      }
+    }
+  ],
+  "version" : 1
+}
