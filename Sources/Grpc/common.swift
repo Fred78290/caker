@@ -7,6 +7,7 @@ import ObjectiveC
 import Security
 import System
 import Virtualization
+import Combine
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
@@ -568,3 +569,17 @@ public struct ViewSize: Sendable, Codable, Identifiable, Hashable, ExpressibleBy
 	}
 }
 
+// Wrap the spawned Task into a Cancellable so the signature matches
+public struct TaskCancellable<T>: Cancellable where T: Sendable {
+	let task: Task<T, Error>
+
+	public init(_ handler: @escaping () async throws -> T) {
+		self.task = Task {
+			try await handler()
+		}
+	}
+
+	public func cancel() {
+		task.cancel()
+	}
+}
