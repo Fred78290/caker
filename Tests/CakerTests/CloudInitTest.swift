@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 
 @testable import CakedLib
 @testable import GRPCLib
