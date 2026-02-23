@@ -16,47 +16,48 @@ let package = Package(
 		.library(name: "SharedPtrBridge", targets: ["SharedPtrBridge"]),
 	],
 	dependencies: [
+		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
+		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
+		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "664c9bfb0c215c586ba53a8d30a9d28004c1f4de"),
+		.package(url: "https://github.com/Fred78290/containerization", revision: "c829f8d7b56b405c2e80b0b5e29fdde679dc73cc"),
+		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
+		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
+		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
+		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "d97e677fd4247e7d140aa0e8a80dd52dceab4d4d"),
+
+		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "246251aea59e99f6085467190059ba8a36c946ea"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),
-		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.0"),
+		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),
 		.package(url: "https://github.com/apple/swift-argument-parser", exact: "1.7.0"),
 		.package(url: "https://github.com/apple/swift-async-algorithms", branch: "main"),
 		.package(url: "https://github.com/apple/swift-atomics.git", exact: "1.3.0"),
 		.package(url: "https://github.com/apple/swift-certificates.git", exact: "1.17.0"),
-		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		.package(url: "https://github.com/apple/swift-crypto.git", exact: "3.15.1"),
 		.package(url: "https://github.com/apple/swift-log.git", exact: "1.8.0"),
 		.package(url: "https://github.com/apple/swift-nio-extras.git", exact: "1.31.2"),
 		.package(url: "https://github.com/apple/swift-nio-http2.git", exact: "1.39.0"),
 		.package(url: "https://github.com/apple/swift-nio-ssh.git", exact: "0.12.0"),
 		.package(url: "https://github.com/apple/swift-nio-ssl.git", exact: "2.36.0"),
-		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
 		.package(url: "https://github.com/apple/swift-nio.git", exact: "2.92.1"),
-		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.33.3"),
+		.package(url: "https://github.com/apple/swift-protobuf.git", exact: "1.35.0"),
+		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.0.6"),
+		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		.package(url: "https://github.com/cfilipov/TextTable", branch: "master"),
-		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
-		.package(url: "https://github.com/Fred78290/cakeagent.git", revision: "664c9bfb0c215c586ba53a8d30a9d28004c1f4de"),
-		.package(url: "https://github.com/Fred78290/GzipSwift", branch: "main"),
-		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "d97e677fd4247e7d140aa0e8a80dd52dceab4d4d"),
 		.package(url: "https://github.com/fumoboy007/swift-retry", exact: "0.2.4"),
 		.package(url: "https://github.com/getsentry/sentry-cocoa", exact: "8.49.2"),
 		.package(url: "https://github.com/groue/Semaphore", exact: "0.0.8"),
-		.package(url: "https://github.com/grpc/grpc-swift.git", revision: "5770e231585cb68388a6ae37ce36c4d8dbd46d90"),
+		.package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.27.2"),
 		.package(url: "https://github.com/jozefizso/swift-xattr", exact: "3.0.0"),
 		.package(url: "https://github.com/jpsim/Yams", exact: "5.1.3"),
 		.package(url: "https://github.com/malcommac/SwiftDate", exact: "7.0.0"),
 		.package(url: "https://github.com/mhdhejazi/Dynamic", branch: "master"),
 		.package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.53.6"),
 		.package(url: "https://github.com/orchetect/SwiftRadix", exact: "1.3.1"),
-		.package(url: "https://github.com/Fred78290/Multipart.git", revision: "9901ef8f452ed13e176c49e4b079f2daada76bde"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
-		.package(url: "https://github.com/Appracatappra/SwiftletUtilities.git", exact: "2.0.6"),
-		.package(url: "https://github.com/asam139/Steps.git", exact: "0.3.9"),
 		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
-		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "5e9b2e31fc893021c7d081c4b52bf383fc654a80"),
-		.package(url :"https://github.com/Fred78290/FileMonitor.git", revision: "82bf1ff8dbaccac3359cfd6b49f30db690c8dc38"),
-		.package(url :"https://github.com/Fred78290/royalvnc.git", revision: "a43bcb045beed438a788d855c309ffa060ca8857"),
-		.package(url: "https://github.com/Fred78290/containerization", revision: "c829f8d7b56b405c2e80b0b5e29fdde679dc73cc"),
+		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
+		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
 		//.package(url: "https://github.com/the-swift-collective/zlib", branch: "main")
 	],
 	targets: [
@@ -193,17 +194,15 @@ let package = Package(
 			.product(name: "XAttr", package: "swift-xattr"),
 			.product(name: "Yams", package: "Yams"),
 		]),
-		.testTarget(name: "CakerTests",
-		            dependencies: [
-		            	"GRPCLib",
-						"CakedLib",
-		            	"caked",
-		            	"cakectl"
-		            ],
-		            exclude: [
-		            	"echo.py"
-		            ]
-		)
+		.testTarget(name: "CakerTests", dependencies: [
+			"GRPCLib",
+			"CakedLib",
+			"caked",
+			"cakectl"
+		], exclude: [
+			"echo.py",
+			"TestPlan.xctestplan",
+		])
 	],
 	swiftLanguageModes: [
 		.v5

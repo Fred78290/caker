@@ -3427,8 +3427,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/grpc/grpc-swift.git";
 			requirement = {
-				kind = revision;
-				revision = 5770e231585cb68388a6ae37ce36c4d8dbd46d90;
+				kind = exactVersion;
+				version = 1.27.2;
 			};
 		};
 		9B464BC92D5A413300164BF5 /* XCRemoteSwiftPackageReference "swift-nio" */ = {
@@ -3460,7 +3460,7 @@
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {
 				kind = exactVersion;
-				version = 1.33.3;
+				version = 1.35.0;
 			};
 		};
 		9B464BF52D5A41B300164BF5 /* XCRemoteSwiftPackageReference "swift-log" */ = {
@@ -3516,7 +3516,7 @@
 			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
 			requirement = {
 				kind = revision;
-				revision = 5e9b2e31fc893021c7d081c4b52bf383fc654a80;
+				revision = 246251aea59e99f6085467190059ba8a36c946ea;
 			};
 		};
 		9BB148952EC621300094D950 /* XCRemoteSwiftPackageReference "containerization" */ = {
