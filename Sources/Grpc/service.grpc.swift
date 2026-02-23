@@ -188,7 +188,7 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
 
   func grandCentralUpdate(
     callOptions: CallOptions?
-  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>
+  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>
 }
 
 extension Caked_ServiceClientProtocol {
@@ -812,7 +812,7 @@ extension Caked_ServiceClientProtocol {
   /// - Returns: A `ClientStreamingCall` with futures for the metadata, status and response.
   public func grandCentralUpdate(
     callOptions: CallOptions? = nil
-  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty> {
+  ) -> ClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty> {
     return self.makeClientStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1050,7 +1050,7 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
 
   func makeGrandCentralUpdateCall(
     callOptions: CallOptions?
-  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>
+  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1469,7 +1469,7 @@ extension Caked_ServiceAsyncClientProtocol {
 
   public func makeGrandCentralUpdateCall(
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty> {
+  ) -> GRPCAsyncClientStreamingCall<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty> {
     return self.makeAsyncClientStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1891,7 +1891,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func grandCentralUpdate<RequestStream>(
     _ requests: RequestStream,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Empty where RequestStream: Sequence, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply {
+  ) async throws -> Caked_Empty where RequestStream: Sequence, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply.CurrentStatus {
     return try await self.performAsyncClientStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
       requests: requests,
@@ -1903,7 +1903,7 @@ extension Caked_ServiceAsyncClientProtocol {
   public func grandCentralUpdate<RequestStream>(
     _ requests: RequestStream,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Empty where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply {
+  ) async throws -> Caked_Empty where RequestStream: AsyncSequence & Sendable, RequestStream.Element == Caked_Caked.Reply.CurrentStatusReply.CurrentStatus {
     return try await self.performAsyncClientStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.grandCentralUpdate.path,
       requests: requests,
@@ -2032,7 +2032,7 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeGrandCentralDispatcherInterceptors() -> [ClientInterceptor<Caked_Empty, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'grandCentralUpdate'.
-  func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>]
+  func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>]
 }
 
 public enum Caked_ServiceClientMetadata {
@@ -2390,7 +2390,7 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func grandCentralDispatcher(request: Caked_Empty, context: StreamingResponseCallContext<Caked_Caked.Reply>) -> EventLoopFuture<GRPCStatus>
 
   /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
-  func grandCentralUpdate(context: UnaryResponseCallContext<Caked_Empty>) -> EventLoopFuture<(StreamEvent<Caked_Caked.Reply.CurrentStatusReply>) -> Void>
+  func grandCentralUpdate(context: UnaryResponseCallContext<Caked_Empty>) -> EventLoopFuture<(StreamEvent<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>) -> Void>
 }
 
 extension Caked_ServiceProvider {
@@ -2705,7 +2705,7 @@ extension Caked_ServiceProvider {
     case "GrandCentralUpdate":
       return ClientStreamingServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>(),
         responseSerializer: ProtobufSerializer<Caked_Empty>(),
         interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? [],
         observerFactory: self.grandCentralUpdate(context:)
@@ -2929,7 +2929,7 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
 
   /// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
   func grandCentralUpdate(
-    requestStream: GRPCAsyncRequestStream<Caked_Caked.Reply.CurrentStatusReply>,
+    requestStream: GRPCAsyncRequestStream<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Empty
 }
@@ -3253,7 +3253,7 @@ extension Caked_ServiceAsyncProvider {
     case "GrandCentralUpdate":
       return GRPCAsyncServerHandler(
         context: context,
-        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply>(),
+        requestDeserializer: ProtobufDeserializer<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus>(),
         responseSerializer: ProtobufSerializer<Caked_Empty>(),
         interceptors: self.interceptors?.makeGrandCentralUpdateInterceptors() ?? [],
         wrapping: { try await self.grandCentralUpdate(requestStream: $0, context: $1) }
@@ -3401,7 +3401,7 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'grandCentralUpdate'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGrandCentralUpdateInterceptors() -> [ServerInterceptor<Caked_Caked.Reply.CurrentStatusReply, Caked_Empty>]
+  func makeGrandCentralUpdateInterceptors() -> [ServerInterceptor<Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, Caked_Empty>]
 }
 
 public enum Caked_ServiceServerMetadata {

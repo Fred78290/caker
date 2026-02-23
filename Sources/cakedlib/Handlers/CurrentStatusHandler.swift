@@ -53,13 +53,13 @@ public struct CurrentStatusHandler {
 		internal var isMonitoring: Bool = false
 		private let location: VMLocation
 		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
-		private let continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
+		private let continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
 
 #if DEBUG
-		private let logger = Logger("CPUUsageMonitor")
+		private let logger = Logger("CurrentUsageWatcher")
 #endif
 
-		init(location: VMLocation, continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation) {
+		init(location: VMLocation, continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation) {
 			self.location = location
 			self.continuation = continuation
 		}
@@ -80,12 +80,13 @@ public struct CurrentStatusHandler {
 			#endif
 
 			if let stream {
-				stream.continuation.finish(throwing: GRPCStatus(code: .cancelled, message: "Cancelled"))
+				stream.continuation.finish(throwing: CancellationError())
 			}
 		}
 
 		private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
 			self.continuation.yield(.with {
+				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
 					
@@ -110,6 +111,7 @@ public struct CurrentStatusHandler {
 			let usage = usage.caked
 
 			self.continuation.yield(.with {
+				$0.name = self.location.name
 				$0.usage = .with {
 					$0.cpuCount = usage.cpuCount
 					
@@ -136,7 +138,7 @@ public struct CurrentStatusHandler {
 			#endif
 
 			await withTaskCancellationHandler(operation: {
-				let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(self.location.name)")
+				let taskQueue = TaskQueue(label: "CakeAgent.CurrentUsageWatcher.\(self.location.name)")
 				var helper: CakeAgentHelper! = nil
 
 				self.isMonitoring = true
@@ -200,7 +202,7 @@ public struct CurrentStatusHandler {
 			#if DEBUG
 				debugLogger.debug("Monitoring canceled, VM: \(self.location.name)")
 			#endif
-				self.stream?.continuation.finish()
+				self.stream?.continuation.finish(throwing: CancellationError())
 			})
 		}
 
@@ -263,8 +265,8 @@ public struct CurrentStatusHandler {
 
 	private class AgentStatusWatcher: Cancellable {
 		typealias AsyncThrowingStreamCakedCurrentStatusReply = (
-			stream: AsyncThrowingStream<Caked_CurrentStatusReply, Error>,
-			continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
+			stream: AsyncThrowingStream<Caked_CurrentStatus, Error>,
+			continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
 		)
 
 		let location: VMLocation
@@ -274,7 +276,7 @@ public struct CurrentStatusHandler {
 		let agentMonitor: CurrentStatusHandler.CurrentUsageWatcher
 
 		init(location: VMLocation, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) {
-			let stream: AsyncThrowingStreamCakedCurrentStatusReply = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
+			let stream: AsyncThrowingStreamCakedCurrentStatusReply = AsyncThrowingStream<Caked_CurrentStatus, Error>.makeStream()
 			let agentMonitor = CurrentStatusHandler.CurrentUsageWatcher(location: location, continuation: stream.continuation)
 
 			self.location = location
@@ -426,28 +428,48 @@ public struct CurrentStatusHandler {
 					case .usage(let usage):
 						try await responseStream.send(.with {
 							$0.status = .with {
-								$0.usage = usage
+								$0.statuses = [
+									.with {
+										$0.name = location.name
+										$0.usage = usage
+									}
+								]
 							}
 						})
 						
 					case .error(let error):
 						try await responseStream.send(.with {
 							$0.status = .with {
-								$0.failure = "\(error)"
+								$0.statuses = [
+									.with {
+										$0.name = location.name
+										$0.failure = "\(error)"
+									}
+								]
 							}
 						})
 						
 					case .status(let status):
 						try await responseStream.send(.with {
 							$0.status = .with {
-								$0.status = .init(from:  status)
+								$0.statuses = [
+									.with {
+										$0.name = location.name
+										$0.status = .init(from:  status)
+									}
+								]
 							}
 						})
 						
 					case .screenshot(let png):
 						try await responseStream.send(.with {
 							$0.status = .with {
-								$0.screenshot = png
+								$0.statuses = [
+									.with {
+										$0.name = location.name
+										$0.screenshot = png
+									}
+								]
 							}
 						})
 					}

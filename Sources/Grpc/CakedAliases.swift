@@ -94,6 +94,7 @@ public typealias Caked_VirtualMachineStatusReply = Caked.Reply.VirtualMachineRep
 public typealias Caked_VirtualMachineStatus = Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus
 public typealias Caked_BuildStreamReply = Caked.Reply.VirtualMachineReply.BuildStreamReply
 public typealias Caked_CurrentStatusReply = Caked_Caked.Reply.CurrentStatusReply
+public typealias Caked_CurrentStatus = Caked_Caked.Reply.CurrentStatusReply.CurrentStatus
 public typealias Caked_CurrentUsageReply = Caked_Caked.Reply.CurrentUsageReply
 public typealias Caked_PingReply = Caked.Reply.PingReply
 public typealias Caked_ScreenSizeReply = Caked_Caked.Reply.ScreenSizeReply

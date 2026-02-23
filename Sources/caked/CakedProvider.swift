@@ -457,28 +457,28 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		}
 
 		let initialStatus = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
-			Caked_Reply.with {
-				$0.status = Caked_CurrentStatusReply.with {
-					$0.name = name
-					$0.status = .init(from: location.status)
-				}
+			Caked_CurrentStatus.with {
+				$0.name = name
+				$0.status = .init(from: location.status)
 			}
 		}
 
-		for status in initialStatus {
-			try await responseStream.send(status)
-		}
-		
+		try await responseStream.send(Caked_Reply.with {
+			$0.status = .with {
+				$0.statuses = initialStatus
+			}
+		})
+	
 		for try await reply in stream {
 			try await responseStream.send(reply)
 		}
 	}
-	
-	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatusReply>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
+
+	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
 		try await gcd.startGrandCentralDispatch()
 
 		for try await status in requestStream {
-			try await gcd.updateStatus(status)
+			try await gcd.updateStatus((status))
 		}
 
 		return Caked_Empty()

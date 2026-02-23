@@ -219,8 +219,8 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_Empty, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
-	func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_CurrentStatusReply, Caked_Empty>] {
-		[CakeServiceClientInterceptor<Caked_CurrentStatusReply, Caked_Empty>(state: self.state, inputHandle: self.inputHandle)]
+	func makeGrandCentralUpdateInterceptors() -> [ClientInterceptor<Caked_CurrentStatus, Caked_Empty>] {
+		[CakeServiceClientInterceptor<Caked_CurrentStatus, Caked_Empty>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
 }

@@ -80,7 +80,7 @@ service Service {
 	// GrandCentralDispatcher dispatches all vm status to the appropriate handler.
 	rpc GrandCentralDispatcher (Empty) returns (stream Caked.Reply); // Called by Caker app to receive all status updates.
 	// GrandCentralUpdate receives status updates from vmrun and distributes them to clients.
-	rpc GrandCentralUpdate(stream Caked.Reply.CurrentStatusReply) returns (Empty); // Called by vmrun to send status updates.
+	rpc GrandCentralUpdate(stream Caked.Reply.CurrentStatusReply.CurrentStatus) returns (Empty); // Called by vmrun to send status updates.
 }
 
 message Empty {}
@@ -331,14 +331,19 @@ message Caked {
 			Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.MemoryInfo memory = 3;
 		}
 
+
 		message CurrentStatusReply {
-			string name = 1;
-			oneof message {
-				CurrentUsageReply usage = 2;
-				bytes screenshot = 3;
-				Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus status = 4;
-				string failure = 5;
+			message CurrentStatus {
+				string name = 1;
+				oneof message {
+					CurrentUsageReply usage = 2;
+					bytes screenshot = 3;
+					Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus status = 4;
+					string failure = 5;
+				}
 			}
+
+			repeated CurrentStatus statuses = 1;
 		}
 
 		message PingReply {

@@ -16,9 +16,9 @@ typealias AsyncThrowingStreamCakedReply = (
 	continuation: AsyncThrowingStream<Caked_Reply, Error>.Continuation
 )
 
-typealias AsyncThrowingStreamCakedStatusReply = (
-	stream: AsyncThrowingStream<Caked_CurrentStatusReply, Error>,
-	continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
+typealias AsyncThrowingStreamCakedStatus = (
+	stream: AsyncThrowingStream<Caked_CurrentStatus, Error>,
+	continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
 )
 
 typealias AsyncThrowingStreamCakedReplyContinuation = AsyncThrowingStream<Caked_Reply, Error>.Continuation
@@ -32,7 +32,7 @@ final class GrandCentralDispatch {
 	let group: EventLoopGroup
 	let listeners: Mutex<[ListenerID: AsyncThrowingStreamCakedReplyContinuation]>
 	var taskQueue: TaskQueue = TaskQueue(label: "GrandCentralDispatch")
-	var stream: AsyncThrowingStreamCakedStatusReply?
+	var stream: AsyncThrowingStreamCakedStatus?
 
 	deinit {
 		stopGrandCentralDispatch()
@@ -61,7 +61,7 @@ final class GrandCentralDispatch {
 		}
 	}
 	
-	func updateStatus(_ status: Caked_CurrentStatusReply) async throws {
+	func updateStatus(_ status: Caked_CurrentStatus) async throws {
 		guard let stream else {
 			return
 		}
@@ -82,18 +82,24 @@ final class GrandCentralDispatch {
 			return
 		}
 
-		let stream = AsyncThrowingStream.makeStream(of: Caked_CurrentStatusReply.self)
+		let stream = AsyncThrowingStream.makeStream(of: Caked_CurrentStatus.self)
 
 		self.stream = stream
 
 		self.taskQueue.dispatchSync {
 			do {
 				for try await status in stream.stream {
+					let reply = Caked_Reply.with {
+						$0.status = .with {
+							$0.statuses = [
+								status
+							]
+						}
+					}
+
 					self.listeners.withLock {
 						$0.values.forEach { continuation in
-							continuation.yield(Caked_Reply.with {
-								$0.status = status
-							})
+							continuation.yield(reply)
 						}
 					}
 				}

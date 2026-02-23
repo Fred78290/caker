@@ -1410,50 +1410,62 @@ public struct Caked_Caked: Sendable {
       // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
       // methods supported on all messages.
 
-      public var name: String = String()
-
-      public var message: Caked_Caked.Reply.CurrentStatusReply.OneOf_Message? = nil
-
-      public var usage: Caked_Caked.Reply.CurrentUsageReply {
-        get {
-          if case .usage(let v)? = message {return v}
-          return Caked_Caked.Reply.CurrentUsageReply()
-        }
-        set {message = .usage(newValue)}
-      }
-
-      public var screenshot: Data {
-        get {
-          if case .screenshot(let v)? = message {return v}
-          return Data()
-        }
-        set {message = .screenshot(newValue)}
-      }
-
-      public var status: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus {
-        get {
-          if case .status(let v)? = message {return v}
-          return .stopped
-        }
-        set {message = .status(newValue)}
-      }
-
-      public var failure: String {
-        get {
-          if case .failure(let v)? = message {return v}
-          return String()
-        }
-        set {message = .failure(newValue)}
-      }
+      public var statuses: [Caked_Caked.Reply.CurrentStatusReply.CurrentStatus] = []
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
-      public enum OneOf_Message: Equatable, Sendable {
-        case usage(Caked_Caked.Reply.CurrentUsageReply)
-        case screenshot(Data)
-        case status(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus)
-        case failure(String)
+      public struct CurrentStatus: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
 
+        public var name: String = String()
+
+        public var message: Caked_Caked.Reply.CurrentStatusReply.CurrentStatus.OneOf_Message? = nil
+
+        public var usage: Caked_Caked.Reply.CurrentUsageReply {
+          get {
+            if case .usage(let v)? = message {return v}
+            return Caked_Caked.Reply.CurrentUsageReply()
+          }
+          set {message = .usage(newValue)}
+        }
+
+        public var screenshot: Data {
+          get {
+            if case .screenshot(let v)? = message {return v}
+            return Data()
+          }
+          set {message = .screenshot(newValue)}
+        }
+
+        public var status: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus {
+          get {
+            if case .status(let v)? = message {return v}
+            return .stopped
+          }
+          set {message = .status(newValue)}
+        }
+
+        public var failure: String {
+          get {
+            if case .failure(let v)? = message {return v}
+            return String()
+          }
+          set {message = .failure(newValue)}
+        }
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public enum OneOf_Message: Equatable, Sendable {
+          case usage(Caked_Caked.Reply.CurrentUsageReply)
+          case screenshot(Data)
+          case status(Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.VirtualMachineStatus)
+          case failure(String)
+
+        }
+
+        public init() {}
       }
 
       public init() {}
@@ -6604,6 +6616,36 @@ extension Caked_Caked.Reply.CurrentUsageReply: SwiftProtobuf.Message, SwiftProto
 
 extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.protoMessageName + ".CurrentStatusReply"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}statuses\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.statuses) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.statuses.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.statuses, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply, rhs: Caked_Caked.Reply.CurrentStatusReply) -> Bool {
+    if lhs.statuses != rhs.statuses {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.CurrentStatusReply.CurrentStatus: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.CurrentStatusReply.protoMessageName + ".CurrentStatus"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}name\0\u{1}usage\0\u{1}screenshot\0\u{1}status\0\u{1}failure\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -6685,7 +6727,7 @@ extension Caked_Caked.Reply.CurrentStatusReply: SwiftProtobuf.Message, SwiftProt
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply, rhs: Caked_Caked.Reply.CurrentStatusReply) -> Bool {
+  public static func ==(lhs: Caked_Caked.Reply.CurrentStatusReply.CurrentStatus, rhs: Caked_Caked.Reply.CurrentStatusReply.CurrentStatus) -> Bool {
     if lhs.name != rhs.name {return false}
     if lhs.message != rhs.message {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}

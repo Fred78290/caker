@@ -200,7 +200,7 @@ public class VNCFramebuffer {
 				var startX = 0
 				var tileSrcRowPtr = srcRowPtr
 
-				for tileX in 0..<tilesAcross {
+				for _ in 0..<tilesAcross {
 					let copyWidth = min(tileSize, width - startX)
 					let rowSize = copyWidth * bytesPerPixel
 					var srcRowPtr = tileSrcRowPtr
