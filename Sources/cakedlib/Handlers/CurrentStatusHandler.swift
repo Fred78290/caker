@@ -11,6 +11,7 @@ import CakeAgentLib
 import NIO
 import FileMonitor
 import FileMonitorShared
+import Combine
 
 typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (
 	stream: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>,
@@ -260,6 +261,130 @@ public struct CurrentStatusHandler {
 		}
 	}
 
+	private class AgentStatusWatcher: Cancellable {
+		typealias AsyncThrowingStreamCakedCurrentStatusReply = (
+			stream: AsyncThrowingStream<Caked_CurrentStatusReply, Error>,
+			continuation: AsyncThrowingStream<Caked_CurrentStatusReply, Error>.Continuation
+		)
+
+		let location: VMLocation
+		let statusStream: AsyncThrowingStreamCurrentStatusReplyYield
+		let runMode: Utils.RunMode
+		let stream: AsyncThrowingStreamCakedCurrentStatusReply
+		let agentMonitor: CurrentStatusHandler.CurrentUsageWatcher
+
+		init(location: VMLocation, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) {
+			let stream: AsyncThrowingStreamCakedCurrentStatusReply = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
+			let agentMonitor = CurrentStatusHandler.CurrentUsageWatcher(location: location, continuation: stream.continuation)
+
+			self.location = location
+			self.statusStream = statusStream
+			self.runMode = runMode
+			self.stream = stream
+			self.agentMonitor = agentMonitor
+		}
+		
+		func run(frequency: Int32) -> Self {
+			TaskQueue.dispatch {
+				try await withTaskCancellationHandler(operation: {
+					try await withThrowingTaskGroup(of: Void.self) { group in
+						var group = group
+						
+						let monitor = try FileMonitor(directory: self.location.rootURL, delegate: Watcher(location: self.location) { event in
+							switch event {
+							case .added(let file):
+								check(file)
+							case .deleted(let file):
+								check(file)
+							case .changed(let file):
+								check(file)
+							}
+						})
+						
+						defer {
+							monitor.stop()
+							self.agentMonitor.cancel()
+							group.cancelAll()
+							self.stream.continuation.finish(throwing: CancellationError())
+						}
+						
+						func check(_ file: URL) -> Void {
+							if file.lastPathComponent == self.location.pidFile.lastPathComponent {
+								switch self.location.status {
+								case .running:
+									self.stream.continuation.yield(.with {
+										$0.status = .running
+									})
+								case .stopped:
+									self.stream.continuation.yield(.with {
+										$0.status = .stopped
+									})
+								default:
+									self.stream.continuation.yield(.with {
+										$0.status = .paused
+									})
+								}
+							} else if file.lastPathComponent == self.location.screenshotURL.lastPathComponent {
+								if let png = try? Data(contentsOf: self.location.screenshotURL) {
+									self.statusStream.yield(.screenshot(png))
+								}
+							}
+						}
+						
+						try monitor.start()
+						
+						if self.location.status == .running {
+							group.addTask {
+								await self.agentMonitor.start()
+							}
+						}
+						
+						group.addTask {
+							try await withTaskCancellationHandler(operation: {
+								for try await reply in self.stream.stream {
+									switch reply.message {
+									case .usage(let usage):
+										self.statusStream.yield(.usage(usage))
+									case .screenshot(let png):
+										self.statusStream.yield(.screenshot(png))
+									case .status(let status):
+										self.statusStream.yield(.status(.init(from: status)))
+										
+										if status == .running && self.agentMonitor.isMonitoring == false {
+											group.addTask {
+												await self.agentMonitor.start()
+											}
+										} else if status != .running && self.agentMonitor.isMonitoring {
+											self.agentMonitor.cancel()
+										}
+									case .failure(let reason):
+										self.statusStream.yield(.error(ServiceError(reason)))
+									default:
+										break
+									}
+								}
+							}, onCancel: {
+								self.stream.continuation.finish(throwing: CancellationError())
+							})
+						}
+						
+						try await group.waitForAll()
+					}
+				}, onCancel: {
+					self.agentMonitor.cancel()
+					self.stream.continuation.finish(throwing: CancellationError())
+				})
+			}
+
+			return self
+		}
+
+		func cancel() {
+			self.agentMonitor.cancel()
+			self.stream.continuation.finish(throwing: CancellationError())
+		}
+	}
+
 	private class Watcher: FileDidChangeDelegate {
 		let location: VMLocation
 		let handler: (_ event: FileChangeEvent) -> Void
@@ -285,150 +410,67 @@ public struct CurrentStatusHandler {
 		try await currentStatus(location: VMLocation.newVMLocation(rootURL: rootURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
 	}
 
-	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws {
-		TaskQueue.dispatch {
-			try await withThrowingTaskGroup(of: Void.self) { group in
-				var group = group
-				let (stream, continuation) = AsyncThrowingStream<Caked_CurrentStatusReply, Error>.makeStream()
-				let agentMonitor = Self.CurrentUsageWatcher(location: location, continuation: continuation)
-				let monitor = try FileMonitor(directory: location.rootURL, delegate: Watcher(location: location) { event in
-					switch event {
-					case .added(let file):
-						check(file)
-					case .deleted(let file):
-						check(file)
-					case .changed(let file):
-						check(file)
-					}
-				})
-				
-				defer {
-					monitor.stop()
-					agentMonitor.cancel()
-					group.cancelAll()
-				}
-				
-				func check(_ file: URL) -> Void {
-					if file.lastPathComponent == location.pidFile.lastPathComponent {
-						switch location.status {
-						case .running:
-							continuation.yield(.with {
-								$0.status = .running
-							})
-						case .stopped:
-							continuation.yield(.with {
-								$0.status = .stopped
-							})
-						default:
-							continuation.yield(.with {
-								$0.status = .paused
-							})
-						}
-					} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
-						if let png = try? Data(contentsOf: location.screenshotURL) {
-							statusStream.yield(.screenshot(png))
-						}
-					}
-				}
-				
-				try monitor.start()
-				
-				if location.status == .running {
-					group.addTask {
-						await agentMonitor.start()
-					}
-				}
-				
-				group.addTask {
-					try await withTaskCancellationHandler(operation: {
-						for try await reply in stream {
-							switch reply.message {
-							case .usage(let usage):
-								statusStream.yield(.usage(usage))
-							case .screenshot(let png):
-								statusStream.yield(.screenshot(png))
-							case .status(let status):
-								statusStream.yield(.status(.init(from: status)))
-
-								if status == .running && agentMonitor.isMonitoring == false {
-									group.addTask {
-										await agentMonitor.start()
-									}
-								} else if status != .running && agentMonitor.isMonitoring {
-									agentMonitor.cancel()
-								}
-							case .failure(let reason):
-								statusStream.yield(.error(ServiceError(reason)))
-							default:
-								break
-							}
-						}
-					}, onCancel: {
-						continuation.finish(throwing: CancellationError())
-					})
-				}
-				
-				try await group.waitForAll()
-			}
-		}
+	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
+		AgentStatusWatcher(location: location, statusStream: statusStream, runMode: runMode).run(frequency: frequency)
 	}
 
-	public static func currentStatus(location: VMLocation, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
+	public static func currentStatus(location: VMLocation, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws -> Cancellable {
+		// Wrap the spawned Task into a Cancellable so the signature matches
+		struct TaskCancellable: Cancellable {
+			let task: Task<Void, Error>
+			func cancel() {
+				task.cancel()
+			}
+		}
 
-		try await withThrowingTaskGroup(of: Void.self) { group in
+		return TaskCancellable(task: Task {
 			let (stream, continuation) = AsyncThrowingStream<CurrentStatusReply, Error>.makeStream()
+			let statusWatcher = try await Self.currentStatus(location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
 
-			group.addTask {
-				try await Self.currentStatus(location: location, frequency: frequency, statusStream: continuation, runMode: runMode)
-			}
-
-			group.addTask {
-				try await withTaskCancellationHandler(operation: {
-					for try await reply in stream {
-						switch reply {
-						case .usage(let usage):
-							try await responseStream.send(.with {
-								$0.status = .with {
-									$0.usage = usage
-								}
-							})
-							
-						case .error(let error):
-							try await responseStream.send(.with {
-								$0.status = .with {
-									$0.failure = "\(error)"
-								}
-							})
-							
-						case .status(let status):
-							try await responseStream.send(.with {
-								$0.status = .with {
-									$0.status = .init(from:  status)
-								}
-							})
-							
-						case .screenshot(let png):
-							try await responseStream.send(.with {
-								$0.status = .with {
-									$0.screenshot = png
-								}
-							})
-						}
+			try await withTaskCancellationHandler(operation: {
+				for try await reply in stream {
+					switch reply {
+					case .usage(let usage):
+						try await responseStream.send(.with {
+							$0.status = .with {
+								$0.usage = usage
+							}
+						})
+						
+					case .error(let error):
+						try await responseStream.send(.with {
+							$0.status = .with {
+								$0.failure = "\(error)"
+							}
+						})
+						
+					case .status(let status):
+						try await responseStream.send(.with {
+							$0.status = .with {
+								$0.status = .init(from:  status)
+							}
+						})
+						
+					case .screenshot(let png):
+						try await responseStream.send(.with {
+							$0.status = .with {
+								$0.screenshot = png
+							}
+						})
 					}
-				}, onCancel: {
-					continuation.finish(throwing: CancellationError())
-				})
-			}
-
-			try await group.waitForAll()
-		}
+				}
+			}, onCancel: {
+				continuation.finish(throwing: CancellationError())
+				statusWatcher.cancel()
+			})
+		})
 	}
 
-	public static func currentStatus(vmname: String, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws {
+	public static func currentStatus(vmname: String, frequency: Int32, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, runMode: Utils.RunMode) async throws -> Cancellable {
 		try await currentStatus(location: try StorageLocation(runMode: runMode).find(vmname), frequency: frequency, responseStream: responseStream, runMode: runMode)
 	}
 	
-	public static func currentStatus(responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, vmname: String, frequency: Int32, runMode: Utils.RunMode) async throws {
+	public static func currentStatus(responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, vmname: String, frequency: Int32, runMode: Utils.RunMode) async throws -> Cancellable {
 		try await self.currentStatus(vmname: vmname, frequency: frequency, responseStream: responseStream, runMode: runMode)
 	}
 }
