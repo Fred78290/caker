@@ -241,6 +241,7 @@ struct MountRequest: Codable {
 	func mountReply(response: String)
 	func screenSizeReply(width: Int, height: Int)
 	func agentReply(installed: Bool, reason: String)
+	func grandCentralUpdateReply(success: Bool, reason: String)
 }
 
 @objc protocol VMRunServiceProtocol {
@@ -250,6 +251,8 @@ struct MountRequest: Codable {
 	func mount(request: String)
 	func umount(request: String)
 	func installAgent(timeout: UInt)
+	func startGrandCentralUpdate(frequency: Int32)
+	func stopGrandCentralUpdate()
 }
 
 class XPCVMRunService: VMRunService, VMRunServiceProtocol {
@@ -356,6 +359,39 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 		}
 	}
 	
+	func startGrandCentralUpdate(frequency: Int32) {
+		self.reply { serviceReply in
+			var started: Bool = true
+			var reason : String = ""
+
+			do {
+				try self.vm.startGrandCentralUpdate(frequency: frequency)
+			} catch {
+				self.logger.error("Failed to start grand central update: \(error)")
+				reason = "\(error)"
+				started = false
+			}
+
+			serviceReply.grandCentralUpdateReply(success: started, reason: reason)
+		}
+	}
+	
+	func stopGrandCentralUpdate() {
+		self.reply { serviceReply in
+			var started: Bool = true
+			var reason : String = ""
+
+			do {
+				try self.vm.stopGrandCentralUpdate()
+			} catch {
+				self.logger.error("Failed to stop grand central update: \(error)")
+				reason = "\(error)"
+				started = false
+			}
+
+			serviceReply.grandCentralUpdateReply(success: started, reason: reason)
+		}
+	}
 }
 
 class XPCVMRunServiceServer: NSObject, NSXPCListenerDelegate, VMRunServiceServerProtocol {
@@ -426,6 +462,7 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		case vncURL(String)
 		case screenSize(Int, Int)
 		case agent(Bool, String)
+		case gdc(Bool, String)
 		case none
 	}
 	
@@ -476,6 +513,13 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		self.semaphore.signal()
 	}
 	
+	func grandCentralUpdateReply(success: Bool, reason: String) {
+#if DEBUG
+		self.logger.debug("Received GDC reply")
+#endif
+		self.response = .gdc(success, reason)
+		self.semaphore.signal()
+	}
 	
 	func wait() -> ServiceReply? {
 		if self.response == nil {
@@ -509,30 +553,30 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 			$0.reason = "Timeout"
 		}
 	}
-
+	
 	func waitForVnUrlReply() -> URL? {
-		#if DEBUG
-			logger.debug("Wait VNC URL reply")
-		#endif
-
+#if DEBUG
+		logger.debug("Wait VNC URL reply")
+#endif
+		
 		guard let reply = self.wait() else {
 			return nil
 		}
-
+		
 		guard case .vncURL(let url) = reply else {
 #if DEBUG
 			logger.debug("Unexpected VNC URL reply")
 #endif
 			return nil
 		}
-
+		
 #if DEBUG
 		logger.debug("VNC URL reply: \(url)")
 #endif
-
+		
 		return URL(string: url)
 	}
-
+	
 	@discardableResult func waitForScreenSizeReply() -> (Int, Int) {
 		if let reply = self.wait() {
 			if case .screenSize(let width, let height) = reply {
@@ -549,6 +593,16 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 				return (installed, reason)
 			}
 		}
+		
+		return (false, "Internal error")
+	}
+	
+	func waitForGDCReply() -> (Bool, String) {
+		if let reply = self.wait() {
+			if case .gdc(let success, let reason) = reply {
+				return (success, reason)
+			}
+		}
 
 		return (false, "Internal error")
 	}
@@ -557,94 +611,111 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 class XPCVMRunServiceClient: VMRunServiceClient {
 	let location: VMLocation
 	let logger: Logger = .init("XPCVMRunServiceClient")
-
+	
 	static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> VMRunServiceClient {
 		XPCVMRunServiceClient(location: location)
 	}
-
+	
 	private init(location: VMLocation) {
 		self.location = location
 	}
-
+	
 	private func connection<T>(_ handler: (VMRunServiceProtocol, ReplyVMRunService) -> T) throws -> T {
 		let xpcConnection: NSXPCConnection = NSXPCConnection(machServiceName: "com.aldunelabs.caked.VMRunService.\(location.name)")
 		let replier = ReplyVMRunService()
-
+		
 		xpcConnection.remoteObjectInterface = NSXPCInterface(with: VMRunServiceProtocol.self)
 		xpcConnection.exportedInterface = NSXPCInterface(with: ReplyVMRunServiceProtocol.self)
 		xpcConnection.exportedObject = replier
-
+		
 		xpcConnection.activate()
-
+		
 		defer {
 			xpcConnection.invalidate()
 		}
-
+		
 		let proxyObject = xpcConnection.synchronousRemoteObjectProxyWithErrorHandler({ Logger(self).error("Error: \($0)") })
-
+		
 		guard let service = proxyObject as? VMRunServiceProtocol else {
 			throw ServiceError("Failed to connect to VMRunService")
 		}
 		
 		return handler(service, replier)
 	}
-
+	
 	func vncURL() throws -> URL? {
 		if location.status == .running {
 			return try self.connection { (service, replier) in
 				service.vncUrl()
-
+				
 				return replier.waitForVnUrlReply()
 			}
 		}
-
+		
 		return nil
 	}
-
+	
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		return try self.connection { (service, replier) in
 			service.mount(request: MountRequest(mounts).toJSON())
-
+			
 			return replier.waitForMountInfosReply()
 		}
 	}
-
+	
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		return try self.connection { (service, replier) in
 			service.umount(request: MountRequest(mounts).toJSON())
-
+			
 			return replier.waitForMountInfosReply()
 		}
 	}
-
+	
 	func setScreenSize(width: Int, height: Int) throws {
 		let config: CakeConfig = try location.config()
-
+		
 		config.display = DisplaySize(width: width, height: height)
 		try config.save()
-
+		
 		if location.status == .running {
 			return try self.connection { (service, replier) in
 				service.resizeScreen(width: width, height: height)
-
+				
 				replier.waitForScreenSizeReply()
 			}
 		}
 	}
-
+	
 	func getScreenSize() throws -> (Int, Int) {
 		return try self.connection { (service, replier) in
 			service.getScreenSize()
-
+			
 			return replier.waitForScreenSizeReply()
 		}
 	}
-
+	
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
 		return try self.connection { (service, replier) in
 			service.installAgent(timeout: timeout)
-
+			
 			return replier.waitForAgentReply()
 		}
 	}
+	
+	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String) {
+		return try self.connection { (service, replier) in
+			service.startGrandCentralUpdate(frequency: frequency)
+			
+			return replier.waitForGDCReply()
+		}
+	}
+	
+	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String) {
+		return try self.connection { (service, replier) in
+			service.stopGrandCentralUpdate()
+			
+			return replier.waitForGDCReply()
+		}
+	}
+	
 }

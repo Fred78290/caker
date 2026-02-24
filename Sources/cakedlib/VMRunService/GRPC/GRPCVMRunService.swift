@@ -183,7 +183,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		
 		return (Int(reply.width), Int(reply.height))
 	}
-
+	
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
 		let reply = try client.installAgent(.with {
 			$0.timeout = Int32(timeout)
@@ -191,6 +191,15 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		
 		return (reply.installed, reply.reason)
 	}
+	
+	func startGrandCentralUpdate(frequency: Int32) throws {
+		_ = try client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.wait()
+	}
+	
+	func stopGrandCentralUpdate() throws {
+		_ = try client.stopGrandCentralUpdate(.init()).response.wait()
+	}
+	
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
@@ -290,4 +299,13 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		}
 	}
 
+	func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
+		try self.vm.startGrandCentralUpdate(frequency: request.frequency)
+		return .init()
+	}
+	
+	func stopGrandCentralUpdate(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
+		try self.vm.stopGrandCentralUpdate()
+		return .init()
+	}
 }

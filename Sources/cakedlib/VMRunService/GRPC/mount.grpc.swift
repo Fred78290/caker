@@ -47,6 +47,16 @@ public protocol Vmrun_ServiceClientProtocol: GRPCClient {
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Vmrun_MountRequest, Vmrun_MountReply>
+
+  func startGrandCentralUpdate(
+    _ request: Vmrun_FrequencyRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply>
+
+  func stopGrandCentralUpdate(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Vmrun_Empty, Vmrun_GrandCentralUpdateReply>
 }
 
 extension Vmrun_ServiceClientProtocol {
@@ -161,6 +171,42 @@ extension Vmrun_ServiceClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  /// Starts the Grand Central update process.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to StartGrandCentralUpdate.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func startGrandCentralUpdate(
+    _ request: Vmrun_FrequencyRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply> {
+    return self.makeUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.startGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartGrandCentralUpdateInterceptors() ?? []
+    )
+  }
+
+  /// Stops the Grand Central update process.
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to StopGrandCentralUpdate.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  public func stopGrandCentralUpdate(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Vmrun_Empty, Vmrun_GrandCentralUpdateReply> {
+    return self.makeUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.stopGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -255,6 +301,16 @@ public protocol Vmrun_ServiceAsyncClientProtocol: GRPCClient {
     _ request: Vmrun_MountRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Vmrun_MountRequest, Vmrun_MountReply>
+
+  func makeStartGrandCentralUpdateCall(
+    _ request: Vmrun_FrequencyRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply>
+
+  func makeStopGrandCentralUpdateCall(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_GrandCentralUpdateReply>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -338,6 +394,30 @@ extension Vmrun_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  public func makeStartGrandCentralUpdateCall(
+    _ request: Vmrun_FrequencyRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply> {
+    return self.makeAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.startGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartGrandCentralUpdateInterceptors() ?? []
+    )
+  }
+
+  public func makeStopGrandCentralUpdateCall(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Vmrun_Empty, Vmrun_GrandCentralUpdateReply> {
+    return self.makeAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.stopGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -413,6 +493,30 @@ extension Vmrun_ServiceAsyncClientProtocol {
       interceptors: self.interceptors?.makeUmountInterceptors() ?? []
     )
   }
+
+  public func startGrandCentralUpdate(
+    _ request: Vmrun_FrequencyRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmrun_GrandCentralUpdateReply {
+    return try await self.performAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.startGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStartGrandCentralUpdateInterceptors() ?? []
+    )
+  }
+
+  public func stopGrandCentralUpdate(
+    _ request: Vmrun_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Vmrun_GrandCentralUpdateReply {
+    return try await self.performAsyncUnaryCall(
+      path: Vmrun_ServiceClientMetadata.Methods.stopGrandCentralUpdate.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStopGrandCentralUpdateInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -451,6 +555,12 @@ public protocol Vmrun_ServiceClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'umount'.
   func makeUmountInterceptors() -> [ClientInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
+
+  /// - Returns: Interceptors to use when invoking 'startGrandCentralUpdate'.
+  func makeStartGrandCentralUpdateInterceptors() -> [ClientInterceptor<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply>]
+
+  /// - Returns: Interceptors to use when invoking 'stopGrandCentralUpdate'.
+  func makeStopGrandCentralUpdateInterceptors() -> [ClientInterceptor<Vmrun_Empty, Vmrun_GrandCentralUpdateReply>]
 }
 
 public enum Vmrun_ServiceClientMetadata {
@@ -464,6 +574,8 @@ public enum Vmrun_ServiceClientMetadata {
       Vmrun_ServiceClientMetadata.Methods.installAgent,
       Vmrun_ServiceClientMetadata.Methods.mount,
       Vmrun_ServiceClientMetadata.Methods.umount,
+      Vmrun_ServiceClientMetadata.Methods.startGrandCentralUpdate,
+      Vmrun_ServiceClientMetadata.Methods.stopGrandCentralUpdate,
     ]
   )
 
@@ -503,6 +615,18 @@ public enum Vmrun_ServiceClientMetadata {
       path: "/vmrun.Service/Umount",
       type: GRPCCallType.unary
     )
+
+    public static let startGrandCentralUpdate = GRPCMethodDescriptor(
+      name: "StartGrandCentralUpdate",
+      path: "/vmrun.Service/StartGrandCentralUpdate",
+      type: GRPCCallType.unary
+    )
+
+    public static let stopGrandCentralUpdate = GRPCMethodDescriptor(
+      name: "StopGrandCentralUpdate",
+      path: "/vmrun.Service/StopGrandCentralUpdate",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -529,6 +653,12 @@ public protocol Vmrun_ServiceProvider: CallHandlerProvider {
 
   /// Unmounts the specified virtual filesystem.
   func umount(request: Vmrun_MountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_MountReply>
+
+  /// Starts the Grand Central update process.
+  func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_GrandCentralUpdateReply>
+
+  /// Stops the Grand Central update process.
+  func stopGrandCentralUpdate(request: Vmrun_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Vmrun_GrandCentralUpdateReply>
 }
 
 extension Vmrun_ServiceProvider {
@@ -597,6 +727,24 @@ extension Vmrun_ServiceProvider {
         userFunction: self.umount(request:context:)
       )
 
+    case "StartGrandCentralUpdate":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_FrequencyRequest>(),
+        responseSerializer: ProtobufSerializer<Vmrun_GrandCentralUpdateReply>(),
+        interceptors: self.interceptors?.makeStartGrandCentralUpdateInterceptors() ?? [],
+        userFunction: self.startGrandCentralUpdate(request:context:)
+      )
+
+    case "StopGrandCentralUpdate":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmrun_GrandCentralUpdateReply>(),
+        interceptors: self.interceptors?.makeStopGrandCentralUpdateInterceptors() ?? [],
+        userFunction: self.stopGrandCentralUpdate(request:context:)
+      )
+
     default:
       return nil
     }
@@ -646,6 +794,18 @@ public protocol Vmrun_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     request: Vmrun_MountRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Vmrun_MountReply
+
+  /// Starts the Grand Central update process.
+  func startGrandCentralUpdate(
+    request: Vmrun_FrequencyRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmrun_GrandCentralUpdateReply
+
+  /// Stops the Grand Central update process.
+  func stopGrandCentralUpdate(
+    request: Vmrun_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Vmrun_GrandCentralUpdateReply
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -721,6 +881,24 @@ extension Vmrun_ServiceAsyncProvider {
         wrapping: { try await self.umount(request: $0, context: $1) }
       )
 
+    case "StartGrandCentralUpdate":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_FrequencyRequest>(),
+        responseSerializer: ProtobufSerializer<Vmrun_GrandCentralUpdateReply>(),
+        interceptors: self.interceptors?.makeStartGrandCentralUpdateInterceptors() ?? [],
+        wrapping: { try await self.startGrandCentralUpdate(request: $0, context: $1) }
+      )
+
+    case "StopGrandCentralUpdate":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Vmrun_Empty>(),
+        responseSerializer: ProtobufSerializer<Vmrun_GrandCentralUpdateReply>(),
+        interceptors: self.interceptors?.makeStopGrandCentralUpdateInterceptors() ?? [],
+        wrapping: { try await self.stopGrandCentralUpdate(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -752,6 +930,14 @@ public protocol Vmrun_ServiceServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'umount'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeUmountInterceptors() -> [ServerInterceptor<Vmrun_MountRequest, Vmrun_MountReply>]
+
+  /// - Returns: Interceptors to use when handling 'startGrandCentralUpdate'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStartGrandCentralUpdateInterceptors() -> [ServerInterceptor<Vmrun_FrequencyRequest, Vmrun_GrandCentralUpdateReply>]
+
+  /// - Returns: Interceptors to use when handling 'stopGrandCentralUpdate'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStopGrandCentralUpdateInterceptors() -> [ServerInterceptor<Vmrun_Empty, Vmrun_GrandCentralUpdateReply>]
 }
 
 public enum Vmrun_ServiceServerMetadata {
@@ -765,6 +951,8 @@ public enum Vmrun_ServiceServerMetadata {
       Vmrun_ServiceServerMetadata.Methods.installAgent,
       Vmrun_ServiceServerMetadata.Methods.mount,
       Vmrun_ServiceServerMetadata.Methods.umount,
+      Vmrun_ServiceServerMetadata.Methods.startGrandCentralUpdate,
+      Vmrun_ServiceServerMetadata.Methods.stopGrandCentralUpdate,
     ]
   )
 
@@ -802,6 +990,18 @@ public enum Vmrun_ServiceServerMetadata {
     public static let umount = GRPCMethodDescriptor(
       name: "Umount",
       path: "/vmrun.Service/Umount",
+      type: GRPCCallType.unary
+    )
+
+    public static let startGrandCentralUpdate = GRPCMethodDescriptor(
+      name: "StartGrandCentralUpdate",
+      path: "/vmrun.Service/StartGrandCentralUpdate",
+      type: GRPCCallType.unary
+    )
+
+    public static let stopGrandCentralUpdate = GRPCMethodDescriptor(
+      name: "StopGrandCentralUpdate",
+      path: "/vmrun.Service/StopGrandCentralUpdate",
       type: GRPCCallType.unary
     )
   }

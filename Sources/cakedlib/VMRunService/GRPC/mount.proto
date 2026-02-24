@@ -21,6 +21,20 @@ service Service {
 	rpc Mount(MountRequest) returns (MountReply);
 	// Unmounts the specified virtual filesystem.
 	rpc Umount(MountRequest) returns (MountReply);
+	
+	// Starts the Grand Central update process.
+	rpc StartGrandCentralUpdate(FrequencyRequest) returns (GrandCentralUpdateReply);
+	// Stops the Grand Central update process.
+	rpc StopGrandCentralUpdate(Empty) returns (GrandCentralUpdateReply);
+}
+
+message FrequencyRequest {
+	int32 frequency = 1; // Update frequency in seconds
+}
+
+message GrandCentralUpdateReply {
+	bool success = 1;
+	optional string reason = 2;
 }
 
 message ScreenSize {

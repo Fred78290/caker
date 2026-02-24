@@ -15,6 +15,8 @@ public protocol VMRunServiceClient {
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String)
+	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String)
+	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String)
 }
 
 extension VMRunServiceClient {
