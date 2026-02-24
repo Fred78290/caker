@@ -273,6 +273,12 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		self.gcd = .init(group: group, runMode: runMode)
 	}
 	
+	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
+		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
+		
+		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
+	}
+
 	func execute(command: CakedCommand) throws -> Caked_Reply {
 		var command = command
 		let eventLoop = self.group.next()
@@ -420,7 +426,6 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func currentStatus(request: Caked_CurrentStatusRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
-		
 		_ = try self.execute(command: CurrentStatusHandler(provider: self, request: request, responseStream: responseStream))
 	}
 	
@@ -440,48 +445,11 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		return try self.execute(command: request)
 	}
 	
-	func createCakeAgentConnection(vmName: String, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentConnection {
-		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
-		
-		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
-	}
-	
 	func grandCentralDispatcher(request: Caked_Empty, responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>, context: GRPCAsyncServerCallContext) async throws {
-		
-		let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_Reply.self)
-		let id = gcd.addListener(continuation)
-		
-		defer {
-			continuation.finish()
-			self.gcd.removeListener(id)
-		}
-
-		let initialStatus = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
-			Caked_CurrentStatus.with {
-				$0.name = name
-				$0.status = .init(from: location.status)
-			}
-		}
-
-		try await responseStream.send(Caked_Reply.with {
-			$0.status = .with {
-				$0.statuses = initialStatus
-			}
-		})
-	
-		for try await reply in stream {
-			try await responseStream.send(reply)
-		}
+		try await gcd.processDispatch(responseStream: responseStream)
 	}
 
 	func grandCentralUpdate(requestStream: GRPCAsyncRequestStream<Caked_CurrentStatus>, context: GRPCAsyncServerCallContext) async throws -> Caked_Empty {
-		try await gcd.startGrandCentralDispatch()
-
-		for try await status in requestStream {
-			try await gcd.updateStatus((status))
-		}
-
-		return Caked_Empty()
+		try await gcd.processUpdate(requestStream: requestStream)
 	}
-	
 }

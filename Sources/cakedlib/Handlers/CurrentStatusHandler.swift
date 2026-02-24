@@ -13,6 +13,11 @@ import FileMonitor
 import FileMonitorShared
 import Combine
 
+typealias AsyncThrowingStreamCakedCurrentStatusReply = (
+	stream: AsyncThrowingStream<CurrentStatusHandler.CurrentStatusReply, Error>,
+	continuation: AsyncThrowingStream<CurrentStatusHandler.CurrentStatusReply, Error>.Continuation
+)
+
 typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (
 	stream: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>,
 	continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation
@@ -264,11 +269,6 @@ public struct CurrentStatusHandler {
 	}
 
 	private class AgentStatusWatcher: Cancellable {
-		typealias AsyncThrowingStreamCakedCurrentStatusReply = (
-			stream: AsyncThrowingStream<Caked_CurrentStatus, Error>,
-			continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
-		)
-
 		let location: VMLocation
 		let statusStream: AsyncThrowingStreamCurrentStatusReplyYield
 		let runMode: Utils.RunMode

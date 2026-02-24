@@ -326,32 +326,32 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 	}
 }
 
-public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachineDelegate, ObservableObject {
+public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObject {
 	static func == (lhs: VirtualMachine, rhs: VirtualMachine) -> Bool {
 		lhs.location.rootURL == rhs.location.rootURL
 	}
-
+	
 	public typealias StartCompletionHandler = (Result<VirtualMachine, any Error>) -> Void
 	public typealias StopCompletionHandler = ((any Error)?) -> Void
-
+	
 	public var virtualMachine: VZVirtualMachine
 	public let config: CakeConfig
 	public let location: VMLocation
 	public var delegate: VirtualMachineDelegate? = nil
-
+	
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
 	private let logger = Logger("VirtualMachine")
-
+	
 	public var suspendable: Bool {
 		return self.config.suspendable
 	}
-
+	
 	public var status: VMLocation.Status {
 		if self.env.runMode != .app {
 			return self.location.status
 		}
-
+		
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
 			return .running
@@ -361,49 +361,49 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			return .stopped
 		}
 	}
-
+	
 	public var vncURL: URL? {
 		guard let vncServer = self.env.vncServer else {
 			return nil
 		}
-
+		
 		return vncServer.connectionURL()
 	}
-
+	
 	public var vzMachineView: VMView.NSViewType? {
 		get {
 			self.env.vzMachineView
 		}
-
+		
 		set {
 			self.env.vzMachineView = newValue
 		}
 	}
-
+	
 	private static func createCloudInitDrive(cdromURL: URL) throws -> VZStorageDeviceConfiguration {
 		let attachment: VZDiskImageStorageDeviceAttachment = try VZDiskImageStorageDeviceAttachment(
 			url: cdromURL,
 			readOnly: true,
 			cachingMode: .cached,
 			synchronizationMode: VZDiskImageSynchronizationMode.none)
-
+		
 		let cdrom = VZVirtioBlockDeviceConfiguration(attachment: attachment)
-
+		
 		cdrom.blockDeviceIdentifier = "CIDATA"
-
+		
 		return cdrom
 	}
-
+	
 	public init(location: VMLocation, config: CakeConfig, display: VMRunHandler.DisplayMode, screenSize: CGSize, runMode: Utils.RunMode, queue: dispatch_queue_t? = nil) throws {
-
+		
 		if config.arch != Architecture.current() {
 			throw ServiceError("Unsupported architecture")
 		}
-
+		
 		self.config = config
 		self.location = location
 		self.env = try VirtualMachineEnvironment(location: location, config: config, display: display, screenSize: screenSize, runMode: runMode)
-
+		
 		if let queue = queue {
 			self.vmQueue = queue
 			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration, queue: queue)
@@ -411,136 +411,41 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			self.vmQueue = DispatchQueue.main
 			self.virtualMachine = VZVirtualMachine(configuration: self.env.configuration)
 		}
-
+		
 		super.init()
-
+		
 		virtualMachine.delegate = self
 	}
-
+	
 	public func getVM() -> VZVirtualMachine {
 		return self.virtualMachine
 	}
-
-	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
-		var resumeVM: Bool = false
-
-		try self.env.startVMRunService(mode, vm: self)
-
-		#if arch(arm64)
-			if #available(macOS 14, *) {
-				if FileManager.default.fileExists(atPath: location.stateURL.path) {
-					self.logger.info("Restore VM \(self.location.name) snapshot...")
-
-					try await virtualMachine.restoreMachineStateFrom(url: location.stateURL)
-					try FileManager.default.removeItem(at: location.stateURL)
-
-					resumeVM = true
-				}
-			}
-
-			if resumeVM {
-				self.logger.info("Resume VM \(self.location.name)...")
-				self.resumeVM(completionHandler: completionHandler)
-			} else {
-				self.logger.info("Start VM \(self.location.name)...")
-				self.startVM(completionHandler: completionHandler)
-			}
-		#else
-			self.logger.info("Start VM \(self.location.name)...")
-			self.startVM(completionHandler: completionHandler)
-		#endif
-
-		try await self.env.serveVMRunService()
-
-		if Task.isCancelled {
-			if virtualMachine.state == VZVirtualMachine.State.running {
-				self.logger.info("Stopping VM \(self.location.name)...")
-				self.stopVM()
-			}
-		}
-
-		self.logger.info("VM \(self.location.name) exited")
-	}
-
-	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
-		self.env.requestStopFromUIPending = false
-
-		self.didChangedState()
-
-		switch result {
-		case .success:
-			self.logger.info("VM \(self.location.name) started")
-			self.env.timer = self.startScreenshotTimer()
-			self.env.startCommunicationDevices(self.virtualMachine)
-			break
-		case .failure(let error):
-			self.logger.error("VM \(self.location.name) failed to start: \(error)")
-		}
-
-		if let completionHandler {
-			switch result {
-			case .success:
-				completionHandler(.success(self))
-			case .failure(let error):
-				completionHandler(.failure(error))
-			}
-		}
-	}
-
-	public func stopVncServer() throws {
-		if let vncServer = self.env.vncServer {
-			vncServer.stop()
-			self.env.vncServer = nil
-			self.env.vzMachineView.virtualMachine = nil
-			self.env.vzMachineView = nil
-		}
-	}
-
-	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> URL {
-		if self.env.vncServer == nil {
-			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
-			self.env.vzMachineView = vzMachineView
-			self.env.vncServer.delegate = self
-
-			try self.env.vncServer.start()
-		}
-
-		return self.env.vncServer.connectionURL()
-	}
-
-	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
-		if self.env.vncServer == nil {
-			return try self.startVncServer(VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height)), vncPassword: vncPassword, port: port)
-		}
-
-		return self.env.vncServer.connectionURL()
-	}
-
+	
 	public func createVirtualMachineView() {
 		self.env.vzMachineView = VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height))
 	}
-
+	
 	public func takeScreenshotDebug() {
 		guard let vzMachineView = self.env.vzMachineView else {
 			return
 		}
-
+		
 		if let surface = vzMachineView.surface() {
 			try? surface.contents.write(to: self.location.rootURL.appendingPathComponent("surface.data"))
-
+			
 			if let cgImage = surface.cgImage {
 				let image = NSImage(cgImage: cgImage, size: .init(width: cgImage.width, height: cgImage.height))
-
+				
 				if let data = image.pngData {
 					try? data.write(to: self.location.rootURL.appendingPathComponent("surface.png"))
 				}
 			}
-
+			
 			if let bitmapRep = surface.bitmapRepresentation {
 				try? bitmapRep.tiffRepresentation?.write(to: self.location.rootURL.appendingPathComponent("surface.tiff"))
 			}
 		}
-
+		
 		if let image = vzMachineView.image() {
 			// Persist the image to disk if PNG data is available
 			if let data = image.pngData {
@@ -548,30 +453,10 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			}
 		}
 	}
+}
 
-	public func startFromUI() {
-		self.vmQueue.async {
-			self.virtualMachine.start { result in
-				self.startCompletionHandler(result: result) { result in
-					if case .success = result {
-						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
-							self.logger.error("VM \(self.location.name) failed to get primary IP")
-							return
-						}
-					}
-				}
-			}
-		}
-	}
-
-	public func restartFromUI() {
-		self.vmQueue.async {
-			self._stopVM { result in
-				self.startFromUI()
-			}
-		}
-	}
-
+// MARK: - VM Control
+extension VirtualMachine {
 	public func startVM(completionHandler: StartCompletionHandler? = nil) {
 		self.vmQueue.sync {
 			if self.virtualMachine.canStart {
@@ -714,12 +599,292 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	public func stopFromUI() {
-		self.vmQueue.async {
-			self._stopVM()
+	private func _requestStopVM() throws {
+		self.env.requestStopFromUIPending = true
+
+		try? self.saveScreenshot()
+
+		if self.virtualMachine.canRequestStop {
+			self.logger.info("Requesting stop VM \(self.location.name)...")
+			try self.virtualMachine.requestStop()
+			self.didChangedState()
+		} else if self.virtualMachine.canStop {
+			self.virtualMachine.stop { result in
+				self.logger.info("VM \(self.location.name) stopped")
+
+				self.env.stopServices()
+				self.didChangedState()
+
+				if self.env.runMode == .app {
+					try? self.location.deletePID()
+				}
+			}
+		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
+			self.logger.error("VM \(self.location.name) can't be stopped")
+
+			if self.env.runMode != .app {
+				throw ExitCode(EXIT_FAILURE)
+			}
 		}
 	}
 
+	public func requestStopVM() throws {
+		try self.vmQueue.sync {
+			try self._requestStopVM()
+		}
+	}
+}
+
+// MARK: - Run VM
+extension VirtualMachine {
+	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
+
+		if self.env.runMode == .app {
+			try self.location.writePID()
+		}
+
+		let config = self.config
+		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
+			return eventLoop.makeFutureWithTask {
+				if let runningIP = runningIP, config.agent == false {
+					if config.installAgent {
+						do {
+							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
+						} catch {
+							self.logger.error("VM \(self.location.name) failed to install agent: \(error)")
+						}
+					}
+				}
+
+				return runningIP
+			}
+		}
+
+		response.whenSuccess { runningIP in
+			if let promise = promise {
+				promise.succeed(runningIP)
+			}
+
+			if let runningIP {
+				self.env.runningIP = runningIP
+			}
+
+			config.runningIP = runningIP
+			config.firstLaunch = false
+
+			if config.agent {
+				self.location.vmInfos(runMode: runMode) { result in
+					switch result {
+					case .failure(let error):
+						self.logger.error("VM \(self.location.name) failed to get vm infos: \(error)")
+					case .success(let infos):
+						config.osName = infos.osname
+						config.osRelease = infos.release
+						break
+					}
+
+					try? config.save()
+					self.didChangedState()
+				}
+			} else {
+				try? config.save()
+				self.didChangedState()
+			}
+		}
+
+		response.whenFailure { error in
+			if let promise = promise {
+				promise.fail(error)
+			}
+
+			self.didChangedState()
+
+			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
+		}
+
+		return response
+	}
+	private func start(_ mode: VMRunServiceMode, completionHandler: StartCompletionHandler? = nil) async throws {
+		var resumeVM: Bool = false
+		
+		try self.env.startVMRunService(mode, vm: self)
+		
+#if arch(arm64)
+		if #available(macOS 14, *) {
+			if FileManager.default.fileExists(atPath: location.stateURL.path) {
+				self.logger.info("Restore VM \(self.location.name) snapshot...")
+				
+				try await virtualMachine.restoreMachineStateFrom(url: location.stateURL)
+				try FileManager.default.removeItem(at: location.stateURL)
+				
+				resumeVM = true
+			}
+		}
+		
+		if resumeVM {
+			self.logger.info("Resume VM \(self.location.name)...")
+			self.resumeVM(completionHandler: completionHandler)
+		} else {
+			self.logger.info("Start VM \(self.location.name)...")
+			self.startVM(completionHandler: completionHandler)
+		}
+#else
+		self.logger.info("Start VM \(self.location.name)...")
+		self.startVM(completionHandler: completionHandler)
+#endif
+		
+		try await self.env.serveVMRunService()
+		
+		if Task.isCancelled {
+			if virtualMachine.state == VZVirtualMachine.State.running {
+				self.logger.info("Stopping VM \(self.location.name)...")
+				self.stopVM()
+			}
+		}
+		
+		self.logger.info("VM \(self.location.name) exited")
+	}
+	
+	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
+		self.env.requestStopFromUIPending = false
+		
+		self.didChangedState()
+		
+		switch result {
+		case .success:
+			self.logger.info("VM \(self.location.name) started")
+			self.env.timer = self.startScreenshotTimer()
+			self.env.startCommunicationDevices(self.virtualMachine)
+			break
+		case .failure(let error):
+			self.logger.error("VM \(self.location.name) failed to start: \(error)")
+		}
+		
+		if let completionHandler {
+			switch result {
+			case .success:
+				completionHandler(.success(self))
+			case .failure(let error):
+				completionHandler(.failure(error))
+			}
+		}
+	}
+	
+	private func catchUserSignals(_ task: Task<Int32, Never>) {
+		self.env.sigcaught[SIGINT]!.setEventHandler {
+			task.cancel()
+		}
+		
+		self.env.sigcaught[SIGUSR1]!.setEventHandler {
+			self.pauseVM { result in
+				task.cancel()
+			}
+		}
+		
+		self.env.sigcaught[SIGUSR2]!.setEventHandler {
+			if self.env.requestStopFromUIPending == false {
+				try? self.requestStopVM()
+			}
+		}
+		
+		self.env.sigcaught.forEach { (key: Int32, value: any DispatchSourceSignal) in
+			signal(key, SIG_IGN)
+			value.activate()
+		}
+	}
+	
+	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
+		let task = Task {
+			var status: Int32 = 0
+
+			do {
+				try await self.start(mode, completionHandler: completionHandler)
+			} catch {
+				status = 1
+			}
+
+			self.location.removePID()
+
+			guard internalCall else {
+				Foundation.exit(status)
+			}
+
+			return status
+		}
+
+		if self.location.template == false && self.env.runMode != .app {
+			self.catchUserSignals(task)
+		}
+
+		return try self.startedVM(on: on, promise: promise, runMode: self.env.runMode)
+	}
+}
+
+// MARK: - VNCServer service
+extension VirtualMachine {
+	public func stopVncServer() throws {
+		if let vncServer = self.env.vncServer {
+			vncServer.stop()
+			self.env.vncServer = nil
+			self.env.vzMachineView.virtualMachine = nil
+			self.env.vzMachineView = nil
+		}
+	}
+
+	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> URL {
+		if self.env.vncServer == nil {
+			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vzMachineView = vzMachineView
+			self.env.vncServer.delegate = self
+
+			try self.env.vncServer.start()
+		}
+
+		return self.env.vncServer.connectionURL()
+	}
+
+	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
+		if self.env.vncServer == nil {
+			return try self.startVncServer(VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height)), vncPassword: vncPassword, port: port)
+		}
+
+		return self.env.vncServer.connectionURL()
+	}
+
+}
+
+// MARK: - VZVirtualMachineDelegate
+extension VirtualMachine: VZVirtualMachineDelegate {
+	public func guestDidStop(_ virtualMachine: VZVirtualMachine) {
+		self.logger.info("VM \(self.location.name) stopped")
+		self.didChangedStateOnStop()
+	}
+
+	public func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
+		self.logger.error(error)
+		self.didChangedStateOnStop()
+	}
+
+	public func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
+		self.logger.error(error)
+	}
+
+	func didChangedStateOnStop() {
+		self.env.signalStop()
+		self.didChangedState()
+	}
+
+	func didChangedState() {
+		if let delegate = self.delegate {
+			self.vmQueue.async {
+				delegate.didChangedState(self)
+			}
+		}
+	}
+}
+
+// MARK: - Screen sizing
+extension VirtualMachine {
 	func setScreenSize(width: Int, height: Int) {
 		guard width != 0 && height != 0 else {
 			self.logger.info("Try resizing screen to zero size, but nothing to do.")
@@ -791,39 +956,36 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 			}
 		}
 	}
+}
 
-	private func _requestStopVM() throws {
-		self.env.requestStopFromUIPending = true
-
-		try? self.saveScreenshot()
-
-		if self.virtualMachine.canRequestStop {
-			self.logger.info("Requesting stop VM \(self.location.name)...")
-			try self.virtualMachine.requestStop()
-			self.didChangedState()
-		} else if self.virtualMachine.canStop {
-			self.virtualMachine.stop { result in
-				self.logger.info("VM \(self.location.name) stopped")
-
-				self.env.stopServices()
-				self.didChangedState()
-
-				if self.env.runMode == .app {
-					try? self.location.deletePID()
+// MARK: - UI actions
+extension VirtualMachine {
+	public func startFromUI() {
+		self.vmQueue.async {
+			self.virtualMachine.start { result in
+				self.startCompletionHandler(result: result) { result in
+					if case .success = result {
+						guard (try? self.startedVM(on: Utilities.group.next(), runMode: self.env.runMode)) != nil else {
+							self.logger.error("VM \(self.location.name) failed to get primary IP")
+							return
+						}
+					}
 				}
-			}
-		} else if self.virtualMachine.state == VZVirtualMachine.State.starting {
-			self.logger.error("VM \(self.location.name) can't be stopped")
-
-			if self.env.runMode != .app {
-				throw ExitCode(EXIT_FAILURE)
 			}
 		}
 	}
-
-	public func requestStopVM() throws {
-		try self.vmQueue.sync {
-			try self._requestStopVM()
+	
+	public func restartFromUI() {
+		self.vmQueue.async {
+			self._stopVM { result in
+				self.startFromUI()
+			}
+		}
+	}
+	
+	public func stopFromUI() {
+		self.vmQueue.async {
+			self._stopVM()
 		}
 	}
 
@@ -839,194 +1001,9 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, VZVirtualMachi
 		}
 	}
 
-	private func catchUserSignals(_ task: Task<Int32, Never>) {
-		self.env.sigcaught[SIGINT]!.setEventHandler {
-			task.cancel()
-		}
-
-		self.env.sigcaught[SIGUSR1]!.setEventHandler {
-			self.pauseVM { result in
-				task.cancel()
-			}
-		}
-
-		self.env.sigcaught[SIGUSR2]!.setEventHandler {
-			if self.env.requestStopFromUIPending == false {
-				try? self.requestStopVM()
-			}
-		}
-
-		self.env.sigcaught.forEach { (key: Int32, value: any DispatchSourceSignal) in
-			signal(key, SIG_IGN)
-			value.activate()
-		}
-	}
-
-	public func installAgent(updateAgent: Bool, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
-		return try await withCheckedThrowingContinuation { continuation in
-			do {
-				try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
-					eventLoop.makeFutureWithTask {
-						let config = self.config
-
-						guard let runningIP = runningIP else {
-							self.logger.error("VM \(self.location.name) failed to get primary IP")
-							return false
-						}
-
-						config.agent = try await self.location.installAgent(updateAgent: updateAgent, config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
-						config.runningIP = runningIP
-						config.firstLaunch = false
-
-						try config.save()
-						return true
-					}
-				}.whenComplete { result in
-					if case .success(let success) = result {
-						continuation.resume(with: .success(success))
-					} else if case .failure(let error) = result {
-						if let err = error as? SSHError {
-							continuation.resume(with: .failure(ServiceError(err.kind.description)))
-						} else if let err = error as? Socket.Error {
-							if err.errorCode == Socket.SOCKET_ERR_GETADDRINFO_FAILED {
-								continuation.resume(with: .failure(ServiceError("SSH server not responding")))
-							} else {
-								continuation.resume(with: .failure(ServiceError("Socket error: \(err.errorCode)")))
-							}
-						} else {
-							continuation.resume(with: .failure(error))
-						}
-					}
-				}
-
-			} catch {
-				continuation.resume(with: .failure(error))
-			}
-		}
-	}
-
-	private func startedVM(on: EventLoop, promise: EventLoopPromise<String?>? = nil, runMode: Utils.RunMode) throws -> EventLoopFuture<String?> {
-
-		if self.env.runMode == .app {
-			try self.location.writePID()
-		}
-
-		let config = self.config
-		let response = try self.location.waitIP(on: on, config: config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
-			return eventLoop.makeFutureWithTask {
-				if let runningIP = runningIP, config.agent == false {
-					if config.installAgent {
-						do {
-							config.agent = try await self.location.installAgent(updateAgent: false, config: config, runningIP: runningIP, runMode: runMode)
-						} catch {
-							self.logger.error("VM \(self.location.name) failed to install agent: \(error)")
-						}
-					}
-				}
-
-				return runningIP
-			}
-		}
-
-		response.whenSuccess { runningIP in
-			if let promise = promise {
-				promise.succeed(runningIP)
-			}
-
-			if let runningIP {
-				self.env.runningIP = runningIP
-			}
-
-			config.runningIP = runningIP
-			config.firstLaunch = false
-
-			if config.agent {
-				self.location.vmInfos(runMode: runMode) { result in
-					switch result {
-					case .failure(let error):
-						self.logger.error("VM \(self.location.name) failed to get vm infos: \(error)")
-					case .success(let infos):
-						config.osName = infos.osname
-						config.osRelease = infos.release
-						break
-					}
-
-					try? config.save()
-					self.didChangedState()
-				}
-			} else {
-				try? config.save()
-				self.didChangedState()
-			}
-		}
-
-		response.whenFailure { error in
-			if let promise = promise {
-				promise.fail(error)
-			}
-
-			self.didChangedState()
-
-			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
-		}
-
-		return response
-	}
-
-	public func runInBackground(_ mode: VMRunServiceMode, on: EventLoop, internalCall: Bool, promise: EventLoopPromise<String?>? = nil, completionHandler: StartCompletionHandler? = nil) throws -> EventLoopFuture<String?> {
-		let task = Task {
-			var status: Int32 = 0
-
-			do {
-				try await self.start(mode, completionHandler: completionHandler)
-			} catch {
-				status = 1
-			}
-
-			self.location.removePID()
-
-			guard internalCall else {
-				Foundation.exit(status)
-			}
-
-			return status
-		}
-
-		if self.location.template == false && self.env.runMode != .app {
-			self.catchUserSignals(task)
-		}
-
-		return try self.startedVM(on: on, promise: promise, runMode: self.env.runMode)
-	}
-
-	public func guestDidStop(_ virtualMachine: VZVirtualMachine) {
-		self.logger.info("VM \(self.location.name) stopped")
-		self.didChangedStateOnStop()
-	}
-
-	public func virtualMachine(_ virtualMachine: VZVirtualMachine, didStopWithError error: any Error) {
-		self.logger.error(error)
-		self.didChangedStateOnStop()
-	}
-
-	public func virtualMachine(_ virtualMachine: VZVirtualMachine, networkDevice: VZNetworkDevice, attachmentWasDisconnectedWithError error: any Error) {
-		self.logger.error(error)
-	}
-
-	func didChangedStateOnStop() {
-		self.env.signalStop()
-		self.didChangedState()
-	}
-
-	func didChangedState() {
-		self.vmQueue.async {
-			if let delegate = self.delegate {
-				delegate.didChangedState(self)
-			}
-		}
-	}
 }
 
+// MARK: - Screenshoot
 extension VirtualMachine {
 	nonisolated var isScreenshotEnabled: Bool {
 		!UserDefaults.standard.bool(forKey: "NoScreenshot")
@@ -1088,6 +1065,7 @@ extension VirtualMachine {
 	}
 }
 
+// MARK: - mountShares
 extension VirtualMachine {
 	func mountShares(config: CakeConfig) throws -> Bool {
 		guard let sharedDevices: VZVirtioFileSystemDevice = self.virtualMachine.directorySharingDevices.first as? VZVirtioFileSystemDevice else {
@@ -1102,6 +1080,7 @@ extension VirtualMachine {
 	}
 }
 
+// MARK: - VNCServerDelegate
 extension VirtualMachine: VNCServerDelegate {
 	public func willStart(_ server: VNCServer) {
 		if self.env.display == .vnc {
@@ -1154,5 +1133,58 @@ extension VirtualMachine: VNCServerDelegate {
 
 	public func vncServer(_ server: VNCServer, didReceiveMouseEvent x: Int, y: Int, buttonMask: UInt8) {
 	}
+}
 
+// MARK: - Grand Central Dispatch
+extension VirtualMachine {
+	public func installAgent(updateAgent: Bool, timeout: UInt, runMode: Utils.RunMode) async throws -> Bool {
+		return try await withCheckedThrowingContinuation { continuation in
+			do {
+				try self.location.waitIP(on: Utilities.group.next(), config: self.config, wait: 120, runMode: runMode).flatMapWithEventLoop { runningIP, eventLoop in
+					eventLoop.makeFutureWithTask {
+						let config = self.config
+
+						guard let runningIP = runningIP else {
+							self.logger.error("VM \(self.location.name) failed to get primary IP")
+							return false
+						}
+
+						config.agent = try await self.location.installAgent(updateAgent: updateAgent, config: config, runningIP: runningIP, timeout: timeout, runMode: runMode)
+						config.runningIP = runningIP
+						config.firstLaunch = false
+
+						try config.save()
+						return true
+					}
+				}.whenComplete { result in
+					if case .success(let success) = result {
+						continuation.resume(with: .success(success))
+					} else if case .failure(let error) = result {
+						if let err = error as? SSHError {
+							continuation.resume(with: .failure(ServiceError(err.kind.description)))
+						} else if let err = error as? Socket.Error {
+							if err.errorCode == Socket.SOCKET_ERR_GETADDRINFO_FAILED {
+								continuation.resume(with: .failure(ServiceError("SSH server not responding")))
+							} else {
+								continuation.resume(with: .failure(ServiceError("Socket error: \(err.errorCode)")))
+							}
+						} else {
+							continuation.resume(with: .failure(error))
+						}
+					}
+				}
+
+			} catch {
+				continuation.resume(with: .failure(error))
+			}
+		}
+	}
+
+	func startGrandCentralUpdate(frequency: Int32) throws {
+		
+	}
+
+	func stopGrandCentralUpdate() throws {
+		
+	}
 }

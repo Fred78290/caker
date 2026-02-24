@@ -428,6 +428,10 @@ public final class CakeAgentConnection: Sendable {
 						})
 				})
 
+			defer {
+				streamShell.sendEnd(promise: nil)
+			}
+
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 				let handleFailure = { (error: Error) in
 					continuation.finish()
