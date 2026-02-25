@@ -53,35 +53,23 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "vmrun"
+            argument = "service"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "ubuntu-desktop-25.10"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "linux"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "noble-cloud-image-B4608653-4F63-429E-99CA-C6621231F89C"
+            argument = "listen"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--all"
+            argument = "--secure"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--log-level=debug"
+            argument = "--log-level"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--vnc-port=32000"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc-password=1234"
+            argument = "debug"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

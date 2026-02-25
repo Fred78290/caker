@@ -23,6 +23,7 @@ public class GrandCentralUpdater {
 	let client: CakedServiceClient
 	var taskQueue: TaskQueue?
 	var stream: AsyncThrowingStreamCurrentStatusReply?
+	let logger = Logger("GrandCentralUpdater")
 
 	public init(location: VMLocation, runMode: Utils.RunMode) throws {
 		self.location = location
@@ -30,17 +31,40 @@ public class GrandCentralUpdater {
 		self.client = try ServiceHandler.serviceClient(runMode: runMode)!
 	}
 	
-	public func start(frequency: Int32) async throws {
+	public func start(frequency: Int32, onclose: @escaping () -> Void) async throws {
 		guard self.taskQueue == nil else {
 			return
 		}
 
+		self.logger.info("Starting Grand Central Updater")
+
 		let grpcStream = client.grandCentralUpdate(callOptions: .init(timeLimit: .none))
 		let asyncStream = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
 		let cancelable = try await CurrentStatusHandler.currentStatus(location: self.location, frequency: frequency, statusStream: asyncStream.continuation, runMode: self.runMode)
-		
+
+		grpcStream.status.whenComplete { result in
+			switch result {
+			case .failure( let error):
+				asyncStream.continuation.finish(throwing: error)
+
+			case .success(let status):
+				if status.isOk == false {
+					asyncStream.continuation.finish(throwing: status)
+				}
+			}
+		}
+
 		self.stream = asyncStream
 		self.taskQueue = TaskQueue.dispatch {
+			defer {
+				onclose()
+				cancelable.cancel()
+
+				self.taskQueue = nil
+				self.stream = nil
+				self.logger.info("Grand Central Updater stopped")
+			}
+
 			do {
 				for try await status in asyncStream.stream {
 					try await grpcStream.sendMessage(.with {
@@ -57,15 +81,14 @@ public class GrandCentralUpdater {
 						}
 					}).get()
 				}
+
+				try? await grpcStream.sendEnd().get()
 			} catch is CancellationError {
 				// Silent
+				try? await grpcStream.sendEnd().get()
 			} catch {
-				Logger("GrandCentralUpdater").error("Unexpected error: \(error)")
+				self.logger.error("Unexpected error: \(error)")
 			}
-
-			cancelable.cancel()
-
-			try await grpcStream.sendEnd().get()
 		}
 	}
 
@@ -74,6 +97,8 @@ public class GrandCentralUpdater {
 			return
 		}
 		
+		self.logger.info("Stopping Grand Central Updater")
+
 		stream.continuation.finish(throwing: CancellationError())
 		taskQueue.close()
 		

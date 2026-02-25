@@ -365,7 +365,9 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 			var reason : String = ""
 
 			do {
-				try self.vm.startGrandCentralUpdate(frequency: frequency, runMode: self.runMode)
+				try self.group.next().makeFutureWithTask {
+					try await self.vm.startGrandCentralUpdate(frequency: frequency, runMode: self.runMode)
+				}.wait()
 			} catch {
 				self.logger.error("Failed to start grand central update: \(error)")
 				reason = "\(error)"

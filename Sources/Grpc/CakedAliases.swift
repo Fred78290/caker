@@ -128,7 +128,24 @@ public typealias Caked_GetScreenSizeRequest = Caked_Caked.GetScreenSizeRequest
 public typealias Caked_SetScreenSizeRequest = Caked_Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked_Caked.InstallAgentRequest
 
-extension Caked_VirtualMachineStatus {
+extension Caked_VirtualMachineStatus: CustomStringConvertible {
+	public var description: String {
+		switch self {
+		case .stopped:
+			"stopped"
+		case .running:
+			"running"
+		case .paused:
+			"paused"
+		case .deleted:
+			"deleted"
+		case .error:
+			"error"
+		case .UNRECOGNIZED(let value):
+			"unrecognized: \(value)"
+		}
+	}
+	
 	init (agentStatus: CakeAgentLib.Status) {
 		switch agentStatus {
 		case .running:

@@ -15,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-               BuildableName = "caked"
-               BlueprintName = "caked"
+               BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+               BuildableName = "cakectl"
+               BlueprintName = "cakectl"
                ReferencedContainer = "container:Caker.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,46 +45,12 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-            BuildableName = "caked"
-            BlueprintName = "caked"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "vmrun"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "ubuntu-desktop-25.10"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "linux"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "noble-cloud-image-B4608653-4F63-429E-99CA-C6621231F89C"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--all"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--log-level=debug"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc-port=32000"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc-password=1234"
-            isEnabled = "YES">
-         </CommandLineArgument>
-      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -96,9 +62,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "9BEBC68D2DF43FEE0092B196"
-            BuildableName = "caked"
-            BlueprintName = "caked"
+            BlueprintIdentifier = "9B464B4E2D5A3E5C00164BF5"
+            BuildableName = "cakectl"
+            BlueprintName = "cakectl"
             ReferencedContainer = "container:Caker.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

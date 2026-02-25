@@ -304,7 +304,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 	func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
 		do {
-			try self.vm.startGrandCentralUpdate(frequency: request.frequency, runMode: self.runMode)
+			try await self.vm.startGrandCentralUpdate(frequency: request.frequency, runMode: self.runMode)
 		} catch {
 			return .with {
 				$0.success = false

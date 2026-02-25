@@ -1,3 +1,4 @@
+import ArgumentParser
 import CakeAgentLib
 import Foundation
 import GRPCLib
@@ -233,6 +234,8 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 																			 remoteAddress: self.runningIP,
 																			 forwardedPorts: self.config.forwardedPorts,
 																			 dynamicPortForwarding: config.dynamicPortForwarding)
+			} catch is ValidationError {
+				// Silent
 			} catch {
 				self.logger.error(error)
 			}
@@ -342,7 +345,8 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
 	private let logger = Logger("VirtualMachine")
-	
+	private var gdc: GrandCentralUpdater? = nil
+
 	public var suspendable: Bool {
 		return self.config.suspendable
 	}
@@ -1180,10 +1184,27 @@ extension VirtualMachine {
 		}
 	}
 
-	func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) throws {
+	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
+		guard gdc == nil, self.config.agent else {
+			return
+		}
+		
+		let gdc = try GrandCentralUpdater(location: self.location, runMode: runMode)
+		
+		try await gdc.start(frequency: frequency) {
+			self.gdc = nil
+		}
+		
+		self.gdc = gdc
 	}
 
-	func stopGrandCentralUpdate() throws {
-		
+	public func stopGrandCentralUpdate() throws {
+		guard let gdc else {
+			return
+		}
+
+		self.gdc = nil
+
+		gdc.stop()
 	}
 }

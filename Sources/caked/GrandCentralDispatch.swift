@@ -32,6 +32,7 @@ final class GrandCentralDispatch {
 	let runMode: Utils.RunMode
 	let group: EventLoopGroup
 	let listeners: Mutex<[ListenerID: AsyncThrowingStreamCakedReplyContinuation]>
+	let logger = Logger("GrandCentralDispatch")
 	var taskQueue: TaskQueue = TaskQueue(label: "GrandCentralDispatch")
 	var stream: AsyncThrowingStreamCakedStatus?
 	var haveListeners: Bool {
@@ -54,7 +55,9 @@ final class GrandCentralDispatch {
 		self.listeners.withLock { dict in
 			let empty = dict.isEmpty
 			let id = ListenerID()
-			
+
+			self.logger.debug("Adding listener: \(id)")
+
 			dict[id] = continuation
 			
 			if empty {
@@ -77,10 +80,15 @@ final class GrandCentralDispatch {
 	
 	@discardableResult
 	func removeListener(_ id: ListenerID) -> AsyncThrowingStreamCakedReplyContinuation? {
+
 		self.listeners.withLock { dict in
-			let value = dict.removeValue(forKey: id)
-			
-			if value != nil && dict.isEmpty {
+			self.logger.info("Removing listener: \(id)")
+
+			guard let value = dict.removeValue(forKey: id) else {
+				return nil
+			}
+	
+			if dict.isEmpty {
 				if let vms = try? StorageLocation(runMode: runMode).list() {
 					vms.values.compactMap {
 						if $0.status == .running {
@@ -115,6 +123,8 @@ final class GrandCentralDispatch {
 	}
 	
 	func stopGrandCentralUpdate(location: VMLocation) {
+		self.logger.info("Stop Grand Central Update for \(location.name)")
+
 		let future = self.group.next().submit {
 			try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: self.runMode).stopGrandCentralUpdate()
 		}
@@ -123,15 +133,17 @@ final class GrandCentralDispatch {
 			switch result {
 			case .success((let success, let reason)):
 				if success == false {
-					Logger("GrandCentralDispatcher").error("Failed to stop Grand Central Update for \(location.name): \(reason)")
+					self.logger.error("Failed to stop Grand Central Update for \(location.name): \(reason)")
 				}
 			case .failure(let error):
-				Logger("GrandCentralDispatcher").error("Failed to stop Grand Central Update for \(location.name): \(error)")
+				self.logger.error("Failed to stop Grand Central Update for \(location.name): \(error)")
 			}
 		}
 	}
 	
 	func startGrandCentralUpdate(location: VMLocation) {
+		self.logger.info("Start Grand Central Update for \(location.name)")
+
 		let future = self.group.next().submit {
 			try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: self.runMode).startGrandCentralUpdate(frequency: 1)
 		}
@@ -140,10 +152,10 @@ final class GrandCentralDispatch {
 			switch result {
 			case .success((let success, let reason)):
 				if success == false {
-					Logger("GrandCentralDispatcher").error("Failed to start Grand Central Update for \(location.name): \(reason)")
+					self.logger.error("Failed to start Grand Central Update for \(location.name): \(reason)")
 				}
 			case .failure(let error):
-				Logger("GrandCentralDispatcher").error("Failed to start Grand Central Update for \(location.name): \(error)")
+				self.logger.error("Failed to start Grand Central Update for \(location.name): \(error)")
 			}
 		}
 	}
@@ -153,11 +165,18 @@ final class GrandCentralDispatch {
 			return
 		}
 		
+		self.logger.info("Starting Grand Central Dispatch")
+
 		let stream = AsyncThrowingStream.makeStream(of: Caked_CurrentStatus.self)
 		
 		self.stream = stream
 		
 		self.taskQueue.dispatchSync {
+			defer {
+				self.logger.info("Stopping Grand Central Dispatch")
+				self.stream = nil
+			}
+
 			do {
 				for try await status in stream.stream {
 					let reply = Caked_Reply.with {
@@ -191,12 +210,12 @@ final class GrandCentralDispatch {
 					$0.removeAll()
 				}
 			}
-			
-			self.stream = nil
 		}
 	}
 
 	func processDispatch(responseStream: GRPCAsyncResponseStreamWriter<Caked_Reply>) async throws {
+		self.logger.info("Processing Grand Central Dispatch")
+
 		try await self.startGrandCentralDispatch()
 
 		let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_Reply.self)

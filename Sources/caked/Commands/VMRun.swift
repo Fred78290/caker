@@ -125,6 +125,14 @@ struct VMRun: AsyncParsableCommand {
 				}
 			}
 
+			if self.launchedFromService && self.common.runMode != .app {
+				_ = Timer(timeInterval: 5, repeats: false) { _ in
+					try? Utilities.group.next().makeFutureWithTask {
+						try await vm.startGrandCentralUpdate(frequency: 1, runMode: self.common.runMode)
+					}.wait()
+				}
+			}
+
 			if display == .all || display == .vnc {
 				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
 

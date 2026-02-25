@@ -172,6 +172,7 @@
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
+		9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */; };
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
 		9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B75A6D22E2A2C45000AA773 /* Pty.swift */; };
 		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
@@ -760,6 +761,7 @@
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
+		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
 		9B7999052E48A27900147500 /* NSVNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSVNCView.swift; sourceTree = "<group>"; };
@@ -1475,6 +1477,7 @@
 		9B464A862D5A3E0300164BF5 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
+				9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
@@ -1797,8 +1800,8 @@
 		9BEBC6CD2DF4400A0092B196 /* caked */ = {
 			isa = PBXGroup;
 			children = (
-				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CA2DF4400A0092B196 /* CakedProvider.swift */,
+				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
 				9BEBC6962DF4400A0092B196 /* CI */,
@@ -1937,7 +1940,6 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
-				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -1948,6 +1950,7 @@
 				9B7D68A82F1A88F500FE1B0B /* DebugHelper.swift */,
 				9BEBC75A2DF440720092B196 /* DHCPLeases.swift */,
 				9BEBC75B2DF440720092B196 /* EmbedProvisionProfile.swift */,
+				9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */,
 				9BEBC75C2DF440720092B196 /* GuestPlateform.swift */,
 				9BEBC75D2DF440720092B196 /* Home.swift */,
 				9B20D6052E01A74000BEFB41 /* INI.swift */,
@@ -2525,6 +2528,7 @@
 				9B464B752D5A3E8900164BF5 /* Build.swift in Sources */,
 				9B464B762D5A3E8900164BF5 /* Stop.swift in Sources */,
 				9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */,
+				9B7053F32F4F06DF006C68AA /* GrandCentralDispatch.swift in Sources */,
 				9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */,
 				9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */,
 				9BD32F872D75FF060066A01E /* Umount.swift in Sources */,
