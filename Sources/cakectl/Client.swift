@@ -208,7 +208,7 @@ struct Client: AsyncParsableCommand {
 			WaitIP.self,
 			Mount.self,
 			Umount.self,
-
+			GrandCentralDispatch.self,
 			Login.self,
 			Logout.self,
 			Pull.self,
