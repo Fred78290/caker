@@ -10,13 +10,19 @@ import GRPC
 import GRPCLib
 import NIO
 import Combine
+import CakeAgentLib
+
+typealias AsyncThrowingStreamCurrentStatusReply = (
+	stream: AsyncThrowingStream<CurrentStatusHandler.CurrentStatusReply, Error>,
+	continuation: AsyncThrowingStream<CurrentStatusHandler.CurrentStatusReply, Error>.Continuation
+)
 
 public class GrandCentralUpdater {
 	let location: VMLocation
 	let runMode: Utils.RunMode
 	let client: CakedServiceClient
 	var taskQueue: TaskQueue?
-	var stream: AsyncThrowingStreamCakedCurrentStatusReply?
+	var stream: AsyncThrowingStreamCurrentStatusReply?
 
 	public init(location: VMLocation, runMode: Utils.RunMode) throws {
 		self.location = location
@@ -35,15 +41,44 @@ public class GrandCentralUpdater {
 		
 		self.stream = asyncStream
 		self.taskQueue = TaskQueue.dispatch {
-			for try await status in asyncStream.stream {
-				try await grpcStream.sendMessage(status)
+			do {
+				for try await status in asyncStream.stream {
+					try await grpcStream.sendMessage(.with {
+						$0.name = self.location.name
+						switch status {
+						case .usage(let usage):
+							$0.usage = usage
+						case .error(let error):
+							$0.failure = "\(error)"
+						case .status(let status):
+							$0.status = .init(from: status)
+						case .screenshot(let png):
+							$0.screenshot = png
+						}
+					}).get()
+				}
+			} catch is CancellationError {
+				// Silent
+			} catch {
+				Logger("GrandCentralUpdater").error("Unexpected error: \(error)")
 			}
-			
+
+			cancelable.cancel()
+
 			try await grpcStream.sendEnd().get()
 		}
 	}
 
 	public func stop() {
+		guard let stream, let taskQueue else {
+			return
+		}
 		
+		stream.continuation.finish(throwing: CancellationError())
+		taskQueue.close()
+		
+		self.taskQueue = nil
+		self.stream = nil
 	}
 }
+

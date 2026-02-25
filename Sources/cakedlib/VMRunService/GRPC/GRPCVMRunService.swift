@@ -191,15 +191,18 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		
 		return (reply.installed, reply.reason)
 	}
-	
-	func startGrandCentralUpdate(frequency: Int32) throws {
-		_ = try client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.wait()
+
+	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String) {
+		let reply = try client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.wait()
+		
+		return (reply.success, reply.reason)
 	}
 	
-	func stopGrandCentralUpdate() throws {
-		_ = try client.stopGrandCentralUpdate(.init()).response.wait()
+	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String) {
+		let reply = try client.stopGrandCentralUpdate(.init()).response.wait()
+
+		return (reply.success, reply.reason)
 	}
-	
 }
 
 class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncProvider, VMRunServiceServerProtocol {
@@ -299,13 +302,33 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 		}
 	}
 
-	func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
-		try self.vm.startGrandCentralUpdate(frequency: request.frequency)
-		return .init()
+	func startGrandCentralUpdate(request: Vmrun_FrequencyRequest, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
+		do {
+			try self.vm.startGrandCentralUpdate(frequency: request.frequency, runMode: self.runMode)
+		} catch {
+			return .with {
+				$0.success = false
+				$0.reason = "\(error)"
+			}
+		}
+
+		return .with {
+			$0.success = true
+		}
 	}
 	
-	func stopGrandCentralUpdate(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_Empty {
-		try self.vm.stopGrandCentralUpdate()
-		return .init()
+	func stopGrandCentralUpdate(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
+		do {
+			try self.vm.stopGrandCentralUpdate()
+		} catch {
+			return .with {
+				$0.success = false
+				$0.reason = "\(error)"
+			}
+		}
+
+		return .with {
+			$0.success = true
+		}
 	}
 }

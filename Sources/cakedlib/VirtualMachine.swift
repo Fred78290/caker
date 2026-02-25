@@ -1180,8 +1180,7 @@ extension VirtualMachine {
 		}
 	}
 
-	func startGrandCentralUpdate(frequency: Int32) throws {
-		
+	func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) throws {
 	}
 
 	func stopGrandCentralUpdate() throws {

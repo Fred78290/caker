@@ -49,17 +49,19 @@ extension CurrentStatusHandler {
 			}
 			
 			for try await status in stream {
-				switch status.status.message {
-				case .status(let status):
-					statusStream.yield(.status(.init(from: status)))
-				case .screenshot(let png):
-					statusStream.yield(.screenshot(png))
-				case .usage(let usage):
-					statusStream.yield(.usage(usage))
-				case .failure(let reason):
-					statusStream.yield(.error(ServiceError(reason)))
-				default:
-					break
+				status.status.statuses.forEach { status in
+					switch status.message {
+					case .status(let status):
+						statusStream.yield(.status(.init(from: status)))
+					case .screenshot(let png):
+						statusStream.yield(.screenshot(png))
+					case .usage(let usage):
+						statusStream.yield(.usage(usage))
+					case .failure(let reason):
+						statusStream.yield(.error(ServiceError(reason)))
+					default:
+						break
+					}
 				}
 			}
 		}
