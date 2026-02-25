@@ -124,28 +124,46 @@ public struct StartHandler {
 	public static func autostart(on: EventLoop, runMode: Utils.RunMode) throws {
 		let storageLocation = StorageLocation(runMode: runMode)
 
-		_ = try storageLocation.list().map { (name: String, location: VMLocation) in
-			do {
-				let config = try location.config()
-
+		// Collect autostart vm
+		let vms = try storageLocation.list().compactMap {  (name: String, location: VMLocation) in
+			if let config = try? location.config() {
 				if config.autostart && location.status != .running {
-					Task {
-						Logger(self).info("VM \(name) starting")
-
-						let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display.screenSize, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, runMode: runMode)
-
-						if reply.started {
-							Logger(self).info("VM \(name) started with IP \(reply.ip)")
-						} else {
-							Logger(self).error("VM \(name) failed to start: \(reply.reason)")
-						}
-					}
+					return (config, location)
 				}
-			} catch {
-				Logger(self).error(error)
 			}
 
-			return location
+			return nil
+		}
+
+		// Collect autotstart networks
+		let networks = try vms.reduce(into: [BridgeAttachement]()) { (result, element) in
+			try element.0.networks.forEach { network in
+				if result.contains(network) == false {
+					let socketURL = try CakedLib.NetworksHandler.vmnetEndpoint(networkName: network.network, runMode: runMode)
+
+					if try socketURL.socket.exists() == false || (try socketURL.socket.exists() && socketURL.pidFile.isPIDRunning().running == false) {
+						result.append(network)
+					}
+				}
+			}
+		}
+
+		// Start networks
+		try NetworksHandler.startNetworkServices(networks: networks, runMode: runMode)
+
+		// Start vms
+		vms.forEach { (config, location) in
+			Task {
+				Logger(self).info("VM \(location.name) starting")
+				
+				let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display.screenSize, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, runMode: runMode)
+				
+				if reply.started {
+					Logger(self).info("VM \(location.name) started with IP \(reply.ip)")
+				} else {
+					Logger(self).error("VM \(location.name) failed to start: \(reply.reason)")
+				}
+			}
 		}
 	}
 

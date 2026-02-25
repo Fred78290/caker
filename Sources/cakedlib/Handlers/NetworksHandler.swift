@@ -249,6 +249,31 @@ public struct NetworksHandler {
 		_ = try Self.startNetwork(networkName: networkName, runMode: runMode)
 	}
 
+	public static func startNetworkServices(networks: [BridgeAttachement], runMode: Utils.RunMode) throws {
+		let vmNetworking: Bool
+		let home: Home = try Home(runMode: runMode)
+		let networkConfig = try home.sharedNetworks()
+		let sharedNetworks = networkConfig.sharedNetworks
+
+		if let profile = try? EmbedProvisionProfile.load() {
+			vmNetworking = profile.entitlements.vmNetworking
+		} else {
+			vmNetworking = false
+		}
+
+		try networks.forEach { inf in
+			if inf.isNAT() == false {
+				let physicalInterface = NetworksHandler.isPhysicalInterface(name: inf.network)
+
+				if sharedNetworks[inf.network] == nil && physicalInterface == false {
+					Logger(self).error("Network interface \(inf.network) not found")
+				} else if (physicalInterface && vmNetworking) == false {
+					try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
+				}
+			}
+		}
+	}
+
 	public static func run(fileDescriptor: Int32, networkConfig: UsedNetworkConfig, pidFile: URL, runMode: Utils.RunMode) throws -> ProcessWithSharedFileHandle {
 		Logger(self).info("Start VMNet mode: \(networkConfig.mode.rawValue) Using vmfd: \(fileDescriptor)")
 
