@@ -43,7 +43,7 @@ public struct StartHandler {
 				throw ServiceError("caked not found")
 			}
 
-			var arguments: [String] = ["exec", caked.path(), "vmrun", location.diskURL.absoluteURL.path, "--log-level=\(Logger.LoggingLevel().rawValue)"]
+			var arguments: [String] = ["exec", "'\(caked.path())'", "vmrun", "'\(location.diskURL.absoluteURL.path)'", "--log-level=\(Logger.LoggingLevel().rawValue)"]
 			var sharedFileDescriptors: [Int32] = []
 
 			try config.startNetworkServices(runMode: runMode)
@@ -70,7 +70,7 @@ public struct StartHandler {
 			}
 
 			if startMode == .service || startMode == .background {
-				arguments.append(contentsOf: ["2>&1", "|", "tee", log])
+				arguments.append(contentsOf: ["2>&1", "|", "tee", "'\(log)'"])
 			}
 
 			config.sockets.forEach {
