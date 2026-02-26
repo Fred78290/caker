@@ -1,0 +1,39 @@
+name: Publish Wiki
+
+on:
+  push:
+    branches:
+      - swiftui
+    paths:
+      - wiki/**
+      - Scripts/publish-wiki.sh
+      - Scripts/new-wiki-release-entry.sh
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update release notes from git log
+        env:
+          RELEASE_PATHS: Sources wiki .github/workflows
+          MAX_COMMITS: "20"
+        run: |
+          chmod +x ./Scripts/update-wiki-release-notes-from-git.sh
+          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
+
+      - name: Publish wiki
+        env:
+          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          chmod +x ./Scripts/publish-wiki.sh
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
