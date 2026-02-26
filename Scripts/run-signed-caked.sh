@@ -17,4 +17,4 @@ set -e
 
 source ${CURDIR}/Scripts/build.inc.sh
 
-exec ${PKGDIR}/Contents/MacOS/caked "$@"
+exec ${PKGDIR}/Contents/PlugIns/caked "$@"

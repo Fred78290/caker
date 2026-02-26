@@ -21,4 +21,4 @@ set -e
 
 source ${CURDIR}/Scripts/build.inc.sh
 
-exec ${PKGDIR}/Contents/MacOS/cakectl "$@"
+exec ${PKGDIR}/Contents/PlugIns/cakectl "$@"
