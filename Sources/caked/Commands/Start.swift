@@ -4,7 +4,7 @@ import CakeAgentLib
 import NIOPortForwarding
 
 struct Start: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Run linux VM in background")
+	static let configuration = CommandConfiguration(abstract: "Start an existing VM")
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

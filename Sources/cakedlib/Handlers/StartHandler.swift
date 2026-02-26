@@ -151,6 +151,8 @@ public struct StartHandler {
 		// Start networks
 		try NetworksHandler.startNetworkServices(networks: networks, runMode: runMode)
 
+		Thread.sleep(forTimeInterval: 1)
+
 		// Start vms
 		vms.forEach { (config, location) in
 			Task {

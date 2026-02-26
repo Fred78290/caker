@@ -5,7 +5,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct Start: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Launch a linux VM create in background")
+	static let configuration = CommandConfiguration(abstract: "Start an existing VM")
 
 	@OptionGroup(title: "Client options")
 	var options: Client.Options
