@@ -266,7 +266,7 @@ struct Client: AsyncParsableCommand {
 		// Parse and run command
 		do {
 			guard let command = try Self.parse() else {
-				Foundation.exit(-1)
+				throw CleanExit.helpRequest(self)
 			}
 
 			let response: String
