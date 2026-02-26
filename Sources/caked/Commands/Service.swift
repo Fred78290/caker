@@ -158,6 +158,12 @@ extension Service {
 		}
 
 		func run() async throws {
+			let listenAddress = try self.options.getListenAddress()
+			
+			guard listenAddress.count > 0 else {
+				throw ServiceError("No listen address provided")
+			}
+
 			let runMode: Utils.RunMode = self.options.runMode
 			let home = try Home(runMode: runMode)
 
@@ -169,7 +175,6 @@ extension Service {
 
 			try CakedLib.StartHandler.autostart(on: Utilities.group.next(), runMode: runMode)
 
-			let listenAddress = try self.options.getListenAddress()
 			let eventLoopGroup = Utilities.group
 			let servers: [Server] = try listenAddress.map { address in
 				Logger(self).info("Start listening on \(address)")
@@ -199,7 +204,7 @@ extension Service {
 			sigintSrc.activate()
 
 			// Wait on the server's `onClose` future to stop the program from exiting.
-			if servers.count > 0 {
+			if servers.count > 1 {
 				try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
 					servers.forEach { server in
 						group.addTask {
