@@ -102,7 +102,7 @@ public struct ServiceHandler {
 	}
 
 	public static func installAgent(listenAddress: [String], insecure: Bool, caCert: String?, tlsCert: String?, tlsKey: String?, mode: VMRunServiceMode = .grpc, runMode: Utils.RunMode) throws {
-		let cakeHome: URL = try Utils.getHome(runMode: runMode)
+		let home = try Home(runMode: runMode)
 		let outputLog: String = Utils.getOutputLog(runMode: runMode)
 		var arguments: [String] = [
 			try Self.findMe(),
@@ -152,7 +152,7 @@ public struct ServiceHandler {
 			],
 			environmentVariables: [
 				"PATH": "/usr/local/bin:/usr/bin:/bin:/usr/sbin/:/sbin",
-				"CAKE_HOME": cakeHome.path,
+				"CAKE_HOME": home.cakeHomeDirectory.path,
 			],
 			standardErrorPath: outputLog,
 			standardOutPath: outputLog,

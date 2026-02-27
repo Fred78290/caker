@@ -23,8 +23,9 @@ public struct StorageLocation {
 	public let template: Bool
 
 	public init(runMode: Utils.RunMode, name: String = "vms") {
+		let home = try! Home(runMode: runMode)
 		self.template = name != "vms"
-		self.rootURL = try! Utils.getHome(runMode: runMode).appendingPathComponent(name, isDirectory: true)
+		self.rootURL = home.cakeHomeDirectory.appendingPathComponent(name, isDirectory: true)
 		try? FileManager.default.createDirectory(at: self.rootURL, withIntermediateDirectories: true)
 	}
 
