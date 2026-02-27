@@ -116,6 +116,11 @@ public struct Home {
 				try defaultRemotes.write(to: self.remoteDb)
 			}
 		}
+
+		if try self.agentDirectory.exists() == false && createItIfNotExists {
+			try FileManager.default.createDirectory(at: self.agentDirectory, withIntermediateDirectories: true)
+			_ = try CertificatesLocation.createAgentCertificats(runMode: runMode, force: true)
+		}
 	}
 
 	public func sharedNetworks() throws -> VZVMNetConfig {
