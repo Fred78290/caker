@@ -6,6 +6,10 @@ on:
     tags:
       - 'v*'
       - 'snapshot'
+    paths-ignore:
+      - 'docs/**'
+      - 'wiki/**'
+      - '.github/workflows/publish-wiki.yaml'
   pull_request:
     branches:
     - 'main'
@@ -29,28 +33,37 @@ jobs:
       - name: Check tools
         id: check
         run: |
-          echo PATH=$PATH
-          if [ -z "$(command -v python)" ]; then
-            echo "install_python=true" >> $GITHUB_OUTPUT
+          if [ $RUNNER_ENVIRONMENT == "github-hosted" ]; then
+            echo "Running on github-hosted runner, checking for required tools..."
+            echo PATH=$PATH
+            if [ -z "$(command -v python)" ]; then
+              echo "install_python=true" >> $GITHUB_OUTPUT
+            else
+              echo "install_python=false" >> $GITHUB_OUTPUT
+            fi
+
+            if [ -z "$(command -v go)" ]; then
+              echo "install_golang=true" >> $GITHUB_OUTPUT
+            else
+              echo "install_golang=false" >> $GITHUB_OUTPUT
+            fi
+
+            if [ -z "$(command -v brew)" ]; then
+              echo "install_brew=true" >> $GITHUB_OUTPUT
+            else
+              echo "install_brew=false" >> $GITHUB_OUTPUT
+            fi
+
+            if [ -z "$(command -v swift)" ]; then
+              echo "install_swift=true" >> $GITHUB_OUTPUT
+            else
+              echo "install_swift=false" >> $GITHUB_OUTPUT
+            fi
           else
+            echo "Not running on github-hosted runner, skipping tool checks."
             echo "install_python=false" >> $GITHUB_OUTPUT
-          fi
-
-          if [ -z "$(command -v go)" ]; then
-            echo "install_golang=true" >> $GITHUB_OUTPUT
-          else
             echo "install_golang=false" >> $GITHUB_OUTPUT
-          fi
-
-          if [ -z "$(command -v brew)" ]; then
-            echo "install_brew=true" >> $GITHUB_OUTPUT
-          else
             echo "install_brew=false" >> $GITHUB_OUTPUT
-          fi
-
-          if [ -z "$(command -v swift)" ]; then
-            echo "install_swift=true" >> $GITHUB_OUTPUT
-          else
             echo "install_swift=false" >> $GITHUB_OUTPUT
           fi
 
@@ -60,7 +73,7 @@ jobs:
           submodules: recursive
  
       - name: Set up Homebrew
-        if: steps.check.outputs.install_python == 'true'
+        if: steps.check.outputs.install_brew == 'true'
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Setup Python
@@ -78,7 +91,7 @@ jobs:
           cache-dependency-path: qcow2convert/go.mod
 
       - name: Setup Swift
-        if: steps.check.outputs.install_golang == 'true'
+        if: steps.check.outputs.install_swift == 'true'
         uses: swift-actions/setup-swift@v2.3.0
 
       - name: Version
@@ -162,7 +175,26 @@ jobs:
           else
             gh release create --generate-notes --title "${VERSION_TAG}" "${VERSION_TAG}" ./.ci/Caker-${VERSION_TAG}.pkg
           fi
-    
+
+      - name: "Update release notes from git log"
+        env:
+          RELEASE_PATHS: Sources wiki .github/workflows
+          MAX_COMMITS: "20"
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          ./Scripts/update-wiki-release-notes-from-git.sh "${GITHUB_REF_NAME}"
+
+      - name: Publish wiki
+        env:
+          GH_TOKEN: ${{ secrets.WIKI_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        if: steps.version.outputs.build_package == 'true'
+        run: |
+          chmod +x ./Scripts/publish-wiki.sh
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          ./Scripts/publish-wiki.sh "${OWNER}" "${REPO}"
+
       - name: Clean up keychain and provisioning profile
         if: steps.version.outputs.build_package == 'true'
         run: |
