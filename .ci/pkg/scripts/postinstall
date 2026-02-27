@@ -2,12 +2,12 @@
 
 set -e
 
-echo "/Applications/Caker.app/Contents/MacOS" >> /etc/paths.d/com.aldunelabs.caker.public
+echo "/Applications/Caker.app/Contents/PlugIns" >> /etc/paths.d/com.aldunelabs.caker.public
 
 # Create sudoers file for Caker
 cat <<EOF > /etc/sudoers.d/caker
 # Caker sudoers file
-%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/MacOS/caked
+%everyone ALL=(root:wheel) NOPASSWD: /Applications/Caker.app/Contents/PlugIns/caked
 EOF
 
 chgroup staff /etc/sudoers.d/caker
@@ -15,4 +15,4 @@ chgroup staff /etc/sudoers.d/caker
 chmod 0664 /etc/sudoers.d/caker
 
 # Install the Caker service
-/Applications/Caker.app/Contents/MacOS/caked service install --system
+/Applications/Caker.app/Contents/PlugIns/caked service install --system
