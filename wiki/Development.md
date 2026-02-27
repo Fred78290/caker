@@ -16,14 +16,14 @@ Primary test locations:
 
 ## Contribution workflow
 
-1. Create a branch from `swiftui`.
+1. Create a branch from `main`.
 2. Implement focused changes.
 3. Run relevant tests and build checks.
 4. Open a pull request with clear context.
 
 Contributor guide:
 
-- [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/swiftui/CONTRIBUTING.md)
+- [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/main/CONTRIBUTING.md)
 
 ## Useful scripts
 

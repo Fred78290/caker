@@ -6,8 +6,8 @@ This document explains the expected workflow for code changes, tests, documentat
 
 ## Branching model
 
-- Primary development branch: `swiftui`
-- Open pull requests against `swiftui` unless maintainers explicitly ask for another target.
+- Primary development branch: `main`
+- Open pull requests against `main` unless maintainers explicitly ask for another target.
 - Keep PRs focused and small enough to review quickly.
 
 ## Development setup

@@ -1,6 +1,6 @@
 # Release Notes
 
-## 2026-02-26 (Git log summary - swiftui)
+## 2026-02-26 (Git log summary - main)
 
 ### Added
 - Grand Central Dispatch capabilities for live VM/system status streaming (including `gcd` command and updater flow).
@@ -15,7 +15,7 @@
 - Shell command handling improved (including safer argument quoting).
 
 ### Notes
-- Summary generated from recent commits on branch `swiftui`.
+- Summary generated from recent commits on branch `main`.
 - See git history for full details: `git log --oneline`.
 
 ## 2026-02-26
@@ -26,7 +26,7 @@
 - Wiki publishing script: `Scripts/publish-wiki.sh`.
 
 ### Updated
-- Contribution guidance aligned to base branch `swiftui`.
+- Contribution guidance aligned to base branch `main`.
 - Wording and structure polished across core wiki pages.
 
 ### Notes

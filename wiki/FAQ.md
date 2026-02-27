@@ -7,7 +7,7 @@
 
 ## What branch should I base my work on?
 
-- Use `swiftui` as the base branch for contributions in this repository.
+- Use `main` as the base branch for contributions in this repository.
 
 ## Why does wiki publishing fail with “repository not found”?
 

@@ -16,7 +16,7 @@ In typical usage, `cakectl` sends commands to `caked` through gRPC, and `caked` 
 
 Use this wiki as the central reference for architecture, command usage, troubleshooting, and operational workflows.
 
-Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/swiftui/CONTRIBUTING.md)
+Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/main/CONTRIBUTING.md)
 
 ## Quick links
 
