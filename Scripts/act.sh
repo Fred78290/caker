@@ -9,4 +9,4 @@ act push --workflows "${CURDIR}/.github/workflows/release.yaml" \
 	--var-file ${CURDIR}/.vars \
 	--platform self-hosted="-self-hosted" \
 	--eventpath "${CURDIR}/payload.json" \
-	--local-repository "https://github.com/Fred78290/tarthelper@snapshot=${CURDIR}"
+	--local-repository "https://github.com/Fred78290/caker@snapshot=${CURDIR}"
