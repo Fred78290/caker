@@ -10,9 +10,6 @@ on:
       - 'docs/**'
       - 'wiki/**'
       - '.github/workflows/publish-wiki.yaml'
-  pull_request:
-    branches:
-    - 'main'
 
 env:
   BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -27,6 +24,7 @@ env:
   CAKE_HOME: "${{ github.workspace }}/.cake"
 jobs:
   build:
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
     runs-on: self-hosted
     timeout-minutes: 60
     steps:

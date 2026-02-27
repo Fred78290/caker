@@ -67,6 +67,15 @@ Before opening a PR:
 	 - why it changed
 	 - how it was validated
 
+## CI workflow policy
+
+To avoid running privileged or costly automation from pull requests, workflows must not execute on PR events.
+
+- Do not add `pull_request` or `pull_request_target` triggers unless maintainers explicitly approve it.
+- Keep default execution to `push` (and `workflow_dispatch` when manual runs are needed).
+- Add a defensive job-level guard in workflows:
+	- `if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}`
+
 ## Documentation and wiki updates
 
 Wiki source lives in the local `wiki/` folder.
