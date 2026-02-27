@@ -138,13 +138,13 @@ jobs:
       - name: Run tests
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/.bin:$PATH
+          export PATH=${GITHUB_WORKSPACE}/dist/Caker.app/Contents/PlugIns:$PATH
           swift test|grep -v Compiling|grep -v CoreData
 
       - name: Run integration tests
         run: |
           # Run tests for the Swift package
-          export PATH=${GITHUB_WORKSPACE}/.bin:$PATH
+          export PATH=${GITHUB_WORKSPACE}/dist/Caker.app/Contents/PlugIns:$PATH
           if [ -z "$(command -v virtualenv)" ]; then
             brew install virtualenv
           fi
