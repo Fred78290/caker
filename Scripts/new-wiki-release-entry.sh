@@ -6,12 +6,12 @@ RELEASE_NOTES_FILE="${ROOT_DIR}/wiki/Release-Notes.md"
 ENTRY_DATE="${1:-$(date +%F)}"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-  echo "Erreur: fichier introuvable: ${RELEASE_NOTES_FILE}" >&2
+  echo "Error: file not found: ${RELEASE_NOTES_FILE}" >&2
   exit 1
 fi
 
 if grep -q "^## ${ENTRY_DATE}$" "${RELEASE_NOTES_FILE}"; then
-  echo "Entrée déjà existante pour ${ENTRY_DATE}."
+  echo "Entry already exists for ${ENTRY_DATE}."
   exit 0
 fi
 
@@ -51,4 +51,4 @@ fi
 
 mv "${TMP_FILE}" "${RELEASE_NOTES_FILE}"
 
-echo "Nouvelle entrée ajoutée pour ${ENTRY_DATE} dans wiki/Release-Notes.md"
+echo "New entry added ${ENTRY_DATE} in wiki/Release-Notes.md"

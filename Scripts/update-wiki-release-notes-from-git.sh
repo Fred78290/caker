@@ -9,14 +9,14 @@ MAX_COMMITS="${MAX_COMMITS:-20}"
 RELEASE_PATHS="${RELEASE_PATHS:-Sources wiki}"
 
 if [[ ! -f "${RELEASE_NOTES_FILE}" ]]; then
-  echo "Erreur: fichier introuvable: ${RELEASE_NOTES_FILE}" >&2
+  echo "Error: file not found: ${RELEASE_NOTES_FILE}" >&2
   exit 1
 fi
 
 SECTION_TITLE="## ${DATE_VALUE} (Git log summary - ${BRANCH_NAME})"
 
 if grep -Fq "${SECTION_TITLE}" "${RELEASE_NOTES_FILE}"; then
-  echo "Section déjà présente: ${SECTION_TITLE}"
+  echo "Section already exists: ${SECTION_TITLE}"
   exit 0
 fi
 
@@ -32,7 +32,7 @@ if [[ -z "${COMMITS_RAW}" ]]; then
 fi
 
 if [[ -z "${COMMITS_RAW}" ]]; then
-  echo "Aucun commit trouvé pour générer le résumé."
+  echo "No commits found to generate summary."
   exit 0
 fi
 
@@ -72,4 +72,4 @@ fi
 
 mv "${TMP_FILE}.new" "${RELEASE_NOTES_FILE}"
 
-echo "Release notes mises à jour depuis git log: ${SECTION_TITLE}"
+echo "Release notes updated from git log: ${SECTION_TITLE}"
