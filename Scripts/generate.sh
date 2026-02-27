@@ -8,7 +8,7 @@ echo "subjectAltName=DNS:localhost,IP:127.0.0.1" > client.conf
 # adding -nodes to not encrypt the private key
 openssl req -x509 -newkey rsa:4096 -nodes -days 365 \
 	-keyout ca.key -out ca.pem \
-	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=TUTORIAL/CN=Caked Root CA/emailAddress=frederic.boltz@gmail.com"
+	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=TUTORIAL/CN=Caked Root CA/emailAddress=caked@nowhere.com"
 
 echo "CA's self-signed certificate"
 openssl x509 -in ca.pem -noout -text 
@@ -17,7 +17,7 @@ openssl x509 -in ca.pem -noout -text
 # adding -nodes to not encrypt the private key
 openssl req -newkey rsa:4096 -nodes -keyout server.key \
 	-out server.csr \
-	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=BLOG/CN=Cake Agent/emailAddress=frederic.boltz@gmail.com"
+	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=BLOG/CN=Cake Agent/emailAddress=caked@nowhere.com"
 
 # Sign the Web Server Certificate Request (CSR)
 openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -extfile server.conf
@@ -31,7 +31,7 @@ openssl verify -CAfile ca.pem server.pem
 
 # Generate client's private key and certificate signing request (CSR)
 openssl req -newkey rsa:4096 -nodes -keyout client.key -out client.csr \
-	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=BLOG/CN=Caked client/emailAddress=frederic.boltz@gmail.com"
+	-subj "/C=FR/ST=EUROPA/L=PARIS/O=DEV/OU=BLOG/CN=Caked client/emailAddress=caked@nowhere.com"
 
 #  Sign the Client Certificate Request (CSR)
 openssl x509 -req -in client.csr -days 365 -CA ca.pem -CAkey ca.key -CAcreateserial -out client.pem -extfile client.conf
