@@ -139,7 +139,6 @@ extension VZVirtualMachineView {
 		}
 	}
 
-	#if DEBUG
 	func surface() -> IOSurface? {
 		guard let surface = self.framebufferView?.layer?.contents as? IOSurface else {
 			return nil
@@ -155,7 +154,6 @@ extension VZVirtualMachineView {
 
 		return surface.contents
 	}
-	#endif
 
 	public func render(in bounds: NSRect) -> CGImage? {
 		var renderLayer: CALayer

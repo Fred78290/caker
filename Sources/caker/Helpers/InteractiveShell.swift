@@ -17,10 +17,7 @@ class InteractiveShell {
 	let rootURL: URL
 
 	private var shellStream: ShellHandler.ShellHandlerProtocol! = nil
-
-#if DEBUG
 	private let logger = Logger("InteractiveShell")
-#endif
 
 	deinit {
 		self.closeShell()
@@ -86,26 +83,24 @@ class InteractiveShell {
 	}
 	
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
-#if DEBUG
 		self.logger.debug("VM \(self.name) shell is not ready \(error)")
-#endif
 
 		func handleGrpcStatus(_ grpcError: GRPCStatus) {
 			switch grpcError.code {
 			case .unavailable:
 				// These could be temporary - continue monitoring
-				self.logger.info("VM \(self.name) agent unvailable")
+				self.logger.debug("VM \(self.name) agent unvailable")
 				break
 			case .cancelled:
 				// These could be temporary - continue monitoring
-				self.logger.info("VM \(self.name) agent cancelled")
+				self.logger.debug("VM \(self.name) agent cancelled")
 				break
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
-				self.logger.info("VM \(self.name) agent timeout")
+				self.logger.debug("VM \(self.name) agent timeout")
 			case .unimplemented:
 				// unimplemented - Agent is too old, need update
-				self.logger.info("Agent monitoring: VM \(self.name) agent is too old, need update")
+				self.logger.warn("Agent monitoring: VM \(self.name) agent is too old, need update")
 			default:
 				// Other errors might indicate serious issues
 				self.logger.error("VM \(self.name) agent error: \(grpcError)")

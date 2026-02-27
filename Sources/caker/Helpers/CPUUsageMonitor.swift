@@ -21,11 +21,8 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	private let rootURL: URL
 	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
-
-#if DEBUG
 	private let logger = Logger("CPUUsageMonitor")
-#endif
-
+	
 	deinit {
 		self.cancel()
 	}
@@ -46,9 +43,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 
 		self.isMonitoring = false
 
-		#if DEBUG
-			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.name), \(_file):\(_line)")
-		#endif
+		self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.name), \(_file):\(_line)")
 
 		if let stream {
 			stream.continuation.finish(throwing: GRPCStatus(code: .cancelled, message: "Cancelled"))
@@ -60,11 +55,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 			return
 		}
 
-		#if DEBUG
-		let debugLogger = self.logger
-
-		debugLogger.debug("Start monitoring current CPU usage, VM: \(self.name)")
-		#endif
+		self.logger.debug("Start monitoring current CPU usage, VM: \(self.name)")
 
 		await withTaskCancellationHandler(operation: {
 			let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(self.name)")
@@ -114,9 +105,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 						guard self.handleAgentHealthCheckFailure(error: error) else {
 							return
 						}
-						#if DEBUG
-							debugLogger.debug("Monitoring agent not ready, VM: \(self.name), waiting...")
-						#endif
+						self.logger.debug("Monitoring agent not ready, VM: \(self.name), waiting...")
 						try? await Task.sleep(nanoseconds: 1_000_000_000)
 					}
 				}
@@ -128,13 +117,9 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 			self.isMonitoring = false
 			self.stream = nil
 
-#if DEBUG
-			debugLogger.debug("Monitoring ended, VM: \(self.name)")
-#endif
+			self.logger.debug("Monitoring ended, VM: \(self.name)")
 		}, onCancel: {
-		#if DEBUG
-			debugLogger.debug("Monitoring canceled, VM: \(self.name)")
-		#endif
+			self.logger.debug("Monitoring canceled, VM: \(self.name)")
 			self.stream?.continuation.finish()
 		})
 	}
@@ -152,26 +137,24 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
-#if DEBUG
 		self.logger.debug("Agent monitoring: VM \(self.name) is not ready")
-#endif
 
 		func handleGrpcStatus(_ grpcError: GRPCStatus) -> Bool {
 			switch grpcError.code {
 			case .unavailable:
 				// These could be temporary - continue monitoring
-				self.logger.info("Agent monitoring: VM \(self.name) agent unvailable")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent unvailable")
 				return true
 			case .cancelled:
 				// These could be temporary - continue monitoring
-				self.logger.info("Agent monitoring: VM \(self.name) agent cancelled")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent cancelled")
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
-				self.logger.info("Agent monitoring: VM \(self.name) agent timeout")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent timeout")
 				return true
 			case .unimplemented:
 				// unimplemented - Agent is too old, need update
-				self.logger.info("Agent monitoring: VM \(self.name) agent is too old, need update")
+				self.logger.warn("Agent monitoring: VM \(self.name) agent is too old, need update")
 				return true
 			default:
 				// Other errors might indicate serious issues

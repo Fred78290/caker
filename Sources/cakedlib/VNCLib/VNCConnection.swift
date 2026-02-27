@@ -814,7 +814,7 @@ extension VNCConnection {
 			self.logger.debug("Client send fence: \(value)")
 			self.logger.debug("fences: \(values)")
 		#else
-			_ = try await self.receiveDatas(ofType: VNCFenceClient.self, dataLength: 9)
+			let value = try await self.receiveDatas(ofType: VNCFenceClient.self, dataLength: 9)
 			_ = try await self.receiveDatas(ofType: UInt8.self, countOf: Int(value.payloadLength))
 		#endif
 	}
@@ -852,7 +852,7 @@ extension VNCConnection {
 
 			self.logger.debug("Gii payload: \(values)")
 		#else
-			_ = try await self.receiveDatas(ofType: VNCGiiVersion.self, dataLength: 3)
+			let version = try await self.receiveDatas(ofType: VNCGiiVersion.self, dataLength: 3)
 			_ = try await self.receiveDatas(ofType: UInt8.self, countOf: Int(version.length))
 		#endif
 	}
