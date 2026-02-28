@@ -177,6 +177,7 @@ message Caked {
 			string from = 1;
 			string to = 2;
 			bool resetMacAddress = 3;
+			bool foreground = 4;
 		}
 		
 		message LaunchRequest {
@@ -265,6 +266,7 @@ message Caked {
 			message TemplateRequestAdd {
 				string sourceName = 1;
 				string templateName = 2;
+				bool foreground = 3;
 			}
 			
 			TemplateCommand command = 1;
@@ -1004,6 +1006,7 @@ message Caked {
 		bool insecure = 3;
 		int32 chunkSize = 4;
 		int32 concurrency = 5;
+		bool foreground = 6;
 	}
 
 	message CloneRequest {

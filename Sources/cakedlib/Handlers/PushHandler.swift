@@ -11,7 +11,7 @@ import Synchronization
 import CakeAgentLib
 
 public struct PushHandler {
-	public static func push(localName: String, remoteNames: [String], insecure: Bool, chunkSizeInMB: Int, concurrency: UInt, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PushReply {
+	public static func push(localName: String, remoteNames: [String], insecure: Bool, chunkSizeInMB: Int, concurrency: UInt, startMode: StartHandler.StartMode, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async -> PushReply {
 		do {
 			let home = try Home(runMode: runMode)
 			let storage = StorageLocation(runMode: runMode)
@@ -42,7 +42,7 @@ public struct PushHandler {
 			if config.os == .linux && config.useCloudInit {
 				progressHandler(.step("Clean cloud-init"))
 
-				location = try TemplateHandler.cleanCloudInit(source: location, config: config, runMode: runMode)
+				location = try TemplateHandler.cleanCloudInit(source: location, config: config, startMode: startMode, runMode: runMode)
 				delete = true
 			}
 

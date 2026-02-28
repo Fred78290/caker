@@ -20,7 +20,7 @@ struct DuplicateHandler: CakedCommand {
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
-				$0.duplicated = CakedLib.DuplicateHandler.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, runMode: runMode).caked
+				$0.duplicated = CakedLib.DuplicateHandler.duplicate(from: self.request.from, to: self.request.to, resetMacAddress: self.request.resetMacAddress, startMode: self.request.foreground ? .foreground : .attach, runMode: runMode).caked
 			}
 		}
 	}

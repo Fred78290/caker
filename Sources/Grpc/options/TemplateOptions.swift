@@ -10,6 +10,9 @@ public struct TemplateCreateOptions: ParsableArguments {
 	@Argument(help: "Template name")
 	public var template: String
 
+	@Flag(help: ArgumentHelp("Create template vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
+	public var foreground: Bool = false
+
 	public init() {
 	}
 }

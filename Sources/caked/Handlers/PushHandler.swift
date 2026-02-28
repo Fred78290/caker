@@ -12,9 +12,14 @@ struct PushHandler: CakedCommandAsync {
 	var request: Caked_PushRequest
 
 	func run(on: any EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
-		let result = await CakedLib.PushHandler.push(
-			localName: self.request.localName, remoteNames: self.request.remoteNames, insecure: self.request.insecure, chunkSizeInMB: Int(self.request.chunkSize), concurrency: UInt(self.request.concurrency), runMode: runMode,
-			progressHandler: ProgressObserver.progressHandler)
+		let result = await CakedLib.PushHandler.push(localName: self.request.localName,
+													 remoteNames: self.request.remoteNames,
+													 insecure: self.request.insecure,
+													 chunkSizeInMB: Int(self.request.chunkSize),
+													 concurrency: UInt(self.request.concurrency),
+													 startMode: self.request.foreground ? .foreground : .attach,
+													 runMode: runMode,
+													 progressHandler: ProgressObserver.progressHandler)
 
 		return Caked_Reply.with {
 			$0.oci = .with {

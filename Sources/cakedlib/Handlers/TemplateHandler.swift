@@ -27,20 +27,20 @@ private let cloudInitCleanup = [
 ]
 
 public struct TemplateHandler {
-	static func cleanCloudInit(source: VMLocation, config: CakeConfig, runMode: Utils.RunMode) throws -> VMLocation {
+	static func cleanCloudInit(source: VMLocation, config: CakeConfig, startMode: StartHandler.StartMode, runMode: Utils.RunMode) throws -> VMLocation {
 		let location = try source.duplicateTemporary(runMode: runMode)
-		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 120, startMode: .attach, runMode: runMode)
+		let runningIP = try StartHandler.internalStartVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 120, startMode: startMode, runMode: runMode)
 		let conn = try CakeAgentConnection(eventLoop: Utilities.group.next(), listeningAddress: location.agentURL, runMode: runMode)
 
 		Logger(self).info("Clean cloud-init on \(runningIP)")
 
-		try conn.run(command: cloudInitCleanup.joined(separator: " && ")).log()
+		try conn.run(command: cloudInitCleanup.joined(separator: " ; ")).log()
 		try location.stopVirtualMachine(force: false, runMode: runMode)
 
 		return location
 	}
 
-	public static func createTemplate(on: EventLoop, sourceName: String, templateName: String, runMode: Utils.RunMode) -> CreateTemplateReply {
+	public static func createTemplate(on: EventLoop, sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
 		do {
 			let storage = StorageLocation(runMode: runMode, template: true)
 			var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
@@ -69,7 +69,7 @@ public struct TemplateHandler {
 
 				do {
 					if config.os == .linux && config.useCloudInit {
-						source = try cleanCloudInit(source: source, config: config, runMode: runMode)
+						source = try cleanCloudInit(source: source, config: config, startMode: startMode, runMode: runMode)
 						delete = true
 					}
 

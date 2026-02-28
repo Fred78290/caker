@@ -13,6 +13,9 @@ public struct DuplicateOptions: ParsableArguments {
 	@Option(name: .shortAndLong, help: "Reset mac address")
 	public var resetMacAddress: Bool = false
 
+	@Flag(help: ArgumentHelp("Duplicate vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
+	public var foreground: Bool = false
+
 	public init() {
 	}
 }

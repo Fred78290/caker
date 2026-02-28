@@ -21,6 +21,7 @@ extension Caked_DuplicateRequest {
 		self.from = command.duplicate.from
 		self.to = command.duplicate.to
 		self.resetMacAddress = command.duplicate.resetMacAddress
+		self.foreground = command.duplicate.foreground
 	}
 }
 
@@ -62,6 +63,7 @@ extension Caked_PushRequest {
 		self.insecure = command.push.insecure
 		self.chunkSize = Int32(command.push.chunkSize)
 		self.concurrency = Int32(command.push.concurrency)
+		self.foreground = command.push.foreground
 	}
 }
 
@@ -194,6 +196,7 @@ extension Caked_TemplateRequest {
 		self.createRequest = Caked_TemplateRequest.TemplateRequestAdd.with {
 			$0.sourceName = command.template.name
 			$0.templateName = command.template.template
+			$0.foreground = command.template.foreground
 		}
 	}
 
