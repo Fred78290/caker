@@ -272,7 +272,7 @@ struct MultipassImporter: Importer {
 		return "Multipass Importer"
 	}
 
-	func importVM(location: VMLocation, source: String, userName: String, password: String, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
+	func importVM(location: VMLocation, source: String, userName: String, password: String, clearPassword: Bool, sshPrivateKey: String? = nil, passphrase: String? = nil, runMode: Utils.RunMode) throws {
 		let registeredInstances: MultipassRegisteredInstances = try MultipassRegisteredInstances(fromURL: URL(fileURLWithPath: "/var/root/Library/Application Support/multipassd/qemu/vault/multipassd-instance-image-records.json"))
 
 		guard let registeredInstance = registeredInstances[source] else {
@@ -309,6 +309,7 @@ struct MultipassImporter: Importer {
 			configuredGroup: "adm",
 			configuredGroups: ["sudo"],
 			configuredPlatform: .ubuntu,
+			clearPassword: clearPassword,
 			displayRefit: true,
 			ifname: false,
 			cpuCountMin: instance.numCores,

@@ -262,6 +262,11 @@ public final class CakeConfig {
 		get { SupportedPlatform(stringValue: self.cake["configuredPlatform"] as? String) }
 	}
 
+	public var clearPassword: Bool {
+		set { self.cake["clearPassword"] = newValue }
+		get { self.cake["clearPassword"] as? Bool ?? false }
+	}
+
 	public var ifname: Bool {
 		set { self.cake["ifname"] = newValue }
 		get { self.cake["ifname"] as? Bool ?? false }
@@ -469,6 +474,7 @@ public final class CakeConfig {
 		configuredGroup: String,
 		configuredGroups: [String]?,
 		configuredPlatform: SupportedPlatform,
+		clearPassword: Bool,
 		displayRefit: Bool,
 		ifname: Bool,
 		cpuCountMin: Int,
@@ -494,13 +500,14 @@ public final class CakeConfig {
 		self.configuredGroup = configuredGroup
 		self.configuredGroups = configuredGroups
 		self.configuredPlatform = configuredPlatform
+		self.clearPassword = clearPassword
 		self.ifname = ifname
 		self.autostart = autostart
 		self.display = DisplaySize(width: screenSize.width, height: screenSize.height)
 		self.vncPassword = UUID().uuidString
 	}
 
-	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String) throws {
+	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String, clearPassword: Bool) throws {
 		self.location = location
 		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
@@ -508,6 +515,7 @@ public final class CakeConfig {
 		self.configuredPassword = configuredPassword
 		self.configuredGroup = configuredGroup
 		self.autostart = false
+		self.clearPassword = clearPassword
 		self.vncPassword = UUID().uuidString
 
 		self.networks = []

@@ -19,6 +19,9 @@ struct Import: ParsableCommand {
 	@Option(name: .shortAndLong, help: "The user password for login")
 	public var password: String = "admin"
 
+	@Flag(name: [.long, .customShort("k")], help: ArgumentHelp("Tell if the user admin allow password for ssh"))
+	public var clearPassword: Bool = false
+
 	@Option(name: [.customLong("ssh-key"), .customShort("i")], help: "Optional SSH private key to use for the VM")
 	public var sshPrivateKey: String? = nil
 
@@ -76,7 +79,7 @@ struct Import: ParsableCommand {
 		} else {
 			Logger.appendNewLine(
 				self.common.format.render(
-					ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
+					ImportHandler.importVM(importer: importer, name: name, source: source, userName: user, password: password, clearPassword: clearPassword, sshPrivateKey: sshPrivateKey, passphrase: sshPrivateKeyPassphrase, uid: uid, gid: gid, runMode: .user)))
 		}
 	}
 }

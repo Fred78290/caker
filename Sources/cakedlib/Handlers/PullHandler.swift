@@ -118,6 +118,7 @@ public struct PullHandler {
 								configuredGroup: "adm",
 								configuredGroups: ["sudo"],
 								configuredPlatform: .unknown,
+								clearPassword: false,
 								displayRefit: true,
 								ifname: false,
 								cpuCountMin: Int(1),
