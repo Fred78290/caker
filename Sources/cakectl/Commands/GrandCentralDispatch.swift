@@ -111,7 +111,7 @@ struct GrandCentralDispatch: GrpcParsableCommand {
 			}
 		}
 
-		let channel = try stream.subchannel.wait()
+		_ = try stream.subchannel.wait()
 
 		return ""
 	}
