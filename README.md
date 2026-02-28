@@ -40,6 +40,14 @@ Available features include:
 `Caker.app` is the macOS desktop application that provides a graphical experience for working with virtual machines managed by `caked`.
 It acts as the user-facing control plane of the project and is designed for day-to-day local development workflows.
 
+<div align="center">
+	<div style="display:inline-block;background-color:#f6f8fa;padding:16px;border-radius:8px;">
+		<img src="images/home.png" alt="Caker home screen" width="31%" valign="top" />
+		<img src="images/settings.png" alt="Caker settings screen" width="31%" valign="top" />
+		<img src="images/wizard.png" alt="Caker VM wizard screen" width="31%" valign="top" />
+	</div>
+</div>
+
 Its main role is to:
 - Create and configure virtual machines from macOS
 - Start, stop, and monitor virtual machine instances
