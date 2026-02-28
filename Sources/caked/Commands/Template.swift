@@ -12,7 +12,8 @@ struct Template: ParsableCommand {
 			ListTemplate.self,
 			CreateTemplate.self,
 			DeleteTemplate.self,
-		]
+		],
+		aliases: ["tmpl"]
 	)
 
 	struct ListTemplate: ParsableCommand {

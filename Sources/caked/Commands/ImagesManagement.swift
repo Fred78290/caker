@@ -10,7 +10,7 @@ struct ImagesManagement: ParsableCommand {
 		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
 	struct ListImage: AsyncParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images", aliases: ["ls"])
 
 		@OptionGroup(title: "Global options")
 		var common: CommonOptions

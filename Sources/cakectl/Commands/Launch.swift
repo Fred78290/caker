@@ -5,7 +5,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct Launch: GrpcParsableCommand {
-	static let configuration = BuildOptions.configuration
+	static let configuration = BuildOptions.launch
 
 	@OptionGroup(title: "Client options")
 	var options: Client.Options

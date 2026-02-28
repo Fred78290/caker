@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 
 public struct ShellOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM")
+	public static let configuration = CommandConfiguration(commandName: "shell", abstract: "Run a shell on a VM", aliases: ["sh"])
 
 	@Argument(help: "VM name")
 	public var name: String = ""

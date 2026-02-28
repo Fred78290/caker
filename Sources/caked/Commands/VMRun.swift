@@ -9,7 +9,7 @@ import System
 import Virtualization
 
 struct VMRun: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false)
+	static let configuration = CommandConfiguration(commandName: "vmrun", abstract: "Run VM", shouldDisplay: false, aliases: ["run"])
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

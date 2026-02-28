@@ -4,7 +4,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct Build: AsyncParsableCommand {
-	static let configuration = BuildOptions.configuration
+	static let configuration = BuildOptions.build
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

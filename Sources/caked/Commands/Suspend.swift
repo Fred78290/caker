@@ -4,7 +4,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct Suspend: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Suspend VM(s)")
+	static let configuration = CommandConfiguration(commandName: "suspend", abstract: "Suspend VM(s)", aliases: ["pause"])
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

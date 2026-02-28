@@ -10,7 +10,7 @@ struct ImagesManagement: ParsableCommand {
 		subcommands: [ListImage.self, InfoImage.self, PullImage.self])
 
 	struct ListImage: GrpcParsableCommand {
-		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images")
+		static let configuration: CommandConfiguration = CommandConfiguration(commandName: "list", abstract: "List images", aliases: ["ls"])
 
 		@OptionGroup(title: "Client options")
 		var options: Client.Options

@@ -6,7 +6,7 @@ import SwiftUI
 import CakeAgentLib
 
 struct List: GrpcParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "List created VMs")
+	static let configuration = CommandConfiguration(abstract: "List created VMs", aliases: ["ls"])
 
 	@OptionGroup(title: "Client options")
 	var options: Client.Options

@@ -6,7 +6,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct ListObjects: AsyncParsableCommand {
-	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs")
+	static let configuration = CommandConfiguration(commandName: "list", abstract: "List all VMs", aliases: ["ls"])
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

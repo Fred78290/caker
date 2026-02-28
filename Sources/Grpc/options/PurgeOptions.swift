@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 
 public struct PurgeOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs")
+	public static let configuration = CommandConfiguration(abstract: "Purge caches or local VMs", aliases: ["prune"])
 
 	public enum PurgeEntry: String, ExpressibleByArgument, CaseIterable {
 		case both

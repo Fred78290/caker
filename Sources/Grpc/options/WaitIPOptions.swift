@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation
 
 public struct WaitIPOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait for ip of a running VM")
+	public static let configuration = CommandConfiguration(commandName: "waitip", abstract: "Wait for ip of a running VM", aliases: ["ip"])
 
 	@Argument(help: "VM name")
 	public var name: String

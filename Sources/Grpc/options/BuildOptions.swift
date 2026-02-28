@@ -4,7 +4,9 @@ import NIOPortForwarding
 import CakeAgentLib
 
 public struct BuildOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(abstract: "Create a linux VM and initialize it with cloud-init")
+	public static let build = CommandConfiguration(commandName: "build", abstract: "Create a linux VM and initialize it with cloud-init", aliases: ["create"])
+
+	public static let launch = CommandConfiguration(commandName: "launch", abstract: "Create a linux VM and initialize it with cloud-init then start it")
 
 	@Argument(help: "VM name")
 	public var name: String
