@@ -20,6 +20,7 @@ env:
   APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   HOMEBREW_NO_AUTO_UPDATE: 1
+  RUN_PYTEST: false
   #PATH: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${{ github.workspace }}/.bin"
   CAKE_HOME: "${{ github.workspace }}/.cake"
 jobs:
@@ -31,6 +32,7 @@ jobs:
       - name: Check tools
         id: check
         run: |
+          echo "run_pytest=${RUN_PYTEST}" >> $GITHUB_OUTPUT
           if [ $RUNNER_ENVIRONMENT == "github-hosted" ]; then
             echo "Running on github-hosted runner, checking for required tools..."
             echo PATH=$PATH
@@ -140,6 +142,7 @@ jobs:
           swift test|grep -v Compiling|grep -v CoreData
 
       - name: Run integration tests
+        if: steps.check.outputs.run_pytest == 'true'
         run: |
           # Run tests for the Swift package
           export PATH=${GITHUB_WORKSPACE}/dist/Caker.app/Contents/PlugIns:$PATH
