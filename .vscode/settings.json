@@ -3,6 +3,10 @@
 		"**/.build": true,
 		"DerivedData": true,
 		".swiftpm": true,
+		"actions-runner": true,
+		"**/node_modules": true,
+		"**/Pods": true,
+		"**/vendor": true,
 	},
 	"python.testing.pytestArgs": [
 		"integration/tests",
