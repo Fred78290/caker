@@ -23,7 +23,7 @@ fi
 
 source ${CURDIR}/Scripts/build.inc.sh
 
-BIN_PATH=${PKGDIR}/Contents/MacOS
+BIN_PATH=${PKGDIR}/Contents/PlugIns
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
