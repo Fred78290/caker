@@ -578,6 +578,9 @@ public final class CakeConfig {
 
 	public func resetMacAddress() {
 		self.macAddress = VZMACAddress.randomLocallyAdministered()
+		self.networks = self.networks.map {
+			$0.clone()
+		}
 	}
 
 	public func platform(nvramURL: URL, needsNestedVirtualization: Bool) throws -> GuestPlateForm {
