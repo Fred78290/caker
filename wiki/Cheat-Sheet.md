@@ -77,8 +77,22 @@ Quick command reference for common daily operations.
 
 ### 1) Create and start a VM
 
+from OCI registry
+
 ```bash
-cakectl launch --name demo-vm --cpu 4 --memory 8192 --disk-size 40G --image ghcr.io/example/image:latest
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G oci://ghcr.io/example/image:latest
+```
+
+from https
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+```
+
+from simplestream remote
+
+```bash
+cakectl build --name demo-vm --cpu 4 --memory 8192 --disk-size 40G ubuntu:noble
 ```
 
 ### 2) Start an existing VM, wait for IP, inspect status
@@ -92,14 +106,14 @@ cakectl infos demo-vm
 ### 3) Open shell and run one command in guest
 
 ```bash
-cakectl sh demo-vm
+cakectl shell demo-vm
 cakectl exec demo-vm -- uname -a
 ```
 
 ### 4) Push a local VM image to remote registry
 
 ```bash
-cakectl login ghcr.io
+cakectl login ghcr.io --username <username> --password <password>
 cakectl push demo-vm ghcr.io/<owner>/demo-vm:latest
 cakectl logout ghcr.io
 ```

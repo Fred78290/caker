@@ -43,7 +43,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `agent` — generate agent certs
 - `service` — service/daemon management entry point.
 - `vmrun` — internal VM runtime command (hidden/internal).
-- `import` — import external VM from file/URL.
+- `import` — import external VM (Multipass or VMware Fusion) from file/URL.
 - `networks` extra internal/admin subcommands:
   - `nat-infos`
   - `set-dhcp-lease`
