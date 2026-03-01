@@ -1477,12 +1477,12 @@
 		9B464A862D5A3E0300164BF5 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
-				9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */,
 				9B464A682D5A3E0300164BF5 /* Build.swift */,
 				9B464A6B2D5A3E0300164BF5 /* Configure.swift */,
 				9B464A6D2D5A3E0300164BF5 /* Delete.swift */,
 				9B8AC07B2DABC4F5009A8EEB /* Duplicate.swift */,
 				9B464A6E2D5A3E0300164BF5 /* Exec.swift */,
+				9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */,
 				9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */,
 				9B464A742D5A3E0300164BF5 /* Infos.swift */,
 				9B464A762D5A3E0300164BF5 /* Launch.swift */,
@@ -1826,7 +1826,6 @@
 		9BEBC72D2DF440720092B196 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
-				9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */,
 				9BEBC7162DF440720092B196 /* BuildHandler.swift */,
 				9BEBC7182DF440720092B196 /* ConfigureHandler.swift */,
 				9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */,
@@ -1853,6 +1852,7 @@
 				9BEBC7272DF440720092B196 /* RunHandler.swift */,
 				9BF8AB872F3E4AE500DE5EAB /* ScreenSizeHandler.swift */,
 				9B911A5E2ECF16AA0017791D /* ServiceHandler.swift */,
+				9BF8AE652F4231BD00DE5EAB /* ShellHandler.swift */,
 				9BEBC7282DF440720092B196 /* StartHandler.swift */,
 				9BEBC7292DF440720092B196 /* StopHandler.swift */,
 				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
