@@ -89,17 +89,9 @@ public struct VZSharedNetwork: Codable, Equatable {
 		return VZSharedNetwork(mode: .nat, netmask: dhcpStart.netmask!.description, dhcpStart: dhcpStart.address!.description, dhcpEnd: dhcpEnd.address!.description, dhcpLease: Int32(network.dhcpLease) ?? 0, interfaceID: "")
 	}
 
-	public static func networkInterfaces(networkConfig: VZVMNetConfig? = nil) -> [String: IP.Block<IP.V4>] {
-		var ipAddresses: [String: IP.Block<IP.V4>] = [:]
+	public static func addresses() -> [String: String] {
+		var ipAddresses: [String: String] = [:]
 		var addrList: UnsafeMutablePointer<ifaddrs>? = nil
-
-		if let networkConfig = networkConfig {
-			networkConfig.sharedNetworks.forEach {
-				if let ip: IP.Block<IP.V4> = .init("\($0.value.dhcpStart)/\($0.value.netmask.netmaskToCidr())") {
-					ipAddresses[$0.key] = ip
-				}
-			}
-		}
 
 		guard getifaddrs(&addrList) == 0, let firstAddr = addrList else {
 			return [:]
@@ -123,6 +115,7 @@ public struct VZSharedNetwork: Codable, Equatable {
 					if addrFamily == UInt8(AF_INET) {
 						if getnameinfo(addr, socklen_t(interface.sa_len), &hostname, socklen_t(hostname.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 							var netmaskName = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+							let ifname = String(cString: cursor.pointee.ifa_name)
 
 							if getnameinfo(netmask, socklen_t(netmask.pointee.sa_len), &netmaskName, socklen_t(netmaskName.count), nil, socklen_t(0), NI_NUMERICHOST) == 0 {
 								addrStr = "\(String(cString: hostname))/\(String(cString: netmaskName).netmaskToCidr())"
@@ -130,13 +123,38 @@ public struct VZSharedNetwork: Codable, Equatable {
 								addrStr = String(cString: hostname)
 							}
 
-							if let ip: IP.Block<IP.V4> = .init(addrStr) {
-								let ifname = String(cString: cursor.pointee.ifa_name)
-
-								ipAddresses[ifname] = ip
-							}
+							ipAddresses[ifname] = addrStr
 						}
 					}
+				}
+			}
+		}
+
+		return ipAddresses
+	}
+
+	public static func addresses() -> [String: IP.V4] {
+		let interfaces: [String: String] = Self.addresses()
+
+		return interfaces.reduce(into: [String: IP.V4]()) { (result, element) in
+			if let ip = IP.V4(element.value.stringBefore(before: "/")) {
+				result[element.key] = ip
+			}
+		}
+	}
+
+	public static func networkInterfaces(networkConfig: VZVMNetConfig? = nil) -> [String: IP.Block<IP.V4>] {
+		let interfaces: [String: String] = Self.addresses()
+		var ipAddresses = interfaces.reduce(into: [String: IP.Block<IP.V4>]()) { (result, element) in
+			if let ip: IP.Block<IP.V4> = .init("\(element.value)") {
+				result[element.key] = ip
+			}
+		}
+
+		if let networkConfig = networkConfig {
+			networkConfig.sharedNetworks.forEach {
+				if let ip: IP.Block<IP.V4> = .init("\($0.value.dhcpStart)/\($0.value.netmask.netmaskToCidr())") {
+					ipAddresses[$0.key] = ip
 				}
 			}
 		}

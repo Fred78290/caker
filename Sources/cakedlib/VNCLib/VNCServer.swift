@@ -88,11 +88,13 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 
 	public var urls: [URL] {
 		if self.allInet {
-			return VZSharedNetwork.networkInterfaces().compactMap { interface in
+			let addresses: [String:IP.V4] = VZSharedNetwork.addresses()
+
+			return addresses.compactMap { interface in
 				if let password = password {
-					return URL(string: "vnc://:\(password)@\(interface.value.base):\(port)")
+					return URL(string: "vnc://:\(password)@\(interface.value.description):\(port)")
 				} else {
-					return URL(string: "vnc://\(interface.value.base):\(port)")
+					return URL(string: "vnc://\(interface.value.description):\(port)")
 				}
 			}
 		}
