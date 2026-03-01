@@ -115,7 +115,6 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	let location: VMLocation
 	
 	public static func createClient(location: VMLocation, runMode: Utils.RunMode) throws -> GRPCVMRunServiceClient {
-		
 		let listeningAddress = location.serviceURL
 		let target: ConnectionTarget
 		let connectionTimeout: TimeInterval = 5
@@ -151,12 +150,36 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		self.client = client
 	}
 
+	private func execute<V>(_ call: @escaping () async throws -> V) throws -> V {
+		var result: V?
+		var failed: Error?
+		let semaphore = DispatchSemaphore(value: 0)
+
+		Task {
+			do {
+				result = try await call()
+			} catch {
+				failed = error
+			}
+			
+			semaphore.signal()
+		}
+
+		semaphore.wait()
+
+		if let failed = failed {
+			throw failed
+		}
+
+		return result!
+	}
+
 	var vncURL: [URL] {
 		get {
-			guard let result = try? client.vncEndPoint(Vmrun_Empty()).response.wait() else {
+			guard let result = try? self.execute({try await self.client.vncEndPoint(Vmrun_Empty()).response.get() }) else {
 				return []
 			}
-	
+
 			return result.vncURL.compactMap {
 				URL(string: $0)
 			}
@@ -165,29 +188,35 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	
 	var screenSize: (width: Int, height: Int) {
 		get {
-			guard let reply = try? client.getScreenSize(Vmrun_Empty()).response.wait() else {
+			guard let result = try? self.execute({try await self.client.getScreenSize(Vmrun_Empty()).response.get() }) else {
 				return (0, 0)
 			}
 			
-			return (Int(reply.width), Int(reply.height))
+			return (Int(result.width), Int(result.height))
 		}
 		
 		set {
-			_ = try? client.setScreenSize(
-				Vmrun_ScreenSize.with {
-					$0.width = Int32(newValue.width)
-					$0.height = Int32(newValue.height)
-				}
-			).response.wait()
+			_ = try? self.execute {
+				try await self.client.setScreenSize(
+					Vmrun_ScreenSize.with {
+						$0.width = Int32(newValue.width)
+						$0.height = Int32(newValue.height)
+					}
+				).response.get()
+			}
 		}
 	}
 		
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
-		try client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.wait().toMountInfos()
+		try self.execute {
+			try await self.client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.get().toMountInfos()
+		}
 	}
 	
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos {
-		try client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.wait().toMountInfos()
+		try self.execute {
+			try await self.client.mount(Vmrun_MountRequest(.umount, attachments: mounts)).response.get().toMountInfos()
+		}
 	}
 	
 	func setScreenSize(width: Int, height: Int) throws {
@@ -200,23 +229,29 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 	}
 		
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
-		let reply = try client.installAgent(.with {
-			$0.timeout = Int32(timeout)
-		}).response.wait()
-		
-		return (reply.installed, reply.reason)
+		try self.execute {
+			let reply = try await self.client.installAgent(.with {
+				$0.timeout = Int32(timeout)
+			}).response.get()
+			
+			return (reply.installed, reply.reason)
+		}
 	}
 
 	func startGrandCentralUpdate(frequency: Int32) throws -> (success: Bool, reason: String) {
-		let reply = try client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.wait()
-		
-		return (reply.success, reply.reason)
+		try self.execute {
+			let reply = try await self.client.startGrandCentralUpdate(.with { $0.frequency = frequency }).response.get()
+			
+			return (reply.success, reply.reason)
+		}
 	}
 	
 	func stopGrandCentralUpdate() throws -> (success: Bool, reason: String) {
-		let reply = try client.stopGrandCentralUpdate(.init()).response.wait()
-
-		return (reply.success, reply.reason)
+		try self.execute {
+			let reply = try await self.client.stopGrandCentralUpdate(.init()).response.get()
+			
+			return (reply.success, reply.reason)
+		}
 	}
 }
 
