@@ -29,7 +29,7 @@ public struct VMView: NSViewRepresentable {
 		guard let fb = vzMachineView.framebuffer else {
 			fatalError("No framebuffer")
 		}
-		print(fb)
+
 		return vzMachineView
 	}
 
