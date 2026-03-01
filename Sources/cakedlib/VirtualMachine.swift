@@ -366,12 +366,12 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 		}
 	}
 	
-	public var vncURL: URL? {
+	public var vncURL: [URL]? {
 		guard let vncServer = self.env.vncServer else {
 			return nil
 		}
 		
-		return vncServer.connectionURL()
+		return vncServer.urls
 	}
 	
 	public var vzMachineView: VMView.NSViewType? {
@@ -835,24 +835,24 @@ extension VirtualMachine {
 		}
 	}
 
-	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> URL {
+	public func startVncServer(_ vzMachineView: VMView.NSViewType, vncPassword: String, port: Int) throws -> [URL] {
 		if self.env.vncServer == nil {
-			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, queue: DispatchQueue.global())
+			self.env.vncServer = try VNCServer.createVNCServer(self.virtualMachine, name: self.location.name, view: vzMachineView, password: vncPassword, port: port, allInet: VMRunHandler.launchedFromService, queue: DispatchQueue.global())
 			self.env.vzMachineView = vzMachineView
 			self.env.vncServer.delegate = self
 
 			try self.env.vncServer.start()
 		}
 
-		return self.env.vncServer.connectionURL()
+		return self.env.vncServer.urls
 	}
 
-	public func startVncServer(vncPassword: String, port: Int) throws -> URL {
+	public func startVncServer(vncPassword: String, port: Int) throws -> [URL] {
 		if self.env.vncServer == nil {
 			return try self.startVncServer(VMView.createView(vm: self, frame: NSMakeRect(0, 0, self.env.screenSize.width, self.env.screenSize.height)), vncPassword: vncPassword, port: port)
 		}
 
-		return self.env.vncServer.connectionURL()
+		return self.env.vncServer.urls
 	}
 
 }

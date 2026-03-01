@@ -150,17 +150,38 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		self.location = location
 		self.client = client
 	}
+
+	var vncURL: [URL] {
+		get {
+			guard let result = try? client.vncEndPoint(Vmrun_Empty()).response.wait() else {
+				return []
+			}
 	
-	func vncURL() throws -> URL? {
-		let result = try client.vncEndPoint(Vmrun_Empty()).response.wait()
-		
-		if result.hasVncURL {
-			return URL(string: result.vncURL)
+			return result.vncURL.compactMap {
+				URL(string: $0)
+			}
 		}
-		
-		return nil
 	}
 	
+	var screenSize: (width: Int, height: Int) {
+		get {
+			guard let reply = try? client.getScreenSize(Vmrun_Empty()).response.wait() else {
+				return (0, 0)
+			}
+			
+			return (Int(reply.width), Int(reply.height))
+		}
+		
+		set {
+			_ = try? client.setScreenSize(
+				Vmrun_ScreenSize.with {
+					$0.width = Int32(newValue.width)
+					$0.height = Int32(newValue.height)
+				}
+			).response.wait()
+		}
+	}
+		
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos {
 		try client.mount(Vmrun_MountRequest(.mount, attachments: mounts)).response.wait().toMountInfos()
 	}
@@ -177,13 +198,7 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 			}
 		).response.wait()
 	}
-	
-	func getScreenSize() throws -> (Int, Int) {
-		let reply = try client.getScreenSize(Vmrun_Empty()).response.wait()
 		
-		return (Int(reply.width), Int(reply.height))
-	}
-	
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String) {
 		let reply = try client.installAgent(.with {
 			$0.timeout = Int32(timeout)
@@ -255,12 +270,12 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	}
 
 	func vncEndPoint(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_VNCEndPointReply {
-		guard let u = self.vm.vncURL else {
+		guard let vncURL = self.vm.vncURL else {
 			return Vmrun_VNCEndPointReply()
 		}
 
 		return Vmrun_VNCEndPointReply.with { reply in
-			reply.vncURL = u.absoluteString
+			reply.vncURL = vncURL.map(\.absoluteString)
 		}
 	}
 

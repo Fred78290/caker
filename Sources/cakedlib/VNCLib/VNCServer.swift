@@ -9,9 +9,9 @@ import CakeAgentLib
 
 public protocol VZVNCServer {
 	var delegate: VNCServerDelegate? { get set }
+	var urls: [URL] { get }
 	func start() throws
 	func stop()
-	func connectionURL() -> URL
 }
 
 public protocol VNCServerDelegate: AnyObject, Sendable {
@@ -50,6 +50,7 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 	private let connectionQueue = DispatchQueue(label: "vnc.server.connections", attributes: .concurrent)
 	private let name: String
 	private let eventLoop = Utilities.group.next()
+	private let allInet: Bool
 	private var isLiveResize = false
 	private var updateBufferTask: Task<Void, Never>?
 	private var activeConnections: [VNCConnection] {
@@ -65,12 +66,13 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		CFByteOrderGetCurrent() == CFByteOrderLittleEndian.rawValue
 	}
 
-	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0) throws {
+	public init(_ sourceView: NSView, name: String, password: String? = nil, port: UInt16 = 0, allInet: Bool) throws {
 		try newKeyMapper().setupKeyMapper()
 
 		self.sourceView = sourceView
 		self.password = password
 		self.name = name
+		self.allInet = allInet
 
 		if port == 0 {
 			self.port = Self.findAvailablePort(in: 30000...32767) ?? UInt16.random(in: 30000...32767)
@@ -84,11 +86,21 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		super.init()
 	}
 
-	public func connectionURL() -> URL {
+	public var urls: [URL] {
+		if self.allInet {
+			return VZSharedNetwork.networkInterfaces().compactMap { interface in
+				if let password = password {
+					return URL(string: "vnc://:\(password)@\(interface.value.base):\(port)")
+				} else {
+					return URL(string: "vnc://\(interface.value.base):\(port)")
+				}
+			}
+		}
+
 		if let password = password {
-			return URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!
+			return [URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!]
 		} else {
-			return URL(string: "vnc://127.0.0.1:\(port)")!
+			return [URL(string: "vnc://127.0.0.1:\(port)")!]
 		}
 	}
 
@@ -106,7 +118,11 @@ open class VNCServer: NSObject, VZVNCServer, @unchecked Sendable {
 		let tcpOptions = NWProtocolTCP.Options()
 
 		parameters.defaultProtocolStack.transportProtocol = tcpOptions
-		parameters.requiredInterfaceType = .loopback
+
+        // If not allowing all interfaces, restrict to loopback; otherwise listen on all interfaces
+        if allInet == false {
+            parameters.requiredInterfaceType = .loopback
+        }
 
 		listener = try NWListener(using: parameters, on: NWEndpoint.Port(integerLiteral: self.port))
 

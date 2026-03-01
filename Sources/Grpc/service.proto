@@ -536,7 +536,7 @@ message Caked {
 					repeated TunnelInfo tunnels = 14;
 					repeated SocketInfo sockets = 15;
 					CpuInfo cpu = 16;
-					optional string vncURL = 17;
+					repeated string vncURL = 17;
 					string agentVersion = 18;
 					optional string reason = 19;
 					bool success = 20;
@@ -642,6 +642,10 @@ message Caked {
 				optional string reason = 3;
 			}
 
+			message VncURL {
+				repeated string urls = 1;
+			}
+
 			oneof response {
 				VirtualMachineInfoReply list = 1;
 				DeleteReply delete = 2;
@@ -659,7 +663,7 @@ message Caked {
 				PurgeReply purged = 14;
 				RenameReply renamed = 15;
 				RestartReply restarted = 16;
-				string vncURL = 17;
+				VncURL vncURL = 17;
 				InstalledAgentReply installedAgent = 18;
 			}
 		}	

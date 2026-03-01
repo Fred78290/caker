@@ -9,7 +9,7 @@ import CakedLib
 import GRPCLib
 
 extension VncURLHandler {
-	public static func vncURL(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> URL? {
+	public static func vncURL(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> [URL] {
 		guard let client = client, runMode != .app else {
 			return try self.vncURL(name: name, runMode: runMode)
 		}
@@ -18,10 +18,12 @@ extension VncURLHandler {
 			$0.name = name
 		}).response.wait().vms
 		
-		if case .vncURL(let v)? = vms.response {
-			return URL(string: v)
+		if case .vncURL(let value)? = vms.response {
+			return value.urls.compactMap {
+				URL(string: $0)
+			}
 		}
 
-		return nil
+		return []
 	}
 }

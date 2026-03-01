@@ -1630,10 +1630,10 @@ public struct Caked_Caked: Sendable {
         set {response = .restarted(newValue)}
       }
 
-      public var vncURL: String {
+      public var vncURL: Caked_Caked.Reply.VirtualMachineReply.VncURL {
         get {
           if case .vncURL(let v)? = response {return v}
-          return String()
+          return Caked_Caked.Reply.VirtualMachineReply.VncURL()
         }
         set {response = .vncURL(newValue)}
       }
@@ -1665,7 +1665,7 @@ public struct Caked_Caked: Sendable {
         case purged(Caked_Caked.Reply.VirtualMachineReply.PurgeReply)
         case renamed(Caked_Caked.Reply.VirtualMachineReply.RenameReply)
         case restarted(Caked_Caked.Reply.VirtualMachineReply.RestartReply)
-        case vncURL(String)
+        case vncURL(Caked_Caked.Reply.VirtualMachineReply.VncURL)
         case installedAgent(Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply)
 
       }
@@ -2052,14 +2052,10 @@ public struct Caked_Caked: Sendable {
           /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
           public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
-          public var vncURL: String {
-            get {_storage._vncURL ?? String()}
+          public var vncURL: [String] {
+            get {_storage._vncURL}
             set {_uniqueStorage()._vncURL = newValue}
           }
-          /// Returns true if `vncURL` has been explicitly set.
-          public var hasVncURL: Bool {_storage._vncURL != nil}
-          /// Clears the value of `vncURL`. Subsequent reads from it will return its default value.
-          public mutating func clearVncURL() {_uniqueStorage()._vncURL = nil}
 
           public var agentVersion: String {
             get {_storage._agentVersion}
@@ -2854,6 +2850,18 @@ public struct Caked_Caked: Sendable {
         public init() {}
 
         fileprivate var _reason: String? = nil
+      }
+
+      public struct VncURL: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        public var urls: [String] = []
+
+        public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        public init() {}
       }
 
       public init() {}
@@ -7020,10 +7028,15 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
         }
       }()
       case 17: try {
-        var v: String?
-        try decoder.decodeSingularStringField(value: &v)
+        var v: Caked_Caked.Reply.VirtualMachineReply.VncURL?
+        var hadOneofValue = false
+        if let current = self.response {
+          hadOneofValue = true
+          if case .vncURL(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
-          if self.response != nil {try decoder.handleConflictingOneOf()}
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
           self.response = .vncURL(v)
         }
       }()
@@ -7117,7 +7130,7 @@ extension Caked_Caked.Reply.VirtualMachineReply: SwiftProtobuf.Message, SwiftPro
     }()
     case .vncURL?: try {
       guard case .vncURL(let v)? = self.response else { preconditionFailure() }
-      try visitor.visitSingularStringField(value: v, fieldNumber: 17)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
     }()
     case .installedAgent?: try {
       guard case .installedAgent(let v)? = self.response else { preconditionFailure() }
@@ -7664,7 +7677,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
     var _tunnels: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.TunnelInfo] = []
     var _sockets: [Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.SocketInfo] = []
     var _cpu: Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply.CpuInfo? = nil
-    var _vncURL: String? = nil
+    var _vncURL: [String] = []
     var _agentVersion: String = String()
     var _reason: String? = nil
     var _success: Bool = false
@@ -7732,7 +7745,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         case 14: try { try decoder.decodeRepeatedMessageField(value: &_storage._tunnels) }()
         case 15: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
         case 16: try { try decoder.decodeSingularMessageField(value: &_storage._cpu) }()
-        case 17: try { try decoder.decodeSingularStringField(value: &_storage._vncURL) }()
+        case 17: try { try decoder.decodeRepeatedStringField(value: &_storage._vncURL) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._agentVersion) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._reason) }()
         case 20: try { try decoder.decodeSingularBoolField(value: &_storage._success) }()
@@ -7796,9 +7809,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       try { if let v = _storage._cpu {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
       } }()
-      try { if let v = _storage._vncURL {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 17)
-      } }()
+      if !_storage._vncURL.isEmpty {
+        try visitor.visitRepeatedStringField(value: _storage._vncURL, fieldNumber: 17)
+      }
       if !_storage._agentVersion.isEmpty {
         try visitor.visitSingularStringField(value: _storage._agentVersion, fieldNumber: 18)
       }
@@ -9055,6 +9068,36 @@ extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtob
     if lhs.name != rhs.name {return false}
     if lhs.installed != rhs.installed {return false}
     if lhs._reason != rhs._reason {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".VncURL"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}urls\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedStringField(value: &self.urls) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.urls.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.urls, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.VncURL, rhs: Caked_Caked.Reply.VirtualMachineReply.VncURL) -> Bool {
+    if lhs.urls != rhs.urls {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

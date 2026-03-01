@@ -214,7 +214,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var canResume: Bool = false
 	@Published var canRequestStop: Bool = false
 	@Published var suspendable: Bool = false
-	@Published var vncURL: URL? = nil
+	@Published var vncURL: [URL]? = nil
 	@Published var agent = AgentStatus.none
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
@@ -399,7 +399,7 @@ extension VirtualMachineDocument {
 	}
 	
 	@MainActor
-	func setStateAsRunning(suspendable: Bool, vncURL: URL?, _line: UInt = #line, _file: String = #file) {
+	func setStateAsRunning(suspendable: Bool, vncURL: [URL]?, _line: UInt = #line, _file: String = #file) {
 #if DEBUG
 		self.logger.debug("setStateAsRunning, suspendable: \(suspendable) at \(_file):\(_line)")
 #endif
@@ -420,7 +420,7 @@ extension VirtualMachineDocument {
 		}
 	}
 	
-	func setState(suspendable: Bool, status: Status, vncURL: URL? = nil, _line: UInt = #line, _file: String = #file) {
+	func setState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
 #if DEBUG
 		self.logger.debug("setState to \(status) at \(_file):\(_line)")
 #endif
@@ -545,7 +545,7 @@ extension VirtualMachineDocument {
 					let config = try location.config()
 					let vncPassword = config.vncPassword
 					let vncPort = try Utilities.findFreePort()
-					let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")
+					let vncURL: [URL] = [URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")!]
 
 					self.externalRunning = true
 
@@ -576,7 +576,7 @@ extension VirtualMachineDocument {
 
 							let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 							let runningIP = try StartHandler.internalStartVM(location: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service, runMode: .user, promise: promise)
-							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+							let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL
 
 							#if DEBUG
 								self.logger.debug("VM started on \(runningIP)")
@@ -593,7 +593,7 @@ extension VirtualMachineDocument {
 									alertError(error)
 								}
 							} else if self.vncURL == nil {
-								let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL()
+								let url = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: self.location!, runMode: .app).vncURL
 								DispatchQueue.main.async {
 									self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
 								}
@@ -800,7 +800,7 @@ extension VirtualMachineDocument {
 			return
 		}
 
-		if let vncURL = self.vncURL {
+		if let vncURL = VNCServer.findHostMatching(urls: self.vncURL) {
 			// Create settings
 			let vncPort = vncURL.port ?? 5900
 			let vncHost = vncURL.host()!
@@ -892,7 +892,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.logger.debug("Connection need credential")
 		#endif
 
-		if let vncURL = self.vncURL {
+		if let vncURL = VNCServer.findHostMatching(urls: self.vncURL) {
 			if authenticationType.requiresPassword && authenticationType.requiresUsername {
 				if let userName = vncURL.user, let password = vncURL.password {
 					completion(VNCUsernamePasswordCredential(username: userName, password: password))

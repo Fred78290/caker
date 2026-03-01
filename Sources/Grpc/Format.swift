@@ -323,7 +323,7 @@ extension CakeAgentLib.Format {
 		if self == .json {
 			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: data.vncURL))
+			return self.renderSingle(ShortInfoReply(name: data.name, ipaddresses: data.ipaddresses, cpuCount: data.cpuCount, memory: data.memory?.total ?? 0, vncURL: data.vncURL?.first))
 		}
 	}
 

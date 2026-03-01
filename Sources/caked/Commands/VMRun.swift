@@ -134,9 +134,12 @@ struct VMRun: AsyncParsableCommand {
 			}
 
 			if display == .all || display == .vnc {
-				let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort)
+				if let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort) {
+					Logger(self).info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+				} else {
+					Logger(self).info("Failed to start VNC server")
+				}
 
-				Logger(self).info("VNC server started at \(vncURL?.absoluteString ?? "<failed to start VNC server>")")
 			} else if display == .ui {
 				vm.createVirtualMachineView()
 			}

@@ -23,17 +23,11 @@ struct VncURLHandler: CakedCommand {
 
 	mutating func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		do {
-			guard let url = try CakedLib.VncURLHandler.vncURL(name: request.name, runMode: runMode) else {
-				return Caked_Reply.with {
-					$0.vms = .with {
-						$0.vncURL = ""
+			return try Caked_Reply.with {
+				$0.vms = try .with {
+					$0.vncURL = try .with {
+						$0.urls = try CakedLib.VncURLHandler.vncURL(name: request.name, runMode: runMode).map(\.absoluteString)
 					}
-				}
-			}
-
-			return Caked_Reply.with {
-				$0.vms = .with {
-					$0.vncURL = url.absoluteString
 				}
 			}
 		} catch {

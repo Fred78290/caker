@@ -176,7 +176,12 @@ struct VNC: CakeAgentAsyncParsableCommand {
 		let result: VirtualMachineStatusReply = CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
 
 		if result.success {
-			guard let u = result.status.vncURL, let vncURL = URL(string: u), let vncPort = vncURL.port else {
+			guard let vncURL = VNCServer.findHostMatching(urls: result.status.vncURL) else {
+				Logger.appendNewLine("VM \(self.name) does not have a VNC connection")
+				return
+			}
+
+			guard let vncPort = vncURL.port, let vncHost = vncURL.host(percentEncoded: false) else {
 				Logger.appendNewLine("VM \(self.name) does not have a VNC connection")
 				return
 			}
@@ -187,7 +192,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 			// Create settings
 			let settings = VNCConnection.Settings(
 				isDebugLoggingEnabled: true,
-				hostname: "127.0.0.1",
+				hostname: vncHost,
 				port: UInt16(vncPort),
 				isShared: true,
 				isScalingEnabled: true,

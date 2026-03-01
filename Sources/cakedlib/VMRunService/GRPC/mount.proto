@@ -55,7 +55,7 @@ message InstalledAgentReply {
 }
 
 message VNCEndPointReply {
-	optional string vncURL = 1;
+	repeated string vncURL = 1;
 }
 
 message MountVirtioFS {

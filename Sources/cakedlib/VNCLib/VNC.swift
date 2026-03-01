@@ -22,10 +22,42 @@ import Dynamic
 import Foundation
 import Virtualization
 
-extension VZVNCServer {
-	public static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VMView.NSViewType, password: String, port: Int, queue: dispatch_queue_t) throws -> VZVNCServer {
+public extension VZVNCServer {
+	static func createVNCServer(_ virtualMachine: VZVirtualMachine, name: String, view: VMView.NSViewType, password: String, port: Int, allInet: Bool, queue: dispatch_queue_t) throws -> VZVNCServer {
 		//return InternalVNCServer(virtualMachine, view: view, password: password, port: port, queue: queue)
-		return try VNCServer(view, name: name, password: password, port: UInt16(port))
+		return try VNCServer(view, name: name, password: password, port: UInt16(port), allInet: allInet)
+	}
+
+	static func findHostMatching(urls: [String]?) -> URL? {
+		Self.findHostMatching(urls: urls?.compactMap {
+			URL(string: $0)
+		})
+	}
+
+	static func findHostMatching(urls: [URL]?) -> URL? {
+		guard let urls else {
+			return nil
+		}
+
+		let inf = VZSharedNetwork.networkInterfaces()
+
+		guard let found = urls.first(where: {
+			guard let host = $0.host(percentEncoded: false) else {
+				return false
+			}
+
+			guard let ip = IP.V4(host) else {
+				return false
+			}
+
+			return inf.first { inf in
+				inf.value.contains(ip)
+			} != nil
+		}) else {
+			return urls.first
+		}
+
+		return found
 	}
 }
 
@@ -44,10 +76,10 @@ class InternalVNCServer: VZVNCServer {
 		self.view = view
 	}
 
-	func connectionURL() -> URL {
+	var urls: [URL] {
 		while true {
 			if let port = vnc.port.asUInt16, port != 0 {
-				return URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!
+				return [URL(string: "vnc://:\(password)@127.0.0.1:\(port)")!]
 			}
 
 			Thread.sleep(forTimeInterval: 0.05)

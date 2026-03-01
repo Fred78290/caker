@@ -8,10 +8,9 @@ import Virtualization
 
 public protocol VMRunServiceClient {
 	var location: VMLocation { get }
+	var vncURL: [URL] { get }
+	var screenSize: (width: Int, height: Int) { set get }
 
-	func vncURL() throws -> URL?
-	func setScreenSize(width: Int, height: Int) throws
-	func getScreenSize() throws -> (Int, Int)
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos
 	func unshare(mounts: DirectorySharingAttachments) throws -> MountInfos
 	func installAgent(timeout: UInt) throws -> (installed: Bool, reason: String)
@@ -103,7 +102,7 @@ class VMRunService: NSObject {
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
-	var vncURL: URL? {
+	var vncURL: [URL]? {
 		return vm.vncURL
 	}
 

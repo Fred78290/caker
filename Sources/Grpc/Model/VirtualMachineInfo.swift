@@ -68,7 +68,7 @@ public struct VMInformations: Sendable, Codable {
 	public var attachedNetworks: [AttachedNetwork]?
 	public var tunnelInfos: [TunnelInfo]?
 	public var socketInfos: [SocketInfo]?
-	public var vncURL: String?
+	public var vncURL: [String]?
 	public var cpuInfos: CpuInformations?
 	public var agentVersion: String?
 
@@ -237,9 +237,7 @@ public struct VMInformations: Sendable, Codable {
 				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo(from: $0) }
 			}
 
-			if let vncURL = self.vncURL {
-				reply.vncURL = vncURL
-			}
+			reply.vncURL = self.vncURL ?? []
 
 			if let cpuInfos = self.cpuInfos {
 				reply.cpu = .with {

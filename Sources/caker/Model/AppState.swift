@@ -444,7 +444,7 @@ class AppState: ObservableObject, Observable {
 		return defaultSize
 	}
 
-	func vncURL(name: String) -> URL? {
+	func vncURL(name: String) -> [URL]? {
 		try? VncURLHandler.vncURL(client: self.cakedServiceClient, name: name, runMode: self.runMode)
 	}
 
