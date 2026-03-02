@@ -5,15 +5,17 @@ import GRPCLib
 import NIO
 
 public struct InfosHandler {
-	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) -> VirtualMachineStatusReply {
+	/*public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) -> (VirtualMachineStatusReply, config: CakeConfig?) {
 		do {
-			return VirtualMachineStatusReply(status: try self.infos(name: name, runMode: runMode, client: client, callOptions: callOptions), success: true, reason: "Success")
-		} catch {
-			return VirtualMachineStatusReply(status: VMInformations(), success: false, reason: "\(error)")
-		}
-	}
+			let reply: (infos: VMInformations, config: CakeConfig) = try self.infos(name: name, runMode: runMode, client: client, callOptions: callOptions)
 
-	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> VMInformations {
+			return (VirtualMachineStatusReply(status: reply.infos, success: true, reason: "Success"), reply.config)
+		} catch {
+			return (VirtualMachineStatusReply(status: VMInformations(), success: false, reason: "\(error)"), nil)
+		}
+	}*/
+
+	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: CakeConfig) {
 		let location = try StorageLocation(runMode: runMode).find(name)
 		let config: CakeConfig = try location.config()
 		var infos: VMInformations
@@ -57,6 +59,6 @@ public struct InfosHandler {
 		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
 		infos.socketInfos = config.sockets.compactMap { $0.socketInfo }
 
-		return infos
+		return (infos, config)
 	}
 }

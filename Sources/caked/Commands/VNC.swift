@@ -173,10 +173,11 @@ struct VNC: CakeAgentAsyncParsableCommand {
 	}
 
 	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
-		let result: VirtualMachineStatusReply = CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
+		do {
+			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
+			let infos = result.infos
 
-		if result.success {
-			guard let vncURL = VNCServer.findHostMatching(urls: result.status.vncURL) else {
+			guard let vncURL = VNCServer.findHostMatching(urls: infos.vncURL) else {
 				Logger.appendNewLine("VM \(self.name) does not have a VNC connection")
 				return
 			}
@@ -220,8 +221,8 @@ struct VNC: CakeAgentAsyncParsableCommand {
 
 				try? await Task.sleep(nanoseconds: 1000_000_000)
 			}
-		} else {
-			Logger.appendNewLine(self.common.format.render(result.reason))
+		} catch {
+			Logger.appendNewLine(self.common.format.render("\(error)"))
 		}
 	}
 }

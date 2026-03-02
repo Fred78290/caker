@@ -34,7 +34,7 @@ extension Caked_RunReply {
 }
 
 extension Cakeagent_CakeAgent.InfoReply.CpuCoreInfo {
-	var caked: Caked_InfoReply.CpuCoreInfo {
+	var caked: Caked.CpuCoreInfo {
 		.with {
 			$0.coreID = self.coreID
 			$0.usagePercent = self.usagePercent
@@ -52,7 +52,7 @@ extension Cakeagent_CakeAgent.InfoReply.CpuCoreInfo {
 }
 
 extension Cakeagent_CakeAgent.InfoReply.CpuInfo {
-	var caked: Caked_InfoReply.CpuInfo {
+	var caked: Caked.CpuInfo {
 		.with {
 			$0.totalUsagePercent = self.totalUsagePercent
 			$0.user = self.user
@@ -107,9 +107,6 @@ extension Cakeagent_CakeAgent.InfoReply {
 					memory.used = mem.used
 				}
 			}
-
-			$0.success = true
-			$0.reason = "Success"
 		}
 	}
 }

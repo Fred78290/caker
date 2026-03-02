@@ -21,7 +21,7 @@ struct Infos: GrpcParsableCommand {
 		let result = try client.info(Caked_InfoRequest(command: self), callOptions: callOptions).response.wait().vms.status
 
 		if result.success {
-			return self.format.render(result.status)
+			return self.format.render(result.infos)
 		} else {
 			return self.format.render(result.reason)
 		}
