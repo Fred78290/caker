@@ -455,12 +455,6 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `hardwareModel`. Subsequent reads from it will return its default value.
     public mutating func clearHardwareModel() {_uniqueStorage()._hardwareModel = nil}
 
-    /// System flags
-    public var installAgent: Bool {
-      get {_storage._installAgent}
-      set {_uniqueStorage()._installAgent = newValue}
-    }
-
     public var unknownFields = SwiftProtobuf.UnknownStorage()
 
     /// VirtualizedOS represents the type of virtualized operating system
@@ -5496,7 +5490,7 @@ extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageI
 
 extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0\u{1}installAgent\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -5541,7 +5535,6 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _ifname: Bool = false
     var _ecid: String? = nil
     var _hardwareModel: String? = nil
-    var _installAgent: Bool = false
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -5594,7 +5587,6 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
       _ifname = source._ifname
       _ecid = source._ecid
       _hardwareModel = source._hardwareModel
-      _installAgent = source._installAgent
     }
   }
 
@@ -5655,7 +5647,6 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 40: try { try decoder.decodeSingularBoolField(value: &_storage._ifname) }()
         case 41: try { try decoder.decodeSingularStringField(value: &_storage._ecid) }()
         case 42: try { try decoder.decodeSingularStringField(value: &_storage._hardwareModel) }()
-        case 43: try { try decoder.decodeSingularBoolField(value: &_storage._installAgent) }()
         default: break
         }
       }
@@ -5794,9 +5785,6 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
       try { if let v = _storage._hardwareModel {
         try visitor.visitSingularStringField(value: v, fieldNumber: 42)
       } }()
-      if _storage._installAgent != false {
-        try visitor.visitSingularBoolField(value: _storage._installAgent, fieldNumber: 43)
-      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -5848,7 +5836,6 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         if _storage._ifname != rhs_storage._ifname {return false}
         if _storage._ecid != rhs_storage._ecid {return false}
         if _storage._hardwareModel != rhs_storage._hardwareModel {return false}
-        if _storage._installAgent != rhs_storage._installAgent {return false}
         return true
       }
       if !storagesAreEqual {return false}

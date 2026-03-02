@@ -6,6 +6,55 @@ import CakeAgentLib
 
 public typealias DisplaySize = [String: Int]
 
+public protocol VirtualMachineConfiguration {
+	var locationURL: URL { get }
+	var version: Int { set get }
+	var os: VirtualizedOS { set get }
+	var arch: Architecture { set get }
+	var cpuCountMin: Int { set get }
+	var suspendable: Bool { set get }
+	var cpuCount: Int { set get }
+	var memorySizeMin: UInt64 { set get }
+	var memorySize: UInt64 { set get }
+	var macAddress: VZMACAddress? { set get }
+	var source: VMBuilder.ImageSource { set get }
+	var osName: String? { set get }
+	var osRelease: String? { set get }
+	var dynamicPortForwarding: Bool { set get }
+	var displayRefit: Bool { set get }
+	var instanceID: String { set get }
+	var dhcpClientID: String? { set get }
+	var sshPrivateKeyPath: String? { set get }
+	var sshPrivateKeyPassphrase: String? { set get }
+	var configuredUser: String { set get }
+	var configuredPassword: String? { set get }
+	var configuredGroup: String { set get }
+	var configuredGroups: [String]? { set get }
+	var configuredPlatform: SupportedPlatform { set get }
+	var clearPassword: Bool { set get }
+	var ifname: Bool { set get }
+	var autostart: Bool { set get }
+	var agent: Bool { set get }
+	var firstLaunch: Bool { set get }
+	var nested: Bool { set get }
+	var attachedDisks: [DiskAttachement] { set get }
+	var mounts: DirectorySharingAttachments { set get }
+	var networks: [BridgeAttachement] { set get }
+	var useCloudInit: Bool { set get }
+	var sockets: [SocketDevice] { set get }
+	var console: ConsoleAttachment? { set get }
+	var forwardedPorts: [TunnelAttachement] { set get }
+	var runningIP: String? { set get }
+	var display: DisplaySize { set get }
+	var vncPassword: String { set get }
+	
+	#if arch(arm64)
+	var ecid: VZMacMachineIdentifier  { set get }
+	var hardwareModel: VZMacHardwareModel? { set get }
+	#endif
+
+}
+
 extension DisplaySize {
 	public var cgSize: CGSize {
 		CGSize(width: CGFloat(width), height: CGFloat(height))
@@ -43,10 +92,14 @@ public enum VirtualizedOS: String, Codable {
 	case linux
 }
 
-public final class CakeConfig {
+public final class CakeConfig: VirtualMachineConfiguration {
 	var config: Config
 	var cake: Config
-	let location: URL
+	var location: URL
+
+	public var locationURL: URL {
+		self.location
+	}
 
 	internal final class Config {
 		var data: [String: Any]
@@ -256,7 +309,6 @@ public final class CakeConfig {
 		get { self.cake["configuredGroups"] as? [String] }
 	}
 
-
 	public var configuredPlatform: SupportedPlatform {
 		set { self.cake["configuredPlatform"] = newValue.rawValue }
 		get { SupportedPlatform(stringValue: self.cake["configuredPlatform"] as? String) }
@@ -337,21 +389,6 @@ public final class CakeConfig {
 		}
 	}
 
-	public var qualifiedNetworks: [BridgeAttachement] {
-		let networks = self.networks
-		var attachedNetworks: [BridgeAttachement] = []
-
-		if let nat = networks.first(where: { $0.isNAT() }) {
-			attachedNetworks.append(nat)
-		} else {
-			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress?.string))
-		}
-
-		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
-
-		return attachedNetworks
-	}
-
 	public var useCloudInit: Bool {
 		set { self.cake["cloud-init"] = newValue }
 		get { self.cake["cloud-init"] as? Bool ?? false }
@@ -395,61 +432,9 @@ public final class CakeConfig {
 		get { self.cake["runningIP"] as? String ?? nil }
 	}
 
-	public var nestedVirtualization: Bool {
-		if self.os == .linux && Utils.isNestedVirtualizationSupported() {
-			return self.nested
-		}
-
-		return false
-	}
-
 	public var display: DisplaySize {
 		set { self.config["display"] = newValue }
 		get { self.config["display"] as! DisplaySize }
-	}
-
-	public var linuxMounts: String {
-		guard self.os == .linux else {
-			return ""
-		}
-
-		return self.mounts.compactMap { mount in
-			let target: String
-
-			if let destination = mount.destination {
-				target = "\(mount.name):\(destination)"
-			} else {
-				target = "\(mount.name):/mnt/shared/\(mount.human)"
-			}
-
-			let options = mount.options.joined(separator: ",")
-
-			if options.isEmpty {
-				return "--mount=\(target)"
-			}
-
-			return "--mount=\(target),\(options)"
-		}.joined(separator: " ")
-	}
-
-	public var installAgent: Bool {
-		let source = self.source
-
-		if self.agent {
-			return false
-		}
-
-		#if arch(arm64)
-			if self.firstLaunch {
-				return source != .iso && source != .ipsw
-			} else if source == .iso || source == .ipsw {
-				return true
-			}
-
-			return false
-		#else
-			return self.firstLaunch && source != .iso
-		#endif
 	}
 
 	public var vncPassword: String {
@@ -599,7 +584,74 @@ public final class CakeConfig {
 	}
 }
 
-extension CakeConfig {
+extension VirtualMachineConfiguration {
+	public var nestedVirtualization: Bool {
+		if self.os == .linux && Utils.isNestedVirtualizationSupported() {
+			return self.nested
+		}
+
+		return false
+	}
+
+	public var installAgent: Bool {
+		let source = self.source
+
+		if self.agent {
+			return false
+		}
+
+		#if arch(arm64)
+			if self.firstLaunch {
+				return source != .iso && source != .ipsw
+			} else if source == .iso || source == .ipsw {
+				return true
+			}
+
+			return false
+		#else
+			return self.firstLaunch && source != .iso
+		#endif
+	}
+
+	public var linuxMounts: String {
+		guard self.os == .linux else {
+			return ""
+		}
+
+		return self.mounts.compactMap { mount in
+			let target: String
+
+			if let destination = mount.destination {
+				target = "\(mount.name):\(destination)"
+			} else {
+				target = "\(mount.name):/mnt/shared/\(mount.human)"
+			}
+
+			let options = mount.options.joined(separator: ",")
+
+			if options.isEmpty {
+				return "--mount=\(target)"
+			}
+
+			return "--mount=\(target),\(options)"
+		}.joined(separator: " ")
+	}
+
+	public var qualifiedNetworks: [BridgeAttachement] {
+		let networks = self.networks
+		var attachedNetworks: [BridgeAttachement] = []
+
+		if let nat = networks.first(where: { $0.isNAT() }) {
+			attachedNetworks.append(nat)
+		} else {
+			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress?.string))
+		}
+
+		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
+
+		return attachedNetworks
+	}
+
 	public func startNetworkServices(runMode: Utils.RunMode) throws {
 		try NetworksHandler.startNetworkServices(networks: self.networks, runMode: runMode)
 	}
@@ -658,12 +710,12 @@ extension CakeConfig {
 	}
 
 	public func additionalDiskAttachments() throws -> [VZStorageDeviceConfiguration] {
-		let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: self.location).absoluteURL
+		let cloudInit = URL(fileURLWithPath: cloudInitIso, relativeTo: self.locationURL).absoluteURL
 		var attachedDisks: [VZStorageDeviceConfiguration] = []
 
 		attachedDisks.append(
 			contentsOf: self.attachedDisks.compactMap {
-				try? $0.configuration(relativeTo: self.location)
+				try? $0.configuration(relativeTo: self.locationURL)
 			})
 
 		if try cloudInit.exists() {
@@ -698,7 +750,7 @@ extension CakeConfig {
 
 	public func consoleAttachment() throws -> URL? {
 		if let console = self.console {
-			return try console.consoleURL(vmDir: self.location)
+			return try console.consoleURL(vmDir: self.locationURL)
 		}
 
 		return nil

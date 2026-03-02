@@ -305,9 +305,6 @@ message Caked {
 	// Mac-specific configuration
     optional string ecid          = 41;
     optional string hardwareModel = 42;
-
-	// System flags
-    bool installAgent = 43;
   }
 
   message ScreenSize {

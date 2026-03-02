@@ -158,6 +158,12 @@ public struct DiskAttachement: CustomStringConvertible, ExpressibleByArgument, C
 			return options.joined(separator: ",")
 		}
 
+		public init(readOnly: Bool = false, syncMode: String = "none", cachingMode: String = VZDiskImageCachingMode.automatic.description) {
+			self.readOnly = readOnly
+			self.syncMode = syncMode
+			self.cachingMode = cachingMode
+		}
+
 		static func parseOptions(_ parseFrom: String) -> (DiskOptions, Bool) {
 			let options = parseFrom.split(separator: ",")
 			var readOnly: Bool = false

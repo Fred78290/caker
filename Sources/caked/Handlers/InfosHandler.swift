@@ -271,8 +271,6 @@ extension CakeConfig {
 				$0.hardwareModel = hardwareModel.dataRepresentation.base64EncodedString()
 			}
 			#endif
-
-			$0.installAgent = self.installAgent
 		}
 	}
 }
