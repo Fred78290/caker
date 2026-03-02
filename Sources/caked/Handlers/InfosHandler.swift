@@ -169,7 +169,7 @@ extension Caked_Caked.Configuration.TunnelAttachement {
 }
 
 extension Caked_Caked.Configuration.ImageSource {
-	init(_ source: VMBuilder.ImageSource) {
+	init(_ source: ImageSource) {
 		switch source {
 		case .raw:
 			self = .raw

@@ -201,7 +201,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 	@Published var configValid: Bool
 	@Published var password: String
 	@Published var showPassword: Bool
-	@Published var imageSource: VMBuilder.ImageSource
+	@Published var imageSource: ImageSource
 	@Published var remoteImage: String
 	@Published var remoteImages: [ShortImageInfo]
 	@Published var selectedRemoteImage: String
@@ -762,7 +762,7 @@ struct VirtualMachineWizard: View {
 				LabeledContent("Image source") {
 					HStack {
 						Picker("Image source", selection: $model.imageSource) {
-							ForEach(VMBuilder.ImageSource.allCases, id: \.self) { source in
+							ForEach(ImageSource.allCases, id: \.self) { source in
 								Text(source.description).tag(source)
 							}
 						}.onChange(of: self.model.imageSource) { _, newValue in

@@ -32,7 +32,7 @@ extension Architecture {
 	}
 }
 
-extension VMBuilder.ImageSource {
+extension ImageSource {
 	public init?(_ from: Caked.Configuration.ImageSource) {
 		switch from {
 		case .raw:
@@ -168,7 +168,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration {
 	public var memorySizeMin: UInt64
 	public var memorySize: UInt64
 	public var macAddress: VZMACAddress?
-	public var source: VMBuilder.ImageSource
+	public var source: ImageSource
 	public var osName: String?
 	public var osRelease: String?
 	public var dynamicPortForwarding: Bool

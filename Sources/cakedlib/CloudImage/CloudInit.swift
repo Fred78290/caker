@@ -853,40 +853,6 @@ enum Sudo: Codable {
 	}
 }
 
-public enum SupportedPlatform: String, CaseIterable {
-	case ubuntu
-	case centos
-	case macos
-	case windows
-	case debian
-	case fedora
-	case redhat
-	case openSUSE
-	case alpine
-	case unknown
-
-	public init(rawValue: String) {
-		let rawValue = rawValue.lowercased()
-		let value = Self.allCases.first {
-			rawValue.contains($0.rawValue)
-		}
-
-		if let value = value {
-			self = value
-		} else {
-			self = .unknown
-		}
-	}
-
-	public init(stringValue: String?) {
-		if let rawValue = stringValue {
-			self.init(rawValue: rawValue)
-		} else {
-			self = .unknown
-		}
-	}
-}
-
 class CloudInit {
 	var userData: Data?
 	var vendorData: Data?

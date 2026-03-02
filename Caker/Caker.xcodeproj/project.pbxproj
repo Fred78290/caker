@@ -228,6 +228,8 @@
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
 		9BA22F102E250F6900172D25 /* VirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA22F0F2E250F6900172D25 /* VirtualMachineView.swift */; };
+		9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */; };
+		9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */; };
 		9BA941172F3C891100B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941162F3C890C00B51543 /* PingHandler.swift */; };
 		9BA941192F3C896F00B51543 /* PingHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA941182F3C896E00B51543 /* PingHandler.swift */; };
 		9BA9411B2F3C9A0A00B51543 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */; };
@@ -811,6 +813,8 @@
 		9BA22FFD2E26512500172D25 /* CoreAudioTypes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioTypes.framework; path = System/Library/Frameworks/CoreAudioTypes.framework; sourceTree = SDKROOT; };
 		9BA22FFE2E26512500172D25 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = System/Library/Frameworks/CoreAudioKit.framework; sourceTree = SDKROOT; };
+		9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineConfiguration.swift; sourceTree = "<group>"; };
+		9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSource.swift; sourceTree = "<group>"; };
 		9BA941162F3C890C00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA941182F3C896E00B51543 /* PingHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingHandler.swift; sourceTree = "<group>"; };
 		9BA9411A2F3C99FB00B51543 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
@@ -1531,10 +1535,12 @@
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
 				9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */,
+				9BA7B0232F5601DD004AFAE8 /* ImageSource.swift */,
 				9BE2E7BF2D5F85ED000CA07F /* PIDLock.swift */,
 				9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */,
 				9B464AD82D5A3E0300164BF5 /* service.grpc.swift */,
 				9B464AD92D5A3E0300164BF5 /* service.pb.swift */,
+				9BA7B0212F56010C004AFAE8 /* VirtualMachineConfiguration.swift */,
 				9B21ABD12DF4A2C5000B3B40 /* Model */,
 				9BB3BE1C2DB3F17500799A6A /* options */,
 			);
@@ -2565,9 +2571,11 @@
 				9BB3BE292DB3F17500799A6A /* ConfigureOptions.swift in Sources */,
 				9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */,
 				9BB3BE2A2DB3F17500799A6A /* WaitIPOptions.swift in Sources */,
+				9BA7B0242F5601DF004AFAE8 /* ImageSource.swift in Sources */,
 				9BF8AE6A2F43915700DE5EAB /* CakedChannelStreamer.swift in Sources */,
 				9BB3BE2B2DB3F17500799A6A /* RenameOptions.swift in Sources */,
 				9BB3BE2C2DB3F17500799A6A /* StopOptions.swift in Sources */,
+				9BA7B0222F56010F004AFAE8 /* VirtualMachineConfiguration.swift in Sources */,
 				9BB3BE2D2DB3F17500799A6A /* UmountOptions.swift in Sources */,
 				9BB3BE2E2DB3F17500799A6A /* RemoteOptions.swift in Sources */,
 				9BB3BE2F2DB3F17500799A6A /* PullOptions.swift in Sources */,

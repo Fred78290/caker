@@ -31,7 +31,7 @@ struct VirtualMachineConfig: Hashable {
 	var mounts: DirectorySharingAttachments = []
 	var vmname: String! = nil
 	var agent: Bool = false
-	var source: VMBuilder.ImageSource = .raw
+	var source: ImageSource = .raw
 	var firstLaunch: Bool = false
 
 	var imageName: String
