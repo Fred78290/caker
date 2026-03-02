@@ -116,6 +116,9 @@ struct Client: AsyncParsableCommand {
 		@Option(name: [.customLong("tls-key")], help: ArgumentHelp("Client private key", valueName: "path"))
 		public var tlsKey: String? = nil
 
+		@Option(name: [.customLong("log-level")], help: "Log level")
+		public var logLevel: Logger.LogLevel = .info
+
 		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakedServiceClient) {
 			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 			let connection = try Caked.createClient(
@@ -162,6 +165,8 @@ struct Client: AsyncParsableCommand {
 		}
 
 		mutating func validate() throws {
+			Logger.setLevel(self.logLevel)
+
 			if self.insecure {
 				self.caCert = nil
 				self.tlsCert = nil
