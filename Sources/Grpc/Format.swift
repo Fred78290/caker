@@ -182,7 +182,7 @@ extension InfoReply {
 			}
 
 			if let memory = self.memory {
-				reply.memory = Caked_InfoReply.MemoryInfo.with {
+				reply.memory = Caked.MemoryInfo.with {
 					if let total = memory.total {
 						$0.total = total
 					}

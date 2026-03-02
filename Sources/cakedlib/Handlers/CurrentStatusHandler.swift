@@ -70,13 +70,13 @@ public struct CurrentStatusHandler {
 			await monitorCurrentUsage()
 		}
 
-		func cancel(_line: UInt = #line, _file: String = #file) {
+		func cancel() {
 			guard self.isMonitoring else {
 				return
 			}
 
 			self.isMonitoring = false
-			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.location.name), \(_file):\(_line)")
+			self.logger.debug("Cancel monitoring current CPU usage, VM: \(self.location.name)")
 
 			if let stream {
 				stream.continuation.finish(throwing: CancellationError())

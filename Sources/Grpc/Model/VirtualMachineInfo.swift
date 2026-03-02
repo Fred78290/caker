@@ -169,8 +169,6 @@ public struct VMInformations: Sendable, Codable {
 
 	public var caked: Caked_InfoReply {
 		Caked_InfoReply.with { reply in
-			reply.success = true
-			reply.reason = "Success"
 			reply.name = self.name
 			reply.diskInfos = self.diskInfos.map { diskInfos in
 				Caked_InfoReply.DiskInfo.with {
@@ -192,7 +190,7 @@ public struct VMInformations: Sendable, Codable {
 			}
 
 			if let memory = self.memory {
-				reply.memory = Caked_InfoReply.MemoryInfo.with {
+				reply.memory = Caked.MemoryInfo.with {
 					if let total = memory.total {
 						$0.total = total
 					}
@@ -872,12 +870,12 @@ public struct ShortVirtualMachineInfo: Codable {
 }
 
 public struct VirtualMachineStatusReply: Codable {
-	public let status: VMInformations
+	public let infos: VMInformations
 	public let success: Bool
 	public let reason: String
 
-	public init(status: VMInformations, success: Bool, reason: String) {
-		self.status = status
+	public init(infos: VMInformations, success: Bool, reason: String) {
+		self.infos = infos
 		self.success = success
 		self.reason = reason
 	}
@@ -885,12 +883,12 @@ public struct VirtualMachineStatusReply: Codable {
 	public init(from: Caked_VirtualMachineStatusReply) throws {
 		self.success = from.success
 		self.reason = from.reason
-		self.status = VMInformations(from: from.status)
+		self.infos = VMInformations(from: from.infos)
 	}
 
 	public var caked: Caked_VirtualMachineStatusReply {
 		Caked_VirtualMachineStatusReply.with {
-			$0.status = self.status.caked
+			$0.infos = self.infos.caked
 			$0.success = self.success
 			$0.reason = self.reason
 		}

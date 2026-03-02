@@ -10,6 +10,23 @@ public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
 	case udp = "udp"  // Listen on udp socket
 	case fd = "fd"  // File descriptor
 
+	public init?(_ from: Int32) {
+		switch from {
+		case 0:
+			self = .bind
+		case 1:
+			self = .connect
+		case 2:
+			self = .tcp
+		case 3:
+			self = .udp
+		case 4:
+			self = .fd
+		default:
+			return nil
+		}
+	}
+
 	public var description: String {
 		switch self {
 		case .bind:
@@ -25,7 +42,7 @@ public enum SocketMode: String, CustomStringConvertible, Codable, CaseIterable {
 		}
 	}
 
-	var intValue: Int {
+	public var intValue: Int {
 		switch self {
 		case .bind:
 			return 0
