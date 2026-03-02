@@ -294,7 +294,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	init(location: VMLocation) throws {
-		let config = try VirtualMachineConfig(location: location)
+		let config = try VirtualMachineConfig(name: location.name, config: location.config())
 		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 		
 		self.name = location.name
@@ -478,7 +478,7 @@ extension VirtualMachineDocument {
 #endif
 		
 		do {
-			self.virtualMachineConfig = try VirtualMachineConfig(location: location)
+			self.virtualMachineConfig = try VirtualMachineConfig(name: location.name, config: location.config())
 			self.location = location
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
 			self.name = location.name

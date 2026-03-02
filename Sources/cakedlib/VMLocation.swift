@@ -96,7 +96,13 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public func config() throws -> CakeConfig {
-		try CakeConfig(location: self.rootURL)
+		let config = try CakeConfig(location: self.rootURL)
+
+		if let diskSize = try? self.diskURL.fileSize() {
+			config.diskSize = Int(diskSize)
+		}
+
+		return config
 	}
 
 	public var status: Status {

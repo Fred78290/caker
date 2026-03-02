@@ -251,60 +251,60 @@ message Caked {
     SupportedPlatform configured_platform = 6;
     optional string   osName              = 7;
     optional string   osRelease           = 8;
-
+    uint32            diskSize            = 9;
 	// CPU and memory configuration
-    int32  cpuCount      = 9;
-    int32  cpuCountMin   = 10;
-    uint64 memorySize    = 11;
-    uint64 memorySizeMin = 12;
+    int32  cpuCount      = 10;
+    int32  cpuCountMin   = 11;
+    uint64 memorySize    = 12;
+    uint64 memorySizeMin = 13;
 
 	// Network configuration
-    string                    macAddress            = 13;
-    repeated BridgeAttachment networks              = 14;
-    bool                      dynamicPortForwarding = 15;
+    string                    macAddress            = 14;
+    repeated BridgeAttachment networks              = 15;
+    bool                      dynamicPortForwarding = 16;
 
 	// Display configuration
-    ScreenSize display      = 16;
-    bool       displayRefit = 17;
+    ScreenSize display      = 17;
+    bool       displayRefit = 18;
 
 	// Storage configuration
-    repeated DirectorySharingAttachment mounts        = 18;
-    repeated DiskAttachment             attachedDisks = 19;
-    repeated SocketDevice               sockets       = 20;
-    optional ConsoleAttachment          console       = 21;
+    repeated DirectorySharingAttachment mounts        = 19;
+    repeated DiskAttachment             attachedDisks = 20;
+    repeated SocketDevice               sockets       = 21;
+    optional ConsoleAttachment          console       = 22;
 
 	// Port forwarding
-    repeated TunnelAttachement forwardedPorts = 22;
+    repeated TunnelAttachement forwardedPorts = 23;
 
 	// User and authentication
-    string          configuredUser          = 23;
-    optional string configuredPassword      = 24;
-    string          configuredGroup         = 25;
-    repeated string configuredGroups        = 26;
-    optional string sshPrivateKeyPath       = 27;
-    optional string sshPrivateKeyPassphrase = 28;
-    bool            clearPassword           = 29;
+    string          configuredUser          = 24;
+    optional string configuredPassword      = 25;
+    string          configuredGroup         = 26;
+    repeated string configuredGroups        = 27;
+    optional string sshPrivateKeyPath       = 28;
+    optional string sshPrivateKeyPassphrase = 29;
+    bool            clearPassword           = 30;
 
 	// Image and source configuration
-    ImageSource     source       = 30;
-    optional string dhcpClientID = 31;
+    ImageSource     source       = 31;
+    optional string dhcpClientID = 32;
 
 	// VNC and remote access
-    string          vncPassword = 32;
-    optional string runningIP   = 33;
+    string          vncPassword = 33;
+    optional string runningIP   = 34;
 
 	// Behavioral flags
-    bool useCloudInit = 34;
-    bool autostart    = 35;
-    bool agent        = 36;
-    bool firstLaunch  = 37;
-    bool nested       = 38;
-    bool suspendable  = 39;
-    bool ifname       = 40;
+    bool useCloudInit = 35;
+    bool autostart    = 36;
+    bool agent        = 37;
+    bool firstLaunch  = 38;
+    bool nested       = 39;
+    bool suspendable  = 40;
+    bool ifname       = 41;
 
 	// Mac-specific configuration
-    optional string ecid          = 41;
-    optional string hardwareModel = 42;
+    optional string ecid          = 42;
+    optional string hardwareModel = 43;
   }
 
   message ScreenSize {

@@ -204,7 +204,7 @@ extension CakeConfig {
 			if let osRelease {
 				$0.osRelease = osRelease
 			}
-			
+			$0.diskSize = UInt32(self.diskSize)
 			$0.cpuCount = Int32(self.cpuCount)
 			$0.cpuCountMin = Int32(self.cpuCountMin)
 			$0.memorySize = UInt64(self.memorySize)

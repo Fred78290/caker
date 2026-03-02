@@ -87,9 +87,7 @@ struct VirtualMachineConfig: Hashable {
 		}
 	}
 
-	init(location: VMLocation) throws {
-		let config = try location.config()
-
+	init(name: String, config: VirtualMachineConfiguration) throws {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
 		self.cpuCount = config.cpuCount
@@ -106,13 +104,13 @@ struct VirtualMachineConfig: Hashable {
 		self.networks = config.networks
 		self.attachedDisks = config.attachedDisks
 		self.mounts = config.mounts
-		self.vmname = location.name
+		self.vmname = name
 		self.configuredUser = config.configuredUser
 		self.configuredPassword = config.configuredPassword
 		self.mainGroup = config.configuredGroup
 		self.otherGroups = config.configuredGroups
 		self.clearPassword = true
-		self.diskSize = UInt16(try location.diskURL.fileSize() / (1024 * 1024 * 1024))
+		self.diskSize = UInt16(config.diskSize / (1024 * 1024 * 1024))
 		self.agent = config.agent
 		self.firstLaunch = config.firstLaunch
 		self.source = config.source
@@ -130,10 +128,6 @@ struct VirtualMachineConfig: Hashable {
 		let location = try StorageLocation(runMode: .app).find(name)
 		let config = try location.config()
 
-		try self.save(config: config)
-	}
-
-	func save(config: CakeConfig) throws {
 		config.cpuCount = self.cpuCount
 		config.memorySize = self.memorySize * (1024 * 1024)
 		config.macAddress = self.macAddress.isEmpty ? nil : VZMACAddress(string: self.macAddress)

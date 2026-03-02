@@ -239,6 +239,11 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `osRelease`. Subsequent reads from it will return its default value.
     public mutating func clearOsRelease() {_uniqueStorage()._osRelease = nil}
 
+    public var diskSize: UInt32 {
+      get {_storage._diskSize}
+      set {_uniqueStorage()._diskSize = newValue}
+    }
+
     /// CPU and memory configuration
     public var cpuCount: Int32 {
       get {_storage._cpuCount}
@@ -5490,7 +5495,7 @@ extension Caked_Caked.MemoryInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageI
 
 extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.protoMessageName + ".Configuration"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}name\0\u{1}instanceID\0\u{1}os\0\u{1}arch\0\u{3}configured_platform\0\u{1}osName\0\u{1}osRelease\0\u{1}diskSize\0\u{1}cpuCount\0\u{1}cpuCountMin\0\u{1}memorySize\0\u{1}memorySizeMin\0\u{1}macAddress\0\u{1}networks\0\u{1}dynamicPortForwarding\0\u{1}display\0\u{1}displayRefit\0\u{1}mounts\0\u{1}attachedDisks\0\u{1}sockets\0\u{1}console\0\u{1}forwardedPorts\0\u{1}configuredUser\0\u{1}configuredPassword\0\u{1}configuredGroup\0\u{1}configuredGroups\0\u{1}sshPrivateKeyPath\0\u{1}sshPrivateKeyPassphrase\0\u{1}clearPassword\0\u{1}source\0\u{1}dhcpClientID\0\u{1}vncPassword\0\u{1}runningIP\0\u{1}useCloudInit\0\u{1}autostart\0\u{1}agent\0\u{1}firstLaunch\0\u{1}nested\0\u{1}suspendable\0\u{1}ifname\0\u{1}ecid\0\u{1}hardwareModel\0")
 
   fileprivate class _StorageClass {
     var _version: Int32 = 0
@@ -5501,6 +5506,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _configuredPlatform: Caked_Caked.Configuration.SupportedPlatform = .undefined
     var _osName: String? = nil
     var _osRelease: String? = nil
+    var _diskSize: UInt32 = 0
     var _cpuCount: Int32 = 0
     var _cpuCountMin: Int32 = 0
     var _memorySize: UInt64 = 0
@@ -5553,6 +5559,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
       _configuredPlatform = source._configuredPlatform
       _osName = source._osName
       _osRelease = source._osRelease
+      _diskSize = source._diskSize
       _cpuCount = source._cpuCount
       _cpuCountMin = source._cpuCountMin
       _memorySize = source._memorySize
@@ -5613,40 +5620,41 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 6: try { try decoder.decodeSingularEnumField(value: &_storage._configuredPlatform) }()
         case 7: try { try decoder.decodeSingularStringField(value: &_storage._osName) }()
         case 8: try { try decoder.decodeSingularStringField(value: &_storage._osRelease) }()
-        case 9: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCount) }()
-        case 10: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCountMin) }()
-        case 11: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySize) }()
-        case 12: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySizeMin) }()
-        case 13: try { try decoder.decodeSingularStringField(value: &_storage._macAddress) }()
-        case 14: try { try decoder.decodeRepeatedMessageField(value: &_storage._networks) }()
-        case 15: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
-        case 16: try { try decoder.decodeSingularMessageField(value: &_storage._display) }()
-        case 17: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
-        case 18: try { try decoder.decodeRepeatedMessageField(value: &_storage._mounts) }()
-        case 19: try { try decoder.decodeRepeatedMessageField(value: &_storage._attachedDisks) }()
-        case 20: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
-        case 21: try { try decoder.decodeSingularMessageField(value: &_storage._console) }()
-        case 22: try { try decoder.decodeRepeatedMessageField(value: &_storage._forwardedPorts) }()
-        case 23: try { try decoder.decodeSingularStringField(value: &_storage._configuredUser) }()
-        case 24: try { try decoder.decodeSingularStringField(value: &_storage._configuredPassword) }()
-        case 25: try { try decoder.decodeSingularStringField(value: &_storage._configuredGroup) }()
-        case 26: try { try decoder.decodeRepeatedStringField(value: &_storage._configuredGroups) }()
-        case 27: try { try decoder.decodeSingularStringField(value: &_storage._sshPrivateKeyPath) }()
-        case 28: try { try decoder.decodeSingularStringField(value: &_storage._sshPrivateKeyPassphrase) }()
-        case 29: try { try decoder.decodeSingularBoolField(value: &_storage._clearPassword_p) }()
-        case 30: try { try decoder.decodeSingularEnumField(value: &_storage._source) }()
-        case 31: try { try decoder.decodeSingularStringField(value: &_storage._dhcpClientID) }()
-        case 32: try { try decoder.decodeSingularStringField(value: &_storage._vncPassword) }()
-        case 33: try { try decoder.decodeSingularStringField(value: &_storage._runningIp) }()
-        case 34: try { try decoder.decodeSingularBoolField(value: &_storage._useCloudInit) }()
-        case 35: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
-        case 36: try { try decoder.decodeSingularBoolField(value: &_storage._agent) }()
-        case 37: try { try decoder.decodeSingularBoolField(value: &_storage._firstLaunch) }()
-        case 38: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
-        case 39: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
-        case 40: try { try decoder.decodeSingularBoolField(value: &_storage._ifname) }()
-        case 41: try { try decoder.decodeSingularStringField(value: &_storage._ecid) }()
-        case 42: try { try decoder.decodeSingularStringField(value: &_storage._hardwareModel) }()
+        case 9: try { try decoder.decodeSingularUInt32Field(value: &_storage._diskSize) }()
+        case 10: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCount) }()
+        case 11: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCountMin) }()
+        case 12: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySize) }()
+        case 13: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySizeMin) }()
+        case 14: try { try decoder.decodeSingularStringField(value: &_storage._macAddress) }()
+        case 15: try { try decoder.decodeRepeatedMessageField(value: &_storage._networks) }()
+        case 16: try { try decoder.decodeSingularBoolField(value: &_storage._dynamicPortForwarding) }()
+        case 17: try { try decoder.decodeSingularMessageField(value: &_storage._display) }()
+        case 18: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
+        case 19: try { try decoder.decodeRepeatedMessageField(value: &_storage._mounts) }()
+        case 20: try { try decoder.decodeRepeatedMessageField(value: &_storage._attachedDisks) }()
+        case 21: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
+        case 22: try { try decoder.decodeSingularMessageField(value: &_storage._console) }()
+        case 23: try { try decoder.decodeRepeatedMessageField(value: &_storage._forwardedPorts) }()
+        case 24: try { try decoder.decodeSingularStringField(value: &_storage._configuredUser) }()
+        case 25: try { try decoder.decodeSingularStringField(value: &_storage._configuredPassword) }()
+        case 26: try { try decoder.decodeSingularStringField(value: &_storage._configuredGroup) }()
+        case 27: try { try decoder.decodeRepeatedStringField(value: &_storage._configuredGroups) }()
+        case 28: try { try decoder.decodeSingularStringField(value: &_storage._sshPrivateKeyPath) }()
+        case 29: try { try decoder.decodeSingularStringField(value: &_storage._sshPrivateKeyPassphrase) }()
+        case 30: try { try decoder.decodeSingularBoolField(value: &_storage._clearPassword_p) }()
+        case 31: try { try decoder.decodeSingularEnumField(value: &_storage._source) }()
+        case 32: try { try decoder.decodeSingularStringField(value: &_storage._dhcpClientID) }()
+        case 33: try { try decoder.decodeSingularStringField(value: &_storage._vncPassword) }()
+        case 34: try { try decoder.decodeSingularStringField(value: &_storage._runningIp) }()
+        case 35: try { try decoder.decodeSingularBoolField(value: &_storage._useCloudInit) }()
+        case 36: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
+        case 37: try { try decoder.decodeSingularBoolField(value: &_storage._agent) }()
+        case 38: try { try decoder.decodeSingularBoolField(value: &_storage._firstLaunch) }()
+        case 39: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
+        case 40: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
+        case 41: try { try decoder.decodeSingularBoolField(value: &_storage._ifname) }()
+        case 42: try { try decoder.decodeSingularStringField(value: &_storage._ecid) }()
+        case 43: try { try decoder.decodeSingularStringField(value: &_storage._hardwareModel) }()
         default: break
         }
       }
@@ -5683,107 +5691,110 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
       try { if let v = _storage._osRelease {
         try visitor.visitSingularStringField(value: v, fieldNumber: 8)
       } }()
+      if _storage._diskSize != 0 {
+        try visitor.visitSingularUInt32Field(value: _storage._diskSize, fieldNumber: 9)
+      }
       if _storage._cpuCount != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._cpuCount, fieldNumber: 9)
+        try visitor.visitSingularInt32Field(value: _storage._cpuCount, fieldNumber: 10)
       }
       if _storage._cpuCountMin != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._cpuCountMin, fieldNumber: 10)
+        try visitor.visitSingularInt32Field(value: _storage._cpuCountMin, fieldNumber: 11)
       }
       if _storage._memorySize != 0 {
-        try visitor.visitSingularUInt64Field(value: _storage._memorySize, fieldNumber: 11)
+        try visitor.visitSingularUInt64Field(value: _storage._memorySize, fieldNumber: 12)
       }
       if _storage._memorySizeMin != 0 {
-        try visitor.visitSingularUInt64Field(value: _storage._memorySizeMin, fieldNumber: 12)
+        try visitor.visitSingularUInt64Field(value: _storage._memorySizeMin, fieldNumber: 13)
       }
       if !_storage._macAddress.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._macAddress, fieldNumber: 13)
+        try visitor.visitSingularStringField(value: _storage._macAddress, fieldNumber: 14)
       }
       if !_storage._networks.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._networks, fieldNumber: 14)
+        try visitor.visitRepeatedMessageField(value: _storage._networks, fieldNumber: 15)
       }
       if _storage._dynamicPortForwarding != false {
-        try visitor.visitSingularBoolField(value: _storage._dynamicPortForwarding, fieldNumber: 15)
+        try visitor.visitSingularBoolField(value: _storage._dynamicPortForwarding, fieldNumber: 16)
       }
       try { if let v = _storage._display {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 16)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 17)
       } }()
       if _storage._displayRefit != false {
-        try visitor.visitSingularBoolField(value: _storage._displayRefit, fieldNumber: 17)
+        try visitor.visitSingularBoolField(value: _storage._displayRefit, fieldNumber: 18)
       }
       if !_storage._mounts.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._mounts, fieldNumber: 18)
+        try visitor.visitRepeatedMessageField(value: _storage._mounts, fieldNumber: 19)
       }
       if !_storage._attachedDisks.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._attachedDisks, fieldNumber: 19)
+        try visitor.visitRepeatedMessageField(value: _storage._attachedDisks, fieldNumber: 20)
       }
       if !_storage._sockets.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._sockets, fieldNumber: 20)
+        try visitor.visitRepeatedMessageField(value: _storage._sockets, fieldNumber: 21)
       }
       try { if let v = _storage._console {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
       } }()
       if !_storage._forwardedPorts.isEmpty {
-        try visitor.visitRepeatedMessageField(value: _storage._forwardedPorts, fieldNumber: 22)
+        try visitor.visitRepeatedMessageField(value: _storage._forwardedPorts, fieldNumber: 23)
       }
       if !_storage._configuredUser.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._configuredUser, fieldNumber: 23)
+        try visitor.visitSingularStringField(value: _storage._configuredUser, fieldNumber: 24)
       }
       try { if let v = _storage._configuredPassword {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 24)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 25)
       } }()
       if !_storage._configuredGroup.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._configuredGroup, fieldNumber: 25)
+        try visitor.visitSingularStringField(value: _storage._configuredGroup, fieldNumber: 26)
       }
       if !_storage._configuredGroups.isEmpty {
-        try visitor.visitRepeatedStringField(value: _storage._configuredGroups, fieldNumber: 26)
+        try visitor.visitRepeatedStringField(value: _storage._configuredGroups, fieldNumber: 27)
       }
       try { if let v = _storage._sshPrivateKeyPath {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 27)
-      } }()
-      try { if let v = _storage._sshPrivateKeyPassphrase {
         try visitor.visitSingularStringField(value: v, fieldNumber: 28)
       } }()
+      try { if let v = _storage._sshPrivateKeyPassphrase {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 29)
+      } }()
       if _storage._clearPassword_p != false {
-        try visitor.visitSingularBoolField(value: _storage._clearPassword_p, fieldNumber: 29)
+        try visitor.visitSingularBoolField(value: _storage._clearPassword_p, fieldNumber: 30)
       }
       if _storage._source != .unknown {
-        try visitor.visitSingularEnumField(value: _storage._source, fieldNumber: 30)
+        try visitor.visitSingularEnumField(value: _storage._source, fieldNumber: 31)
       }
       try { if let v = _storage._dhcpClientID {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 31)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 32)
       } }()
       if !_storage._vncPassword.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._vncPassword, fieldNumber: 32)
+        try visitor.visitSingularStringField(value: _storage._vncPassword, fieldNumber: 33)
       }
       try { if let v = _storage._runningIp {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 33)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 34)
       } }()
       if _storage._useCloudInit != false {
-        try visitor.visitSingularBoolField(value: _storage._useCloudInit, fieldNumber: 34)
+        try visitor.visitSingularBoolField(value: _storage._useCloudInit, fieldNumber: 35)
       }
       if _storage._autostart != false {
-        try visitor.visitSingularBoolField(value: _storage._autostart, fieldNumber: 35)
+        try visitor.visitSingularBoolField(value: _storage._autostart, fieldNumber: 36)
       }
       if _storage._agent != false {
-        try visitor.visitSingularBoolField(value: _storage._agent, fieldNumber: 36)
+        try visitor.visitSingularBoolField(value: _storage._agent, fieldNumber: 37)
       }
       if _storage._firstLaunch != false {
-        try visitor.visitSingularBoolField(value: _storage._firstLaunch, fieldNumber: 37)
+        try visitor.visitSingularBoolField(value: _storage._firstLaunch, fieldNumber: 38)
       }
       if _storage._nested != false {
-        try visitor.visitSingularBoolField(value: _storage._nested, fieldNumber: 38)
+        try visitor.visitSingularBoolField(value: _storage._nested, fieldNumber: 39)
       }
       if _storage._suspendable != false {
-        try visitor.visitSingularBoolField(value: _storage._suspendable, fieldNumber: 39)
+        try visitor.visitSingularBoolField(value: _storage._suspendable, fieldNumber: 40)
       }
       if _storage._ifname != false {
-        try visitor.visitSingularBoolField(value: _storage._ifname, fieldNumber: 40)
+        try visitor.visitSingularBoolField(value: _storage._ifname, fieldNumber: 41)
       }
       try { if let v = _storage._ecid {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 41)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 42)
       } }()
       try { if let v = _storage._hardwareModel {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 42)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 43)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)
@@ -5802,6 +5813,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         if _storage._configuredPlatform != rhs_storage._configuredPlatform {return false}
         if _storage._osName != rhs_storage._osName {return false}
         if _storage._osRelease != rhs_storage._osRelease {return false}
+        if _storage._diskSize != rhs_storage._diskSize {return false}
         if _storage._cpuCount != rhs_storage._cpuCount {return false}
         if _storage._cpuCountMin != rhs_storage._cpuCountMin {return false}
         if _storage._memorySize != rhs_storage._memorySize {return false}

@@ -13,6 +13,7 @@ public protocol VirtualMachineConfiguration {
 	var arch: Architecture { set get }
 	var cpuCountMin: Int { set get }
 	var suspendable: Bool { set get }
+	var diskSize: Int { set get }
 	var cpuCount: Int { set get }
 	var memorySizeMin: UInt64 { set get }
 	var memorySize: UInt64 { set get }
@@ -93,6 +94,8 @@ public enum VirtualizedOS: String, Codable {
 }
 
 public final class CakeConfig: VirtualMachineConfiguration {
+	public var diskSize: Int = 0
+	
 	var config: Config
 	var cake: Config
 	var location: URL

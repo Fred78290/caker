@@ -161,6 +161,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration {
 	public var version: Int
 	public var os: VirtualizedOS
 	public var arch: Architecture
+	public var diskSize: Int
 	public var cpuCountMin: Int
 	public var suspendable: Bool
 	public var cpuCount: Int
@@ -209,6 +210,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration {
 		self.version = Int(from.version)
 		self.os = .init(from.os)!
 		self.arch = .init(from.arch)!
+		self.diskSize = Int(from.diskSize)
 		self.cpuCountMin = Int(from.cpuCountMin)
 		self.suspendable = from.suspendable
 		self.cpuCount = Int(from.cpuCount)
