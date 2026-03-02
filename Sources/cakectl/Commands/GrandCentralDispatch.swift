@@ -4,6 +4,7 @@
 //
 //  Created by Frederic BOLTZ on 25/02/2026.
 //
+import Foundation
 import ArgumentParser
 import Dispatch
 import GRPC
@@ -77,7 +78,7 @@ struct ShortCurrentUsage: Codable {
 	}
 }
 
-struct GrandCentralDispatch: GrpcParsableCommand {
+struct GrandCentralDispatch: AsyncGrpcParsableCommand {
 	public static let configuration: CommandConfiguration = CommandConfiguration(commandName: "gcd", abstract: "Start the Grand Central Dispatch")
 
 	@OptionGroup(title: "Client options")
@@ -86,34 +87,61 @@ struct GrandCentralDispatch: GrpcParsableCommand {
 	@Flag(help: "Output format")
 	var format: Format = .text
 
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
-			print("\u{001B}[2J\u{001B}[H")
+	private struct Screenshot: Codable {
+		let name: String
+		let data: Data
+	}
 
-			reply.status.statuses.forEach { status in
-				switch status.message {
-				case .failure(let message):
-					print(self.format.renderSingle("Error: \(message)"))
-				case .status(let status):
-					print(self.format.renderSingle("Status: \(status.description)"))
-				case .screenshot(let png):
-					print(self.format.renderSingle("Screenshot: \(png)"))
-				case .usage(let usage):
-					switch self.format {
-						case .text:
-						print(self.format.renderSingle(ShortCurrentUsage(status.name, from: usage)))
-						case .json:
-						print(self.format.renderSingle(CurrentUsage(status.name, from: usage)))
-					}
-				default:
-					break
-				}
-			}
+	private struct Description: Codable {
+		let name: String
+		let description: String
+	}
+
+	private struct Status: Codable {
+		let name: String
+		let status: String
+	}
+
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+		let asyncStream = AsyncThrowingStream.makeStream(of: [Caked_CurrentStatus].self)
+
+		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
+			_ = asyncStream.continuation.yield(reply.status.statuses)
+			// Consider calling asyncStream.continuation.finish() when the stream should end
 		}
 
-		_ = try stream.subchannel.wait()
+		do {
+			_ = try await stream.subchannel.get()
+
+			for try await statuses in asyncStream.stream {
+				print("\u{001B}[2J\u{001B}[H")
+				
+				statuses.forEach { status in
+					switch status.message {
+					case .failure(let message):
+						print(self.format.renderSingle(Description(name: status.name, description: message)))
+					case .status(let value):
+						print(self.format.renderSingle(Status(name: status.name, status: value.description)))
+					case .screenshot(let png):
+						print(self.format.renderSingle(Screenshot(name: status.name, data: png)))
+					case .usage(let usage):
+						switch self.format {
+						case .text:
+							print(self.format.renderSingle(ShortCurrentUsage(status.name, from: usage)))
+						case .json:
+							print(self.format.renderSingle(CurrentUsage(status.name, from: usage)))
+						}
+					default:
+						break
+					}
+				}
+			}
+		} catch {
+			stream.cancel(promise: nil)
+		}
 
 		return ""
 	}
 	
 }
+
