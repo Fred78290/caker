@@ -188,37 +188,44 @@ struct Client: AsyncParsableCommand {
 	@OptionGroup(title: "Client options")
 	var options: Client.Options
 
-	static let configuration = CommandConfiguration(
-		commandName: "cakectl",
-		version: CI.version,
-		subcommands: [
-			Build.self,
-			Configure.self,
-			Delete.self,
-			Duplicate.self,
-			Exec.self,
-			ImagesManagement.self,
-			Infos.self,
-			Launch.self,
-			List.self,
-			Networks.self,
-			Purge.self,
-			Remote.self,
-			Rename.self,
-			Sh.self,
-			Start.self,
-			Stop.self,
-			Suspend.self,
-			Template.self,
-			WaitIP.self,
-			Mount.self,
-			Umount.self,
-			GrandCentralDispatch.self,
-			Login.self,
-			Logout.self,
-			Pull.self,
-			Push.self,
-		])
+	static var configuration: CommandConfiguration {
+		var conf = CommandConfiguration(
+			commandName: "cakectl",
+			version: CI.version,
+			subcommands: [
+				Build.self,
+				Configure.self,
+				Delete.self,
+				Duplicate.self,
+				Exec.self,
+				ImagesManagement.self,
+				Infos.self,
+				Launch.self,
+				List.self,
+				Networks.self,
+				Purge.self,
+				Remote.self,
+				Rename.self,
+				Sh.self,
+				Start.self,
+				Stop.self,
+				Suspend.self,
+				Template.self,
+				WaitIP.self,
+				Mount.self,
+				Umount.self,
+				Login.self,
+				Logout.self,
+				Pull.self,
+				Push.self,
+			])
+
+#if DEBUG
+		conf.subcommands.append(GrandCentralDispatch.self)
+#endif
+
+		return conf
+	}
 
 	static func parse() throws -> GrpcParsableCommand? {
 		do {
