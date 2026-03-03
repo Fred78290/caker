@@ -15,7 +15,7 @@ public protocol CakeAgentAsyncParsableCommand: AsyncParsableCommand {
 	var callOptions: CallOptions? { get }
 	var interceptors: CakeAgentServiceClientInterceptorFactoryProtocol? { get }
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async
 }
 
 extension CakeAgentAsyncParsableCommand {
@@ -70,11 +70,11 @@ extension CakeAgentAsyncParsableCommand {
 
 	public mutating func run() async throws {
 		let eventLoop = Utilities.group.next()
-		let grpcClient = try self.options.createClient(on: eventLoop, retries: self.retries, interceptors: self.interceptors)
+		let helper = try CakeAgentHelper(on: eventLoop, client: self.options.createClient(on: eventLoop, retries: self.retries, interceptors: self.interceptors))
 
-		await self.run(on: eventLoop, client: grpcClient, callOptions: self.callOptions)
+		await self.run(on: eventLoop, helper: helper, callOptions: self.callOptions)
 
-		try? await grpcClient.close()
+		try? await helper.close()
 	}
 
 }

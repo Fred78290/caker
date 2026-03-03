@@ -86,7 +86,7 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 			while Task.isCancelled == false && self.isMonitoring {
 
 				do {
-					helper = try self.createHelper()
+					helper = try CakeAgentHelper.createCakeAgentHelper(rootURL: rootURL, connectionTimeout: 5, retries: .unlimited, runMode: AppState.shared.runMode)
 
 					self.stream = performAgentHealthCheck()
 
@@ -174,19 +174,5 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 		}
 		
 		return false
-	}
-
-	private func createHelper(connectionTimeout: Int64 = 5) throws -> CakeAgentHelper {
-		let eventLoop = Utilities.group.next()
-
-		let client = try Utilities.createCakeAgentClient(
-			on: eventLoop.next(),
-			runMode: .app,
-			rootURL: rootURL,
-			connectionTimeout: connectionTimeout,
-			retries: .unlimited// .upTo(1)
-		)
-
-		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 }

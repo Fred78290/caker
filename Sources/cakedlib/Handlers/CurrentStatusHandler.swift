@@ -57,13 +57,15 @@ public struct CurrentStatusHandler {
 	private class CurrentUsageWatcher {
 		internal var isMonitoring: Bool = false
 		private let location: VMLocation
+		private let runMode: Utils.RunMode
 		private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 		private let continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation
 		private let logger = Logger("CurrentUsageWatcher")
 
-		init(location: VMLocation, continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation) {
+		init(location: VMLocation, runMode: Utils.RunMode, continuation: AsyncThrowingStream<Caked_CurrentStatus, Error>.Continuation) {
 			self.location = location
 			self.continuation = continuation
+			self.runMode = runMode
 		}
 
 		func start() async {
@@ -162,7 +164,7 @@ public struct CurrentStatusHandler {
 
 				while Task.isCancelled == false && self.isMonitoring {
 					do {
-						helper = try self.createHelper()
+						helper = try self.createCakeAgentHelper()
 						
 						self.stream = performAgentHealthCheck()
 						
@@ -241,18 +243,8 @@ public struct CurrentStatusHandler {
 			return false
 		}
 
-		private func createHelper(connectionTimeout: Int64 = 5) throws -> CakeAgentHelper {
-			let eventLoop = Utilities.group.next()
-
-			let client = try Utilities.createCakeAgentClient(
-				on: eventLoop.next(),
-				runMode: .app,
-				listeningAddress: self.location.agentURL,
-				connectionTimeout: connectionTimeout,
-				retries: .upTo(1)
-			)
-
-			return CakeAgentHelper(on: eventLoop, client: client)
+		private func createCakeAgentHelper(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
+			return try CakeAgentHelper.createCakeAgentHelper(location: self.location, connectionTimeout: connectionTimeout, retries: retries, runMode: self.runMode)
 		}
 	}
 
@@ -265,7 +257,7 @@ public struct CurrentStatusHandler {
 
 		init(location: VMLocation, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) {
 			let stream: AsyncThrowingStreamCakedCurrentStatusReply = AsyncThrowingStream<Caked_CurrentStatus, Error>.makeStream()
-			let agentMonitor = CurrentStatusHandler.CurrentUsageWatcher(location: location, continuation: stream.continuation)
+			let agentMonitor = CurrentStatusHandler.CurrentUsageWatcher(location: location, runMode: runMode, continuation: stream.continuation)
 
 			self.location = location
 			self.statusStream = statusStream

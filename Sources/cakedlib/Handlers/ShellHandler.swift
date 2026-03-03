@@ -329,22 +329,8 @@ public struct ShellHandler {
 			self.location = try VMLocation.newVMLocation(rootURL: rootURL)
 		}
 
-		func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-			// Create a short-lived client for the health check
-			let eventLoop = Utilities.group.next()
-			let client = try Utilities.createCakeAgentClient(
-				on: eventLoop.next(),
-				runMode: runMode,
-				listeningAddress: self.location.agentURL,
-				connectionTimeout: connectionTimeout,
-				retries: .upTo(1)
-			)
-			
-			return CakeAgentHelper(on: eventLoop, client: client)
-		}
-		
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> ShellHandlerProtocol {
-			let cakeHelper = try self.createCakeAgentHelper(connectionTimeout: connectionTimeout)
+			let cakeHelper = try CakeAgentHelper.createCakeAgentHelper(location: self.location, connectionTimeout: connectionTimeout, retries: .upTo(1), runMode: self.runMode)
 			
 			guard taskQueue == nil else {
 				return self

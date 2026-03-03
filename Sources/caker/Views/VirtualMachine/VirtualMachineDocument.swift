@@ -954,36 +954,8 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
-	static func createCakeAgentHelper(name: String, connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-		// Create a short-lived client for the health check
-		let eventLoop = Utilities.group.next()
-		let client = try Utilities.createCakeAgentClient(
-			on: eventLoop.next(),
-			runMode: .app,
-			name: name,
-			connectionTimeout: connectionTimeout,
-			retries: .upTo(1)
-		)
-
-		return CakeAgentHelper(on: eventLoop, client: client)
-	}
-
-	static func createCakeAgentHelper(rootURL: URL, connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-		// Create a short-lived client for the health check
-		let eventLoop = Utilities.group.next()
-		let client = try Utilities.createCakeAgentClient(
-			on: eventLoop.next(),
-			runMode: .app,
-			rootURL: rootURL,
-			connectionTimeout: connectionTimeout,
-			retries: .upTo(1)
-		)
-
-		return CakeAgentHelper(on: eventLoop, client: client)
-	}
-
 	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-		try Self.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout)
+		try CakeAgentHelper.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout, runMode: .app)
 	}
 	
 	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {

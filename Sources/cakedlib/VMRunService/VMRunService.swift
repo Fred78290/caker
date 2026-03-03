@@ -114,7 +114,7 @@ class VMRunService: NSObject {
 		self.logger = logger
 	}
 
-	func createCakeAgentConnection(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
+	func createCakeAgentHelper(retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentHelper {
 		return try CakeAgentHelper(
 			on: self.group.next(),
 			listeningAddress: self.vm.location.agentURL,
@@ -160,7 +160,7 @@ class VMRunService: NSObject {
 			}
 
 			let reply: CakeAgent.MountReply
-			let conn = try self.createCakeAgentConnection()
+			let conn = try self.createCakeAgentHelper()
 			let request = CakeAgent.MountRequest.with {
 				$0.mounts = request.mounts.map { mount in
 					.with {

@@ -389,10 +389,15 @@ public struct Utilities {
 	}
 
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, rootURL: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+		return try createCakeAgentClient(on: on, runMode: runMode, location: try VMLocation.newVMLocation(rootURL: rootURL).validate(), retries: retries)
+	}
 
-		let listeningAddress = try VMLocation.newVMLocation(rootURL: rootURL).agentURL
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, location: VMLocation, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+		return try createCakeAgentClient(on: on, runMode: runMode, listeningAddress: location.agentURL, retries: retries)
+	}
 
-		return try createCakeAgentClient(on: on, runMode: runMode, listeningAddress: listeningAddress, retries: retries)
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+		return try createCakeAgentClient(on: on, runMode: runMode, location: try StorageLocation(runMode: runMode).find(name), retries: retries)
 	}
 
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, listeningAddress: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
@@ -407,12 +412,6 @@ public struct Utilities {
 			tlsKey: certificates.clientKeyURL.path,
 			retries: retries
 		)
-	}
-
-	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, name: String, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
-		let listeningAddress = try StorageLocation(runMode: runMode).find(name).agentURL
-
-		return try createCakeAgentClient(on: on, runMode: runMode, listeningAddress: listeningAddress, retries: retries)
 	}
 
 	public static func waitPortReady(host: String = "", port: Int, timeout: TimeInterval = 60) -> Bool {
