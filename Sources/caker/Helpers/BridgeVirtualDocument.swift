@@ -31,7 +31,7 @@ class BridgeVirtualDocument: FileDocument {
 		if let existingDocument = AppState.shared.findVirtualMachineDocument(vmURL) {
 			self.attachedVirtualDocument = existingDocument
 		} else {
-			self.attachedVirtualDocument = try .init(location: try VMLocation(rootURL: vmURL).validate())
+			self.attachedVirtualDocument = try VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL)
 		}
 
 		func loadVM() throws {

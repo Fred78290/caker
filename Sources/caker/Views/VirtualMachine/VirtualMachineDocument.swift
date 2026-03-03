@@ -327,6 +327,14 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.name = name
 		self.virtualMachineConfig = config
 	}
+	
+	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
+		if vmURL.isFileURL {
+			try .init(location: try VMLocation(rootURL: vmURL).validate())
+		} else {
+			.init()
+		}
+	}
 }
 
 // MARK: - Core
