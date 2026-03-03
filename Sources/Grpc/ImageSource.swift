@@ -7,7 +7,7 @@
 import Foundation
 import ArgumentParser
 
-public enum ImageSource: Int, Hashable, CaseIterable, CustomStringConvertible, Sendable {
+public enum ImageSource: Int, Codable, CaseIterable, CustomStringConvertible {
 	public var description: String {
 		switch self {
 		case .raw: return "local"
