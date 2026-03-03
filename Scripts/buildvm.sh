@@ -6,14 +6,14 @@ set -e
 # Help tool to inspect the disk image
 # qemu-img convert -p -f raw -O vmdk ~/.cake/vms/opensuse/disk.img ~/Virtual\ Machines.localized/ubuntu-desktop.vmwarevm/linux.vmdk
 
-pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
-CURDIR=${PWD}
-PKGDIR=${CURDIR}/dist/Caker.app
+pushd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null
+CURDIR="${PWD}"
+PKGDIR="${CURDIR}/dist/Caker.app"
 popd > /dev/null
 
-BUILDDIR=${CURDIR}/.build/debug
-RESOURCESDIR=${CURDIR}/Caker/Caker/Content
-ASSETS=${BUILDDIR}/assets
+BUILDDIR="${CURDIR}/.build/debug"
+RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
+ASSETS="${BUILDDIR}/assets"
 
 if [ -z "$VMNAME" ]; then
     VMNAME=linux
@@ -21,9 +21,8 @@ fi
 
 /usr/bin/swift build
 
-source ${CURDIR}/Scripts/build.inc.sh
+source "${CURDIR}/Scripts/build.inc.sh"
 
-BIN_PATH=${PKGDIR}/Contents/PlugIns
 SHARED_NET_ADDRESS=$(sudo defaults read /Library/Preferences/SystemConfiguration/com.apple.vmnet.plist Shared_Net_Address)
 DISK_SIZE=20
 MAINGROUP=adm
@@ -71,7 +70,7 @@ LXD_IMAGE=ubuntu:noble
 OCI_IMAGE=devregistry.aldunelabs.com/ubuntu:latest
 DESKTOP=NO
 DOCKER=NO
-CMD="caked"
+CMD="${PKGDIR}/Contents/PlugIns/caked"
 SHARED_NET_ADDRESS=${SHARED_NET_ADDRESS%.*}
 DNS=$(scutil --dns | grep 'nameserver\[[0-9]*\]' | head -n 1 | awk '{print $ 3}')
 
@@ -201,15 +200,15 @@ else
   FORWARDS_OPTIONS=""
 fi
 
-${BIN_PATH}/${CMD} delete ${VMNAME} 
+"${CMD}" delete ${VMNAME} 
 
 if [ -z "${CLOUD_IMAGE}" ]; then
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${FORWARDS_OPTIONS} ${MOUNT_OPTIONS} "
-    ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
+    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${LXD_IMAGE} 
 else
     BUILD_OPTIONS="${COMMON_OPTIONS} ${NETWORKS_OPTIONS} ${MOUNT_OPTIONS}"
-    ${BIN_PATH}/${CMD} build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
+    "${CMD}" build ${VMNAME} ${BUILD_OPTIONS} ${CLOUD_IMAGE} 
 fi
 
-#${BIN_PATH}/${CMD} launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
-#${BIN_PATH}/${CMD} waitip ${VMNAME}  --wait 60
+#"${CMD}" launch ${VMNAME}  ${BUILD_OPTIONS} ${OCI_IMAGE}
+#"${CMD}" waitip ${VMNAME}  --wait 60
