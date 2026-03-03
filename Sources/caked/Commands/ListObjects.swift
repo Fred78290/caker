@@ -14,12 +14,15 @@ struct ListObjects: AsyncParsableCommand {
 	@Flag(help: "List all VMs and cached objects")
 	var all: Bool = false
 
+	@Flag(help: "Include VM configuration in the output")
+	var includeConfig: Bool = false
+
 	func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 	}
 
 	func run() async throws {
-		let result = CakedLib.ListHandler.list(vmonly: !all, runMode: self.common.runMode)
+		let result = CakedLib.ListHandler.list(vmonly: !all, includeConfig: includeConfig, runMode: self.common.runMode)
 
 		if result.success {
 			Logger.appendNewLine(self.common.format.render(result.infos))

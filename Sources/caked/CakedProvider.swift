@@ -154,7 +154,7 @@ extension Caked_ConfigureRequest: CreateCakedCommand {
 
 extension Caked_ListRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return ListHandler(vmonly: self.vmonly)
+		return ListHandler(vmonly: self.vmonly, includeConfig: self.includeConfig)
 	}
 }
 

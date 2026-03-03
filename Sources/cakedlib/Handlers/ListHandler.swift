@@ -6,7 +6,7 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct ListHandler {
-	public static func list(vmonly: Bool, runMode: Utils.RunMode) -> VirtualMachineInfoReply {
+	public static func list(vmonly: Bool, includeConfig: Bool, runMode: Utils.RunMode) -> VirtualMachineInfoReply {
 		do {
 			var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 				let status = location.status
@@ -22,7 +22,8 @@ public struct ListHandler {
 					sizeOnDisk: try location.allocatedSize(),
 					state: status.rawValue,
 					ip: status == .running ? config.runningIP : nil,
-					fingerprint: nil
+					fingerprint: nil,
+					config: includeConfig ? CakedConfiguration(config) : nil
 				)
 			}
 

@@ -7,6 +7,7 @@ import SystemConfiguration
 
 struct ListHandler: CakedCommand {
 	let vmonly: Bool
+	let includeConfig: Bool
 
 	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
 		return Caked_Reply.with {
@@ -22,7 +23,7 @@ struct ListHandler: CakedCommand {
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		return Caked_Reply.with {
 			$0.vms = Caked_VirtualMachineReply.with {
-				$0.list = CakedLib.ListHandler.list(vmonly: self.vmonly, runMode: runMode).caked
+				$0.list = CakedLib.ListHandler.list(vmonly: self.vmonly, includeConfig: self.includeConfig, runMode: runMode).caked
 			}
 		}
 	}

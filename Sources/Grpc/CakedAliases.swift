@@ -332,6 +332,53 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var hardwareModel: Data?
 	#endif
 
+	public init(_ from: VirtualMachineConfiguration) {
+		// Map fields directly when available on `from`. For fields not present, use safe defaults.
+		self.locationURL = from.locationURL
+		self.version = from.version
+		self.os = from.os
+		self.arch = from.arch
+		self.diskSize = from.diskSize
+		self.cpuCountMin = from.cpuCountMin
+		self.suspendable = from.suspendable
+		self.cpuCount = from.cpuCount
+		self.memorySizeMin = from.memorySizeMin
+		self.memorySize = from.memorySize
+		self.macAddress = from.macAddress
+		self.source = from.source
+		self.osName = from.osName
+		self.osRelease = from.osRelease
+		self.dynamicPortForwarding = from.dynamicPortForwarding
+		self.displayRefit = from.displayRefit
+		self.instanceID = from.instanceID
+		self.dhcpClientID = from.dhcpClientID
+		self.sshPrivateKeyPath = from.sshPrivateKeyPath
+		self.sshPrivateKeyPassphrase = from.sshPrivateKeyPassphrase
+		self.configuredUser = from.configuredUser
+		self.configuredPassword = from.configuredPassword
+		self.configuredGroup = from.configuredGroup
+		self.configuredGroups = from.configuredGroups
+		self.configuredPlatform = from.configuredPlatform
+		self.clearPassword = from.clearPassword
+		self.ifname = from.ifname
+		self.autostart = from.autostart
+		self.agent = from.agent
+		self.firstLaunch = from.firstLaunch
+		self.nested = from.nested
+		self.attachedDisks = from.attachedDisks
+		self.mounts = from.mounts
+		self.networks = from.networks
+		self.useCloudInit = from.useCloudInit
+		self.sockets = from.sockets
+		self.console = from.console
+		self.forwardedPorts = from.forwardedPorts
+		self.runningIP = from.runningIP
+		self.display = from.display
+		self.vncPassword = from.vncPassword
+		self.ecid = from.ecid
+		self.hardwareModel = from.hardwareModel
+	}
+
 	public init(_ from: Caked.Configuration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.
 		self.locationURL = URL(fileURLWithPath: "/dev/null")
