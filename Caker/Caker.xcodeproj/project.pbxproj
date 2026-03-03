@@ -224,6 +224,7 @@
 		9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E8E2E23BF1300C13D23 /* AppState.swift */; };
 		9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
+		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
 		9BA180A52EFBFCB6000D1424 /* ZlibDeflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */; };
@@ -806,6 +807,7 @@
 		9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteData.swift; sourceTree = "<group>"; };
 		9B9C4E922E23C92900C13D23 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
+		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
 		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
 		9BA180A42EFBFCB6000D1424 /* ZlibDeflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibDeflateStream.swift; sourceTree = "<group>"; };
