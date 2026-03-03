@@ -7,8 +7,15 @@ import Virtualization
 import NIOPortForwarding
 
 public struct InfosHandler {
-	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: CakeConfig) {
-		let location = try StorageLocation(runMode: runMode).find(name)
+	public static func infos(rootURL: URL, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {		
+		return try InfosHandler.infos(location: try VMLocation.newVMLocation(rootURL: rootURL).validate(), runMode: runMode, client: client, callOptions: callOptions)
+	}
+
+	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
+		return try InfosHandler.infos(location: StorageLocation(runMode: runMode).find(name), runMode: runMode, client: client, callOptions: callOptions)
+	}
+
+	public static func infos(location: VMLocation, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
 		let config: CakeConfig = try location.config()
 		var infos: VMInformations
 
@@ -45,7 +52,7 @@ public struct InfosHandler {
 			}
 		}
 
-		infos.name = name
+		infos.name = location.name
 		infos.mounts = config.mounts.map { $0.description }
 		infos.attachedNetworks = config.networks.map { AttachedNetwork(network: $0.network, mode: $0.mode?.description ?? nil, macAddress: $0.macAddress ?? nil) }
 		infos.tunnelInfos = config.forwardedPorts.compactMap { $0.tunnelInfo }
