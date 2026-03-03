@@ -308,7 +308,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		if self.externalRunning {
 			self.documentSize = self.getVncScreenSize()
 		} else {
-			self.documentSize = ViewSize(size: config.display.size)
+			self.documentSize = ViewSize(size: config.display.cgSize)
 		}
 		
 		switch location.status {
@@ -487,7 +487,7 @@ extension VirtualMachineDocument {
 			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
 			} else {
-				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.size))
+				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
 			}
 			
 			if externalRunning {

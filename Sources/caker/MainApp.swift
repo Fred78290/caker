@@ -120,7 +120,7 @@ struct MainApp: App {
 
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
-			let initialSize = document.virtualMachineConfig.display.size
+			let initialSize = document.virtualMachineConfig.display.cgSize
 
 			if document.location != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
