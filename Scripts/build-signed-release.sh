@@ -5,17 +5,17 @@
 set -e
 
 pushd "$(dirname ${BASH_SOURCE[0]})/.." >/dev/null
-CURDIR=${PWD}
-PKGDIR=${CURDIR}/dist/Caker.app
+CURDIR="${PWD}"
+PKGDIR="${CURDIR}/dist/Caker.app"
 popd > /dev/null
 
-BUILDDIR=${CURDIR}/.build/release
-RESOURCESDIR=${CURDIR}/Caker/Caker/Content
-ASSETS=${BUILDDIR}/assets
+BUILDDIR="${CURDIR}/.build/release"
+RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
+ASSETS="${BUILDDIR}/assets"
 
-sudo rm -rf ${CURDIR}/.build ${CURDIR}/*.o ${CURDIR}/*.d ${CURDIR}/*.swiftdeps ${CURDIR}/*.swiftdeps~
+sudo rm -rf "${CURDIR}/.build" "${CURDIR}"/*.o "${CURDIR}"/*.d "${CURDIR}"/*.swiftdeps "${CURDIR}"/*.swiftdeps~
 
 /usr/bin/swift build -c release --arch x86_64
 /usr/bin/swift build -c release --arch arm64
 
-source ${CURDIR}/Scripts/build.inc.sh
+source "${CURDIR}/Scripts/build.inc.sh"
