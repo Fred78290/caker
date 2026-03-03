@@ -5,7 +5,7 @@ import GRPCLib
 extension DeleteHandler {
 	public static func delete(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> DeleteReply {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.delete(all: false, names: [name], runMode: runMode)
 		}
 

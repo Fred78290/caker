@@ -29,7 +29,7 @@ extension VMLocation.Status {
 extension CurrentStatusHandler {
 	public static func currentStatus(client: CakedServiceClient?, rootURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return try await Self.currentStatus(rootURL: rootURL, frequency: frequency, statusStream: statusStream, runMode: runMode)
 		}
 

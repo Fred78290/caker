@@ -11,7 +11,7 @@ import GRPCLib
 extension StopHandler {
 	public static func stopVM(client: CakedServiceClient?, name: String, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.stopVMs(all: false, names: [name], force: force, runMode: runMode)
 		}
 

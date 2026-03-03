@@ -11,7 +11,7 @@ import GRPCLib
 extension RestartHandler {
 	public static func restart(client: CakedServiceClient?, name: String, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws -> RestartReply {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.restart(names: [name], force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		}
 

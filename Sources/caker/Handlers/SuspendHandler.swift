@@ -10,7 +10,7 @@ import GRPCLib
 
 extension SuspendHandler {
 	public static func suspendVM(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> SuspendReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.suspendVMs(names: [name], runMode: runMode)
 		}
 

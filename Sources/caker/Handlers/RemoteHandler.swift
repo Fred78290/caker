@@ -5,7 +5,7 @@ import GRPCLib
 extension RemoteHandler {
 	public static func listRemote(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListRemoteReply {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.listRemote(runMode: runMode)
 		}
 

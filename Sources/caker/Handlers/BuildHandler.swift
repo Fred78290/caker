@@ -5,7 +5,7 @@ import GRPCLib
 extension BuildHandler {
 	public static func build(client: CakedServiceClient?, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
 
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return await self.build(options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 		}
 

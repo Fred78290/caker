@@ -4,7 +4,7 @@ import GRPCLib
 
 extension NetworksHandler {
 	public static func create(client: CakedServiceClient?, networkName: String, network: VZSharedNetwork, runMode: Utils.RunMode) throws -> CreatedNetworkReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.create(networkName: networkName, network: network, runMode: runMode)
 		}
 
@@ -25,7 +25,7 @@ extension NetworksHandler {
 	}
 
 	public static func networks(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListNetworksReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.networks(runMode: runMode)
 		}
 		
@@ -33,7 +33,7 @@ extension NetworksHandler {
 	}
 	
 	public static func start(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.start(networkName: networkName, runMode: runMode)
 		}
 		
@@ -48,7 +48,7 @@ extension NetworksHandler {
 	}
 	
 	public static func stop(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StoppedNetworkReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.stop(networkName: networkName, runMode: runMode)
 		}
 

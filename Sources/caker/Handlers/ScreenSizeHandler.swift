@@ -10,7 +10,7 @@ import GRPCLib
 
 extension ScreenSizeHandler {
 	public static func setScreenSize(client: CakedServiceClient?, name: String, width: Int, height: Int, runMode: Utils.RunMode) throws -> ScreenSizeReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.setScreenSize(name: name, width: width, height: height, runMode: runMode)
 		}
 
@@ -24,7 +24,7 @@ extension ScreenSizeHandler {
 	}
 	
 	public static func getScreenSize(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> ScreenSizeReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.getScreenSize(name: name, runMode: runMode)
 		}
 		

@@ -4,7 +4,7 @@ import GRPCLib
 
 extension ImageHandler {
 	public static func listImage(client: CakedServiceClient?, remote: String, runMode: Utils.RunMode) async -> ListImagesInfoReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return await self.listImage(remote: remote, runMode: runMode)
 		}
 

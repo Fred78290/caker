@@ -4,8 +4,8 @@ import GRPCLib
 
 extension TemplateHandler {
 	public static func exists(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) -> Bool {
-		guard let client = client, runMode != .app else {
-			return self.exists(name: name, runMode: .app)
+		guard let client = client else {
+			return self.exists(name: name, runMode: runMode)
 		}
 
 		do {
@@ -16,8 +16,8 @@ extension TemplateHandler {
 	}
 
 	public static func createTemplate(client: CakedServiceClient?, sourceName: String, templateName: String, runMode: Utils.RunMode) throws -> CreateTemplateReply {
-		guard let client = client, runMode != .app else {
-			return self.createTemplate(on: Utilities.group.next(), sourceName: sourceName, templateName: templateName, runMode: .app)
+		guard let client = client else {
+			return self.createTemplate(on: Utilities.group.next(), sourceName: sourceName, templateName: templateName, runMode: runMode)
 		}
 		
 		return try CreateTemplateReply(from: client.template(.with {
@@ -30,7 +30,7 @@ extension TemplateHandler {
 	}
 
 	public static func listTemplate(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ListTemplateReply {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return self.listTemplate(runMode: runMode)
 		}
 

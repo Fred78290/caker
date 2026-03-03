@@ -10,7 +10,7 @@ import GRPCLib
 
 extension VncURLHandler {
 	public static func vncURL(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> [URL] {
-		guard let client = client, runMode != .app else {
+		guard let client = client else {
 			return try self.vncURL(name: name, runMode: runMode)
 		}
 		
