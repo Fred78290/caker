@@ -540,35 +540,6 @@ extension NSImage {
 	}
 }
 
-public struct ViewSize: Sendable, Codable, Identifiable, Hashable, ExpressibleByArgument {
-	public var id: String {
-		"\(width)x\(height)"
-	}
-
-	public var size: CGSize {
-		.init(width: CGFloat(width), height: CGFloat(height))
-	}
-
-	public let width: Int
-	public let height: Int
-
-	public init(width: Int, height: Int) {
-		self.width = width
-		self.height = height
-	}
-
-	public init(argument: String) {
-		let parts = argument.components(separatedBy: "x").map {
-			Int($0) ?? 0
-		}
-
-		self = ViewSize(
-			width: parts.first ?? 0,
-			height: parts.count > 0 ? parts[1] : 0
-		)
-	}
-}
-
 // Wrap the spawned Task into a Cancellable so the signature matches
 public struct TaskCancellable<T>: Cancellable where T: Sendable {
 	let task: Task<T, Error>

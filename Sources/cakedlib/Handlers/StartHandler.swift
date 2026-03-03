@@ -158,7 +158,7 @@ public struct StartHandler {
 			Task {
 				Logger(self).info("VM \(location.name) starting")
 				
-				let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display.screenSize, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, runMode: runMode)
+				let reply = StartHandler.startVM(on: on, location: location, screenSize: config.display, vncPassword: config.vncPassword, vncPort: 0, waitIPTimeout: 120, startMode: .service, runMode: runMode)
 				
 				if reply.started {
 					Logger(self).info("VM \(location.name) started with IP \(reply.ip)")

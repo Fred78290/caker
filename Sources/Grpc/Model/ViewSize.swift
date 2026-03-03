@@ -7,15 +7,15 @@ import ArgumentParser
 //
 import Foundation
 
-public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringConvertible, Hashable, Sendable {
-	public static let standard = VMScreenSize(width: 1024, height: 768)
+public struct ViewSize: Codable, Identifiable, ExpressibleByArgument, CustomStringConvertible, Hashable, Sendable {
+	public static let standard = ViewSize(width: 1024, height: 768)
 
 	public var id: String {
 		self.description
 	}
 	public var width: Int
 	public var height: Int
-	public var size: CGSize {
+	public var cgSize: CGSize {
 		.init(width: CGFloat(width), height: CGFloat(height))
 	}
 
@@ -48,8 +48,8 @@ public struct VMScreenSize: Identifiable, ExpressibleByArgument, CustomStringCon
 	}
 }
 
-extension VMScreenSize {
-	public func validating() throws -> VMScreenSize {
+extension ViewSize {
+	public func validating() throws -> ViewSize {
 		guard width > 0, height > 0 else {
 			throw NSError(domain: "Invalid view size format", code: 0, userInfo: nil)
 		}

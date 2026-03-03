@@ -57,7 +57,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	public var randomMAC: Bool = false
 
 	@Option(name: [.customLong("display")], help: "Set the VM screen size.")
-	public var screenSize: VMScreenSize? = nil
+	public var screenSize: ViewSize? = nil
 
 	@Option(
 		name: [.customLong("socket")],
@@ -164,7 +164,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 
 		if request.hasScreenSize {
-			self.screenSize = VMScreenSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
+			self.screenSize = ViewSize(width: Int(request.screenSize.width), height: Int(request.screenSize.height))
 		} else {
 			self.screenSize = nil
 		}

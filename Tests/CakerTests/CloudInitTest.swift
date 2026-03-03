@@ -182,7 +182,7 @@ final class CloudInitTests: XCTestCase {
 		options.sshAuthorizedKey = NSString(string: "~/.ssh/id_rsa.pub").expandingTildeInPath
 		options.userData = self.userDataPath.path
 		options.vendorData = nil
-		options.screenSize = VMScreenSize.standard
+		options.screenSize = ViewSize.standard
 		options.dynamicPortForwarding = false
 		options.netIfnames = false
 		options.networkConfig = self.networkConfigPath.path

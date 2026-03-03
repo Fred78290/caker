@@ -696,7 +696,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 	func setScreenSize(width: Int, height: Int) throws {
 		let config: CakeConfig = try location.config()
 		
-		config.display = DisplaySize(width: width, height: height)
+		config.display = ViewSize(width: width, height: height)
 		try config.save()
 		
 		if location.status == .running {

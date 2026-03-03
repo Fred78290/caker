@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import GRPCLib
 
 final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 	@Published var width: CGFloat = 0
@@ -20,7 +21,17 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 		case height
 	}
 
-	public var cgSize: CGSize {
+	var size: GRPCLib.ViewSize {
+		get {
+			return .init(width: Int(width), height: Int(height))
+		}
+		set {
+			width = CGFloat(newValue.width)
+			height = CGFloat(newValue.height)
+		}
+	}
+
+	var cgSize: CGSize {
 		get {
 			return .init(width: width, height: height)
 		}
@@ -42,6 +53,11 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 	init(size: CGSize) {
 		self.width = size.width
 		self.height = size.height
+	}
+
+	init(size: GRPCLib.ViewSize) {
+		self.width = CGFloat(size.width)
+		self.height = CGFloat(size.height)
 	}
 
 	init(from decoder: Decoder) throws {

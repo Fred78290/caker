@@ -4,41 +4,49 @@ import NIOPortForwarding
 import Virtualization
 import CakeAgentLib
 
-extension DisplaySize {
-	public var cgSize: CGSize {
-		CGSize(width: CGFloat(width), height: CGFloat(height))
-	}
-
-	var screenSize: ViewSize {
-		ViewSize(width: width, height: height)
-	}
-
-	public var width: Int {
-		set { self["width"] = newValue }
-		get { self["width"]! }
-	}
-
-	public var height: Int {
-		set { self["height"] = newValue }
-		get { self["height"]! }
-	}
-
-	public init(width: Int, height: Int) {
-		self.init()
-
-		self.width = width
-		self.height = height
-	}
-}
-
 enum ConfigFileName: String {
 	case config = "config.json"
 	case cake = "cake.json"
 }
 
+public typealias DisplaySize = [String: Int]
+
+extension DisplaySize {
+	public var cgSize: CGSize {
+		CGSize(width: CGFloat(width), height: CGFloat(height))
+	}
+	
+	public var screenSize: ViewSize {
+		ViewSize(width: width, height: height)
+	}
+	
+	public var width: Int {
+		set { self["width"] = newValue }
+		get { self["width"]! }
+	}
+	
+	public var height: Int {
+		set { self["height"] = newValue }
+		get { self["height"]! }
+	}
+	
+	public init(width: Int, height: Int) {
+		self.init()
+		
+		self.width = width
+		self.height = height
+	}
+	
+	public init(viewSize: ViewSize) {
+		self.init()
+
+		self.width = viewSize.width
+		self.height = viewSize.height
+	}
+}
+
 public final class CakeConfig: VirtualMachineConfiguration {
 	public var diskSize: Int = 0
-	
 	var config: Config
 	var cake: Config
 	var location: URL
@@ -370,9 +378,17 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		get { self.cake["runningIP"] as? String ?? nil }
 	}
 
-	public var display: DisplaySize {
-		set { self.config["display"] = newValue }
-		get { self.config["display"] as! DisplaySize }
+	public var display: ViewSize {
+		set {
+			self.config["display"] = DisplaySize(viewSize: newValue)
+		}
+		get {
+			if let display = self.config["display"] as? DisplaySize {
+				return ViewSize(width: display.width, height: display.height)
+			}
+
+			return ViewSize.standard
+		}
 	}
 
 	public var vncPassword: String {
@@ -404,7 +420,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		memorySize: UInt64,
 		memorySizeMin: UInt64,
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
-		screenSize: VMScreenSize
+		screenSize: ViewSize
 	) {
 		self.location = location
 		self.config = Config()
@@ -426,7 +442,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.clearPassword = clearPassword
 		self.ifname = ifname
 		self.autostart = autostart
-		self.display = DisplaySize(width: screenSize.width, height: screenSize.height)
+		self.display = screenSize
 		self.vncPassword = UUID().uuidString
 	}
 
@@ -482,7 +498,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.agent = false
 		self.attachedDisks = options.attachedDisks
 		self.vncPassword = UUID().uuidString
-		self.display = DisplaySize(width: options.screenSize.width, height: options.screenSize.height)
+		self.display = ViewSize(width: options.screenSize.width, height: options.screenSize.height)
 
 		if self.os == .darwin {
 			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)

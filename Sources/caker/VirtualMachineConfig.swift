@@ -23,7 +23,7 @@ struct VirtualMachineConfig: Hashable {
 	var dynamicPortForwarding: Bool = false
 	var displayRefit: Bool = true
 	var nestedVirtualization: Bool = true
-	var display: VMScreenSize = .standard
+	var display: GRPCLib.ViewSize = .standard
 	var forwardPorts: [TunnelAttachement] = []
 	var sockets: [SocketDevice] = []
 	var networks: [BridgeAttachement] = []
@@ -87,7 +87,7 @@ struct VirtualMachineConfig: Hashable {
 		}
 	}
 
-	init(name: String, config: VirtualMachineConfiguration) throws {
+	init(name: String, config: any VirtualMachineConfiguration) throws {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
 		self.cpuCount = config.cpuCount
@@ -95,7 +95,7 @@ struct VirtualMachineConfig: Hashable {
 		self.macAddress = config.macAddress
 		self.autostart = config.autostart
 		self.suspendable = config.suspendable
-		self.display = VMScreenSize(width: config.display.width, height: config.display.height)
+		self.display = config.display
 		self.dynamicPortForwarding = config.dynamicPortForwarding
 		self.displayRefit = config.displayRefit
 		self.nestedVirtualization = config.nested
@@ -136,7 +136,7 @@ struct VirtualMachineConfig: Hashable {
 		config.dynamicPortForwarding = self.dynamicPortForwarding
 		config.displayRefit = self.displayRefit
 		config.nested = self.nestedVirtualization
-		config.display = DisplaySize(width: self.display.width, height: self.display.height)
+		config.display = self.display
 		config.forwardedPorts = self.forwardPorts
 		config.sockets = self.sockets
 		config.networks = self.networks
