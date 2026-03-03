@@ -224,6 +224,7 @@
 		9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E8E2E23BF1300C13D23 /* AppState.swift */; };
 		9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
+		9B9DCED42F57220E007EEACC /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED32F572202007EEACC /* InfosHandler.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
 		9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */; };
@@ -807,6 +808,7 @@
 		9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteData.swift; sourceTree = "<group>"; };
 		9B9C4E922E23C92900C13D23 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
+		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
 		9BA180A12EFBF9D8000D1424 /* ZlibStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibStream.swift; sourceTree = "<group>"; };
@@ -1669,6 +1671,7 @@
 		9BB213CE2F37548300B45692 /* Handlers */ = {
 			isa = PBXGroup;
 			children = (
+				9B9DCED32F572202007EEACC /* InfosHandler.swift */,
 				9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */,
 				9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */,
 				9BB213C92F37548300B45692 /* DeleteHandler.swift */,
@@ -1948,6 +1951,7 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
+				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
@@ -2501,6 +2505,7 @@
 				9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */,
 				9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
+				9B9DCED42F57220E007EEACC /* InfosHandler.swift in Sources */,
 				9B4517E72F067E7B0088F093 /* GraphCapsule.swift in Sources */,
 				9B215B752E0C391500AFC89D /* NetworkAttachementDetailView.swift in Sources */,
 				9B2BFAC52DFED25E000045C3 /* MountView.swift in Sources */,
@@ -2746,6 +2751,7 @@
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
+				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
 				9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */,
 				9BEBC7A82DF440720092B196 /* CakeAgentAsyncParsableCommand.swift in Sources */,
 				9BEBC7A92DF440720092B196 /* VirtualSocketDevices.swift in Sources */,
