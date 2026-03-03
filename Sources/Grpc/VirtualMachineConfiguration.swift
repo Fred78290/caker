@@ -6,10 +6,7 @@
 //
 import Foundation
 import NIOPortForwarding
-import Virtualization
 import CakeAgentLib
-
-public typealias DisplaySize = [String: Int]
 
 public enum VirtualizedOS: String, Codable {
 	case darwin
@@ -108,7 +105,7 @@ public enum Architecture: String, Codable, CustomStringConvertible {
 	}
 }
 
-public enum SupportedPlatform: String, CaseIterable {
+public enum SupportedPlatform: String, Codable, CaseIterable {
 	case ubuntu
 	case centos
 	case macos
@@ -186,10 +183,6 @@ public protocol VirtualMachineConfiguration {
 	var vncPassword: String { set get }
 	var ecid: Data? /*VZMacMachineIdentifier*/  { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
-}
-
-extension VirtualMachineConfiguration {
-	
 }
 
 extension Caked.Configuration.VirtualizedOS {
