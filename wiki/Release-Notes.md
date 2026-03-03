@@ -1,5 +1,37 @@
 # Release Notes
 
+## 2026-03-03 (Git log summary - main)
+
+### Added
+- See commit highlights below.
+
+### Updated
+- Adds helper for consistent virtual machine document creation
+- Adds handler for retrieving VM infos and configuration
+- Refactors agent helper creation for consistency
+- Refactors command handlers to use provider instead of client
+- Adds utility to instantiate agent helpers with varied inputs
+- Simplifies init call syntax for data conversion
+- Refactors info retrieval to support VMLocation input
+- Removes runMode check when selecting gRPC client usage
+- Adds option to include VM config in list output
+- Adds option to include VM config in list commands
+- Use display.cgSize for document view sizing
+- Add Codable conformance to SupportedPlatform
+- Make enum codable and remove unused conformances
+- Simplifies console config to use String instead of struct
+- Standardizes display size types across the application
+- Refactors `InfosHandler` file structure
+- Adds optional VM configuration to list requests
+- Refactor config mapping and introduce public model
+- Refactors VM hardware identifier storage
+- Centralizes VM configuration and image source types
+
+### Notes
+- Summary generated automatically from recent git commits on branch `main`.
+- Command used: `git log --no-merges --oneline -n 20 -- Sources wiki`.
+
+
 ## 2026-02-26 (Git log summary - main)
 
 ### Added
