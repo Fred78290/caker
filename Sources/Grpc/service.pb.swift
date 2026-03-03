@@ -312,8 +312,8 @@ public struct Caked_Caked: Sendable {
       set {_uniqueStorage()._sockets = newValue}
     }
 
-    public var console: Caked_Caked.Configuration.ConsoleAttachment {
-      get {_storage._console ?? Caked_Caked.Configuration.ConsoleAttachment()}
+    public var console: String {
+      get {_storage._console ?? String()}
       set {_uniqueStorage()._console = newValue}
     }
     /// Returns true if `console` has been explicitly set.
@@ -800,19 +800,6 @@ public struct Caked_Caked: Sendable {
       public var port: Int32 = 0
 
       public var bind: String = String()
-
-      public var unknownFields = SwiftProtobuf.UnknownStorage()
-
-      public init() {}
-    }
-
-    /// ConsoleAttachment represents console configuration
-    public struct ConsoleAttachment: Sendable {
-      // SwiftProtobuf.Message conformance is added in an extension below. See the
-      // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
-      // methods supported on all messages.
-
-      public var url: String = String()
 
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -5530,7 +5517,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _mounts: [Caked_Caked.Configuration.DirectorySharingAttachment] = []
     var _attachedDisks: [Caked_Caked.Configuration.DiskAttachment] = []
     var _sockets: [Caked_Caked.Configuration.SocketDevice] = []
-    var _console: Caked_Caked.Configuration.ConsoleAttachment? = nil
+    var _console: String? = nil
     var _forwardedPorts: [Caked_Caked.Configuration.TunnelAttachement] = []
     var _configuredUser: String = String()
     var _configuredPassword: String? = nil
@@ -5644,7 +5631,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 19: try { try decoder.decodeRepeatedMessageField(value: &_storage._mounts) }()
         case 20: try { try decoder.decodeRepeatedMessageField(value: &_storage._attachedDisks) }()
         case 21: try { try decoder.decodeRepeatedMessageField(value: &_storage._sockets) }()
-        case 22: try { try decoder.decodeSingularMessageField(value: &_storage._console) }()
+        case 22: try { try decoder.decodeSingularStringField(value: &_storage._console) }()
         case 23: try { try decoder.decodeRepeatedMessageField(value: &_storage._forwardedPorts) }()
         case 24: try { try decoder.decodeSingularStringField(value: &_storage._configuredUser) }()
         case 25: try { try decoder.decodeSingularStringField(value: &_storage._configuredPassword) }()
@@ -5742,7 +5729,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         try visitor.visitRepeatedMessageField(value: _storage._sockets, fieldNumber: 21)
       }
       try { if let v = _storage._console {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+        try visitor.visitSingularStringField(value: v, fieldNumber: 22)
       } }()
       if !_storage._forwardedPorts.isEmpty {
         try visitor.visitRepeatedMessageField(value: _storage._forwardedPorts, fieldNumber: 23)
@@ -6101,36 +6088,6 @@ extension Caked_Caked.Configuration.SocketDevice: SwiftProtobuf.Message, SwiftPr
     if lhs.mode != rhs.mode {return false}
     if lhs.port != rhs.port {return false}
     if lhs.bind != rhs.bind {return false}
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension Caked_Caked.Configuration.ConsoleAttachment: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  public static let protoMessageName: String = Caked_Caked.Configuration.protoMessageName + ".ConsoleAttachment"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}url\0")
-
-  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularStringField(value: &self.url) }()
-      default: break
-      }
-    }
-  }
-
-  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.url.isEmpty {
-      try visitor.visitSingularStringField(value: self.url, fieldNumber: 1)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  public static func ==(lhs: Caked_Caked.Configuration.ConsoleAttachment, rhs: Caked_Caked.Configuration.ConsoleAttachment) -> Bool {
-    if lhs.url != rhs.url {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

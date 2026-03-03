@@ -351,15 +351,9 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
-	public var console: ConsoleAttachment? {
-		set { self.cake["console"] = newValue?.description }
-		get {
-			guard let consoleURL: String = self.cake["console"] as? String else {
-				return nil
-			}
-
-			return ConsoleAttachment(argument: consoleURL)
-		}
+	public var console: String? {
+		set { self.cake["console"] = newValue }
+		get { self.cake["console"] as? String ?? nil }
 	}
 
 	public var forwardedPorts: [TunnelAttachement] {

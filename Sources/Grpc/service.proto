@@ -206,11 +206,6 @@ message Caked {
       string bind = 3;
     }
 
-// ConsoleAttachment represents console configuration
-    message ConsoleAttachment {
-      string url = 1;
-    }
-
 // TunnelAttachement represents a port forwarding tunnel
     message TunnelAttachement {
       message ForwardedPort {
@@ -271,7 +266,7 @@ message Caked {
     repeated DirectorySharingAttachment mounts        = 19;
     repeated DiskAttachment             attachedDisks = 20;
     repeated SocketDevice               sockets       = 21;
-    optional ConsoleAttachment          console       = 22;
+    optional string                     console       = 22;
 
 	// Port forwarding
     repeated TunnelAttachement forwardedPorts = 23;

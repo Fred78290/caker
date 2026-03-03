@@ -81,7 +81,7 @@ struct VMRun: AsyncParsableCommand {
 		}
 
 		if let console = config.console {
-			try console.validate()
+			try ConsoleAttachment(argument: console).validate()
 		}
 
 		if self.launchedFromService {

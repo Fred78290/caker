@@ -321,7 +321,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var networks: [BridgeAttachement]
 	public var useCloudInit: Bool
 	public var sockets: [SocketDevice]
-	public var console: ConsoleAttachment?
+	public var console: String?
 	public var forwardedPorts: [TunnelAttachement]
 	public var runningIP: String?
 	public var display: ViewSize
@@ -371,7 +371,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.useCloudInit = from.useCloudInit
 		self.sockets = from.sockets.map({.init($0)})
 		if from.hasConsole {
-			self.console = .init(argument: from.console.url)
+			self.console = from.console
 		}
 		self.forwardedPorts = from.forwardedPorts.map({.init($0)})
 		self.runningIP = from.runningIp

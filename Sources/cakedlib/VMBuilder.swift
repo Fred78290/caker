@@ -127,7 +127,7 @@ public struct VMBuilder {
 			config.networks = options.networks
 			config.mounts = options.mounts
 			config.sockets = options.sockets
-			config.console = options.consoleURL
+			config.console = options.consoleURL?.description
 			config.forwardedPorts = options.forwardedPorts
 			config.dynamicPortForwarding = options.dynamicPortForwarding
 			config.suspendable = options.suspendable

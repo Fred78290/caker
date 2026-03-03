@@ -59,13 +59,18 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 	}
 
 	public func consoleURL(vmDir: URL) throws -> URL? {
-		if consoleURL == "file" {
+		return try self.consoleURL.consoleURL(vmDir: vmDir)
+	}
+}
+
+extension String {
+	public func consoleURL(vmDir: URL) throws -> URL? {
+		if self == "file" {
 			return vmDir.appendingPathComponent("console.log")
-		} else if consoleURL == "unix" {
+		} else if self == "unix" {
 			return vmDir.socketPath(name: "console.sock")
 		} else {
-			return URL(string: consoleURL)
+			return URL(string: self)
 		}
 	}
-
 }

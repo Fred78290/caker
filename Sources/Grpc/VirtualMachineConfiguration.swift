@@ -179,7 +179,7 @@ public protocol VirtualMachineConfiguration {
 	var networks: [BridgeAttachement] { set get }
 	var useCloudInit: Bool { set get }
 	var sockets: [SocketDevice] { set get }
-	var console: ConsoleAttachment? { set get }
+	var console: String? { set get }
 	var forwardedPorts: [TunnelAttachement] { set get }
 	var runningIP: String? { set get }
 	var display: ViewSize { set get }
@@ -308,14 +308,6 @@ extension Caked.Configuration.SocketDevice {
 	}
 }
 
-extension Caked.Configuration.ConsoleAttachment {
-	init(_ attachment: ConsoleAttachment) {
-		self = .with {
-			$0.url = attachment.description
-		}
-	}
-}
-
 extension MappedPort.Proto {
 	var description: String {
 		switch self {
@@ -415,7 +407,7 @@ extension VirtualMachineConfiguration {
 			$0.attachedDisks = self.attachedDisks.map({.init($0)})
 			$0.sockets = self.sockets.map({.init($0)})
 			if let console {
-				$0.console = .init(console)
+				$0.console = console
 			}
 			$0.forwardedPorts = self.forwardedPorts.map({.init($0)})
 			$0.configuredUser = self.configuredUser
