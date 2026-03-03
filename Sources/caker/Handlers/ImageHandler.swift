@@ -9,7 +9,7 @@ extension ImageHandler {
 		}
 
 		do {
-			return try await ListImagesInfoReply(from: client.image(.with {
+			return try await ListImagesInfoReply(client.image(.with {
 				$0.command = .list
 				$0.name = remote
 			}).response.get().images.list)

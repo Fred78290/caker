@@ -76,7 +76,7 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 				currentLease = [:]
 				inBody = true
 			} else if line == "}" {
-				if let lease = createLease(from: currentLease) {
+				if let lease = createLease(currentLease) {
 					leases.append(lease)
 				}
 				currentLease = [:]
@@ -99,7 +99,7 @@ class DHCPLeaseParser: DHCPLeaseProvider {
 		}
 	}
 
-	private static func createLease(from: [String: String]) -> DHCPLease? {
+	private static func createLease(_ from: [String: String]) -> DHCPLease? {
 		guard let ipAddress = from["ip_address"],
 			let hwAddress = from["hw_address"],
 			let hostname = from["name"],

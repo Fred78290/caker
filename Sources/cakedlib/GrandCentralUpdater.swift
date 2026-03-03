@@ -75,7 +75,7 @@ public class GrandCentralUpdater {
 						case .error(let error):
 							$0.failure = "\(error)"
 						case .status(let status):
-							$0.status = .init(from: status)
+							$0.status = .init(status)
 						case .screenshot(let png):
 							$0.screenshot = png
 						}

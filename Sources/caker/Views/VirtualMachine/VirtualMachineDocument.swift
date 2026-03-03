@@ -472,7 +472,7 @@ extension VirtualMachineDocument {
 		virtualMachine.delegate = self
 	}
 	
-	private func loadVirtualMachine(from location: VMLocation) -> URL? {
+	private func loadVirtualMachine(_ location: VMLocation) -> URL? {
 #if DEBUG
 		self.logger.debug("Load VM from: \(location.rootURL)")
 #endif
@@ -514,11 +514,11 @@ extension VirtualMachineDocument {
 	func loadVirtualMachine() -> URL? {
 		guard let virtualMachine = self.virtualMachine else {
 			if let location = self.location {
-				return self.loadVirtualMachine(from: location)
+				return self.loadVirtualMachine(location)
 			}
 			
 			if let location = try? StorageLocation(runMode: .app).find(name) {
-				return self.loadVirtualMachine(from: location)
+				return self.loadVirtualMachine(location)
 			}
 			
 			DispatchQueue.main.async {
@@ -1031,7 +1031,7 @@ extension VirtualMachineDocument {
 			self.logger.debug("Agent monitoring: VM \(self.name) agent is responding")
 		#endif
 
-		self.vmInfos = .init(from: infos)
+		self.vmInfos = .init(infos)
 
 		if let firstIP = self.vmInfos!.ipaddresses.first {
 			self.logger.debug("VM \(self.name) is ready with IP: \(firstIP)")

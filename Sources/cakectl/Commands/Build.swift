@@ -52,7 +52,7 @@ struct Build: AsyncGrpcParsableCommand {
 						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
 					}
 				} else if case .builded(let builded) = current {
-					result = self.format.render(BuildedReply(from: builded))
+					result = self.format.render(BuildedReply(builded))
 				}
 			}
 

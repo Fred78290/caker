@@ -33,7 +33,7 @@ extension DirectorySharingAttachment {
 }
 
 extension MountVirtioFS {
-	init(from: CakeAgent.MountReply.MountVirtioFSReply) {
+	init(_ from: CakeAgent.MountReply.MountVirtioFSReply) {
 		var mounted: Bool = false
 		var reason: String = ""
 
@@ -53,7 +53,7 @@ extension MountInfos {
 	}
 
 	init(_ from: Caked_MountReply) {
-		self.init(success: from.success, reason: from.reason, mounts: from.mounts.map { GRPCLib.MountVirtioFS(from: $0) })
+		self.init(success: from.success, reason: from.reason, mounts: from.mounts.map { GRPCLib.MountVirtioFS($0) })
 	}
 }
 

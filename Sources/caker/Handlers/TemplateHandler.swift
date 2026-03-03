@@ -20,7 +20,7 @@ extension TemplateHandler {
 			return self.createTemplate(on: Utilities.group.next(), sourceName: sourceName, templateName: templateName, runMode: runMode)
 		}
 		
-		return try CreateTemplateReply(from: client.template(.with {
+		return try CreateTemplateReply(client.template(.with {
 			$0.command = .add
 			$0.createRequest = .with {
 				$0.templateName = templateName
@@ -34,6 +34,6 @@ extension TemplateHandler {
 			return self.listTemplate(runMode: runMode)
 		}
 
-		return try ListTemplateReply(from: client.template(.with { $0.command = .list }).response.wait().templates.list)
+		return try ListTemplateReply(client.template(.with { $0.command = .list }).response.wait().templates.list)
 	}
 }

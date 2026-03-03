@@ -8,7 +8,7 @@ extension NetworksHandler {
 			return self.create(networkName: networkName, network: network, runMode: runMode)
 		}
 
-		return try CreatedNetworkReply(from: client.networks(.with {
+		return try CreatedNetworkReply(client.networks(.with {
 			$0.command = .new
 			$0.create = Caked_NetworkRequest.CreateNetworkRequest.with {
 				$0.mode = network.mode == .shared ? .shared : .host
@@ -29,7 +29,7 @@ extension NetworksHandler {
 			return self.networks(runMode: runMode)
 		}
 		
-		return try ListNetworksReply(from: client.networks(.with { $0.command = .infos }).response.wait().networks.list)
+		return try ListNetworksReply(client.networks(.with { $0.command = .infos }).response.wait().networks.list)
 	}
 	
 	public static func start(client: CakedServiceClient?, networkName: String, runMode: Utils.RunMode) -> StartedNetworkReply {
@@ -38,7 +38,7 @@ extension NetworksHandler {
 		}
 		
 		do {
-			return try StartedNetworkReply(from: client.networks(.with {
+			return try StartedNetworkReply(client.networks(.with {
 				$0.command = .start
 				$0.name = networkName
 			}).response.wait().networks.started)
@@ -53,7 +53,7 @@ extension NetworksHandler {
 		}
 
 		do {
-			return try StoppedNetworkReply(from: client.networks(.with {
+			return try StoppedNetworkReply(client.networks(.with {
 				$0.command = .start
 				$0.name = networkName
 			}).response.wait().networks.stopped)

@@ -14,7 +14,7 @@ public struct LoginReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_LoginReply) {
+	public init(_ from: Caked_LoginReply) {
 		self.message = from.message
 		self.success = from.success
 	}
@@ -36,7 +36,7 @@ public struct LogoutReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_LogoutReply) {
+	public init(_ from: Caked_LogoutReply) {
 		self.message = from.message
 		self.success = from.success
 	}
@@ -70,7 +70,7 @@ public struct PullReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_PullReply) {
+	public init(_ from: Caked_PullReply) {
 		self.imageType = ImageTypeEnum(rawValue: from.imageType)!
 		self.message = from.message
 		self.success = from.success
@@ -94,7 +94,7 @@ public struct PushReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_PushReply) {
+	public init(_ from: Caked_PushReply) {
 		self.message = from.message
 		self.success = from.success
 	}

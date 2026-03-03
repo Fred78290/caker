@@ -20,7 +20,7 @@ public struct InfosHandler {
 		var infos: VMInformations
 
 		if location.status == .running {
-			infos = .init(from: try client.info(callOptions: callOptions))
+			infos = .init(try client.info(callOptions: callOptions))
 			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL {
 				infos.vncURL = vncURL.map(\.absoluteString)
 			} else {

@@ -11,9 +11,9 @@ import TextTable
 public typealias VirtualMachineInfos = [VirtualMachineInfo]
 
 extension VirtualMachineInfos {
-	public init(from: [Caked_VirtualMachineInfo]) {
+	public init(_ from: [Caked_VirtualMachineInfo]) {
 		self = from.compactMap {
-			VirtualMachineInfo(from: $0)
+			VirtualMachineInfo($0)
 		}
 	}
 }
@@ -100,7 +100,7 @@ public struct VMInformations: Sendable, Codable {
 		self.agentVersion = nil
 	}
 
-	public init(from: InfoReply) {
+	public init(_ from: InfoReply) {
 		self.name = from.name
 		self.version = from.version
 		self.uptime = from.uptime
@@ -120,7 +120,7 @@ public struct VMInformations: Sendable, Codable {
 		self.agentVersion = from.agentVersion
 	}
 
-	public init(from: Caked_InfoReply) {
+	public init(_ from: Caked_InfoReply) {
 		self.name = from.name
 		self.version = from.version
 		self.uptime = from.uptime
@@ -224,15 +224,15 @@ public struct VMInformations: Sendable, Codable {
 			reply.status = .init(agentStatus: self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
-				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }
+				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork($0) }
 			}
 
 			if let tunnelInfos = self.tunnelInfos {
-				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
+				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo($0) }
 			}
 
 			if let sockets = self.socketInfos {
-				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo(from: $0) }
+				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo($0) }
 			}
 
 			reply.vncURL = self.vncURL ?? []
@@ -275,7 +275,7 @@ public struct SuspendedObject: Codable {
 	public let suspended: Bool
 	public let reason: String
 
-	public init(from: Caked_SuspendedObject) {
+	public init(_ from: Caked_SuspendedObject) {
 		self.name = from.name
 		self.suspended = from.suspended
 		self.reason = from.reason
@@ -307,8 +307,8 @@ public struct SuspendReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_SuspendReply) {
-		self.objects = from.objects.map(SuspendedObject.init(from:))
+	public init(_ from: Caked_SuspendReply) {
+		self.objects = from.objects.map{ SuspendedObject($0) }
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -327,7 +327,7 @@ public struct StoppedObject: Codable {
 	public let stopped: Bool
 	public let reason: String
 
-	public init(from: Caked_StoppedObject) {
+	public init(_ from: Caked_StoppedObject) {
 		self.name = from.name
 		self.stopped = from.stopped
 		self.reason = from.reason
@@ -359,8 +359,8 @@ public struct StopReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_StopReply) {
-		self.objects = from.objects.map(StoppedObject.init(from:))
+	public init(_ from: Caked_StopReply) {
+		self.objects = from.objects.map { StoppedObject($0) }
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -379,7 +379,7 @@ public struct RestartedObject: Codable {
 	public var restarted: Bool
 	public var reason: String
 	
-	public init(from: Caked_RestartObject) {
+	public init(_ from: Caked_RestartObject) {
 		self.name = from.name
 		self.restarted = from.restarted
 		self.reason = from.reason
@@ -411,8 +411,8 @@ public struct RestartReply: Codable {
 		self.success = success
 	}
 
-	public init(from: Caked_RestartReply) {
-		self.objects = from.objects.map(RestartedObject.init(from:))
+	public init(_ from: Caked_RestartReply) {
+		self.objects = from.objects.map { RestartedObject($0) }
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -432,7 +432,7 @@ public struct DeletedObject: Codable {
 	public let deleted: Bool
 	public let reason: String
 
-	public init(from: Caked_DeletedObject) {
+	public init(_ from: Caked_DeletedObject) {
 		self.source = from.source
 		self.name = from.name
 		self.deleted = from.deleted
@@ -467,10 +467,10 @@ public struct DeleteReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_DeleteReply) {
+	public init(_ from: Caked_DeleteReply) {
 		self.success = from.success
 		self.reason = from.reason
-		self.objects = from.objects.map(DeletedObject.init(from:))
+		self.objects = from.objects.map { DeletedObject($0) }
 	}
 
 	public var caked: Caked_DeleteReply {
@@ -488,7 +488,7 @@ public struct LaunchReply: Codable {
 	public let launched: Bool
 	public let reason: String
 
-	public init(from: Caked_LaunchReply) {
+	public init(_ from: Caked_LaunchReply) {
 		self.name = from.name
 		self.ip = from.address
 		self.launched = from.launched
@@ -517,7 +517,7 @@ public struct StartedReply: Codable {
 	public let started: Bool
 	public let reason: String
 
-	public init(from: Caked_StartedReply) {
+	public init(_ from: Caked_StartedReply) {
 		self.name = from.name
 		self.ip = from.address
 		self.started = from.started
@@ -546,7 +546,7 @@ public struct BuildedReply: Codable {
 	public let builded: Bool
 	public let reason: String
 
-	public init(from: Caked_BuildedReply) {
+	public init(_ from: Caked_BuildedReply) {
 		self.name = from.name
 		self.builded = from.builded
 		self.reason = from.reason
@@ -573,7 +573,7 @@ public struct ClonedReply: Codable {
 	public let cloned: Bool
 	public let reason: String
 
-	public init(from: Caked_ClonedReply) {
+	public init(_ from: Caked_ClonedReply) {
 		self.sourceName = from.sourceName
 		self.targetName = from.targetName
 		self.cloned = from.cloned
@@ -602,7 +602,7 @@ public struct ConfiguredReply: Codable {
 	public let configured: Bool
 	public let reason: String
 
-	public init(from: Caked_ConfiguredReply) {
+	public init(_ from: Caked_ConfiguredReply) {
 		self.name = from.name
 		self.configured = from.configured
 		self.reason = from.reason
@@ -629,7 +629,7 @@ public struct DuplicatedReply: Codable {
 	public let duplicated: Bool
 	public let reason: String
 
-	public init(from: Caked_DuplicatedReply) {
+	public init(_ from: Caked_DuplicatedReply) {
 		self.from = from.from
 		self.to = from.to
 		self.duplicated = from.duplicated
@@ -659,7 +659,7 @@ public struct ImportedReply: Codable {
 	public let imported: Bool
 	public let reason: String
 
-	public init(from: Caked_ImportedReply) {
+	public init(_ from: Caked_ImportedReply) {
 		self.source = from.source
 		self.name = from.name
 		self.imported = from.imported
@@ -689,7 +689,7 @@ public struct WaitIPReply: Codable {
 	public let success: Bool
 	public let reason: String
 
-	public init(from: Caked_WaitIPReply) {
+	public init(_ from: Caked_WaitIPReply) {
 		self.name = from.name
 		self.ip = from.ip
 		self.success = from.success
@@ -717,7 +717,7 @@ public struct PurgeReply: Codable {
 	public let purged: Bool
 	public let reason: String
 
-	public init(from: Caked_PurgeReply) {
+	public init(_ from: Caked_PurgeReply) {
 		self.purged = from.purged
 		self.reason = from.reason
 	}
@@ -741,7 +741,7 @@ public struct RenameReply: Codable {
 	public let renamed: Bool
 	public let reason: String
 
-	public init(from: Caked_RenameReply) {
+	public init(_ from: Caked_RenameReply) {
 		self.oldName = from.oldName
 		self.newName = from.newName
 		self.renamed = from.renamed
@@ -784,7 +784,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.instanceID ?? self.name
 	}
 
-	public init(from: Caked_VirtualMachineInfo) {
+	public init(_ from: Caked_VirtualMachineInfo) {
 		self.type = from.type
 		self.source = from.source
 		self.name = from.name
@@ -869,7 +869,7 @@ public struct ShortVirtualMachineInfo: Codable {
 	public let state: String
 	public let fingerprint: String
 
-	public init(from: VirtualMachineInfo) {
+	public init(_ from: VirtualMachineInfo) {
 		self.type = from.type
 		self.name = from.name
 		self.fqn = from.fqn.joined(separator: " ")
@@ -893,10 +893,10 @@ public struct VirtualMachineStatusReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_VirtualMachineStatusReply) throws {
+	public init(_ from: Caked_VirtualMachineStatusReply) throws {
 		self.success = from.success
 		self.reason = from.reason
-		self.infos = VMInformations(from: from.infos)
+		self.infos = VMInformations(from.infos)
 	}
 
 	public var caked: Caked_VirtualMachineStatusReply {
@@ -919,10 +919,10 @@ public struct VirtualMachineInfoReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_VirtualMachineInfoReply) throws {
+	public init(_ from: Caked_VirtualMachineInfoReply) throws {
 		self.success = from.success
 		self.reason = from.reason
-		self.infos = from.infos.map(VirtualMachineInfo.init(from:))
+		self.infos = from.infos.map { VirtualMachineInfo($0) }
 	}
 
 	public var caked: Caked_VirtualMachineInfoReply {
@@ -947,7 +947,7 @@ public struct ScreenSizeReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ScreenSizeReply) {
+	public init(_ from: Caked_ScreenSizeReply) {
 		self.width = Int(from.screenSize.width)
 		self.height = Int(from.screenSize.height)
 		self.success = from.success

@@ -95,17 +95,17 @@ extension EmbedProvisionProfile {
 			let local = mainBundle.bundleURL.appendingPathComponent("Contents").appendingPathComponent("embedded.provisionprofile")
 
 			if FileManager.default.fileExists(atPath: local.path) {
-				return try load(from: local)
+				return try load(local)
 			}
 
 			return nil
 		}
 
-		return try load(from: path)
+		return try load(path)
 	}
 
 	// Read a .mobileprovision file on disk
-	static func load(from profilePath: URL) throws -> EmbedProvisionProfile? {
+	static func load(_ profilePath: URL) throws -> EmbedProvisionProfile? {
 		guard let plistDataString = String(data: try Data(contentsOf: profilePath), encoding: .isoLatin1) else {
 			return nil
 		}

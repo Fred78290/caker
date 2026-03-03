@@ -22,7 +22,7 @@ public struct RemoteEntry: Identifiable, Equatable, Hashable, Codable {
 		self.url = url
 	}
 
-	public init(from: Caked_RemoteEntry) {
+	public init(_ from: Caked_RemoteEntry) {
 		self.name = from.name
 		self.url = from.url
 	}
@@ -54,7 +54,7 @@ public struct CreateRemoteReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_CreateRemoteReply) {
+	public init(_ from: Caked_CreateRemoteReply) {
 		self.name = from.name
 		self.created = from.created
 		self.reason = from.reason
@@ -80,7 +80,7 @@ public struct DeleteRemoteReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_DeleteRemoteReply) {
+	public init(_ from: Caked_DeleteRemoteReply) {
 		self.name = from.name
 		self.deleted = from.deleted
 		self.reason = from.reason
@@ -106,8 +106,8 @@ public struct ListRemoteReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ListRemoteReply) {
-		self.remotes = from.remotes.map { .init(from: $0) }
+	public init(_ from: Caked_ListRemoteReply) {
+		self.remotes = from.remotes.map { .init($0) }
 		self.success = from.success
 		self.reason = from.reason
 	}

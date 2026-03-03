@@ -126,14 +126,14 @@ final class CPUUsageMonitor: ObservableObject, Observable {
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: CakeAgent.CurrentUsageReply) {
-		self.cpuInfos.update(from: usage.cpuInfos)
-		self.memoryInfos.update(infos: usage.memory)
+		self.cpuInfos.update(usage.cpuInfos)
+		self.memoryInfos.update(usage.memory)
 	}
 
 	@MainActor
 	private func handleAgentHealthCurrentUsage(usage: InfoReply) {
-		self.cpuInfos.update(from: usage.cpuInfo)
-		self.memoryInfos.update(infos: usage.memory)
+		self.cpuInfos.update(usage.cpuInfo)
+		self.memoryInfos.update(usage.memory)
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {

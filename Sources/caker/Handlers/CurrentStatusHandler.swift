@@ -12,7 +12,7 @@ import NIO
 import Combine
 
 extension VMLocation.Status {
-	init(from : Caked_VirtualMachineStatus) {
+	init(_ from : Caked_VirtualMachineStatus) {
 		switch from {
 		case .stopped:
 			self = .stopped
@@ -52,7 +52,7 @@ extension CurrentStatusHandler {
 				status.status.statuses.forEach { status in
 					switch status.message {
 					case .status(let status):
-						statusStream.yield(.status(.init(from: status)))
+						statusStream.yield(.status(.init(status)))
 					case .screenshot(let png):
 						statusStream.yield(.screenshot(png))
 					case .usage(let usage):

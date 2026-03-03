@@ -979,7 +979,7 @@ struct VirtualMachineWizard: View {
 		let result = await AppState.shared.loadImages(remote: remote)
 
 		return result.compactMap {
-			ShortImageInfo(imageInfo: $0)
+			ShortImageInfo($0)
 		}.sorted(using: [ShortImageInfoComparator(order: .forward)])
 	}
 

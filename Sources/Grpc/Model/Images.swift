@@ -35,7 +35,7 @@ public class LinuxContainerImage: Codable {
 	public let remoteName: String
 	public let description: String
 
-	public init(from: Caked_PulledImageInfo) {
+	public init(_ from: Caked_PulledImageInfo) {
 		self.alias = from.hasAlias ? from.alias.split(separator: ",").map { String($0) } : nil
 		self.path = URL(fileURLWithPath: from.path)
 		self.size = Int(from.size)
@@ -84,7 +84,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		self.fingerprint
 	}
 
-	public init(from: Caked_ImageInfo) {
+	public init(_ from: Caked_ImageInfo) {
 		self.aliases = from.aliases
 		self.architecture = from.architecture
 		self.pub = from.pub
@@ -216,7 +216,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 		case uploaded = "UPLOADED"
 	}
 
-	public init(from: Caked_ImageInfo) {
+	public init(_ from: Caked_ImageInfo) {
 		self.alias = from.aliases.description
 		self.fingerprint = from.fingerprint.substring(..<12)
 		self.pub = from.pub ? "yes" : "no"
@@ -227,7 +227,7 @@ public struct ShortImageInfo: Codable, Hashable, Identifiable {
 		self.uploaded = from.uploaded
 	}
 
-	public init(imageInfo: ImageInfo) {
+	public init(_ imageInfo: ImageInfo) {
 		self.alias = imageInfo.aliases.description
 		self.fingerprint = imageInfo.fingerprint.substring(..<12)
 		self.pub = imageInfo.pub ? "yes" : "no"
@@ -252,7 +252,7 @@ public struct ShortLinuxContainerImage: Codable {
 		case size = "SIZE"
 	}
 
-	public init(image: LinuxContainerImage) {
+	public init(_ image: LinuxContainerImage) {
 		self.alias = image.alias?.description ?? ""
 		self.fingerprint = image.fingerprint.substring(..<12)
 		self.description = image.description
@@ -271,8 +271,8 @@ public struct ImageInfoReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ImageInfoReply) {
-		self.info = .init(from: from.info)
+	public init(_ from: Caked_ImageInfoReply) {
+		self.info = .init(from.info)
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -297,11 +297,11 @@ public struct ListImagesInfoReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ListImagesInfoReply) {
+	public init(_ from: Caked_ListImagesInfoReply) {
 		self.success = from.success
 		self.reason = from.reason
 		self.infos = from.infos.map {
-			ImageInfo(from: $0)
+			ImageInfo($0)
 		}
 	}
 
@@ -325,8 +325,8 @@ public struct PulledImageInfoReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_PulledImageInfoReply) {
-		self.info = .init(from: from.info)
+	public init(_ from: Caked_PulledImageInfoReply) {
+		self.info = .init(from.info)
 		self.success = from.success
 		self.reason = from.reason
 	}

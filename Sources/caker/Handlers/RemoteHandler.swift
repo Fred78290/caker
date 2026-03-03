@@ -9,6 +9,6 @@ extension RemoteHandler {
 			return self.listRemote(runMode: runMode)
 		}
 
-		return try ListRemoteReply(from: client.remote(.with { $0.command = .list}).response.wait().remotes.list)
+		return try ListRemoteReply(client.remote(.with { $0.command = .list}).response.wait().remotes.list)
 	}
 }

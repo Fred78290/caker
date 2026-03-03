@@ -15,7 +15,7 @@ extension RestartHandler {
 			return self.restart(names: [name], force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		}
 
-		return try RestartReply(from: client.restart(.with {
+		return try RestartReply(client.restart(.with {
 			$0.force = force
 			$0.names = [name]
 			$0.waitIptimeout = Int32(waitIPTimeout)

@@ -488,7 +488,7 @@ public struct Utilities {
 	// MARK: - Async helpers
 	/// Load raw Data from a URL. If the URL is a file URL, it uses async file IO; otherwise it performs a network request.
 	@discardableResult
-	public static func loadData(from url: URL, timeout: TimeInterval = 60) async throws -> Data {
+	public static func loadData(_ url: URL, timeout: TimeInterval = 60) async throws -> Data {
 		if url.isFileURL {
 			// Async file read on a background thread
 			return try await withCheckedThrowingContinuation { continuation in
@@ -514,7 +514,7 @@ public struct Utilities {
 
 	/// Decode JSON from a URL into a Decodable type using `loadData(from:)`.
 	public static func loadJSON<T: Decodable>(from url: URL, as type: T.Type = T.self, decoder: JSONDecoder = JSONDecoder()) async throws -> T {
-		let data = try await loadData(from: url)
+		let data = try await loadData(url)
 		do {
 			return try decoder.decode(T.self, from: data)
 		} catch {

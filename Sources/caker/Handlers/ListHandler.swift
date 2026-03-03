@@ -8,6 +8,6 @@ extension ListHandler {
 			return self.list(vmonly: vmonly, includeConfig: includeConfig, runMode: runMode)
 		}
 
-		return try VirtualMachineInfoReply(from: client.list(.with { $0.vmonly = vmonly; $0.includeConfig = includeConfig }).response.wait().vms.list)
+		return try VirtualMachineInfoReply(client.list(.with { $0.vmonly = vmonly; $0.includeConfig = includeConfig }).response.wait().vms.list)
 	}
 }

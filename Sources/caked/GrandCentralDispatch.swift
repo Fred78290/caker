@@ -231,7 +231,7 @@ final class GrandCentralDispatch {
 		let initialStatus = vms.map { (name: String, location: VMLocation) in
 			return Caked_CurrentStatus.with {
 				$0.name = name
-				$0.status = .init(from: location.status)
+				$0.status = .init(location.status)
 			}
 		}
 

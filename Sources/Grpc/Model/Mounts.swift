@@ -38,7 +38,7 @@ public struct MountVirtioFS: Codable {
 		return message
 	}
 
-	public init(from: Caked_MountVirtioFSReply) {
+	public init(_ from: Caked_MountVirtioFSReply) {
 		self.name = from.name
 		self.path = from.path
 		self.mounted = from.mounted

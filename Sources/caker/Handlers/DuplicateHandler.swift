@@ -9,7 +9,7 @@ extension DuplicateHandler {
 			return self.duplicate(from: from, to: to, resetMacAddress: resetMacAddress, startMode: .attach, runMode: runMode)
 		}
 
-		return try DuplicatedReply(from: client.duplicate(.with {
+		return try DuplicatedReply(client.duplicate(.with {
 			$0.from = from
 			$0.to = to
 			$0.resetMacAddress = resetMacAddress

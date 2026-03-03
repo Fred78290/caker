@@ -45,7 +45,7 @@ extension BuildHandler {
 						}
 					}
 				} else if case .builded(let builded) = current {
-					result = BuildedReply(from: builded)
+					result = BuildedReply(builded)
 				}
 			}
 

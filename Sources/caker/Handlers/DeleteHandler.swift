@@ -9,7 +9,7 @@ extension DeleteHandler {
 			return self.delete(all: false, names: [name], runMode: runMode)
 		}
 
-		return try DeleteReply(from: client.delete(.with {
+		return try DeleteReply(client.delete(.with {
 			$0.all = false
 			$0.names = .with {
 				$0.list = [name]

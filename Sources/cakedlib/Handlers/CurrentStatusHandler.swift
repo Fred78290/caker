@@ -24,7 +24,7 @@ typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (
 )
 
 public extension VMLocation.Status {
-	init(from: Caked_VirtualMachineStatus) {
+	init(_ from: Caked_VirtualMachineStatus) {
 		switch from {
 		case .stopped:
 			self = .stopped
@@ -39,7 +39,7 @@ public extension VMLocation.Status {
 }
 
 public extension Caked_VirtualMachineStatus {
-	init(from: VMLocation.Status) {
+	init(_ from: VMLocation.Status) {
 		switch from {
 		case .running:
 			self = .running
@@ -337,7 +337,7 @@ public struct CurrentStatusHandler {
 								case .screenshot(let png):
 									self.statusStream.yield(.screenshot(png))
 								case .status(let status):
-									self.statusStream.yield(.status(.init(from: status)))
+									self.statusStream.yield(.status(.init(status)))
 									
 									if status == .running && self.agentMonitor.isMonitoring == false {
 										group.addTask {
@@ -447,7 +447,7 @@ public struct CurrentStatusHandler {
 								$0.statuses = [
 									.with {
 										$0.name = location.name
-										$0.status = .init(from:  status)
+										$0.status = .init(status)
 									}
 								]
 							}

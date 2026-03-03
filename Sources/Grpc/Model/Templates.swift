@@ -28,7 +28,7 @@ public struct TemplateEntry: Codable, Identifiable, Hashable {
 		self.totalSize = totalSize
 	}
 
-	public init(from: Caked_TemplateEntry) {
+	public init(_ from: Caked_TemplateEntry) {
 		self.name = from.name
 		self.fqn = from.fqn
 		self.diskSize = Int(from.diskSize)
@@ -51,14 +51,14 @@ public struct ShortTemplateEntry: Codable {
 	public let diskSize: String
 	public let totalSize: String
 
-	public init(from: Caked_TemplateEntry) {
+	public init(_ from: Caked_TemplateEntry) {
 		self.name = from.name
 		self.fqn = from.fqn
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
 		self.totalSize = ByteCountFormatter.string(fromByteCount: Int64(from.totalSize), countStyle: .file)
 	}
 
-	public init(from: TemplateEntry) {
+	public init(_ from: TemplateEntry) {
 		self.name = from.name
 		self.fqn = from.fqn
 		self.diskSize = ByteCountFormatter.string(fromByteCount: Int64(from.diskSize), countStyle: .file)
@@ -77,7 +77,7 @@ public struct CreateTemplateReply: Codable, Hashable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_CreateTemplateReply) {
+	public init(_ from: Caked_CreateTemplateReply) {
 		self.name = from.name
 		self.created = from.created
 		self.reason = from.reason
@@ -114,8 +114,8 @@ public struct ListTemplateReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ListTemplatesReply) {
-		self.templates = from.templates.map(TemplateEntry.init(from:))
+	public init(_ from: Caked_ListTemplatesReply) {
+		self.templates = from.templates.map { TemplateEntry($0) }
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -140,7 +140,7 @@ public struct DeleteTemplateReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_DeleteTemplateReply) {
+	public init(_ from: Caked_DeleteTemplateReply) {
 		self.name = from.name
 		self.deleted = from.deleted
 		self.reason = from.reason

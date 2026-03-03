@@ -35,7 +35,7 @@ public struct ShortInfoReply: Sendable, Codable {
 }
 
 extension CakeAgentLib.AttachedNetwork {
-	init(from: Caked_InfoReply.AttachedNetwork) {
+	init(_ from: Caked_InfoReply.AttachedNetwork) {
 		self.init()
 		self.network = from.network
 
@@ -50,7 +50,7 @@ extension CakeAgentLib.AttachedNetwork {
 }
 
 extension Caked_InfoReply.AttachedNetwork {
-	init(from: CakeAgentLib.AttachedNetwork) {
+	init(_ from: CakeAgentLib.AttachedNetwork) {
 		self.network = from.network
 
 		if let mode = from.mode {
@@ -64,7 +64,7 @@ extension Caked_InfoReply.AttachedNetwork {
 }
 
 extension CakeAgentLib.TunnelInfo {
-	init?(from: Caked_InfoReply.TunnelInfo) {
+	init?(_ from: Caked_InfoReply.TunnelInfo) {
 		if case .forward(let value) = from.tunnel {
 			self.init(forward: ForwardedPort(proto: value.protocol.mappedPort, host: Int(value.host), guest: Int(value.guest)))
 		} else if case .unixDomain(let value) = from.tunnel {
@@ -84,7 +84,7 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 		}
 	}
 
-	init(from: MappedPort.Proto) {
+	init(_ from: MappedPort.Proto) {
 		switch from {
 		case .tcp: self = .tcp
 		case .udp: self = .udp
@@ -94,16 +94,16 @@ extension Caked_InfoReply.TunnelInfo.ProtocolEnum {
 }
 
 extension Caked_InfoReply.TunnelInfo {
-	init?(from: CakeAgentLib.TunnelInfo) {
+	init?(_ from: CakeAgentLib.TunnelInfo) {
 		if case .forward(let value) = from.oneOf {
 			self.forward = Caked_InfoReply.TunnelInfo.ForwardedPort.with {
-				$0.protocol = .init(from: value.proto)
+				$0.protocol = .init(value.proto)
 				$0.host = Int32(value.host)
 				$0.guest = Int32(value.guest)
 			}
 		} else if case .unixDomain(let value) = from.oneOf {
 			self.unixDomain = Caked_InfoReply.TunnelInfo.Tunnel.with {
-				$0.protocol = .init(from: value.proto)
+				$0.protocol = .init(value.proto)
 				$0.host = value.host
 				$0.guest = value.guest
 			}
@@ -114,13 +114,13 @@ extension Caked_InfoReply.TunnelInfo {
 }
 
 extension CakeAgentLib.SocketInfo {
-	init(from: Caked_InfoReply.SocketInfo) {
+	init(_ from: Caked_InfoReply.SocketInfo) {
 		self.init(mode: SocketInfo.Mode(rawValue: from.mode.rawValue) ?? .bind, host: from.host, port: from.port)
 	}
 }
 
 extension Caked_InfoReply.SocketInfo {
-	init(from: CakeAgentLib.SocketInfo) {
+	init(_ from: CakeAgentLib.SocketInfo) {
 		self.mode = .init(rawValue: self.mode.rawValue) ?? .bind
 		self.host = from.host
 		self.port = from.port
@@ -153,9 +153,9 @@ extension InfoReply {
 			$0.status = infos.status.agentStatus
 			$0.mounts = infos.mounts
 			$0.memory = memory
-			$0.attachedNetworks = infos.networks.compactMap { CakeAgentLib.AttachedNetwork(from: $0) }
-			$0.tunnelInfos = infos.tunnels.compactMap { CakeAgentLib.TunnelInfo(from: $0) }
-			$0.socketInfos = infos.sockets.compactMap { CakeAgentLib.SocketInfo(from: $0) }
+			$0.attachedNetworks = infos.networks.compactMap { CakeAgentLib.AttachedNetwork($0) }
+			$0.tunnelInfos = infos.tunnels.compactMap { CakeAgentLib.TunnelInfo($0) }
+			$0.socketInfos = infos.sockets.compactMap { CakeAgentLib.SocketInfo($0) }
 		}
 	}
 
@@ -216,15 +216,15 @@ extension InfoReply {
 			reply.status = .init(agentStatus: self.status)
 
 			if let attachedNetworks = self.attachedNetworks {
-				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork(from: $0) }
+				reply.networks = attachedNetworks.map { Caked_InfoReply.AttachedNetwork($0) }
 			}
 
 			if let tunnelInfos = self.tunnelInfos {
-				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo(from: $0) }
+				reply.tunnels = tunnelInfos.compactMap { Caked_InfoReply.TunnelInfo($0) }
 			}
 
 			if let sockets = self.socketInfos {
-				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo(from: $0) }
+				reply.sockets = sockets.map { Caked_InfoReply.SocketInfo($0) }
 			}
 		}
 	}
@@ -233,9 +233,9 @@ extension InfoReply {
 extension CakeAgentLib.Format {
 	public func render(_ data: [Caked_ImageInfo]) -> String {
 		if self == .text {
-			return self.renderList(data.map { ShortImageInfo(from: $0) })
+			return self.renderList(data.map { ShortImageInfo($0) })
 		} else {
-			return self.renderList(data.map { ImageInfo(from: $0) })
+			return self.renderList(data.map { ImageInfo($0) })
 		}
 	}
 
@@ -251,7 +251,7 @@ extension CakeAgentLib.Format {
 		if self == .json {
 			return self.renderList(data)
 		} else {
-			return self.renderList(data.map { ShortImageInfo(imageInfo: $0) })
+			return self.renderList(data.map { ShortImageInfo($0) })
 		}
 	}
 
@@ -259,7 +259,7 @@ extension CakeAgentLib.Format {
 		if self == .json {
 			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(ShortImageInfo(imageInfo: data))
+			return self.renderSingle(ShortImageInfo(data))
 		}
 	}
 
@@ -268,7 +268,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_LoginReply) -> String {
-		self.renderSingle(LoginReply(from: data))
+		self.renderSingle(LoginReply(data))
 	}
 
 	public func render(_ data: LogoutReply) -> String {
@@ -276,7 +276,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_LogoutReply) -> String {
-		self.renderSingle(LogoutReply(from: data))
+		self.renderSingle(LogoutReply(data))
 	}
 
 	public func render(_ data: PullReply) -> String {
@@ -284,7 +284,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_PullReply) -> String {
-		self.renderSingle(PullReply(from: data))
+		self.renderSingle(PullReply(data))
 	}
 
 	public func render(_ data: PushReply) -> String {
@@ -292,23 +292,23 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_PushReply) -> String {
-		self.renderSingle(PushReply(from: data))
+		self.renderSingle(PushReply(data))
 	}
 
 	public func render(_ data: Caked_ImageInfo) -> String {
-		self.render(ImageInfo(from: data))
+		self.render(ImageInfo(data))
 	}
 
 	public func render(_ data: LinuxContainerImage) -> String {
 		if self == .json {
 			return self.renderSingle(data)
 		} else {
-			return self.renderSingle(ShortLinuxContainerImage(image: data))
+			return self.renderSingle(ShortLinuxContainerImage(data))
 		}
 	}
 
 	public func render(_ data: Caked_PulledImageInfo) -> String {
-		self.render(LinuxContainerImage(from: data))
+		self.render(LinuxContainerImage(data))
 	}
 
 	public func render(_ data: InfoReply) -> String {
@@ -336,7 +336,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_DeletedObject]) -> String {
-		return self.renderList(data.map { DeletedObject(from: $0) })
+		return self.renderList(data.map { DeletedObject($0) })
 	}
 
 	public func render(_ data: [RestartedObject]) -> String {
@@ -344,7 +344,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_RestartObject]) -> String {
-		return self.renderList(data.map { RestartedObject(from: $0) })
+		return self.renderList(data.map { RestartedObject($0) })
 	}
 
 	public func render(_ data: [SuspendedObject]) -> String {
@@ -352,7 +352,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_SuspendedObject]) -> String {
-		return self.renderList(data.map { SuspendedObject(from: $0) })
+		return self.renderList(data.map { SuspendedObject($0) })
 	}
 
 	public func render(_ data: [StoppedObject]) -> String {
@@ -360,7 +360,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_StoppedObject]) -> String {
-		return self.renderList(data.map { StoppedObject(from: $0) })
+		return self.renderList(data.map { StoppedObject($0) })
 	}
 
 	public func render(_ data: LaunchReply) -> String {
@@ -368,7 +368,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_LaunchReply) -> String {
-		return self.renderSingle(LaunchReply(from: data))
+		return self.renderSingle(LaunchReply(data))
 	}
 
 	public func render(_ data: StartedReply) -> String {
@@ -376,7 +376,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_StartedReply) -> String {
-		return self.renderSingle(StartedReply(from: data))
+		return self.renderSingle(StartedReply(data))
 	}
 
 	public func render(_ data: BuildedReply) -> String {
@@ -384,7 +384,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_BuildedReply) -> String {
-		return self.renderSingle(BuildedReply(from: data))
+		return self.renderSingle(BuildedReply(data))
 	}
 
 	public func render(_ data: ClonedReply) -> String {
@@ -392,7 +392,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_ClonedReply) -> String {
-		return self.renderSingle(ClonedReply(from: data))
+		return self.renderSingle(ClonedReply(data))
 	}
 
 	public func render(_ data: ConfiguredReply) -> String {
@@ -400,7 +400,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_ConfiguredReply) -> String {
-		return self.renderSingle(ConfiguredReply(from: data))
+		return self.renderSingle(ConfiguredReply(data))
 	}
 
 	public func render(_ data: DuplicatedReply) -> String {
@@ -408,7 +408,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_DuplicatedReply) -> String {
-		return self.renderSingle(DuplicatedReply(from: data))
+		return self.renderSingle(DuplicatedReply(data))
 	}
 
 	public func render(_ data: ImportedReply) -> String {
@@ -416,7 +416,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_ImportedReply) -> String {
-		return self.renderSingle(ImportedReply(from: data))
+		return self.renderSingle(ImportedReply(data))
 	}
 
 	public func render(_ data: WaitIPReply) -> String {
@@ -424,7 +424,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_WaitIPReply) -> String {
-		return self.renderSingle(WaitIPReply(from: data))
+		return self.renderSingle(WaitIPReply(data))
 	}
 
 	public func render(_ data: PurgeReply) -> String {
@@ -432,7 +432,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_PurgeReply) -> String {
-		return self.renderSingle(PurgeReply(from: data))
+		return self.renderSingle(PurgeReply(data))
 	}
 
 	public func render(_ data: RenameReply) -> String {
@@ -440,7 +440,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_RenameReply) -> String {
-		return self.renderSingle(RenameReply(from: data))
+		return self.renderSingle(RenameReply(data))
 	}
 
 	public func render(_ data: VirtualMachineInfos) -> String {
@@ -456,7 +456,7 @@ extension CakeAgentLib.Format {
 							if fqn.isFingerPrint() == false {
 								result.append(
 									ShortVirtualMachineInfo(
-										from: VirtualMachineInfo(
+										VirtualMachineInfo(
 											type: vm.type,
 											source: vm.source,
 											name: fqn.stringAfter(after: "//"),
@@ -471,14 +471,14 @@ extension CakeAgentLib.Format {
 							}
 						}
 					} else {
-						result.append(ShortVirtualMachineInfo(from: vm))
+						result.append(ShortVirtualMachineInfo(vm))
 					}
 				})
 		}
 	}
 
 	public func render(_ data: [Caked_VirtualMachineInfo]) -> String {
-		return self.render(VirtualMachineInfos(from: data))
+		return self.render(VirtualMachineInfos(data))
 	}
 
 	public func render(_ data: [MountVirtioFS]) -> String {
@@ -486,7 +486,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_MountVirtioFSReply]) -> String {
-		return self.renderList(data.map { MountVirtioFS(from: $0) })
+		return self.renderList(data.map { MountVirtioFS($0) })
 	}
 
 	public func render(_ data: BridgedNetwork) -> String {
@@ -494,7 +494,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_NetworkInfo) -> String {
-		return self.renderSingle(BridgedNetwork(from: data))
+		return self.renderSingle(BridgedNetwork(data))
 	}
 
 	public func render(_ data: [BridgedNetwork]) -> String {
@@ -502,7 +502,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_NetworkInfo]) -> String {
-		return self.renderList(data.map { BridgedNetwork(from: $0) })
+		return self.renderList(data.map { BridgedNetwork($0) })
 	}
 
 	public func render(_ data: CreatedNetworkReply) -> String {
@@ -510,7 +510,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_CreatedNetworkReply) -> String {
-		return self.renderSingle(CreatedNetworkReply(from: data))
+		return self.renderSingle(CreatedNetworkReply(data))
 	}
 
 	public func render(_ data: ConfiguredNetworkReply) -> String {
@@ -518,7 +518,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_ConfiguredNetworkReply) -> String {
-		return self.renderSingle(ConfiguredNetworkReply(from: data))
+		return self.renderSingle(ConfiguredNetworkReply(data))
 	}
 
 	public func render(_ data: DeleteNetworkReply) -> String {
@@ -526,7 +526,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_DeleteNetworkReply) -> String {
-		return self.renderSingle(DeleteNetworkReply(from: data))
+		return self.renderSingle(DeleteNetworkReply(data))
 	}
 
 	public func render(_ data: StartedNetworkReply) -> String {
@@ -534,7 +534,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_StartedNetworkReply) -> String {
-		return self.renderSingle(StartedNetworkReply(from: data))
+		return self.renderSingle(StartedNetworkReply(data))
 	}
 
 	public func render(_ data: StoppedNetworkReply) -> String {
@@ -542,7 +542,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_StoppedNetworkReply) -> String {
-		return self.render(StoppedNetworkReply(from: data))
+		return self.render(StoppedNetworkReply(data))
 	}
 
 	public func render(_ data: [RemoteEntry]) -> String {
@@ -550,7 +550,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: [Caked_RemoteEntry]) -> String {
-		return self.render(data.map { RemoteEntry(from: $0) })
+		return self.render(data.map { RemoteEntry($0) })
 	}
 
 	public func render(_ data: CreateRemoteReply) -> String {
@@ -558,7 +558,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_CreateRemoteReply) -> String {
-		return self.renderSingle(CreateRemoteReply(from: data))
+		return self.renderSingle(CreateRemoteReply(data))
 	}
 
 	public func render(_ data: DeleteRemoteReply) -> String {
@@ -566,7 +566,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_DeleteRemoteReply) -> String {
-		return self.renderSingle(DeleteRemoteReply(from: data))
+		return self.renderSingle(DeleteRemoteReply(data))
 	}
 
 	public func render(_ data: CreateTemplateReply) -> String {
@@ -574,7 +574,7 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_CreateTemplateReply) -> String {
-		return self.renderSingle(CreateTemplateReply(from: data))
+		return self.renderSingle(CreateTemplateReply(data))
 	}
 
 	public func render(_ data: DeleteTemplateReply) -> String {
@@ -582,22 +582,22 @@ extension CakeAgentLib.Format {
 	}
 
 	public func render(_ data: Caked_DeleteTemplateReply) -> String {
-		return self.render(DeleteTemplateReply(from: data))
+		return self.render(DeleteTemplateReply(data))
 	}
 
 	public func render(_ data: [TemplateEntry]) -> String {
 		if self == .json {
 			return self.renderList(data)
 		} else {
-			return self.renderList(data.map { ShortTemplateEntry(from: $0) })
+			return self.renderList(data.map { ShortTemplateEntry($0) })
 		}
 	}
 
 	public func render(_ data: Caked_ListTemplatesReply) -> String {
 		if self == .json {
-			return self.renderList(data.templates.map { TemplateEntry(from: $0) })
+			return self.renderList(data.templates.map { TemplateEntry($0) })
 		} else {
-			return self.renderList(data.templates.map { ShortTemplateEntry(from: $0) })
+			return self.renderList(data.templates.map { ShortTemplateEntry($0) })
 		}
 	}
 }

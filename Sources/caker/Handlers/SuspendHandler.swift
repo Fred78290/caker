@@ -14,7 +14,7 @@ extension SuspendHandler {
 			return self.suspendVMs(names: [name], runMode: runMode)
 		}
 
-		return SuspendReply(from: try client.suspend(.with {
+		return SuspendReply(try client.suspend(.with {
 			$0.names = [name]
 		}).response.wait().vms.suspend)
 	}

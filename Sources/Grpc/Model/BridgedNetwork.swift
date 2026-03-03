@@ -74,7 +74,7 @@ public struct BridgedNetwork: Codable, Hashable, Identifiable, Comparable {
 		self.usedBy = usedBy
 	}
 
-	public init(from: Caked_NetworkInfo) {
+	public init(_ from: Caked_NetworkInfo) {
 		self.name = from.name
 		self.mode = .init(rawValue: from.mode) ?? .shared
 		self.description = from.description_p
@@ -110,8 +110,8 @@ public struct NetworkInfoReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_NetworkInfoReply) throws {
-		self.info = BridgedNetwork(from: from.info)
+	public init(_ from: Caked_NetworkInfoReply) throws {
+		self.info = BridgedNetwork(from.info)
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -136,8 +136,8 @@ public struct ListNetworksReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ListNetworksReply) throws {
-		self.networks = from.networks.map(BridgedNetwork.init(from:))
+	public init(_ from: Caked_ListNetworksReply) throws {
+		self.networks = from.networks.map(BridgedNetwork.init(_ :))
 		self.success = from.success
 		self.reason = from.reason
 	}
@@ -170,7 +170,7 @@ public struct StartedNetworkReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_StartedNetworkReply) {
+	public init(_ from: Caked_StartedNetworkReply) {
 		self.name = from.name
 		self.started = from.started
 		self.reason = from.reason
@@ -196,7 +196,7 @@ public struct StoppedNetworkReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_StoppedNetworkReply) {
+	public init(_ from: Caked_StoppedNetworkReply) {
 		self.name = from.name
 		self.stopped = from.stopped
 		self.reason = from.reason
@@ -222,7 +222,7 @@ public struct CreatedNetworkReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_CreatedNetworkReply) {
+	public init(_ from: Caked_CreatedNetworkReply) {
 		self.name = from.name
 		self.created = from.created
 		self.reason = from.reason
@@ -248,7 +248,7 @@ public struct ConfiguredNetworkReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_ConfiguredNetworkReply) {
+	public init(_ from: Caked_ConfiguredNetworkReply) {
 		self.name = from.name
 		self.configured = from.configured
 		self.reason = from.reason
@@ -275,7 +275,7 @@ public struct DeleteNetworkReply: Codable {
 		self.reason = reason
 	}
 
-	public init(from: Caked_DeleteNetworkReply) {
+	public init(_ from: Caked_DeleteNetworkReply) {
 		self.name = from.name
 		self.deleted = from.deleted
 		self.reason = from.reason

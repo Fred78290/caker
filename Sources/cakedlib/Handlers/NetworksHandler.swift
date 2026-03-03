@@ -104,7 +104,7 @@ public enum VMNetMode: String, CaseIterable, ExpressibleByArgument, Codable {
 }
 
 extension BridgedNetworkMode {
-	init(from: VMNetMode) {
+	init(_ from: VMNetMode) {
 		self.init(rawValue: from.rawValue)!
 	}
 }
@@ -1021,7 +1021,7 @@ public struct NetworksHandler {
 				let dhcpEnd = "\($1.value.dhcpEnd)/\(cidr)"
 				let uuid = $1.value.interfaceID
 
-				$0.append(try createBridgedNetwork($1.key, .init(from: $1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
+				$0.append(try createBridgedNetwork($1.key, .init($1.value.mode), $1.value.mode.description, uuid, gateway, dhcpEnd, dhcpLease))
 			}.sorted {
 				$0 < $1
 			}
@@ -1064,7 +1064,7 @@ public struct NetworksHandler {
 
 				let cidr = network.netmask.netmaskToCidr()
 
-				mode = .init(from: network.mode)
+				mode = .init(network.mode)
 				description = network.mode.description
 				uuid = network.interfaceID
 				gateway = "\(network.dhcpStart)/\(cidr)"

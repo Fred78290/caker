@@ -14,7 +14,7 @@ extension ScreenSizeHandler {
 			return self.setScreenSize(name: name, width: width, height: height, runMode: runMode)
 		}
 
-		return try ScreenSizeReply(from: client.setScreenSize(.with {
+		return try ScreenSizeReply(client.setScreenSize(.with {
 			$0.name = name
 			$0.screenSize = .with {
 				$0.width = Int32(width)
@@ -28,7 +28,7 @@ extension ScreenSizeHandler {
 			return self.getScreenSize(name: name, runMode: runMode)
 		}
 		
-		return try ScreenSizeReply(from: client.getScreenSize(.with {
+		return try ScreenSizeReply(client.getScreenSize(.with {
 			$0.name = name
 		}).response.wait().screenSize)
 	}

@@ -69,13 +69,13 @@ final class MemoryInfo: ObservableObject, Observable {
 		self.used = infos.used
 	}
 	
-	func update(infos: CakeAgent.InfoReply.MemoryInfo?) {
+	func update(_ infos: CakeAgent.InfoReply.MemoryInfo?) {
 		self.total = infos?.total ?? self.total
 		self.free = infos?.free ?? self.free
 		self.used = infos?.used ?? self.used
 	}
 	
-	func update(infos: InfoReply.MemoryInfo?) {
+	func update(_ infos: InfoReply.MemoryInfo?) {
 		self.total = infos?.total ?? self.total
 		self.free = infos?.free ?? self.free
 		self.used = infos?.used ?? self.used
@@ -99,7 +99,7 @@ final class CpuInfos: ObservableObject, Observable {
 		
 	}
 
-	init(from infos: CpuInformations?) {
+	init(_ infos: CpuInformations?) {
 		if let infos {
 			self.totalUsagePercent = infos.totalUsagePercent
 			self.user = infos.user
@@ -124,7 +124,7 @@ final class CpuInfos: ObservableObject, Observable {
 		}
 	}
 
-	init(from infos: CakeAgent.InfoReply.CpuInfo) {
+	init(_ infos: CakeAgent.InfoReply.CpuInfo) {
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
 		self.system = infos.system
@@ -147,7 +147,7 @@ final class CpuInfos: ObservableObject, Observable {
 		}
 	}
 
-	func update(from infos: CakeAgent.InfoReply.CpuInfo) {
+	func update(_ infos: CakeAgent.InfoReply.CpuInfo) {
 		self.totalUsagePercent = infos.totalUsagePercent
 		self.user = infos.user
 		self.system = infos.system
@@ -170,7 +170,7 @@ final class CpuInfos: ObservableObject, Observable {
 		}
 	}
 	
-	func update(from infos: CpuInformations?) {
+	func update(_ infos: CpuInformations?) {
 		if let infos {
 			self.totalUsagePercent = infos.totalUsagePercent
 			self.user = infos.user
@@ -220,7 +220,7 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 	init() {
 	}
 
-	init(from infos: VMInformations) {
+	init(_ infos: VMInformations) {
 		self.name = infos.name
 		self.version = infos.version
 		self.uptime = infos.uptime
@@ -237,10 +237,10 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 		self.tunnelInfos = infos.tunnelInfos
 		self.socketInfos = infos.socketInfos
 		self.agentVersion = infos.agentVersion
-		self.cpuInfos = CpuInfos(from: infos.cpuInfos)
+		self.cpuInfos = CpuInfos(infos.cpuInfos)
 	}
 
-	init(from infos: InfoReply) {
+	init(_ infos: InfoReply) {
 		self.name = infos.name
 		self.version = infos.version
 		self.uptime = infos.uptime
@@ -257,12 +257,12 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 		self.tunnelInfos = infos.tunnelInfos
 		self.socketInfos = infos.socketInfos
 		self.agentVersion = infos.agentVersion
-		self.cpuInfos = CpuInfos(from: infos.cpuInfo)
+		self.cpuInfos = CpuInfos(infos.cpuInfo)
 	}
 
 	func update(from infos: CakeAgent.CurrentUsageReply) {
 		self.timestamp = .now
-		self.cpuInfos = CpuInfos(from: infos.cpuInfos)
+		self.cpuInfos = CpuInfos(infos.cpuInfos)
 		self.memory = .with {
 			$0.total = infos.memory.total
 			$0.free = infos.memory.free
@@ -288,6 +288,6 @@ final class VirtualMachineInformations: ObservableObject, Observable {
 		self.tunnelInfos = infos.tunnelInfos
 		self.socketInfos = infos.socketInfos
 		self.agentVersion = infos.agentVersion
-		self.cpuInfos.update(from: infos.cpuInfo)
+		self.cpuInfos.update(infos.cpuInfo)
 	}
 }

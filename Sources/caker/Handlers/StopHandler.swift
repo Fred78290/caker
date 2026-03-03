@@ -15,7 +15,7 @@ extension StopHandler {
 			return self.stopVMs(all: false, names: [name], force: force, runMode: runMode)
 		}
 
-		return try StopReply(from: client.stop(.with {
+		return try StopReply(client.stop(.with {
 			$0.force = force
 			$0.names = .with {
 				$0.list = [name]
