@@ -115,37 +115,31 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		get { self.config["cpuCountMin"] as! Int }
 	}
 
-	#if arch(arm64)
-		public var ecid: VZMacMachineIdentifier {
-			set {
-				self.config["ecid"] = newValue.dataRepresentation.base64EncodedString()
-			}
-			get {
-				if let ecid = self.config["ecid"] as? String {
-					if let ecid = VZMacMachineIdentifier(dataRepresentation: Data(base64Encoded: ecid)!) {
-						return ecid
-					}
-				}
-
-				return VZMacMachineIdentifier()
-			}
+	public var ecid: Data? {
+		set {
+			self.config["ecid"] = newValue?.base64EncodedString()
 		}
-
-		public var hardwareModel: VZMacHardwareModel? {
-			set {
-				self.config["hardwareModel"] = newValue!.dataRepresentation.base64EncodedString()
+		get {
+			if let ecid = self.config["ecid"] as? String {
+				return Data(base64Encoded: ecid)!
 			}
-			get {
-				if let hardwareModel = self.config["hardwareModel"] as? String {
-					if let hardwareModel = VZMacHardwareModel(dataRepresentation: Data(base64Encoded: hardwareModel)!) {
-						return hardwareModel
-					}
-				}
 
-				return nil
-			}
+			return nil
 		}
-	#endif
+	}
+
+	public var hardwareModel: Data? {
+		set {
+			self.config["hardwareModel"] = newValue?.base64EncodedString()
+		}
+		get {
+			if let hardwareModel = self.config["hardwareModel"] as? String {
+				return Data(base64Encoded: hardwareModel)!
+			}
+
+			return nil
+		}
+	}
 
 	public var suspendable: Bool {
 		set { self.cake["suspendable"] = newValue }
@@ -173,14 +167,12 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		get { self.config["memorySize"] as! UInt64 }
 	}
 
-	public var macAddress: VZMACAddress? {
-		set { if let value = newValue { self.config["macAddress"] = value.string } else { self.config["macAddress"] = nil } }
+	public var macAddress: String? {
+		set {
+			self.config["macAddress"] = newValue
+		}
 		get {
-			if let addr = self.config["macAddress"] as? String {
-				return VZMACAddress(string: addr)
-			}
-
-			return nil
+			self.config["macAddress"] as? String
 		}
 	}
 
@@ -322,15 +314,15 @@ public final class CakeConfig: VirtualMachineConfiguration {
 			}
 
 			return networks.compactMap {
-				guard var network = BridgeAttachement(argument: $0) else {
-					return nil
+				if var network = BridgeAttachement(argument: $0)  {
+					if network.isNAT() {
+						network.macAddress = self.macAddress
+					}
+
+					return network
 				}
 
-				if network.isNAT() {
-					network.macAddress = self.macAddress?.string
-				}
-
-				return network
+				return nil
 			}
 		}
 	}
@@ -421,7 +413,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.os = os
 		self.cpuCountMin = cpuCountMin
 		self.memorySizeMin = memorySizeMin
-		self.macAddress = macAddress
+		self.macAddress = macAddress.string
 		self.cpuCount = cpuCountMin
 		self.memorySize = memorySize
 		self.memorySizeMin = memorySizeMin
@@ -507,8 +499,11 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		try self.cake.save(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
 	}
 
+}
+
+extension CakeConfig {
 	public func resetMacAddress() {
-		self.macAddress = VZMACAddress.randomLocallyAdministered()
+		self.macAddress = VZMACAddress.randomLocallyAdministered().string
 		self.networks = self.networks.map {
 			$0.clone()
 		}
@@ -518,7 +513,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		switch self.os {
 		#if arch(arm64)
 			case .darwin:
-				return DarwinPlateform(nvramURL: nvramURL, ecid: self.ecid, hardwareModel: self.hardwareModel!)
+			return DarwinPlateform(nvramURL: nvramURL, ecid: self.getECID(), hardwareModel: self.getHardwareModel()!)
 		#endif
 		case .linux:
 			return LinuxPlateform(nvramURL: nvramURL, needsNestedVirtualization: needsNestedVirtualization)
@@ -528,9 +523,46 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		#endif
 		}
 	}
+
+#if arch(arm64)
+	public func setECID(_ ecid: VZMacMachineIdentifier) {
+		self.ecid = ecid.dataRepresentation
+	}
+
+	public func getECID() -> VZMacMachineIdentifier {
+		if let ecid = self.ecid {
+			if let ecid = VZMacMachineIdentifier(dataRepresentation: ecid) {
+				return ecid
+			}
+		}
+
+		return VZMacMachineIdentifier()
+	}
+
+	public func setHardwareModel(_ model: VZMacHardwareModel) {
+		self.hardwareModel = model.dataRepresentation
+	}
+
+	public func getHardwareModel() -> VZMacHardwareModel? {
+		if let hardwareModel = self.hardwareModel {
+			return VZMacHardwareModel(dataRepresentation: hardwareModel)
+		}
+
+		return nil
+	}
+#endif
+
 }
 
 extension VirtualMachineConfiguration {
+	public func getMacAddress() -> VZMACAddress? {
+		if let addr = self.macAddress {
+			return VZMACAddress(string: addr)
+		}
+
+		return nil
+	}
+
 	public var nestedVirtualization: Bool {
 		if self.os == .linux && Utils.isNestedVirtualizationSupported() {
 			return self.nested
@@ -590,7 +622,7 @@ extension VirtualMachineConfiguration {
 		if let nat = networks.first(where: { $0.isNAT() }) {
 			attachedNetworks.append(nat)
 		} else {
-			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress?.string))
+			attachedNetworks.append(BridgeAttachement(network: "nat", mode: .auto, macAddress: self.macAddress))
 		}
 
 		attachedNetworks.append(contentsOf: networks.filter({ $0.isNAT() == false }))
@@ -617,7 +649,7 @@ extension VirtualMachineConfiguration {
 
 		return networks.compactMap { inf in
 			if inf.isNAT() {
-				if let macAddress = self.macAddress {
+				if let macAddress = self.getMacAddress() {
 					return NATNetworkInterface(macAddress: macAddress)
 				}
 

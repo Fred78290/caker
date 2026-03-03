@@ -442,8 +442,8 @@ public struct Caked_Caked: Sendable {
     }
 
     /// Mac-specific configuration
-    public var ecid: String {
-      get {_storage._ecid ?? String()}
+    public var ecid: Data {
+      get {_storage._ecid ?? Data()}
       set {_uniqueStorage()._ecid = newValue}
     }
     /// Returns true if `ecid` has been explicitly set.
@@ -451,8 +451,8 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `ecid`. Subsequent reads from it will return its default value.
     public mutating func clearEcid() {_uniqueStorage()._ecid = nil}
 
-    public var hardwareModel: String {
-      get {_storage._hardwareModel ?? String()}
+    public var hardwareModel: Data {
+      get {_storage._hardwareModel ?? Data()}
       set {_uniqueStorage()._hardwareModel = newValue}
     }
     /// Returns true if `hardwareModel` has been explicitly set.
@@ -5539,8 +5539,8 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _nested: Bool = false
     var _suspendable: Bool = false
     var _ifname: Bool = false
-    var _ecid: String? = nil
-    var _hardwareModel: String? = nil
+    var _ecid: Data? = nil
+    var _hardwareModel: Data? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -5653,8 +5653,8 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 39: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
         case 40: try { try decoder.decodeSingularBoolField(value: &_storage._suspendable) }()
         case 41: try { try decoder.decodeSingularBoolField(value: &_storage._ifname) }()
-        case 42: try { try decoder.decodeSingularStringField(value: &_storage._ecid) }()
-        case 43: try { try decoder.decodeSingularStringField(value: &_storage._hardwareModel) }()
+        case 42: try { try decoder.decodeSingularBytesField(value: &_storage._ecid) }()
+        case 43: try { try decoder.decodeSingularBytesField(value: &_storage._hardwareModel) }()
         default: break
         }
       }
@@ -5791,10 +5791,10 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         try visitor.visitSingularBoolField(value: _storage._ifname, fieldNumber: 41)
       }
       try { if let v = _storage._ecid {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 42)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 42)
       } }()
       try { if let v = _storage._hardwareModel {
-        try visitor.visitSingularStringField(value: v, fieldNumber: 43)
+        try visitor.visitSingularBytesField(value: v, fieldNumber: 43)
       } }()
     }
     try unknownFields.traverse(visitor: &visitor)

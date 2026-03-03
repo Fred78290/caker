@@ -27,7 +27,7 @@ public struct ConfigureHandler {
 			}
 
 			if options.randomMAC {
-				config.macAddress = VZMACAddress.randomLocallyAdministered()
+				config.macAddress = VZMACAddress.randomLocallyAdministered().string
 			}
 
 			if let displayRefit = options.displayRefit {

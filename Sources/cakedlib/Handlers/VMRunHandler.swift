@@ -70,7 +70,7 @@ public struct VMRunHandler {
 				var result = false
 
 				if let addr = $1.macAddress {
-					result = $1.status == .running && addr.string == macAddress.string
+					result = $1.status == .running && addr.string == macAddress
 				}
 
 				return result

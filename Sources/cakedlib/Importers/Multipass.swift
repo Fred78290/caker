@@ -335,7 +335,7 @@ struct MultipassImporter: Importer {
 		config.attachedDisks = try importDiskAttachements(diskAttachments: registeredInstance.diskAttachments(), to: location)
 		config.networks = networkAttachments.1
 		config.mounts = instance.sharedFolders
-		config.macAddress = networkAttachments.0
+		config.macAddress = networkAttachments.0?.string
 		config.firstLaunch = true
 
 		_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)

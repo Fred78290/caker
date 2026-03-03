@@ -153,7 +153,7 @@ public protocol VirtualMachineConfiguration {
 	var cpuCount: Int { set get }
 	var memorySizeMin: UInt64 { set get }
 	var memorySize: UInt64 { set get }
-	var macAddress: VZMACAddress? { set get }
+	var macAddress: String? { set get }
 	var source: ImageSource { set get }
 	var osName: String? { set get }
 	var osRelease: String? { set get }
@@ -184,10 +184,10 @@ public protocol VirtualMachineConfiguration {
 	var runningIP: String? { set get }
 	var display: DisplaySize { set get }
 	var vncPassword: String { set get }
-	
-	#if arch(arm64)
-	var ecid: VZMacMachineIdentifier  { set get }
-	var hardwareModel: VZMacHardwareModel? { set get }
-	#endif
+	var ecid: Data? /*VZMacMachineIdentifier*/  { set get }
+	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
+}
+
+extension VirtualMachineConfiguration {
 
 }

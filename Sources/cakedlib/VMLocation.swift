@@ -117,7 +117,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 	public var macAddress: VZMACAddress? {
 		if let config = try? CakeConfig(location: rootURL) {
-			return config.macAddress
+			return config.getMacAddress()
 		}
 
 		return nil
@@ -440,7 +440,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	public func waitIPWithLease(wait: Int, runMode: Utils.RunMode, startedProcess: ProcessWithSharedFileHandle? = nil) throws -> String {
 		let config = try self.config()
 		let start: Date = Date.now
-		let macAddress = config.macAddress?.string ?? ""
+		let macAddress = config.macAddress ?? ""
 		let clientID = config.dhcpClientID ?? macAddress
 		var leases: DHCPLeaseProvider
 		var count = 0

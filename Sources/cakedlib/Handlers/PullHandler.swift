@@ -102,7 +102,7 @@ public struct PullHandler {
 
 							if config.os == .darwin {
 								#if arch(arm64)
-									config.ecid = VZMacMachineIdentifier()
+								config.ecid = VZMacMachineIdentifier().dataRepresentation
 								#else
 									throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
 								#endif
@@ -164,7 +164,7 @@ public struct PullHandler {
 							}
 						}
 
-						config.macAddress = macAddress
+						config.macAddress = macAddress.string
 						config.source = .oci
 
 						try config.save()

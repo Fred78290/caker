@@ -17,7 +17,7 @@ struct VirtualMachineConfig: Hashable {
 	var os: VirtualizedOS = .linux
 	var cpuCount: Int = 1
 	var memorySize: UInt64 = 512
-	var macAddress: String = ""
+	var macAddress: String? = nil
 	var autostart: Bool = false
 	var suspendable: Bool = false
 	var dynamicPortForwarding: Bool = false
@@ -92,7 +92,7 @@ struct VirtualMachineConfig: Hashable {
 		self.os = config.os
 		self.cpuCount = config.cpuCount
 		self.memorySize = config.memorySize / (1024 * 1024)
-		self.macAddress = config.macAddress?.string ?? ""
+		self.macAddress = config.macAddress
 		self.autostart = config.autostart
 		self.suspendable = config.suspendable
 		self.display = VMScreenSize(width: config.display.width, height: config.display.height)
@@ -130,7 +130,7 @@ struct VirtualMachineConfig: Hashable {
 
 		config.cpuCount = self.cpuCount
 		config.memorySize = self.memorySize * (1024 * 1024)
-		config.macAddress = self.macAddress.isEmpty ? nil : VZMACAddress(string: self.macAddress)
+		config.macAddress = self.macAddress
 		config.autostart = self.autostart
 		config.suspendable = self.suspendable
 		config.dynamicPortForwarding = self.dynamicPortForwarding

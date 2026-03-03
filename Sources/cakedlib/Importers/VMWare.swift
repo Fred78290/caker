@@ -346,7 +346,7 @@ struct VMWareImporter: Importer {
 		config.attachedDisks = diskAttachements
 		config.networks = networkAttachments.1
 		config.mounts = vmxMap.sharedFolders
-		config.macAddress = networkAttachments.0 ?? VZMACAddress.randomLocallyAdministered()
+		config.macAddress = networkAttachments.0?.string ?? VZMACAddress.randomLocallyAdministered().string
 		config.sshPrivateKeyPath = sshPrivateKey
 		config.sshPrivateKeyPassphrase = passphrase
 		config.firstLaunch = true

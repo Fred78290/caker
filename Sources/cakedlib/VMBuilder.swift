@@ -60,8 +60,8 @@ public struct VMBuilder {
 					screenSize: options.screenSize
 				)
 
-				config.hardwareModel = requirements.hardwareModel
-				config.ecid = VZMacMachineIdentifier()
+				config.hardwareModel = requirements.hardwareModel.dataRepresentation
+				config.ecid = VZMacMachineIdentifier().dataRepresentation
 				config.useCloudInit = false
 				config.agent = false
 				config.nested = options.nested
@@ -75,11 +75,11 @@ public struct VMBuilder {
 			} else if try location.configURL.exists() {
 				config = try location.config()
 
-				config.macAddress = VZMACAddress.randomLocallyAdministered()
+				config.macAddress = VZMACAddress.randomLocallyAdministered().string
 
 				if config.os == .darwin {
 					#if arch(arm64)
-						config.ecid = VZMacMachineIdentifier()
+						config.ecid = VZMacMachineIdentifier().dataRepresentation
 					#else
 						throw ServiceError("macOS VMs are only supported on Apple Silicon Macs")
 					#endif

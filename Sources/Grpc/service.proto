@@ -303,8 +303,8 @@ message Caked {
     bool ifname       = 41;
 
 	// Mac-specific configuration
-    optional string ecid          = 42;
-    optional string hardwareModel = 43;
+    optional bytes ecid          = 42;
+    optional bytes hardwareModel = 43;
   }
 
   message ScreenSize {

@@ -149,7 +149,7 @@ struct NetworkConfig: Codable {
 
 			if network.network == "nat" {
 				if let macAddress = config.macAddress {
-					self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress.string), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
+					self.network.ethernets[name] = Interface(match: Match(macAddress: macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 				} else {
 					self.network.ethernets[name] = Interface(match: Match(macAddress: network.macAddress), setName: name, dhcp4: true, dhcp6: true, dhcpIdentifier: "mac")
 				}
