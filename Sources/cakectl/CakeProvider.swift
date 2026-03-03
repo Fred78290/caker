@@ -43,6 +43,7 @@ extension Caked_ListRequest {
 	init(command: List) {
 		self.init()
 		self.vmonly = !command.all
+		self.includeConfig = command.includeConfig
 	}
 }
 

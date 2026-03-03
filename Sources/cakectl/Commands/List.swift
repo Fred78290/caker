@@ -14,6 +14,9 @@ struct List: GrpcParsableCommand {
 	@Flag(help: "List all VMs and cached objects")
 	var all: Bool = false
 
+	@Flag(help: "Include VM configuration in the output")
+	var includeConfig: Bool = false
+
 	@Flag(help: "Output format: text or json")
 	var format: Format = .text
 
