@@ -34,9 +34,9 @@ struct Infos: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
 		do {
-			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
+			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: helper, callOptions: callOptions)
 			
 			Logger.appendNewLine(self.common.format.render(result.infos))
 		} catch {

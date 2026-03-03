@@ -6,10 +6,9 @@ import GRPCLib
 import NIO
 import NIOPortForwarding
 
-
 struct InfosHandler: CakedCommand {
 	var request: Caked_InfoRequest
-	var client: CakeAgentConnection
+	var provider: CakedProvider
 
 	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
@@ -24,8 +23,10 @@ struct InfosHandler: CakedCommand {
 
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		do {
-			let result = try CakedLib.InfosHandler.infos(
-				name: self.request.name, runMode: runMode, client: CakeAgentHelper(on: on, client: try client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+			let result = try CakedLib.InfosHandler.infos(name: self.request.name,
+														 runMode: runMode,
+														 client: try provider.createCakeAgentHelper(vmName: self.request.name),
+														 callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 			let reply = VirtualMachineStatusReply(infos: result.infos, success: true, reason: "Success")
 
 			return Caked_Reply.with {

@@ -7,7 +7,7 @@ import NIO
 
 struct RunHandler: CakedCommandAsync {
 	var request: Caked_RunCommand
-	var client: CakeAgentConnection
+	var provider: CakedProvider
 
 	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
@@ -20,9 +20,13 @@ struct RunHandler: CakedCommandAsync {
 
 	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
 		do {
-			let reply = try await CakedLib.RunHandler.run(
-				name: self.request.vmname, command: self.request.command, arguments: self.request.args, input: self.request.hasInput ? self.request.input : nil, client: self.client,
-				callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))), runMode: runMode)
+			let reply = try await CakedLib.RunHandler.run(name: self.request.vmname,
+														  command: self.request.command,
+														  arguments: self.request.args,
+														  input: self.request.hasInput ? self.request.input : nil,
+														  client: try self.provider.createCakeAgentConnection(vmName: self.request.vmname),
+														  callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))),
+														  runMode: runMode)
 
 			return Caked_Reply.with {
 				$0.run = reply

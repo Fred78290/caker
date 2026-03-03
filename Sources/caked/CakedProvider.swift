@@ -60,13 +60,13 @@ public class Unimplemented: Error {
 
 extension Caked_RunCommand: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return RunHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.vmname))
+		return RunHandler(request: self, provider: provider)
 	}
 }
 
 extension Caked_InfoRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return InfosHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.name))
+		return InfosHandler(request: self, provider: provider)
 	}
 }
 
@@ -238,7 +238,7 @@ extension Caked_SuspendRequest: CreateCakedCommand {
 
 extension Caked_PingRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> any CakedCommand {
-		return PingHandler(request: self, client: try provider.createCakeAgentConnection(vmName: self.name))
+		return PingHandler(request: self, provider: provider)
 	}
 }
 
@@ -277,6 +277,10 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		let listeningAddress = try StorageLocation(runMode: self.runMode).find(vmName).agentURL
 		
 		return CakeAgentConnection(eventLoop: self.group, listeningAddress: listeningAddress, certLocation: self.certLocation, retries: retries)
+	}
+
+	func createCakeAgentHelper(vmName: String, connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
+		return try CakeAgentHelper.createCakeAgentHelper(name: vmName, connectionTimeout: connectionTimeout, retries: retries, runMode: self.runMode)
 	}
 
 	func execute(command: CakedCommand) throws -> Caked_Reply {

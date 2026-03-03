@@ -56,7 +56,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
 		if self.createVM {
 			let build = await CakedLib.BuildHandler.build(options: .init(name: self.shell.name), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)
 
@@ -74,7 +74,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 
 		if result.started {
 			do {
-				_ = try await CakeAgentHelper(on: on, client: client).shell(callOptions: callOptions)
+				_ = try await helper.shell(callOptions: callOptions)
 			} catch {
 				Logger.appendNewLine(self.common.format.render("\(error)"))
 			}

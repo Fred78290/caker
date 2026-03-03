@@ -172,9 +172,9 @@ struct VNC: CakeAgentAsyncParsableCommand {
 		}
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
 		do {
-			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: CakeAgentHelper(on: on, client: client), callOptions: callOptions)
+			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: helper, callOptions: callOptions)
 			let infos = result.infos
 
 			guard let vncURL = VNCServer.findHostMatching(urls: infos.vncURL) else {

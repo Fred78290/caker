@@ -49,7 +49,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, client: CakeAgentClient, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
 		guard let result = try? CakedLib.StartHandler.startVM(name: self.execute.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.execute.waitIPTimeout, startMode: self.execute.foreground ? .foreground : .background, runMode: self.common.runMode) else {
 			Logger.appendNewLine(self.common.format.render("Failed to start VM"))
 
@@ -61,7 +61,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 			let command = arguments.remove(at: 0)
 
 			do {
-				let exitCode = try await CakeAgentHelper(on: on, client: client).exec(command: command, arguments: arguments, callOptions: callOptions)
+				let exitCode = try await helper.exec(command: command, arguments: arguments, callOptions: callOptions)
 
 				if exitCode != 0 {
 					throw CakedLib.ExitCode(exitCode)

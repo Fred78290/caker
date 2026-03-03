@@ -14,7 +14,7 @@ import NIOCore
 
 struct PingHandler: CakedCommand, Sendable {
 	var request: Caked_PingRequest
-	var client: CakeAgentConnection
+	var provider: CakedProvider
 
 	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with {
@@ -31,7 +31,12 @@ struct PingHandler: CakedCommand, Sendable {
 	func run(on: EventLoop, runMode: Utils.RunMode) -> Caked_Reply {
 		do {
 			return try Caked_Reply.with {
-				$0.ping = CakedLib.PingHandler.ping(name: self.request.name, message: self.request.message, timestamp: self.request.timestamp, runMode: runMode, client: CakeAgentHelper(on: on, client: try client.createClient()), callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+				$0.ping = CakedLib.PingHandler.ping(name: self.request.name,
+													message: self.request.message,
+													timestamp: self.request.timestamp,
+													runMode: runMode,
+													client: try provider.createCakeAgentHelper(vmName: self.request.name),
+													callOptions: CallOptions(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 			}
 		} catch {
 			return replyError(error: error)
