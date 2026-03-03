@@ -464,7 +464,8 @@ message Caked {
     }
 
     message ListRequest {
-      bool vmonly = 1;
+      bool          vmonly        = 1;
+      optional bool includeConfig = 2;
     }
 
     message InfoRequest {

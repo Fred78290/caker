@@ -1797,9 +1797,20 @@ public struct Caked_Caked: Sendable {
 
       public var vmonly: Bool = false
 
+      public var includeConfig: Bool {
+        get {_includeConfig ?? false}
+        set {_includeConfig = newValue}
+      }
+      /// Returns true if `includeConfig` has been explicitly set.
+      public var hasIncludeConfig: Bool {self._includeConfig != nil}
+      /// Clears the value of `includeConfig`. Subsequent reads from it will return its default value.
+      public mutating func clearIncludeConfig() {self._includeConfig = nil}
+
       public var unknownFields = SwiftProtobuf.UnknownStorage()
 
       public init() {}
+
+      fileprivate var _includeConfig: Bool? = nil
     }
 
     public struct InfoRequest: Sendable {
@@ -7554,7 +7565,7 @@ extension Caked_Caked.VMRequest.DeleteRequest.VMNames: SwiftProtobuf.Message, Sw
 
 extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.VMRequest.protoMessageName + ".ListRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmonly\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vmonly\0\u{1}includeConfig\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -7563,20 +7574,29 @@ extension Caked_Caked.VMRequest.ListRequest: SwiftProtobuf.Message, SwiftProtobu
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.vmonly) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self._includeConfig) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if self.vmonly != false {
       try visitor.visitSingularBoolField(value: self.vmonly, fieldNumber: 1)
     }
+    try { if let v = self._includeConfig {
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.VMRequest.ListRequest, rhs: Caked_Caked.VMRequest.ListRequest) -> Bool {
     if lhs.vmonly != rhs.vmonly {return false}
+    if lhs._includeConfig != rhs._includeConfig {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

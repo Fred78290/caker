@@ -778,6 +778,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let state: String
 	public let ip: String?
 	public let fingerprint: String?
+	public let config: CakedConfiguration?
 
 	public var id: String {
 		self.instanceID ?? self.name
@@ -794,6 +795,12 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.state = from.state
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
+
+		if from.hasConfiguration {
+			self.config = CakedConfiguration(from.configuration)
+		} else {
+			self.config = nil
+		}
 	}
 
 	public init(
@@ -806,7 +813,8 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		sizeOnDisk: Int = 0,
 		state: String = "unknown",
 		ip: String? = nil,
-		fingerprint: String? = nil
+		fingerprint: String? = nil,
+		config: CakedConfiguration? = nil
 	) {
 		self.type = type
 		self.source = source
@@ -818,6 +826,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.state = state
 		self.ip = ip
 		self.fingerprint = fingerprint
+		self.config = config
 	}
 
 	public var caked: Caked_VirtualMachineInfo {
@@ -840,6 +849,10 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 
 			if let fingerprint = self.fingerprint {
 				info.fingerprint = fingerprint
+			}
+			
+			if let config {
+				info.configuration = config.caked
 			}
 		}
 	}
