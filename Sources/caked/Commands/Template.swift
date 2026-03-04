@@ -51,8 +51,7 @@ struct Template: ParsableCommand {
 		}
 
 		func run() throws {
-			Logger.appendNewLine(self.common.format.render(CakedLib.TemplateHandler.createTemplate(on: Utilities.group.next(),
-																								   sourceName: self.template.name,
+			Logger.appendNewLine(self.common.format.render(CakedLib.TemplateHandler.createTemplate(sourceName: self.template.name,
 																								   templateName: self.template.template,
 																								   startMode: self.template.foreground ? .foreground : .attach,
 																								   runMode: self.common.runMode)))

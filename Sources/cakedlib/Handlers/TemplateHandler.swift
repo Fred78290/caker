@@ -40,16 +40,36 @@ public struct TemplateHandler {
 		return location
 	}
 
-	public static func createTemplate(on: EventLoop, sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+	public static func createTemplate(sourceName: String, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+		do {
+			return try createTemplate(location: StorageLocation(runMode: runMode).find(sourceName), templateName: templateName, startMode: startMode, runMode: runMode)
+		} catch {
+			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+		}
+	}
+
+	public static func createTemplate(rootURL: URL, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+		do {
+			return try createTemplate(location: VMLocation.newVMLocation(rootURL: rootURL), templateName: templateName, startMode: startMode, runMode: runMode)
+		} catch {
+			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
+		}
+	}
+
+	public static func createTemplate(location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
+		return createTemplate(on: Utilities.group.next(), location: location, templateName: templateName, startMode: startMode, runMode: runMode)
+	}
+
+	public static func createTemplate(on: EventLoop, location: VMLocation, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
 		do {
 			let storage = StorageLocation(runMode: runMode, template: true)
-			var source: VMLocation = try StorageLocation(runMode: runMode).find(sourceName)
+			var source = location
 
 			if storage.exists(templateName) {
 				return CreateTemplateReply(name: templateName, created: false, reason: "template \(templateName) already exists")
 			}
 
-			if source.status != .running {
+			if location.status != .running {
 				let lock: FileLock = try FileLock(lockURL: storage.rootURL)
 				let config = try source.config()
 				let templateLocation = storage.location(templateName)
@@ -65,7 +85,7 @@ public struct TemplateHandler {
 					}
 				}
 
-				Logger(self).info("Creating template \(templateName) from \(sourceName)")
+				Logger(self).info("Creating template \(templateName) from \(location.name)")
 
 				do {
 					if config.os == .linux && config.useCloudInit {
@@ -87,7 +107,7 @@ public struct TemplateHandler {
 					return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
 				}
 			} else {
-				return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(sourceName) is running")
+				return CreateTemplateReply(name: templateName, created: false, reason: "source VM \(location.name) is running")
 			}
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")

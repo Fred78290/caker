@@ -52,7 +52,7 @@ struct TemplateHandler: CakedCommand {
 		switch request.command {
 		case .add:
 			reply = Caked_TemplateReply.with {
-				$0.create = CakedLib.TemplateHandler.createTemplate(on: on, sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode).caked
+				$0.create = CakedLib.TemplateHandler.createTemplate(sourceName: request.createRequest.sourceName, templateName: request.createRequest.templateName, runMode: runMode).caked
 			}
 
 		case .delete:
