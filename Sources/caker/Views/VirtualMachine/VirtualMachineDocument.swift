@@ -106,7 +106,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		lhs.virtualMachine == rhs.virtualMachine
 	}
 	
-	enum AgentStatus: Int {
+	enum AgentStatus: Int, Sendable {
 		case none = 0
 		case installed = 1
 		case installing = 2
@@ -136,22 +136,22 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	enum Status: Int, CustomStringConvertible {
 		var isStopped: Bool {
 			switch self {
-				case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
 				return false
 			default:
 				return true
 			}
 		}
-
+		
 		var isRunning: Bool {
 			switch self {
-				case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
+			case .running, .starting, .pausing, .resuming, .stopping, .saving, .restoring:
 				return true
 			default:
 				return false
 			}
 		}
-
+		
 		var description: String {
 			switch self {
 			case .running:
@@ -208,22 +208,23 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
-
+	
 	let id = UUID().uuidString
 	
 	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
+	var url: URL!
 	var name: String = ""
 	var description: String {
-		name
+		self.name
 	}
 	
 	var isLaunchVMExternally: Bool {
 		guard AppState.shared.runMode == .app else {
 			return true
 		}
-
+		
 		guard let launchVMExternally = self.launchVMExternally else {
 			return AppState.shared.launchVMExternally
 		}
@@ -248,16 +249,16 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var launchVMExternally: Bool? = nil
 	@Published var vmInfos: VMInformations? = nil
 	@Published var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
-
+	
 	private var screenshot: ScreenshotLoader!
 	
 	var lastScreenshot: NSImage? {
 		let screenshotURL = self.location.screenshotURL
-
+		
 		guard let exist = try? screenshotURL.exists(), exist else {
 			return nil
 		}
-
+		
 		return NSImage(contentsOfFile: screenshotURL.path)
 	}
 	
@@ -305,25 +306,26 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		
 		return Image(name).resizable().aspectRatio(contentMode: .fit)
 	}
-
+	
 	deinit {
 		self.stopAgentMonitoring()
-
+		
 		if let monitor = self.monitor {
 			monitor.stop()
 		}
 	}
 	
-	init() {
+	private init() {
 		self.virtualMachine = nil
 		self.virtualMachineConfig = VirtualMachineConfig()
 	}
 	
-	init(location: VMLocation) throws {
+	private init(location: VMLocation) throws {
 		let config = try VirtualMachineConfig(name: location.name, config: location.config())
 		let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
 		
 		self.name = location.name
+		self.url = location.rootURL
 		self.location = location
 		self.virtualMachineConfig = config
 		self.screenshot = .init(screenshotURL: location.screenshotURL)
@@ -349,9 +351,24 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		try monitor.start()
 	}
 	
-	init(name: String, config: VirtualMachineConfig) {
+	private init(vmURL: URL, status: Status, config: any VirtualMachineConfiguration) throws {
+		guard let name = vmURL.host(percentEncoded: false) else {
+			throw ServiceError("Internal error")
+		}
+		
 		self.name = name
-		self.virtualMachineConfig = config
+		self.url = vmURL
+		self.virtualMachineConfig = VirtualMachineConfig(name: name, config: config)
+		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
+		self.status = status
+	}
+	
+	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
+		guard let location = try StorageLocation(runMode: .app).list().values.first else {
+			throw ServiceError("No virtual machines")
+		}
+
+		return try VirtualMachineDocument(location: location)
 	}
 
 	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
@@ -704,7 +721,7 @@ extension VirtualMachineDocument {
 
 		if self.externalRunning {
 			Task {
-				await AppState.shared.restartVirtualMachine(name: self.name)
+				await AppState.shared.restartVirtualMachine(rootURL: self.url)
 			}
 		} else if let virtualMachine = self.virtualMachine {
 			virtualMachine.restartFromUI()
@@ -740,7 +757,7 @@ extension VirtualMachineDocument {
 
 		if self.externalRunning {
 			Task {
-				let result = await AppState.shared.suspendVirtualMachine(name: self.name)
+				let result = await AppState.shared.suspendVirtualMachine(rootURL: self.url)
 
 				if result.success {
 					await self.setStateAsStopped(.paused)
@@ -836,19 +853,19 @@ extension VirtualMachineDocument {
 			#endif
 
 			Task {
-				await AppState.shared.setVncScreenSize(name: self.name, screenSize: screenSize)
+				await AppState.shared.setVncScreenSize(rootURL: self.url, screenSize: screenSize)
 			}
 		}
 	}
 
 	func getVncScreenSize() -> ViewSize {
 		let screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
-		return AppState.shared.getVncScreenSize(name: self.name, screenSize)
+		return AppState.shared.getVncScreenSize(rootURL: self.url, screenSize)
 	}
 
 	func retrieveVNCURL() {
 		MainActor.assumeIsolated {
-			if let url = AppState.shared.vncURL(name: self.name) {
+			if let url = try? AppState.shared.vncURL(rootURL: self.url) {
 				self.logger.info("Found VNC URL: \(url)")
 
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
@@ -1019,45 +1036,55 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
 	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-		try CakeAgentHelper.createCakeAgentHelper(name: name, connectionTimeout: connectionTimeout, runMode: .app)
+		try CakeAgentHelper.createCakeAgentHelper(rootURL: self.url, connectionTimeout: connectionTimeout, runMode: .app)
 	}
 	
 	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {
-		if let virtualMachine = self.virtualMachine {
-			self.agent = .installing
+		guard self.status == .running else {
+			done(.none)
+			return
+		}
 
-			Task {
-				var agent: AgentStatus = .installing
+		@MainActor func finish(_ status: AgentStatus) {
+			self.agent = status
+
+			if updateAgent {
+				self.agentCondition = (status != .installed ? "Update agent" : "Install agent", status != .installed, status != .none)
+			} else {
+				self.agentCondition = ("Install agent", status != .installed, status != .none)
 				
-				do {
-					agent = try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) ? .installed : .none
-					
-					if agent == .none {
-						throw ServiceError("Failed to install agent.")
-					}
-				} catch {
-					await alertError(error)
-					
-					agent = .none
-				}
-
-				let status = agent
-
-				await MainActor.run {
-					self.agent = status
-					if updateAgent {
-						self.agentCondition = (status != .installed ? "Update agent" : "Install agent", status != .installed, status != .none)
-					} else {
-						self.agentCondition = ("Install agent", status != .installed, status != .none)
-						
-						if status == .installed {
-							self.startAgentMonitoring()
-						}
-					}
-
-					done(status)
+				if status == .installed {
+					self.startAgentMonitoring()
 				}
 			}
+
+			done(status)
+		}
+
+		self.agent = .installing
+
+		Task {
+			var agent: AgentStatus = .installing
+
+			do {
+				if let virtualMachine = self.virtualMachine {
+					if try await virtualMachine.installAgent(updateAgent: updateAgent, timeout: 2, runMode: .app) == false {
+						throw ServiceError("Failed to install agent.")
+					}
+				} else {
+					if try AppState.shared.installAgent(self.url) == false {
+						throw ServiceError("Failed to install agent.")
+					}
+				}
+
+				agent = .installed
+			} catch {
+				await alertError(error)
+				
+				agent = .none
+			}
+
+			await finish(agent)
 		}
 	}
 
