@@ -112,7 +112,7 @@ public struct VMInformations: Sendable, Codable {
 		self.hostname = from.hostname
 		self.release = from.release
 		self.mounts = from.mounts
-		self.status = .running
+		self.status = from.status
 		self.attachedNetworks = nil
 		self.tunnelInfos = nil
 		self.socketInfos = nil
@@ -130,7 +130,7 @@ public struct VMInformations: Sendable, Codable {
 		self.hostname = from.hostname
 		self.release = from.release
 		self.mounts = from.mounts
-		self.status = .running
+		self.status = from.status.agentStatus
 		self.agentVersion = from.agentVersion
 
 		self.attachedNetworks = from.networks.map {
