@@ -206,26 +206,35 @@ class AppState: ObservableObject, Observable {
 	}
 
 	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) -> ([URL: VirtualMachineDocument]) {
-		guard let result = try? ListHandler.list(client: client, vmonly: true, includeConfig: true, runMode: runMode) else {
-			return [:]
-		}
-
 		var vms: [URL: VirtualMachineDocument] = [:]
 
+		guard let result = try? ListHandler.list(client: client, vmonly: true, includeConfig: true, runMode: runMode) else {
+			return vms
+		}
+
 		if result.success {
-			let storage = StorageLocation(runMode: runMode)
+			if client == nil {
+				let storage = StorageLocation(runMode: runMode)
 
-			result.infos.compactMap {
-				if let location = try? storage.find($0.name) {
-					return location
+				result.infos.compactMap {
+					if let location = try? storage.find($0.name) {
+						return location
+					}
+
+					return nil
+				}.forEach { location in
+					if let vm = try? VirtualMachineDocument(location: location) {
+						vms[location.rootURL] = vm
+					}
 				}
-
-				return nil
-			}.forEach { location in
-				if let vm = try? VirtualMachineDocument(location: location) {
-					vms[location.rootURL] = vm
+			} else {
+				vms = result.infos.reduce(into: vms) { (partialResult, info) in
+					if let url = URL(string: info.fqn.first!), let config = info.config {
+						vms[url] = VirtualMachineDocument(name: info.name, config: VirtualMachineConfig(name: info.name, config: config))
+					}
 				}
 			}
+
 		}
 
 		return vms
