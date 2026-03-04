@@ -46,6 +46,7 @@ struct VirtualMachineConfig: Hashable {
 	var userData: String? = nil
 	var networkConfig: String? = nil
 	var autoinstall: Bool = false
+	var vncPassword: String? = nil
 
 	var humanReadableDiskSize: String {
 		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize) * 1024 * 1024 * 1024, countStyle: .file)
@@ -114,6 +115,7 @@ struct VirtualMachineConfig: Hashable {
 		self.agent = config.agent
 		self.firstLaunch = config.firstLaunch
 		self.source = config.source
+		self.vncPassword = config.vncPassword
 	}
 
 	func save() throws {
