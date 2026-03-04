@@ -630,10 +630,6 @@ struct HostVirtualMachineView: View {
 		}
 	}
 
-	func settings() {
-		self.openWindow(id: "settings", value: self.document.virtualMachine!.location.name)
-	}
-
 	func promptToSave() {
 
 	}
