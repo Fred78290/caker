@@ -49,7 +49,7 @@ extension VNCConnection.Status: @retroactive CustomStringConvertible {
 
 extension UTType {
 	static var virtualMachine: UTType {
-		UTType(importedAs: "com.aldunelabs.caker.caked-vm")
+		UTType(importedAs: "com.aldunelabs.caker.\(VMLocation.scheme)")
 	}
 
 	static var iso9660: UTType {
