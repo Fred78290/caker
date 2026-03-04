@@ -18,6 +18,20 @@ import NIO
 import RoyalVNCKit
 import SwiftTerm
 
+extension CakeAgentLib.Status {
+	init(_ from: String) {
+		let from = from.lowercased()
+
+		if from == "running" {
+			self = .running
+		} else if from == "stopped" {
+			self = .stopped
+		} else {
+			self = .unknown
+		}
+	}
+}
+
 extension VNCConnection.Status: @retroactive CustomStringConvertible {
 	public var description: String {
 		switch self {
@@ -176,6 +190,18 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		case stopping = 7
 		case saving = 8
 		case restoring = 9
+		
+		init(_ from: CakeAgentLib.Status) {
+			switch from {
+				
+			case .running:
+				self = .running
+			case .stopped:
+				self = .stopped
+			case .unknown:
+				self = .error
+			}
+		}
 	}
 	
 	private var monitor: FileMonitor?
