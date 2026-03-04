@@ -401,11 +401,11 @@ struct HostVirtualMachineView: View {
 			return false
 		}
 
-		guard let document = userInfos["document"] as? String else {
+		guard let document = userInfos["document"] as? URL else {
 			return false
 		}
 
-		guard document == self.document.name else {
+		guard document == self.document.url else {
 			return false
 		}
 

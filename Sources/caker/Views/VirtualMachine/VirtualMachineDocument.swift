@@ -688,7 +688,7 @@ extension VirtualMachineDocument {
 
 		if self.externalRunning {
 			Task {
-				let result = await AppState.shared.stopVirtualMachine(name: self.name)
+				let result = await AppState.shared.stopVirtualMachine(rootURL: self.url)
 
 				if result.success {
 					await self.setStateAsStopped()
@@ -780,7 +780,7 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
 				if let screenshot = self.screenshot.nsImage {
 					DispatchQueue.main.async {
-						NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: screenshot, userInfo: ["document": self])
+						NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: screenshot, userInfo: ["document": self.url!])
 					}
 				}
 			}
@@ -971,7 +971,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			DispatchQueue.main.async {
 				self.setDocumentSize(.init(size: framebuffer.cgSize))
 
-				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.name])
+				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url!])
 			}
 		}
 	}
@@ -1137,7 +1137,7 @@ extension VirtualMachineDocument {
 	static let VNCFramebufferSizeChanged = NSNotification.Name("VNCFramebufferSizeChanged")
 
 	func issuedNotificationFromDocument<T>(_ notification: Notification) -> T? {
-		guard let document = notification.userInfo?["document"] as? VirtualMachineDocument, document.id == self.id else {
+		guard let document = notification.userInfo?["document"] as? URL, document == self.url else {
 			return nil
 		}
 
