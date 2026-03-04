@@ -352,71 +352,47 @@ class AppState: ObservableObject, Observable {
 	}
 
 	@discardableResult
-	func startVirtualMachine(rootURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode) async -> StartedReply {
-		do {
-			let result = try StartHandler.startVM(client: self.serviceClient, rootURL: rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 30, startMode: startMode,runMode: self.runMode)
-			
-			if result.started == false {
-				await alertError(result.reason, "Failed to restart VM")
-			}
-			
-			return result
-		} catch {
-			await alertError(error)
-			
-			return StartedReply(name: rootURL.absoluteString, ip: "", started: false, reason: "\(error)")
+	func startVirtualMachine(rootURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> StartedReply {
+		let result = try StartHandler.startVM(client: self.serviceClient, rootURL: rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 30, startMode: startMode,runMode: self.runMode)
+		
+		if result.started == false {
+			throw ServiceError("Failed to start VM")
 		}
+		
+		return result
 	}
 
 	@discardableResult
-	func restartVirtualMachine(rootURL: URL, force: Bool = false, waitIPTimeout: Int = 30) async -> RestartReply {
-		do {
+	func restartVirtualMachine(rootURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
 			let result = try RestartHandler.restart(client: self.serviceClient, rootURL: rootURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
 			
-			if result.success == false {
-				await alertError(result.reason, "Failed to restart VM")
-			}
-			
-			return result
-		} catch {
-			await alertError(error)
-			
-			return .init(objects: [], success: false, reason: "\(error)")
+		if result.success == false {
+			throw ServiceError("Failed to restart VM")
 		}
+		
+		return result
 	}
 
 	@discardableResult
-	func stopVirtualMachine(rootURL: URL, force: Bool = false) async -> StopReply {
-		do {
-			let result = try StopHandler.stopVM(client: self.serviceClient, rootURL: rootURL, force: force, runMode: self.runMode)
+	func stopVirtualMachine(rootURL: URL, force: Bool = false) throws -> StopReply {
+		let result = try StopHandler.stopVM(client: self.serviceClient, rootURL: rootURL, force: force, runMode: self.runMode)
 
-			if result.success == false {
-				await alertError(result.reason, "Failed to stop VM")
-			}
-
-			return result
-		} catch {
-			await alertError(error)
-			
-			return .init(objects: [], success: false, reason: "\(error)")
+		if result.success == false {
+			throw ServiceError("Failed to stop VM")
 		}
+
+		return result
 	}
 
 	@discardableResult
-	func suspendVirtualMachine(rootURL: URL) async -> SuspendReply {
-		do {
-			let result = try SuspendHandler.suspendVM(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+	func suspendVirtualMachine(rootURL: URL) throws -> SuspendReply {
+		let result = try SuspendHandler.suspendVM(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
 
-			if result.success == false {
-				await alertError(result.reason, "Failed to suspend VM")
-			}
-
-			return result
-		} catch {
-			await alertError(error)
-			
-			return .init(objects: [], success: false, reason: "\(error)")
+		if result.success == false {
+			throw ServiceError("Failed to suspend VM")
 		}
+
+		return result
 	}
 
 	func setVncScreenSize(rootURL: URL, screenSize: ViewSize) async {
@@ -451,8 +427,8 @@ class AppState: ObservableObject, Observable {
 		return defaultSize
 	}
 
-	func vncURL(rootURL: URL) throws -> [URL]? {
-		try? VncURLHandler.vncURL(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+	func vncURL(rootURL: URL) throws -> [URL] {
+		try VncURLHandler.vncURL(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
 	}
 
 	func virtualMachineInfos(rootURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
