@@ -6,6 +6,8 @@ import Virtualization
 import CakeAgentLib
 
 public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
+	public static let scheme = "caked-vm"
+
 	public enum Status: String, Sendable {
 		case running
 		case paused
@@ -19,11 +21,27 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 	}
 
 	public static func newVMLocation(rootURL: URL) throws -> Self {
-		let location = VMLocation(rootURL: rootURL, template: false)
+		if rootURL.isFileURL {
+			let location = VMLocation(rootURL: rootURL, template: false)
 
-		try location.validate().rootURL.updateAccessDate()
+			try location.validate().rootURL.updateAccessDate()
 
-		return location
+			return location
+		} else if rootURL.scheme == Self.scheme {
+			guard let host = rootURL.host(percentEncoded: false) else {
+				throw ServiceError("Internal error")
+			}
+
+			for runMode in [Utils.RunMode.system, Utils.RunMode.user] {
+				if let location = try? StorageLocation(runMode: runMode).find(host) {
+					return location
+				}
+			}
+
+			throw ServiceError("VM not found")
+		}
+
+		throw ServiceError("Unsupported scheme")
 	}
 
 	public init(rootURL: URL, template: Bool = false) {
