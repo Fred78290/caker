@@ -353,13 +353,43 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.name = name
 		self.virtualMachineConfig = config
 	}
-	
+
 	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
-			try .init(location: try VMLocation(rootURL: vmURL).validate())
+			return try VirtualMachineDocument(location: VMLocation.newVMLocation(rootURL: vmURL))
 		} else {
-			.init()
+			let infos = try AppState.shared.virtualMachineInfos(rootURL: vmURL)
+			
+			return try VirtualMachineDocument(vmURL: vmURL, status: .init(infos.infos.status), config: infos.config)
 		}
+	}
+	
+	static func createVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) -> [URL: VirtualMachineDocument] {
+		var vms: [URL: VirtualMachineDocument] = [:]
+
+		guard let result = try? ListHandler.list(client: client, vmonly: client != nil, includeConfig: true, runMode: runMode) else {
+			return vms
+		}
+
+		if result.success {
+			if client != nil {
+				vms = result.infos.reduce(into: vms) { (partialResult, info) in
+					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), config: config) {
+						partialResult[vmURL] = vm
+					}
+				}
+			} else {
+				let storage = StorageLocation(runMode: runMode)
+
+				vms = result.infos.reduce(into: vms) { (partialResult, info) in
+					if let vmURL = URL(string: info.fqn.first!), let name = vmURL.host(percentEncoded: false), let location = try? storage.find(name), let vm = try? VirtualMachineDocument(location: location) {
+						partialResult[vmURL] = vm
+					}
+				}
+			}
+		}
+
+		return vms
 	}
 }
 

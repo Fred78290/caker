@@ -636,5 +636,5 @@ struct HostVirtualMachineView: View {
 }
 
 #Preview {
-	HostVirtualMachineView(appState: .constant(AppState()), document: VirtualMachineDocument())
+	HostVirtualMachineView(appState: .constant(AppState()), document: try! VirtualMachineDocument.anyVirtualMachineDocument())
 }
