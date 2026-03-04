@@ -7,15 +7,21 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct SuspendHandler {
-	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendedObject {
-		let location = try StorageLocation(runMode: runMode).find(name)
+	public static func suspendVM(rootURL: URL, runMode: Utils.RunMode) throws -> SuspendedObject {
+		try suspendVM(location: VMLocation.newVMLocation(rootURL: rootURL), runMode: runMode)
+	}
 
+	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendedObject {
+		try suspendVM(location: StorageLocation(runMode: runMode).find(name), runMode: runMode)
+	}
+
+	public static func suspendVM(location: VMLocation, runMode: Utils.RunMode) throws -> SuspendedObject {
 		if location.status == .running {
 			try location.suspendVirtualMachine(runMode: runMode)
-			return SuspendedObject(name: name, suspended: true, reason: "VM Suspended")
+			return SuspendedObject(name: location.name, suspended: true, reason: "VM Suspended")
 		}
 
-		return SuspendedObject(name: name, suspended: false, reason: "VM is not running")
+		return SuspendedObject(name: location.name, suspended: false, reason: "VM is not running")
 	}
 
 	public static func suspendVMs(names: [String], runMode: Utils.RunMode) -> SuspendReply {

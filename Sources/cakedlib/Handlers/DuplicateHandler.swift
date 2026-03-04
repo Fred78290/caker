@@ -4,21 +4,34 @@ import NIOCore
 import Virtualization
 
 public struct DuplicateHandler {
+	public static func duplicate(rootURL: URL, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+		guard let location = try? VMLocation.newVMLocation(rootURL: rootURL) else {
+			return DuplicatedReply(from: rootURL.absoluteString, to: to, duplicated: false, reason: "Source vm not found")
+		}
+
+		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, startMode: startMode, runMode: runMode)
+	}
+
 	public static func duplicate(from: String, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+		guard let location = try? StorageLocation(runMode: runMode).find(from) else {
+			return DuplicatedReply(from: from, to: to, duplicated: false, reason: "Source vm not found")
+		}
+
+		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, startMode: startMode, runMode: runMode)
+	}
+
+	public static func duplicate(location: VMLocation, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
-
-			guard var fromLocation = try? storageLocation.find(from) else {
-				return DuplicatedReply(from: from, to: to, duplicated: false, reason: "Source vm not found")
-			}
+			var fromLocation = location
 
 			// Check if the VM exists
-			guard fromLocation.status == .stopped else {
-				return DuplicatedReply(from: from, to: to, duplicated: false, reason: "Source vm is running or paused")
+			guard location.status == .stopped else {
+				return DuplicatedReply(from: fromLocation.name, to: to, duplicated: false, reason: "Source vm is running or paused")
 			}
 
 			guard storageLocation.exists(to) == false else {
-				return DuplicatedReply(from: from, to: to, duplicated: false, reason: "Target vm already exists")
+				return DuplicatedReply(from: fromLocation.name, to: to, duplicated: false, reason: "Target vm already exists")
 			}
 
 			var config = try fromLocation.config()
@@ -70,9 +83,9 @@ public struct DuplicateHandler {
 
 			try storageLocation.relocate(to, from: fromLocation)
 
-			return DuplicatedReply(from: from, to: to, duplicated: true, reason: "VM duplicated")
+			return DuplicatedReply(from: location.name, to: to, duplicated: true, reason: "VM duplicated")
 		} catch {
-			return DuplicatedReply(from: from, to: to, duplicated: false, reason: "\(error)")
+			return DuplicatedReply(from: location.name, to: to, duplicated: false, reason: "\(error)")
 		}
 	}
 }

@@ -16,16 +16,30 @@ import CakeAgentLib
 public struct RestartHandler {
 	public static func restart(name: String, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
-			
-			if location.status == .running {
-				try location.restartVirtualMachine(force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
-				return RestartedObject(name: name, restarted: true, reason: "")
-			}
-			
-			return RestartedObject(name: name, restarted: false, reason: "VM is not running")
+			return try restart(location: StorageLocation(runMode: runMode).find(name), force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		} catch {
 			return RestartedObject(name: name, restarted: false, reason: "\(error)")
+		}
+	}
+
+	public static func restart(rootURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
+		do {
+			return try restart(location: VMLocation.newVMLocation(rootURL: rootURL), force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+		} catch {
+			return RestartedObject(name: rootURL.absoluteString, restarted: false, reason: "\(error)")
+		}
+	}
+
+	public static func restart(location: VMLocation, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
+		do {
+			if location.status == .running {
+				try location.restartVirtualMachine(force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+				return RestartedObject(name: location.name, restarted: true, reason: "")
+			}
+			
+			return RestartedObject(name: location.name, restarted: false, reason: "VM is not running")
+		} catch {
+			return RestartedObject(name: location.name, restarted: false, reason: "\(error)")
 		}
 	}
 	

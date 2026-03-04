@@ -13,9 +13,15 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct VncURLHandler {
-	public static func vncURL(name: String, runMode: Utils.RunMode) throws -> [URL] {
-		let location = try StorageLocation(runMode: runMode).find(name)
+	public static func vncURL(rootURL: URL, runMode: Utils.RunMode) throws -> [URL] {
+		return try vncURL(location: VMLocation.newVMLocation(rootURL: rootURL), runMode: runMode)
+	}
 
+	public static func vncURL(name: String, runMode: Utils.RunMode) throws -> [URL] {
+		return try vncURL(location: StorageLocation(runMode: runMode).find(name), runMode: runMode)
+	}
+
+	public static func vncURL(location: VMLocation, runMode: Utils.RunMode) throws -> [URL] {
 		if location.status == .running {
 			return try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL
 		}

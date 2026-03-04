@@ -7,19 +7,33 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct StopHandler {
+	public static func stopVM(rootURL: URL, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
+		do {
+			return try stopVM(location: VMLocation.newVMLocation(rootURL: rootURL), force: force, runMode: runMode)
+		} catch {
+			return StoppedObject(name: rootURL.absoluteString, stopped: false, reason: "\(error)")
+		}
+	}
+
 	public static func stopVM(name: String, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
-			
+			return try stopVM(location: StorageLocation(runMode: runMode).find(name), force: force, runMode: runMode)
+		} catch {
+			return StoppedObject(name: name, stopped: false, reason: "\(error)")
+		}
+	}
+
+	public static func stopVM(location: VMLocation, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
+		do {
 			if location.status == .running {
 				try location.stopVirtualMachine(force: force, runMode: runMode)
 				
-				return StoppedObject(name: name, stopped: true, reason: "")
+				return StoppedObject(name: location.name, stopped: true, reason: "")
 			}
 			
-			return StoppedObject(name: name, stopped: false, reason: "VM is not running")
+			return StoppedObject(name: location.name, stopped: false, reason: "VM is not running")
 		} catch {
-			return StoppedObject(name: name, stopped: false, reason: "\(error)")
+			return StoppedObject(name: location.name, stopped: false, reason: "\(error)")
 		}
 	}
 

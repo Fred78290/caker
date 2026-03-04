@@ -80,6 +80,45 @@ public struct DeleteHandler {
 		}
 	}
 
+	public static func delete(location: VMLocation, runMode: Utils.RunMode) -> DeleteReply {
+		do {
+			try location.delete()
+
+			return DeleteReply(objects: [
+				DeletedObject(source: "vm", name: location.name, deleted: true, reason: "VM not found")
+			], success: true, reason: "success")
+
+		} catch {
+			return DeleteReply(objects: [
+				DeletedObject(source: "vm", name: location.name, deleted: false, reason: "VM not found")
+			], success: false, reason: "\(error)")
+		}
+	}
+
+	public static func delete(name: String, runMode: Utils.RunMode) -> DeleteReply {
+		do {
+			let location = try StorageLocation(runMode: runMode).find(name)
+
+			return delete(location: location, runMode: runMode)
+		} catch {
+			return DeleteReply(objects: [
+				DeletedObject(source: "vm", name: name, deleted: false, reason: "\(error)")
+			], success: false, reason: "\(error)")
+		}
+	}
+
+	public static func delete(rootURL: URL, runMode: Utils.RunMode) -> DeleteReply {
+		do {
+			let location = try VMLocation.newVMLocation(rootURL: rootURL)
+
+			return delete(location: location, runMode: runMode)
+		} catch {
+			return DeleteReply(objects: [
+				DeletedObject(source: "vm", name: rootURL.absoluteString, deleted: false, reason: "VM not found")
+			], success: false, reason: "\(error)")
+		}
+	}
+
 	public static func delete(all: Bool, names: [String], runMode: Utils.RunMode) -> DeleteReply {
 		var names = names
 

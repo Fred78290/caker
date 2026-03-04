@@ -11,8 +11,22 @@ import NIO
 public struct ScreenSizeHandler {
 	public static func setScreenSize(name: String, width: Int, height: Int, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
+			return try setScreenSize(location: StorageLocation(runMode: runMode).find(name), width: width, height: height, runMode: runMode)
+		} catch {
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+		}
+	}
 
+	public static func setScreenSize(rootURL: URL, width: Int, height: Int, runMode: Utils.RunMode) -> ScreenSizeReply {
+		do {
+			return try setScreenSize(location: VMLocation.newVMLocation(rootURL: rootURL), width: width, height: height, runMode: runMode)
+		} catch {
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+		}
+	}
+
+	public static func setScreenSize(location: VMLocation, width: Int, height: Int, runMode: Utils.RunMode) -> ScreenSizeReply {
+		do {
 			guard location.status == .running else {
 				return ScreenSizeReply(width: 0, height: 0, success: false, reason: "VM is not running")
 			}
@@ -26,11 +40,25 @@ public struct ScreenSizeHandler {
 			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
 		}
 	}
-	
+
 	public static func getScreenSize(name: String, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
+			return try getScreenSize(location: StorageLocation(runMode: runMode).find(name), runMode: runMode)
+		} catch {
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+		}
+	}
 
+	public static func getScreenSize(rootURL: URL, runMode: Utils.RunMode) -> ScreenSizeReply {
+		do {
+			return try getScreenSize(location: VMLocation.newVMLocation(rootURL: rootURL), runMode: runMode)
+		} catch {
+			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
+		}
+	}
+
+	public static func getScreenSize(location: VMLocation, runMode: Utils.RunMode) -> ScreenSizeReply {
+		do {
 			guard location.status == .running else {
 				return ScreenSizeReply(width: 0, height: 0, success: false, reason: "VM is not running")
 			}

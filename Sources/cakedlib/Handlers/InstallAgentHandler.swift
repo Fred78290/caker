@@ -10,19 +10,33 @@ import GRPCLib
 import CakeAgentLib
 
 public struct InstallAgentHandler {
+	public static func installAgent(rootURL: URL, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
+		do {
+			return installAgent(location: try VMLocation.newVMLocation(rootURL: rootURL), timeout: timeout, runMode: runMode)
+		} catch {
+			return InstalledAgentReply(name: rootURL.lastPathComponent.deletingPathExtension, installed: false , reason: "\(error)")
+		}
+	}
+
 	public static func installAgent(name: String, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
-			let location = try StorageLocation(runMode: runMode).find(name)
-			
+			return installAgent(location: try StorageLocation(runMode: runMode).find(name), timeout: timeout, runMode: runMode)
+		} catch {
+			return InstalledAgentReply(name: name, installed: false , reason: "\(error)")
+		}
+	}
+
+	public static func installAgent(location: VMLocation, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
+		do {
 			guard location.status == .running else {
-				return InstalledAgentReply(name: name, installed: false, reason: "VM is not running")
+				return InstalledAgentReply(name: location.name, installed: false, reason: "VM is not running")
 			}
 
 			let result = try createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).installAgent(timeout: timeout)
 
-			return InstalledAgentReply(name: name, installed: result.installed , reason: result.reason)
+			return InstalledAgentReply(name: location.name, installed: result.installed , reason: result.reason)
 		} catch {
-			return InstalledAgentReply(name: name, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: location.name, installed: false , reason: "\(error)")
 		}
 	}
 }
