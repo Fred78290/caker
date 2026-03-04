@@ -87,7 +87,7 @@ struct VirtualMachineConfig: Hashable {
 		}
 	}
 
-	init(name: String, config: any VirtualMachineConfiguration) throws {
+	init(name: String, config: any VirtualMachineConfiguration) {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
 		self.cpuCount = config.cpuCount
