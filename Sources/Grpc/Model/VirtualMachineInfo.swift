@@ -976,7 +976,13 @@ public struct InstalledAgentReply {
 		self.installed = installed
 		self.reason = reason
 	}
-	
+
+	public init(_ from: Caked_InstalledAgentReply) {
+		self.name = from.name
+		self.installed = from.installed
+		self.reason = from.reason
+	}
+
 	public var caked: Caked_InstalledAgentReply {
 		Caked_InstalledAgentReply.with {
 			$0.name = self.name
