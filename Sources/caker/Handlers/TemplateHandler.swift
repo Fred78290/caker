@@ -15,16 +15,24 @@ extension TemplateHandler {
 		}
 	}
 
-	public static func createTemplate(client: CakedServiceClient?, sourceName: String, templateName: String, runMode: Utils.RunMode) throws -> CreateTemplateReply {
-		guard let client = client else {
-			return self.createTemplate(on: Utilities.group.next(), sourceName: sourceName, templateName: templateName, runMode: runMode)
+	public static func createTemplate(client: CakedServiceClient?, rootURL: URL, templateName: String, runMode: Utils.RunMode) throws -> CreateTemplateReply {
+		guard let client else {
+			return self.createTemplate(rootURL: rootURL, templateName: templateName, runMode: runMode)
 		}
 		
+		if rootURL.isFileURL {
+			return self.createTemplate(rootURL: rootURL, templateName: templateName, runMode: runMode)
+		}
+
+		guard let host = rootURL.host(percentEncoded: false) else {
+			throw ServiceError("Internal error")
+		}
+
 		return try CreateTemplateReply(client.template(.with {
 			$0.command = .add
 			$0.createRequest = .with {
 				$0.templateName = templateName
-				$0.sourceName = sourceName
+				$0.sourceName = host
 			}
 		}).response.wait().templates.create)
 	}

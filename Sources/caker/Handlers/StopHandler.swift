@@ -9,16 +9,27 @@ import CakedLib
 import GRPCLib
 
 extension StopHandler {
-	public static func stopVM(client: CakedServiceClient?, name: String, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
+	public static func stopVM(client: CakedServiceClient?, rootURL: URL, force: Bool, runMode: Utils.RunMode) throws -> StopReply {
+		guard let client else {
+			return StopReply(objects: [
+				self.stopVM(rootURL: rootURL, force: force, runMode: runMode)
+			], success: true, reason: "Success")
+		}
 
-		guard let client = client else {
-			return self.stopVMs(all: false, names: [name], force: force, runMode: runMode)
+		if rootURL.isFileURL {
+			return StopReply(objects: [
+				self.stopVM(rootURL: rootURL, force: force, runMode: runMode)
+			], success: true, reason: "Success")
+		}
+
+		guard let host = rootURL.host(percentEncoded: false) else {
+			throw ServiceError("Internal error")
 		}
 
 		return try StopReply(client.stop(.with {
 			$0.force = force
 			$0.names = .with {
-				$0.list = [name]
+				$0.list = [host]
 			}
 		}).response.wait().vms.stop)
 	}

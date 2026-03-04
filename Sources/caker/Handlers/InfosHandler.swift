@@ -18,6 +18,10 @@ extension InfosHandler {
 			return try self.infos(rootURL: rootURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(rootURL: rootURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 		}
 
+		if rootURL.isFileURL {
+			return try self.infos(rootURL: rootURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(rootURL: rootURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+		}
+
 		guard let host = rootURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}

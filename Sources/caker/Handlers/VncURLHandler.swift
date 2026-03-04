@@ -9,13 +9,21 @@ import CakedLib
 import GRPCLib
 
 extension VncURLHandler {
-	public static func vncURL(client: CakedServiceClient?, name: String, runMode: Utils.RunMode) throws -> [URL] {
-		guard let client = client else {
-			return try self.vncURL(name: name, runMode: runMode)
+	public static func vncURL(client: CakedServiceClient?, rootURL: URL, runMode: Utils.RunMode) throws -> [URL] {
+		guard let client else {
+			return try self.vncURL(rootURL: rootURL, runMode: runMode)
 		}
 		
+		if rootURL.isFileURL {
+			return try self.vncURL(rootURL: rootURL, runMode: runMode)
+		}
+
+		guard let host = rootURL.host(percentEncoded: false) else {
+			throw ServiceError("Internal error")
+		}
+
 		let vms = try client.vncURL(.with {
-			$0.name = name
+			$0.name = host
 		}).response.wait().vms
 		
 		if case .vncURL(let value)? = vms.response {
