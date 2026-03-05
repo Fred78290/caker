@@ -246,7 +246,7 @@ message Caked {
     SupportedPlatform configured_platform = 6;
     optional string   osName              = 7;
     optional string   osRelease           = 8;
-    uint32            diskSize            = 9;
+    uint64            diskSize            = 9;
 	// CPU and memory configuration
     int32  cpuCount      = 10;
     int32  cpuCountMin   = 11;
@@ -584,9 +584,10 @@ message Caked {
           uint64                 diskSize      = 6;
           uint64                 sizeOnDisk    = 7;
           string                 state         = 8;
-          optional string        ip            = 9;
-          optional string        fingerprint   = 10;
-          optional Configuration configuration = 11;
+          repeated string        vncURL        = 9;
+          optional string        ip            = 10;
+          optional string        fingerprint   = 11;
+          optional Configuration configuration = 12;
         }
 
         repeated VirtualMachineInfo infos   = 1;

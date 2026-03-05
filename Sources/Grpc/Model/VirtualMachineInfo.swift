@@ -779,6 +779,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let ip: String?
 	public let fingerprint: String?
 	public let config: CakedConfiguration?
+	public let vncURL: [String]?
 
 	public var id: String {
 		self.instanceID ?? self.name
@@ -796,6 +797,12 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
 
+		if from.vncURL.isEmpty == false {
+			self.vncURL = from.vncURL
+		} else {
+			self.vncURL = nil
+		}
+
 		if from.hasConfiguration {
 			self.config = CakedConfiguration(from.configuration)
 		} else {
@@ -808,6 +815,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		source: String = "",
 		name: String = "",
 		fqn: [String] = [],
+		vncURL: [String]? = nil,
 		instanceID: String? = nil,
 		diskSize: Int = 0,
 		sizeOnDisk: Int = 0,
@@ -820,6 +828,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.source = source
 		self.name = name
 		self.fqn = fqn
+		self.vncURL = vncURL
 		self.instanceID = instanceID
 		self.diskSize = diskSize
 		self.sizeOnDisk = sizeOnDisk
@@ -838,6 +847,10 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			info.diskSize = UInt64(self.diskSize)
 			info.sizeOnDisk = UInt64(self.sizeOnDisk)
 			info.state = self.state
+
+			if let vncURL {
+				info.vncURL = vncURL
+			}
 
 			if let instanceID: String = self.instanceID {
 				info.instanceID = instanceID
@@ -862,6 +875,7 @@ public struct ShortVirtualMachineInfo: Codable {
 	public let type: String
 	public let name: String
 	public let fqn: String
+	public let vncURL: String
 	public let instanceID: String
 	public let ip: String
 	public let diskSize: String
@@ -879,6 +893,11 @@ public struct ShortVirtualMachineInfo: Codable {
 		self.sizeOnDisk = ByteCountFormatter.string(fromByteCount: Int64(from.sizeOnDisk), countStyle: .file)
 		self.state = from.state
 		self.fingerprint = from.fingerprint != nil ? from.fingerprint!.substring(..<12) : ""
+		if let vncURL = from.vncURL {
+			self.vncURL = vncURL.first ?? ""
+		} else {
+			self.vncURL = ""
+		}
 	}
 }
 

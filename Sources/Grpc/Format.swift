@@ -461,6 +461,7 @@ extension CakeAgentLib.Format {
 											source: vm.source,
 											name: fqn.stringAfter(after: "//"),
 											fqn: [$0],
+											vncURL: vm.vncURL,
 											instanceID: vm.instanceID,
 											diskSize: vm.diskSize,
 											sizeOnDisk: vm.sizeOnDisk,

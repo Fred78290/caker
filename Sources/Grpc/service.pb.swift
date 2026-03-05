@@ -239,7 +239,7 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `osRelease`. Subsequent reads from it will return its default value.
     public mutating func clearOsRelease() {_uniqueStorage()._osRelease = nil}
 
-    public var diskSize: UInt32 {
+    public var diskSize: UInt64 {
       get {_storage._diskSize}
       set {_uniqueStorage()._diskSize = newValue}
     }
@@ -2594,6 +2594,8 @@ public struct Caked_Caked: Sendable {
           public var sizeOnDisk: UInt64 = 0
 
           public var state: String = String()
+
+          public var vncURL: [String] = []
 
           public var ip: String {
             get {_ip ?? String()}
@@ -5504,7 +5506,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _configuredPlatform: Caked_Caked.Configuration.SupportedPlatform = .undefined
     var _osName: String? = nil
     var _osRelease: String? = nil
-    var _diskSize: UInt32 = 0
+    var _diskSize: UInt64 = 0
     var _cpuCount: Int32 = 0
     var _cpuCountMin: Int32 = 0
     var _memorySize: UInt64 = 0
@@ -5618,7 +5620,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 6: try { try decoder.decodeSingularEnumField(value: &_storage._configuredPlatform) }()
         case 7: try { try decoder.decodeSingularStringField(value: &_storage._osName) }()
         case 8: try { try decoder.decodeSingularStringField(value: &_storage._osRelease) }()
-        case 9: try { try decoder.decodeSingularUInt32Field(value: &_storage._diskSize) }()
+        case 9: try { try decoder.decodeSingularUInt64Field(value: &_storage._diskSize) }()
         case 10: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCount) }()
         case 11: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCountMin) }()
         case 12: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySize) }()
@@ -5690,7 +5692,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         try visitor.visitSingularStringField(value: v, fieldNumber: 8)
       } }()
       if _storage._diskSize != 0 {
-        try visitor.visitSingularUInt32Field(value: _storage._diskSize, fieldNumber: 9)
+        try visitor.visitSingularUInt64Field(value: _storage._diskSize, fieldNumber: 9)
       }
       if _storage._cpuCount != 0 {
         try visitor.visitSingularInt32Field(value: _storage._cpuCount, fieldNumber: 10)
@@ -8965,7 +8967,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -8981,9 +8983,10 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
       case 6: try { try decoder.decodeSingularUInt64Field(value: &self.diskSize) }()
       case 7: try { try decoder.decodeSingularUInt64Field(value: &self.sizeOnDisk) }()
       case 8: try { try decoder.decodeSingularStringField(value: &self.state) }()
-      case 9: try { try decoder.decodeSingularStringField(value: &self._ip) }()
-      case 10: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
-      case 11: try { try decoder.decodeSingularMessageField(value: &self._configuration) }()
+      case 9: try { try decoder.decodeRepeatedStringField(value: &self.vncURL) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self._ip) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
+      case 12: try { try decoder.decodeSingularMessageField(value: &self._configuration) }()
       default: break
       }
     }
@@ -9018,14 +9021,17 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     if !self.state.isEmpty {
       try visitor.visitSingularStringField(value: self.state, fieldNumber: 8)
     }
+    if !self.vncURL.isEmpty {
+      try visitor.visitRepeatedStringField(value: self.vncURL, fieldNumber: 9)
+    }
     try { if let v = self._ip {
-      try visitor.visitSingularStringField(value: v, fieldNumber: 9)
-    } }()
-    try { if let v = self._fingerprint {
       try visitor.visitSingularStringField(value: v, fieldNumber: 10)
     } }()
+    try { if let v = self._fingerprint {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 11)
+    } }()
     try { if let v = self._configuration {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9039,6 +9045,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     if lhs.diskSize != rhs.diskSize {return false}
     if lhs.sizeOnDisk != rhs.sizeOnDisk {return false}
     if lhs.state != rhs.state {return false}
+    if lhs.vncURL != rhs.vncURL {return false}
     if lhs._ip != rhs._ip {return false}
     if lhs._fingerprint != rhs._fingerprint {return false}
     if lhs._configuration != rhs._configuration {return false}
