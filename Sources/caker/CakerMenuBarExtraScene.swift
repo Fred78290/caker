@@ -14,22 +14,64 @@ struct CakerMenuBarExtraScene: Scene {
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
-
+	@Environment(\.openDocument) private var openDocument
+	@Environment(\.openSettings) private var openSettings
+	
 	var body: some Scene {
 		MenuBarExtra(isInserted: $isMenuIconShown) {
+			Button("About Caker") {
+				NSApp.orderFrontStandardAboutPanel(nil)
+			}
 			Button("Show Caker") {
 				openWindow(id: "home")
-			}.keyboardShortcut("0")
+			}.keyboardShortcut("H")
 				.help("Show the main window.")
-			Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
-				.help("Requires restarting Caker to take affect.")
-
+			
 			Divider()
-			Button("New virtual machine") {
-				openWindow(id: "wizard")
-			}.keyboardShortcut("N")
-				.help("Create a new virtual machine.")
 
+			Menu("Options") {
+				Button("Settings") {
+					openSettings()
+				}
+				Divider()
+				Button("New virtual machine") {
+					openWindow(id: "wizard")
+				}.keyboardShortcut("N")
+					.help("Create a new virtual machine.")
+				Button("Open virtual machine") {
+					open()
+				}.keyboardShortcut("O")
+					.help("Open new virtual machine.")
+
+				Toggle("Hide dock icon on next launch", isOn: $isDockIconHidden)
+					.help("Requires restarting Caker to take affect.")
+			}
+
+			Menu("Service") {
+				
+				if self.appState.cakedServiceInstalled {
+					Button("Remove service") {
+						self.appState.removeCakedService()
+					}
+				} else {
+					Button("Install service") {
+						self.appState.installCakedService()
+					}
+				}
+				
+				if self.appState.cakedServiceRunning {
+					Button("Stop service") {
+						self.appState.stopCakedService()
+					}
+				} else {
+					Button("Start service") {
+						self.appState.startCakedService()
+					}
+				}
+			}
+			
+			Divider()
+			
 			if appState.virtualMachines.isEmpty {
 				Text("No virtual machines found.")
 			} else {
@@ -40,7 +82,7 @@ struct CakerMenuBarExtraScene: Scene {
 					}
 				}
 			}
-
+			
 			Divider()
 			Button("Quit") {
 				NSApp.terminate(self)
@@ -51,6 +93,16 @@ struct CakerMenuBarExtraScene: Scene {
 				Image(nsImage: NSImage(contentsOfFile: path) ?? NSImage()).resizable()
 			} else {
 				Image("AppIcon")
+			}
+		}
+	}
+	
+	private func open() {
+		let home = StorageLocation(runMode: .app).rootURL
+
+		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
+			Task {
+				try? await openDocument(at: documentURL)
 			}
 		}
 	}
