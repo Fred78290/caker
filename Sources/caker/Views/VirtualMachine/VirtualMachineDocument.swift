@@ -73,31 +73,6 @@ extension UTType {
 	}
 }
 
-struct ScreenshotLoader: Hashable, Identifiable {
-	private let screenshotURL: URL
-	private let date: Date = .init()
-
-	var id: URL {
-		self.screenshotURL
-	}
-
-	static func == (lhs: ScreenshotLoader, rhs: ScreenshotLoader) -> Bool {
-		return lhs.screenshotURL == rhs.screenshotURL
-	}
-
-	init(screenshotURL: URL) {
-		self.screenshotURL = screenshotURL
-	}
-
-	var nsImage: NSImage? {
-		guard let exist = try? screenshotURL.exists(), exist else {
-			return nil
-		}
-
-		return NSImage(contentsOfFile: screenshotURL.path)
-	}
-}
-
 // MARK: - VirtualMachineDocument
 final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equatable, Identifiable {
 	typealias ShellHandlerResponse = (Cakeagent_CakeAgent.ExecuteResponse) -> Void
@@ -250,16 +225,14 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var vmInfos: VMInformations? = nil
 	@Published var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
 	
-	private var screenshot: ScreenshotLoader!
+	private var screenshot: Data!
 	
 	var lastScreenshot: NSImage? {
-		let screenshotURL = self.location.screenshotURL
-		
-		guard let exist = try? screenshotURL.exists(), exist else {
+		guard let screenshot else {
 			return nil
 		}
-		
-		return NSImage(contentsOfFile: screenshotURL.path)
+
+		return NSImage(data: screenshot)
 	}
 	
 	var osImage: some View {
@@ -267,7 +240,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		
 		if self.virtualMachineConfig.os == .darwin {
 			name = "mac"
-		} else if let config = try? self.location.config(), let osName = config.osName {
+		} else if let config = try? self.location.config(), let osName = self.virtualMachineConfig.osName {
 			let osNames = [
 				"almalinux",
 				"alpine",
@@ -328,16 +301,11 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.url = location.rootURL
 		self.location = location
 		self.virtualMachineConfig = config
-		self.screenshot = .init(screenshotURL: location.screenshotURL)
+		self.screenshot = nil
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.monitor = monitor
-		
-		if self.externalRunning {
-			self.documentSize = self.getVncScreenSize()
-		} else {
-			self.documentSize = ViewSize(size: config.display.cgSize)
-		}
+		self.documentSize = ViewSize(size: config.display.cgSize)
 		
 		switch location.status {
 		case .running:
@@ -350,25 +318,25 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		
 		try monitor.start()
 	}
-	
-	private init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration) throws {
+
+	private convenience init(vmURL: URL, infos: VMInformations, config: any VirtualMachineConfiguration) throws {
+		let status = Status(infos.status)
+		
+		try self.init(vmURL: vmURL, status: status, vncURL: infos.vncURL, config: config)
+	}
+
+	private init(vmURL: URL, status: Status, vncURL: [String]?, config: any VirtualMachineConfiguration) throws {
 		guard let name = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
-		let status = Status(infos.status)
 
 		self.name = name
 		self.url = vmURL
 		self.virtualMachineConfig = VirtualMachineConfig(name: name, config: config)
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.status = status
-		self.vncURL = infos.vncURL?.compactMap { URL(string: $0) }
-
-		if status == .running {
-			self.setDocumentSize(self.getVncScreenSize())
-		} else {
-			self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
-		}
+		self.vncURL = vncURL?.compactMap { URL(string: $0) }
+		self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
 	}
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
@@ -392,14 +360,14 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	static func createVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) -> [URL: VirtualMachineDocument] {
 		var vms: [URL: VirtualMachineDocument] = [:]
 
-		guard let result = try? ListHandler.list(client: client, vmonly: client != nil, includeConfig: true, runMode: runMode) else {
+		guard let result = try? ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: runMode) else {
 			return vms
 		}
 
 		if result.success {
 			if client != nil {
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
-					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, infos: .init(info), config: config) {
+					if let vmURL = URL(string: info.fqn.first!), let config = info.config, let vm = try? VirtualMachineDocument(vmURL: vmURL, status: .init(CakeAgentLib.Status(info.state)), vncURL: info.vncURL, config: config) {
 						partialResult[vmURL] = vm
 					}
 				}
@@ -562,6 +530,12 @@ extension VirtualMachineDocument {
 	}
 
 	private func loadVirtualMachine(_ url: URL) -> URL? {
+		if self.isLaunchVMExternally && self.externalRunning {
+			self.setDocumentSize(self.getVncScreenSize())
+		} else {
+			self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
+		}
+
 		return url
 	}
 
@@ -615,6 +589,7 @@ extension VirtualMachineDocument {
 					return self.loadVirtualMachine(location)
 				}
 			} else {
+				return self.loadVirtualMachine(self.url)
 			}
 			
 			DispatchQueue.main.async {
@@ -846,7 +821,8 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 					}
 				}
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
-				if let screenshot = self.screenshot.nsImage {
+				if let screenshot = try? Data(contentsOf: location.screenshotURL) {
+					self.screenshot = screenshot
 					DispatchQueue.main.async {
 						NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: screenshot, userInfo: ["document": self.url!])
 					}

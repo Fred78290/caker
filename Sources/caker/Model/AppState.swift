@@ -4,6 +4,7 @@ import GRPC
 import GRPCLib
 import SwiftUI
 import CakeAgentLib
+import NIO
 
 typealias VirtualMachineDocumentByURL = [URL: VirtualMachineDocument]
 
@@ -92,8 +93,12 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
-	private var agentStatusTimer: Timer?
+	private var agentStatusTimer: RepeatedTask? = nil
 	private static var _shared: AppState! = nil
+
+	static func loadSharedAppState() async {
+		Self._shared = AppState()
+	}
 
 	static var shared: AppState {
 		guard let shared = _shared else {
@@ -124,7 +129,7 @@ class AppState: ObservableObject, Observable {
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
 
 	deinit {
-		agentStatusTimer?.invalidate()
+		agentStatusTimer?.cancel()
 	}
 
 	var serviceClient: CakedServiceClient? {
@@ -135,47 +140,72 @@ class AppState: ObservableObject, Observable {
 		return self.cakedServiceClient
 	}
 
-	init() {
-		self.runMode = ServiceHandler.runningMode
-		self.cakedServiceInstalled = ServiceHandler.isAgentInstalled
-		self.cakedServiceRunning = self.runMode != .app
-
-		if self.cakedServiceRunning {
-			self.cakedServiceClient = ServiceHandler.serviceClient
+	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
+		struct ServiceReply {
+			let remotes: [RemoteEntry]
+			let templates: [TemplateEntry]
+			let networks: [BridgedNetwork]
+			let virtualMachines: [URL: VirtualMachineDocument]
 		}
 
-		self.virtualMachines = Self.loadVirtualMachines(client: self.serviceClient, runMode: self.runMode)
-		self.networks = Self.loadNetworks(client: self.serviceClient, runMode: self.runMode)
-		self.remotes = Self.loadRemotes(client: self.serviceClient, runMode: self.runMode)
-		self.templates = Self.loadTemplates(client: self.serviceClient, runMode: self.runMode)
+		let serviceReplyFuture = Utilities.group.next().makeFutureWithTask {
+			ServiceReply(
+				remotes: Self.loadRemotes(client: self.serviceClient, runMode: runMode),
+				templates: Self.loadTemplates(client: self.serviceClient, runMode: runMode),
+				networks: Self.loadNetworks(client: self.serviceClient, runMode: runMode),
+				virtualMachines: Self.loadVirtualMachines(client: self.serviceClient, runMode: runMode)
+			)
+		}
+
+		serviceReplyFuture.whenSuccess { serviceReply in
+			DispatchQueue.main.async {
+				if runMode == .app {
+					self.cakedServiceClient = nil
+				} else {
+					self.cakedServiceClient = ServiceHandler.serviceClient
+				}
+				
+				self.cakedServiceInstalled = installed
+				self.cakedServiceRunning = runMode != .app
+				self.runMode = runMode
+				
+				self.virtualMachines = serviceReply.virtualMachines
+				self.networks = serviceReply.networks
+				self.remotes = serviceReply.remotes
+				self.templates = serviceReply.templates
+			}
+		}
+	}
+
+	init() {
+		var cakedServiceClient: CakedServiceClient? = nil
+		let runMode = ServiceHandler.runningMode
+		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
+		let cakedServiceRunning = runMode != .app
+
+		if cakedServiceRunning {
+			cakedServiceClient = ServiceHandler.serviceClient
+		}
 
 		// Start polling agent running status every second
-		self.agentStatusTimer?.invalidate()
-		self.agentStatusTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-			guard let self = self else { return }
-
+		let agentStatusTimer = Utilities.group.next().scheduleRepeatedTask(initialDelay: .seconds(1), delay: .seconds(1)) { task in
 			let runMode = ServiceHandler.runningMode
 			let installed = ServiceHandler.isAgentInstalled
 
 			if self.cakedServiceInstalled != installed || self.runMode != runMode {
-				DispatchQueue.main.async {
-					if runMode == .app {
-						self.cakedServiceClient = nil
-					} else {
-						self.cakedServiceClient = ServiceHandler.serviceClient
-					}
-
-					self.cakedServiceInstalled = installed
-					self.cakedServiceRunning = runMode != .app
-					self.runMode = runMode
-
-					self.virtualMachines = Self.loadVirtualMachines(client: self.serviceClient, runMode: runMode)
-					self.networks = Self.loadNetworks(client: self.serviceClient, runMode: runMode)
-					self.remotes = Self.loadRemotes(client: self.serviceClient, runMode: runMode)
-					self.templates = Self.loadTemplates(client: self.serviceClient, runMode: runMode)
-				}
+				self.switchMode(installed, runMode: runMode)
 			}
 		}
+
+		self.agentStatusTimer = agentStatusTimer
+		self.runMode = runMode
+		self.cakedServiceInstalled = cakedServiceInstalled
+		self.cakedServiceRunning = cakedServiceRunning
+		self.cakedServiceClient = cakedServiceClient
+		self.virtualMachines = Self.loadVirtualMachines(client: cakedServiceClient, runMode: runMode)
+		self.networks = Self.loadNetworks(client: cakedServiceClient, runMode: runMode)
+		self.remotes = Self.loadRemotes(client: cakedServiceClient, runMode: runMode)
+		self.templates = Self.loadTemplates(client: cakedServiceClient, runMode: runMode)
 	}
 
 	static func loadNetworks(client: CakedServiceClient?, runMode: Utils.RunMode) -> [BridgedNetwork] {
@@ -364,7 +394,7 @@ class AppState: ObservableObject, Observable {
 
 	@discardableResult
 	func restartVirtualMachine(rootURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
-			let result = try RestartHandler.restart(client: self.serviceClient, rootURL: rootURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
+		let result = try RestartHandler.restart(client: self.serviceClient, rootURL: rootURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
 			
 		if result.success == false {
 			throw ServiceError("Failed to restart VM")

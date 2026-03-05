@@ -114,8 +114,8 @@ struct VirtualMachineView: View {
 				.frame(size: geometry.size)
 				.withGlassEffect(GlassEffect.regular(nil, nil), in: RoundedRectangle(cornerRadius: radius))
 				.onReceive(VirtualMachineDocument.NewScreenshot) { notification in
-					if let screenshot: NSImage = self.vm.issuedNotificationFromDocument(notification) {
-						self.screenshot = screenshot
+					if let screenshot: Data = self.vm.issuedNotificationFromDocument(notification) {
+						self.screenshot = NSImage(data: screenshot)
 					}
 				}
 		}

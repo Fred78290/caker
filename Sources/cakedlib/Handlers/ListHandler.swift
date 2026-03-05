@@ -11,12 +11,20 @@ public struct ListHandler {
 			var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 				let status = location.status
 				let config = try location.config()
+				var vncURL: [String]? = nil
+
+				if status == .running {
+					if let urls = try? VncURLHandler.vncURL(location: location, runMode: runMode) {
+						vncURL = urls.map(\.absoluteString)
+					}
+				}
 
 				return VirtualMachineInfo(
 					type: "vm",
 					source: "vms",
 					name: name,
 					fqn: ["\(VMLocation.scheme)://\(name)"],
+					vncURL: vncURL,
 					instanceID: config.instanceID,
 					diskSize: try location.diskSize(),
 					sizeOnDisk: try location.allocatedSize(),

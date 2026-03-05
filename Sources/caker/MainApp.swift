@@ -5,6 +5,7 @@ import CakeAgentLib
 import SwiftTerm
 import SwiftUI
 import SwifterSwiftUI
+import Logging
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String) {
@@ -80,14 +81,18 @@ struct Defaults {
 
 struct MainAppParseArgument: ParsableCommand {
 	@Option(name: [.customLong("log-level")], help: "Log level")
-	var logLevel: Logger.LogLevel = .info
+	var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 	func validate() throws {
-		Logger.setLevel(self.logLevel)
+		// Set up logging to stderr
+		Logging.LoggingSystem.bootstrap { label in
+			StreamLogHandler.standardError(label: label)
+		}
+
+		CakeAgentLib.Logger.setLevel(self.logLevel)
 	}
 }
 
-@main
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
@@ -97,12 +102,7 @@ struct MainApp: App {
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	init() {
-		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
-
-		DispatchQueue.main.async {
-			EnvironmentValues().openWindow(id: "home")
-		}
 	}
 
 	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
@@ -200,7 +200,7 @@ struct MainApp: App {
 				if self.appState.cakedServiceInstalled {
 					Button("Remove service") {
 						self.appState.removeCakedService()
-					}
+					}.disabled(self.appState.cakedServiceRunning)
 				} else {
 					Button("Install service") {
 						self.appState.installCakedService()
@@ -210,11 +210,11 @@ struct MainApp: App {
 				if self.appState.cakedServiceRunning {
 					Button("Stop service") {
 						self.appState.stopCakedService()
-					}
+					}.disabled(self.appState.cakedServiceInstalled == false)
 				} else {
 					Button("Start service") {
 						self.appState.startCakedService()
-					}
+					}.disabled(self.appState.cakedServiceInstalled == false)
 				}
 			}
 		}
@@ -263,14 +263,22 @@ struct MainApp: App {
 	}
 }
 
-@MainActor class MainUIAppDelegate: NSObject, NSApplicationDelegate {
+class MainUIAppDelegate: NSObject, NSApplicationDelegate {
+	static private(set) var instance: MainUIAppDelegate!
+
 	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
+		MainUIAppDelegate.instance = self
+
 		ProcessWithSharedFileHandle.runLoopQos = .userInteractive
 
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
+		} else {
+			NSApp.setActivationPolicy(.regular)
+			EnvironmentValues().openWindow(id: "home")
+			NSApp.windows.first?.makeKeyAndOrderFront(nil)
 		}
 	}
 

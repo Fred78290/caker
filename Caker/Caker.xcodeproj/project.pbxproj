@@ -38,6 +38,7 @@
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
 		9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1501382E6C2AE000B23147 /* LabelView.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
+		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
 		9B2032F42F48CEA90047E197 /* CurrentStatusHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */; };
 		9B2033702F4A21400047E197 /* GrandCentralUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */; };
@@ -668,6 +669,7 @@
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1501382E6C2AE000B23147 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
+		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
 		9B2032F32F48CEA60047E197 /* CurrentStatusHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentStatusHandler.swift; sourceTree = "<group>"; };
 		9B20336F2F4A21300047E197 /* GrandCentralUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralUpdater.swift; sourceTree = "<group>"; };
@@ -1320,6 +1322,7 @@
 		9B2BFAB92DFED25E000045C3 /* caker */ = {
 			isa = PBXGroup;
 			children = (
+				9B196FFF2F59866E00B424DB /* Root.swift */,
 				9B3601902E20FBCF00889BFD /* CakerMenuBarExtraScene.swift */,
 				9B2BFAB82DFED25E000045C3 /* MainApp.swift */,
 				9B7C7B672E0E80BE009D0A26 /* VirtualMachineConfig.swift */,
@@ -2373,6 +2376,7 @@
 				9B2BFABF2DFED25E000045C3 /* HostVirtualMachineView.swift in Sources */,
 				9B3602452E2273C700889BFD /* Extensions.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
+				9B1970002F59867100B424DB /* Root.swift in Sources */,
 				9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */,
 				9B91237C2E2903DC006DD682 /* ExternalVirtualMachineView.swift in Sources */,
 				9B2BFAC02DFED25E000045C3 /* NetworkAttachementView.swift in Sources */,
