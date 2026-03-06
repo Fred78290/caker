@@ -180,7 +180,7 @@ public protocol VirtualMachineConfiguration {
 	var forwardedPorts: [TunnelAttachement] { set get }
 	var runningIP: String? { set get }
 	var display: ViewSize { set get }
-	var vncPassword: String { set get }
+	var vncPassword: String? { set get }
 	var ecid: Data? /*VZMacMachineIdentifier*/  { set get }
 	var hardwareModel: Data? /*VZMacHardwareModel?*/ { set get }
 }
@@ -426,8 +426,10 @@ extension VirtualMachineConfiguration {
 			if let dhcpClientID {
 				$0.dhcpClientID = dhcpClientID
 			}
-			
-			$0.vncPassword = self.vncPassword
+
+			if let vncPassword {
+				$0.vncPassword = vncPassword
+			}
 			
 			if let runningIP {
 				$0.runningIp = runningIP

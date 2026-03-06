@@ -385,7 +385,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
-	public var vncPassword: String {
+	public var vncPassword: String? {
 		set { self.cake["vncPassword"] = newValue }
 		get {
 			guard let vncPassword = self.cake["vncPassword"] as? String else {

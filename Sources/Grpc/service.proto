@@ -285,7 +285,7 @@ message Caked {
     optional string dhcpClientID = 32;
 
 	// VNC and remote access
-    string          vncPassword = 33;
+    optional string vncPassword = 33;
     optional string runningIP   = 34;
 
 	// Behavioral flags

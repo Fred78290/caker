@@ -392,9 +392,13 @@ public struct Caked_Caked: Sendable {
 
     /// VNC and remote access
     public var vncPassword: String {
-      get {_storage._vncPassword}
+      get {_storage._vncPassword ?? String()}
       set {_uniqueStorage()._vncPassword = newValue}
     }
+    /// Returns true if `vncPassword` has been explicitly set.
+    public var hasVncPassword: Bool {_storage._vncPassword != nil}
+    /// Clears the value of `vncPassword`. Subsequent reads from it will return its default value.
+    public mutating func clearVncPassword() {_uniqueStorage()._vncPassword = nil}
 
     public var runningIp: String {
       get {_storage._runningIp ?? String()}
@@ -5530,7 +5534,7 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _clearPassword_p: Bool = false
     var _source: Caked_Caked.Configuration.ImageSource = .unknown
     var _dhcpClientID: String? = nil
-    var _vncPassword: String = String()
+    var _vncPassword: String? = nil
     var _runningIp: String? = nil
     var _useCloudInit: Bool = false
     var _autostart: Bool = false
@@ -5763,9 +5767,9 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
       try { if let v = _storage._dhcpClientID {
         try visitor.visitSingularStringField(value: v, fieldNumber: 32)
       } }()
-      if !_storage._vncPassword.isEmpty {
-        try visitor.visitSingularStringField(value: _storage._vncPassword, fieldNumber: 33)
-      }
+      try { if let v = _storage._vncPassword {
+        try visitor.visitSingularStringField(value: v, fieldNumber: 33)
+      } }()
       try { if let v = _storage._runningIp {
         try visitor.visitSingularStringField(value: v, fieldNumber: 34)
       } }()

@@ -93,7 +93,7 @@ struct VMRun: AsyncParsableCommand {
 	func run() async throws {
 		let (storageLocation, location) = self.locations
 		let config = try location.config()
-		let vncPassword = self.vncPassword ?? config.vncPassword
+		let vncPassword = self.vncPassword ?? config.vncPassword ?? UUID().uuidString
 		let displaySize: CGSize
 
 		if location.isPIDRunning() {

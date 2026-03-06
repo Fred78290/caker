@@ -325,7 +325,7 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var forwardedPorts: [TunnelAttachement]
 	public var runningIP: String?
 	public var display: ViewSize
-	public var vncPassword: String
+	public var vncPassword: String?
 
 	#if arch(arm64)
 	public var ecid: Data?
@@ -429,7 +429,10 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		} else {
 			self.display = .init(width: 1024, height: 768)
 		}
-		self.vncPassword = from.vncPassword
+
+		if from.hasVncPassword {
+			self.vncPassword = from.vncPassword
+		}
 		
 		if from.hasEcid {
 			self.ecid = from.ecid
