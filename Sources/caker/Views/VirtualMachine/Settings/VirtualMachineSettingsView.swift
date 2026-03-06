@@ -34,15 +34,28 @@ struct VirtualMachineSettingsView: View {
 		case storage
 	}
 
-	@Binding var config: VirtualMachineConfig
+	@StateObject var document: VirtualMachineDocument
+	@State var config: VirtualMachineConfig
 	@State var configChanged = false
 	@State var selectedTab: SettingsTab = .account
 	@State var showPassword = false
 	@State var userPassword: String
 
-	init(config: Binding<VirtualMachineConfig>) {
-		self._config = config
-		self.userPassword = config.wrappedValue.configuredPassword ?? ""
+	init() {
+		let document = try! VirtualMachineDocument.anyVirtualMachineDocument()
+		let config = document.virtualMachineConfig
+
+		self._document = StateObject(wrappedValue: document)
+		self.config = document.virtualMachineConfig
+		self.userPassword = config.configuredPassword ?? ""
+	}
+
+	init(document: StateObject<VirtualMachineDocument>) {
+		let config = document.wrappedValue.virtualMachineConfig
+
+		self._document = document
+		self.config = config
+		self.userPassword = config.configuredPassword ?? ""
 	}
 
 	var body: some View {
@@ -87,7 +100,7 @@ struct VirtualMachineSettingsView: View {
 				Spacer()
 
 				Button {
-					try? self.config.save()
+					AppState.shared.saveConfiguration(document: self.document)
 					dismiss()
 				} label: {
 					Text("Save")
@@ -280,5 +293,5 @@ struct VirtualMachineSettingsView: View {
 }
 
 #Preview {
-	VirtualMachineSettingsView(config: .constant(.init()))
+	VirtualMachineSettingsView()
 }

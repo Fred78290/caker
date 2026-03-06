@@ -278,7 +278,7 @@ struct HostVirtualMachineView: View {
 						.disabled(document.status.isStopped == false)
 					}
 				}.sheet(isPresented: $displaySettings) {
-					VirtualMachineSettingsView(config: $document.virtualMachineConfig).frame(width: 700)
+					VirtualMachineSettingsView(document: _document).frame(width: 700)
 				}.alert("Create template", isPresented: $createTemplate) {
 					CreateTemplateView()
 				}.onGeometryChange(for: CGRect.self) { proxy in
