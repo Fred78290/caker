@@ -67,6 +67,46 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.customLong("console")], help: ArgumentHelp("URL to the serial console (e.g. --console=unix, --console=file, or --console=\"fd://0,1\" or --console=\"unix:/tmp/serial.sock\")", discussion: console_help, valueName: "url"))
 	public var console: String?
 
+	public init(
+		name: String,
+		user: String? = nil,
+		password: String? = nil,
+		cpu: UInt16? = nil,
+		memory: UInt64? = nil,
+		diskSize: UInt64? = nil,
+		screenSize: ViewSize? = nil,
+		attachedDisks: [DiskAttachement]? = nil,
+		autostart: Bool? = nil,
+		nested: Bool? = nil,
+		suspendable: Bool? = nil,
+		displayRefit: Bool? = nil,
+		forwardedPorts: [TunnelAttachement]? = nil,
+		dynamicPortForwarding: Bool? = nil,
+		mounts: DirectorySharingAttachments? = nil,
+		networks: [BridgeAttachement]? = nil,
+		sockets: [SocketDevice]? = nil,
+		consoleURL: ConsoleAttachment? = nil,
+	) {
+		self.name = name
+		self.user = user
+		self.password = password
+		self.cpu = cpu
+		self.memory = memory
+		self.diskSize = diskSize
+		self.disks = attachedDisks?.map(\.description) ?? ["unset"]
+		self.autostart = autostart
+		self.nested = nested
+		self.suspendable = suspendable
+		self.displayRefit = displayRefit
+		self.dynamicPortForwarding = dynamicPortForwarding
+		self.published = forwardedPorts?.map(\.description) ?? ["unset"]
+		self.mount = mounts?.map(\.description) ?? ["unset"]
+		self.network = networks?.map(\.description) ?? ["unset"]
+		self.socket = sockets?.map(\.description) ?? ["unset"]
+		self.console = consoleURL?.description
+		self.screenSize = screenSize
+	}
+
 	public init(request: Caked_ConfigureRequest) {
 		self.name = request.name
 		self.displayRefit = false

@@ -240,7 +240,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		
 		if self.virtualMachineConfig.os == .darwin {
 			name = "mac"
-		} else if let config = try? self.location.config(), let osName = self.virtualMachineConfig.osName {
+		} else if let osName = self.virtualMachineConfig.osName {
 			let osNames = [
 				"almalinux",
 				"alpine",

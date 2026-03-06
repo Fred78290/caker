@@ -511,7 +511,7 @@ struct VirtualMachineWizard: View {
 				Toggle("Dynamic forward ports", isOn: $config.dynamicPortForwarding).disabled(self.model.createVM)
 				Toggle("Refit display", isOn: $config.displayRefit).disabled(self.model.createVM)
 				Toggle("Nested virtualization", isOn: $config.nestedVirtualization).disabled(self.model.createVM)
-				Toggle("Use network ifnames", isOn: $config.netIfnames).disabled(self.model.createVM)
+				Toggle("Use network ifnames", isOn: $config.ifname).disabled(self.model.createVM)
 			}
 		}
 	}
@@ -607,7 +607,7 @@ struct VirtualMachineWizard: View {
 				LabeledContent("Administator group") {
 					HStack {
 						Spacer()
-						Picker("Main group", selection: $config.mainGroup) {
+						Picker("Main group", selection: $config.configuredGroup) {
 							ForEach(groups, id: \.self) { name in
 								Text(name).tag(name)
 							}
@@ -821,7 +821,7 @@ struct VirtualMachineWizard: View {
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: $model.createVM).frame(height: 400)
+				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: $model.createVM).frame(height: 400)
 			}
 		}.formStyle(.grouped)
 	}

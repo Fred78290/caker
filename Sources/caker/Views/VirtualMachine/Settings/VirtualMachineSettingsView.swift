@@ -254,7 +254,7 @@ struct VirtualMachineSettingsView: View {
 	func forwardPortsView() -> some View {
 		Form {
 			Section("Forwarded ports") {
-				ForwardedPortView(forwardPorts: $config.forwardPorts, disabled: .constant(false)).frame(height: 380)
+				ForwardedPortView(forwardPorts: $config.forwardedPorts, disabled: .constant(false)).frame(height: 380)
 			}
 		}.formStyle(.grouped).frame(maxHeight: .infinity)
 	}
