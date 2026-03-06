@@ -16,6 +16,14 @@ public struct ConsoleAttachment: CustomStringConvertible, ExpressibleByArgument,
 		consoleURL
 	}
 
+	public init?(_ argument: String?) {
+		if let argument, !argument.isEmpty {
+			self.consoleURL = argument
+		} else {
+			return nil
+		}
+	}
+
 	public init(argument: String) {
 		self.consoleURL = argument
 	}
