@@ -33,6 +33,7 @@ struct VirtualMachineConfig: Hashable {
 	var agent: Bool = false
 	var source: ImageSource = .raw
 	var firstLaunch: Bool = false
+	var osName : String? = nil
 
 	var imageName: String
 	var sshAuthorizedKey: String?
@@ -91,6 +92,7 @@ struct VirtualMachineConfig: Hashable {
 	init(name: String, config: any VirtualMachineConfiguration) {
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.os = config.os
+		self.osName = config.osName
 		self.cpuCount = config.cpuCount
 		self.memorySize = config.memorySize / (1024 * 1024)
 		self.macAddress = config.macAddress
@@ -123,10 +125,10 @@ struct VirtualMachineConfig: Hashable {
 			throw ServiceError("Virtual machine name is required to save configuration")
 		}
 
-		try self.save(name: vmname)
+		try self.saveLocally(name: vmname)
 	}
 
-	func save(name: String) throws {
+	func saveLocally(name: String) throws {
 		let location = try StorageLocation(runMode: .app).find(name)
 		let config = try location.config()
 
