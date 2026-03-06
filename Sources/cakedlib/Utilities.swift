@@ -254,9 +254,9 @@ extension URL: Purgeable {
 		try FileManager.default.removeItem(at: self)
 	}
 
-	public func sizeBytes() throws -> Int {
+	public func sizeBytes() throws -> UInt64 {
 		if self.isDirectory {
-			var totalFileSize: Int = 0
+			var totalFileSize: UInt64 = 0
 
 			if let fileURLs: FileManager.DirectoryEnumerator = FileManager.default.enumerator(at: self, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles) {
 				for case let fileURL as URL in fileURLs {
@@ -270,15 +270,15 @@ extension URL: Purgeable {
 				return 0
 			}
 
-			return totalFileSize
+			return UInt64(totalFileSize)
 		} else {
 			throw ServiceError("Not a file URL: \(self.absoluteString)")
 		}
 	}
 
-	public func allocatedSizeBytes() throws -> Int {
+	public func allocatedSizeBytes() throws -> UInt64 {
 		if self.isDirectory {
-			var totalFileAllocatedSize = 0
+			var totalFileAllocatedSize: UInt64 = 0
 
 			if let fileURLs: FileManager.DirectoryEnumerator = FileManager.default.enumerator(at: self, includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey], options: .skipsHiddenFiles) {
 				for case let fileURL as URL in fileURLs {
@@ -292,7 +292,7 @@ extension URL: Purgeable {
 				return 0
 			}
 
-			return totalFileAllocatedSize
+			return UInt64(totalFileAllocatedSize)
 		} else {
 			throw ServiceError("Not a file URL: \(self.absoluteString)")
 		}

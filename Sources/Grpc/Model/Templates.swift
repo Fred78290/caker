@@ -10,8 +10,8 @@ import Foundation
 public struct TemplateEntry: Codable, Identifiable, Hashable {
 	public let name: String
 	public let fqn: String
-	public let diskSize: Int
-	public let totalSize: Int
+	public let diskSize: UInt64
+	public let totalSize: UInt64
 
 	public static func == (lhs: Self, rhs: Self) -> Bool {
 		return lhs.fqn == rhs.fqn && lhs.diskSize == rhs.diskSize && lhs.totalSize == rhs.totalSize
@@ -21,7 +21,7 @@ public struct TemplateEntry: Codable, Identifiable, Hashable {
 		return self.fqn
 	}
 
-	public init(name: String, fqn: String, diskSize: Int, totalSize: Int) {
+	public init(name: String, fqn: String, diskSize: UInt64, totalSize: UInt64) {
 		self.name = name
 		self.fqn = fqn
 		self.diskSize = diskSize
@@ -31,16 +31,16 @@ public struct TemplateEntry: Codable, Identifiable, Hashable {
 	public init(_ from: Caked_TemplateEntry) {
 		self.name = from.name
 		self.fqn = from.fqn
-		self.diskSize = Int(from.diskSize)
-		self.totalSize = Int(from.totalSize)
+		self.diskSize = from.diskSize
+		self.totalSize = from.totalSize
 	}
 
 	public var caked: Caked_TemplateEntry {
 		Caked_TemplateEntry.with {
 			$0.name = self.name
 			$0.fqn = self.fqn
-			$0.diskSize = UInt64(self.diskSize)
-			$0.totalSize = UInt64(self.totalSize)
+			$0.diskSize = self.diskSize
+			$0.totalSize = self.totalSize
 		}
 	}
 }

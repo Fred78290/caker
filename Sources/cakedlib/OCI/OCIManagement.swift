@@ -160,10 +160,10 @@ extension ContentWriter {
 }
 
 extension Containerization.Image {
-	public func totalSize(for platform: Platform = .current) async throws -> Int64 {
+	public func totalSize(for platform: Platform = .current) async throws -> UInt64 {
 		let manifest = try await self.manifest(for: platform)
 
-		return manifest.layers.reduce(0) { $0 + $1.size }
+		return manifest.layers.reduce(0) { $0 + UInt64($1.size) }
 	}
 
 	public func unpack(_ location: VMLocation, for platform: Platform = .current, progress: ProgressHandler? = nil) async throws -> Manifest.ImageType {

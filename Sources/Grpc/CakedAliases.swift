@@ -289,10 +289,10 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var version: Int
 	public var os: VirtualizedOS
 	public var arch: Architecture
-	public var diskSize: Int
-	public var cpuCountMin: Int
+	public var diskSize: UInt64
+	public var cpuCountMin: UInt16
 	public var suspendable: Bool
-	public var cpuCount: Int
+	public var cpuCount: UInt16
 	public var memorySizeMin: UInt64
 	public var memorySize: UInt64
 	public var macAddress: String?
@@ -385,10 +385,10 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 		self.version = Int(from.version)
 		self.os = .init(from.os)!
 		self.arch = .init(from.arch)!
-		self.diskSize = Int(from.diskSize)
-		self.cpuCountMin = Int(from.cpuCountMin)
+		self.diskSize = from.diskSize
+		self.cpuCountMin = UInt16(from.cpuCountMin)
 		self.suspendable = from.suspendable
-		self.cpuCount = Int(from.cpuCount)
+		self.cpuCount = UInt16(from.cpuCount)
 		self.memorySizeMin = from.memorySizeMin
 		self.memorySize = from.memorySize
 		self.macAddress = from.macAddress
@@ -496,9 +496,9 @@ extension Caked_CommonBuildRequest {
 
 		self.init()
 		self.name = buildOptions.name
-		self.cpu = Int32(buildOptions.cpu)
-		self.memory = Int32(buildOptions.memory)
-		self.diskSize = Int32(buildOptions.diskSize)
+		self.cpu = UInt32(buildOptions.cpu)
+		self.memory = buildOptions.memory
+		self.diskSize = buildOptions.diskSize
 		self.user = buildOptions.user
 		self.mainGroup = buildOptions.mainGroup
 		self.otherGroups = buildOptions.otherGroup.joined(separator: ",")
@@ -582,15 +582,15 @@ extension Caked_ConfigureRequest {
 		}
 
 		if let cpu = options.cpu {
-			self.cpu = Int32(cpu)
+			self.cpu = UInt32(cpu)
 		}
 
 		if let memory = options.memory {
-			self.memory = Int32(memory)
+			self.memory = memory
 		}
 
 		if let diskSize = options.diskSize {
-			self.diskSize = Int32(diskSize)
+			self.diskSize = diskSize
 		}
 
 		if let displayRefit = options.displayRefit {

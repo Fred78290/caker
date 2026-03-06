@@ -46,7 +46,7 @@ extension DisplaySize {
 }
 
 public final class CakeConfig: VirtualMachineConfiguration {
-	public var diskSize: Int = 0
+	public var diskSize: UInt64 = 0
 	var config: Config
 	var cake: Config
 	var location: URL
@@ -118,9 +118,9 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
-	public var cpuCountMin: Int {
+	public var cpuCountMin: UInt16 {
 		set { self.config["cpuCountMin"] = newValue }
-		get { self.config["cpuCountMin"] as! Int }
+		get { self.config["cpuCountMin"] as! UInt16 }
 	}
 
 	public var ecid: Data? {
@@ -160,9 +160,9 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
-	public var cpuCount: Int {
+	public var cpuCount: UInt16 {
 		set { self.config["cpuCount"] = newValue }
-		get { self.config["cpuCount"] as! Int }
+		get { self.config["cpuCount"] as! UInt16 }
 	}
 
 	public var memorySizeMin: UInt64 {
@@ -410,7 +410,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		clearPassword: Bool,
 		displayRefit: Bool,
 		ifname: Bool,
-		cpuCountMin: Int,
+		cpuCountMin: UInt16,
 		memorySize: UInt64,
 		memorySizeMin: UInt64,
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
@@ -495,11 +495,11 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		self.display = ViewSize(width: options.screenSize.width, height: options.screenSize.height)
 
 		if self.os == .darwin {
-			self.cpuCount = max(Int(options.cpu), self.cpuCountMin)
-			self.memorySize = max(options.memory * 1024 * 1024, UInt64(self.memorySizeMin))
+			self.cpuCount = max(options.cpu, self.cpuCountMin)
+			self.memorySize = max(options.memory * MoB, self.memorySizeMin)
 		} else {
-			self.cpuCount = Int(options.cpu)
-			self.memorySize = options.memory * 1024 * 1024
+			self.cpuCount = options.cpu
+			self.memorySize = options.memory * MoB
 			self.nested = options.nested
 		}
 	}

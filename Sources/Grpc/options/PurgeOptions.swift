@@ -25,7 +25,7 @@ public struct PurgeOptions: ParsableArguments {
 			"Remove the least recently used entries that do not fit the specified space size budget n, expressed in gigabytes",
 			discussion: "For example, --space-budget=50 will effectively shrink all entries to a total size of 50 gigabytes.",
 			valueName: "n"))
-	public var spaceBudget: UInt? = nil
+	public var spaceBudget: UInt64? = nil
 
 	public init() {
 	}

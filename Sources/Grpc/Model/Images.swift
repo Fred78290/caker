@@ -30,7 +30,7 @@ public struct ImageEntry: Codable {
 public class LinuxContainerImage: Codable {
 	public let alias: [String]?
 	public let path: URL
-	public let size: Int
+	public let size: UInt64
 	public let fingerprint: String
 	public let remoteName: String
 	public let description: String
@@ -38,13 +38,13 @@ public class LinuxContainerImage: Codable {
 	public init(_ from: Caked_PulledImageInfo) {
 		self.alias = from.hasAlias ? from.alias.split(separator: ",").map { String($0) } : nil
 		self.path = URL(fileURLWithPath: from.path)
-		self.size = Int(from.size)
+		self.size = from.size
 		self.fingerprint = from.fingerprint
 		self.remoteName = from.remoteName
 		self.description = from.description_p
 	}
 
-	public init(remoteName: String = "", fingerprint: String = "", alias: [String]? = nil, description: String = "", path: URL = URL(fileURLWithPath: "/dev/null"), size: Int = 0) {
+	public init(remoteName: String = "", fingerprint: String = "", alias: [String]? = nil, description: String = "", path: URL = URL(fileURLWithPath: "/dev/null"), size: UInt64 = 0) {
 		self.alias = alias
 		self.path = path
 		self.size = size
@@ -57,7 +57,7 @@ public class LinuxContainerImage: Codable {
 		Caked_PulledImageInfo.with { image in
 			image.alias = self.alias?.joined(separator: ",") ?? ""
 			image.path = self.path.absoluteURL.path
-			image.size = UInt64(self.size)
+			image.size = self.size
 			image.fingerprint = self.fingerprint
 			image.remoteName = self.remoteName
 			image.description_p = self.description
@@ -73,7 +73,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 	public let pub: Bool
 	public let fileName: String
 	public let fingerprint: String
-	public let size: Int
+	public let size: UInt64
 	public let type: String
 	public let created: String?
 	public let expires: String?
@@ -90,7 +90,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		self.pub = from.pub
 		self.fileName = from.fileName
 		self.fingerprint = from.fingerprint
-		self.size = Int(from.size)
+		self.size = from.size
 		self.type = from.type
 		self.created = from.created
 		self.expires = from.expires
@@ -104,7 +104,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 		pub: Bool = false,
 		fileName: String = "",
 		fingerprint: String = "",
-		size: Int = 0,
+		size: UInt64 = 0,
 		type: String = "",
 		created: String? = nil,
 		expires: String? = nil,
@@ -131,7 +131,7 @@ public struct ImageInfo: Codable, Identifiable, Hashable {
 			image.pub = self.pub
 			image.fileName = self.fileName
 			image.fingerprint = self.fingerprint
-			image.size = UInt64(self.size)
+			image.size = self.size
 			image.type = self.type
 			image.properties = self.properties
 

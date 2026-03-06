@@ -144,10 +144,10 @@ public protocol VirtualMachineConfiguration {
 	var version: Int { set get }
 	var os: VirtualizedOS { set get }
 	var arch: Architecture { set get }
-	var cpuCountMin: Int { set get }
+	var cpuCountMin: UInt16 { set get }
 	var suspendable: Bool { set get }
-	var diskSize: Int { set get }
-	var cpuCount: Int { set get }
+	var diskSize: UInt64 { set get }
+	var cpuCount: UInt16 { set get }
 	var memorySizeMin: UInt64 { set get }
 	var memorySize: UInt64 { set get }
 	var macAddress: String? { set get }
@@ -379,11 +379,11 @@ extension VirtualMachineConfiguration {
 			if let osRelease {
 				$0.osRelease = osRelease
 			}
-			$0.diskSize = UInt64(self.diskSize)
-			$0.cpuCount = Int32(self.cpuCount)
-			$0.cpuCountMin = Int32(self.cpuCountMin)
-			$0.memorySize = UInt64(self.memorySize)
-			$0.memorySizeMin = UInt64(self.memorySizeMin)
+			$0.diskSize = self.diskSize
+			$0.cpuCount = UInt32(self.cpuCount)
+			$0.cpuCountMin = UInt32(self.cpuCountMin)
+			$0.memorySize = self.memorySize
+			$0.memorySizeMin = self.memorySizeMin
 			if let macAddress {
 				$0.macAddress = macAddress
 			}

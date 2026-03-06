@@ -117,7 +117,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		let config = try CakeConfig(location: self.rootURL)
 
 		if let diskSize = try? self.diskURL.fileSize() {
-			config.diskSize = Int(diskSize)
+			config.diskSize = diskSize
 		}
 
 		return config
@@ -149,16 +149,16 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		try self.rootURL.accessDate()
 	}
 
-	public func sizeBytes() throws -> Int {
+	public func sizeBytes() throws -> UInt64 {
 		try self.diskSize()
 	}
 
-	public func allocatedSizeBytes() throws -> Int {
+	public func allocatedSizeBytes() throws -> UInt64 {
 		try self.allocatedSize()
 	}
 
-	public func diskSize() throws -> Int {
-		var sizeBytes = 0
+	public func diskSize() throws -> UInt64 {
+		var sizeBytes: UInt64 = 0
 
 		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
 			sizeBytes += try $0.sizeBytes()
@@ -167,8 +167,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		return sizeBytes
 	}
 
-	public func allocatedSize() throws -> Int {
-		var allocatedSize = 0
+	public func allocatedSize() throws -> UInt64 {
+		var allocatedSize: UInt64 = 0
 
 		try FileManager.default.contentsOfDirectory(at: rootURL, includingPropertiesForKeys: [.isRegularFileKey], options: .skipsSubdirectoryDescendants).forEach {
 			allocatedSize += try $0.allocatedSizeBytes()
@@ -248,8 +248,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		return self
 	}
 
-	public func expandDisk(_ sizeGB: UInt16) throws {
-		let wantedFileSize = UInt64(sizeGB) * 1000 * 1000 * 1000
+	public func expandDisk(_ sizeGB: UInt64) throws {
+		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
 
 		if FileManager.default.fileExists(atPath: diskURL.path) {
 			try Shell.bash(to: "hdiutil", arguments: ["resize", "-sectors", String("\(wantedFileSize / 512)"), diskURL.path])
@@ -273,8 +273,8 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		}
 	}
 
-	public func resizeDisk(_ sizeGB: UInt16) throws {
-		let wantedFileSize = UInt64(sizeGB) * 1000 * 1000 * 1000
+	public func resizeDisk(_ sizeGB: UInt64) throws {
+		let wantedFileSize = sizeGB * 1000 * 1000 * 1000
 
 		if !FileManager.default.fileExists(atPath: diskURL.path) {
 			FileManager.default.createFile(atPath: diskURL.path, contents: nil, attributes: nil)

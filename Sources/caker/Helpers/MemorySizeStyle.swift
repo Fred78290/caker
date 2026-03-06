@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import GRPCLib
 
 struct MemorySizeStyle: ParseableFormatStyle {
 	var parseStrategy: MemorySizeStategy
@@ -49,11 +50,11 @@ struct MemorySizeStategy: ParseStrategy {
 			case .useBytes:
 				return "\(value)"
 			case .useKB:
-				return "\(value * 1024)"
+				return "\(value * MoB)"
 			case .useMB:
-				return "\(value * (1024 * 1024))"
+				return "\(value * MoB)"
 			case .useGB:
-				return "\(value * (1024 * 1024 * 1024))"
+				return "\(value * GoB)"
 			}
 		}
 
@@ -63,11 +64,11 @@ struct MemorySizeStategy: ParseStrategy {
 				case .useBytes:
 					return value
 				case .useKB:
-					return value / 1024
+					return value / MoB
 				case .useMB:
-					return value / (1024 * 1024)
+					return value / MoB
 				case .useGB:
-					return value / (1024 * 1024 * 1024)
+					return value / GoB
 				}
 			}
 
@@ -104,9 +105,9 @@ struct OptionalMemorySizeStategy: ParseStrategy {
 			case .useKB:
 				return "\(value * 1024)"
 			case .useMB:
-				return "\(value * (1024 * 1024))"
+				return "\(value * MoB)"
 			case .useGB:
-				return "\(value * (1024 * 1024 * 1024))"
+				return "\(value * GoB)"
 			}
 		}
 
@@ -118,9 +119,9 @@ struct OptionalMemorySizeStategy: ParseStrategy {
 				case .useKB:
 					return value / 1024
 				case .useMB:
-					return value / (1024 * 1024)
+					return value / MoB
 				case .useGB:
-					return value / (1024 * 1024 * 1024)
+					return value / GoB
 				}
 			}
 

@@ -159,7 +159,7 @@ class VirtualMachineEnvironment: VirtioSocketDeviceDelegate {
 		soundDeviceConfiguration.streams = [VZVirtioSoundDeviceOutputStreamConfiguration()]
 
 		configuration.bootLoader = try plateform.bootLoader()
-		configuration.cpuCount = config.cpuCount
+		configuration.cpuCount = Int(config.cpuCount)
 		configuration.memorySize = config.memorySize
 		configuration.platform = try plateform.platform()
 		configuration.graphicsDevices = [plateform.graphicsDevice(screenSize: screenSize)]

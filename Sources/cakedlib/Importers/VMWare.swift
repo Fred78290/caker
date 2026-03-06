@@ -148,19 +148,17 @@ struct VMXMap: Sendable {
 		try self.init(baseURL: url, data: try Data(contentsOf: url))
 	}
 
-	var cpuCount: Int {
+	var cpuCount: UInt16 {
 		if let value = values["numvcpus"] {
-			return Int(value) ?? 1
+			return UInt16(value) ?? 1
 		}
 
 		return 1
 	}
 
 	var memorySize: UInt64 {
-		if let value = values["memsize"] {
-			if let memsize = Int(value) {
-				return UInt64(memsize) * 1024 * 1024  // Convert MB to bytes
-			}
+		if let value = values["memsize"], let memsize = UInt64(value) {
+			return memsize * MoB  // Convert MB to bytes
 		}
 
 		return VMBuilder.memoryMinSize  // Default to 512 MB

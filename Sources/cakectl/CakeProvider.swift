@@ -125,7 +125,7 @@ extension Caked_PurgeRequest {
 		}
 
 		if let spaceBudget = command.purge.spaceBudget {
-			self.spaceBudget = Int32(spaceBudget)
+			self.spaceBudget = spaceBudget
 		}
 	}
 }

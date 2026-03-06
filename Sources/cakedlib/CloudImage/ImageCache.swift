@@ -9,8 +9,8 @@ public protocol Purgeable {
 	var fingerprint: String? { get }
 	func delete() throws
 	func accessDate() throws -> Date
-	func sizeBytes() throws -> Int
-	func allocatedSizeBytes() throws -> Int
+	func sizeBytes() throws -> UInt64
+	func allocatedSizeBytes() throws -> UInt64
 }
 
 protocol PurgeableStorage {
@@ -351,11 +351,11 @@ public class SimpleStreamsImageCache: CommonCacheImageCache {
 			try self._url.accessDate()
 		}
 
-		func sizeBytes() throws -> Int {
+		func sizeBytes() throws -> UInt64 {
 			try self._url.sizeBytes()
 		}
 
-		func allocatedSizeBytes() throws -> Int {
+		func allocatedSizeBytes() throws -> UInt64 {
 			try self._url.allocatedSizeBytes()
 		}
 
@@ -440,11 +440,11 @@ public class OCIImageCache: CommonCacheImageCache {
 			try self._url.accessDate()
 		}
 
-		func sizeBytes() throws -> Int {
+		func sizeBytes() throws -> UInt64 {
 			try self._url.sizeBytes()
 		}
 
-		func allocatedSizeBytes() throws -> Int {
+		func allocatedSizeBytes() throws -> UInt64 {
 			try self._url.allocatedSizeBytes()
 		}
 

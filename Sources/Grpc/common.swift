@@ -11,6 +11,14 @@ import Combine
 
 public let defaultUbuntuImage = "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img"
 
+public let KiB: UInt64 = 1000
+public let MiB: UInt64 = KiB * KiB
+public let GiB: UInt64 = MiB * KiB
+
+public let KoB: UInt64 = 1024
+public let MoB: UInt64 = KoB * KoB
+public let GoB: UInt64 = MoB * KoB
+
 internal let cloudimage_help =
 	"""
 

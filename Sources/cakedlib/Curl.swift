@@ -16,7 +16,7 @@ private final class DownloadDelegate: NSObject, URLSessionDataDelegate {
 	var stream: AsyncThrowingStream<Data, Error>.Continuation?
 
 	private var buffer: Data = Data()
-	private let inputBufferSize = 16 * 1024 * 1024
+	private let inputBufferSize = 16 * MoB
 
 	func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
 		let capacity = min(response.expectedContentLength, Int64(inputBufferSize))

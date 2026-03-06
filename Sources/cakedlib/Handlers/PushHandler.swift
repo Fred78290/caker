@@ -15,7 +15,7 @@ public struct PushHandler {
 		do {
 			let home = try Home(runMode: runMode)
 			let storage = StorageLocation(runMode: runMode)
-			let chunkSize = chunkSizeInMB == 0 ? RawDisk.bufferSizeBytes : chunkSizeInMB * 1024 * 1024
+			let chunkSize = chunkSizeInMB == 0 ? RawDisk.bufferSizeBytes : chunkSizeInMB * Int(MoB)
 
 			if storage.exists(localName) == false {
 				return PushReply(success: false, message: "VM not found")

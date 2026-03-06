@@ -134,7 +134,7 @@ struct MultipassInstance: Codable, Sendable {
 	var memSize: String
 	var metadata: Metadata
 	var mounts: [Mount]?
-	var numCores: Int
+	var numCores: UInt16
 	var sshUsername: String?
 	var state: State
 

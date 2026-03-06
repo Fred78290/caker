@@ -11,7 +11,7 @@ let cloudInitIso = "cloud-init.iso"
 #endif
 
 public struct VMBuilder {
-	public static let memoryMinSize: UInt64 = 512 * 1024 * 1024
+	public static let memoryMinSize: UInt64 = 512 * MoB
 
 	#if arch(arm64)
 		private static func installIPSW(location: VMLocation, config: CakeConfig, ipsw: URL, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
@@ -54,8 +54,8 @@ public struct VMBuilder {
 					clearPassword: options.clearPassword,
 					displayRefit: options.displayRefit,
 					ifname: options.netIfnames,
-					cpuCountMin: max(requirements.minimumSupportedCPUCount, Int(options.cpu)),
-					memorySize: max(requirements.minimumSupportedMemorySize, options.memory * 1024 * 1024),
+					cpuCountMin: max(UInt16(requirements.minimumSupportedCPUCount), options.cpu),
+					memorySize: max(requirements.minimumSupportedMemorySize, options.memory * MoB),
 					memorySizeMin: requirements.minimumSupportedMemorySize,
 					screenSize: options.screenSize
 				)
@@ -104,8 +104,8 @@ public struct VMBuilder {
 					clearPassword: options.clearPassword,
 					displayRefit: options.displayRefit,
 					ifname: options.netIfnames,
-					cpuCountMin: Int(options.cpu),
-					memorySize: options.memory * 1024 * 1024,
+					cpuCountMin: options.cpu,
+					memorySize: options.memory * MoB,
 					memorySizeMin: Self.memoryMinSize,
 					screenSize: options.screenSize)
 

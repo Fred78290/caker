@@ -26,9 +26,9 @@ struct CurrentUsage: Codable {
 			self.memory = .with {
 				let m = infos.memory
 				
-				$0.total = UInt64(m.total)
-				$0.free = UInt64(m.free)
-				$0.used = UInt64(m.used)
+				$0.total = m.total
+				$0.free = m.free
+				$0.used = m.used
 			}
 		} else {
 			self.memory = nil

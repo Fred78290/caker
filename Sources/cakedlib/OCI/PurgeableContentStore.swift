@@ -15,13 +15,13 @@ public class PurgeableContentStore: PurgeableStorage {
 	struct PurgeableImage: Purgeable {
 		private let on: EventLoop
 		private let imageStore: ImageStore
-		private var totalSize: Int64
+		private var totalSize: UInt64
 		public var url: URL
 		public var source: String
 		public var name: String
 		public var fingerprint: String?
 
-		public init(on: EventLoop, imageStore: ImageStore, image: Image, totalSize: Int64) {
+		public init(on: EventLoop, imageStore: ImageStore, image: Image, totalSize: UInt64) {
 			self.on = on
 			self.source = "oci"
 			self.name = image.reference
@@ -43,12 +43,12 @@ public class PurgeableContentStore: PurgeableStorage {
 			try self.url.accessDate()
 		}
 
-		func sizeBytes() throws -> Int {
-			Int(totalSize)
+		func sizeBytes() throws -> UInt64 {
+			totalSize
 		}
 
-		func allocatedSizeBytes() throws -> Int {
-			Int(totalSize)
+		func allocatedSizeBytes() throws -> UInt64 {
+			totalSize
 		}
 	}
 

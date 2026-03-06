@@ -217,8 +217,8 @@ public class SharedNetworkInterface: NetworkAttachement, VZVMNetHandlerClient.Cl
 				throw ServiceError("unable to create socket with exit code \(String(errno: errno))")
 			}
 
-			try setSocketBuffers(fd: fds[0], sizeBytes: 1024 * 1024)
-			try setSocketBuffers(fd: fds[1], sizeBytes: 1024 * 1024)
+			try setSocketBuffers(fd: fds[0], sizeBytes: Int(MoB))
+			try setSocketBuffers(fd: fds[1], sizeBytes: Int(MoB))
 
 			return (fds[0], fds[1])
 		}

@@ -18,7 +18,7 @@ public struct BuildOptions: ParsableArguments {
 	public var memory: UInt64 = 512
 
 	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
-	public var diskSize: UInt16 = 10
+	public var diskSize: UInt64 = 10
 
 	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
 	public var attachedDisks: [DiskAttachement] = []
@@ -104,7 +104,7 @@ public struct BuildOptions: ParsableArguments {
 		name: String,
 		cpu: UInt16 = 2,
 		memory: UInt64 = 2048,
-		diskSize: UInt16 = 10,
+		diskSize: UInt64 = 10,
 		screenSize: ViewSize = .standard,
 		attachedDisks: [DiskAttachement] = [],
 		user: String = "admin",
@@ -171,13 +171,13 @@ public struct BuildOptions: ParsableArguments {
 		}
 
 		if request.hasMemory {
-			self.memory = UInt64(request.memory)
+			self.memory = request.memory
 		} else {
 			self.memory = 512
 		}
 
 		if request.hasDiskSize {
-			self.diskSize = UInt16(request.diskSize)
+			self.diskSize = request.diskSize
 		} else {
 			self.diskSize = 20
 		}

@@ -245,12 +245,12 @@ public struct Caked_Caked: Sendable {
     }
 
     /// CPU and memory configuration
-    public var cpuCount: Int32 {
+    public var cpuCount: UInt32 {
       get {_storage._cpuCount}
       set {_uniqueStorage()._cpuCount = newValue}
     }
 
-    public var cpuCountMin: Int32 {
+    public var cpuCountMin: UInt32 {
       get {_storage._cpuCountMin}
       set {_uniqueStorage()._cpuCountMin = newValue}
     }
@@ -1014,7 +1014,7 @@ public struct Caked_Caked: Sendable {
         set {_uniqueStorage()._name = newValue}
       }
 
-      public var cpu: Int32 {
+      public var cpu: UInt32 {
         get {_storage._cpu ?? 0}
         set {_uniqueStorage()._cpu = newValue}
       }
@@ -1023,7 +1023,7 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
       public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
-      public var memory: Int32 {
+      public var memory: UInt64 {
         get {_storage._memory ?? 0}
         set {_uniqueStorage()._memory = newValue}
       }
@@ -1113,7 +1113,7 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `networkConfig`. Subsequent reads from it will return its default value.
       public mutating func clearNetworkConfig() {_uniqueStorage()._networkConfig = nil}
 
-      public var diskSize: Int32 {
+      public var diskSize: UInt64 {
         get {_storage._diskSize ?? 0}
         set {_uniqueStorage()._diskSize = newValue}
       }
@@ -1488,7 +1488,7 @@ public struct Caked_Caked: Sendable {
         set {_uniqueStorage()._name = newValue}
       }
 
-      public var cpu: Int32 {
+      public var cpu: UInt32 {
         get {_storage._cpu ?? 0}
         set {_uniqueStorage()._cpu = newValue}
       }
@@ -1497,7 +1497,7 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `cpu`. Subsequent reads from it will return its default value.
       public mutating func clearCpu() {_uniqueStorage()._cpu = nil}
 
-      public var memory: Int32 {
+      public var memory: UInt64 {
         get {_storage._memory ?? 0}
         set {_uniqueStorage()._memory = newValue}
       }
@@ -1506,7 +1506,7 @@ public struct Caked_Caked: Sendable {
       /// Clears the value of `memory`. Subsequent reads from it will return its default value.
       public mutating func clearMemory() {_uniqueStorage()._memory = nil}
 
-      public var diskSize: Int32 {
+      public var diskSize: UInt64 {
         get {_storage._diskSize ?? 0}
         set {_uniqueStorage()._diskSize = newValue}
       }
@@ -5033,7 +5033,7 @@ public struct Caked_Caked: Sendable {
     /// Clears the value of `olderThan`. Subsequent reads from it will return its default value.
     public mutating func clearOlderThan() {self._olderThan = nil}
 
-    public var spaceBudget: Int32 {
+    public var spaceBudget: UInt64 {
       get {_spaceBudget ?? 0}
       set {_spaceBudget = newValue}
     }
@@ -5057,7 +5057,7 @@ public struct Caked_Caked: Sendable {
 
     fileprivate var _entries: String? = nil
     fileprivate var _olderThan: Int32? = nil
-    fileprivate var _spaceBudget: Int32? = nil
+    fileprivate var _spaceBudget: UInt64? = nil
     fileprivate var _gc: Bool? = nil
   }
 
@@ -5507,8 +5507,8 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
     var _osName: String? = nil
     var _osRelease: String? = nil
     var _diskSize: UInt64 = 0
-    var _cpuCount: Int32 = 0
-    var _cpuCountMin: Int32 = 0
+    var _cpuCount: UInt32 = 0
+    var _cpuCountMin: UInt32 = 0
     var _memorySize: UInt64 = 0
     var _memorySizeMin: UInt64 = 0
     var _macAddress: String = String()
@@ -5621,8 +5621,8 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         case 7: try { try decoder.decodeSingularStringField(value: &_storage._osName) }()
         case 8: try { try decoder.decodeSingularStringField(value: &_storage._osRelease) }()
         case 9: try { try decoder.decodeSingularUInt64Field(value: &_storage._diskSize) }()
-        case 10: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCount) }()
-        case 11: try { try decoder.decodeSingularInt32Field(value: &_storage._cpuCountMin) }()
+        case 10: try { try decoder.decodeSingularUInt32Field(value: &_storage._cpuCount) }()
+        case 11: try { try decoder.decodeSingularUInt32Field(value: &_storage._cpuCountMin) }()
         case 12: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySize) }()
         case 13: try { try decoder.decodeSingularUInt64Field(value: &_storage._memorySizeMin) }()
         case 14: try { try decoder.decodeSingularStringField(value: &_storage._macAddress) }()
@@ -5695,10 +5695,10 @@ extension Caked_Caked.Configuration: SwiftProtobuf.Message, SwiftProtobuf._Messa
         try visitor.visitSingularUInt64Field(value: _storage._diskSize, fieldNumber: 9)
       }
       if _storage._cpuCount != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._cpuCount, fieldNumber: 10)
+        try visitor.visitSingularUInt32Field(value: _storage._cpuCount, fieldNumber: 10)
       }
       if _storage._cpuCountMin != 0 {
-        try visitor.visitSingularInt32Field(value: _storage._cpuCountMin, fieldNumber: 11)
+        try visitor.visitSingularUInt32Field(value: _storage._cpuCountMin, fieldNumber: 11)
       }
       if _storage._memorySize != 0 {
         try visitor.visitSingularUInt64Field(value: _storage._memorySize, fieldNumber: 12)
@@ -6541,8 +6541,8 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
 
   fileprivate class _StorageClass {
     var _name: String = String()
-    var _cpu: Int32? = nil
-    var _memory: Int32? = nil
+    var _cpu: UInt32? = nil
+    var _memory: UInt64? = nil
     var _user: String? = nil
     var _password: String? = nil
     var _mainGroup: String? = nil
@@ -6552,7 +6552,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
     var _vendorData: Data? = nil
     var _userData: Data? = nil
     var _networkConfig: Data? = nil
-    var _diskSize: Int32? = nil
+    var _diskSize: UInt64? = nil
     var _autostart: Bool? = nil
     var _nested: Bool? = nil
     var _forwardedPort: String? = nil
@@ -6623,8 +6623,8 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         // enabled. https://github.com/apple/swift-protobuf/issues/1034
         switch fieldNumber {
         case 1: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
-        case 2: try { try decoder.decodeSingularInt32Field(value: &_storage._cpu) }()
-        case 3: try { try decoder.decodeSingularInt32Field(value: &_storage._memory) }()
+        case 2: try { try decoder.decodeSingularUInt32Field(value: &_storage._cpu) }()
+        case 3: try { try decoder.decodeSingularUInt64Field(value: &_storage._memory) }()
         case 4: try { try decoder.decodeSingularStringField(value: &_storage._user) }()
         case 5: try { try decoder.decodeSingularStringField(value: &_storage._mainGroup) }()
         case 6: try { try decoder.decodeSingularBoolField(value: &_storage._sshPwAuth) }()
@@ -6633,7 +6633,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         case 9: try { try decoder.decodeSingularBytesField(value: &_storage._vendorData) }()
         case 10: try { try decoder.decodeSingularBytesField(value: &_storage._userData) }()
         case 11: try { try decoder.decodeSingularBytesField(value: &_storage._networkConfig) }()
-        case 12: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
+        case 12: try { try decoder.decodeSingularUInt64Field(value: &_storage._diskSize) }()
         case 13: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
         case 14: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
         case 15: try { try decoder.decodeSingularStringField(value: &_storage._forwardedPort) }()
@@ -6665,10 +6665,10 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 1)
       }
       try { if let v = _storage._cpu {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
+        try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
       } }()
       try { if let v = _storage._memory {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+        try visitor.visitSingularUInt64Field(value: v, fieldNumber: 3)
       } }()
       try { if let v = _storage._user {
         try visitor.visitSingularStringField(value: v, fieldNumber: 4)
@@ -6695,7 +6695,7 @@ extension Caked_Caked.VMRequest.CommonBuildRequest: SwiftProtobuf.Message, Swift
         try visitor.visitSingularBytesField(value: v, fieldNumber: 11)
       } }()
       try { if let v = _storage._diskSize {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 12)
+        try visitor.visitSingularUInt64Field(value: v, fieldNumber: 12)
       } }()
       try { if let v = _storage._autostart {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 13)
@@ -7078,9 +7078,9 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
 
   fileprivate class _StorageClass {
     var _name: String = String()
-    var _cpu: Int32? = nil
-    var _memory: Int32? = nil
-    var _diskSize: Int32? = nil
+    var _cpu: UInt32? = nil
+    var _memory: UInt64? = nil
+    var _diskSize: UInt64? = nil
     var _displayRefit: Bool? = nil
     var _autostart: Bool? = nil
     var _nested: Bool? = nil
@@ -7144,9 +7144,9 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
         // enabled. https://github.com/apple/swift-protobuf/issues/1034
         switch fieldNumber {
         case 1: try { try decoder.decodeSingularStringField(value: &_storage._name) }()
-        case 2: try { try decoder.decodeSingularInt32Field(value: &_storage._cpu) }()
-        case 3: try { try decoder.decodeSingularInt32Field(value: &_storage._memory) }()
-        case 4: try { try decoder.decodeSingularInt32Field(value: &_storage._diskSize) }()
+        case 2: try { try decoder.decodeSingularUInt32Field(value: &_storage._cpu) }()
+        case 3: try { try decoder.decodeSingularUInt64Field(value: &_storage._memory) }()
+        case 4: try { try decoder.decodeSingularUInt64Field(value: &_storage._diskSize) }()
         case 5: try { try decoder.decodeSingularBoolField(value: &_storage._displayRefit) }()
         case 6: try { try decoder.decodeSingularBoolField(value: &_storage._autostart) }()
         case 7: try { try decoder.decodeSingularBoolField(value: &_storage._nested) }()
@@ -7178,13 +7178,13 @@ extension Caked_Caked.VMRequest.ConfigureRequest: SwiftProtobuf.Message, SwiftPr
         try visitor.visitSingularStringField(value: _storage._name, fieldNumber: 1)
       }
       try { if let v = _storage._cpu {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
+        try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
       } }()
       try { if let v = _storage._memory {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+        try visitor.visitSingularUInt64Field(value: v, fieldNumber: 3)
       } }()
       try { if let v = _storage._diskSize {
-        try visitor.visitSingularInt32Field(value: v, fieldNumber: 4)
+        try visitor.visitSingularUInt64Field(value: v, fieldNumber: 4)
       } }()
       try { if let v = _storage._displayRefit {
         try visitor.visitSingularBoolField(value: v, fieldNumber: 5)
@@ -12880,7 +12880,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self._entries) }()
       case 2: try { try decoder.decodeSingularInt32Field(value: &self._olderThan) }()
-      case 3: try { try decoder.decodeSingularInt32Field(value: &self._spaceBudget) }()
+      case 3: try { try decoder.decodeSingularUInt64Field(value: &self._spaceBudget) }()
       case 5: try { try decoder.decodeSingularBoolField(value: &self._gc) }()
       default: break
       }
@@ -12899,7 +12899,7 @@ extension Caked_Caked.PurgeRequest: SwiftProtobuf.Message, SwiftProtobuf._Messag
       try visitor.visitSingularInt32Field(value: v, fieldNumber: 2)
     } }()
     try { if let v = self._spaceBudget {
-      try visitor.visitSingularInt32Field(value: v, fieldNumber: 3)
+      try visitor.visitSingularUInt64Field(value: v, fieldNumber: 3)
     } }()
     try { if let v = self._gc {
       try visitor.visitSingularBoolField(value: v, fieldNumber: 5)

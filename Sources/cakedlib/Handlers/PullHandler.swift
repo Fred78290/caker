@@ -121,7 +121,7 @@ public struct PullHandler {
 								clearPassword: false,
 								displayRefit: true,
 								ifname: false,
-								cpuCountMin: Int(1),
+								cpuCountMin: 1,
 								memorySize: VMBuilder.memoryMinSize,
 								memorySizeMin: VMBuilder.memoryMinSize,
 								screenSize: .init(width: 1024, height: 768))

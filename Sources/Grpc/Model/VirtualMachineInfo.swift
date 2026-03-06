@@ -773,8 +773,8 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let name: String
 	public let fqn: [String]
 	public let instanceID: String?
-	public let diskSize: Int
-	public let sizeOnDisk: Int
+	public let diskSize: UInt64
+	public let sizeOnDisk: UInt64
 	public let state: String
 	public let ip: String?
 	public let fingerprint: String?
@@ -791,8 +791,8 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.name = from.name
 		self.fqn = from.fqn
 		self.instanceID = from.instanceID
-		self.diskSize = Int(from.diskSize)
-		self.sizeOnDisk = Int(from.sizeOnDisk)
+		self.diskSize = from.diskSize
+		self.sizeOnDisk = from.sizeOnDisk
 		self.state = from.state
 		self.ip = from.ip
 		self.fingerprint = from.fingerprint
@@ -817,8 +817,8 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		fqn: [String] = [],
 		vncURL: [String]? = nil,
 		instanceID: String? = nil,
-		diskSize: Int = 0,
-		sizeOnDisk: Int = 0,
+		diskSize: UInt64 = 0,
+		sizeOnDisk: UInt64 = 0,
 		state: String = "unknown",
 		ip: String? = nil,
 		fingerprint: String? = nil,
@@ -844,8 +844,8 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			info.source = self.source
 			info.name = self.name
 			info.fqn = self.fqn
-			info.diskSize = UInt64(self.diskSize)
-			info.sizeOnDisk = UInt64(self.sizeOnDisk)
+			info.diskSize = self.diskSize
+			info.sizeOnDisk = self.sizeOnDisk
 			info.state = self.state
 
 			if let vncURL {

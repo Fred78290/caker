@@ -22,7 +22,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	public var memory: UInt64? = nil
 
 	@Option(name: [.customLong("disk-size"), .customShort("d")], help: ArgumentHelp("Disk size in GB", valueName: "GB"))
-	public var diskSize: UInt16? = nil
+	public var diskSize: UInt64? = nil
 
 	@Option(name: [.customLong("disk")], help: ArgumentHelp("Other attached disk", valueName: "path"))
 	public var disks: [String] = ["unset"]
@@ -90,13 +90,13 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		}
 
 		if request.hasMemory {
-			self.memory = UInt64(request.memory)
+			self.memory = request.memory
 		} else {
 			self.memory = nil
 		}
 
 		if request.hasDiskSize {
-			self.diskSize = UInt16(request.diskSize)
+			self.diskSize = request.diskSize
 		} else {
 			self.diskSize = nil
 		}

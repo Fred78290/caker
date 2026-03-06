@@ -131,7 +131,7 @@ extension Caked_PurgeRequest: CreateCakedCommand {
 		}
 
 		if self.hasSpaceBudget {
-			options.spaceBudget = UInt(self.spaceBudget)
+			options.spaceBudget = self.spaceBudget
 		} else {
 			options.spaceBudget = nil
 		}

@@ -19,11 +19,11 @@ public struct ConfigureHandler {
 			}
 
 			if let cpu = options.cpu {
-				config.cpuCount = Int(cpu)
+				config.cpuCount = cpu
 			}
 
 			if let memory = options.memory {
-				config.memorySize = memory * 1024 * 1024
+				config.memorySize = memory * MoB
 			}
 
 			if options.randomMAC {
@@ -77,6 +77,8 @@ public struct ConfigureHandler {
 			try config.save()
 
 			if let diskSize = options.diskSize {
+				config.diskSize = diskSize * MoB
+
 				if location.status == .running {
 					throw ServiceError("VM is running, please stop it before resizing the disk")
 				}

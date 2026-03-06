@@ -40,7 +40,7 @@ public struct PurgeHandler {
 			}
 
 			if let spaceBudget = options.spaceBudget {
-				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: UInt64(spaceBudget) * 1024 * 1024 * 1024)
+				try Self.purgeSpaceBudget(purgeableStorages: purgeableStorages, spaceBudgetBytes: spaceBudget * GoB)
 			}
 
 			return PurgeReply(purged: true, reason: "Purged")
