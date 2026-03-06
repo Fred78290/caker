@@ -500,6 +500,9 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
+	func saveConfiguration(document vm: VirtualMachineDocument) {
+	}
+
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
 		let alert = NSAlert()
 
