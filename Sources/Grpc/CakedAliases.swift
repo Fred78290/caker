@@ -326,11 +326,8 @@ public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifi
 	public var runningIP: String?
 	public var display: ViewSize
 	public var vncPassword: String?
-
-	#if arch(arm64)
 	public var ecid: Data?
 	public var hardwareModel: Data?
-	#endif
 
 	public init(_ from: VirtualMachineConfiguration) {
 		// Map fields directly when available on `from`. For fields not present, use safe defaults.

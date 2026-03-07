@@ -16,9 +16,7 @@ public enum ImageSource: Int, Codable, CaseIterable, CustomStringConvertible {
 		case .template: return "template"
 		case .stream: return "stream"
 		case .iso: return "iso"
-		#if arch(arm64)
-			case .ipsw: return "ipsw"
-		#endif
+		case .ipsw: return "ipsw"
 		}
 	}
 
@@ -28,9 +26,7 @@ public enum ImageSource: Int, Codable, CaseIterable, CustomStringConvertible {
 	case template
 	case stream
 	case iso
-	#if arch(arm64)
-		case ipsw
-	#endif
+	case ipsw
 
 	public init(stringValue: String) {
 		switch stringValue.lowercased() {
@@ -40,9 +36,7 @@ public enum ImageSource: Int, Codable, CaseIterable, CustomStringConvertible {
 		case "oci": self = .oci
 		case "template": self = .template
 		case "stream": self = .stream
-		#if arch(arm64)
-			case "ipsw": self = .ipsw
-		#endif
+		case "ipsw": self = .ipsw
 		default:
 			self = .iso
 		}
