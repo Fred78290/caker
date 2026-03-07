@@ -622,7 +622,7 @@ extension VirtualMachineDocument {
 
 	func startLocally(location: VMLocation) async throws {
 		let config = try location.config()
-		let vncPassword = config.vncPassword
+		let vncPassword = config.vncPassword ?? UUID().uuidString
 		let vncPort = try Utilities.findFreePort()
 		let vncURL = URL(string: "vnc://:\(vncPassword)@localhost:\(vncPort)")!
 		let promise = Utilities.group.next().makePromise(of: String.self)
