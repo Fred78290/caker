@@ -536,21 +536,15 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields = Set<PartialKeyPath<Self>>()
 	}
 
-	func save() throws {
-		guard let vmname = self.vmname else {
-			throw ServiceError("Virtual machine name is required to save configuration")
-		}
-
-		try self.saveLocally(name: vmname)
-	}
-
 	mutating func clearChangedFields() {
 		self.changedFields?.removeAll()
 	}
 
-	func saveLocally(name: String) throws {
-		let location = try StorageLocation(runMode: .app).find(name)
-		let config = try location.config()
+	func saveLocally(_ location: VMLocation) throws {
+		try self.saveLocally(location.config())
+	}
+
+	func saveLocally(_ config: CakeConfig) throws {
 		let diskSize = config.diskSize / GoB
 
 		config.suspendable = self.suspendable
