@@ -8,12 +8,12 @@ import CakedLib
 import SwiftUI
 import UniformTypeIdentifiers
 
-class BridgeVirtualDocument: FileDocument {
+struct BridgeVirtualDocument: FileDocument {
 	static var readableContentTypes: [UTType] { [.virtualMachine] }
 
 	var attachedVirtualDocument: VirtualMachineDocument
 
-	required init(configuration: ReadConfiguration) throws {
+	init(configuration: ReadConfiguration) throws {
 		let file = configuration.file
 
 		guard file.isDirectory else {
@@ -52,6 +52,20 @@ class BridgeVirtualDocument: FileDocument {
 	}
 
 	func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
-		throw ServiceError("Unimplemented")
+		if self.attachedVirtualDocument.url.isFileURL {
+			var cakeConfig: CakeConfig? = nil
+
+			if let config = self.attachedVirtualDocument.virtualMachine?.config {
+				cakeConfig = config
+			} else if self.attachedVirtualDocument.url.isFileURL {
+				cakeConfig = CakeConfig(config: self.attachedVirtualDocument.virtualMachineConfig)
+			}
+
+			if let cakeConfig {
+				return try cakeConfig.fileWrapper()
+			}
+		}
+
+		throw ServiceError("Virtual machine is remote")
 	}
 }

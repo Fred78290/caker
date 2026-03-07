@@ -105,7 +105,7 @@ struct HostVirtualMachineView: View {
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
-		self.monitoringTask = CPUUsageMonitor(rootURL: document.location.rootURL)
+		self.monitoringTask = CPUUsageMonitor(document: _document)
 		self.interactiveShell = InteractiveShell(rootURL: document.location.rootURL)
 	}
 
@@ -264,9 +264,9 @@ struct HostVirtualMachineView: View {
 						.disabled(self.appState.isRunning || self.appState.isPaused)
 					}
 
-					if document.status == .running && document.vmInfos != nil {
+					if document.status == .running && document.agentReady {
 						ToolbarItemGroup(placement: .status) {
-							CPUUsageView(name: document.name, firstIP: document.vmInfos?.ipaddresses.first, $monitoringTask)
+							self.cpuUsageView
 						}
 					}
 
@@ -293,6 +293,18 @@ struct HostVirtualMachineView: View {
 				view.windowToolbarFullScreenVisibility(.onHover)
 			}
 		}
+	}
+
+	var cpuUsageView: some View {
+		CPUUsageView(firstIP: self.document.ipaddresses.first, cpuInfos: $document.cpuInfos, memoryInfos: $document.memoryInfos, cancel: {
+			if self.document.url.isFileURL {
+				self.monitoringTask.cancel()
+			}
+		}, start: {
+			if self.document.url.isFileURL {
+				await monitoringTask.monitorCurrentUsage()
+			}
+		})
 	}
 
 	func setContentSize(_ size: CGSize, animated: Bool) {
@@ -515,7 +527,7 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
-		if self.document.agent == .installed && document.vmInfos != nil {
+		if document.agentReady {
 			ExternalVirtualMachineView(interactiveShell: self.interactiveShell, size: size, dismiss: dismiss)
 				.addModifiers(placement: .secondaryAction)
 				.frame(size: size)
@@ -581,7 +593,7 @@ struct HostVirtualMachineView: View {
 		} else if document.virtualMachine != nil {
 			if self.document.status != .running {
 				LabelView(self.vmStatus(), progress: false)
-			} else if self.document.vmInfos != nil {
+			} else if self.document.agentReady {
 				internalView(size)
 					.frame(size: size)
 					.toolbar {

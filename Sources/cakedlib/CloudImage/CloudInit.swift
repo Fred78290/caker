@@ -1269,7 +1269,7 @@ class CloudInit {
 	private func createSeed(config: CakeConfig, writer: ISOWriter, path: String, configData: Data) throws -> Data {
 		let configData = try self.createSeed(writer: writer, path: path, configData: configData)
 
-		try configData.write(to: config.location.appendingPathComponent(path))
+		try configData.write(to: config.locationURL.appendingPathComponent(path))
 
 		return configData
 	}

@@ -177,6 +177,23 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 				self = .error
 			}
 		}
+
+		init(_ from: Caked_VirtualMachineStatus) {
+			switch from {
+			case .stopped:
+				self = .stopped
+			case .running:
+				self = .running
+			case .paused:
+				self = .paused
+			case .deleted:
+				self = .stopped
+			case .error:
+				self = .error
+			case .UNRECOGNIZED(_):
+				self = .none
+			}
+		}
 	}
 	
 	private var monitor: FileMonitor?
@@ -218,14 +235,16 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	@Published var suspendable: Bool = false
 	@Published var vncURL: [URL]? = nil
 	@Published var agent = AgentStatus.none
+	@Published var agentReady: Bool = false
 	@Published var connection: VNCConnection! = nil
 	@Published var vncStatus: VncStatus = .disconnected
 	@Published var documentSize: ViewSize = .zero
 	@Published var launchVMExternally: Bool? = nil
-	@Published var vmInfos: VMInformations? = nil
+	@Published var cpuInfos = CpuInfos()
+	@Published var memoryInfos = MemoryInfo()
 	@Published var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) = ("Install agent", false, true)
-	
-	private var screenshot: Data!
+	@Published var ipaddresses: [String] = []
+	@Published var screenshot: Data!
 	
 	var lastScreenshot: NSImage? {
 		guard let screenshot else {
@@ -388,6 +407,12 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 // MARK: - Core
 extension VirtualMachineDocument {
+	@MainActor func setScreenshot(_ data: Data) {
+		self.screenshot = data
+
+		NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: data, userInfo: ["document": self.url!])
+	}
+
 	func disconnect() {
 #if DEBUG
 		self.logger.debug("Disconnecting \(self.name)")
@@ -447,7 +472,7 @@ extension VirtualMachineDocument {
 		self.status = status
 		self.externalRunning = false
 		self.agentCondition = ("Install agent", false, true)
-		self.vmInfos = nil
+		self.agentReady = false
 
 		if let connection = self.connection {
 			self.connection = nil
@@ -469,6 +494,7 @@ extension VirtualMachineDocument {
 		self.suspendable = suspendable
 		self.vncURL = vncURL
 		self.status = .running
+		self.agentReady = false
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
 		// Start agent monitoring when VM is running
@@ -492,6 +518,15 @@ extension VirtualMachineDocument {
 		self.suspendable = suspendable
 	}
 	
+	func setState(_ status: Status) {
+		self.status = status
+		self.canStart = status == .stopped || status == .paused
+		self.canStop = status == .running
+		self.canPause = status == .running
+		self.canResume = status == .paused
+		self.canRequestStop = status == .running
+	}
+
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
 		if self.documentSize != size {
 #if DEBUG
@@ -822,9 +857,8 @@ extension VirtualMachineDocument: FileDidChangeDelegate {
 				}
 			} else if file.lastPathComponent == location.screenshotURL.lastPathComponent {
 				if let screenshot = try? Data(contentsOf: location.screenshotURL) {
-					self.screenshot = screenshot
 					DispatchQueue.main.async {
-						NotificationCenter.default.post(name: VirtualMachineDocument.NewScreenshot, object: screenshot, userInfo: ["document": self.url!])
+						self.setScreenshot(screenshot)
 					}
 				}
 			}
@@ -1032,8 +1066,8 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
-	private func createCakeAgentHelper(connectionTimeout: Int64 = 1) throws -> CakeAgentHelper {
-		try CakeAgentHelper.createCakeAgentHelper(rootURL: self.url, connectionTimeout: connectionTimeout, runMode: .app)
+	func createCakeAgentHelper(connectionTimeout: Int64 = 1, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
+		try CakeAgentHelper.createCakeAgentHelper(rootURL: self.url, connectionTimeout: connectionTimeout, retries: retries, runMode: .app)
 	}
 	
 	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {
@@ -1091,9 +1125,12 @@ extension VirtualMachineDocument {
 			self.logger.debug("Agent monitoring: VM \(self.name) agent is responding")
 		#endif
 
-		self.vmInfos = .init(infos)
+		self.agentReady = true
+		self.ipaddresses = infos.ipaddresses
+		self.cpuInfos.update(infos.cpuInfo)
+		self.memoryInfos.update(infos.memory)
 
-		if let firstIP = self.vmInfos!.ipaddresses.first {
+		if let firstIP = infos.ipaddresses.first {
 			self.logger.debug("VM \(self.name) is ready with IP: \(firstIP)")
 		}
 

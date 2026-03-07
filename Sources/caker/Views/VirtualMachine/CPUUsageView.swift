@@ -16,9 +16,8 @@ import NIO
 let colors: [Color] = [.red, .orange, .yellow, .green, .blue, .purple, .pink, .brown, .gray]
 
 struct CPUUsageView: View {
-	private let name: String
-	private let firstIP: String?
 	private static let barColor = Color(fromHex: "0076fFFF")!
+
 	private static var borderColor:Color {
 		switch Color.colorScheme {
 		case .dark:
@@ -27,6 +26,7 @@ struct CPUUsageView: View {
 			return .black
 		}
 	}
+
 	private static var bgColor:Color {
 		switch Color.colorScheme {
 		case .dark:
@@ -36,16 +36,22 @@ struct CPUUsageView: View {
 		}
 	}
 
-	@Binding private var monitoringTask: CPUUsageMonitor
+	@Binding var cpuInfos: CpuInfos
+	@Binding var memoryInfos: MemoryInfo
+	private let firstIP: String?
+	private let cancel: () -> Void
+	private let start: () async -> Void
 
-	#if DEBUG
+#if DEBUG
 		private let logger = Logger("CPUUsageView")
 	#endif
 
-	init(name: String, firstIP: String?, _ monitoringTask: Binding<CPUUsageMonitor>) {
-		self.name = name
+	init(firstIP: String?, cpuInfos: Binding<CpuInfos>, memoryInfos: Binding<MemoryInfo>, cancel: @escaping () -> Void, start: @escaping () async -> Void) {
 		self.firstIP = firstIP
-		self._monitoringTask = monitoringTask
+		self._cpuInfos = cpuInfos
+		self._memoryInfos = memoryInfos
+		self.cancel = cancel
+		self.start = start
 	}
 
 	private func bar(height: CGFloat) -> some View {
@@ -70,17 +76,6 @@ struct CPUUsageView: View {
 				let height = memoryInfos.total != 0 ? (proxy.size.height - 1) * CGFloat(memoryInfos.used) / CGFloat(memoryInfos.total) : 0
 				
 				self.bar(height: height).frame(width: 8, height: proxy.size.height)
-				/*Rectangle()
-					.fill(Self.bgColor.opacity(0.4))
-					.frame(width: 8, height: proxy.size.height)
-					.border(Self.borderColor.opacity(0.6), width: 0.5)
-					.overlay {
-						Rectangle()
-							.fill(Self.barColor)
-							.frame(width: 6, height: height)
-							.offset(x: 0, y: ((proxy.size.height - height) / 2) - 1)
-							.animation(Animation.easeInOut(duration: 0.1), value: height)
-					}*/
 			}.padding(0)
 
 		}
@@ -93,30 +88,15 @@ struct CPUUsageView: View {
 					let height = ((proxy.size.height - 1) * core.usagePercent) / 100
 
 					self.bar(height: height).frame(width: 8, height: proxy.size.height)
-
-					/*Rectangle()
-						.fill(Self.bgColor.opacity(0.4))
-						.frame(width: 8, height: proxy.size.height)
-						.border(Self.borderColor.opacity(0.6), width: 0.5)
-						.overlay {
-							Rectangle()
-								.fill(Self.barColor)
-								.frame(width: 6, height: height)
-								.offset(x:0, y: ((proxy.size.height - height) / 2) - 1)
-								.animation(Animation.easeInOut(duration: 0.1), value: height)
-						}*/
-					//.log(text: "core: proxy.size.height=\(proxy.size.height) height=\(height), core.usagePercent=\(core.usagePercent), offsetY: \(proxy.size.height - height)")
 				}
 			}
-			//.background(.red.opacity(0.4))
 			.padding(0)
-			//.log(text: "cpuGraph: \(proxy.size.height)")
 		}
 	}
 
 	var body: some View {
-		let cores = monitoringTask.cpuInfos.cores
-		let memoryInfos = monitoringTask.memoryInfos
+		let cores = self.cpuInfos.cores
+		let memoryInfos = self.memoryInfos
 
 		HStack(alignment: .center, spacing: 6) {
 			if cores.isEmpty {
@@ -136,7 +116,7 @@ struct CPUUsageView: View {
 						.help("CPU usage unavailable")
 				}
 			} else {
-				if let firstIP = firstIP {
+				if let firstIP = self.firstIP {
 					HStack(alignment: .center, spacing: 2) {
 						Image(systemName: "network")
 							.foregroundColor(.secondary)
@@ -172,12 +152,12 @@ struct CPUUsageView: View {
 		.help("CPU Cores Usage (\(cores.count) cores total)")
 		.task {
 			// Cancel any existing monitoring task before starting a new one
-			monitoringTask.cancel()
-			await monitoringTask.monitorCurrentUsage()
+			self.cancel()
+			await self.start()
 		}
 		.onDisappear {
 			// Cancel monitoring when the view disappears
-			monitoringTask.cancel()
+			self.cancel()
 		}
 	}
 }

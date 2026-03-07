@@ -29,10 +29,10 @@ public struct InfosHandler {
 		} else {
 			var diskInfos: [DiskInfo] = []
 
-			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.location).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try location.diskSize()), free: 0, used: 0))
+			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try location.diskSize()), free: 0, used: 0))
 
 			for disk in config.attachedDisks {
-				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.location).absoluteURL
+				let diskURL = URL(fileURLWithPath: disk.diskPath, relativeTo: config.locationURL).absoluteURL
 
 				diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
 			}

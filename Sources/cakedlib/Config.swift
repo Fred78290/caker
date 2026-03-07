@@ -46,18 +46,19 @@ extension DisplaySize {
 }
 
 public final class CakeConfig: VirtualMachineConfiguration {
-	public var diskSize: UInt64 = 0
-	var config: Config
-	var cake: Config
-	var location: URL
+	private var config: Config
+	private var cake: Config
 
-	public var locationURL: URL {
-		self.location
-	}
+	public var diskSize: UInt64 = 0
+	public var locationURL: URL
 
 	internal final class Config {
 		var data: [String: Any]
 		var dirty: Bool
+
+		var serializedRepresentation: Data? {
+			self.data.jsonData
+		}
 
 		init() {
 			self.dirty = false
@@ -416,7 +417,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		macAddress: VZMACAddress = VZMACAddress.randomLocallyAdministered(),
 		screenSize: ViewSize
 	) {
-		self.location = location
+		self.locationURL = location
 		self.config = Config()
 		self.cake = Config()
 		self.version = 1
@@ -441,8 +442,8 @@ public final class CakeConfig: VirtualMachineConfiguration {
 	}
 
 	public init(location: URL, configuredUser: String, configuredPassword: String, configuredGroup: String, clearPassword: Bool) throws {
-		self.location = location
-		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.locationURL = location
+		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
 		self.configuredUser = configuredUser
 		self.configuredPassword = configuredPassword
@@ -463,9 +464,9 @@ public final class CakeConfig: VirtualMachineConfiguration {
 	}
 
 	public init(location: URL) throws {
-		self.location = location
-		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
-		self.cake = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
+		self.locationURL = location
+		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.cake = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.cake.rawValue))
 
 		if self.cake["vncPassword"] == nil {
 			self.cake["vncPassword"] = UUID().uuidString
@@ -475,8 +476,8 @@ public final class CakeConfig: VirtualMachineConfiguration {
 	}
 
 	public init(location: URL, options: BuildOptions) throws {
-		self.location = location
-		self.config = try Config(contentsOf: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
+		self.locationURL = location
+		self.config = try Config(contentsOf: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
 		self.cake = Config()
 
 		self.configuredUser = options.user
@@ -504,11 +505,79 @@ public final class CakeConfig: VirtualMachineConfiguration {
 		}
 	}
 
-	public func save() throws {
-		try self.config.save(to: self.location.appendingPathComponent(ConfigFileName.config.rawValue))
-		try self.cake.save(to: self.location.appendingPathComponent(ConfigFileName.cake.rawValue))
+	public init(config: VirtualMachineConfiguration) {
+		self.locationURL = config.locationURL
+		self.config = Config()
+		self.cake = Config()
+
+		self.locationURL = config.locationURL
+		self.version = config.version
+		self.os = config.os
+		self.arch = config.arch
+		self.cpuCountMin = config.cpuCountMin
+		self.suspendable = config.suspendable
+		self.diskSize = config.diskSize
+		self.cpuCount = config.cpuCount
+		self.memorySizeMin = config.memorySizeMin
+		self.memorySize = config.memorySize
+		self.macAddress = config.macAddress
+		self.source = config.source
+		self.osName = config.osName
+		self.osRelease = config.osRelease
+		self.dynamicPortForwarding = config.dynamicPortForwarding
+		self.displayRefit = config.displayRefit
+		self.instanceID = config.instanceID
+		self.dhcpClientID = config.dhcpClientID
+		self.sshPrivateKeyPath = config.sshPrivateKeyPath
+		self.sshPrivateKeyPassphrase = config.sshPrivateKeyPassphrase
+		self.configuredUser = config.configuredUser
+		self.configuredPassword = config.configuredPassword
+		self.configuredGroup = config.configuredGroup
+		self.configuredGroups = config.configuredGroups
+		self.configuredPlatform = config.configuredPlatform
+		self.clearPassword = config.clearPassword
+		self.ifname = config.ifname
+		self.autostart = config.autostart
+		self.agent = config.agent
+		self.firstLaunch = config.firstLaunch
+		self.nested = config.nested
+		self.attachedDisks = config.attachedDisks
+		self.mounts = config.mounts
+		self.networks = config.networks
+		self.useCloudInit = config.useCloudInit
+		self.sockets = config.sockets
+		self.console = config.console
+		self.forwardedPorts = config.forwardedPorts
+		self.runningIP = config.runningIP
+		self.display = config.display
+		self.vncPassword = config.vncPassword
+		self.ecid = config.ecid
+		self.hardwareModel = config.hardwareModel
 	}
 
+	public func save() throws {
+		try self.config.save(to: self.locationURL.appendingPathComponent(ConfigFileName.config.rawValue))
+		try self.cake.save(to: self.locationURL.appendingPathComponent(ConfigFileName.cake.rawValue))
+	}
+
+	public func fileWrapper() throws -> FileWrapper {
+		guard let dataConfig = config.serializedRepresentation, let cakeData = cake.serializedRepresentation else {
+			throw ServiceError("Failed to serialize config")
+		}
+
+		let config = FileWrapper(regularFileWithContents: dataConfig)
+		let cake = FileWrapper(regularFileWithContents: cakeData)
+		
+		config.preferredFilename = ConfigFileName.config.rawValue
+		cake.preferredFilename = ConfigFileName.cake.rawValue
+		config.filename = ConfigFileName.config.rawValue
+		cake.filename = ConfigFileName.cake.rawValue
+		
+		return FileWrapper(directoryWithFileWrappers: [
+			ConfigFileName.config.rawValue: config,
+			ConfigFileName.cake.rawValue: cake
+		])
+	}
 }
 
 extension CakeConfig {
