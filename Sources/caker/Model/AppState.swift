@@ -93,6 +93,7 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
+	private let logger = Logger("AppState")
 	private var agentStatusTimer: RepeatedTask? = nil
 	private static var _shared: AppState! = nil
 
@@ -143,16 +144,28 @@ class AppState: ObservableObject, Observable {
 		return self.cakedServiceClient
 	}
 
-	private func receiveScreenshot(name: String, screenshot: Data) async {
-		
+	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
+		if let document = self.findVirtualMachineDocument(vmURL) {
+			await document.setScreenshot(value)
+		}
 	}
 
-	private func receiveUsage(name: String, usage: Caked_CurrentUsageReply) async {
-		
+	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
+		if let document = self.findVirtualMachineDocument(vmURL) {
+			//document.vmInfos?.update(value)
+		}
 	}
 
-	private func receiveStatus(name: String, status: Caked_VirtualMachineStatus) async {
-		
+	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
+		if let document = self.findVirtualMachineDocument(vmURL) {
+			await MainActor.run {
+				document.setState(.init(value))
+
+				if value == .deleted {
+					self.removeVirtualMachineDocument(vmURL)
+				}
+			}
+		}
 	}
 
 	private func gdc(client: CakedServiceClient) async {
@@ -168,13 +181,15 @@ class AppState: ObservableObject, Observable {
 
 			for try await statuses in asyncStream.stream {
 				for status in statuses {
+					let vmURL = URL(string: "\(VMLocation.scheme)://\(status.name)")!
+
 					switch status.message {
 					case .status(let value):
-						await self.receiveStatus(name: status.name, status: value)
-					case .screenshot(let png):
-						await self.receiveScreenshot(name: status.name, screenshot: png)
-					case .usage(let usage):
-						await self.receiveUsage(name: status.name, usage: usage)
+						await self.receiveStatus(vmURL, value: value)
+					case .screenshot(let value):
+						await self.receiveScreenshot(vmURL, value: value)
+					case .usage(let value):
+						await self.receiveUsage(vmURL, value: value)
 					default:
 						break
 					}
@@ -193,6 +208,8 @@ class AppState: ObservableObject, Observable {
 			let virtualMachines: [URL: VirtualMachineDocument]
 		}
 
+		self.logger.debug("Switching mode: installed=\(installed), runMode=\(runMode)")
+
 		if runMode == .app {
 			self.gcd?.cancel(promise: nil)
 		} else if gcd == nil {
@@ -206,7 +223,9 @@ class AppState: ObservableObject, Observable {
 		}
 
 		let serviceReplyFuture = Utilities.group.next().makeFutureWithTask {
-			ServiceReply(
+			self.logger.debug("Loading data for new mode: installed=\(installed), runMode=\(runMode)")
+
+			return ServiceReply(
 				remotes: Self.loadRemotes(client: self.serviceClient, runMode: runMode),
 				templates: Self.loadTemplates(client: self.serviceClient, runMode: runMode),
 				networks: Self.loadNetworks(client: self.serviceClient, runMode: runMode),
@@ -215,6 +234,8 @@ class AppState: ObservableObject, Observable {
 		}
 
 		serviceReplyFuture.whenSuccess { serviceReply in
+			self.logger.debug("Data loaded for new mode: installed=\(installed), runMode=\(runMode)")
+
 			DispatchQueue.main.async {
 				if runMode == .app {
 					self.cakedServiceClient = nil
@@ -566,8 +587,10 @@ class AppState: ObservableObject, Observable {
 					throw ServiceError("Failed to save VM configuration: \(reply.reason)")
 				}
 
-			} else if vm.url.isFileURL {
-				try vm.virtualMachineConfig.saveLocally(vm.location!)
+			} else if let virtualMachine = vm.virtualMachine {
+				try vm.virtualMachineConfig.saveLocally(virtualMachine.config)
+			} else if let location = vm.location {
+				try vm.virtualMachineConfig.saveLocally(location)
 			} else {
 				throw ServiceError("Failed to save VM configuration, Unexpected error")
 			}
