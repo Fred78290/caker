@@ -541,12 +541,21 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	func saveLocally(_ location: VMLocation) throws {
-		try self.saveLocally(location.config())
+		let config = try location.config()
+		let diskSize = config.diskSize / GoB
+
+		try self.saveLocally(location)
+
+		if diskSize != self.diskSize && location.status == .stopped {
+			if config.os == .linux {
+				try location.resizeDisk(diskSize)
+			} else {
+				try location.expandDisk(diskSize)
+			}
+		}
 	}
 
 	func saveLocally(_ config: CakeConfig) throws {
-		let diskSize = config.diskSize / GoB
-
 		config.suspendable = self.suspendable
 		config.diskSize = self.diskSize
 		config.cpuCount = self.cpuCount
@@ -579,14 +588,6 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		config.display = self.display
 
 		try config.save()
-
-		if diskSize != self.diskSize && location.status == .stopped {
-			if config.os == .linux {
-				try location.resizeDisk(diskSize)
-			} else {
-				try location.expandDisk(diskSize)
-			}
-		}
 	}
 
 	func buildOptions() -> BuildOptions {
