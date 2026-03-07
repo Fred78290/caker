@@ -128,8 +128,11 @@ class AppState: ObservableObject, Observable {
 	@Published var networks: [BridgedNetwork] = []
 	@Published var virtualMachines: [URL: VirtualMachineDocument] = [:]
 
+	private var gcd: ServerStreamingCall<Caked_Empty, Caked_Caked.Reply>? = nil
+
 	deinit {
 		agentStatusTimer?.cancel()
+		gcd?.cancel(promise: nil)
 	}
 
 	var serviceClient: CakedServiceClient? {
@@ -140,12 +143,66 @@ class AppState: ObservableObject, Observable {
 		return self.cakedServiceClient
 	}
 
+	private func receiveScreenshot(name: String, screenshot: Data) async {
+		
+	}
+
+	private func receiveUsage(name: String, usage: Caked_CurrentUsageReply) async {
+		
+	}
+
+	private func receiveStatus(name: String, status: Caked_VirtualMachineStatus) async {
+		
+	}
+
+	private func gdc(client: CakedServiceClient) async {
+		let asyncStream = AsyncThrowingStream.makeStream(of: [Caked_CurrentStatus].self)
+
+		let stream = client.grandCentralDispatcher(.init(), callOptions: .init(timeLimit: .none)) { reply in
+			_ = asyncStream.continuation.yield(reply.status.statuses)
+			// Consider calling asyncStream.continuation.finish() when the stream should end
+		}
+
+		do {
+			_ = try await stream.subchannel.get()
+
+			for try await statuses in asyncStream.stream {
+				for status in statuses {
+					switch status.message {
+					case .status(let value):
+						await self.receiveStatus(name: status.name, status: value)
+					case .screenshot(let png):
+						await self.receiveScreenshot(name: status.name, screenshot: png)
+					case .usage(let usage):
+						await self.receiveUsage(name: status.name, usage: usage)
+					default:
+						break
+					}
+				}
+			}
+		} catch {
+			stream.cancel(promise: nil)
+		}
+	}
+
 	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
 		struct ServiceReply {
 			let remotes: [RemoteEntry]
 			let templates: [TemplateEntry]
 			let networks: [BridgedNetwork]
 			let virtualMachines: [URL: VirtualMachineDocument]
+		}
+
+		if runMode == .app {
+			self.gcd?.cancel(promise: nil)
+		} else if gcd == nil {
+			let gcdFuture = Utilities.group.next().makeFutureWithTask {
+				await self.gdc(client: self.cakedServiceClient!)
+			}
+			
+			gcdFuture.whenComplete { _ in
+				self.gcd = nil
+			}
 		}
 
 		let serviceReplyFuture = Utilities.group.next().makeFutureWithTask {
@@ -501,6 +558,26 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func saveConfiguration(document vm: VirtualMachineDocument) {
+		do {
+			if self.serviceClient != nil && vm.url.isFileURL == false {
+				let reply = ConfigureHandler.configure(name: vm.name, options: vm.virtualMachineConfig.configureOptions(), runMode: self.runMode)
+				
+				if reply.configured == false {
+					throw ServiceError("Failed to save VM configuration: \(reply.reason)")
+				}
+
+			} else if vm.url.isFileURL {
+				try vm.virtualMachineConfig.saveLocally(vm.location!)
+			} else {
+				throw ServiceError("Failed to save VM configuration, Unexpected error")
+			}
+
+			vm.virtualMachineConfig.clearChangedFields()
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
 	}
 
 	func deleteVirtualMachine(document vm: VirtualMachineDocument) {
