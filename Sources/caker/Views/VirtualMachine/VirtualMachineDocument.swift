@@ -376,12 +376,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		}
 	}
 	
-	static func createVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) -> [URL: VirtualMachineDocument] {
+	static func loadVirtualMachineDocuments(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> [URL: VirtualMachineDocument] {
 		var vms: [URL: VirtualMachineDocument] = [:]
 
-		guard let result = try? ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: runMode) else {
-			return vms
-		}
+		let result = try ListHandler.list(client: client, vmonly: true, includeConfig: client != nil, runMode: runMode)
 
 		if result.success {
 			if client != nil {
