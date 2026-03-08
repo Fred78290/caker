@@ -86,6 +86,15 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.cpuCountMin) == true ? UInt16(self.cpuCountMin) : nil
 	}
 
+	var memorySizeInMoB: UInt64 {
+		get {
+			self.memorySize/MoB
+		}
+		set {
+			self.memorySize = newValue * MoB
+		}
+	}
+
 	var memorySize: UInt64 = 512 {
 		didSet {
 			changedFields?.insert(\.memorySize)
@@ -94,6 +103,10 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	var memorySizeIfChanged: UInt64? {
 		self.changedFields?.contains(\.memorySize) == true ? self.memorySize : nil
+	}
+
+	var memorySizeInMoBIfChanged: UInt64? {
+		self.changedFields?.contains(\.memorySize) == true ? self.memorySize/MoB : nil
 	}
 
 	var memorySizeMin: UInt64 = 512 {
@@ -368,14 +381,31 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.changedFields?.contains(\.clearPassword) == true ? self.clearPassword : nil
 	}
 
-	var diskSize: UInt64 = 20 {
+	var diskSize: UInt64 = 20 * GoB {
 		didSet {
 			changedFields?.insert(\.diskSize)
 		}
 	}
 
+	var diskSizeInGoB: UInt64 {
+		get {
+			self.diskSize / GoB
+		}
+		set {
+			self.diskSize = newValue * GoB
+		}
+	}
+
+	var diskSizeInGobIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
+	}
+
 	var diskSizeIfChanged: UInt64? {
 		self.changedFields?.contains(\.diskSize) == true ? self.diskSize : nil
+	}
+
+	var diskSizeInGoBIfChanged: UInt64? {
+		self.changedFields?.contains(\.diskSize) == true ? self.diskSize/GoB : nil
 	}
 
 	var ifname: Bool = false {
@@ -443,11 +473,11 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	var runningIP: String? = nil
 
 	var humanReadableDiskSize: String {
-		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize * GoB), countStyle: .file)
+		ByteCountFormatter.string(fromByteCount: Int64(self.diskSize), countStyle: .file)
 	}
 
 	var humanReadableMemorySize: String {
-		ByteCountFormatter.string(fromByteCount: Int64(self.memorySize * MoB), countStyle: .memory)
+		ByteCountFormatter.string(fromByteCount: Int64(self.memorySize), countStyle: .memory)
 	}
 
 	init() {
@@ -456,7 +486,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.arch = Architecture.current()
 		self.os = .linux
 		self.cpuCount = 1
-		self.memorySize = 512
+		self.memorySize = 512 * MoB
 		self.macAddress = ""
 		self.autostart = false
 		self.suspendable = false
@@ -475,7 +505,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		self.configuredGroup = "adm"
 		self.configuredGroups = ["sudo"]
 		self.clearPassword = true
-		self.diskSize = 20
+		self.diskSize = 20 * GoB
 		self.autoinstall = false
 		self.firstLaunch = true
 		self.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
@@ -542,15 +572,15 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 
 	func saveLocally(_ location: VMLocation) throws {
 		let config = try location.config()
-		let diskSize = config.diskSize / GoB
+		let oldDiskSize = config.diskSize
 
 		try self.saveLocally(location)
 
-		if diskSize != self.diskSize && location.status == .stopped {
+		if oldDiskSize < self.diskSize && location.status == .stopped {
 			if config.os == .linux {
-				try location.resizeDisk(diskSize)
+				try location.resizeDisk(self.diskSizeInGoB)
 			} else {
-				try location.expandDisk(diskSize)
+				try location.expandDisk(self.diskSizeInGoB)
 			}
 		}
 	}
@@ -595,13 +625,14 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	func configureOptions() -> ConfigureOptions {
+		
 		.init(
 			name: self.vmname!,
 			user: self.configuredUserIfChanged,
 			password: self.configuredPasswordIfChanged,
 			cpu: UInt16(self.cpuCount),
-			memory: self.memorySizeIfChanged,
-			diskSize: self.diskSizeIfChanged,
+			memory: self.memorySizeInMoBIfChanged,
+			diskSize: self.diskSizeInGoBIfChanged,
 			screenSize: self.displayIfChanged,
 			attachedDisks: self.attachedDisksIfChanged,
 			autostart: self.autostartIfChanged,
@@ -620,8 +651,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		.init(
 			name: self.vmname!,
 			cpu: UInt16(self.cpuCount),
-			memory: self.memorySize,
-			diskSize: self.diskSize,
+			memory: self.memorySizeInMoB,
+			diskSize: self.diskSizeInGoB,
 			screenSize: self.display,
 			attachedDisks: self.attachedDisks,
 			user: self.configuredUser,

@@ -207,10 +207,10 @@ struct VirtualMachineSettingsView: View {
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.memorySize, format: .number /*.memory(.useGB)*/)
+					TextField("", value: $config.memorySizeInMoB, format: .number /*.memory(.useGB)*/)
 						.rounded(.center)
 						.frame(width: 50)
-					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
+					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
 
 					}.labelsHidden()
 				}

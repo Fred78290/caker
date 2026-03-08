@@ -470,14 +470,15 @@ struct VirtualMachineWizard: View {
 			.disabled(self.model.createVM)
 
 			HStack {
+
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.memorySize, format: .number)
+					TextField("", value: $config.memorySizeInMoB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
-					Stepper(value: $config.memorySize, in: totalMemoryRange, step: 1) {
+					Stepper(value: $config.memorySizeInMoB, in: totalMemoryRange, step: 1) {
 
 					}
 					.labelsHidden()
@@ -489,11 +490,11 @@ struct VirtualMachineWizard: View {
 				Text("Disk size")
 				Spacer().border(.black)
 				HStack {
-					TextField("", value: $config.diskSize, format: .number)
+					TextField("", value: $config.diskSizeInGoB, format: .number)
 						.rounded(.center)
 						.frame(width: 50)
 						.disabled(self.model.createVM)
-					Stepper(value: $config.diskSize, in: diskRange, step: 1) {
+					Stepper(value: $config.diskSizeInGoB, in: diskRange, step: 1) {
 
 					}
 					.labelsHidden()
@@ -771,8 +772,8 @@ struct VirtualMachineWizard: View {
 							#if arch(arm64)
 								if newValue == .ipsw {
 									self.config.cpuCount = max(self.config.cpuCount, 4)
-									self.config.memorySize = max(self.config.memorySize, 4096)
-									self.config.diskSize = max(self.config.diskSize, 40)
+									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4 * GoB)
+									self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
 								}
 							#endif
 						}
