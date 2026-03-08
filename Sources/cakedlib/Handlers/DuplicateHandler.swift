@@ -4,9 +4,9 @@ import NIOCore
 import Virtualization
 
 public struct DuplicateHandler {
-	public static func duplicate(rootURL: URL, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
-		guard let location = try? VMLocation.newVMLocation(rootURL: rootURL) else {
-			return DuplicatedReply(from: rootURL.absoluteString, to: to, duplicated: false, reason: "Source vm not found")
+	public static func duplicate(vmURL: URL, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+		guard let location = try? VMLocation.newVMLocation(vmURL: vmURL) else {
+			return DuplicatedReply(from: vmURL.absoluteString, to: to, duplicated: false, reason: "Source vm not found")
 		}
 
 		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, startMode: startMode, runMode: runMode)

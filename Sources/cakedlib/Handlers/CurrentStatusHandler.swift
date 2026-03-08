@@ -392,8 +392,8 @@ public struct CurrentStatusHandler {
 		case screenshot(Data)
 	}
 
-	public static func currentStatus(rootURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
-		return try await currentStatus(location: VMLocation.newVMLocation(rootURL: rootURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
+	public static func currentStatus(vmURL: URL, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {
+		return try await currentStatus(location: VMLocation.newVMLocation(vmURL: vmURL), frequency: frequency, statusStream: statusStream, runMode: runMode)
 	}
 
 	public static func currentStatus(location: VMLocation, frequency: Int32, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) async throws -> Cancellable {

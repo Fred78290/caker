@@ -10,11 +10,11 @@ import GRPCLib
 import CakeAgentLib
 
 public struct InstallAgentHandler {
-	public static func installAgent(rootURL: URL, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
+	public static func installAgent(vmURL: URL, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
-			return installAgent(location: try VMLocation.newVMLocation(rootURL: rootURL), timeout: timeout, runMode: runMode)
+			return installAgent(location: try VMLocation.newVMLocation(vmURL: vmURL), timeout: timeout, runMode: runMode)
 		} catch {
-			return InstalledAgentReply(name: rootURL.lastPathComponent.deletingPathExtension, installed: false , reason: "\(error)")
+			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: "\(error)")
 		}
 	}
 

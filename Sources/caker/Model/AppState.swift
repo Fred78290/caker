@@ -379,7 +379,7 @@ class AppState: ObservableObject, Observable {
 			throw ServiceError("VM is running")
 		}
 		
-		return try TemplateHandler.createTemplate(client: self.serviceClient, rootURL: currentDocument.url, templateName: templateName, runMode: self.runMode)
+		return try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: currentDocument.url, templateName: templateName, runMode: self.runMode)
 	}
 
 	func templateExists(name: String) -> Bool {
@@ -423,7 +423,7 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func installAgent(_ url: URL) throws -> Bool {
-		let reply = try InstallAgentHandler.installAgent(client: self.serviceClient, rootURL: url, timeout: 2, runMode: self.runMode)
+		let reply = try InstallAgentHandler.installAgent(client: self.serviceClient, vmURL: url, timeout: 2, runMode: self.runMode)
 
 		return reply.installed
 	}
@@ -442,7 +442,7 @@ class AppState: ObservableObject, Observable {
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				let templateResult = try TemplateHandler.createTemplate(client: self.serviceClient, rootURL: vm.url, templateName: txt.stringValue, runMode: self.runMode)
+				let templateResult = try TemplateHandler.createTemplate(client: self.serviceClient, vmURL: vm.url, templateName: txt.stringValue, runMode: self.runMode)
 				
 				if templateResult.created == false {
 					self.reloadTemplates()
@@ -460,8 +460,8 @@ class AppState: ObservableObject, Observable {
 	}
 
 	@discardableResult
-	func startVirtualMachine(rootURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> StartedReply {
-		let result = try StartHandler.startVM(client: self.serviceClient, rootURL: rootURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 30, startMode: startMode,runMode: self.runMode)
+	func startVirtualMachine(vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartHandler.StartMode) throws -> StartedReply {
+		let result = try StartHandler.startVM(client: self.serviceClient, vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 30, startMode: startMode,runMode: self.runMode)
 		
 		if result.started == false {
 			throw ServiceError("Failed to start VM")
@@ -471,8 +471,8 @@ class AppState: ObservableObject, Observable {
 	}
 
 	@discardableResult
-	func restartVirtualMachine(rootURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
-		let result = try RestartHandler.restart(client: self.serviceClient, rootURL: rootURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
+	func restartVirtualMachine(vmURL: URL, force: Bool = false, waitIPTimeout: Int = 30) throws -> RestartReply {
+		let result = try RestartHandler.restart(client: self.serviceClient, vmURL: vmURL, force: force, waitIPTimeout: 30, runMode: self.runMode)
 			
 		if result.success == false {
 			throw ServiceError("Failed to restart VM")
@@ -482,8 +482,8 @@ class AppState: ObservableObject, Observable {
 	}
 
 	@discardableResult
-	func stopVirtualMachine(rootURL: URL, force: Bool = false) throws -> StopReply {
-		let result = try StopHandler.stopVM(client: self.serviceClient, rootURL: rootURL, force: force, runMode: self.runMode)
+	func stopVirtualMachine(vmURL: URL, force: Bool = false) throws -> StopReply {
+		let result = try StopHandler.stopVM(client: self.serviceClient, vmURL: vmURL, force: force, runMode: self.runMode)
 
 		if result.success == false {
 			throw ServiceError("Failed to stop VM")
@@ -493,8 +493,8 @@ class AppState: ObservableObject, Observable {
 	}
 
 	@discardableResult
-	func suspendVirtualMachine(rootURL: URL) throws -> SuspendReply {
-		let result = try SuspendHandler.suspendVM(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+	func suspendVirtualMachine(vmURL: URL) throws -> SuspendReply {
+		let result = try SuspendHandler.suspendVM(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 
 		if result.success == false {
 			throw ServiceError("Failed to suspend VM")
@@ -503,9 +503,9 @@ class AppState: ObservableObject, Observable {
 		return result
 	}
 
-	func setVncScreenSize(rootURL: URL, screenSize: ViewSize) async {
+	func setVncScreenSize(vmURL: URL, screenSize: ViewSize) async {
 		do {
-			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, rootURL: rootURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
+			let result = try ScreenSizeHandler.setScreenSize(client: self.serviceClient, vmURL: vmURL, width: Int(screenSize.width), height: Int(screenSize.height), runMode: self.runMode)
 
 			if result.success == false {
 				await alertError(result.reason, "Failed to set VM screen size")
@@ -515,9 +515,9 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
-	func getVncScreenSize(rootURL: URL, _ defaultSize: ViewSize = .zero) -> ViewSize {
+	func getVncScreenSize(vmURL: URL, _ defaultSize: ViewSize = .zero) -> ViewSize {
 		do {
-			let result = try ScreenSizeHandler.getScreenSize(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+			let result = try ScreenSizeHandler.getScreenSize(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 			
 			if result.success == false {
 				DispatchQueue.main.async {
@@ -535,12 +535,12 @@ class AppState: ObservableObject, Observable {
 		return defaultSize
 	}
 
-	func vncURL(rootURL: URL) throws -> [URL] {
-		try VncURLHandler.vncURL(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+	func vncURL(vmURL: URL) throws -> [URL] {
+		try VncURLHandler.vncURL(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 	}
 
-	func virtualMachineInfos(rootURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
-		try InfosHandler.infos(client: self.serviceClient, rootURL: rootURL, runMode: self.runMode)
+	func virtualMachineInfos(vmURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
+		try InfosHandler.infos(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 	}
 
 	func buildVirtualMachine(options: BuildOptions, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildedReply {
@@ -561,7 +561,7 @@ class AppState: ObservableObject, Observable {
 
 		if alert.runModal() == NSApplication.ModalResponse.alertFirstButtonReturn {
 			do {
-				let result = try DuplicateHandler.duplicate(client: self.serviceClient, rootURL: vm.url, to: txt.stringValue, resetMacAddress: true, runMode: self.runMode)
+				let result = try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vm.url, to: txt.stringValue, resetMacAddress: true, runMode: self.runMode)
 				if result.duplicated {
 					let location = StorageLocation(runMode: self.runMode).location(txt.stringValue)
 					self.addVirtualMachineDocument(location.rootURL)
@@ -616,7 +616,7 @@ class AppState: ObservableObject, Observable {
 			do {
 				NotificationCenter.default.post(name: VirtualMachineDocument.DeleteVirtualMachine, object: vm, userInfo: ["document": vm.url!])
 
-				let result = try DeleteHandler.delete(client: self.serviceClient, rootURL: vm.url, runMode: self.runMode)
+				let result = try DeleteHandler.delete(client: self.serviceClient, vmURL: vm.url, runMode: self.runMode)
 
 				if result.success {
 					self.removeVirtualMachineDocument(vm.url)

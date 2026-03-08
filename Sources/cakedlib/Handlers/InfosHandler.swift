@@ -7,8 +7,8 @@ import Virtualization
 import NIOPortForwarding
 
 public struct InfosHandler {
-	public static func infos(rootURL: URL, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {		
-		return try InfosHandler.infos(location: try VMLocation.newVMLocation(rootURL: rootURL).validate(), runMode: runMode, client: client, callOptions: callOptions)
+	public static func infos(vmURL: URL, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
+		return try InfosHandler.infos(location: try VMLocation.newVMLocation(vmURL: vmURL).validate(), runMode: runMode, client: client, callOptions: callOptions)
 	}
 
 	public static func infos(name: String, runMode: Utils.RunMode, client: CakeAgentHelper, callOptions: CallOptions?) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {

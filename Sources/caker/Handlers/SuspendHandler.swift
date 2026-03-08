@@ -9,22 +9,22 @@ import CakedLib
 import GRPCLib
 
 extension SuspendHandler {
-	public static func suspendVM(client: CakedServiceClient?, rootURL: URL, runMode: Utils.RunMode) throws -> SuspendReply {
+	public static func suspendVM(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> SuspendReply {
 		guard let client = client else {
 			return try SuspendReply(
 				objects: [
-					suspendVM(rootURL: rootURL, runMode: runMode)
+					suspendVM(vmURL: vmURL, runMode: runMode)
 				], success: true, reason: "Success")
 		}
 
-		if rootURL.isFileURL {
+		if vmURL.isFileURL {
 			return try SuspendReply(
 				objects: [
-					suspendVM(rootURL: rootURL, runMode: runMode)
+					suspendVM(vmURL: vmURL, runMode: runMode)
 				], success: true, reason: "Success")
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

@@ -368,9 +368,9 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
-			return try VirtualMachineDocument(location: VMLocation.newVMLocation(rootURL: vmURL))
+			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL))
 		} else {
-			let infos = try AppState.shared.virtualMachineInfos(rootURL: vmURL)
+			let infos = try AppState.shared.virtualMachineInfos(vmURL: vmURL)
 			
 			return try VirtualMachineDocument(vmURL: vmURL, infos: infos.infos, config: infos.config)
 		}
@@ -620,7 +620,7 @@ extension VirtualMachineDocument {
 			}
 
 			if self.url.isFileURL {
-				if let location = try? VMLocation.newVMLocation(rootURL: self.url) {
+				if let location = try? VMLocation.newVMLocation(vmURL: self.url) {
 					return self.loadVirtualMachine(location)
 				}
 			} else {
@@ -645,8 +645,8 @@ extension VirtualMachineDocument {
 		let vncPort = try Utilities.findFreePort()
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
-		let result = try AppState.shared.startVirtualMachine(rootURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service)
-		let vncURL = try AppState.shared.vncURL(rootURL: location)
+		let result = try AppState.shared.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service)
+		let vncURL = try AppState.shared.vncURL(vmURL: location)
 #if DEBUG
 		self.logger.debug("VM started on \(result.ip)")
 		self.logger.debug("Found VNC URL: \(vncURL)")
@@ -747,7 +747,7 @@ extension VirtualMachineDocument {
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.restartVirtualMachine(rootURL: self.url)
+					try AppState.shared.restartVirtualMachine(vmURL: self.url)
 				} catch {
 					await alertError(error)
 				}
@@ -765,7 +765,7 @@ extension VirtualMachineDocument {
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.stopVirtualMachine(rootURL: self.url)
+					try AppState.shared.stopVirtualMachine(vmURL: self.url)
 					await self.setStateAsStopped()
 				} catch {
 					await alertError(error)
@@ -788,7 +788,7 @@ extension VirtualMachineDocument {
 		if self.externalRunning {
 			Task {
 				do {
-					try AppState.shared.suspendVirtualMachine(rootURL: self.url)
+					try AppState.shared.suspendVirtualMachine(vmURL: self.url)
 					await self.setStateAsStopped(.paused)
 				} catch {
 					await alertError(error)
@@ -884,19 +884,19 @@ extension VirtualMachineDocument {
 			#endif
 
 			Task {
-				await AppState.shared.setVncScreenSize(rootURL: self.url, screenSize: screenSize)
+				await AppState.shared.setVncScreenSize(vmURL: self.url, screenSize: screenSize)
 			}
 		}
 	}
 
 	func getVncScreenSize() -> ViewSize {
 		let screenSize = ViewSize(width: CGFloat(self.virtualMachineConfig.display.width), height: CGFloat(self.virtualMachineConfig.display.height))
-		return AppState.shared.getVncScreenSize(rootURL: self.url, screenSize)
+		return AppState.shared.getVncScreenSize(vmURL: self.url, screenSize)
 	}
 
 	func retrieveVNCURL() {
 		MainActor.assumeIsolated {
-			if let url = try? AppState.shared.vncURL(rootURL: self.url) {
+			if let url = try? AppState.shared.vncURL(vmURL: self.url) {
 				self.logger.info("Found VNC URL: \(url)")
 
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
@@ -1067,7 +1067,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 // MARK: - Agent Monitoring
 extension VirtualMachineDocument {
 	func createCakeAgentHelper(connectionTimeout: Int64 = 1, retries: ConnectionBackoff.Retries = .upTo(1)) throws -> CakeAgentHelper {
-		try CakeAgentHelper.createCakeAgentHelper(rootURL: self.url, connectionTimeout: connectionTimeout, retries: retries, runMode: .app)
+		try CakeAgentHelper.createCakeAgentHelper(vmURL: self.url, connectionTimeout: connectionTimeout, retries: retries, runMode: .app)
 	}
 	
 	func installAgent(updateAgent: Bool, _ done: @escaping (_ agent: AgentStatus) -> Void) {

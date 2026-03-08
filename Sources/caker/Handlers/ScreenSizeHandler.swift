@@ -9,16 +9,16 @@ import CakedLib
 import GRPCLib
 
 extension ScreenSizeHandler {
-	public static func setScreenSize(client: CakedServiceClient?, rootURL: URL, width: Int, height: Int, runMode: Utils.RunMode) throws -> ScreenSizeReply {
+	public static func setScreenSize(client: CakedServiceClient?, vmURL: URL, width: Int, height: Int, runMode: Utils.RunMode) throws -> ScreenSizeReply {
 		guard let client else {
-			return self.setScreenSize(rootURL: rootURL, width: width, height: height, runMode: runMode)
+			return self.setScreenSize(vmURL: vmURL, width: width, height: height, runMode: runMode)
 		}
 
-		if rootURL.isFileURL {
-			return self.setScreenSize(rootURL: rootURL, width: width, height: height, runMode: runMode)
+		if vmURL.isFileURL {
+			return self.setScreenSize(vmURL: vmURL, width: width, height: height, runMode: runMode)
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 
@@ -31,16 +31,16 @@ extension ScreenSizeHandler {
 		}).response.wait().screenSize)
 	}
 	
-	public static func getScreenSize(client: CakedServiceClient?, rootURL: URL, runMode: Utils.RunMode) throws -> ScreenSizeReply {
+	public static func getScreenSize(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> ScreenSizeReply {
 		guard let client else {
-			return self.getScreenSize(rootURL: rootURL, runMode: runMode)
+			return self.getScreenSize(vmURL: vmURL, runMode: runMode)
 		}
 		
-		if rootURL.isFileURL {
-			return self.getScreenSize(rootURL: rootURL, runMode: runMode)
+		if vmURL.isFileURL {
+			return self.getScreenSize(vmURL: vmURL, runMode: runMode)
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

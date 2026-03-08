@@ -38,13 +38,13 @@ extension CakeAgentHelper {
 		return CakeAgentHelper(on: eventLoop, client: client)
 	}
 
-	public static func createCakeAgentHelper(rootURL: URL, connectionTimeout: Int64 = 1, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakeAgentHelper {
+	public static func createCakeAgentHelper(vmURL: URL, connectionTimeout: Int64 = 1, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakeAgentHelper {
 		// Create a short-lived client for the health check
 		let eventLoop = Utilities.group.next()
 		let client = try Utilities.createCakeAgentClient(
 			on: eventLoop.next(),
 			runMode: runMode,
-			rootURL: rootURL,
+			vmURL: vmURL,
 			connectionTimeout: connectionTimeout,
 			retries: retries
 		)

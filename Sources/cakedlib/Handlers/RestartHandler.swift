@@ -22,11 +22,11 @@ public struct RestartHandler {
 		}
 	}
 
-	public static func restart(rootURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
+	public static func restart(vmURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) -> RestartedObject {
 		do {
-			return try restart(location: VMLocation.newVMLocation(rootURL: rootURL), force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+			return try restart(location: VMLocation.newVMLocation(vmURL: vmURL), force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 		} catch {
-			return RestartedObject(name: rootURL.absoluteString, restarted: false, reason: "\(error)")
+			return RestartedObject(name: vmURL.absoluteString, restarted: false, reason: "\(error)")
 		}
 	}
 

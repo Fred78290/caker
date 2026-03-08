@@ -13,16 +13,16 @@ import GRPC
 import NIO
 
 extension InfosHandler {
-	public static func infos(client: CakedServiceClient?, rootURL: URL, runMode: Utils.RunMode) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
+	public static func infos(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {
 		guard let client else {
-			return try self.infos(rootURL: rootURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(rootURL: rootURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+			return try self.infos(vmURL: vmURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(vmURL: vmURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 		}
 
-		if rootURL.isFileURL {
-			return try self.infos(rootURL: rootURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(rootURL: rootURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
+		if vmURL.isFileURL {
+			return try self.infos(vmURL: vmURL, runMode: runMode, client: try CakeAgentHelper.createCakeAgentHelper(vmURL: vmURL, runMode: runMode), callOptions: .init(timeLimit: TimeLimit.timeout(TimeAmount.seconds(5))))
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

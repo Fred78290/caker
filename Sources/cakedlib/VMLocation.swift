@@ -20,15 +20,15 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		self.template ? "template" : "vm"
 	}
 
-	public static func newVMLocation(rootURL: URL) throws -> Self {
-		if rootURL.isFileURL {
-			let location = VMLocation(rootURL: rootURL, template: false)
+	public static func newVMLocation(vmURL: URL) throws -> Self {
+		if vmURL.isFileURL {
+			let location = VMLocation(rootURL: vmURL, template: false)
 
 			try location.validate().rootURL.updateAccessDate()
 
 			return location
-		} else if rootURL.scheme == Self.scheme {
-			guard let host = rootURL.host(percentEncoded: false) else {
+		} else if vmURL.scheme == Self.scheme {
+			guard let host = vmURL.host(percentEncoded: false) else {
 				throw ServiceError("Internal error")
 			}
 

@@ -3,16 +3,16 @@ import CakedLib
 import GRPCLib
 
 extension DeleteHandler {
-	public static func delete(client: CakedServiceClient?, rootURL: URL, runMode: Utils.RunMode) throws -> DeleteReply {
+	public static func delete(client: CakedServiceClient?, vmURL: URL, runMode: Utils.RunMode) throws -> DeleteReply {
 		guard let client else {
-			return self.delete(rootURL: rootURL, runMode: runMode)
+			return self.delete(vmURL: vmURL, runMode: runMode)
 		}
 
-		if rootURL.isFileURL {
-			return self.delete(rootURL: rootURL, runMode: runMode)
+		if vmURL.isFileURL {
+			return self.delete(vmURL: vmURL, runMode: runMode)
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

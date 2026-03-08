@@ -388,8 +388,8 @@ public struct Utilities {
 		return localAgent
 	}
 
-	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, rootURL: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
-		return try createCakeAgentClient(on: on, runMode: runMode, location: try VMLocation.newVMLocation(rootURL: rootURL).validate(), retries: retries)
+	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, vmURL: URL, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {
+		return try createCakeAgentClient(on: on, runMode: runMode, location: try VMLocation.newVMLocation(vmURL: vmURL).validate(), retries: retries)
 	}
 
 	public static func createCakeAgentClient(on: EventLoopGroup, runMode: Utils.RunMode, location: VMLocation, connectionTimeout: Int64 = 30, retries: ConnectionBackoff.Retries = .unlimited) throws -> CakeAgentClient {

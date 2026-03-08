@@ -144,17 +144,17 @@ public struct ShellHandler {
 		case eof(Bool)
 	}
 
-	public static func shell(name: String, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> ShellHandlerProtocol {
-		if runMode == .app {
-			return try ShellCakeAgent(name: name).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
+	public static func shell(vmURL: URL, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> ShellHandlerProtocol {
+		if vmURL.isFileURL {
+			return try ShellCakeAgent(vmURL: vmURL).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
-			return try ShellCaked(name: name, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
+			return try ShellCaked(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
 	}
 
 	internal class ShellCaked: ShellHandlerProtocol {
 		private let name: String
-		private let runMode: Utils.RunMode = .app
+		private let runMode: Utils.RunMode
 		private let logger = Logger("ShellHandler")
 		private var serviceClient: CakedServiceClient! = nil
 		private var shellStream: CakedExecuteStream! = nil
@@ -163,10 +163,20 @@ public struct ShellHandler {
 
 		init(name: String, runMode: Utils.RunMode) throws {
 			self.name = name
+			self.runMode = runMode
 		}
 
-		init(rootURL: URL) throws {
-			self.name = rootURL.lastPathComponent.deletingPathExtension
+		init(vmURL: URL, runMode: Utils.RunMode) throws {
+			if vmURL.isFileURL {
+				throw ServiceError("Cannot create ShellCaked for file URL: \(vmURL)")
+			}
+
+			guard let name = vmURL.host(percentEncoded: false) else {
+				throw ServiceError("Wrong URL: \(vmURL). Cannot extract name")
+			}
+
+			self.name = name
+			self.runMode = runMode
 		}
 
 		func createCakedServiceClient(connectionTimeout: Int64, runMode: Utils.RunMode) throws -> CakedServiceClient {

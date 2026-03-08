@@ -9,20 +9,20 @@ import CakedLib
 import GRPCLib
 
 extension RestartHandler {
-	public static func restart(client: CakedServiceClient?, rootURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws -> RestartReply {
+	public static func restart(client: CakedServiceClient?, vmURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws -> RestartReply {
 		guard let client else {
 			return RestartReply(objects: [
-				self.restart(rootURL: rootURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+				self.restart(vmURL: vmURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 			], success: true, reason: "Succes")
 		}
 
-		if rootURL.isFileURL {
+		if vmURL.isFileURL {
 			return RestartReply(objects: [
-				self.restart(rootURL: rootURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+				self.restart(vmURL: vmURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 			], success: true, reason: "Succes")
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

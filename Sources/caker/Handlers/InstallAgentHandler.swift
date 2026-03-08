@@ -10,16 +10,16 @@ import CakedLib
 import GRPCLib
 
 extension InstallAgentHandler {
-	public static func installAgent(client: CakedServiceClient?, rootURL: URL, timeout: UInt, runMode: Utils.RunMode) throws -> InstalledAgentReply {
+	public static func installAgent(client: CakedServiceClient?, vmURL: URL, timeout: UInt, runMode: Utils.RunMode) throws -> InstalledAgentReply {
 		guard let client else {
-			return self.installAgent(rootURL: rootURL, timeout: timeout, runMode: runMode)
+			return self.installAgent(vmURL: vmURL, timeout: timeout, runMode: runMode)
 		}
 
-		if rootURL.isFileURL {
-			return self.installAgent(rootURL: rootURL, timeout: timeout, runMode: runMode)
+		if vmURL.isFileURL {
+			return self.installAgent(vmURL: vmURL, timeout: timeout, runMode: runMode)
 		}
 
-		guard let host = rootURL.host(percentEncoded: false) else {
+		guard let host = vmURL.host(percentEncoded: false) else {
 			throw ServiceError("Internal error")
 		}
 

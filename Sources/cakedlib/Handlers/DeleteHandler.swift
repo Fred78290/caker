@@ -28,7 +28,7 @@ public struct DeleteHandler {
 				if u.scheme == VMLocation.scheme {
 					location = try StorageLocation(runMode: runMode).find(u.host(percentEncoded: false)!)
 				} else {
-					location = try VMLocation.newVMLocation(rootURL: u)
+					location = try VMLocation.newVMLocation(vmURL: u)
 				}
 
 				return try doIt(location)
@@ -107,14 +107,14 @@ public struct DeleteHandler {
 		}
 	}
 
-	public static func delete(rootURL: URL, runMode: Utils.RunMode) -> DeleteReply {
+	public static func delete(vmURL: URL, runMode: Utils.RunMode) -> DeleteReply {
 		do {
-			let location = try VMLocation.newVMLocation(rootURL: rootURL)
+			let location = try VMLocation.newVMLocation(vmURL: vmURL)
 
 			return delete(location: location, runMode: runMode)
 		} catch {
 			return DeleteReply(objects: [
-				DeletedObject(source: "vm", name: rootURL.absoluteString, deleted: false, reason: "VM not found")
+				DeletedObject(source: "vm", name: vmURL.absoluteString, deleted: false, reason: "VM not found")
 			], success: false, reason: "\(error)")
 		}
 	}

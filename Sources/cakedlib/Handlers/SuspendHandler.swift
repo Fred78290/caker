@@ -7,8 +7,8 @@ import SystemConfiguration
 import CakeAgentLib
 
 public struct SuspendHandler {
-	public static func suspendVM(rootURL: URL, runMode: Utils.RunMode) throws -> SuspendedObject {
-		try suspendVM(location: VMLocation.newVMLocation(rootURL: rootURL), runMode: runMode)
+	public static func suspendVM(vmURL: URL, runMode: Utils.RunMode) throws -> SuspendedObject {
+		try suspendVM(location: VMLocation.newVMLocation(vmURL: vmURL), runMode: runMode)
 	}
 
 	public static func suspendVM(name: String, runMode: Utils.RunMode) throws -> SuspendedObject {
