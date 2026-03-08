@@ -93,6 +93,13 @@ struct PairedVirtualMachineDocumentComparator: SortComparator {
 }
 
 class AppState: ObservableObject, Observable {
+	private struct ServiceReply {
+		let remotes: [RemoteEntry]
+		let templates: [TemplateEntry]
+		let networks: [BridgedNetwork]
+		let virtualMachines: [URL: VirtualMachineDocument]
+	}
+
 	private let logger = Logger("AppState")
 	private var agentStatusTimer: RepeatedTask? = nil
 	private static var _shared: AppState! = nil
@@ -200,14 +207,18 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
-	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
-		struct ServiceReply {
-			let remotes: [RemoteEntry]
-			let templates: [TemplateEntry]
-			let networks: [BridgedNetwork]
-			let virtualMachines: [URL: VirtualMachineDocument]
-		}
+	private func loadService() throws -> ServiceReply {
+		self.logger.debug("Loading data for mode: runMode=\(self.runMode)")
 
+		return try ServiceReply(
+			remotes: Self.loadRemotes(client: self.serviceClient, runMode: runMode),
+			templates: Self.loadTemplates(client: self.serviceClient, runMode: runMode),
+			networks: Self.loadNetworks(client: self.serviceClient, runMode: runMode),
+			virtualMachines: Self.loadVirtualMachines(client: self.serviceClient, runMode: runMode)
+		)
+	}
+
+	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
 		self.logger.debug("Switching mode: installed=\(installed), runMode=\(runMode)")
 
 		if runMode == .app {
@@ -223,14 +234,13 @@ class AppState: ObservableObject, Observable {
 		}
 
 		let serviceReplyFuture = Utilities.group.next().makeFutureWithTask {
-			self.logger.debug("Loading data for new mode: installed=\(installed), runMode=\(runMode)")
+			try self.loadService()
+		}
 
-			return ServiceReply(
-				remotes: Self.loadRemotes(client: self.serviceClient, runMode: runMode),
-				templates: Self.loadTemplates(client: self.serviceClient, runMode: runMode),
-				networks: Self.loadNetworks(client: self.serviceClient, runMode: runMode),
-				virtualMachines: Self.loadVirtualMachines(client: self.serviceClient, runMode: runMode)
-			)
+		serviceReplyFuture.whenFailure { error in
+			DispatchQueue.main.async {
+				alertError(error)
+			}
 		}
 
 		serviceReplyFuture.whenSuccess { serviceReply in
@@ -280,10 +290,17 @@ class AppState: ObservableObject, Observable {
 		self.cakedServiceInstalled = cakedServiceInstalled
 		self.cakedServiceRunning = cakedServiceRunning
 		self.cakedServiceClient = cakedServiceClient
-		self.virtualMachines = Self.loadVirtualMachines(client: cakedServiceClient, runMode: runMode)
-		self.networks = Self.loadNetworks(client: cakedServiceClient, runMode: runMode)
-		self.remotes = Self.loadRemotes(client: cakedServiceClient, runMode: runMode)
-		self.templates = Self.loadTemplates(client: cakedServiceClient, runMode: runMode)
+
+		if runMode == .app {
+			if let serviceReply = try? self.loadService() {
+				self.virtualMachines = serviceReply.virtualMachines
+				self.networks = serviceReply.networks
+				self.remotes = serviceReply.remotes
+				self.templates = serviceReply.templates
+			}
+		} else {
+			self.switchMode(cakedServiceInstalled, runMode: runMode)
+		}
 	}
 
 	static func loadNetworks(client: CakedServiceClient?, runMode: Utils.RunMode) -> [BridgedNetwork] {
@@ -294,28 +311,20 @@ class AppState: ObservableObject, Observable {
 		return result.networks.sorted(using: BridgedNetworkComparator())
 	}
 
-	static func loadRemotes(client: CakedServiceClient?, runMode: Utils.RunMode) -> [RemoteEntry] {
-		guard let result = try? RemoteHandler.listRemote(client: client, runMode: runMode) else {
-			return []
-		}
-
-		return result.remotes.sorted(using: RemoteHandlerComparator())
+	static func loadRemotes(client: CakedServiceClient?, runMode: Utils.RunMode)throws  -> [RemoteEntry] {
+		return try RemoteHandler.listRemote(client: client, runMode: runMode).remotes.sorted(using: RemoteHandlerComparator())
 	}
 
-	static func loadTemplates(client: CakedServiceClient?, runMode: Utils.RunMode) -> [TemplateEntry] {
-		guard let result = try? TemplateHandler.listTemplate(client: client, runMode: runMode) else {
-			return []
-		}
-
-		return result.templates.sorted(using: TemplateEntryComparator())
+	static func loadTemplates(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> [TemplateEntry] {
+		try TemplateHandler.listTemplate(client: client, runMode: runMode).templates.sorted(using: TemplateEntryComparator())
 	}
 
-	static func loadImages(client: CakedServiceClient?, remote: String, runMode: Utils.RunMode) async -> [ImageInfo] {
-		await ImageHandler.listImage(client: client, remote: remote, runMode: runMode).infos
+	static func loadImages(client: CakedServiceClient?, remote: String, runMode: Utils.RunMode) async throws -> [ImageInfo] {
+		try await ImageHandler.listImage(client: client, remote: remote, runMode: runMode).infos
 	}
 
-	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) -> ([URL: VirtualMachineDocument]) {
-		VirtualMachineDocument.createVirtualMachineDocuments(client: client, runMode: runMode)
+	static func loadVirtualMachines(client: CakedServiceClient?, runMode: Utils.RunMode) throws -> ([URL: VirtualMachineDocument]) {
+		return try VirtualMachineDocument.loadVirtualMachineDocuments(client: client, runMode: runMode)
 	}
 
 	func loadNetworks() -> [BridgedNetwork] {
@@ -327,7 +336,11 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func loadRemotes() -> [RemoteEntry] {
-		Self.loadRemotes(client: self.serviceClient, runMode: self.runMode)
+		if let result = try? Self.loadRemotes(client: self.serviceClient, runMode: self.runMode) {
+			return result
+		}
+
+		return []
 	}
 
 	func reloadRemotes() {
@@ -335,7 +348,11 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func loadTemplates() -> [TemplateEntry] {
-		Self.loadTemplates(client: self.serviceClient, runMode: self.runMode)
+		if let result = try? Self.loadTemplates(client: self.serviceClient, runMode: self.runMode) {
+			return result
+		}
+
+		return []
 	}
 
 	func reloadTemplates() {
@@ -343,7 +360,11 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func loadImages(remote: String) async -> [ImageInfo] {
-		await Self.loadImages(client: self.serviceClient, remote: remote, runMode: self.runMode)
+		if let result = try? await Self.loadImages(client: self.serviceClient, remote: remote, runMode: self.runMode) {
+			return result
+		}
+
+		return []
 	}
 
 	func createNetwork(network: BridgedNetwork) throws {
