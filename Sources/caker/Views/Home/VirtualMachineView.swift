@@ -25,6 +25,7 @@ extension Shape {
 }
 
 struct VirtualMachineView: View {
+	@Environment(\.openDocument) private var openDocument
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
@@ -120,6 +121,12 @@ struct VirtualMachineView: View {
 				}
 		}
 		.contextMenu {
+			Button("Open") {
+				Task {
+					try? await self.openDocument(at: vm.url)
+				}
+			}
+			Divider()
 			Button("Start") {
 				self.vm.startFromUI()
 			}.disabled(self.vm.status.isRunning)
