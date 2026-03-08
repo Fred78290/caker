@@ -93,6 +93,7 @@ struct MainAppParseArgument: ParsableCommand {
 	}
 }
 
+@main
 struct MainApp: App {
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
@@ -102,6 +103,7 @@ struct MainApp: App {
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
 
 	init() {
+		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
 	}
 
