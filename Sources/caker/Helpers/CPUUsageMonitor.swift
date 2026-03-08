@@ -13,8 +13,9 @@ import SwiftUI
 
 typealias AsyncThrowingStreamCakeAgentCurrentUsageReply = (stream: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>, continuation: AsyncThrowingStream<CakeAgent.CurrentUsageReply, Error>.Continuation)
 
-final class CPUUsageMonitor: Sendable {
-	@StateObject var document: VirtualMachineDocument
+final class CPUUsageMonitor {
+	private let document: VirtualMachineDocument
+	private let name: String
 	private var isMonitoring: Bool = false
 	private var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 	private let logger = Logger("CPUUsageMonitor")
@@ -23,8 +24,9 @@ final class CPUUsageMonitor: Sendable {
 		self.cancel()
 	}
 
-	init(document: StateObject<VirtualMachineDocument>) {
-		self._document = document
+	init(document: VirtualMachineDocument) {
+		self.document = document
+		self.name = document.name
 	}
 
 	func start() async {
@@ -50,12 +52,12 @@ final class CPUUsageMonitor: Sendable {
 			return
 		}
 
-		let name = self.document.name
+		let name = self.name
 
-		logger.debug("Start monitoring current CPU usage, VM: \(self.document.name)")
+		logger.debug("Start monitoring current CPU usage, VM: \(self.name)")
 
 		await withTaskCancellationHandler(operation: {
-			let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(self.document.name)")
+			let taskQueue = TaskQueue(label: "CakeAgent.CPUUsageMonitor.\(name)")
 			var helper: CakeAgentHelper! = nil
 
 			self.isMonitoring = true
@@ -83,7 +85,7 @@ final class CPUUsageMonitor: Sendable {
 			while Task.isCancelled == false && self.isMonitoring {
 
 				do {
-					helper = try document.createCakeAgentHelper(connectionTimeout: 5, retries: .unlimited)
+					helper = try self.document.createCakeAgentHelper(connectionTimeout: 5, retries: .unlimited)
 
 					self.stream = performAgentHealthCheck()
 
@@ -122,11 +124,19 @@ final class CPUUsageMonitor: Sendable {
 		}, onCancel: {
 			self.logger.debug("Monitoring canceled, VM: \(name)")
 
-			try? Utilities.group.next().makeFutureWithTask {
-				await MainActor.run {
-					self.stream?.continuation.finish()
+			if let stream = self.stream {
+				let logger = self.logger
+
+				let result = Utilities.group.next().makeFutureWithTask {
+					await MainActor.run {
+						stream.continuation.finish()
+					}
 				}
-			}.wait()
+				
+				result.whenFailure { error in
+					logger.debug("Failed to cancel agent monitoring, VM: \(name), error: \(error)")
+				}
+			}
 		})
 	}
 
@@ -142,28 +152,28 @@ final class CPUUsageMonitor: Sendable {
 	}
 
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {
-		self.logger.debug("Agent monitoring: VM \(self.document.name) is not ready")
+		self.logger.debug("Agent monitoring: VM \(self.name) is not ready")
 
 		func handleGrpcStatus(_ grpcError: GRPCStatus) -> Bool {
 			switch grpcError.code {
 			case .unavailable:
 				// These could be temporary - continue monitoring
-				self.logger.debug("Agent monitoring: VM \(self.document.name) agent unvailable")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent unvailable")
 				return true
 			case .cancelled:
 				// These could be temporary - continue monitoring
-				self.logger.debug("Agent monitoring: VM \(self.document.name) agent cancelled")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent cancelled")
 			case .deadlineExceeded:
 				// Timeout - VM might be under heavy load
-				self.logger.debug("Agent monitoring: VM \(self.document.name) agent timeout")
+				self.logger.debug("Agent monitoring: VM \(self.name) agent timeout")
 				return true
 			case .unimplemented:
 				// unimplemented - Agent is too old, need update
-				self.logger.warn("Agent monitoring: VM \(self.document.name) agent is too old, need update")
+				self.logger.warn("Agent monitoring: VM \(self.name) agent is too old, need update")
 				return true
 			default:
 				// Other errors might indicate serious issues
-				self.logger.error("Agent monitoring: VM \(self.document.name) agent error: \(grpcError)")
+				self.logger.error("Agent monitoring: VM \(self.name) agent error: \(grpcError)")
 			}
 
 			return false
