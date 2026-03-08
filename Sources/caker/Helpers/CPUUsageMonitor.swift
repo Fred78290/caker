@@ -51,7 +51,6 @@ final class CPUUsageMonitor: Sendable {
 		}
 
 		let name = self.document.name
-		var stream: AsyncThrowingStreamCakeAgentCurrentUsageReply? = nil
 
 		logger.debug("Start monitoring current CPU usage, VM: \(self.document.name)")
 
