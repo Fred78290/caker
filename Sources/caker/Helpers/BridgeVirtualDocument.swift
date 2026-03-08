@@ -39,7 +39,7 @@ struct BridgeVirtualDocument: FileDocument {
 				throw ServiceError("Unable to load virtual machine")
 			}
 
-			AppState.shared.replaceVirtualMachineDocument(self.attachedVirtualDocument.location.rootURL, with: self.attachedVirtualDocument)
+			AppState.shared.replaceVirtualMachineDocument(self.attachedVirtualDocument.url, with: self.attachedVirtualDocument)
 		}
 
 		if Thread.isMainThread {

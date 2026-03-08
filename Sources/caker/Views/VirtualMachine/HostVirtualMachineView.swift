@@ -106,7 +106,7 @@ struct HostVirtualMachineView: View {
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 		self.monitoringTask = CPUUsageMonitor(document: _document)
-		self.interactiveShell = InteractiveShell(rootURL: document.location.rootURL)
+		self.interactiveShell = InteractiveShell(rootURL: document.url)
 	}
 
 	var body: some View {
