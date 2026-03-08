@@ -395,7 +395,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 				vms = result.infos.reduce(into: vms) { (partialResult, info) in
 					if let vmURL = URL(string: info.fqn.first!), let name = vmURL.host(percentEncoded: false), let location = try? storage.find(name), let vm = try? VirtualMachineDocument(location: location) {
-						partialResult[vmURL] = vm
+						partialResult[location.rootURL] = vm
 					}
 				}
 			}
