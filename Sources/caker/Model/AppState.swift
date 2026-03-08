@@ -152,7 +152,7 @@ class AppState: ObservableObject, Observable {
 
 	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
 		if let document = self.findVirtualMachineDocument(vmURL) {
-			//document.vmInfos?.update(value)
+			await document.setUsage(value)
 		}
 	}
 

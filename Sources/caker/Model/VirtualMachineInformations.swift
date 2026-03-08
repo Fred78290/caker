@@ -75,6 +75,12 @@ final class MemoryInfo: ObservableObject, Observable {
 		self.used = infos?.used ?? self.used
 	}
 	
+	func update(_ infos: Caked_Caked.MemoryInfo) {
+		self.total = infos.total
+		self.free = infos.free
+		self.used = infos.used
+	}
+	
 	func update(_ infos: InfoReply.MemoryInfo?) {
 		self.total = infos?.total ?? self.total
 		self.free = infos?.free ?? self.free
@@ -170,6 +176,29 @@ final class CpuInfos: ObservableObject, Observable {
 		}
 	}
 	
+	func update(_ infos: Caked_InfoReplyCpuInfo) {
+		self.totalUsagePercent = infos.totalUsagePercent
+		self.user = infos.user
+		self.system = infos.system
+		self.idle = infos.idle
+		self.iowait = infos.iowait
+		self.irq = infos.irq
+		self.softirq = infos.softirq
+		self.cores = infos.cores.map {
+			CoreInfo(coreID: $0.coreID,
+					 usagePercent: $0.usagePercent,
+					 user: $0.user,
+					 system: $0.system,
+					 idle: $0.idle,
+					 iowait: $0.iowait,
+					 irq: $0.irq,
+					 softirq: $0.softirq,
+					 steal: $0.steal,
+					 guest: $0.guest,
+					 guestNice: $0.guestNice)
+		}
+	}
+
 	func update(_ infos: CpuInformations?) {
 		if let infos {
 			self.totalUsagePercent = infos.totalUsagePercent

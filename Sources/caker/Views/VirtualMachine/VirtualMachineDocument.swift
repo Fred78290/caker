@@ -1236,3 +1236,16 @@ extension VirtualMachineDocument {
 	}
 }
 
+extension VirtualMachineDocument {
+	/// Update the document's usage information with new VMUsage data asynchronously on the main actor
+	@MainActor
+	public func setUsage(_ usage: Caked_CurrentUsageReply) async {
+		if usage.hasCpuInfos {
+			self.cpuInfos.update(usage.cpuInfos)
+		}
+
+		if usage.hasMemory {
+			self.memoryInfos.update(usage.memory)
+		}
+	}
+}
