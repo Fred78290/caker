@@ -420,7 +420,7 @@ extension VirtualMachineDocument {
 
 		self.vncURL = nil
 		self.vncStatus = .disconnected
-		
+		self.stopAgentMonitoring()
 		if self.externalRunning == false {
 			self.status = .stopped
 		}
