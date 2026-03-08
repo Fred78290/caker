@@ -354,10 +354,8 @@ extension Caked.Configuration.ImageSource {
 			self = .stream
 		case .iso:
 			self = .iso
-		#if arch(arm64)
 		case .ipsw:
 			self = .ipsw
-		#endif
 		}
 	}
 }

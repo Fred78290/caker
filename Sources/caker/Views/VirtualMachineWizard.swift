@@ -677,25 +677,23 @@ struct VirtualMachineWizard: View {
 						}
 					}
 
-				#if arch(arm64)
-					case .ipsw:
-						LabeledContent("Choose an IPSW image.") {
-							HStack {
-								TextField("IPSW Image", text: $config.imageName)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
-								Button(action: {
-									if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-										self.config.imageName = "ipsw://\(imageName)"
-									}
-								}) {
-									Image(systemName: "document.badge.gearshape")
-								}
+				case .ipsw:
+					LabeledContent("Choose an IPSW image.") {
+						HStack {
+							TextField("IPSW Image", text: $config.imageName)
+								.rounded(.leading)
 								.disabled(self.model.createVM)
-								.buttonStyle(.borderless)
+							Button(action: {
+								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+									self.config.imageName = "ipsw://\(imageName)"
+								}
+							}) {
+								Image(systemName: "document.badge.gearshape")
 							}
+							.disabled(self.model.createVM)
+							.buttonStyle(.borderless)
 						}
-				#endif
+					}
 
 				case .cloud:
 					LabeledContent {
