@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import GRPCLib
+import CakedLib
 
 extension Shape {
 	func fill<Fill: ShapeStyle, Stroke: ShapeStyle>(_ fillStyle: Fill, strokeBorder strokeStyle: Stroke, lineWidth: Double = 1) -> some View {
@@ -122,9 +124,7 @@ struct VirtualMachineView: View {
 		}
 		.contextMenu {
 			Button("Open") {
-				Task {
-					try? await self.openDocument(at: vm.url)
-				}
+				self.open()
 			}
 			Divider()
 			Button("Start") {
@@ -149,6 +149,22 @@ struct VirtualMachineView: View {
 			}.disabled(vm.status.isRunning)
 		}
 
+	}
+
+	func open() {
+		func showError(error: Error) {
+			_ = Utilities.group.next().makeFutureWithTask {
+				await alertError(error)
+			}
+		}
+
+		let result = Utilities.group.next().makeFutureWithTask {
+			try await self.openDocument(at: vm.url)
+		}
+		
+		result.whenFailure { error in
+			showError(error: error)
+		}
 	}
 
 	func action() {
