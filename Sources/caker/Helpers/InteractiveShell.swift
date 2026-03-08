@@ -14,7 +14,7 @@ typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingSt
 
 class InteractiveShell {
 	let name: String
-	let rootURL: URL
+	let vmURL: URL
 
 	private var shellStream: ShellHandler.ShellHandlerProtocol! = nil
 	private let logger = Logger("InteractiveShell")
@@ -23,9 +23,9 @@ class InteractiveShell {
 		self.closeShell()
 	}
 
-	init(rootURL: URL) {
-		self.rootURL = rootURL
-		self.name = rootURL.lastPathComponent.deletingPathExtension
+	init(_ vmURL: URL) {
+		self.vmURL = vmURL
+		self.name = vmURL.lastPathComponent.deletingPathExtension
 	}
 	
 	func sendTerminalSize(rows: Int, cols: Int) {
@@ -51,6 +51,7 @@ class InteractiveShell {
 
 		self.shellStream = nil
 		
+		
 		shellStream.closeShell {
 			
 		}
@@ -59,7 +60,7 @@ class InteractiveShell {
 	func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) async {
 		await withTaskCancellationHandler(operation: {
 			do {
-				self.shellStream = try ShellHandler.shell(name: self.name, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
+				self.shellStream = try ShellHandler.shell(vmURL: self.vmURL, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
 				
 				try await self.shellStream.handleResponse { message in
 					await handler(message)

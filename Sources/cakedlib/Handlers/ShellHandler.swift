@@ -213,7 +213,7 @@ public struct ShellHandler {
 				return self
 			}
 			
-			self.logger.debug("Start shell, VM: \(self.name)")
+			self.logger.debug("Starting shell, VM: \(self.name)")
 			
 			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols, serviceClient: serviceClient)
 			self.serviceClient = serviceClient
@@ -331,12 +331,8 @@ public struct ShellHandler {
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 
-		init(name: String) throws {
-			self.location = try StorageLocation(runMode: runMode).find(name)
-		}
-
-		init(rootURL: URL) throws {
-			self.location = try VMLocation.newVMLocation(rootURL: rootURL)
+		init(vmURL: URL) throws {
+			self.location = try VMLocation.newVMLocation(vmURL: vmURL)
 		}
 
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> ShellHandlerProtocol {
@@ -346,7 +342,7 @@ public struct ShellHandler {
 				return self
 			}
 			
-			self.logger.debug("Start shell, VM: \(self.location.name)")
+			self.logger.debug("Starting shell, VM: \(self.location.name)")
 			
 			self.stream = self.startShell(rows: terminalSize.rows, cols: terminalSize.cols, helper: cakeHelper)
 			self.helper = cakeHelper
