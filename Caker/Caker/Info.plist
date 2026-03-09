@@ -21,6 +21,21 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string>Document</string>
+			<key>CFBundleURLName</key>
+			<string>cakedvm</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>caked-vm</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
