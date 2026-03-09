@@ -7,6 +7,12 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 
+class CakedDocumentController: NSDocumentController {
+	override func typeForContents(of: URL) throws -> String {
+		return try super.typeForContents(of: of)
+	}
+}
+
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String) {
 	let alert = NSAlert()
@@ -268,7 +274,13 @@ struct MainApp: App {
 class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	static private(set) var instance: MainUIAppDelegate!
 
+	private let controller: CakedDocumentController
+
 	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
+
+	override init() {
+		self.controller = CakedDocumentController()
+	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		MainUIAppDelegate.instance = self
