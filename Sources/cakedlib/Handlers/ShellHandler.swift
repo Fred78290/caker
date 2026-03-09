@@ -16,7 +16,7 @@ public struct ShellHandler {
 		func sendTerminalSize(rows: Int, cols: Int)
 		func sendDatas(data: ArraySlice<UInt8>)
 		func sendEof()
-		func handleResponse(_ handler: @escaping (ExecuteResponse) async -> Void) async throws
+		func handleResponse(_ handler: @MainActor @escaping (ExecuteResponse) async -> Void) async throws
 		func closeShell(_ completionHandler: (@MainActor () -> Void)?)
 		func finish()
 	}
@@ -245,7 +245,7 @@ public struct ShellHandler {
 			}
 		}
 		
-		func handleResponse(_ handler: @escaping (ShellHandler.ExecuteResponse) async -> Void) async throws {
+		func handleResponse(_ handler: @MainActor @escaping (ShellHandler.ExecuteResponse) async -> Void) async throws {
 			for try await response in self.stream.stream {
 				await handler(response)
 			}
@@ -382,7 +382,7 @@ public struct ShellHandler {
 			}
 		}
 		
-		public func handleResponse(_ handler: @escaping (ExecuteResponse) async -> Void) async throws {
+		public func handleResponse(_ handler: @MainActor @escaping (ExecuteResponse) async -> Void) async throws {
 			for try await response in self.stream.stream {
 				await handler(response)
 			}
@@ -445,7 +445,6 @@ public struct ShellHandler {
 						continuation.yield(ExecuteResponse(response))
 					}
 					
-					self.shellStream.sendShell()
 					self.shellStream.sendTerminalSize(rows: rows, cols: cols)
 					self.shellStream.sendShell()
 					

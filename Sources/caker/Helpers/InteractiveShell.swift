@@ -63,7 +63,7 @@ class InteractiveShell {
 				self.shellStream = try ShellHandler.shell(vmURL: self.vmURL, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
 				
 				try await self.shellStream.handleResponse { message in
-					await handler(message)
+					handler(message)
 				}
 			} catch {
 				guard self.handleAgentHealthCheckFailure(error: error) else {
