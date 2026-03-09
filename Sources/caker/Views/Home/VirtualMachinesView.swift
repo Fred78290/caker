@@ -52,7 +52,7 @@ struct VirtualMachinesView: View {
 								self.navigationModel.selectedVirtualMachine = vm.document
 
 								Task {
-									try? await self.openDocument(at: vm.document.location.rootURL)
+									try? await self.openDocument(at: vm.document.url)
 								}
 							}
 							.onTapGesture {
