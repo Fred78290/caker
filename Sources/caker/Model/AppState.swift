@@ -407,8 +407,18 @@ class AppState: ObservableObject, Observable {
 		TemplateHandler.exists(client: self.serviceClient, name: name, runMode: self.runMode)
 	}
 
+	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
+		print("find document: \(String(describing: url?.absoluteString))")
+		guard let url else {
+			return nil
+		}
+
+		return self.virtualMachines[url]
+	}
+
 	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
-		self.virtualMachines[url]
+		print("find document: \(url.absoluteString)")
+		return self.virtualMachines[url]
 	}
 
 	func findVirtualMachineDocument(_ name: String) -> VirtualMachineDocument? {
@@ -417,12 +427,56 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
-	func addVirtualMachineDocument(_ url: URL) {
-		if self.virtualMachines[url] == nil {
-			if let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url) {
-				self.virtualMachines[url] = vm
-			}
+	func fullQualifiedVMUrl(_ vmURL: URL?) -> URL? {
+		guard let vmURL = vmURL else {
+			return nil
 		}
+
+		guard vmURL.isFileURL else {
+			guard self.runMode == .app else {
+				return vmURL
+			}
+
+			if let location = try? StorageLocation(runMode: AppState.shared.runMode).find(vmURL.host(percentEncoded: false)!) {
+				return location.rootURL
+			}
+			
+			return nil
+		}
+
+		return vmURL
+	}
+
+	func tryVirtualMachineDocument(_ vmURL: URL) -> URL? {
+		guard let vmURL = self.fullQualifiedVMUrl(vmURL) else {
+			return nil
+		}
+		
+		guard self.findVirtualMachineDocument(vmURL) != nil else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL) else {
+				return nil
+			}
+
+			self.virtualMachines[vmURL] = vm
+
+			return vmURL
+		}
+
+		return vmURL
+	}
+
+	@discardableResult
+	func addVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
+		guard let vm = self.findVirtualMachineDocument(url) else {
+			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: url) else {
+				return nil
+			}
+
+			self.virtualMachines[url] = vm
+			return vm
+		}
+
+		return vm
 	}
 
 	func removeVirtualMachineDocument(_ url: URL) {
@@ -584,8 +638,16 @@ class AppState: ObservableObject, Observable {
 			do {
 				let result = try DuplicateHandler.duplicate(client: self.serviceClient, vmURL: vm.url, to: txt.stringValue, resetMacAddress: true, runMode: self.runMode)
 				if result.duplicated {
-					let location = StorageLocation(runMode: self.runMode).location(txt.stringValue)
-					self.addVirtualMachineDocument(location.rootURL)
+					if self.serviceClient == nil {
+						let location = try StorageLocation(runMode: self.runMode).find(txt.stringValue)
+						self.addVirtualMachineDocument(location.rootURL)
+					} else if let vmURL = URL(string:"\(VMLocation.scheme)://\(txt.stringValue)") {
+						self.addVirtualMachineDocument(vmURL)
+					} else {
+						DispatchQueue.main.async {
+							alertError("Failed to duplicate virtual machine", "Internal error: invalid VM location URL")
+						}
+					}
 				} else {
 					DispatchQueue.main.async {
 						alertError("Failed to duplicate virtual machine", result.reason)

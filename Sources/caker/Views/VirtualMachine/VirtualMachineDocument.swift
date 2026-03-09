@@ -369,6 +369,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	static func createVirtualMachineDocument(vmURL: URL) throws -> VirtualMachineDocument {
 		if vmURL.isFileURL {
 			return try VirtualMachineDocument(location: VMLocation.newVMLocation(vmURL: vmURL))
+		} else if AppState.shared.runMode == .app {
+			return try VirtualMachineDocument(location: StorageLocation(runMode: AppState.shared.runMode).find(vmURL.host(percentEncoded: false)!))
 		} else {
 			let infos = try AppState.shared.virtualMachineInfos(vmURL: vmURL)
 			

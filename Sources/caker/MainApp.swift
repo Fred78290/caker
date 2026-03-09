@@ -141,90 +141,39 @@ struct MainApp: App {
 					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
 					.containerBackground(.windowBackground, for: .window)
 			} else {
-				LabelView("Unable to load virtual machine \(document.name)")
-					.containerBackground(.windowBackground, for: .window)
-					.colorSchemeForColor()
-					.restorationState(.disabled)
-					.frame(size: initialSize)
+				self.failedLoadVirtualMachine(document.name)
 			}
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
 		.commandsReplaced {
-			CommandGroup(before: .newItem) {
-				Button("New virtual machine") {
-					openWindow(id: "wizard")
-				}.keyboardShortcut(KeyboardShortcut("N"))
-				Button("Open virtual machine") {
-					open()
-				}.keyboardShortcut(KeyboardShortcut("o"))
+			self.menus
+		}
+
+		WindowGroup(id: "VM", for: String.self) { $vmURL in
+			if let vmURL = vmURL, let document = self.appState.findVirtualMachineDocument(URL(string: vmURL)) {
+				let initialSize = document.virtualMachineConfig.display.cgSize
+
+				HostVirtualMachineView(appState: $appState, document: document)
+					.colorSchemeForColor()
+					.windowMinimizeBehavior(.enabled)
+					.windowResizeBehavior(.enabled)
+					.windowFullScreenBehavior(.enabled)
+					.windowToolbarFullScreenVisibility(.onHover)
+					.restorationState(.disabled)
+					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
+					.containerBackground(.windowBackground, for: .window)
+					.navigationTitle(document.name)
+			} else {
+				self.failedLoadVirtualMachine("Unexpected URL \(vmURL ?? "not defined")")
 			}
-			CommandMenu("Control") {
-				Button("Start") {
-					appState.currentDocument.startFromUI()
-				}.disabled(appState.isRunning || appState.currentDocument == nil)
-
-				Button("Stop") {
-					appState.currentDocument.stopFromUI(force: true)
-				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
-
-				Button("Request Stop") {
-					appState.currentDocument.stopFromUI(force: false)
-				}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
-
-				if #available(macOS 14, *) {
-					Button("Suspend") {
-						appState.currentDocument.suspendFromUI()
-					}.disabled(!appState.isSuspendable || appState.isAgentInstalling || appState.currentDocument == nil)
-				}
-
-				Button("Create template") {
-					createTemplate = true
-				}
-				.disabled(appState.isRunning || appState.currentDocument == nil)
-				.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView()
-				}
-
-				Divider()
-
-				let agentCondition = self.agentCondition
-
-				Button(agentCondition.title) {
-					appState.isAgentInstalling = true
-
-					appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
-						appState.isAgentInstalling = false
-					}
-				}
-				.disabled(agentCondition.disabled)
-				.alert("Create template", isPresented: $createTemplate) {
-					CreateTemplateView()
-				}
-			}
-
-			CommandMenu("Service") {
-				if self.appState.cakedServiceInstalled {
-					Button("Remove service") {
-						self.appState.removeCakedService()
-					}.disabled(self.appState.cakedServiceRunning)
-				} else {
-					Button("Install service") {
-						self.appState.installCakedService()
-					}
-				}
-
-				if self.appState.cakedServiceRunning {
-					Button("Stop service") {
-						self.appState.stopCakedService()
-					}.disabled(self.appState.cakedServiceInstalled == false)
-				} else {
-					Button("Start service") {
-						self.appState.startCakedService()
-					}.disabled(self.appState.cakedServiceInstalled == false)
-				}
-			}
+		}
+		.windowResizability(.contentSize)
+		.windowToolbarStyle(.unifiedCompact)
+		.restorationState(.disabled)
+		.commandsReplaced {
+			self.menus
 		}
 
 		Window("Home", id: "home") {
@@ -253,6 +202,90 @@ struct MainApp: App {
 		}.restorationState(.disabled)
 	}
 
+	@CommandsBuilder private var menus: some Commands {
+		CommandGroup(before: .newItem) {
+			Button("New virtual machine") {
+				openWindow(id: "wizard")
+			}.keyboardShortcut(KeyboardShortcut("N"))
+			Button("Open virtual machine") {
+				open()
+			}.keyboardShortcut(KeyboardShortcut("o"))
+		}
+		CommandMenu("Control") {
+			Button("Start") {
+				appState.currentDocument.startFromUI()
+			}.disabled(appState.isRunning || appState.currentDocument == nil)
+
+			Button("Stop") {
+				appState.currentDocument.stopFromUI(force: true)
+			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
+
+			Button("Request Stop") {
+				appState.currentDocument.stopFromUI(force: false)
+			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
+
+			if #available(macOS 14, *) {
+				Button("Suspend") {
+					appState.currentDocument.suspendFromUI()
+				}.disabled(!appState.isSuspendable || appState.isAgentInstalling || appState.currentDocument == nil)
+			}
+
+			Button("Create template") {
+				createTemplate = true
+			}
+			.disabled(appState.isRunning || appState.currentDocument == nil)
+			.alert("Create template", isPresented: $createTemplate) {
+				CreateTemplateView()
+			}
+
+			Divider()
+
+			let agentCondition = self.agentCondition
+
+			Button(agentCondition.title) {
+				appState.isAgentInstalling = true
+
+				appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
+					appState.isAgentInstalling = false
+				}
+			}
+			.disabled(agentCondition.disabled)
+			.alert("Create template", isPresented: $createTemplate) {
+				CreateTemplateView()
+			}
+		}
+
+		CommandMenu("Service") {
+			if self.appState.cakedServiceInstalled {
+				Button("Remove service") {
+					self.appState.removeCakedService()
+				}.disabled(self.appState.cakedServiceRunning)
+			} else {
+				Button("Install service") {
+					self.appState.installCakedService()
+				}
+			}
+
+			if self.appState.cakedServiceRunning {
+				Button("Stop service") {
+					self.appState.stopCakedService()
+				}.disabled(self.appState.cakedServiceInstalled == false)
+			} else {
+				Button("Start service") {
+					self.appState.startCakedService()
+				}.disabled(self.appState.cakedServiceInstalled == false)
+			}
+		}
+	}
+
+	private func failedLoadVirtualMachine(_ title: String) -> some View {
+		LabelView("Unable to load virtual machine \(title)")
+			.containerBackground(.windowBackground, for: .window)
+			.colorSchemeForColor()
+			.restorationState(.disabled)
+			.frame(size: CGSize(width: 800, height: 600))
+	}
+
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
 
@@ -274,19 +307,14 @@ struct MainApp: App {
 class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	static private(set) var instance: MainUIAppDelegate!
 
-	private let controller: CakedDocumentController
-
 	@Setting("HideDockIcon") private var isDockIconHidden: Bool = false
 
 	override init() {
-		self.controller = CakedDocumentController()
+		super.init()
+		MainUIAppDelegate.instance = self
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		MainUIAppDelegate.instance = self
-
-		ProcessWithSharedFileHandle.runLoopQos = .userInteractive
-
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
 		} else {
@@ -309,6 +337,22 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func application(_ application: NSApplication, open urls: [URL]) {
-		urls.forEach { u in print("Opening URL: \(u)") }
+		let appState = AppState.shared
+		
+		Task {
+			for vmURL in urls {
+				print("Opening URL: \(vmURL)")
+				if vmURL.scheme == VMLocation.scheme {
+					if let vmURL = appState.fullQualifiedVMUrl(vmURL) {
+						if vmURL.isFileURL {
+							try? await EnvironmentValues().openDocument(at: vmURL)
+						} else {
+							EnvironmentValues().openWindow(id: "VM", value: vmURL.absoluteString)
+						}
+					}
+				}
+			}
+
+		}
 	}
 }
