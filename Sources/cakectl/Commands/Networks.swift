@@ -15,7 +15,7 @@ struct Networks: ParsableCommand {
 			Networks.Delete.self,
 			Networks.Start.self,
 			Networks.Stop.self,
-		])
+		], aliases: ["net"])
 
 	struct Infos: GrpcParsableCommand {
 		static let configuration = NetworkInfoOptions.configuration

@@ -11,7 +11,7 @@ import GRPCLib
 import CakeAgentLib
 
 struct Restart: ParsableCommand {
-	static let configuration = CommandConfiguration(abstract: "Restart VM(s)")
+	static let configuration = CommandConfiguration(abstract: "Restart VM(s)",  aliases: ["rs"])
 
 	@OptionGroup(title: "Global options")
 	var common: CommonOptions

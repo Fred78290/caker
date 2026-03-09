@@ -16,7 +16,7 @@ public struct RemoteDeleteOptions: ParsableArguments {
 }
 
 public struct RemoteListOptions: ParsableArguments {
-	public static let configuration = CommandConfiguration(commandName: "list", abstract: "List the available remotes")
+	public static let configuration = CommandConfiguration(commandName: "list", abstract: "List the available remotes",  aliases: ["ls"])
 
 	public init() {
 	}

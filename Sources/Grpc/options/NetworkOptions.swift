@@ -23,7 +23,8 @@ public struct NetworkListOptions {
 			"""
 			List host network devices (physical interfaces, virtual switches, bridges) available
 			to integrate with using the `--bridged` switch to the `launch` command
-			""")
+			""",
+		aliases: ["ls"])
 }
 
 public struct NetworkCreateOptions: ParsableArguments, Sendable {

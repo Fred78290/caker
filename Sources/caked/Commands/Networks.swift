@@ -223,7 +223,8 @@ struct Networks: ParsableCommand {
 			Networks.Start.self,
 			Networks.Restart.self,
 			Networks.Stop.self,
-		])
+		],
+		aliases: ["net"])
 
 	static func validateNetwork(networkName: String, runMode: Utils.RunMode) throws {
 		// Validate the network name
