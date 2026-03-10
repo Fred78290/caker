@@ -200,7 +200,8 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	private var inited = false
 	private let logger = Logger("VirtualMachineDocument")
 	private var agentMonitoring: Task<Void, Never>?
-	
+	private var inView: Bool = false
+
 	let id = UUID().uuidString
 	
 	var vncView: NSVNCView?
@@ -419,6 +420,7 @@ extension VirtualMachineDocument {
 #endif
 
 		self.vncURL = nil
+		self.inView = false
 		self.vncStatus = .disconnected
 		self.stopAgentMonitoring()
 		if self.externalRunning == false {
@@ -431,6 +433,10 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	func leaveView() {
+		self.inView = false
+	}
+
 	func close() {
 #if DEBUG
 		self.logger.debug("Closing \(self.name)")
@@ -438,6 +444,7 @@ extension VirtualMachineDocument {
 		
 		self.virtualMachine = nil
 		self.inited = false
+		self.inView = false
 		self.vncView = nil
 		self.vncURL = nil
 		self.vncStatus = .disconnected
@@ -564,12 +571,17 @@ extension VirtualMachineDocument {
 		virtualMachine.delegate = self
 	}
 
-	private func loadVirtualMachine(_ url: URL) -> URL? {
-		if self.isLaunchVMExternally && self.externalRunning {
+	func loadVirtualMachine(_ url: URL) -> URL? {
+		self.externalRunning = self.status == .running
+		self.inView = true
+
+		if self.externalRunning {
 			self.setDocumentSize(self.getVncScreenSize())
 		} else {
 			self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
 		}
+
+		retrieveVNCURL()
 
 		return url
 	}
@@ -580,6 +592,7 @@ extension VirtualMachineDocument {
 #endif
 		
 		do {
+			self.inView = true
 			self.virtualMachineConfig = try VirtualMachineConfig(name: location.name, config: location.config())
 			self.location = location
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
@@ -592,9 +605,7 @@ extension VirtualMachineDocument {
 				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
 			}
 			
-			if externalRunning {
-				retrieveVNCURL()
-			}
+			retrieveVNCURL()
 			
 			if monitor == nil {
 				let monitor = try FileMonitor(directory: location.rootURL, delegate: self)
@@ -605,6 +616,8 @@ extension VirtualMachineDocument {
 			
 			return location.rootURL
 		} catch {
+			self.inView = false
+
 			DispatchQueue.main.async {
 				alertError(error)
 			}
@@ -895,12 +908,19 @@ extension VirtualMachineDocument {
 	}
 
 	func retrieveVNCURL() {
+		guard self.externalRunning else {
+			return
+		}
+
 		MainActor.assumeIsolated {
 			if let url = try? AppState.shared.vncURL(vmURL: self.url) {
 				self.logger.info("Found VNC URL: \(url)")
 
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
-				self.tryVNCConnect()
+
+				if self.inView {
+					self.tryVNCConnect()
+				}
 			} else {
 				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: nil)
 			}

@@ -404,6 +404,8 @@ struct HostVirtualMachineView: View {
 				DispatchQueue.main.async {
 					self.document.close()
 				}
+			} else {
+				document.leaveView()
 			}
 		}
 	}
