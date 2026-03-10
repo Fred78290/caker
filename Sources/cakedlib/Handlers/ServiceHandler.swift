@@ -234,6 +234,14 @@ public struct ServiceHandler {
 		_ = try? Shell.execute(to: "/bin/launchctl", arguments: ["disable", service])
 	}
 
+	public static func isAgentInstalled(runMode: Utils.RunMode) -> Bool {
+		if let exist = try? self.agentLaunchURL(runMode: runMode).exists(), exist {
+			return true
+		}
+
+		return false
+	}
+
 	public static var isAgentInstalled: Bool {
 		for runMode in [Utils.RunMode.system, .user] {
 			if let exist = try? self.agentLaunchURL(runMode: runMode).exists(), exist {
@@ -242,6 +250,18 @@ public struct ServiceHandler {
 		}
 
 		return false
+	}
+
+	public static func stopAgentRunning(runMode: Utils.RunMode) throws {
+		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
+			if home.agentPID.isPIDRunning().running {
+				if home.agentPID.killPID(SIGINT) != 0 {
+					throw ServiceError("Failed to stop caked service \(errno)")
+				}
+			}
+		}
+
+		throw ServiceError("Caked service is not running")
 	}
 
 	public static func isAgentRunning(runMode: Utils.RunMode) -> Bool {

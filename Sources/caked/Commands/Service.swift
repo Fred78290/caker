@@ -22,7 +22,7 @@ struct Certs {
 struct Service: ParsableCommand {
 	static let configuration = CommandConfiguration(
 		abstract: "caked as launchctl agent",
-		subcommands: [Install.self, Listen.self, Show.self, Status.self])
+		subcommands: [Install.self, Listen.self, Show.self, Status.self, Stop.self])
 }
 
 extension Service {
@@ -271,19 +271,37 @@ extension Service {
 		
 		@Flag(help: "Output format: text or json")
 		var format: Format = .text
-
+		
 		struct ServiceStatus: Codable {
 			let installed: Bool
 			let run: Bool
 			let mode: Utils.RunMode
 		}
-
+		
 		mutating func run() throws {
 			let status = ServiceStatus(installed: ServiceHandler.isAgentInstalled,
 									   run: ServiceHandler.isAgentRunning,
 									   mode: ServiceHandler.runningMode)
 			
 			print(self.format.renderSingle(status))
+		}
+	}
+	
+	struct Stop: ParsableCommand {
+		static let configuration = CommandConfiguration(abstract: "Tell to stop caked daemon")
+		
+		mutating func run() throws {
+			let mode = ServiceHandler.runningMode
+
+			guard mode != .app && ServiceHandler.isAgentRunning(runMode: mode) else {
+				throw ServiceError("Caked service is not running")
+			}
+
+			if ServiceHandler.isAgentInstalled(runMode: mode) {
+				try ServiceHandler.stopAgent(runMode: mode)
+			} else {
+				try ServiceHandler.stopAgentRunning(runMode: mode)
+			}
 		}
 	}
 }
