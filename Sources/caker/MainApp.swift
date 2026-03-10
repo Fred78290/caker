@@ -7,12 +7,6 @@ import SwiftUI
 import SwifterSwiftUI
 import Logging
 
-class CakedDocumentController: NSDocumentController {
-	override func typeForContents(of: URL) throws -> String {
-		return try super.typeForContents(of: of)
-	}
-}
-
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String) {
 	let alert = NSAlert()
@@ -101,35 +95,38 @@ struct MainAppParseArgument: ParsableCommand {
 
 @main
 struct MainApp: App {
+	static var app: MainApp! = nil
+	
 	@Environment(\.openWindow) var openWindow
 	@Environment(\.openDocument) private var openDocument
 	@State var appState: AppState
 	@State var createTemplate = false
-
+	
 	@NSApplicationDelegateAdaptor(MainUIAppDelegate.self) var appDelegate
-
+	
 	init() {
 		_ = try? MainAppParseArgument.parse(CommandLine.arguments)
 		self.appState = AppState.shared
+		Self.app = self
 	}
-
+	
 	var agentCondition: (title: String, needUpdate: Bool, disabled: Bool) {
 		let title = "Install agent"
-
+		
 		guard let document = appState.currentDocument else {
 			return (title, false, true)
 		}
-
+		
 		return document.agentCondition
 	}
-
+	
 	var body: some Scene {
 		CakerMenuBarExtraScene(appState: appState)
-
+		
 		DocumentGroup(viewing: BridgeVirtualDocument.self) { file in
 			let document = file.document.attachedVirtualDocument
 			let initialSize = document.virtualMachineConfig.display.cgSize
-
+			
 			if document.location != nil {
 				HostVirtualMachineView(appState: $appState, document: document)
 					.colorSchemeForColor()
@@ -150,9 +147,10 @@ struct MainApp: App {
 		.commandsReplaced {
 			self.menus
 		}
+		
+		WindowGroup(id: "VM", for: URL.self) { $vmURL in
 
-		WindowGroup(id: "VM", for: String.self) { $vmURL in
-			if let vmURL = vmURL, let document = self.appState.findVirtualMachineDocument(URL(string: vmURL)) {
+			if let vmURL, let document = self.appState.findVirtualMachineDocument(vmURL) {
 				let initialSize = document.virtualMachineConfig.display.cgSize
 
 				HostVirtualMachineView(appState: $appState, document: document)
@@ -166,16 +164,17 @@ struct MainApp: App {
 					.containerBackground(.windowBackground, for: .window)
 					.navigationTitle(document.name)
 			} else {
-				self.failedLoadVirtualMachine("Unexpected URL \(vmURL ?? "not defined")")
+				self.failedLoadVirtualMachine("Unexpected URL \(vmURL?.absoluteString ?? "not defined")")
 			}
 		}
+		.handlesExternalEvents(matching: [])
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
 		.commandsReplaced {
 			self.menus
 		}
-
+		
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
 				.colorSchemeForColor()
@@ -184,7 +183,7 @@ struct MainApp: App {
 		}
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
-
+		
 		Window("Create new virtual machine", id: "wizard") {
 			newDocWizard()
 		}
@@ -194,14 +193,14 @@ struct MainApp: App {
 		.commands {
 			CommandGroup(replacing: .saveItem, addition: {})
 		}
-
+		
 		Settings {
 			SettingsView()
 				.colorSchemeForColor()
 				.containerBackground(.windowBackground, for: .window)
 		}.restorationState(.disabled)
 	}
-
+	
 	@CommandsBuilder private var menus: some Commands {
 		CommandGroup(before: .newItem) {
 			Button("New virtual machine") {
@@ -215,21 +214,21 @@ struct MainApp: App {
 			Button("Start") {
 				appState.currentDocument.startFromUI()
 			}.disabled(appState.isRunning || appState.currentDocument == nil)
-
+			
 			Button("Stop") {
 				appState.currentDocument.stopFromUI(force: true)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
-
+			
 			Button("Request Stop") {
 				appState.currentDocument.stopFromUI(force: false)
 			}.disabled(appState.isStopped || appState.isAgentInstalling || appState.currentDocument == nil)
-
+			
 			if #available(macOS 14, *) {
 				Button("Suspend") {
 					appState.currentDocument.suspendFromUI()
 				}.disabled(!appState.isSuspendable || appState.isAgentInstalling || appState.currentDocument == nil)
 			}
-
+			
 			Button("Create template") {
 				createTemplate = true
 			}
@@ -237,14 +236,14 @@ struct MainApp: App {
 			.alert("Create template", isPresented: $createTemplate) {
 				CreateTemplateView()
 			}
-
+			
 			Divider()
-
+			
 			let agentCondition = self.agentCondition
-
+			
 			Button(agentCondition.title) {
 				appState.isAgentInstalling = true
-
+				
 				appState.currentDocument.installAgent(updateAgent: agentCondition.needUpdate) { _ in
 					appState.isAgentInstalling = false
 				}
@@ -254,7 +253,7 @@ struct MainApp: App {
 				CreateTemplateView()
 			}
 		}
-
+		
 		CommandMenu("Service") {
 			if self.appState.cakedServiceInstalled {
 				Button("Remove service") {
@@ -265,7 +264,7 @@ struct MainApp: App {
 					self.appState.installCakedService()
 				}
 			}
-
+			
 			if self.appState.cakedServiceRunning {
 				Button("Stop service") {
 					self.appState.stopCakedService()
@@ -277,7 +276,7 @@ struct MainApp: App {
 			}
 		}
 	}
-
+	
 	private func failedLoadVirtualMachine(_ title: String) -> some View {
 		LabelView("Unable to load virtual machine \(title)")
 			.containerBackground(.windowBackground, for: .window)
@@ -285,22 +284,34 @@ struct MainApp: App {
 			.restorationState(.disabled)
 			.frame(size: CGSize(width: 800, height: 600))
 	}
-
+	
 	private func open() {
 		let home = StorageLocation(runMode: .app).rootURL
-
+		
 		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
 			Task {
 				try? await openDocument(at: documentURL)
 			}
 		}
 	}
-
+	
 	func newDocWizard() -> some View {
 		VirtualMachineWizard()
 			.colorSchemeForColor()
 			.restorationState(.disabled)
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
+	}
+
+	@MainActor func openVirtualMachine(_ vmURL: URL) async {
+		if let document = appState.tryVirtualMachineDocument(vmURL) {
+			if let vmURL = document.loadVirtualMachine() {
+				if vmURL.isFileURL {
+					try? await EnvironmentValues().openDocument(at: vmURL)
+				} else {
+					EnvironmentValues().openWindow(id: "VM", value: vmURL)
+				}
+			}
+		}
 	}
 }
 
@@ -342,12 +353,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		Task {
 			for vmURL in urls {
 				print("Opening URL: \(vmURL)")
-				if vmURL.scheme == VMLocation.scheme {
-					if let vmURL = appState.fullQualifiedVMUrl(vmURL) {
+				if let document = appState.tryVirtualMachineDocument(vmURL) {
+					if let vmURL = document.loadVirtualMachine() {
 						if vmURL.isFileURL {
 							try? await EnvironmentValues().openDocument(at: vmURL)
 						} else {
-							EnvironmentValues().openWindow(id: "VM", value: vmURL.absoluteString)
+							EnvironmentValues().openWindow(id: "VM", value: vmURL)
 						}
 					}
 				}

@@ -408,7 +408,6 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func findVirtualMachineDocument(_ url: URL?) -> VirtualMachineDocument? {
-		print("find document: \(String(describing: url?.absoluteString))")
 		guard let url else {
 			return nil
 		}
@@ -417,7 +416,6 @@ class AppState: ObservableObject, Observable {
 	}
 
 	func findVirtualMachineDocument(_ url: URL) -> VirtualMachineDocument? {
-		print("find document: \(url.absoluteString)")
 		return self.virtualMachines[url]
 	}
 
@@ -447,22 +445,22 @@ class AppState: ObservableObject, Observable {
 		return vmURL
 	}
 
-	func tryVirtualMachineDocument(_ vmURL: URL) -> URL? {
+	func tryVirtualMachineDocument(_ vmURL: URL) -> VirtualMachineDocument? {
 		guard let vmURL = self.fullQualifiedVMUrl(vmURL) else {
 			return nil
 		}
 		
-		guard self.findVirtualMachineDocument(vmURL) != nil else {
+		guard let vm = self.findVirtualMachineDocument(vmURL) else {
 			guard let vm = try? VirtualMachineDocument.createVirtualMachineDocument(vmURL: vmURL) else {
 				return nil
 			}
 
 			self.virtualMachines[vmURL] = vm
 
-			return vmURL
+			return vm
 		}
 
-		return vmURL
+		return vm
 	}
 
 	@discardableResult

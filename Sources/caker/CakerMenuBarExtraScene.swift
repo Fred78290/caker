@@ -14,7 +14,6 @@ struct CakerMenuBarExtraScene: Scene {
 	@AppStorage("ShowMenuIcon") private var isMenuIconShown: Bool = false
 	@AppStorage("HideDockIcon") private var isDockIconHidden: Bool = false
 	@Environment(\.openWindow) private var openWindow
-	@Environment(\.openDocument) private var openDocument
 	@Environment(\.openSettings) private var openSettings
 	
 	var body: some Scene {
@@ -77,7 +76,7 @@ struct CakerMenuBarExtraScene: Scene {
 			} else {
 				Menu("Virtual machines") {
 					ForEach(appState.virtualMachines.vms) { vm in
-						VMMenuItem(url: vm.id, vm: vm.document, appState: appState)
+						VMMenuItem(vm: vm.document, appState: appState)
 							.environmentObject(appState)
 					}
 				}
@@ -102,7 +101,7 @@ struct CakerMenuBarExtraScene: Scene {
 
 		if let documentURL = FileHelpers.selectSingleInputFile(ofType: [.virtualMachine], withTitle: "Open virtual machine", directoryURL: home) {
 			Task {
-				try? await openDocument(at: documentURL)
+				await MainApp.app.openVirtualMachine(documentURL)
 			}
 		}
 	}
@@ -110,8 +109,6 @@ struct CakerMenuBarExtraScene: Scene {
 
 private struct VMMenuItem: View {
 	@Environment(\.openWindow) var openWindow
-	@Environment(\.openDocument) private var openDocument
-	let url: URL
 	@ObservedObject var vm: VirtualMachineDocument
 	@ObservedObject var appState: AppState
 
@@ -163,14 +160,8 @@ private struct VMMenuItem: View {
 	}
 
 	func openVirtualMachine() async {
-		do {
-			try await openDocument(at: url)
-			NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url!])
-		} catch {
-			DispatchQueue.main.async {
-				alertError(error)
-			}
-		}
+		await MainApp.app.openVirtualMachine(self.vm.url)
+		NotificationCenter.default.post(name: VirtualMachineDocument.StartVirtualMachine, object: vm, userInfo: ["document": vm.url!])
 	}
 
 	func createTemplate() {

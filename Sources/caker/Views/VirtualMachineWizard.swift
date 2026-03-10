@@ -243,7 +243,6 @@ class VirtualMachineWizardStateObject: ObservableObject {
 
 struct VirtualMachineWizard: View {
 	@Environment(\.dismiss) private var dismiss
-	@Environment(\.openDocument) private var openDocument
 
 	@State private var config: VirtualMachineConfig = .init()
 	@State private var currentTab: Int = 0
@@ -296,7 +295,7 @@ struct VirtualMachineWizard: View {
 
 			if let location = notification.object as? VMLocation {
 				Task {
-					try? await self.openDocument(at: location.rootURL)
+					await MainApp.app.openVirtualMachine(location.rootURL)
 					self.dismiss()
 				}
 			}

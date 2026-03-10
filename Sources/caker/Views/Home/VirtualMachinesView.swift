@@ -12,7 +12,6 @@ struct VirtualMachinesView: View {
 	static let cellHeight: CGFloat = 364
 	static let cellSpacing: CGFloat = 10
 
-	@Environment(\.openDocument) private var openDocument
 	@Environment(\.appearsActive) private var appearsActive
 
 	@Binding var appState: AppState
@@ -52,7 +51,7 @@ struct VirtualMachinesView: View {
 								self.navigationModel.selectedVirtualMachine = vm.document
 
 								Task {
-									try? await self.openDocument(at: vm.document.url)
+									await MainApp.app.openVirtualMachine(vm.document.url)
 								}
 							}
 							.onTapGesture {

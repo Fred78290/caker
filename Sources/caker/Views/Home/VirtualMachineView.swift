@@ -27,7 +27,6 @@ extension Shape {
 }
 
 struct VirtualMachineView: View {
-	@Environment(\.openDocument) private var openDocument
 	@Environment(\.appearsActive) var appearsActive
 	@Environment(\.materialActiveAppearance) var materialActiveAppearance
 
@@ -159,7 +158,7 @@ struct VirtualMachineView: View {
 		}
 
 		let result = Utilities.group.next().makeFutureWithTask {
-			try await self.openDocument(at: vm.url)
+			await MainApp.app.openVirtualMachine(vm.url)
 		}
 		
 		result.whenFailure { error in
