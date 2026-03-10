@@ -116,7 +116,7 @@ public struct Utils {
 	public static let cakerSignature = "com.aldunelabs.caker"
 	private static var homeDirectories: [Bool: URL] = [:]
 
-	public enum RunMode: Sendable {
+	public enum RunMode: Sendable, Codable {
 		case system
 		case user
 		case app
