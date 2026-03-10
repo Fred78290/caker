@@ -12,7 +12,7 @@ import CakeAgentLib
 public struct InstallAgentHandler {
 	public static func installAgent(vmURL: URL, timeout: UInt, runMode: Utils.RunMode) -> InstalledAgentReply {
 		do {
-			return installAgent(location: try VMLocation.newVMLocation(vmURL: vmURL), timeout: timeout, runMode: runMode)
+			return installAgent(location: try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), timeout: timeout, runMode: runMode)
 		} catch {
 			return InstalledAgentReply(name: vmURL.absoluteString, installed: false , reason: "\(error)")
 		}

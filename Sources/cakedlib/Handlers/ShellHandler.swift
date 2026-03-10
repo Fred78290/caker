@@ -146,7 +146,7 @@ public struct ShellHandler {
 
 	public static func shell(vmURL: URL, terminalSize: TerminalSize, connectionTimeout: Int64 = 1, runMode: Utils.RunMode) throws -> ShellHandlerProtocol {
 		if vmURL.isFileURL {
-			return try ShellCakeAgent(vmURL: vmURL).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
+			return try ShellCakeAgent(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout)
 		} else {
 			return try ShellCaked(vmURL: vmURL, runMode: runMode).shell(terminalSize: terminalSize, connectionTimeout: connectionTimeout, runMode: runMode)
 		}
@@ -324,15 +324,16 @@ public struct ShellHandler {
 
 	internal class ShellCakeAgent: ShellHandlerProtocol {
 		private let location: VMLocation
-		private let runMode: Utils.RunMode = .app
+		private let runMode: Utils.RunMode
 		private let logger = Logger("ShellHandler")
 		private var helper: CakeAgentHelper! = nil
 		private var shellStream: CakeAgentExecuteStream! = nil
 		private var stream: AsyncThrowingStreamShellResponse! = nil
 		private var taskQueue: TaskQueue! = nil
 
-		init(vmURL: URL) throws {
-			self.location = try VMLocation.newVMLocation(vmURL: vmURL)
+		init(vmURL: URL, runMode: Utils.RunMode) throws {
+			self.runMode = runMode
+			self.location = try VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode)
 		}
 
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64) throws -> ShellHandlerProtocol {

@@ -50,7 +50,7 @@ public struct TemplateHandler {
 
 	public static func createTemplate(vmURL: URL, templateName: String, startMode: StartHandler.StartMode = .attach, runMode: Utils.RunMode) -> CreateTemplateReply {
 		do {
-			return try createTemplate(location: VMLocation.newVMLocation(vmURL: vmURL), templateName: templateName, startMode: startMode, runMode: runMode)
+			return try createTemplate(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), templateName: templateName, startMode: startMode, runMode: runMode)
 		} catch {
 			return CreateTemplateReply(name: templateName, created: false, reason: "\(error)")
 		}

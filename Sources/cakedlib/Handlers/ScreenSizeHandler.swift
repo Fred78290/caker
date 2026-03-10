@@ -19,7 +19,7 @@ public struct ScreenSizeHandler {
 
 	public static func setScreenSize(vmURL: URL, width: Int, height: Int, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
-			return try setScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL), width: width, height: height, runMode: runMode)
+			return try setScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), width: width, height: height, runMode: runMode)
 		} catch {
 			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
 		}
@@ -51,7 +51,7 @@ public struct ScreenSizeHandler {
 
 	public static func getScreenSize(vmURL: URL, runMode: Utils.RunMode) -> ScreenSizeReply {
 		do {
-			return try getScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL), runMode: runMode)
+			return try getScreenSize(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), runMode: runMode)
 		} catch {
 			return ScreenSizeReply(width: 0, height: 0, success: false, reason: "\(error)")
 		}

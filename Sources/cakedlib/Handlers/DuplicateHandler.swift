@@ -5,7 +5,7 @@ import Virtualization
 
 public struct DuplicateHandler {
 	public static func duplicate(vmURL: URL, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
-		guard let location = try? VMLocation.newVMLocation(vmURL: vmURL) else {
+		guard let location = try? VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode) else {
 			return DuplicatedReply(from: vmURL.absoluteString, to: to, duplicated: false, reason: "Source vm not found")
 		}
 

@@ -252,7 +252,7 @@ public struct StartHandler {
 	}
 
 	public static func startVM(vmURL: URL, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
-		try Self.startVM(location: VMLocation.newVMLocation(vmURL: vmURL), screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+		try Self.startVM(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
 	}
 
 	public static func startVM(name: String, screenSize: ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {

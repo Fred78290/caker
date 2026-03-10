@@ -14,7 +14,7 @@ import CakeAgentLib
 
 public struct VncURLHandler {
 	public static func vncURL(vmURL: URL, runMode: Utils.RunMode) throws -> [URL] {
-		return try vncURL(location: VMLocation.newVMLocation(vmURL: vmURL), runMode: runMode)
+		return try vncURL(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), runMode: runMode)
 	}
 
 	public static func vncURL(name: String, runMode: Utils.RunMode) throws -> [URL] {

@@ -9,7 +9,7 @@ import CakeAgentLib
 public struct StopHandler {
 	public static func stopVM(vmURL: URL, force: Bool, runMode: Utils.RunMode) -> StoppedObject {
 		do {
-			return try stopVM(location: VMLocation.newVMLocation(vmURL: vmURL), force: force, runMode: runMode)
+			return try stopVM(location: VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode), force: force, runMode: runMode)
 		} catch {
 			return StoppedObject(name: vmURL.absoluteString, stopped: false, reason: "\(error)")
 		}

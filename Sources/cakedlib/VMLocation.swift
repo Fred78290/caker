@@ -20,7 +20,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 		self.template ? "template" : "vm"
 	}
 
-	public static func newVMLocation(vmURL: URL) throws -> Self {
+	public static func newVMLocation(vmURL: URL, runMode: Utils.RunMode) throws -> Self {
 		if vmURL.isFileURL {
 			let location = VMLocation(rootURL: vmURL, template: false)
 
@@ -32,11 +32,11 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 				throw ServiceError("Internal error")
 			}
 
-			for runMode in [Utils.RunMode.system, Utils.RunMode.user] {
+			//for runMode in [Utils.RunMode.system, Utils.RunMode.user] {
 				if let location = try? StorageLocation(runMode: runMode).find(host) {
 					return location
 				}
-			}
+			//}
 
 			throw ServiceError("VM not found")
 		}
