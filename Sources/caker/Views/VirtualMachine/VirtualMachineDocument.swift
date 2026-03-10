@@ -439,6 +439,9 @@ extension VirtualMachineDocument {
 
 	func enterView() {
 		self.inView = true
+		DispatchQueue.main.async {
+			self.tryVNCConnect()
+		}
 	}
 
 	func leaveView() {
@@ -532,12 +535,29 @@ extension VirtualMachineDocument {
 	}
 	
 	func setState(_ status: Status) {
+		guard self.status != status else {
+			return
+		}
+		
 		self.status = status
 		self.canStart = status == .stopped || status == .paused
 		self.canStop = status == .running
 		self.canPause = status == .running
 		self.canResume = status == .paused
 		self.canRequestStop = status == .running
+		
+		if status == .running {
+			if let infos = try? AppState.shared.virtualMachineInfos(vmURL: self.url) {
+				self.ipaddresses = infos.infos.ipaddresses
+				self.virtualMachineConfig = .init(name: self.name, config: infos.config)
+
+				if let vncURL = infos.infos.vncURL {
+					self.vncURL = vncURL.compactMap {
+						URL(string: $0)
+					}
+				}
+			}
+		}
 	}
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
