@@ -349,6 +349,7 @@ struct HostVirtualMachineView: View {
 	func handleAppear() {
 		NSWindow.allowsAutomaticWindowTabbing = false
 		self.appState.currentDocument = self.document
+		document.enterView()
 
 		if let window = self.window {
 			self.document.setScreenSize(.init(size: window.contentLayoutRect.size))
@@ -391,6 +392,8 @@ struct HostVirtualMachineView: View {
 
 	func handleWillCloseNotification(_ notification: Notification) {
 		if isMyWindowKey(notification) {
+			document.leaveView()
+
 			guard self.document.externalRunning == false else {
 				self.document.disconnect()
 				return
@@ -404,8 +407,6 @@ struct HostVirtualMachineView: View {
 				DispatchQueue.main.async {
 					self.document.close()
 				}
-			} else {
-				document.leaveView()
 			}
 		}
 	}

@@ -437,6 +437,10 @@ extension VirtualMachineDocument {
 		}
 	}
 
+	func enterView() {
+		self.inView = true
+	}
+
 	func leaveView() {
 		self.inView = false
 	}
@@ -575,7 +579,6 @@ extension VirtualMachineDocument {
 
 	func loadVirtualMachine(_ url: URL) -> URL? {
 		self.externalRunning = true
-		self.inView = true
 
 		if self.status == .running {
 			self.setDocumentSize(self.getVncScreenSize())
@@ -594,7 +597,6 @@ extension VirtualMachineDocument {
 #endif
 		
 		do {
-			self.inView = true
 			self.virtualMachineConfig = try VirtualMachineConfig(name: location.name, config: location.config())
 			self.location = location
 			self.agent = self.virtualMachineConfig.agent ? (self.virtualMachineConfig.firstLaunch ? .installing : .installed) : .none
@@ -621,8 +623,6 @@ extension VirtualMachineDocument {
 
 			return location.rootURL
 		} catch {
-			self.inView = false
-
 			DispatchQueue.main.async {
 				alertError(error)
 			}
