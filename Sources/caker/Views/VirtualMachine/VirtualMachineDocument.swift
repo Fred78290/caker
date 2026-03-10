@@ -509,9 +509,7 @@ extension VirtualMachineDocument {
 		self.agentCondition = ("Install agent", false, self.agent != .none)
 
 		// Start agent monitoring when VM is running
-		if self.agent != .none {
-			self.startAgentMonitoring()
-		}
+		self.startAgentMonitoring()
 	}
 	
 	func setState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
@@ -619,9 +617,7 @@ extension VirtualMachineDocument {
 			}
 
 			// Start agent monitoring if VM is running
-			if self.status == .running && self.agent != .none {
-				self.startAgentMonitoring()
-			}
+			self.startAgentMonitoring()
 
 			return location.rootURL
 		} catch {
@@ -1216,7 +1212,11 @@ extension VirtualMachineDocument {
 	}
 
 	func startAgentMonitoring() {
-		guard agentMonitoring == nil else {
+		guard self.location != nil else {
+			return
+		}
+
+		guard agentMonitoring == nil && self.status == .running && self.agent != .none else {
 			return
 		}
 		
