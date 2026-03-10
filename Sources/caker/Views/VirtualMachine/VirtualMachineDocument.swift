@@ -576,10 +576,10 @@ extension VirtualMachineDocument {
 	}
 
 	func loadVirtualMachine(_ url: URL) -> URL? {
-		self.externalRunning = self.status == .running
+		self.externalRunning = true
 		self.inView = true
 
-		if self.externalRunning {
+		if self.status == .running {
 			self.setDocumentSize(self.getVncScreenSize())
 		} else {
 			self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
@@ -917,7 +917,7 @@ extension VirtualMachineDocument {
 	}
 
 	func retrieveVNCURL() {
-		guard self.externalRunning else {
+		guard self.externalRunning && self.status == .running else {
 			return
 		}
 
