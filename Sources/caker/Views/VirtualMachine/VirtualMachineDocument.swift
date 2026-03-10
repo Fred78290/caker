@@ -214,6 +214,10 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 	}
 	
 	var isLaunchVMExternally: Bool {
+		guard self.url.isFileURL else {
+			return true
+		}
+
 		guard AppState.shared.runMode == .app else {
 			return true
 		}
@@ -613,7 +617,12 @@ extension VirtualMachineDocument {
 				
 				self.monitor = monitor
 			}
-			
+
+			// Start agent monitoring if VM is running
+			if self.status == .running && self.agent != .none {
+				self.startAgentMonitoring()
+			}
+
 			return location.rootURL
 		} catch {
 			self.inView = false

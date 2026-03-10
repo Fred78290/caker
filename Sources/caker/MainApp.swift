@@ -149,20 +149,24 @@ struct MainApp: App {
 		}
 		
 		WindowGroup(id: "VM", for: URL.self) { $vmURL in
-
 			if let vmURL, let document = self.appState.findVirtualMachineDocument(vmURL) {
-				let initialSize = document.virtualMachineConfig.display.cgSize
+				if document.loadVirtualMachine(vmURL) != nil {
+					let initialSize = document.virtualMachineConfig.display.cgSize
+						
+					HostVirtualMachineView(appState: $appState, document: document)
+						.colorSchemeForColor()
+						.windowMinimizeBehavior(.enabled)
+						.windowResizeBehavior(.enabled)
+						.windowFullScreenBehavior(.enabled)
+						.windowToolbarFullScreenVisibility(.onHover)
+						.restorationState(.disabled)
+						.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
+						.containerBackground(.windowBackground, for: .window)
+						.navigationTitle(document.name)
+				} else {
+					self.failedLoadVirtualMachine("Something goes wrong when loading VM at \(vmURL.absoluteString)")
+				}
 
-				HostVirtualMachineView(appState: $appState, document: document)
-					.colorSchemeForColor()
-					.windowMinimizeBehavior(.enabled)
-					.windowResizeBehavior(.enabled)
-					.windowFullScreenBehavior(.enabled)
-					.windowToolbarFullScreenVisibility(.onHover)
-					.restorationState(.disabled)
-					.frame("MainApp", minSize: initialSize, idealSize: document.documentSize.cgSize)
-					.containerBackground(.windowBackground, for: .window)
-					.navigationTitle(document.name)
 			} else {
 				self.failedLoadVirtualMachine("Unexpected URL \(vmURL?.absoluteString ?? "not defined")")
 			}
