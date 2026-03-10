@@ -82,6 +82,13 @@ struct Networks: ParsableCommand {
 				guard let network = networkConfig.sharedNetworks[networkName] else {
 					throw ServiceError("Network \(networkName) doesn't exists")
 				}
+				guard network.mode != .nat else {
+					throw ServiceError("Network \(networkName) is default nated, please use a different network")
+				}
+
+				if #available(macOS 26.0, *) {
+					throw ServiceError("Network \(networkName) is handled natively, please use a different network")
+				}
 
 				self.mode = network.mode
 				self.gateway = network.dhcpStart
