@@ -1269,6 +1269,8 @@ extension VirtualMachineDocument {
 	/// Update the document's usage information with new VMUsage data asynchronously on the main actor
 	@MainActor
 	public func setUsage(_ usage: Caked_CurrentUsageReply) async {
+		self.agent = .installed
+		self.agentReady = true
 		if usage.hasCpuInfos {
 			self.cpuInfos.update(usage.cpuInfos)
 		}
