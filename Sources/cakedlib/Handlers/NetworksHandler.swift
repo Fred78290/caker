@@ -264,9 +264,16 @@ public struct NetworksHandler {
 		try networks.forEach { inf in
 			if inf.isNAT() == false {
 				let physicalInterface = NetworksHandler.isPhysicalInterface(name: inf.network)
+				let networkConfig = sharedNetworks[inf.network]
 
-				if sharedNetworks[inf.network] == nil && physicalInterface == false {
+				if networkConfig == nil && physicalInterface == false {
 					Logger(self).error("Network interface \(inf.network) not found")
+				} else if networkConfig != nil {
+					if #available(macOS 26.0, *) {
+						Logger(self).debug("Network interface \(inf.network) handled by vmnet")
+					} else {
+						try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
+					}
 				} else if (physicalInterface && vmNetworking) == false {
 					try NetworksHandler.startNetworkService(networkName: inf.network, runMode: runMode)
 				}
