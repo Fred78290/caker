@@ -90,7 +90,7 @@ extension URL: Purgeable {
 		return pid
 	}
 
-	public func killPID(_ signal: Int32) -> Int32 {
+	public func killPID(_ signal: Int32 = SIGTERM) -> Int32 {
 		if FileManager.default.fileExists(atPath: self.absoluteURL.path) == false {
 			return ENODATA
 		}
@@ -103,7 +103,7 @@ extension URL: Purgeable {
 			return EINVAL
 		}
 
-		return kill(pid, SIGTERM)
+		return kill(pid, signal)
 	}
 
 	public func isPIDRunning() -> (running: Bool, processName: String, pid: Int32?) {
