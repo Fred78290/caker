@@ -170,9 +170,6 @@ struct MainApp: App {
 		.windowResizability(.contentSize)
 		.windowToolbarStyle(.unifiedCompact)
 		.restorationState(.disabled)
-		.commandsReplaced {
-			self.menus
-		}
 		
 		Window("Home", id: "home") {
 			HomeView(appState: $appState)
