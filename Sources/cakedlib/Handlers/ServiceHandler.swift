@@ -253,15 +253,15 @@ public struct ServiceHandler {
 	}
 
 	public static func stopAgentRunning(runMode: Utils.RunMode) throws {
-		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
-			if home.agentPID.isPIDRunning().running {
-				if home.agentPID.killPID(SIGINT) != 0 {
-					throw ServiceError("Failed to stop caked service \(errno)")
-				}
-			}
+		let home = try Home(runMode: runMode, createItIfNotExists: false)
+
+		guard home.agentPID.isPIDRunning().running else {
+			throw ServiceError("Caked service is not running")
 		}
 
-		throw ServiceError("Caked service is not running")
+		if home.agentPID.killPID(SIGINT) != 0 {
+			throw ServiceError("Failed to stop caked service \(errno)")
+		}
 	}
 
 	public static func isAgentRunning(runMode: Utils.RunMode) -> Bool {
@@ -296,7 +296,7 @@ public struct ServiceHandler {
 	
 	public static var serviceClient: CakedServiceClient? {
 		for runMode in [Utils.RunMode.system, .user] {
-			if let client = try? self.serviceClient(runMode: runMode) {
+			if let client = try? self.createCakedServiceClient(runMode: runMode) {
 				return client
 			}
 		}
@@ -304,26 +304,30 @@ public struct ServiceHandler {
 		return nil
 	}
 	
-	public static func serviceClient(runMode: Utils.RunMode) throws -> CakedServiceClient? {
+	public static func createCakedServiceClient(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
 		guard isAgentRunning(runMode: runMode) else {
-			return nil
+			throw ServiceError("Caked service is not running")
 		}
 
-		if let listenAddress = try? Utils.getDefaultServerAddress(runMode: runMode), let certs = try? ClientCertificatesLocation.getCertificats(runMode: runMode) {
+		let listenAddress = try Utils.getDefaultServerAddress(runMode: runMode)
+		let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
 
-			var caCert: String? = nil
-			var tlsCert: String? = nil
-			var tlsKey: String? = nil
+		var caCert: String? = nil
+		var tlsCert: String? = nil
+		var tlsKey: String? = nil
 
-			if certs.exists() {
-				caCert = certs.caCertURL.path
-				tlsCert = certs.clientCertURL.path
-				tlsKey = certs.clientKeyURL.path
-			}
-
-			return try Caked.createClient(on: Utilities.group.next(), listeningAddress: URL(string: listenAddress), connectionTimeout: 5, retries: .upTo(1), caCert: caCert, tlsCert: tlsCert, tlsKey: tlsKey)
+		if certs.exists() {
+			caCert = certs.caCertURL.path
+			tlsCert = certs.clientCertURL.path
+			tlsKey = certs.clientKeyURL.path
 		}
 
-		return nil
+		return try Caked.createClient(on: Utilities.group.next(),
+									  listeningAddress: URL(string: listenAddress),
+									  connectionTimeout: connectionTimeout,
+									  retries: retries,
+									  caCert: caCert,
+									  tlsCert: tlsCert,
+									  tlsKey: tlsKey)
 	}
 }
