@@ -17,21 +17,8 @@ struct StartHandler: CakedCommand {
 	let config: CakeConfig
 	let waitIPTimeout: Int
 	let gcd: Bool
-	/*init(location: VMLocation, config: CakeConfig, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode) {
+
 	init(request: Caked_StartRequest, startMode: CakedLib.StartHandler.StartMode, gcd: Bool, runMode: Utils.RunMode) throws {
-		self.location = location
-		self.config = config
-		self.waitIPTimeout = waitIPTimeout
-	}
-
-	init(location: VMLocation, waitIPTimeout: Int, startMode: CakedLib.StartHandler.StartMode) throws {
-		self.location = location
-		self.config = try location.config()
-		self.waitIPTimeout = waitIPTimeout
-		self.startMode = startMode
-	}*/
-
-	init(request: Caked_StartRequest, startMode: CakedLib.StartHandler.StartMode, runMode: Utils.RunMode) throws {
 		let location: VMLocation = try StorageLocation(runMode: runMode).find(request.name)
 
 		self.location = location
