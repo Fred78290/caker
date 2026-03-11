@@ -154,16 +154,22 @@ class AppState: ObservableObject, Observable {
 	private func receiveScreenshot(_ vmURL: URL, value: Data) async {
 		if let document = self.findVirtualMachineDocument(vmURL) {
 			await document.setScreenshot(value)
+		} else {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for screenshot")
 		}
 	}
 
 	private func receiveUsage(_ vmURL: URL, value: Caked_CurrentUsageReply) async {
 		if let document = self.findVirtualMachineDocument(vmURL) {
 			await document.setUsage(value)
+		} else {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for usage")
 		}
 	}
 
 	private func receiveStatus(_ vmURL: URL, value: Caked_VirtualMachineStatus) async {
+		self.logger.debug("Handle new status \(value) for vm: \(vmURL.absoluteString)")
+
 		if let document = self.findVirtualMachineDocument(vmURL) {
 			await MainActor.run {
 				document.setState(.init(value))
@@ -172,6 +178,8 @@ class AppState: ObservableObject, Observable {
 					self.removeVirtualMachineDocument(vmURL)
 				}
 			}
+		} else {
+			self.logger.debug("VM : \(vmURL.absoluteString) not found for status")
 		}
 	}
 
@@ -485,7 +493,11 @@ class AppState: ObservableObject, Observable {
 
 	func haveVirtualMachinesRunning() -> Bool {
 		return virtualMachines.values.first { vm in
-			vm.status == .running && vm.externalRunning == false
+			guard vm.status == .running && vm.url.isFileURL else {
+				return false
+			}
+			
+			return vm.externalRunning == false
 		} != nil
 	}
 
