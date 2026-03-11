@@ -352,10 +352,6 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	}
 	
 	public var status: VMLocation.Status {
-		if self.env.runMode != .app {
-			return self.location.status
-		}
-		
 		switch self.virtualMachine.state {
 		case .running, .starting, .resuming:
 			return .running
@@ -882,6 +878,9 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		if let delegate = self.delegate {
 			self.vmQueue.async {
 				delegate.didChangedState(self)
+				if let gdc = self.gdc {
+					gdc.setStatus(self.status)
+				}
 			}
 		}
 	}

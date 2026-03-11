@@ -18,25 +18,27 @@ typealias AsyncThrowingStreamCurrentStatusReply = (
 )
 
 public class GrandCentralUpdater {
-	let location: VMLocation
-	let runMode: Utils.RunMode
-	let client: CakedServiceClient
-	var taskQueue: TaskQueue?
-	var stream: AsyncThrowingStreamCurrentStatusReply?
-	let logger = Logger("GrandCentralUpdater")
+	private let location: VMLocation
+	private let runMode: Utils.RunMode
+	private let client: CakedServiceClient
+	private var taskQueue: TaskQueue?
+	private var stream: AsyncThrowingStreamCurrentStatusReply?
+	private let logger = Logger("GrandCentralUpdater")
+	private var lastStatus = VMLocation.Status.stopped
 
 	public init(location: VMLocation, runMode: Utils.RunMode) throws {
 		self.location = location
 		self.runMode = runMode
-		self.client = try ServiceHandler.serviceClient(runMode: runMode)!
+		self.client = try ServiceHandler.createCakedServiceClient(runMode: runMode)
 	}
 	
 	public func start(frequency: Int32, onclose: @escaping () -> Void) async throws {
 		guard self.taskQueue == nil else {
+			onclose()
 			return
 		}
 
-		self.logger.info("Starting Grand Central Updater")
+		self.logger.info("Starting Grand Central Updater for VM: \(self.location.name)")
 
 		let grpcStream = client.grandCentralUpdate(callOptions: .init(timeLimit: .none))
 		let asyncStream = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
@@ -62,7 +64,7 @@ public class GrandCentralUpdater {
 
 				self.taskQueue = nil
 				self.stream = nil
-				self.logger.info("Grand Central Updater stopped")
+				self.logger.info("Grand Central Updater stopped for VM: \(self.location.name)")
 			}
 
 			do {
@@ -86,6 +88,8 @@ public class GrandCentralUpdater {
 			} catch is CancellationError {
 				// Silent
 				try? await grpcStream.sendEnd().get()
+			} catch is GRPCStatusTransformable {
+				// Silent
 			} catch {
 				self.logger.error("Unexpected error: \(error)")
 			}
@@ -97,13 +101,23 @@ public class GrandCentralUpdater {
 			return
 		}
 		
-		self.logger.info("Stopping Grand Central Updater")
+		self.logger.info("Stopping Grand Central Updater for VM: \(self.location.name)")
 
 		stream.continuation.finish(throwing: CancellationError())
 		taskQueue.close()
 		
 		self.taskQueue = nil
 		self.stream = nil
+	}
+
+	public func setStatus(_ status: VMLocation.Status) {
+		if status != self.lastStatus {
+			self.lastStatus = status
+
+			if let stream {
+				stream.continuation.yield(.status(status))
+			}
+		}
 	}
 }
 

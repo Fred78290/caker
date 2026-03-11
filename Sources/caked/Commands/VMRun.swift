@@ -38,6 +38,9 @@ struct VMRun: AsyncParsableCommand {
 	@Option(help: ArgumentHelp("Screen size", discussion: "This option allow run vnc server with custom port", visibility: .hidden))
 	var screenSize: ViewSize?
 
+	@Flag(name: [.customLong("gcd")], help: ArgumentHelp("Start grand central dispatch", visibility: .private))
+	var startGCD: Bool = false
+
 	var locations: (StorageLocation, VMLocation) {
 		if StorageLocation(runMode: self.common.runMode).exists(path) {
 			let storageLocation = StorageLocation(runMode: self.common.runMode)
@@ -106,6 +109,7 @@ struct VMRun: AsyncParsableCommand {
 			displaySize = config.display.cgSize
 		}
 
+		let runMode = self.common.runMode
 		let handler = CakedLib.VMRunHandler(
 			mode: mode,
 			storageLocation: storageLocation,
@@ -116,7 +120,33 @@ struct VMRun: AsyncParsableCommand {
 			screenSize: displaySize,
 			vncPassword: vncPassword,
 			vncPort: vncPort,
-			runMode: self.common.runMode)
+			runMode: runMode)
+
+		class VMRunDelegate: VirtualMachineDelegate {
+			let runMode: Utils.RunMode
+			var lastStatus = VMLocation.Status.stopped
+
+			init(runMode: Utils.RunMode) {
+				self.runMode = runMode
+			}
+
+			func didChangedState(_ vm: VirtualMachine) {
+				let newStatus = vm.status
+				let runMode = self.runMode
+
+				if self.lastStatus != newStatus && newStatus == .running {
+					self.lastStatus = newStatus
+
+					try? Utilities.group.next().makeFutureWithTask {
+						try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
+					}.wait()
+				}
+			}
+
+			func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
+				
+			}
+		}
 
 		try handler.run { address, vm in
 			address.whenSuccess { ip in
@@ -125,12 +155,11 @@ struct VMRun: AsyncParsableCommand {
 				}
 			}
 
-			if self.launchedFromService && self.common.runMode != .app {
-				_ = Timer(timeInterval: 5, repeats: false) { _ in
-					try? Utilities.group.next().makeFutureWithTask {
-						try await vm.startGrandCentralUpdate(frequency: 1, runMode: self.common.runMode)
-					}.wait()
-				}
+			if self.launchedFromService && self.startGCD {
+				//vm.delegate = VMRunDelegate(runMode: runMode)
+				try? Utilities.group.next().makeFutureWithTask {
+					try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
+				}.wait()
 			}
 
 			if display == .all || display == .vnc {
