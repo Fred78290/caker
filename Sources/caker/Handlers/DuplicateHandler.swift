@@ -5,11 +5,11 @@ import GRPCLib
 extension DuplicateHandler {
 	public static func duplicate(client: CakedServiceClient?, vmURL: URL, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) throws -> DuplicatedReply {
 		guard let client else {
-			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, startMode: .attach, runMode: runMode)
+			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
 		}
 
 		if vmURL.isFileURL {
-			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, startMode: .attach, runMode: runMode)
+			return self.duplicate(vmURL: vmURL, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {

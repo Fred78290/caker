@@ -4,23 +4,23 @@ import NIOCore
 import Virtualization
 
 public struct DuplicateHandler {
-	public static func duplicate(vmURL: URL, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+	public static func duplicate(vmURL: URL, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) -> DuplicatedReply {
 		guard let location = try? VMLocation.newVMLocation(vmURL: vmURL, runMode: runMode) else {
 			return DuplicatedReply(from: vmURL.absoluteString, to: to, duplicated: false, reason: "Source vm not found")
 		}
 
-		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, startMode: startMode, runMode: runMode)
+		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
 	}
 
-	public static func duplicate(from: String, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+	public static func duplicate(from: String, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) -> DuplicatedReply {
 		guard let location = try? StorageLocation(runMode: runMode).find(from) else {
 			return DuplicatedReply(from: from, to: to, duplicated: false, reason: "Source vm not found")
 		}
 
-		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, startMode: startMode, runMode: runMode)
+		return duplicate(location: location, to: to, resetMacAddress: resetMacAddress, runMode: runMode)
 	}
 
-	public static func duplicate(location: VMLocation, to: String, resetMacAddress: Bool, startMode: StartHandler.StartMode, runMode: Utils.RunMode) -> DuplicatedReply {
+	public static func duplicate(location: VMLocation, to: String, resetMacAddress: Bool, runMode: Utils.RunMode) -> DuplicatedReply {
 		do {
 			let storageLocation = StorageLocation(runMode: runMode)
 			var fromLocation = location
@@ -51,7 +51,7 @@ public struct DuplicateHandler {
 			}
 
 			if config.os == .linux && config.useCloudInit {
-				fromLocation = try TemplateHandler.cleanCloudInit(source: fromLocation, config: config, startMode: startMode, runMode: runMode)
+				fromLocation = try TemplateHandler.cleanCloudInit(source: fromLocation, config: config, startMode: .background, runMode: runMode)
 
 				// Change mac address and network mode
 				config = try resetMacAddress(fromLocation)

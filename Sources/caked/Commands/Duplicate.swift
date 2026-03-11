@@ -44,7 +44,6 @@ struct Duplicate: ParsableCommand {
 					from: self.duplicate.from,
 					to: self.duplicate.to,
 					resetMacAddress: self.duplicate.resetMacAddress,
-					startMode: self.duplicate.foreground ? .foreground : .attach,
 					runMode: self.common.runMode)))
 	}
 }
