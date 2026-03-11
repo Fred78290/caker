@@ -25,7 +25,7 @@ struct ExecuteHandler: CakedCommandAsync {
 
 	init(provider: CakedProvider, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, context: GRPCAsyncServerCallContext) throws {
 		guard let vmname = context.request.headers.first(name: "CAKEAGENT_VMNAME") else {
-			Logger("ExecuteHandler").error(ServiceError("no CAKEAGENT_VMNAME header"))
+			Logger("ExecuteHandler").error("no CAKEAGENT_VMNAME header")
 
 			throw ServiceError("no CAKEAGENT_VMNAME header")
 		}
