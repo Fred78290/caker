@@ -14,11 +14,11 @@ extension StartHandler {
 	public static func startVM(client: CakedServiceClient?, vmURL: URL, screenSize: GRPCLib.ViewSize?, vncPassword: String?, vncPort: Int?, waitIPTimeout: Int, startMode: StartMode, runMode: Utils.RunMode, promise: EventLoopPromise<String>? = nil) throws -> StartedReply {
 
 		guard let client else {
-			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, runMode: runMode, promise: promise)
 		}
 
 		if vmURL.isFileURL {
-			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, runMode: runMode, promise: promise)
+			return try startVM(vmURL: vmURL, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: false, runMode: runMode, promise: promise)
 		}
 
 		guard let host = vmURL.host(percentEncoded: false) else {

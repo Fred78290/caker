@@ -340,7 +340,7 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 					if let pid = pid.2 {
 						kill(pid, SIGINT)
 						removePID()
-						_ = StartHandler.startVM(location: self, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: waitIPTimeout, startMode: .background, runMode: runMode, promise: nil)
+						_ = StartHandler.startVM(location: self, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: waitIPTimeout, startMode: .background, gcd: false, runMode: runMode, promise: nil)
 					}
 				}
 			}

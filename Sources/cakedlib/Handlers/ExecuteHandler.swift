@@ -13,8 +13,7 @@ import NIO
 import CakeAgentLib
 
 public struct ExecuteHandler {
-	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) async throws
-	{
+	public static func execute(on: EventLoop, runMode: Utils.RunMode, requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>, vmname: String, client: CakeAgentConnection) async throws {
 		var vmname = vmname
 
 		if vmname == "" {
@@ -35,7 +34,7 @@ public struct ExecuteHandler {
 		if location.status != .running {
 			Logger(self).info("Starting \(vmname)")
 
-			let started = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, runMode: runMode)
+			let started = CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: location, screenSize: nil, vncPassword: nil, vncPort: 0, waitIPTimeout: 180, startMode: .background, gcd: false, runMode: runMode)
 
 			if started.started == false {
 				throw ServiceError(started.reason)

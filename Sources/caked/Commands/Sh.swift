@@ -66,7 +66,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 			}
 		}
 
-		guard let result = try? CakedLib.StartHandler.startVM(name: self.shell.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.shell.waitIPTimeout, startMode: self.shell.foreground ? .foreground : .background, runMode: self.common.runMode) else {
+		guard let result = try? CakedLib.StartHandler.startVM(name: self.shell.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.shell.waitIPTimeout, startMode: self.shell.foreground ? .foreground : .background, gcd: false, runMode: self.common.runMode) else {
 			Logger.appendNewLine(self.common.format.render("Failed to start VM"))
 
 			return
