@@ -111,6 +111,62 @@ extension Cakeagent_CakeAgent.InfoReply {
 	}
 }
 
+extension Caked_ExecuteResponse {
+	init(_ from: CakeAgent.ExecuteResponse) {
+		self = Caked_ExecuteResponse.with { reply in
+			switch from.response {
+			case .exitCode(let exitCode):
+				reply.exitCode = exitCode
+			case .stdout(let stdout):
+				reply.stdout = stdout
+			case .stderr(let stderr):
+				reply.stderr = stderr
+			case .established:
+				reply.established = .with {
+					$0.success = true
+					$0.reason = "Established"
+				}
+			case .none:
+				break
+			}
+		}
+	}
+}
+
+extension CakeAgent.ExecuteRequest {
+	init(_ from: Caked_ExecuteRequest) {
+		self = CakeAgent.ExecuteRequest.with { msg in
+			switch from.execute {
+			   case .command(let command):
+				   msg.command = CakeAgent.ExecuteRequest.ExecuteCommand.with { cmd in
+					   switch command.execute {
+					   case .shell:
+						   cmd.shell = true
+					   case .command(let execute):
+						   cmd.command = CakeAgent.ExecuteRequest.ExecuteCommand.Command.with { cmd in
+							   cmd.command = execute.command
+							   cmd.args = execute.args
+						   }
+					   case .none:
+						   break
+					   }
+				   }
+			   case .input(let input):
+				   msg.input = input
+			   case .size(let size):
+				   msg.size = CakeAgent.ExecuteRequest.TerminalSize.with { termSize in
+					   termSize.cols = size.cols
+					   termSize.rows = size.rows
+				   }
+			   case .eof(let eof):
+				   msg.eof = eof
+			   case .none:
+				   break
+			   }
+		   }
+	}
+}
+
 extension CakeAgentClient {
 	static func log(_ error: Error) {
 		if let err = error as? GRPCStatus {
@@ -267,6 +323,7 @@ public final class CakeAgentConnection: Sendable {
 	let listeningAddress: URL
 	let timeout: Int64
 	let retries: ConnectionBackoff.Retries
+	let logger = Logger("CakeAgentConnection")
 
 	public convenience init(eventLoop: EventLoopGroup, listeningAddress: URL, timeout: Int64 = 60, retries: ConnectionBackoff.Retries = .unlimited, runMode: Utils.RunMode) throws {
 		let certLocation = try CertificatesLocation.createAgentCertificats(runMode: runMode)
@@ -390,152 +447,171 @@ public final class CakeAgentConnection: Sendable {
 	}
 
 	public func execute(requestStream: GRPCAsyncRequestStream<Caked_ExecuteRequest>, responseStream: GRPCAsyncResponseStreamWriter<Caked_ExecuteResponse>) async throws {
-		let (stream, continuation) = AsyncStream.makeStream(of: Caked_ExecuteResponse.self)
+		struct Message {
+			
+		}
+		let (stream, continuation) = AsyncThrowingStream.makeStream(of: Caked_ExecuteResponse.self)
 		let interceptor = CakeAgentClientInterceptorFactory(responseStream: responseStream)
 		let client = try createClient(interceptors: interceptor)
 		var exitCodeSent = false
-		let finish = {
+		
+		func finish() async {
+			#if DEBUG
+			self.logger.debug("Finish shell")
+			#endif
 			continuation.finish()
 			try? await client.close()
 		}
 
-		do {
+		func handleFailure(_ error: Error) -> Bool {
+			continuation.finish(throwing: error)
 
-			let streamShell: BidirectionalStreamingCall<CakeAgent.ExecuteRequest, CakeAgent.ExecuteResponse> = client.execute(
-				callOptions: .init(timeLimit: .none),
-				handler: { response in
-					continuation.yield(
-						Caked_ExecuteResponse.with { reply in
-							switch response.response {
-							case .exitCode(let exitCode):
-								reply.exitCode = exitCode
-								exitCodeSent = true
-							case .stdout(let stdout):
-								reply.stdout = stdout
-							case .stderr(let stderr):
-								reply.stderr = stderr
-							case .established:
-								reply.established = .with {
-									$0.success = true
-									$0.reason = "Established"
-								}
-							case .none:
-								break
-							}
-						})
-				})
+			if error is CancellationError == false && error is GRPCError.AlreadyComplete == false {
+				if interceptor.errorCaught.load() == nil {
+					self.logger.error(error)
+					_ = interceptor.errorCaught.storeIfNilThenLoad(.init(error: error))
+					return true
+				}
+			}
+
+			return false
+		}
+
+		do {
+			let streamShell = client.execute(callOptions: .init(timeLimit: .none), handler: { response in
+				#if DEBUG
+				self.logger.debug("Receive from agent: \(response)")
+				#endif
+
+				if case .exitCode = response.response {
+					exitCodeSent = true
+				}
+
+				continuation.yield(.init(response))
+			})
 
 			defer {
+				#if DEBUG
+				self.logger.debug("Send end to agent")
+				#endif
 				streamShell.sendEnd(promise: nil)
 			}
 
 			try await withThrowingTaskGroup(of: Void.self, returning: Void.self) { group in
-				let handleFailure = { (error: Error) in
-					continuation.finish()
-
-					if error is CancellationError == false && error is GRPC.GRPCError.AlreadyComplete == false {
-						if interceptor.errorCaught.load() == nil {
-							Logger(self).error(error)
-							_ = interceptor.errorCaught.storeIfNilThenLoad(.init(error: error))
-							return true
-						}
-					}
-
-					return false
-				}
-
 				group.addTask {
+					#if DEBUG
+					var count = 0
+
+					self.logger.debug("Entering forward from client to agent")
+					#endif
+
 					do {
-						for try await message: Caked_ExecuteRequest in requestStream {
-							try await streamShell.sendMessage(
-								CakeAgent.ExecuteRequest.with { msg in
-									switch message.execute {
-									case .command(let command):
-										msg.command = CakeAgent.ExecuteRequest.ExecuteCommand.with { cmd in
-											switch command.execute {
-											case .shell:
-												cmd.shell = true
-											case .command(let execute):
-												cmd.command = CakeAgent.ExecuteRequest.ExecuteCommand.Command.with { cmd in
-													cmd.command = execute.command
-													cmd.args = execute.args
-												}
-											case .none:
-												break
-											}
-										}
-									case .input(let input):
-										msg.input = input
-									case .size(let size):
-										msg.size = CakeAgent.ExecuteRequest.TerminalSize.with { termSize in
-											termSize.cols = size.cols
-											termSize.rows = size.rows
-										}
-									case .eof(let eof):
-										msg.eof = eof
-									case .none:
-										break
-									}
+						for try await message in requestStream {
+							#if DEBUG
+							let msgID = count
+
+							count += 1
+							self.logger.debug("[\(msgID)] Forward message from client to agent: \(message)")
+							#endif
+
+							streamShell.sendMessage(.init(message)).whenComplete { result in
+								switch result {
+								case .success():
+									#if DEBUG
+									self.logger.debug("[\(msgID)] Forwarded message from client to agent: \(message)")
+									#endif
+									break
+								case .failure(let error):
+									#if DEBUG
+									self.logger.debug("[\(msgID)] Failed message from client to agent: \(message), \(error)")
+									#endif
+									break
 								}
-							).get()
+							}
 						}
 					} catch {
+						self.logger.error("Error forward task from client to agent: \(error)")
+
 						if handleFailure(error) {
-							try? await responseStream.send(
-								Caked_ExecuteResponse.with {
-									$0.established = .with {
-										$0.success = false
-										$0.reason = error.localizedDescription
-									}
-								})
+							try? await responseStream.send(.with {
+								$0.established = .with {
+									$0.success = false
+									$0.reason = error.localizedDescription
+								}
+							})
 						}
 					}
+
+					#if DEBUG
+					self.logger.debug("Leave forward from client to agent")
+					#endif
 				}
 
 				group.addTask {
+					#if DEBUG
+					self.logger.debug("Entering forward from agent to client")
+					#endif
+
 					do {
 						for try await message in stream {
+							#if DEBUG
+							self.logger.debug("Forward message from agent to client: \(message)")
+							#endif
+
 							try await responseStream.send(message)
+
+							#if DEBUG
+							self.logger.debug("Done message from agent to client: \(message)")
+							#endif
 
 							if case .exitCode = message.response {
 								break
 							}
 						}
 					} catch {
+						self.logger.error("Error forward from agent to client: \(error)")
+
 						if handleFailure(error) {
-							try? await responseStream.send(
-								Caked_ExecuteResponse.with {
-									$0.established = .with {
-										$0.success = false
-										$0.reason = error.localizedDescription
-									}
-								})
+							try? await responseStream.send(.with {
+								$0.established = .with {
+									$0.success = false
+									$0.reason = error.localizedDescription
+								}
+							})
 						}
 					}
+
+					#if DEBUG
+					self.logger.debug("Leave forward from agent to client")
+					#endif
 				}
 
 				try await group.waitForAll()
 
+				
 				if interceptor.errorCaught.load() == nil && exitCodeSent == false {
-					try? await responseStream.send(
-						Caked_ExecuteResponse.with {
-							$0.established = .with {
-								$0.success = false
-								$0.reason = "Canceled"
-							}
-						})
+					try? await responseStream.send(.with {
+						$0.established = .with {
+							$0.success = false
+							$0.reason = "Canceled"
+						}
+					})
 				}
 
 				await finish()
 			}
+
+			self.logger.debug("Leave shell")
+
 		} catch {
-			try? await responseStream.send(
-				Caked_ExecuteResponse.with {
-					$0.established = .with {
-						$0.success = false
-						$0.reason = error.localizedDescription
-					}
-				})
+			self.logger.debug("Leave shell on error: \(error)")
+
+			try? await responseStream.send(.with {
+				$0.established = .with {
+					$0.success = false
+					$0.reason = error.localizedDescription
+				}
+			})
 
 			await finish()
 			throw error

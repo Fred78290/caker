@@ -179,39 +179,12 @@ public struct ShellHandler {
 			self.runMode = runMode
 		}
 
-		func createCakedServiceClient(connectionTimeout: Int64, runMode: Utils.RunMode) throws -> CakedServiceClient {
-			guard ServiceHandler.isAgentRunning(runMode: runMode) else {
-				throw ServiceError("Caked service is not running")
-			}
-
-			let listenAddress = try Utils.getDefaultServerAddress(runMode: runMode)
-			let certs = try ClientCertificatesLocation.getCertificats(runMode: runMode)
-
-			var caCert: String? = nil
-			var tlsCert: String? = nil
-			var tlsKey: String? = nil
-
-			if certs.exists() {
-				caCert = certs.caCertURL.path
-				tlsCert = certs.clientCertURL.path
-				tlsKey = certs.clientKeyURL.path
-			}
-
-			return try Caked.createClient(on: Utilities.group.next(),
-										  listeningAddress: URL(string: listenAddress),
-										  connectionTimeout: 5,
-										  retries: .upTo(1),
-										  caCert: caCert,
-										  tlsCert: tlsCert,
-										  tlsKey: tlsKey)
-		}
-
 		public func shell(terminalSize: TerminalSize, connectionTimeout: Int64, runMode: Utils.RunMode) throws -> ShellHandlerProtocol {
-			let serviceClient = try self.createCakedServiceClient(connectionTimeout: connectionTimeout, runMode: runMode)
-			
 			guard taskQueue == nil else {
 				return self
 			}
+			
+			let serviceClient = try ServiceHandler.createCakedServiceClient(connectionTimeout: connectionTimeout, runMode: runMode)
 			
 			self.logger.debug("Starting shell, VM: \(self.name)")
 			
@@ -300,19 +273,13 @@ public struct ShellHandler {
 			
 			return taskQueue.dispatchStream { (continuation: AsyncThrowingStream<ExecuteResponse, Error>.Continuation) in
 				do {
-					_ = try serviceClient.info(.with {
-						$0.name = self.name
-					}, callOptions: CallOptions(timeLimit: .timeout(.seconds(10)))).response.wait()
+					_ = try serviceClient.info(name: self.name)
 					
 					self.logger.debug("Start shell, VM: \(self.name)")
 					
-					self.shellStream = serviceClient.execute(callOptions: CallOptions(timeLimit: .none)) { response in
+					self.shellStream = try serviceClient.shell(name: self.name, rows: rows, cols: cols) { response in
 						continuation.yield(ExecuteResponse(response))
 					}
-					
-					self.shellStream.sendShell()
-					self.shellStream.sendTerminalSize(rows: rows, cols: cols)
-					self.shellStream.sendShell()
 					
 					self.logger.debug("Shell started, VM: \(self.name)")
 				} catch {
