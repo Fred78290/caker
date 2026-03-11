@@ -301,6 +301,7 @@
 		9BBF7CB32F3F28F600F37D2C /* VncURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */; };
 		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
 		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
+		9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
@@ -885,6 +886,7 @@
 		9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VncURLHandler.swift; sourceTree = "<group>"; };
 		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
+		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
@@ -1470,6 +1472,7 @@
 				9B464AD62D5A3E0300164BF5 /* generate.sh */,
 				9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */,
 				9BF8AE692F43915700DE5EAB /* CakedChannelStreamer.swift */,
+				9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */,
 				9B464AD02D5A3E0300164BF5 /* common.swift */,
 				9B464AD42D5A3E0300164BF5 /* FileLock.swift */,
 				9B464AD52D5A3E0300164BF5 /* Format.swift */,
@@ -2499,6 +2502,7 @@
 				9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */,
 				9BE2E7C02D5F85ED000CA07F /* PIDLock.swift in Sources */,
 				9B464C6D2D5A45EF00164BF5 /* service.pb.swift in Sources */,
+				9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */,
 				9B464C672D5A45DF00164BF5 /* common.swift in Sources */,
 				9B464C772D5A472400164BF5 /* service.grpc.swift in Sources */,
 				9BB3BE1D2DB3F17500799A6A /* PurgeOptions.swift in Sources */,
