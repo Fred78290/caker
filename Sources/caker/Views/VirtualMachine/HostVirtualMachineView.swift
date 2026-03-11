@@ -218,7 +218,7 @@ struct HostVirtualMachineView: View {
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
-						if self.document.status == .stopped {
+						if self.document.status == .stopped && self.document.externalRunning == false {
 							if self.launchExternally {
 								Button("Run hosted", systemImage: "personalhotspot.slash") {
 									launchExternally.toggle()
@@ -575,7 +575,9 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func vmView(_ size: CGSize) -> some View {
-		if self.document.externalRunning {
+		if self.document.status != .running {
+			LabelView(self.vmStatus(), progress: self.document.status == .starting)
+		} else if self.document.externalRunning {
 			if self.document.vncURL != nil {
 				externalView(size)
 					.frame(size: size)
@@ -594,9 +596,7 @@ struct HostVirtualMachineView: View {
 		} else if self.document.isLaunchVMExternally {
 			LabelView(self.vmStatus(), progress: self.document.status == .starting)
 		} else if document.virtualMachine != nil {
-			if self.document.status != .running {
-				LabelView(self.vmStatus(), progress: false)
-			} else if self.document.agentReady {
+			if self.document.agentReady {
 				internalView(size)
 					.frame(size: size)
 					.toolbar {
