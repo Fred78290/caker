@@ -108,7 +108,7 @@ extension Caked_CommonBuildRequest {
 
 extension Caked_LaunchRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return LaunchHandler(options: try self.options.buildOptions(), waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180, gcd: provider.gcd.haveListeners)
+		return LaunchHandler(options: try self.options.buildOptions(), startMode: .service, gcd: provider.gcd.haveListeners, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
 	}
 }
 
