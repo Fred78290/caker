@@ -607,8 +607,6 @@ struct HostVirtualMachineView: View {
 							}.pickerStyle(.segmented).labelsHidden()
 						}
 					}
-				//InternalVirtualMachineView(document: document)
-				//	.frame(size: size)
 			} else {
 				InternalVirtualMachineView(document: document, showsHostCursor: self.showsHostCursor)
 					.frame(size: size)
