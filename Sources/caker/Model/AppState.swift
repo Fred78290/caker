@@ -229,6 +229,9 @@ class AppState: ObservableObject, Observable {
 	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
 		self.logger.debug("Switching mode: installed=\(installed), runMode=\(runMode)")
 
+		self.cakedServiceInstalled = installed
+		self.runMode = runMode
+
 		if runMode == .app {
 			self.gcd?.cancel(promise: nil)
 		} else if gcd == nil {
@@ -237,6 +240,7 @@ class AppState: ObservableObject, Observable {
 			}
 			
 			gcdFuture.whenComplete { _ in
+				self.logger.debug("GCD stopped")
 				self.gcd = nil
 			}
 		}
