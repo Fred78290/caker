@@ -12,13 +12,13 @@ extension RestartHandler {
 	public static func restart(client: CakedServiceClient?, vmURL: URL, force: Bool, waitIPTimeout: Int, runMode: Utils.RunMode) throws -> RestartReply {
 		guard let client else {
 			return RestartReply(objects: [
-				self.restart(vmURL: vmURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+				self.restart(vmURL: vmURL, startMode: .background, gcd: false, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 			], success: true, reason: "Succes")
 		}
 
 		if vmURL.isFileURL {
 			return RestartReply(objects: [
-				self.restart(vmURL: vmURL, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
+				self.restart(vmURL: vmURL, startMode: .background, gcd: false, force: force, waitIPTimeout: waitIPTimeout, runMode: runMode)
 			], success: true, reason: "Succes")
 		}
 

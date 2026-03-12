@@ -166,7 +166,7 @@ extension Caked_StartRequest: CreateCakedCommand {
 
 extension Caked_RestartRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return RestartHandler(request: self)
+		return RestartHandler(request: self, startMode: .service, gcd: provider.gcd.haveListeners)
 	}
 }
 

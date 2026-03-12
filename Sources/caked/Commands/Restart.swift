@@ -30,7 +30,7 @@ struct Restart: ParsableCommand {
 	}
 
 	func run() throws {
-		let result = CakedLib.RestartHandler.restart(names: names, force: self.force, waitIPTimeout: waitIPTimeout, runMode: self.common.runMode)
+		let result = CakedLib.RestartHandler.restart(names: names, startMode: .background, gcd: false, force: self.force, waitIPTimeout: waitIPTimeout, runMode: self.common.runMode)
 
 		if result.success {
 			Logger.appendNewLine(self.common.format.render(result.objects))
