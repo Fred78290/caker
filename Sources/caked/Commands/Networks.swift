@@ -254,6 +254,9 @@ struct Networks: ParsableCommand {
 			}
 
 			if geteuid() == 0 {
+				try socketURL.pidFile.deleteIfFileExists()
+				try socketURL.socket.deleteIfFileExists()
+
 				let vzvmnet = try options.createVZVMNet(runMode: runMode)
 				var signalReconfigure: DispatchSourceSignal? = nil
 
@@ -300,8 +303,7 @@ struct Networks: ParsableCommand {
 			} else if try SudoCaked(arguments: ["networks", "start", options.networkName], runMode: runMode, log: try CakedLib.NetworksHandler.vmnetFileLog(networkName: options.networkName, runMode: runMode)).run().terminationStatus != 0 {
 				throw ServiceError("Failed to start networks \(options.networkName)")
 			} else {
-				let socketURL = try options.vmnetEndpoint(runMode: runMode)
-
+				sleep(1)
 				try socketURL.pidFile.waitPID()
 
 				return StartedNetworkReply(name: options.networkName, started: true, reason: "Network \(options.networkName) started")
@@ -398,9 +400,9 @@ struct Networks: ParsableCommand {
 				}
 			}
 
-			if FileManager.default.fileExists(atPath: socketURL.socket.path) {
-				throw ValidationError("Listen network \(self.name) already exists at this location: \(socketURL.socket.path)")
-			}
+			//if FileManager.default.fileExists(atPath: socketURL.socket.path) {
+			//	throw ValidationError("Listen network \(self.name) already exists at this location: \(socketURL.socket.path)")
+			//}
 		}
 
 		func run() throws {
