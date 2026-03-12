@@ -149,6 +149,8 @@ public struct CurrentStatusHandler {
 						do {
 							let infos = try helper.info(callOptions: CallOptions(timeLimit: .timeout(.seconds(10))))
 
+							self.logger.debug("Monitoring agent is ready, VM: \(self.location.name)")
+
 							self.handleAgentHealthCurrentUsage(usage: infos)
 
 							helper.currentUsage(frequency: 1, callOptions: CallOptions(timeLimit: .none), continuation: continuation)
