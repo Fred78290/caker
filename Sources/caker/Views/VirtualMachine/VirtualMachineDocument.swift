@@ -182,7 +182,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 			switch from {
 			case .stopped:
 				self = .stopped
-			case .running:
+			case .running, .agentReady:
 				self = .running
 			case .paused:
 				self = .paused

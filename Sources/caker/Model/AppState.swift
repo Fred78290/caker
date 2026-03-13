@@ -172,7 +172,7 @@ class AppState: ObservableObject, Observable {
 
 		if let document = self.findVirtualMachineDocument(vmURL) {
 			await MainActor.run {
-				document.setState(.init(value))
+				document.setState(value)
 
 				if value == .deleted {
 					self.removeVirtualMachineDocument(vmURL)
