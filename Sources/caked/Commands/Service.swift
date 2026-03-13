@@ -275,12 +275,15 @@ extension Service {
 		struct ServiceStatus: Codable {
 			let installed: Bool
 			let run: Bool
+			let pid: String
 			let mode: Utils.RunMode
 		}
 		
 		mutating func run() throws {
+			let running = ServiceHandler.isAgentRunningWithPID
 			let status = ServiceStatus(installed: ServiceHandler.isAgentInstalled,
-									   run: ServiceHandler.isAgentRunning,
+									   run: running.running,
+									   pid: running.pid == nil ? "" : String(running.pid!),
 									   mode: ServiceHandler.runningMode)
 			
 			print(self.format.renderSingle(status))
@@ -293,7 +296,7 @@ extension Service {
 		mutating func run() throws {
 			let mode = ServiceHandler.runningMode
 
-			guard mode != .app && ServiceHandler.isAgentRunning(runMode: mode) else {
+			guard mode != .app && ServiceHandler.isAgentRunning(runMode: mode).running else {
 				throw ServiceError("Caked service is not running")
 			}
 

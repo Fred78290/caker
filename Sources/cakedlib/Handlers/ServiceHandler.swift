@@ -170,7 +170,7 @@ public struct ServiceHandler {
 	}
 
 	public static func uninstallAgent(runMode: Utils.RunMode) throws {
-		if self.isAgentRunning(runMode: runMode) {
+		if self.isAgentRunning(runMode: runMode).running {
 			try self.stopAgent(runMode: runMode)
 		}
 
@@ -264,19 +264,33 @@ public struct ServiceHandler {
 		}
 	}
 
-	public static func isAgentRunning(runMode: Utils.RunMode) -> Bool {
+	public static func isAgentRunning(runMode: Utils.RunMode) -> (running: Bool, agentURL: URL?, pid: Int32?) {
 		if let home = try? Home(runMode: runMode, createItIfNotExists: false) {
-			if home.agentPID.isPIDRunning().running {
-				return true
+			let run = home.agentPID.isPIDRunning()
+
+			if run.running {
+				return (true, home.agentPID, run.pid)
 			}
 		}
 
-		return false
+		return (false, nil, nil)
+	}
+
+	public static var isAgentRunningWithPID: (running: Bool, agentURL: URL?, pid: Int32?) {
+		for runMode in [Utils.RunMode.system, .user] {
+			let run = self.isAgentRunning(runMode: runMode)
+
+			if run.running {
+				return run
+			}
+		}
+
+		return (false, nil, nil)
 	}
 
 	public static var isAgentRunning: Bool {
 		for runMode in [Utils.RunMode.system, .user] {
-			if self.isAgentRunning(runMode: runMode) {
+			if self.isAgentRunning(runMode: runMode).running {
 				return true
 			}
 		}
@@ -286,7 +300,7 @@ public struct ServiceHandler {
 
 	public static var runningMode: Utils.RunMode {
 		for runMode in [Utils.RunMode.system, .user] {
-			if self.isAgentRunning(runMode: runMode) {
+			if self.isAgentRunning(runMode: runMode).running {
 				return runMode
 			}
 		}
@@ -305,7 +319,7 @@ public struct ServiceHandler {
 	}
 	
 	public static func createCakedServiceClient(connectionTimeout: Int64 = 5, retries: ConnectionBackoff.Retries = .upTo(1), runMode: Utils.RunMode) throws -> CakedServiceClient {
-		guard isAgentRunning(runMode: runMode) else {
+		guard isAgentRunning(runMode: runMode).running else {
 			throw ServiceError("Caked service is not running")
 		}
 
