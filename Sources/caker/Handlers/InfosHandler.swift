@@ -31,6 +31,10 @@ extension InfosHandler {
 			$0.includeConfig = true
 		}).response.wait().vms.status
 
+		if reply.success == false {
+			throw ServiceError(reply.reason)
+		}
+
 		return (VMInformations(reply.infos), CakedConfiguration(reply.config))
 	}
 }
