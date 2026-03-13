@@ -10,7 +10,11 @@
 
 /// limitations under the License.
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 import SwiftProtobuf
 
 // If the compiler emits an error on this type, it is because this file
@@ -47,6 +51,7 @@ public struct Caked_Caked: Sendable {
     case paused // = 2
     case deleted // = 3
     case error // = 4
+    case agentReady // = 5
     case UNRECOGNIZED(Int)
 
     public init() {
@@ -60,6 +65,7 @@ public struct Caked_Caked: Sendable {
       case 2: self = .paused
       case 3: self = .deleted
       case 4: self = .error
+      case 5: self = .agentReady
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -71,6 +77,7 @@ public struct Caked_Caked: Sendable {
       case .paused: return 2
       case .deleted: return 3
       case .error: return 4
+      case .agentReady: return 5
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -82,6 +89,7 @@ public struct Caked_Caked: Sendable {
       .paused,
       .deleted,
       .error,
+      .agentReady,
     ]
 
   }
@@ -5290,7 +5298,7 @@ extension Caked_Caked: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
 }
 
 extension Caked_Caked.VirtualMachineStatus: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0stopped\0\u{1}running\0\u{1}paused\0\u{1}deleted\0\u{1}error\0\u{1}agentReady\0")
 }
 
 extension Caked_Caked.CpuCoreInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {

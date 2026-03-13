@@ -40,6 +40,8 @@ public class GrandCentralUpdater {
 
 		self.logger.info("Starting Grand Central Updater for VM: \(self.location.name)")
 
+		let logger = self.logger
+		let vmName = self.location.name
 		let grpcStream = client.grandCentralUpdate(callOptions: .init(timeLimit: .none))
 		let asyncStream = AsyncThrowingStream.makeStream(of: CurrentStatusHandler.CurrentStatusReply.self)
 		let cancelable = try await CurrentStatusHandler.currentStatus(location: self.location, frequency: frequency, statusStream: asyncStream.continuation, runMode: self.runMode)
@@ -48,10 +50,14 @@ public class GrandCentralUpdater {
 			switch result {
 			case .failure( let error):
 				asyncStream.continuation.finish(throwing: error)
+				logger.info("Grand Central Updater failed for VM: \(vmName), with error: \(error)")
 
 			case .success(let status):
 				if status.isOk == false {
 					asyncStream.continuation.finish(throwing: status)
+					logger.info("Grand Central Updater completed for VM: \(vmName), with status: \(status)")
+				} else {
+					logger.info("Grand Central Updater completed for VM: \(vmName)")
 				}
 			}
 		}
@@ -64,13 +70,26 @@ public class GrandCentralUpdater {
 
 				self.taskQueue = nil
 				self.stream = nil
-				self.logger.info("Grand Central Updater stopped for VM: \(self.location.name)")
+				self.logger.info("Grand Central Updater stopped for VM: \(vmName)")
 			}
 
 			do {
 				for try await status in asyncStream.stream {
+					var firstMessage = true
+
+					if firstMessage {
+						if case .usage = status {
+							firstMessage = false
+							try await grpcStream.sendMessage(.with {
+								$0.name = self.location.name
+								$0.status = .agentReady
+							}).get()
+						}
+					}
+
 					try await grpcStream.sendMessage(.with {
 						$0.name = self.location.name
+
 						switch status {
 						case .usage(let usage):
 							$0.usage = usage
@@ -115,7 +134,11 @@ public class GrandCentralUpdater {
 			self.lastStatus = status
 
 			if let stream {
+				self.logger.debug("VM \(self.location.name) send status: \(status)")
+
 				stream.continuation.yield(.status(status))
+			} else {
+				self.logger.debug("VM \(self.location.name) can't send status: \(status), stream closed")
 			}
 		}
 	}
