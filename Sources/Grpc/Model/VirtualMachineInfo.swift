@@ -905,22 +905,31 @@ public struct VirtualMachineStatusReply: Codable {
 	public let infos: VMInformations
 	public let success: Bool
 	public let reason: String
-
+	
 	public init(infos: VMInformations, success: Bool, reason: String) {
 		self.infos = infos
 		self.success = success
 		self.reason = reason
 	}
-
+	
 	public init(_ from: Caked_VirtualMachineStatusReply) throws {
 		self.success = from.success
 		self.reason = from.reason
 		self.infos = VMInformations(from.infos)
 	}
-
+	
 	public var caked: Caked_VirtualMachineStatusReply {
 		Caked_VirtualMachineStatusReply.with {
 			$0.infos = self.infos.caked
+			$0.success = self.success
+			$0.reason = self.reason
+		}
+	}
+	
+	public func caked(config: VirtualMachineConfiguration) -> Caked_VirtualMachineStatusReply {
+		Caked_VirtualMachineStatusReply.with {
+			$0.infos = self.infos.caked
+			$0.config = config.caked
 			$0.success = self.success
 			$0.reason = self.reason
 		}

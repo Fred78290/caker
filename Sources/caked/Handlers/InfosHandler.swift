@@ -31,13 +31,12 @@ struct InfosHandler: CakedCommand {
 
 			return Caked_Reply.with {
 				$0.vms = Caked_VirtualMachineReply.with {
-					var caked = reply.caked
-
 					if request.includeConfig {
-						caked.config = result.config.caked
-					}
+						$0.status = reply.caked(config: result.config)
+					} else {
+						$0.status = reply.caked
 
-					$0.status = caked
+					}
 				}
 			}
 		} catch {
