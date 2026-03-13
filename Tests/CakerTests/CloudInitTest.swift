@@ -252,7 +252,7 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let runningIP = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, runMode: .user, promise: promise)
+		let runningIP = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .background, gcd: false, runMode: .user, promise: promise)
 
 		print("startVM got running ip: \(runningIP)")
 
@@ -299,7 +299,7 @@ final class CloudInitTests: XCTestCase {
 		}
 
 		// Start VM
-		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, runMode: .user, promise: promise)
+		let result = StartHandler.startVM(location: location, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: .foreground, gcd: false, runMode: .user, promise: promise)
 
 		XCTAssertTrue(result.started, "VM \(name) should be started")
 
