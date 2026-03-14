@@ -98,6 +98,7 @@ struct VMRun: AsyncParsableCommand {
 		let config = try location.config()
 		let vncPassword = self.vncPassword ?? config.vncPassword ?? UUID().uuidString
 		let displaySize: CGSize
+		var startGrandCentral = false
 
 		if location.isPIDRunning() {
 			throw ServiceError("The VM is already running")
@@ -107,6 +108,16 @@ struct VMRun: AsyncParsableCommand {
 			displaySize = .init(width: screenSize.width, height: screenSize.height)
 		} else {
 			displaySize = config.display.cgSize
+		}
+
+		if (self.launchedFromService && self.startGCD) || (self.launchedFromService == false && ServiceHandler.isAgentRunning) {
+			startGrandCentral = true
+
+			if display == .none {
+				display = .vnc
+			} else if display == .ui {
+				display = .all
+			}
 		}
 
 		let runMode = self.common.runMode
@@ -122,32 +133,6 @@ struct VMRun: AsyncParsableCommand {
 			vncPort: vncPort,
 			runMode: runMode)
 
-		class VMRunDelegate: VirtualMachineDelegate {
-			let runMode: Utils.RunMode
-			var lastStatus = VMLocation.Status.stopped
-
-			init(runMode: Utils.RunMode) {
-				self.runMode = runMode
-			}
-
-			func didChangedState(_ vm: VirtualMachine) {
-				let newStatus = vm.status
-				let runMode = self.runMode
-
-				if self.lastStatus != newStatus && newStatus == .running {
-					self.lastStatus = newStatus
-
-					try? Utilities.group.next().makeFutureWithTask {
-						try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
-					}.wait()
-				}
-			}
-
-			func didScreenshot(_ vm: VirtualMachine, screenshot: NSImage) {
-				
-			}
-		}
-
 		try handler.run { address, vm in
 			address.whenSuccess { ip in
 				if let ip {
@@ -155,8 +140,8 @@ struct VMRun: AsyncParsableCommand {
 				}
 			}
 
-			if self.launchedFromService && self.startGCD {
-				//vm.delegate = VMRunDelegate(runMode: runMode)
+			// Check also manual launch
+			if startGrandCentral {
 				try? Utilities.group.next().makeFutureWithTask {
 					try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
 				}.wait()

@@ -878,9 +878,6 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 		if let delegate = self.delegate {
 			self.vmQueue.async {
 				delegate.didChangedState(self)
-				if let gdc = self.gdc {
-					gdc.setStatus(self.status)
-				}
 			}
 		}
 	}
@@ -1188,7 +1185,7 @@ extension VirtualMachine {
 			return
 		}
 		
-		let gdc = try GrandCentralUpdater(location: self.location, runMode: runMode)
+		let gdc = try GrandCentralUpdater(vm: self, runMode: runMode)
 		
 		try await gdc.start(frequency: frequency) {
 			self.gdc = nil

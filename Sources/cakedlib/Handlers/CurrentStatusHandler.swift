@@ -256,6 +256,7 @@ public struct CurrentStatusHandler {
 		let runMode: Utils.RunMode
 		let stream: AsyncThrowingStreamCakedCurrentStatusReply
 		let agentMonitor: CurrentStatusHandler.CurrentUsageWatcher
+		let logger = Logger("AgentStatusWatcher")
 
 		init(location: VMLocation, statusStream: AsyncThrowingStreamCurrentStatusReplyYield, runMode: Utils.RunMode) {
 			let stream: AsyncThrowingStreamCakedCurrentStatusReply = AsyncThrowingStream<Caked_CurrentStatus, Error>.makeStream()
@@ -272,7 +273,7 @@ public struct CurrentStatusHandler {
 			try await withTaskCancellationHandler(operation: {
 				try await withThrowingTaskGroup(of: Void.self) { group in
 					var group = group
-					
+
 					let monitor = try FileMonitor(directory: self.location.rootURL, delegate: Watcher(location: self.location) { event in
 						switch event {
 						case .added(let file):
@@ -293,7 +294,11 @@ public struct CurrentStatusHandler {
 					
 					func check(_ file: URL) -> Void {
 						if file.lastPathComponent == self.location.pidFile.lastPathComponent {
-							switch self.location.status {
+							let status = self.location.status
+
+							self.logger.debug("Status changed for VM \(self.location.name) to \(status)")
+
+							switch status {
 							case .running:
 								self.stream.continuation.yield(.with {
 									$0.status = .running
@@ -314,10 +319,13 @@ public struct CurrentStatusHandler {
 						}
 					}
 					
+					self.logger.debug("Start file monitor for \(self.location.name)")
+
 					try monitor.start()
 					
 					if self.location.status == .running {
 						group.addTask {
+							self.logger.debug("Start agent monitor for VM \(self.location.name)")
 							await self.agentMonitor.start()
 						}
 					}
@@ -331,22 +339,27 @@ public struct CurrentStatusHandler {
 								case .screenshot(let png):
 									self.statusStream.yield(.screenshot(png))
 								case .status(let status):
+									self.logger.debug("Handle new status for VM \(self.location.name) to \(status)")
 									self.statusStream.yield(.status(.init(status)))
 									
 									if status == .running && self.agentMonitor.isMonitoring == false {
 										group.addTask {
+											self.logger.debug("Start agent monitor for VM \(self.location.name)")
 											await self.agentMonitor.start()
 										}
 									} else if status != .running && self.agentMonitor.isMonitoring {
+										self.logger.debug("Stop agent monitor for VM \(self.location.name)")
 										self.agentMonitor.cancel()
 									}
 								case .failure(let reason):
+									self.logger.debug("Failure for VM \(self.location.name), \(reason)")
 									self.statusStream.yield(.error(ServiceError(reason)))
 								default:
 									break
 								}
 							}
 						}, onCancel: {
+							self.logger.debug("Cancellation status watcher for VM \(self.location.name)")
 							self.stream.continuation.finish(throwing: CancellationError())
 						})
 					}
@@ -354,6 +367,7 @@ public struct CurrentStatusHandler {
 					try await group.waitForAll()
 				}
 			}, onCancel: {
+				self.logger.debug("General cancel status watcher for VM \(self.location.name)")
 				self.agentMonitor.cancel()
 				self.stream.continuation.finish(throwing: CancellationError())
 			})
