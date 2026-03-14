@@ -74,9 +74,9 @@ public class GrandCentralUpdater {
 			}
 
 			do {
-				for try await status in asyncStream.stream {
-					var firstMessage = true
+				var firstMessage = true
 
+				for try await status in asyncStream.stream {
 					if firstMessage {
 						if case .usage = status {
 							firstMessage = false
