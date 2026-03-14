@@ -159,8 +159,10 @@ extension Service {
 		
 		func run() async throws {
 			let listenAddress = try self.options.getListenAddress()
-			
+			let logger = Logger(self)
+
 			guard listenAddress.count > 0 else {
+				logger.error("No listen address provided")
 				throw ServiceError("No listen address provided")
 			}
 			
@@ -177,7 +179,7 @@ extension Service {
 			
 			let eventLoopGroup = Utilities.group
 			let servers: [Server] = try listenAddress.map { address in
-				Logger(self).info("Start listening on \(address)")
+				logger.info("Start listening on \(address)")
 				return try ServiceHandler.createServer(
 					eventLoopGroup: eventLoopGroup,
 					runMode: runMode,
@@ -192,10 +194,11 @@ extension Service {
 			Root.sigintSrc.cancel()
 			
 			signal(SIGINT, SIG_IGN)
-			
+
 			let sigintSrc: any DispatchSourceSignal = DispatchSource.makeSignalSource(signal: SIGINT)
 			
 			sigintSrc.setEventHandler {
+				logger.info("Stop service on SIGINT")
 				servers.forEach {
 					try? $0.close().wait()
 				}
@@ -218,7 +221,7 @@ extension Service {
 				try await servers.first!.onClose.get()
 			}
 			
-			Logger(self).info("Server stopped")
+			logger.info("Service stopped")
 		}
 	}
 	
