@@ -98,6 +98,7 @@ struct VMRun: AsyncParsableCommand {
 		let config = try location.config()
 		let vncPassword = self.vncPassword ?? config.vncPassword ?? UUID().uuidString
 		let displaySize: CGSize
+		var display = self.display
 		var startGrandCentral = false
 
 		if location.isPIDRunning() {
