@@ -550,6 +550,9 @@ extension VirtualMachineDocument {
 
 		if status == .running {
 			self.vncURL = try? AppState.shared.vncURL(vmURL: self.url)
+			if self.inView {
+				self.tryVNCConnect()
+			}
 		} else if status == .agentReady {
 			self.agent = .installed
 			self.agentReady = true
@@ -564,13 +567,24 @@ extension VirtualMachineDocument {
 					}
 				}
 			}
+		} else {
+			self.suspendable = false
+			self.vncURL = nil
+			self.vncStatus = .disconnected
+			self.agentCondition = ("Install agent", false, true)
+			self.agentReady = false
+
+			if let connection = self.connection {
+				self.connection = nil
+				connection.disconnect()
+			}
 		}
 	}
 
 	func setDocumentSize(_ size: ViewSize, _line: UInt = #line, _file: String = #file) {
 		if self.documentSize != size {
 #if DEBUG
-			self.logger.debug("Setting document size to \(size.description) at \(_file):\(_line)")
+			self.logger.debug("Setting document \(self.name) size to \(size.description) at \(_file):\(_line)")
 #endif
 			
 			self.documentSize = size
