@@ -9,12 +9,14 @@ import CakedLib
 import CakeAgentLib
 import GRPC
 import GRPCLib
+import SwiftUI
 
 typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>, continuation: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>.Continuation)
 
 class InteractiveShell {
 	let name: String
 	let vmURL: URL
+	var terminalView: VirtualMachineTerminalView! = nil
 
 	private var shellStream: ShellHandler.ShellHandlerProtocol! = nil
 	private let logger = Logger("InteractiveShell")
@@ -27,7 +29,15 @@ class InteractiveShell {
 		self.vmURL = vmURL
 		self.name = vmURL.lastPathComponent.deletingPathExtension
 	}
-	
+
+	func buildTerminalView(frame: CGRect, dismiss: DismissAction) -> VirtualMachineTerminalView {
+		guard let terminalView else {
+			return VirtualMachineTerminalView(interactiveShell: self, frame: frame, font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
+		}
+
+		return terminalView
+	}
+
 	func sendTerminalSize(rows: Int, cols: Int) {
 		if let shellStream = self.shellStream {
 			shellStream.sendTerminalSize(rows: rows, cols: cols)
@@ -58,6 +68,12 @@ class InteractiveShell {
 	}
 
 	func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) async {
+		guard self.shellStream == nil else {
+			return
+		}
+
+		print("enter runShell")
+
 		await withTaskCancellationHandler(operation: {
 			do {
 				self.shellStream = try ShellHandler.shell(vmURL: self.vmURL, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
@@ -78,9 +94,13 @@ class InteractiveShell {
 			self.shellStream?.closeShell {
 				self.logger.debug("Shell ended, VM: \(self.name)")
 			}
+
+			self.shellStream = nil
 		}, onCancel: {
 			self.shellStream?.finish()
 		})
+		
+		print("exitt runShell")
 	}
 	
 	private func handleAgentHealthCheckFailure(error: Error) -> Bool {

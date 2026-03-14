@@ -103,7 +103,12 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	}
 
 	func terminalViewDidChangeSize(_ terminalView: TerminalView) {
-		print("terminalViewDidChangeSize")
+	}
+
+	func closeShell() {
+		self.interactiveShell.closeShell {
+			Logger(self).debug("Shell closed")
+		}
 	}
 
 	func startShell() async {
@@ -197,25 +202,25 @@ struct ColorWell: NSViewRepresentable {
 
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
-
+	
 	private var fontPickerDelegate: FontPickerDelegate!
 	private let fontManager = NSFontManager.shared
 	private let terminalView: NSViewType
-
+	
 	var terminalColor: SwiftUI.Color {
 		self.fontPickerDelegate.terminalView.fontColor.uiColor
 	}
-
+	
 	var terminalFont: NSFont {
 		self.fontPickerDelegate.terminalView.font
 	}
-
+	
 	class FontPickerDelegate: NSObject, NSWindowDelegate, NSFontChanging {
 		@Binding var presented: Bool
 		@State var fontColor: SwiftUI.Color
-
+		
 		var terminalView: NSViewType
-
+		
 		var visible: Binding<Bool> {
 			get {
 				return self._presented
@@ -223,62 +228,66 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			set {
 				self._presented = newValue
 			}
-
+			
 		}
-
+		
 		init(terminalView: NSViewType) {
 			self._presented = .constant(false)
 			self.terminalView = terminalView
 			self.fontColor = terminalView.fontColor.uiColor
 		}
-
+		
 		@objc func selectFont(_ sender: AnyObject) {
 			let fontManager = NSFontManager.shared
-
+			
 			guard var newFont = fontManager.selectedFont else {
 				return
 			}
-
+			
 			newFont = fontManager.convert(newFont)
 			self.terminalView.font = newFont
 			self.presented = false
-
+			
 			Defaults.saveTerminalFont(newFont)
 		}
-
+		
 		func windowWillClose(_ notification: Notification) {
 			self.presented = false
 		}
 	}
-
+	
 	init(interactiveShell: InteractiveShell, size: CGSize, dismiss: DismissAction) {
-		self.terminalView = NSViewType(interactiveShell: interactiveShell, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
+		self.terminalView = interactiveShell.buildTerminalView(frame: CGRect(origin: .zero, size: size), dismiss: dismiss)
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
-
+	
 	func makeNSView(context: Context) -> NSViewType {
 		return terminalView
 	}
-
+	
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		self.fontPickerDelegate.terminalView = nsView
 	}
-
+	
 	func setTerminalColor(_ color: SwiftUI.Color) {
 		let color = SwiftTerm.Color(color)
-
+		
 		Defaults.saveTerminalFontColor(color: color)
 		self.fontPickerDelegate.terminalView.fontColor = color
 	}
-
+	
 	func setTerminalFont(_ font: NSFont) {
 		self.fontPickerDelegate.terminalView.font = font
-
+		
 		Defaults.saveTerminalFont(font)
 	}
 	
 	func startShell() async {
 		await self.terminalView.startShell()
+	}
+	
+	func closeShell() {
+		self.terminalView.closeShell()
 	}
 }
 
@@ -316,7 +325,6 @@ struct ColorPickerModifier: ViewModifier {
 
 struct InteractiveShellModifier: ViewModifier {
 	let target: ExternalVirtualMachineView?
-	@State private var task: Task<Void, Never>? = nil
 
 	init<Content, Modifier>(modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
 		self.init(modifier.content)
@@ -332,16 +340,9 @@ struct InteractiveShellModifier: ViewModifier {
 	
 	func body(content: Content) -> some View {
 		if let target {
-			content
-				.onAppear() {
-					task = Task {
-						await target.startShell()
-					}
-				}
-				.onDisappear() {
-					task?.cancel()
-					task = nil
-				}
+			content.task {
+				await target.startShell()
+			}
 		} else {
 			content
 		}
