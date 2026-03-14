@@ -159,11 +159,11 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 			try? pngData.write(to: self.vm.location.screenshotURL)
 
 			if let stream {
-				self.logger.debug("VM \(self.name) send screenshot")
+				self.logger.trace("VM \(self.name) send screenshot")
 				
 				stream.continuation.yield(.screenshot(pngData))
 			} else {
-				self.logger.debug("VM \(self.name) can't send screenshot, stream closed")
+				self.logger.trace("VM \(self.name) can't send screenshot, stream closed")
 			}
 		}
 	}
