@@ -227,6 +227,24 @@ class AppState: ObservableObject, Observable {
 	}
 
 	private func switchMode(_ installed: Bool, runMode: Utils.RunMode) {
+		var startGCD = false
+
+		func startGrandCentral() {
+			let gcdFuture = Utilities.group.next().makeFutureWithTask {
+				await self.gdc(client: self.cakedServiceClient!)
+			}
+			
+			gcdFuture.whenFailure { error in
+				self.logger.error("GCD failed: \(error)")
+				startGCD = false
+			}
+
+			gcdFuture.whenComplete { _ in
+				self.logger.debug("GCD stopped")
+				self.gcd = nil
+			}
+		}
+
 		self.logger.debug("Switching mode: installed=\(installed), runMode=\(runMode)")
 
 		self.cakedServiceInstalled = installed
@@ -235,14 +253,7 @@ class AppState: ObservableObject, Observable {
 		if runMode == .app {
 			self.gcd?.cancel(promise: nil)
 		} else if gcd == nil {
-			let gcdFuture = Utilities.group.next().makeFutureWithTask {
-				await self.gdc(client: self.cakedServiceClient!)
-			}
-			
-			gcdFuture.whenComplete { _ in
-				self.logger.debug("GCD stopped")
-				self.gcd = nil
-			}
+			startGCD = true
 		}
 
 		let serviceReplyFuture = Utilities.group.next().makeFutureWithTask {
@@ -273,6 +284,10 @@ class AppState: ObservableObject, Observable {
 				self.networks = serviceReply.networks
 				self.remotes = serviceReply.remotes
 				self.templates = serviceReply.templates
+				
+				if startGCD {
+					startGrandCentral()
+				}
 			}
 		}
 	}
