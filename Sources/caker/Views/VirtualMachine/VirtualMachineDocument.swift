@@ -204,6 +204,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 	let id = UUID().uuidString
 	
+	var interactiveShell: InteractiveShell? = nil
 	var vncView: NSVNCView?
 	var virtualMachine: VirtualMachine!
 	var location: VMLocation!
@@ -438,6 +439,7 @@ extension VirtualMachineDocument {
 	}
 
 	func enterView() {
+		self.interactiveShell = InteractiveShell(self.url)
 		self.inView = true
 		DispatchQueue.main.async {
 			self.tryVNCConnect()
@@ -445,7 +447,10 @@ extension VirtualMachineDocument {
 	}
 
 	func leaveView() {
+		self.interactiveShell?.cancelShell()
+
 		self.inView = false
+		self.interactiveShell = nil
 	}
 
 	func close() {
