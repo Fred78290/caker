@@ -483,6 +483,7 @@ extension VirtualMachineDocument {
 		
 		// Stop agent monitoring when VM is stopped
 		self.stopAgentMonitoring()
+		self.interactiveShell?.cancelShell()
 
 		self.canStart = true
 		self.canStop = false
@@ -524,9 +525,9 @@ extension VirtualMachineDocument {
 		self.startAgentMonitoring()
 	}
 	
-	func setState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
+	func setOtherState(suspendable: Bool, status: Status, vncURL: [URL]? = nil, _line: UInt = #line, _file: String = #file) {
 #if DEBUG
-		self.logger.debug("setState to \(status) at \(_file):\(_line)")
+		self.logger.debug("setOtherState to \(status) at \(_file):\(_line)")
 #endif
 		
 		self.status = status
@@ -545,7 +546,11 @@ extension VirtualMachineDocument {
 		guard self.status != newStatus else {
 			return
 		}
-		
+
+		if newStatus != .running {
+			self.interactiveShell?.cancelShell()
+		}
+
 		self.status = newStatus
 		self.canStart = newStatus == .stopped || newStatus == .paused
 		self.canStop = newStatus == .running
@@ -762,7 +767,7 @@ extension VirtualMachineDocument {
 		}
 
 		if self.isLaunchVMExternally {
-			self.setState(suspendable: self.virtualMachineConfig.suspendable, status: .starting, vncURL: vncURL)
+			self.setOtherState(suspendable: self.virtualMachineConfig.suspendable, status: .starting, vncURL: vncURL)
 			self.externalRunning = true
 
 			Task {
@@ -796,7 +801,7 @@ extension VirtualMachineDocument {
 			}
 
 			if let virtualMachine = self.virtualMachine {
-				self.setState(suspendable: virtualMachineConfig.suspendable, status: .starting)
+				self.setOtherState(suspendable: virtualMachineConfig.suspendable, status: .starting)
 
 				virtualMachine.startFromUI()
 			}

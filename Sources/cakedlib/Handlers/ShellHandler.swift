@@ -270,6 +270,7 @@ public struct ShellHandler {
 		}
 
 		func finish() {
+			self.logger.debug("Finish shell stream: \(self.name)")
 			self.stream?.continuation.finish()
 		}
 
@@ -288,6 +289,7 @@ public struct ShellHandler {
 					
 					self.logger.debug("Shell started, VM: \(self.name)")
 				} catch {
+					self.logger.debug("Shell error, VM: \(self.name), \(error)")
 					continuation.finish(throwing: error)
 				}
 			}
@@ -366,6 +368,7 @@ public struct ShellHandler {
 		}
 
 		func finish() {
+			self.logger.debug("Finish shell stream: \(self.location.name)")
 			self.stream?.continuation.finish()
 		}
 
@@ -429,6 +432,7 @@ public struct ShellHandler {
 					
 					self.logger.debug("Shell started, VM: \(self.location.name)")
 				} catch {
+					self.logger.debug("Shell error, VM: \(self.location.name), \(error)")
 					continuation.finish(throwing: error)
 				}
 			}

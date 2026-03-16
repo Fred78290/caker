@@ -57,8 +57,7 @@ class InteractiveShell {
 		if let shellStream {
 			shellStream.finish()
 		}
-		
-		self.terminalView = nil
+
 		self.task = nil
 	}
 
@@ -83,17 +82,18 @@ class InteractiveShell {
 #endif
 
 		self.shellStream = nil
-		self.terminalView = nil
-		
+
 		shellStream.closeShell(promise: nil)
 	}
 
 	func startShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) {
+		guard self.task == nil else {
+			return
+		}
 
 		self.task = Task.detached(name: "Shell \(self.name)") {
 			await self.runShell(rows: rows, cols: cols, handler: handler)
-			
-			self.task = nil
+			self.logger.debug("Shell exited for \(self.name)")
 		}
 	}
 
@@ -120,6 +120,7 @@ class InteractiveShell {
 					for try await message in shellStream {
 						await handler(message)
 					}
+					self.logger.debug("Shell stream closed, VM: \(self.name)")
 				} catch {
 					guard self.handleAgentHealthCheckFailure(error: error) else {
 						return
@@ -131,8 +132,12 @@ class InteractiveShell {
 
 					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
+
+				self.logger.debug("Leave shell run loop, VM: \(self.name)")
 			}
 		}, onCancel: {
+			self.logger.debug("Shell cancelled, VM: \(self.name)")
+
 			self.cancelledShell()
 		})
 	}

@@ -125,12 +125,11 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 			converted.append($0)
 		}
 
-		DispatchQueue.main.async {
-			self.feed(byteArray: converted[...])
-		}
+		self.feed(byteArray: converted[...])
 	}
 
 	func startShell() {
+		let logger = Logger(self)
 		let terminal = self.getTerminal()
 
 		self.interactiveShell.startShell(rows: terminal.rows, cols: terminal.cols) { response in
@@ -138,10 +137,12 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 				if established == false {
 					alertError(ServiceError(reason))
 					self.closeShell()
+				} else {
+					logger.debug("Sheel established for \(self.interactiveShell.name)")
 				}
 			} else if case .exitCode(let code) = response {
 				#if DEBUG
-					Logger(self).debug("Shell exited with code \(code) for \(self.interactiveShell.name)")
+				logger.debug("Shell exited with code \(code) for \(self.interactiveShell.name)")
 				#endif
 
 				self.closeShell()
