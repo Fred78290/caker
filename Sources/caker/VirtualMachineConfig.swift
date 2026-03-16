@@ -630,7 +630,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			name: self.vmname!,
 			user: self.configuredUserIfChanged,
 			password: self.configuredPasswordIfChanged,
-			cpu: UInt16(self.cpuCount),
+			cpu: self.cpuCountIfChanged,
 			memory: self.memorySizeInMoBIfChanged,
 			diskSize: self.diskSizeInGoBIfChanged,
 			screenSize: self.displayIfChanged,
