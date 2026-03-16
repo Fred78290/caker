@@ -493,6 +493,11 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleDocumentStatusChangedNotification(_ newValue: VirtualMachineDocument.Status) {
+		if newValue.isStopped {
+			self.internalModeView = .vz
+			self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
+		}
+
 		if self.appearsActive {
 			self.appState.isAgentInstalling = self.document.agent == .installing && newValue == .running
 			self.appState.isStopped = newValue == .stopped || newValue == .stopping
@@ -503,6 +508,10 @@ struct HostVirtualMachineView: View {
 	}
 
 	func handleVncStatusChangedNotification(_ newValue: VirtualMachineDocument.VncStatus) {
+		if newValue == .ready && document.agentReady == false {
+			self.externalModeView = .vnc
+		}
+
 		#if DEBUG
 			if let connection = self.document.connection, let framebuffer = connection.framebuffer {
 				self.logger.debug("VNC status changed: \(newValue), framebuffer size: \(framebuffer.size)")
@@ -582,7 +591,9 @@ struct HostVirtualMachineView: View {
 					.toolbar {
 						ToolbarItem(placement: .secondaryAction) {
 							Picker("Mode", selection: $externalModeView) {
-								Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+								if self.document.agentReady {
+									Image(systemName: "apple.terminal").tag(ExternalModeView.terminal)
+								}
 								Image(systemName: "play.display").tag(ExternalModeView.vnc)
 							}.pickerStyle(.segmented).labelsHidden()
 						}
