@@ -11,6 +11,7 @@ import GRPC
 import GRPCLib
 import SwiftUI
 
+@MainActor
 class InteractiveShell {
 	let name: String
 	let vmURL: URL
@@ -22,7 +23,9 @@ class InteractiveShell {
 	private var task: Task<Void, Error>?
 
 	deinit {
-		self.closeShell()
+		MainActor.assumeIsolated {
+			self.closeShell()
+		}
 	}
 
 	init(_ vmURL: URL) {
@@ -79,6 +82,15 @@ class InteractiveShell {
 	}
 
 	func closeShell(_line: UInt = #line, _file: String = #file,_ completionHandler: (@MainActor () -> Void)? = nil) {
+		defer {
+			// Even if there is no active shell stream, honor the completion handler contract.
+			if let completionHandler {
+				Task { @MainActor in
+					completionHandler()
+				}
+			}
+		}
+
 		guard let shellStream else {
 			return
 		}
@@ -97,7 +109,12 @@ class InteractiveShell {
 			return
 		}
 
-		self.task = Task.detached(name: "Shell \(self.name)") {
+		// Reset cancellation state when starting a new shell session
+		self.cancelled = false
+		
+		self.task = Task { [weak self] in
+			guard let self else { return }
+
 			await self.runShell(rows: rows, cols: cols, handler: handler)
 			self.logger.debug("Shell exited for \(self.name)")
 		}
@@ -138,11 +155,10 @@ class InteractiveShell {
 
 					try? await Task.sleep(nanoseconds: 1_000_000_000)
 				}
-
-				self.logger.debug("Leave shell run loop, VM: \(self.name)")
-
-				self.task = nil
 			}
+
+			self.logger.debug("Leave shell run loop, VM: \(self.name)")
+			self.task = nil
 		}, onCancel: {
 			self.logger.debug("Shell cancelled, VM: \(self.name)")
 
