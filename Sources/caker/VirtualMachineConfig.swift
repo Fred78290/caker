@@ -519,6 +519,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	init(name: String, config: any VirtualMachineConfiguration) {
+		self.vmname = name
 		self.imageName = OSCloudImage.ubuntu2404LTS.url.absoluteString
 		self.locationURL = config.locationURL
 		self.version = config.version
@@ -625,7 +626,6 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 	}
 
 	func configureOptions() -> ConfigureOptions {
-		
 		.init(
 			name: self.vmname!,
 			user: self.configuredUserIfChanged,
