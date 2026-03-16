@@ -50,6 +50,7 @@ extension SwiftTerm.Color {
 
 class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	private var interactiveShell: InteractiveShell
+	private var startShellOnWindow = false
 
 	var fontColor: SwiftTerm.Color {
 		get {
@@ -75,6 +76,15 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 
 	public required init?(coder: NSCoder) {
 		fatalError("Unimplemented")
+	}
+
+	override func viewDidMoveToWindow() {
+		super.viewDidMoveToWindow()
+
+		if startShellOnWindow {
+			startShellOnWindow = false
+			startShell()
+		}
 	}
 
 	func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
@@ -129,16 +139,24 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 	}
 
 	func startShell() {
+		guard self.window != nil else {
+			self.startShellOnWindow = true
+			return
+		}
+
 		let logger = Logger(self)
 		let terminal = self.getTerminal()
 
 		self.interactiveShell.startShell(rows: terminal.rows, cols: terminal.cols) { response in
 			if case .established(let established, let reason) = response {
 				if established == false {
-					alertError(ServiceError(reason))
+					if reason != "Connection refused" {
+						alertError(ServiceError(reason))
+					}
+
 					self.closeShell()
 				} else {
-					logger.debug("Sheel established for \(self.interactiveShell.name)")
+					logger.debug("Shell established for \(self.interactiveShell.name)")
 				}
 			} else if case .exitCode(let code) = response {
 				#if DEBUG

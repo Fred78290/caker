@@ -33,17 +33,23 @@ class InteractiveShell {
 	func buildTerminalView(frame: CGRect) -> VirtualMachineTerminalView {
 		guard let terminalView else {
 			let terminalView = VirtualMachineTerminalView(interactiveShell: self, frame: frame, font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
-			self.terminalView =  terminalView
+			self.terminalView = terminalView
 			
 			return terminalView
 		}
+
+		terminalView.bounds = CGRect(origin: .zero, size: frame.size)
 
 		return terminalView
 	}
 
 	func sendTerminalSize(rows: Int, cols: Int) {
 		if let shellStream = self.shellStream {
+			self.logger.debug("Terminal size: \(rows)x\(cols) for VM: \(self.name)")
+
 			shellStream.sendTerminalSize(rows: rows, cols: cols)
+		} else {
+			self.logger.debug("Terminal size no shell: \(rows)x\(cols) for VM: \(self.name)")
 		}
 	}
 	
@@ -134,6 +140,8 @@ class InteractiveShell {
 				}
 
 				self.logger.debug("Leave shell run loop, VM: \(self.name)")
+
+				self.task = nil
 			}
 		}, onCancel: {
 			self.logger.debug("Shell cancelled, VM: \(self.name)")
