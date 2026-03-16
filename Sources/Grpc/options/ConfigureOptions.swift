@@ -105,6 +105,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 		self.socket = sockets?.map(\.description) ?? ["unset"]
 		self.console = consoleURL?.description
 		self.screenSize = screenSize
+		self.randomMAC = false
 	}
 
 	public init(request: Caked_ConfigureRequest) {
