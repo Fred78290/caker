@@ -29,11 +29,10 @@ extension SwiftTerm.Color {
 		var red: CGFloat = 0
 		var green: CGFloat = 0
 		var blue: CGFloat = 0
+		var alpha: CGFloat = 1.0
 
-		if let components = color.cgColor.components {
-			red = components[0]
-			green = components[1]
-			blue = components[2]
+		if let rgbColor = color.usingColorSpace(.deviceRGB) {
+			rgbColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
 		}
 
 		self.init(red: UInt16(red * 65535), green: UInt16(green * 65535), blue: UInt16(blue * 65535))
@@ -49,7 +48,7 @@ extension SwiftTerm.Color {
 }
 
 class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
-	private var interactiveShell: InteractiveShell
+	private weak var interactiveShell: InteractiveShell!
 	private var startShellOnWindow = false
 
 	var fontColor: SwiftTerm.Color {
