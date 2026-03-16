@@ -9,15 +9,17 @@ import CakedLib
 import CakeAgentLib
 import GRPC
 import GRPCLib
-
-typealias AsyncThrowingStreamCakeAgentExecuteResponse = (stream: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>, continuation: AsyncThrowingStream<CakeAgent.ExecuteResponse, Error>.Continuation)
+import SwiftUI
 
 class InteractiveShell {
 	let name: String
 	let vmURL: URL
+	var terminalView: VirtualMachineTerminalView! = nil
 
-	private var shellStream: ShellHandler.ShellHandlerProtocol! = nil
+	private var shellStream: (any ShellHandler.ShellHandlerProtocol)! = nil
+	private var cancelled = false
 	private let logger = Logger("InteractiveShell")
+	private var task: Task<Void, Error>?
 
 	deinit {
 		self.closeShell()
@@ -27,10 +29,27 @@ class InteractiveShell {
 		self.vmURL = vmURL
 		self.name = vmURL.lastPathComponent.deletingPathExtension
 	}
-	
+
+	func buildTerminalView(frame: CGRect) -> VirtualMachineTerminalView {
+		guard let terminalView else {
+			let terminalView = VirtualMachineTerminalView(interactiveShell: self, frame: frame, font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor())
+			self.terminalView = terminalView
+			
+			return terminalView
+		}
+
+		terminalView.bounds = CGRect(origin: .zero, size: frame.size)
+
+		return terminalView
+	}
+
 	func sendTerminalSize(rows: Int, cols: Int) {
 		if let shellStream = self.shellStream {
+			self.logger.debug("Terminal size: \(rows)x\(cols) for VM: \(self.name)")
+
 			shellStream.sendTerminalSize(rows: rows, cols: cols)
+		} else {
+			self.logger.debug("Terminal size no shell: \(rows)x\(cols) for VM: \(self.name)")
 		}
 	}
 	
@@ -40,6 +59,25 @@ class InteractiveShell {
 		}
 	}
 	
+	private func cancelledShell() {
+		if let shellStream {
+			shellStream.finish()
+		}
+
+		self.task = nil
+	}
+
+	func cancelShell() {
+		guard let task else {
+			return
+		}
+
+		self.logger.debug("Cancel shell for VM: \(self.name)")
+		self.cancelled = true
+
+		task.cancel()
+	}
+
 	func closeShell(_line: UInt = #line, _file: String = #file,_ completionHandler: (@MainActor () -> Void)? = nil) {
 		guard let shellStream else {
 			return
@@ -50,36 +88,65 @@ class InteractiveShell {
 #endif
 
 		self.shellStream = nil
-		
-		
-		shellStream.closeShell {
-			
+
+		shellStream.closeShell(promise: nil)
+	}
+
+	func startShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) {
+		guard self.task == nil else {
+			return
+		}
+
+		self.task = Task.detached(name: "Shell \(self.name)") {
+			await self.runShell(rows: rows, cols: cols, handler: handler)
+			self.logger.debug("Shell exited for \(self.name)")
 		}
 	}
 
-	func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) async {
+	private func runShell(rows: Int, cols: Int, handler: @MainActor @escaping (ShellHandler.ExecuteResponse) -> Void) async {
+		guard self.shellStream == nil else {
+			return
+		}
+
 		await withTaskCancellationHandler(operation: {
-			do {
-				self.shellStream = try ShellHandler.shell(vmURL: self.vmURL, terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)), connectionTimeout: 5, runMode: AppState.shared.runMode)
-				
-				try await self.shellStream.handleResponse { message in
-					handler(message)
+			defer {
+				self.closeShell {
+					self.logger.debug("Shell ended, VM: \(self.name)")
 				}
-			} catch {
-				guard self.handleAgentHealthCheckFailure(error: error) else {
-					return
-				}
-
-				self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
-
-				try? await Task.sleep(nanoseconds: 1_000_000_000)
 			}
 
-			self.shellStream?.closeShell {
-				self.logger.debug("Shell ended, VM: \(self.name)")
+			while Task.isCancelled == false && self.cancelled == false {
+				do {
+					let shellStream = try ShellHandler.shell(vmURL: self.vmURL,
+															 terminalSize: ShellHandler.TerminalSize(rows: Int32(rows), cols: Int32(cols)),
+															 connectionTimeout: 5,
+															 runMode: AppState.shared.runMode)
+					self.shellStream = shellStream
+
+					for try await message in shellStream {
+						await handler(message)
+					}
+					self.logger.debug("Shell stream closed, VM: \(self.name)")
+				} catch {
+					guard self.handleAgentHealthCheckFailure(error: error) else {
+						return
+					}
+
+					self.closeShell()
+
+					self.logger.debug("Shell not ready, VM: \(self.name), waiting...")
+
+					try? await Task.sleep(nanoseconds: 1_000_000_000)
+				}
+
+				self.logger.debug("Leave shell run loop, VM: \(self.name)")
+
+				self.task = nil
 			}
 		}, onCancel: {
-			self.shellStream?.finish()
+			self.logger.debug("Shell cancelled, VM: \(self.name)")
+
+			self.cancelledShell()
 		})
 	}
 	

@@ -90,7 +90,6 @@ struct HostVirtualMachineView: View {
 	@State var needsResize: Bool = false
 	@State var launchExternally: Bool = false
 	@State var monitoringTask: CPUUsageMonitor
-	@State var interactiveShell: InteractiveShell
 	@State var showsHostCursor: Bool = false
 
 	private let logger = Logger("HostVirtualMachineView")
@@ -106,7 +105,6 @@ struct HostVirtualMachineView: View {
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
 		self.documentSize = ViewSize(size: document.documentSize.cgSize)
 		self.monitoringTask = CPUUsageMonitor(document: document)
-		self.interactiveShell = InteractiveShell(document.url)
 	}
 
 	var body: some View {
@@ -530,8 +528,8 @@ struct HostVirtualMachineView: View {
 
 	@ViewBuilder
 	func terminalView(_ size: CGSize) -> some View {
-		if document.agentReady {
-			ExternalVirtualMachineView(interactiveShell: self.interactiveShell, size: size, dismiss: dismiss)
+		if let interactiveShell = document.interactiveShell, document.agentReady {
+			ExternalVirtualMachineView(interactiveShell: interactiveShell, size: size)
 				.addModifiers(placement: .secondaryAction)
 				.frame(size: size)
 		} else if self.document.agent == .installed {

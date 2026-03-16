@@ -14,208 +14,27 @@ import NIO
 import SwiftTerm
 import SwiftUI
 
-extension SwiftTerm.Color {
-	static var black: SwiftTerm.Color {
-		.init(red: 0, green: 0, blue: 0)
-	}
-
-	convenience init(_ color: SwiftUI.Color) {
-		let (red, green, blue, _) = color.baseComponents
-
-		self.init(red: UInt16(red * 65535), green: UInt16(green * 65535), blue: UInt16(blue * 65535))
-	}
-
-	convenience init(_ color: NSColor) {
-		var red: CGFloat = 0
-		var green: CGFloat = 0
-		var blue: CGFloat = 0
-
-		if let components = color.cgColor.components {
-			red = components[0]
-			green = components[1]
-			blue = components[2]
-		}
-
-		self.init(red: UInt16(red * 65535), green: UInt16(green * 65535), blue: UInt16(blue * 65535))
-	}
-
-	var uiColor: SwiftUI.Color {
-		.init(red: CGFloat(red) / 65535, green: CGFloat(green) / 65535, blue: CGFloat(blue) / 65535)
-	}
-
-	var nsColor: NSColor {
-		NSColor(red: CGFloat(red) / 65535, green: CGFloat(green) / 65535, blue: CGFloat(blue) / 65535, alpha: 1)
-	}
-}
-
-class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
-	private var interactiveShell: InteractiveShell
-	private let dismiss: DismissAction!
-
-	var fontColor: SwiftTerm.Color {
-		get {
-			self.terminal.foregroundColor
-		}
-		set {
-			self.terminal.foregroundColor = newValue
-		}
-	}
-
-	init(interactiveShell: InteractiveShell, frame: CGRect, font: NSFont, color: SwiftTerm.Color, dismiss: DismissAction) {
-		self.interactiveShell = interactiveShell
-		self.dismiss = dismiss
-		super.init(frame: frame, font: font)
-
-		self.terminal.foregroundColor = color
-		self.terminalDelegate = self
-	}
-
-	public required init?(coder: NSCoder) {
-		fatalError("Unimplemented")
-	}
-
-	func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {
-		self.interactiveShell.sendTerminalSize(rows: newRows, cols: newCols)
-	}
-
-	func setTerminalTitle(source: TerminalView, title: String) {
-	}
-
-	func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {
-	}
-
-	func send(source: TerminalView, data: ArraySlice<UInt8>) {
-		self.interactiveShell.sendDatas(data: data)
-	}
-
-	func scrolled(source: TerminalView, position: Double) {
-	}
-
-	func clipboardCopy(source: SwiftTerm.TerminalView, content: Data) {
-		if let str = String(bytes: content, encoding: .utf8) {
-			let pasteBoard = NSPasteboard.general
-			pasteBoard.clearContents()
-			pasteBoard.writeObjects([str as NSString])
-		}
-	}
-
-	func rangeChanged(source: SwiftTerm.TerminalView, startY: Int, endY: Int) {
-	}
-
-	func terminalViewDidChangeSize(_ terminalView: TerminalView) {
-		print("terminalViewDidChangeSize")
-	}
-
-	func startShell() async {
-		let terminal = self.getTerminal()
-
-		func displayDatas(_ datas: Data) -> Void {
-			var converted: [UInt8] = []
-
-			datas.forEach {
-				if $0 == 0x0a {
-					converted.append(0x0d)
-				}
-
-				converted.append($0)
-			}
-
-			DispatchQueue.main.async {
-				self.feed(byteArray: converted[...])
-			}
-		}
-
-		await self.interactiveShell.runShell(rows: terminal.rows, cols: terminal.cols) { response in
-			if case .established(let established, let reason) = response {
-				if established == false {
-					self.interactiveShell.closeShell {
-						DispatchQueue.main.async {
-							alertError(ServiceError(reason))
-							self.dismiss()
-						}
-					}
-				}
-			} else if case .exitCode(let code) = response {
-				#if DEBUG
-					Logger(self).debug("Shell exited with code \(code) for \(self.interactiveShell.name)")
-				#endif
-
-				self.interactiveShell.closeShell {
-					self.dismiss()
-				}
-			} else if case .stdout(let datas) = response {
-				displayDatas(datas)
-			} else if case .stderr(let datas) = response {
-				displayDatas(datas)
-			}
-		}
-	}
-}
-
-struct ColorWell: NSViewRepresentable {
-	typealias NSViewType = NSColorWell
-
-	@Binding var selection: SwiftUI.Color
-
-	private let colorWellDelegate: ColorWellDelegate
-
-	private class ColorWellDelegate: NSObject {
-		@Binding var selection: SwiftUI.Color
-
-		init(selection: Binding<SwiftUI.Color>) {
-			self._selection = selection
-		}
-
-		@objc func colorChanged(_ colorWell: NSColorWell) {
-			self.selection = SwiftUI.Color(colorWell.color)
-		}
-	}
-
-	init(selection: Binding<SwiftUI.Color>) {
-		self._selection = selection
-		self.colorWellDelegate = ColorWellDelegate(selection: selection)
-	}
-
-	func makeNSView(context: Context) -> NSColorWell {
-		NSViewType()
-	}
-
-	func sizeThatFits(_ proposal: ProposedViewSize, nsView: NSColorWell, context: Context) -> CGSize? {
-		CGSize(width: 20, height: 20)
-	}
-
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		if #available(macOS 14.0, *) {
-			nsView.supportsAlpha = false
-		}
-		nsView.colorWellStyle = .minimal
-		nsView.color = NSColor(self.selection)
-		nsView.target = colorWellDelegate
-		nsView.action = #selector(ColorWellDelegate.colorChanged(_:))
-	}
-}
-
 struct ExternalVirtualMachineView: NSViewRepresentable {
 	typealias NSViewType = VirtualMachineTerminalView
-
+	
 	private var fontPickerDelegate: FontPickerDelegate!
 	private let fontManager = NSFontManager.shared
 	private let terminalView: NSViewType
-
+	
 	var terminalColor: SwiftUI.Color {
 		self.fontPickerDelegate.terminalView.fontColor.uiColor
 	}
-
+	
 	var terminalFont: NSFont {
 		self.fontPickerDelegate.terminalView.font
 	}
-
+	
 	class FontPickerDelegate: NSObject, NSWindowDelegate, NSFontChanging {
 		@Binding var presented: Bool
 		@State var fontColor: SwiftUI.Color
-
+		
 		var terminalView: NSViewType
-
+		
 		var visible: Binding<Bool> {
 			get {
 				return self._presented
@@ -223,160 +42,83 @@ struct ExternalVirtualMachineView: NSViewRepresentable {
 			set {
 				self._presented = newValue
 			}
-
+			
 		}
-
+		
 		init(terminalView: NSViewType) {
 			self._presented = .constant(false)
 			self.terminalView = terminalView
 			self.fontColor = terminalView.fontColor.uiColor
 		}
-
+		
 		@objc func selectFont(_ sender: AnyObject) {
 			let fontManager = NSFontManager.shared
-
+			
 			guard var newFont = fontManager.selectedFont else {
 				return
 			}
-
+			
 			newFont = fontManager.convert(newFont)
 			self.terminalView.font = newFont
 			self.presented = false
-
+			
 			Defaults.saveTerminalFont(newFont)
 		}
-
+		
 		func windowWillClose(_ notification: Notification) {
 			self.presented = false
 		}
 	}
-
-	init(interactiveShell: InteractiveShell, size: CGSize, dismiss: DismissAction) {
-		self.terminalView = NSViewType(interactiveShell: interactiveShell, frame: CGRect(origin: .zero, size: size), font: Defaults.currentTerminalFont(), color: Defaults.currentTerminalFontColor(), dismiss: dismiss)
+	
+	init(interactiveShell: InteractiveShell, size: CGSize) {
+		self.terminalView = interactiveShell.buildTerminalView(frame: CGRect(origin: .zero, size: size))
 		self.fontPickerDelegate = FontPickerDelegate(terminalView: self.terminalView)
 	}
-
+	
 	func makeNSView(context: Context) -> NSViewType {
 		return terminalView
 	}
-
+	
 	func updateNSView(_ nsView: NSViewType, context: Context) {
 		self.fontPickerDelegate.terminalView = nsView
 	}
-
+	
 	func setTerminalColor(_ color: SwiftUI.Color) {
 		let color = SwiftTerm.Color(color)
-
+		
 		Defaults.saveTerminalFontColor(color: color)
 		self.fontPickerDelegate.terminalView.fontColor = color
 	}
-
+	
 	func setTerminalFont(_ font: NSFont) {
 		self.fontPickerDelegate.terminalView.font = font
-
+		
 		Defaults.saveTerminalFont(font)
 	}
 	
-	func startShell() async {
-		await self.terminalView.startShell()
+	func startShell() {
+		self.terminalView.startShell()
+	}
+	
+	func closeShell() {
+		self.terminalView.closeShell()
 	}
 }
 
-struct ColorPickerModifier: ViewModifier {
-	@State var color: SwiftUI.Color
-	var placement: ToolbarItemPlacement
-	var target: ExternalVirtualMachineView?
-
-	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
-		self.init(placement: placement, modifier.content)
-	}
-
-	init(placement: ToolbarItemPlacement, _ view: any View) {
-		self.placement = placement
-
-		if let target = view as? ExternalVirtualMachineView {
-			self.target = target
-			self.color = target.terminalColor
-		} else {
-			self.color = .black
-		}
-	}
-
-	func body(content: Content) -> some View {
-		return content.onChange(of: self.color) { _, newValue in
-			target?.setTerminalColor(newValue)
-		}.toolbar {
-			ToolbarItem(placement: placement) {
-				ColorPicker("Color", selection: self.$color, supportsOpacity: false)
-					.frame(maxWidth: 40, maxHeight: 30)
-			}
-		}
-	}
-}
-
-struct InteractiveShellModifier: ViewModifier {
-	let target: ExternalVirtualMachineView?
-	@State private var task: Task<Void, Never>? = nil
+struct InteractiveShellModifier: ViewModifier {	
+	let target: ExternalVirtualMachineView
 
 	init<Content, Modifier>(modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
-		self.init(modifier.content)
+		self.init(modifier.content as! ExternalVirtualMachineView)
 	}
 
-	init(_ view: any View) {
-		if let target = view as? ExternalVirtualMachineView {
-			self.target = target
-		} else {
-			self.target = nil
-		}
+	init(_ target: ExternalVirtualMachineView) {
+		self.target = target
 	}
 	
 	func body(content: Content) -> some View {
-		if let target {
-			content
-				.onAppear() {
-					task = Task {
-						await target.startShell()
-					}
-				}
-				.onDisappear() {
-					task?.cancel()
-					task = nil
-				}
-		} else {
-			content
-		}
-	}
-}
-
-struct ColorWellModifier: ViewModifier {
-	@State var color: SwiftUI.Color
-	let placement: ToolbarItemPlacement
-	let target: ExternalVirtualMachineView?
-
-	init<Content, Modifier>(placement: ToolbarItemPlacement, modifier: ModifiedContent<Content, Modifier>) where Content: View, Modifier: ViewModifier {
-		self.init(placement: placement, modifier.content)
-	}
-
-	init(placement: ToolbarItemPlacement, _ view: any View) {
-		self.placement = placement
-
-		if let target = view as? ExternalVirtualMachineView {
-			self.target = target
-			self.color = target.terminalColor
-		} else {
-			self.target = nil
-			self.color = .black
-		}
-	}
-
-	func body(content: Content) -> some View {
-		return content.onChange(of: self.color) { _, newValue in
-			target?.setTerminalColor(newValue)
-		}.toolbar {
-			ToolbarItem(placement: placement) {
-				ColorWell(selection: self.$color)
-					.frame(size: .init(width: 10, height: 10))
-			}
+		content.onAppear {
+			target.startShell()
 		}
 	}
 }

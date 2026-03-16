@@ -302,6 +302,8 @@
 		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
 		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
 		9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */; };
+		9BC1F6832F66B20E00A83B33 /* VirtualMachineTerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */; };
+		9BC1F6852F66B25C00A83B33 /* ColorWell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F6842F66B25A00A83B33 /* ColorWell.swift */; };
 		9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BCEB1902ED76EB200B29B70 /* VNC.swift */; };
 		9BCEB20D2ED7A23F00B29B70 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9BCEB20C2ED7A23F00B29B70 /* RoyalVNCKitStatic */; };
 		9BD32F872D75FF060066A01E /* Umount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BD32F862D75FF060066A01E /* Umount.swift */; };
@@ -887,6 +889,8 @@
 		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
+		9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VirtualMachineTerminalView.swift; sourceTree = "<group>"; };
+		9BC1F6842F66B25A00A83B33 /* ColorWell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorWell.swift; sourceTree = "<group>"; };
 		9BCEB1902ED76EB200B29B70 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9BD32F852D75FF060066A01E /* Mount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mount.swift; sourceTree = "<group>"; };
 		9BD32F862D75FF060066A01E /* Umount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Umount.swift; sourceTree = "<group>"; };
@@ -1282,13 +1286,14 @@
 		9B2BFAB32DFED25E000045C3 /* VirtualMachine */ = {
 			isa = PBXGroup;
 			children = (
-				9B4517E62F067E7B0088F093 /* GraphCapsule.swift */,
 				9BB8D9AF2ED32ACB00AD4700 /* CPUUsageView.swift */,
 				9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */,
 				9B91237B2E2903DC006DD682 /* ExternalVirtualMachineView.swift */,
+				9B4517E62F067E7B0088F093 /* GraphCapsule.swift */,
 				9B2BFAB12DFED25E000045C3 /* HostVirtualMachineView.swift */,
 				9B91237D2E290442006DD682 /* InternalVirtualMachineView.swift */,
 				9B2BFAB02DFED25E000045C3 /* VirtualMachineDocument.swift */,
+				9BC1F6822F66B20B00A83B33 /* VirtualMachineTerminalView.swift */,
 				9B7997242E45EDEC00147500 /* VNCView.swift */,
 				9B2BFAAF2DFED25E000045C3 /* Settings */,
 			);
@@ -1298,6 +1303,7 @@
 		9B2BFAB72DFED25E000045C3 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				9BC1F6842F66B25A00A83B33 /* ColorWell.swift */,
 				9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */,
 				9B3600882E1FC48D00889BFD /* AsyncButton.swift */,
 				9BE9BE7B2EB774F500220700 /* ColorSchemeModifier.swift */,
@@ -2363,6 +2369,7 @@
 				9BB213D52F375CC700B45692 /* DuplicateHandler.swift in Sources */,
 				9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */,
 				9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */,
+				9BC1F6852F66B25C00A83B33 /* ColorWell.swift in Sources */,
 				9B2BFABD2DFED25E000045C3 /* ForwardedPortView.swift in Sources */,
 				9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */,
 				9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */,
@@ -2404,6 +2411,7 @@
 				9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
 				9BE9BE7C2EB774FE00220700 /* ColorSchemeModifier.swift in Sources */,
+				9BC1F6832F66B20E00A83B33 /* VirtualMachineTerminalView.swift in Sources */,
 				9B9C4E5A2E23BC8B00C13D23 /* NetworksView.swift in Sources */,
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
