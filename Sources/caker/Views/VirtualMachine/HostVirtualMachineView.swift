@@ -565,7 +565,7 @@ struct HostVirtualMachineView: View {
 			case .disconnecting:
 				LabelView("VNC disconnecting", size: size)
 			case .ready:
-				VNCView(document: self.document).frame(size: size)
+				VNCView(document: self.document).frame(size: size).background(.black)
 			}
 		}
 	}
