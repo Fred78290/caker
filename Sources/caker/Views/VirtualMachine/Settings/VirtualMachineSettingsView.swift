@@ -99,6 +99,7 @@ struct VirtualMachineSettingsView: View {
 				Spacer()
 
 				Button {
+					self.document.virtualMachineConfig = self.config
 					AppState.shared.saveConfiguration(document: self.document)
 					dismiss()
 				} label: {
