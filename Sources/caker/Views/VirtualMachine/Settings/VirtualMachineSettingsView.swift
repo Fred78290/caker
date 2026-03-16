@@ -190,8 +190,8 @@ struct VirtualMachineSettingsView: View {
 
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory") {
-			let cpuRange = 1...System.coreCount
-			let totalMemoryRange = 1...ProcessInfo().physicalMemory / MiB
+			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
+			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
 
 			Picker("CPU count", selection: $config.cpuCount) {
 				ForEach(cpuRange, id: \.self) { cpu in

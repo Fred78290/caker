@@ -451,9 +451,9 @@ struct VirtualMachineWizard: View {
 
 	func cpuCountAndMemoryView() -> some View {
 		Section("CPU & Memory & Disk") {
-			let cpuRange = 1...System.coreCount
-			let diskRange = 5...UInt64(UInt16.max)
-			let totalMemoryRange = 1...ProcessInfo().physicalMemory / MiB
+			let cpuRange: ClosedRange<UInt16> = 1...UInt16(System.coreCount)
+			let diskRange: ClosedRange<UInt64> = 5...UInt64(UInt16.max)
+			let totalMemoryRange: ClosedRange<UInt64> = 1...ProcessInfo().physicalMemory / MiB
 
 			Picker("CPU count", selection: $config.cpuCount) {
 				ForEach(cpuRange, id: \.self) { cpu in
@@ -469,7 +469,6 @@ struct VirtualMachineWizard: View {
 			.disabled(self.model.createVM)
 
 			HStack {
-
 				Text("Memory size")
 				Spacer().border(.black)
 				HStack {
