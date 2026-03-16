@@ -485,6 +485,7 @@ extension VirtualMachineDocument {
 		self.stopAgentMonitoring()
 		self.interactiveShell?.cancelShell()
 
+		self.interactiveShell = nil
 		self.canStart = true
 		self.canStop = false
 		self.canPause = false
@@ -543,7 +544,31 @@ extension VirtualMachineDocument {
 	func setState(_ status: Caked_VirtualMachineStatus) {
 		let newStatus = Status(status)
 
+		func agentIsReady() {
+			self.agent = .installed
+			self.agentReady = true
+
+			if self.interactiveShell == nil && self.inView {
+				self.interactiveShell = InteractiveShell(self.url)
+			}
+
+			if let infos = try? AppState.shared.virtualMachineInfos(vmURL: self.url) {
+				self.ipaddresses = infos.infos.ipaddresses
+				self.virtualMachineConfig = .init(name: self.name, config: infos.config)
+
+				if let vncURL = infos.infos.vncURL {
+					self.vncURL = vncURL.compactMap {
+						URL(string: $0)
+					}
+				}
+			}
+		}
+
 		guard self.status != newStatus else {
+			if status == .agentReady {
+				agentIsReady()
+			}
+
 			return
 		}
 
@@ -563,21 +588,10 @@ extension VirtualMachineDocument {
 			if self.inView {
 				self.tryVNCConnect()
 			}
-		} else if status == .agentReady {
-			self.agent = .installed
-			self.agentReady = true
-
-			if let infos = try? AppState.shared.virtualMachineInfos(vmURL: self.url) {
-				self.ipaddresses = infos.infos.ipaddresses
-				self.virtualMachineConfig = .init(name: self.name, config: infos.config)
-
-				if let vncURL = infos.infos.vncURL {
-					self.vncURL = vncURL.compactMap {
-						URL(string: $0)
-					}
-				}
-			}
 		} else {
+			self.interactiveShell?.cancelShell()
+
+			self.interactiveShell = nil
 			self.suspendable = false
 			self.vncURL = nil
 			self.vncStatus = .disconnected
@@ -1215,6 +1229,10 @@ extension VirtualMachineDocument {
 				self.logger.debug("Agent monitoring: VM \(self.name) agent need to be updated")
 			#endif
 			self.agentCondition = ("Update agent", true, false)
+		}
+
+		if self.interactiveShell == nil && self.inView {
+			self.interactiveShell = InteractiveShell(self.url)
 		}
 	}
 
