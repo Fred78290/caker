@@ -11,7 +11,6 @@ import GRPC
 import GRPCLib
 import SwiftUI
 
-@MainActor
 class InteractiveShell {
 	let name: String
 	let vmURL: URL
