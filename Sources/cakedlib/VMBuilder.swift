@@ -197,7 +197,7 @@ public struct VMBuilder {
 					imageURL = URL(fileURLWithPath: imageURL.path.expandingTildeInPath)
 				} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
 					switch scheme {
-						case "qcow2", "imgs", "isos", "ipsw":
+						case "qcow2", "imgs", "isos", "ipsw", "https", "ocis":
 						components.scheme = "https"
 						default:
 						components.scheme = "http"
@@ -245,7 +245,7 @@ public struct VMBuilder {
 			}
 		} else if sourceImage == .oci {
 			let ociImage = options.image.stringAfter(after: "//")
-			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: imageURL.scheme == "oci", runMode: runMode, progressHandler: progressHandler)
+			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: ["http", "oci"].contains(imageURL.scheme), runMode: runMode, progressHandler: progressHandler)
 
 			if pulled.success == false {
 				throw ServiceError(pulled.message)
