@@ -55,6 +55,9 @@ public struct BuildOptions: ParsableArguments {
 	@Argument(help: ArgumentHelp("create a linux VM using a cloud image", discussion: cloudimage_help, valueName: "url"))
 	public var image: String = defaultUbuntuImage
 
+	@Option(help: ArgumentHelp("Image source", discussion: "This option specify image source when image url is http but not raw", visibility: .hidden))
+	public var imageSource: ImageSource? = nil
+
 	@Option(name: [.long, .customShort("i")], help: ArgumentHelp("Optional ssh-authorized-key file path for linux VM", valueName: "path"))
 	public var sshAuthorizedKey: String?
 
@@ -117,6 +120,7 @@ public struct BuildOptions: ParsableArguments {
 		suspendable: Bool = false,
 		netIfnames: Bool = false,
 		image: String = defaultUbuntuImage,
+		imageSource: ImageSource? = nil,
 		sshAuthorizedKey: String? = nil,
 		vendorData: String? = nil,
 		userData: String? = nil,
@@ -127,7 +131,7 @@ public struct BuildOptions: ParsableArguments {
 		networks: [BridgeAttachement] = [],
 		sockets: [SocketDevice] = [],
 		consoleURL: ConsoleAttachment? = nil,
-		autoinstall: Bool = false
+		autoinstall: Bool = false,
 	) {
 		self.name = name
 		self.cpu = cpu
@@ -144,6 +148,7 @@ public struct BuildOptions: ParsableArguments {
 		self.suspendable = suspendable
 		self.netIfnames = netIfnames
 		self.image = image
+		self.imageSource = imageSource
 		self.sshAuthorizedKey = sshAuthorizedKey
 		self.vendorData = vendorData
 		self.userData = userData
@@ -323,21 +328,24 @@ public struct BuildOptions: ParsableArguments {
 		} else {
 			self.screenSize = .standard
 		}
+
+		self.imageSource = ImageSource(request.imageSource)
 	}
 
-	mutating public func validate() throws {
+	mutating public func validate(remote: Bool) throws {
 		if name.contains("/") {
 			throw ValidationError("\(name) should be a local name")
 		}
-
+		
 		if nested && Utils.isNestedVirtualizationSupported() == false {
 			self.nested = false
 		}
-
+		
 		try self.forwardedPorts.forEach { port in
 			if case .none = port.oneOf {
 				throw ValidationError("Port is not set")
 			}
+			
 			if case .unixDomain(let value) = port.oneOf {
 				if value.host.utf8.count > 103 {
 					throw ValidationError("Unix domain socket name is too long")
@@ -345,6 +353,70 @@ public struct BuildOptions: ParsableArguments {
 				if value.guest.utf8.count > 103 {
 					throw ValidationError("Unix domain socket name is too long")
 				}
+			}
+		}
+
+		try self.validateImageSource(remote: remote)
+	}
+	
+	public mutating func validateImageSource(remote: Bool) throws {
+		let scheme: String
+
+		guard let imageURL = URL(string: image) else {
+			throw ValidationError("Malformed URL")
+		}
+
+		if let s = imageURL.scheme {
+			scheme = s
+		} else {
+			scheme = imageURL.pathExtension
+		}
+
+		guard scheme.isEmpty == false else {
+			throw ValidationError("Undefined image source")
+		}
+
+		if remote == false {
+			if imageURL.scheme != nil {
+				if let imageSource = ImageSource.schemes[scheme] {
+					self.imageSource = imageSource
+
+					if imageURL.host == nil {
+						switch imageSource {
+						case .raw, .qcow2, .iso, .ipsw:
+							self.image = URL(fileURLWithPath: imageURL.path.expandingTildeInPath).absoluteString
+						default:
+							break
+						}
+					} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
+						switch scheme {
+						case "qcow2", "imgs", "isos", "ipsw", "ocis", "https":
+							components.scheme = "https"
+						default:
+							components.scheme = "http"
+						}
+
+						self.image = components.url!.absoluteString
+					}
+				} else {
+					self.imageSource = .stream
+				}
+			} else {
+				self.image = URL(fileURLWithPath: imageURL.path.expandingTildeInPath).absoluteString
+			}
+		} else {
+			guard imageURL.scheme != nil && imageURL.isFileURL == false && imageURL.scheme != "qcow2" else {
+				throw ValidationError("Local url is not supported")
+			}
+
+			if let imageSource = ImageSource.schemes[scheme] {
+				if imageURL.host == nil {
+					throw ValidationError("Local file is not supported")
+				}
+
+				self.imageSource = imageSource
+			} else {
+				self.imageSource = .stream
 			}
 		}
 	}

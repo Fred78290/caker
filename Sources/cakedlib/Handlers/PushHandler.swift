@@ -110,7 +110,7 @@ public struct PushHandler {
 				}
 			}
 
-			progressHandler(.terminated(.success(location), "Push complete"))
+			progressHandler(.terminated(.success(location.rootURL), "Push complete"))
 
 			return PushReply(success: true, message: "Success")
 		} catch {

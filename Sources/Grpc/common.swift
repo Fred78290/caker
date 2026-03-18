@@ -22,13 +22,21 @@ public let GoB: UInt64 = MoB * KoB
 internal let cloudimage_help =
 	"""
 
-	The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image
+	The image could be one of local raw image, qcow2 cloud image, lxc simplestreams image, oci image, ipsw or iso
+	Image format is determined by url scheme or extension
 	The url image form are:
 	  - local images (raw format): /Users/myhome/disk.img or file:///Users/myhome/disk.img
-	  - cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+	  - local qcow2 images: /Users/myhome/disk.qcow2 or qcow2:///Users/myhome/disk.img
+	  - unsecure remote cloud images (qcow2 format): http://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
+	  - secure remote cloud images (qcow2 format): https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-arm64.img
 	  - lxc images: images:ubuntu/noble/cloud, see remote command for detail
 	  - secure oci images (tart format): ocis://ghcr.io/cirruslabs/ubuntu:latest (https)
 	  - unsecure oci images (tart format): oci://unsecure.com/ubuntu:latest (http)
+	  - local macos restore: /Users/myhome/restore.ipsw or ipsw:///Users/myhome/restore
+	  - remote macos restore: ipsw://ipsw.me/install/Mac17,4/25D2128
+	  - local iso: /Users/myhome/disk.iso or iso:///Users/myhome/disk
+	  - unsecure remote iso: http://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso or iso://cdimage.nowhere.com/releases/latest
+	  - secure remote iso: https://cdimage.ubuntu.com/releases/26.04/snapshot-4/ubuntu-26.04-snapshot4-desktop-arm64.iso or isos://cdimage.nowhere.com/releases/latest
 
 	"""
 

@@ -22,9 +22,7 @@ class InteractiveShell {
 	private var task: Task<Void, Error>?
 
 	deinit {
-		MainActor.assumeIsolated {
-			self.closeShell()
-		}
+		self.closeShell()
 	}
 
 	init(_ vmURL: URL) {

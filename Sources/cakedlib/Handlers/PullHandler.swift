@@ -169,7 +169,7 @@ public struct PullHandler {
 
 						try config.save()
 
-						progressHandler(.terminated(.success(location), "Pull terminated successfully"))
+						progressHandler(.terminated(.success(location.rootURL), "Pull terminated successfully"))
 
 						return result
 					} catch {

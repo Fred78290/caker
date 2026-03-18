@@ -215,7 +215,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
-		self.imageSource = .cloud
+		self.imageSource = .qcow2
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = ""
@@ -230,7 +230,7 @@ class VirtualMachineWizardStateObject: ObservableObject {
 		self.configValid = false
 		self.password = ""
 		self.showPassword = false
-		self.imageSource = .cloud
+		self.imageSource = .qcow2
 		self.remoteImage = "ubuntu"
 		self.remoteImages = []
 		self.selectedRemoteImage = ""
@@ -293,9 +293,9 @@ struct VirtualMachineWizard: View {
 		.onReceive(VirtualMachineDocument.CreatedVirtualMachine) { notification in
 			self.model.createVM = false
 
-			if let location = notification.object as? VMLocation {
+			if let vmURL = notification.object as? URL {
 				Task {
-					await MainApp.app.openVirtualMachine(location.rootURL)
+					await MainApp.app.openVirtualMachine(vmURL)
 					self.dismiss()
 				}
 			}
@@ -626,43 +626,62 @@ struct VirtualMachineWizard: View {
 			Section {
 				switch self.model.imageSource {
 				case .raw:
-					LabeledContent("Choose a local image disk.") {
-						HStack {
-							TextField("OS Image", text: $config.imageName)
-								.rounded(.leading)
-								.disabled(self.model.createVM)
-
-							Button(action: {
-								if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
-									self.config.imageName = "img://\(imageName)"
-								}
-							}) {
-								Image(systemName: "document.badge.gearshape")
-							}
-							.buttonStyle(.borderless)
-							.disabled(self.model.createVM)
-						}
-					}
-
-				case .iso:
-					VStack {
-						let platform = SupportedPlatform(rawValue: self.config.imageName)
-
-						LabeledContent("Choose an ISO image disk.") {
+					if AppState.shared.runMode == .app {
+						LabeledContent("Choose a local image disk.") {
 							HStack {
-								TextField("ISO Image", text: $config.imageName)
+								TextField("OS Image", text: $config.imageName)
 									.rounded(.leading)
 									.disabled(self.model.createVM)
-
+								
 								Button(action: {
-									if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
-										self.config.imageName = "iso://\(imageName)"
+									if let imageName = chooseDiskImage(ofType: UTType.diskImage) {
+										self.config.imageName = "file://\(imageName)"
 									}
 								}) {
 									Image(systemName: "document.badge.gearshape")
 								}
-								.disabled(self.model.createVM)
 								.buttonStyle(.borderless)
+								.disabled(self.model.createVM)
+							}
+						}
+					} else {
+						LabeledContent("Raw image url.") {
+							HStack {
+								TextField("URL", text: $config.imageName)
+									.rounded(.leading)
+									.disabled(self.model.createVM)
+							}
+						}
+					}
+				case .iso:
+					VStack {
+						let platform = SupportedPlatform(rawValue: self.config.imageName)
+
+						if AppState.shared.runMode == .app {
+							LabeledContent("Choose an ISO image disk.") {
+								HStack {
+									TextField("ISO Image", text: $config.imageName)
+										.rounded(.leading)
+										.disabled(self.model.createVM)
+									
+									Button(action: {
+										if let imageName = chooseDiskImage(ofTypes: [UTType.iso9660, UTType.cdr]) {
+											self.config.imageName = "file://\(imageName)"
+										}
+									}) {
+										Image(systemName: "document.badge.gearshape")
+									}
+									.disabled(self.model.createVM)
+									.buttonStyle(.borderless)
+								}
+							}
+						} else {
+							LabeledContent("Bootable iso url.") {
+								HStack {
+									TextField("URL", text: $config.imageName)
+										.rounded(.leading)
+										.disabled(self.model.createVM)
+								}
 							}
 						}
 
@@ -676,24 +695,33 @@ struct VirtualMachineWizard: View {
 					}
 
 				case .ipsw:
-					LabeledContent("Choose an IPSW image.") {
-						HStack {
-							TextField("IPSW Image", text: $config.imageName)
-								.rounded(.leading)
-								.disabled(self.model.createVM)
-							Button(action: {
-								if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
-									self.config.imageName = "ipsw://\(imageName)"
+					if AppState.shared.runMode == .app {
+						LabeledContent("Choose an IPSW image.") {
+							HStack {
+								TextField("IPSW Image", text: $config.imageName)
+									.rounded(.leading)
+									.disabled(self.model.createVM)
+								Button(action: {
+									if let imageName = chooseDiskImage(ofType: UTType.ipsw) {
+										self.config.imageName = "file://\(imageName)"
+									}
+								}) {
+									Image(systemName: "document.badge.gearshape")
 								}
-							}) {
-								Image(systemName: "document.badge.gearshape")
+								.disabled(self.model.createVM)
+								.buttonStyle(.borderless)
 							}
-							.disabled(self.model.createVM)
-							.buttonStyle(.borderless)
+						}
+					} else {
+						LabeledContent("MacOS ipsw url.") {
+							HStack {
+								TextField("URL", text: $config.imageName)
+									.rounded(.leading)
+									.disabled(self.model.createVM)
+							}
 						}
 					}
-
-				case .cloud:
+				case .qcow2:
 					LabeledContent {
 						TextField("Cloud Image", text: $config.imageName)
 							.rounded(.leading)
@@ -858,6 +886,14 @@ struct VirtualMachineWizard: View {
 	func validateConfig(config: VirtualMachineConfig) {
 		var valid = false
 
+		if AppState.shared.runMode != .app && (model.imageSource == .iso || model.imageSource == .ipsw) {
+			if let url = URL(string: config.imageName) {
+				valid = url.scheme == "http" || url.scheme == "https"
+			} else {
+				valid = false
+			}
+		}
+
 		if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
 			valid = false
 		} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
@@ -886,8 +922,8 @@ struct VirtualMachineWizard: View {
 				case .terminated(let result, let message):
 					if case .failure(let error) = result {
 						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: error, userInfo: ["message": message ?? ""])
-					} else if case .success(let location) = result {
-						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: location, userInfo: ["message": message ?? ""])
+					} else if case .success(let vmURL) = result {
+						NotificationCenter.default.post(name: VirtualMachineDocument.CreatedVirtualMachine, object: vmURL, userInfo: ["message": message ?? ""])
 					} else {
 						NotificationCenter.default.post(name: VirtualMachineDocument.FailCreateVirtualMachine, object: ServiceError("Internal error creating virtual machine"), userInfo: ["message": message ?? ""])
 					}
@@ -905,11 +941,11 @@ struct VirtualMachineWizard: View {
 		do {
 			try await withTaskCancellationHandler(
 				operation: {
-					let options = self.config.buildOptions()
+					let options = self.config.buildOptions(imageSource: model.imageSource)
 					var ipswQueue: DispatchQueue!
 					
 #if arch(arm64)
-					if self.model.imageSource == .ipsw {
+					if AppState.shared.runMode == .app && self.model.imageSource == .ipsw {
 						ipswQueue = DispatchQueue(label: "IPSWQueue")
 					}
 #endif

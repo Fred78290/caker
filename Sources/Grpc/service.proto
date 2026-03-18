@@ -87,11 +87,11 @@ message Empty {}
 
 message Caked {
   enum VirtualMachineStatus {
-    stopped = 0;
-    running = 1;
-    paused  = 2;
-    deleted = 3;
-    error   = 4;
+    stopped    = 0;
+    running    = 1;
+    paused     = 2;
+    deleted    = 3;
+    error      = 4;
     agentReady = 5;
   }
 
@@ -335,33 +335,34 @@ message Caked {
 
   message VMRequest {
     message CommonBuildRequest {
-      string              name                  = 1;
-      optional uint32     cpu                   = 2;
-      optional uint64     memory                = 3;
-      optional string     user                  = 4;
-      optional string     password              = 22;
-      optional string     mainGroup             = 5;
-      optional bool       sshPwAuth             = 6;
-      optional string     image                 = 7;
-      optional bytes      sshAuthorizedKey      = 8;
-      optional bytes      vendorData            = 9;
-      optional bytes      userData              = 10;
-      optional bytes      networkConfig         = 11;
-      optional uint64     diskSize              = 12;
-      optional bool       autostart             = 13;
-      optional bool       nested                = 14;
-      optional string     forwardedPort         = 15;
-      optional string     mounts                = 16;
-      optional string     networks              = 17;
-      optional string     sockets               = 18;
-      optional string     console               = 19;
-      optional string     attachedDisks         = 20;
-      optional bool       dynamicPortForwarding = 21;
-      optional bool       ifnames               = 23;
-      optional bool       suspendable           = 24;
-      optional ScreenSize screenSize            = 25;
-      optional bool       displayRefit          = 26;
-      optional string     otherGroups           = 27;
+      string                    name                  = 1;
+      optional uint32           cpu                   = 2;
+      optional uint64           memory                = 3;
+      optional string           user                  = 4;
+      optional string           password              = 22;
+      optional string           mainGroup             = 5;
+      optional bool             sshPwAuth             = 6;
+      optional string           image                 = 7;
+      optional bytes            sshAuthorizedKey      = 8;
+      optional bytes            vendorData            = 9;
+      optional bytes            userData              = 10;
+      optional bytes            networkConfig         = 11;
+      optional uint64           diskSize              = 12;
+      optional bool             autostart             = 13;
+      optional bool             nested                = 14;
+      optional string           forwardedPort         = 15;
+      optional string           mounts                = 16;
+      optional string           networks              = 17;
+      optional string           sockets               = 18;
+      optional string           console               = 19;
+      optional string           attachedDisks         = 20;
+      optional bool             dynamicPortForwarding = 21;
+      optional bool             ifnames               = 23;
+      optional bool             suspendable           = 24;
+      optional ScreenSize       screenSize            = 25;
+      optional bool             displayRefit          = 26;
+      optional string           otherGroups           = 27;
+      Configuration.ImageSource imageSource           = 28;
     }
 
     message BuildRequest {

@@ -17,7 +17,7 @@ struct Build: AsyncGrpcParsableCommand {
 	var format: Format = .text
 
 	mutating func validate() throws {
-		try buildOptions.validate()
+		try buildOptions.validate(remote: true)
 
 		if buildOptions.sockets.first(where: { $0.sharedFileDescriptors != nil }) != nil {
 			throw ValidationError("Shared file descriptors are not supported, use caked launch instead")

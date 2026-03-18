@@ -12,8 +12,10 @@ struct Build: AsyncParsableCommand {
 	@OptionGroup(title: "Build VM options")
 	var options: BuildOptions
 
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
+
+		try self.options.validate(remote: false)
 
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")

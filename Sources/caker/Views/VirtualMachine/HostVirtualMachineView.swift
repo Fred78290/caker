@@ -216,19 +216,21 @@ struct HostVirtualMachineView: View {
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
-						if self.document.status == .stopped && self.document.externalRunning == false {
-							if self.launchExternally {
-								Button("Run hosted", systemImage: "personalhotspot.slash") {
-									launchExternally.toggle()
-									document.launchVMExternally = false
+						if self.document.url.isFileURL {
+							if self.document.status == .stopped && self.document.externalRunning == false {
+								if self.launchExternally {
+									Button("Run hosted", systemImage: "personalhotspot.slash") {
+										launchExternally.toggle()
+										document.launchVMExternally = false
+									}
+									.help("Launch machine in detached mode")
+								} else {
+									Button("Run detached", systemImage: "personalhotspot") {
+										launchExternally.toggle()
+										document.launchVMExternally = true
+									}
+									.help("Launch machine inside app")
 								}
-								.help("Launch machine in detached mode")
-							} else {
-								Button("Run detached", systemImage: "personalhotspot") {
-									launchExternally.toggle()
-									document.launchVMExternally = true
-								}
-								.help("Launch machine inside app")
 							}
 						}
 

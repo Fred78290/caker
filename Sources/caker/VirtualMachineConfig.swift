@@ -621,8 +621,8 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		try config.save()
 	}
 
-	func buildOptions() -> BuildOptions {
-		self.buildOptions(image: self.imageName, sshAuthorizedKey: self.sshAuthorizedKey)
+	func buildOptions(imageSource: ImageSource) -> BuildOptions {
+		return self.buildOptions(image: self.imageName, imageSource: imageSource, sshAuthorizedKey: self.sshAuthorizedKey)
 	}
 
 	func configureOptions() -> ConfigureOptions {
@@ -647,7 +647,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		)
 	}
 
-	func buildOptions(image: String, sshAuthorizedKey: String?) -> BuildOptions {
+	func buildOptions(image: String, imageSource: ImageSource?, sshAuthorizedKey: String?) -> BuildOptions {
 		.init(
 			name: self.vmname!,
 			cpu: UInt16(self.cpuCount),
@@ -665,6 +665,7 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 			suspendable: self.suspendable,
 			netIfnames: self.ifname,
 			image: image,
+			imageSource: imageSource,
 			sshAuthorizedKey: sshAuthorizedKey,
 			userData: self.userData,
 			networkConfig: self.networkConfig,
@@ -682,3 +683,4 @@ struct VirtualMachineConfig: VirtualMachineConfiguration, Hashable {
 		NotificationCenter.default.post(name: name, object: object)
 	}
 }
+

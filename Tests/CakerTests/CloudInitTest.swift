@@ -205,7 +205,7 @@ final class CloudInitTests: XCTestCase {
 
 	func testBuildVMWithQCow2() async throws {
 		let tmpQcow2 = try Home(runMode: .user).temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("qcow2")
-		let tempLocation = try await CloudImageConverter.downloadLinuxImage(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, runMode: .user, progressHandler: ProgressObserver.progressHandler)
+		let tempLocation = try await CloudImageConverter.downloadRemoteFile(fromURL: URL(string: ubuntuCloudImage)!, toURL: tmpQcow2, runMode: .user, progressHandler: ProgressObserver.progressHandler)
 
 		defer {
 			try? tempLocation.delete()

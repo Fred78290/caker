@@ -138,6 +138,22 @@ public class RawImageCache: CommonCacheImageCache {
 	}
 }
 
+public class IPSWCache: CommonCacheImageCache {
+	static let scheme = "ipsw"
+
+	public init(runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "ipsw", ext: "ipsw", runMode: runMode)
+	}
+}
+
+public class IsoCache: CommonCacheImageCache {
+	static let scheme = "iso"
+
+	public init(runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "iso", ext: "iso", runMode: runMode)
+	}
+}
+
 public enum CacheEntryKind: String, Codable {
 	case index = "index"
 	case stream = "stream"

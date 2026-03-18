@@ -75,18 +75,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "vmrun"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "linux"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu-desktop"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vnc"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--log-level=debug"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -127,15 +123,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "clone"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ghcr.io/cirruslabs/ubuntu:latest"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "push"
@@ -148,6 +144,18 @@
          <CommandLineArgument
             argument = "devregistry.aldunelabs.com/linux:1.0"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--log-level=debug"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--service"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vnc"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ui"

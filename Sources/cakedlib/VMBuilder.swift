@@ -4,12 +4,6 @@ import Virtualization
 
 let cloudInitIso = "cloud-init.iso"
 
-#if arch(arm64)
-	let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://", "ipsw://"]
-#else
-	let knownSchemes = ["http://", "https://", "cloud://", "file://", "oci://", "ocis://", "qcow2://", "img://", "template://", "iso://"]
-#endif
-
 public struct VMBuilder {
 	public static let memoryMinSize: UInt64 = 512 * MoB
 
@@ -21,15 +15,15 @@ public struct VMBuilder {
 		}
 	#endif
 
-	private static func build(vmName: String, location: VMLocation, options: BuildOptions, source: ImageSource, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+	private static func build(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue? = nil, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws {
+		let imageSource = options.imageSource!
+		let imageURL = URL(string: options.image)!
 		var config: CakeConfig! = nil
 		var attachedDisks = options.attachedDisks
 
 		// Create config
 		#if arch(arm64)
-			let imageURL = URL(fileURLWithPath: options.image.expandingTildeInPath.stringAfter(after: "ipsw://"))
-
-			if source == .ipsw {
+			if imageSource == .ipsw {
 				let image = try await withCheckedThrowingContinuation { continuation in
 					VZMacOSRestoreImage.load(from: imageURL) { result in
 						continuation.resume(with: result)
@@ -70,7 +64,7 @@ public struct VMBuilder {
 		#endif
 
 		if config == nil {
-			if source == .oci {
+			if imageSource == .oci {
 				config = try CakeConfig(location: location.rootURL, options: options)
 			} else if try location.configURL.exists() {
 				config = try location.config()
@@ -88,7 +82,7 @@ public struct VMBuilder {
 				// Create NVRAM
 				_ = try VZEFIVariableStore(creatingVariableStoreAt: location.nvramURL)
 
-				if source == .iso {
+				if imageSource == .iso {
 					attachedDisks.append(DiskAttachement(diskPath: URL(string: options.image)!))
 				}
 
@@ -109,8 +103,8 @@ public struct VMBuilder {
 					memorySizeMin: Self.memoryMinSize,
 					screenSize: options.screenSize)
 
-				config.useCloudInit = source != .iso || options.autoinstall
-				config.agent = source != .iso || options.autoinstall
+				config.useCloudInit = imageSource != .iso || options.autoinstall
+				config.agent = imageSource != .iso || options.autoinstall
 				config.nested = options.nested
 				config.attachedDisks = attachedDisks
 			}
@@ -132,7 +126,7 @@ public struct VMBuilder {
 			config.dynamicPortForwarding = options.dynamicPortForwarding
 			config.suspendable = options.suspendable
 			config.instanceID = "i-\(String(format: "%x", Int(Date().timeIntervalSince1970)))"
-			config.source = source
+			config.source = imageSource
 
 			try config.save()
 
@@ -155,22 +149,22 @@ public struct VMBuilder {
 			}
 
 			#if arch(arm64)
-				if source == .ipsw {
+				if imageSource == .ipsw {
 					try await installIPSW(location: location, config: config, ipsw: imageURL, runMode: runMode, queue: queue, progressHandler: progressHandler)
 				}
 			#endif
 		}
 	}
 
-	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> ImageSource {
+	public static func cloneImage(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
 		if FileManager.default.fileExists(atPath: location.diskURL.path) {
 			throw ServiceError("VM already exists")
 		}
-		var sourceImage: ImageSource = .cloud
+		var options = options
+		var sourceImage = options.imageSource
 		let remoteDb = try Home(runMode: runMode).remoteDatabase()
-		var starter: [String] = []
-		let remotes = remoteDb.keys
-		var imageURL: URL
+		let schemes: [String] = ImageSource.schemes.keys.map { $0 + "://" }
+		let remotes = remoteDb.keys.map { $0 }
 
 		func aliasImage(_ image: String) -> String {
 			if image.contains(":///") {
@@ -184,61 +178,98 @@ public struct VMBuilder {
 			}
 		}
 
-		starter.append(contentsOf: knownSchemes)
-		starter.append(contentsOf: remotes)
-
-		if starter.first(where: { start in return options.image.starts(with: start) }) != nil {
-			imageURL = URL(string: options.image)!
-		} else if options.image.contains(":") == false {
-			imageURL = URL(fileURLWithPath: options.image.expandingTildeInPath)
-		} else {
+		guard var imageURL = URL(string: options.image) else {
 			throw ServiceError("unsupported url: \(options.image)")
 		}
 
-		guard let scheme = imageURL.scheme else {
-			throw ServiceError("unsupported image url: \(options.image)")
+		if sourceImage == nil {
+			let scheme: String
+
+			if let s = imageURL.scheme {
+				scheme = s
+			} else {
+				scheme = imageURL.pathExtension
+			}
+
+			if let imageSource = ImageSource.schemes[scheme] {
+				sourceImage = imageSource
+				if imageURL.host == nil {
+					imageURL = URL(fileURLWithPath: imageURL.path.expandingTildeInPath)
+				} else if var components = URLComponents(url: imageURL, resolvingAgainstBaseURL: false) {
+					switch scheme {
+						case "qcow2", "imgs", "isos", "ipsw":
+						components.scheme = "https"
+						default:
+						components.scheme = "http"
+					}
+
+					imageURL = components.url!
+				}
+			} else if remotes.contains(scheme) {
+				imageURL = URL(string: options.image)!
+				sourceImage = .stream
+			} else {
+				throw ServiceError("unsupported url: \(options.image)")
+			}
+
+			options.imageSource = sourceImage
+		} else {
+			imageURL = URL(string: options.image)!
 		}
 
-		if imageURL.isFileURL || scheme == "img" {
-			imageURL.resolveSymlinksInPath()
-
+		if sourceImage == .raw {
 			let temporaryDiskURL: URL = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent("tmp-disk-\(UUID().uuidString)")
 
-			try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
+			if imageURL.isFileURL == false {
+				imageURL = try await CloudImageConverter.downloadRemoteFile(fromURL: imageURL, toURL: temporaryDiskURL, runMode: runMode, progressHandler: progressHandler)
+			} else {
+				imageURL.resolveSymlinksInPath()
+				try FileManager.default.copyItem(at: imageURL, to: temporaryDiskURL)
+			}
+
 			_ = try FileManager.default.replaceItemAt(location.diskURL, withItemAt: temporaryDiskURL)
 			try? FileManager.default.removeItem(at: temporaryDiskURL)
+		} else if sourceImage == .template {
+			guard let templateName = imageURL.host else {
+				throw ServiceError("Wrong URL for template")
+			}
 
-			sourceImage = .raw
-		} else if scheme == "template" {
-			let templateName = imageURL.host()!
 			let templateLocation = try StorageLocation(runMode: runMode, template: true).find(templateName)
 
 			try templateLocation.copyTo(location)
-			sourceImage = .template
-		} else if scheme == "qcow2" {
-			try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL, progressHandler: progressHandler)
-		} else if scheme == "http" || scheme == "https" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
-		} else if scheme == "cloud" {
-			try await CloudImageConverter.retrieveCloudImageAndConvert(from: URL(string: imageURL.absoluteString.replacingOccurrences(of: "cloud://", with: "https://"))!, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
-		} else if scheme == "oci" || scheme == "ocis" {
+		} else if sourceImage == .qcow2 {
+			if imageURL.isFileURL {
+				try CloudImageConverter.convertCloudImageToRaw(from: imageURL, to: location.diskURL, progressHandler: progressHandler)
+			} else {
+				try await CloudImageConverter.retrieveCloudImageAndConvert(from: imageURL, to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
+			}
+		} else if sourceImage == .oci {
 			let ociImage = options.image.stringAfter(after: "//")
-			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: scheme == "oci", runMode: runMode, progressHandler: progressHandler)
+			let pulled = try await PullHandler.pull(location: location, image: ociImage, insecure: imageURL.scheme == "oci", runMode: runMode, progressHandler: progressHandler)
 
 			if pulled.success == false {
 				throw ServiceError(pulled.message)
 			}
+		} else if sourceImage == .iso {
+			if imageURL.isFileURL == false {
+				options.image = try await CloudImageConverter.downloadISO(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+			}
 
-			sourceImage = .oci
-		} else if scheme == "iso" {
-			sourceImage = .iso
-		} else if scheme == "ipsw" {
+		} else if sourceImage == .ipsw {
 			#if arch(arm64)
-				sourceImage = .ipsw
+			if imageURL.isFileURL == false {
+				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
+			}
 			#else
 				throw ServiceError("unsupported image url: \(options.image)")
 			#endif
-		} else if let remoteContainerServer = remoteDb.get(scheme) {
+		} else if sourceImage == .stream {
+			let scheme = imageURL.scheme!
+
+			guard let remoteContainerServer = remoteDb.get(scheme) else {
+				throw ServiceError("remote stream \(scheme) not found")
+			}
+
 			guard let remoteContainerServerURL: URL = URL(string: remoteContainerServer) else {
 				throw ServiceError("malformed url: \(remoteContainerServer)")
 			}
@@ -248,20 +279,18 @@ public struct VMBuilder {
 			let image: LinuxContainerImage = try await simpleStream.GetImageAlias(alias: String(aliasImage), runMode: runMode)
 
 			try await image.retrieveSimpleStreamImageAndConvert(to: location.diskURL, runMode: runMode, progressHandler: progressHandler)
-
-			sourceImage = .stream
 		} else {
 			throw ServiceError("unsupported image url: \(options.image)")
 		}
 
-		return sourceImage
+		return options
 	}
 
-	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> ImageSource {
-		let sourceImage = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
+	static func buildVM(vmName: String, location: VMLocation, options: BuildOptions, runMode: Utils.RunMode, queue: DispatchQueue?, progressHandler: @escaping ProgressObserver.BuildProgressHandler) async throws -> BuildOptions {
+		let options = try await self.cloneImage(vmName: vmName, location: location, options: options, runMode: runMode, progressHandler: progressHandler)
 
-		try await self.build(vmName: vmName, location: location, options: options, source: sourceImage, runMode: runMode, queue: queue, progressHandler: progressHandler)
+		try await self.build(vmName: vmName, location: location, options: options, runMode: runMode, queue: queue, progressHandler: progressHandler)
 
-		return sourceImage
+		return options
 	}
 }

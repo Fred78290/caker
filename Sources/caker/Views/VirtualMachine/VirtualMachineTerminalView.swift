@@ -60,10 +60,6 @@ class VirtualMachineTerminalView: TerminalView, TerminalViewDelegate {
 		}
 	}
 
-	deinit {
-		self.closeShell()
-	}
-
 	init(interactiveShell: InteractiveShell, frame: CGRect, font: NSFont, color: SwiftTerm.Color) {
 		self.interactiveShell = interactiveShell
 

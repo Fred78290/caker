@@ -192,7 +192,7 @@ public final class CakeConfig: VirtualMachineConfiguration {
 				return .init(stringValue: source)
 			}
 
-			return .cloud
+			return .qcow2
 		}
 	}
 

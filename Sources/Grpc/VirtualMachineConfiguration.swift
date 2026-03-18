@@ -339,12 +339,12 @@ extension Caked.Configuration.TunnelAttachement {
 	}
 }
 
-extension Caked.Configuration.ImageSource {
+extension Caked_ImageSource {
 	init(_ source: ImageSource) {
 		switch source {
 		case .raw:
 			self = .raw
-		case .cloud:
+		case .qcow2:
 			self = .cloud
 		case .oci:
 			self = .oci

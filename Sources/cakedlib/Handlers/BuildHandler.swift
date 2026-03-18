@@ -29,7 +29,7 @@ public struct BuildHandler {
 
 						try storageLocation.relocate(options.name, from: tempVMLocation)
 
-						progressHandler(.terminated(.success(location), "Build VM finished successfully"))
+						progressHandler(.terminated(.success(location.rootURL), "Build VM finished successfully"))
 					} catch {
 						try? FileManager.default.removeItem(at: tempVMLocation.rootURL)
 

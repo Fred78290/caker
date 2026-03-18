@@ -100,15 +100,20 @@ class CloudImageConverter {
 		}
 	}
 
-	static func downloadLinuxImage(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+	static func downloadRemoteFile(fromURL: URL, toURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		if FileManager.default.fileExists(atPath: toURL.path) {
 			throw ServiceError("file already exists: \(toURL.path)")
+		}
+		var pathExtension = fromURL.pathExtension
+		
+		if pathExtension.isEmpty {
+			pathExtension = "img"
 		}
 
 		// Download the cloud-image
 		self.step("Fetching \(fromURL.lastPathComponent)...", progressHandler: progressHandler)
 
-		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + ".img")
+		let temporaryLocation = try Home(runMode: runMode).temporaryDirectory.appendingPathComponent(UUID().uuidString + "." + fromURL.pathExtension)
 
 		defer {
 			try? FileManager.default.removeItem(at: temporaryLocation)
@@ -119,11 +124,10 @@ class CloudImageConverter {
 		return try FileManager.default.replaceItemAt(toURL, withItemAt: temporaryLocation)!
 	}
 
-	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+	static func downloadRemoteToCache(remoteURL: URL, imageCache: CommonCacheImageCache, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		// Check if we already have this linux image in cache
 		let fileName = remoteURL.lastPathComponent.deletingPathExtension
-		let imageCache = try CloudImageCache(name: remoteURL.host()!, runMode: runMode)
-		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).img")
+		let cacheLocation = imageCache.locationFor(fileName: "\(fileName).\(imageCache.ext)")
 
 		if FileManager.default.fileExists(atPath: cacheLocation.path) {
 			self.step("Using cached \(cacheLocation.path) file...", progressHandler: progressHandler)
@@ -131,7 +135,28 @@ class CloudImageConverter {
 			return cacheLocation
 		}
 
-		return try await downloadLinuxImage(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode, progressHandler: progressHandler)
+		return try await downloadRemoteFile(fromURL: remoteURL, toURL: cacheLocation, runMode: runMode, progressHandler: progressHandler)
+	}
+
+	static func downloadIPSW(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+		// Check if we already have this linux image in cache
+		let imageCache = try IPSWCache(runMode: runMode)
+
+		return try await downloadRemoteToCache(remoteURL: remoteURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
+	}
+
+	static func downloadISO(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+		// Check if we already have this linux image in cache
+		let imageCache = try IsoCache(runMode: runMode)
+
+		return try await downloadRemoteToCache(remoteURL: remoteURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
+	}
+
+	static func downloadLinuxImage(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
+		// Check if we already have this linux image in cache
+		let imageCache = try CloudImageCache(name: remoteURL.host()!, runMode: runMode)
+
+		return try await downloadRemoteToCache(remoteURL: remoteURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
 	}
 
 	static func retrieveCloudImageAndConvert(from: URL, to: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws {

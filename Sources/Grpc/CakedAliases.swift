@@ -128,6 +128,7 @@ public typealias Caked_CurrentStatusRequest = Caked.CurrentStatusRequest
 public typealias Caked_GetScreenSizeRequest = Caked.GetScreenSizeRequest
 public typealias Caked_SetScreenSizeRequest = Caked.SetScreenSizeRequest
 public typealias Caked_InstallAgentRequest = Caked.InstallAgentRequest
+public typealias Caked_ImageSource = Caked.Configuration.ImageSource
 
 extension VirtualizedOS {
 	public init?(_ from: Caked.Configuration.VirtualizedOS) {
@@ -156,12 +157,12 @@ extension Architecture {
 }
 
 extension ImageSource {
-	public init?(_ from: Caked.Configuration.ImageSource) {
+	public init?(_ from: Caked_ImageSource) {
 		switch from {
 		case .raw:
 			self = .raw
 		case .cloud:
-			self = .cloud
+			self = .qcow2
 		case .oci:
 			self = .oci
 		case .template:
@@ -278,7 +279,6 @@ extension TunnelAttachement {
 		}
 	}
 }
-
 
 public struct CakedConfiguration: VirtualMachineConfiguration, Codable, Identifiable, Hashable {
 	public var id: URL {
@@ -447,7 +447,6 @@ extension Caked.Configuration {
 	}
 }
 
-
 extension Caked_VirtualMachineStatus: CustomStringConvertible {
 	public var description: String {
 		switch self {
@@ -490,6 +489,7 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 		}
 	}
 }
+
 extension Caked_CommonBuildRequest {
 	public init(buildOptions: BuildOptions) throws {
 		let mounts = buildOptions.mounts.map { $0.description }
@@ -560,6 +560,10 @@ extension Caked_CommonBuildRequest {
 		}
 
 		self.dynamicPortForwarding = buildOptions.dynamicPortForwarding
+
+		if let imageSource = buildOptions.imageSource {
+			self.imageSource = .init(imageSource)
+		}
 	}
 }
 

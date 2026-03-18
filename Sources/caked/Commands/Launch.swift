@@ -19,8 +19,10 @@ struct Launch: AsyncParsableCommand {
 	@Flag(help: ArgumentHelp("Launch vm in foreground", discussion: "This option allow display window of running vm to debug it", visibility: .hidden))
 	var foreground: Bool = false
 
-	func validate() throws {
+	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
+
+		try self.options.validate(remote: false)
 
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")

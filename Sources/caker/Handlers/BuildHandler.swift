@@ -11,7 +11,7 @@ extension BuildHandler {
 
 		return try await withThrowingTaskGroup(of: Void.self, returning: BuildedReply.self) { group in
 			let context: ProgressObserver.ProgressHandlerContext = .init()
-			let vmLocation: VMLocation = StorageLocation(runMode: runMode).location(options.name)
+			let vmURL = URL(string: "\(VMLocation.scheme)://\(options.name)")!
 			let (stream, continuation) = AsyncStream.makeStream(of: Caked_BuildStreamReply.OneOf_Current?.self)
 			var result: BuildedReply? = nil
 
@@ -37,11 +37,11 @@ extension BuildHandler {
 				} else if case .terminated(let status) = current {
 					if case .success(let v)? = status.result {
 						await MainActor.run {
-							progressHandler(.terminated(.init(value: vmLocation, error: nil), v))
+							progressHandler(.terminated(.success(vmURL), v))
 						}
 					} else if case .failure(let v)? = status.result {
 						await MainActor.run {
-							progressHandler(.terminated(.init(value: vmLocation, error: ServiceError(v)), nil))
+							progressHandler(.terminated(.failure(ServiceError(v)), nil))
 						}
 					}
 				} else if case .builded(let builded) = current {
