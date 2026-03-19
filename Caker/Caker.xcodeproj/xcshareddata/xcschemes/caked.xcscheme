@@ -75,11 +75,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "vmrun"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "linux"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "ubuntu-desktop"
@@ -151,11 +151,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--service"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vnc"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ui"
