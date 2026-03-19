@@ -777,21 +777,13 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 
 		let agentBinary = try await Utilities.cakeagentBinary(os: config.os, runMode: runMode)
 
-		#if arch(arm64)
-			if imageSource == .ipsw {
-				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-			} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-				try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
-			} else {
-				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-			}
-		#else
-			if let sshPrivateKeyPath = config.sshPrivateKeyPath {
-				try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
-			} else {
-				try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
-			}
-		#endif
+		if imageSource == .ipsw {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		} else if let sshPrivateKeyPath = config.sshPrivateKeyPath {
+			try ssh.authenticate(username: config.configuredUser, privateKey: URL(fileURLWithPath: sshPrivateKeyPath.expandingTildeInPath, relativeTo: self.configURL).absoluteURL.path, passphrase: config.sshPrivateKeyPassphrase)
+		} else {
+			try ssh.authenticate(username: config.configuredUser, password: config.configuredPassword ?? config.configuredUser)
+		}
 
 		_ = try ssh.sendFile(localURL: agentBinary, remotePath: "/tmp/cakeagent", permissions: .init(rawValue: 0o755))
 		_ = try ssh.sendFile(localURL: tempFileURL, remotePath: "/tmp/install-agent.sh", permissions: .init(rawValue: 0o755))
