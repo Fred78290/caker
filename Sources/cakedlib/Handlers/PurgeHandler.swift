@@ -17,6 +17,8 @@ public struct PurgeHandler {
 					try PurgeableContentStore(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
+					try IPSWCache(runMode: runMode),
+					try IsoCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
 				]
 			} else if options.entries == .vms {
@@ -28,6 +30,8 @@ public struct PurgeHandler {
 					try PurgeableContentStore(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
+					try IPSWCache(runMode: runMode),
+					try IsoCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
 				]
 			}
