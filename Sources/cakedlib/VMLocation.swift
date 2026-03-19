@@ -754,6 +754,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			then
 				/usr/local/bin/cakeagent service start
 			else
+				mkdir -p /etc/sysconfig
+				echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+				chmod 644 /etc/sysconfig/cakeagent
 				/usr/local/bin/cakeagent service install \\
 					--listen="vsock://any:5000" \\
 					--ca-cert="${CA}" \\

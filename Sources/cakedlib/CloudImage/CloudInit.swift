@@ -962,6 +962,9 @@ class CloudInit {
 				mount -L CIDATA $MOUNT || exit 1
 				cp $MOUNT/cakeagent /usr/local/bin/cakeagent
 				umount $MOUNT
+				mkdir -p /etc/sysconfig
+				echo "EXTRA_FLAGS=" > /etc/sysconfig/cakeagent
+				chmod 644 /etc/sysconfig/cakeagent
 				chmod +x /usr/local/bin/cakeagent
 				/usr/local/bin/cakeagent service install \\
 					--listen=vsock://any:5000 \\
