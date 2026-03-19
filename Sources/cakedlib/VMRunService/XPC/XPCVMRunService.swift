@@ -380,18 +380,9 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	
 	func stopGrandCentralUpdate() {
 		self.reply { serviceReply in
-			var started: Bool = true
-			var reason : String = ""
+			self.vm.stopGrandCentralUpdate()
 
-			do {
-				try self.vm.stopGrandCentralUpdate()
-			} catch {
-				self.logger.error("Failed to stop grand central update: \(error)")
-				reason = "\(error)"
-				started = false
-			}
-
-			serviceReply.grandCentralUpdateReply(success: started, reason: reason)
+			serviceReply.grandCentralUpdateReply(success: true, reason: "Success")
 		}
 	}
 }

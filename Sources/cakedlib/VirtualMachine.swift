@@ -1185,7 +1185,7 @@ extension VirtualMachine {
 		self.gcd = gdc
 	}
 
-	public func stopGrandCentralUpdate() throws {
+	public func stopGrandCentralUpdate() {
 		guard let gcd else {
 			return
 		}

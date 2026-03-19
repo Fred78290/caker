@@ -368,14 +368,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 	}
 	
 	func stopGrandCentralUpdate(request: Vmrun_Empty, context: GRPCAsyncServerCallContext) async throws -> Vmrun_GrandCentralUpdateReply {
-		do {
-			try self.vm.stopGrandCentralUpdate()
-		} catch {
-			return .with {
-				$0.success = false
-				$0.reason = "\(error)"
-			}
-		}
+		self.vm.stopGrandCentralUpdate()
 
 		return .with {
 			$0.success = true
