@@ -76,7 +76,9 @@ public class GrandCentralUpdater: VirtualMachineDelegate {
 				self.stream = nil
 				self.logger.info("Grand Central Updater stopped for VM: \(vmName)")
 			}
-			
+	
+			self.updateStatus(self.vm.status)
+
 			do {
 				var firstMessage = true
 				

@@ -493,7 +493,7 @@ extension VirtualMachine {
 						}
 					}
 
-					self.didChangedState()
+					self.didChangedState(true)
 				}
 			}
 
@@ -531,7 +531,7 @@ extension VirtualMachine {
 							}
 						}
 
-						self.didChangedState()
+						self.didChangedState(true)
 					}
 				} catch {
 					self.logger.warn("Snapshot is only supported on macOS 14 or newer")
@@ -572,20 +572,20 @@ extension VirtualMachine {
 				self.logger.error("VM \(self.location.name) failed to stop, \(error)")
 			} else {
 				self.logger.info("VM \(self.location.name) stopped")
-
+				
 				self.location.removePID()
 			}
-
+			
 			self.env.stopServices()
-
+			
 			self.env.timer?.invalidate()
 			self.env.timer = nil
-
+			
 			if let completionHandler = completionHandler {
 				completionHandler(error)
 			}
-
-			self.didChangedState()
+			
+			self.didChangedState(true)
 		}
 	}
 
@@ -603,13 +603,13 @@ extension VirtualMachine {
 		if self.virtualMachine.canRequestStop {
 			self.logger.info("Requesting stop VM \(self.location.name)...")
 			try self.virtualMachine.requestStop()
-			self.didChangedState()
+			self.didChangedState(false)
 		} else if self.virtualMachine.canStop {
 			self.virtualMachine.stop { result in
 				self.logger.info("VM \(self.location.name) stopped")
 
 				self.env.stopServices()
-				self.didChangedState()
+				self.didChangedState(true)
 
 				if self.env.runMode == .app {
 					try? self.location.deletePID()
@@ -680,11 +680,11 @@ extension VirtualMachine {
 					}
 
 					try? config.save()
-					self.didChangedState()
+					self.didChangedState(false)
 				}
 			} else {
 				try? config.save()
-				self.didChangedState()
+				self.didChangedState(false)
 			}
 		}
 
@@ -693,7 +693,7 @@ extension VirtualMachine {
 				promise.fail(error)
 			}
 
-			self.didChangedState()
+			self.didChangedState(false)
 
 			self.logger.error("VM \(self.location.name) failed to get primary IP: \(error)")
 		}
@@ -739,7 +739,7 @@ extension VirtualMachine {
 	private func startCompletionHandler(result: Result<Void, any Error>, completionHandler: VirtualMachine.StartCompletionHandler? = nil) {
 		self.env.requestStopFromUIPending = false
 		
-		self.didChangedState()
+		self.didChangedState(false)
 		
 		switch result {
 		case .success:
@@ -862,13 +862,16 @@ extension VirtualMachine: VZVirtualMachineDelegate {
 
 	func didChangedStateOnStop() {
 		self.env.signalStop()
-		self.didChangedState()
+		self.didChangedState(true)
 	}
 
-	func didChangedState() {
+	func didChangedState(_ stopGCD: Bool) {
 		if let delegate = self.delegate {
 			self.vmQueue.async {
 				delegate.didChangedState(self)
+				if stopGCD {
+					self.stopGrandCentralUpdate()
+				}
 			}
 		}
 	}
