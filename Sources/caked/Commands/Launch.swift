@@ -27,6 +27,11 @@ struct Launch: AsyncParsableCommand {
 		if StorageLocation(runMode: self.common.runMode).exists(self.options.name) {
 			throw ValidationError("\(self.options.name) already exists")
 		}
+		if let imageSource = self.options.imageSource, foreground == false {
+			if imageSource == .iso || imageSource == .ipsw {
+				throw ValidationError("Imagesource \(imageSource.description) need display to launch it")
+			}
+		}
 	}
 
 	func run() async throws {
