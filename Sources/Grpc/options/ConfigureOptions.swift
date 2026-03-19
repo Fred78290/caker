@@ -33,9 +33,7 @@ public struct ConfigureOptions: ParsableArguments, Sendable {
 	@Option(name: [.long, .customShort("t")], help: ArgumentHelp("Enable nested virtualization if possible"))
 	public var nested: Bool?
 
-	#if arch(arm64)
-		@Option(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
-	#endif
+	@Option(help: ArgumentHelp("Disables audio and entropy devices and switches to only Mac-specific input devices.", discussion: "Useful for running a VM that can be suspended via suspend command."))
 	public var suspendable: Bool?
 
 	@Option(help: ArgumentHelp("Whether to automatically reconfigure the VM's display to fit the window"))

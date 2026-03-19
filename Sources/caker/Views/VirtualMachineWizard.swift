@@ -793,13 +793,12 @@ struct VirtualMachineWizard: View {
 						}.onChange(of: self.model.imageSource) { _, newValue in
 							self.config.imageName = ""
 							self.config.source = newValue
-							#if arch(arm64)
-								if newValue == .ipsw {
-									self.config.cpuCount = max(self.config.cpuCount, 4)
-									self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4 * GoB)
-									self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
-								}
-							#endif
+
+							if newValue == .ipsw {
+								self.config.cpuCount = max(self.config.cpuCount, 4)
+								self.config.memorySizeInMoB = max(self.config.memorySizeInMoB, 4 * GoB)
+								self.config.diskSizeInGoB = max(self.config.diskSizeInGoB, 40)
+							}
 						}
 						.pickerStyle(.menu)
 						.disabled(self.model.createVM)

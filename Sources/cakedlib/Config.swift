@@ -657,17 +657,11 @@ extension VirtualMachineConfiguration {
 			return false
 		}
 
-		#if arch(arm64)
-			if self.firstLaunch {
-				return source != .iso && source != .ipsw
-			} else if source == .iso || source == .ipsw {
-				return true
-			}
-
-			return false
-		#else
-			return self.firstLaunch && source != .iso
-		#endif
+		if source == .iso || source == .ipsw {
+			return true
+		}
+		
+		return self.firstLaunch
 	}
 
 	public var linuxMounts: String {
