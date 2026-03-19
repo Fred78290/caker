@@ -140,14 +140,14 @@ class CloudImageConverter {
 
 	static func downloadIPSW(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		// Check if we already have this linux image in cache
-		let imageCache = try IPSWCache(runMode: runMode)
+		let imageCache = try IPSWCache(name: remoteURL.host()!, runMode: runMode)
 
 		return try await downloadRemoteToCache(remoteURL: remoteURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
 	}
 
 	static func downloadISO(remoteURL: URL, runMode: Utils.RunMode, progressHandler: ProgressObserver.BuildProgressHandler?) async throws -> URL {
 		// Check if we already have this linux image in cache
-		let imageCache = try IsoCache(runMode: runMode)
+		let imageCache = try IsoCache(name: remoteURL.host()!, runMode: runMode)
 
 		return try await downloadRemoteToCache(remoteURL: remoteURL, imageCache: imageCache, runMode: runMode, progressHandler: progressHandler)
 	}
