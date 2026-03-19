@@ -360,7 +360,7 @@ public struct BuildOptions: ParsableArguments {
 	}
 	
 	public mutating func validateImageSource(remote: Bool) throws {
-		let scheme: String
+		var scheme: String
 
 		guard let imageURL = URL(string: image) else {
 			throw ValidationError("Malformed URL")
@@ -368,6 +368,14 @@ public struct BuildOptions: ParsableArguments {
 
 		if let s = imageURL.scheme {
 			scheme = s
+
+			if s == "http" && imageURL.pathExtension == "iso" {
+				scheme = "iso"
+			} else if s == "https" && imageURL.pathExtension == "iso" {
+				scheme = "isos"
+			} else if imageURL.pathExtension == "ipsw" {
+				scheme = "ipsw"
+			}
 		} else {
 			scheme = imageURL.pathExtension
 		}

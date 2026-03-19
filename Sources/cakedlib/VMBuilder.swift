@@ -182,10 +182,18 @@ public struct VMBuilder {
 		}
 
 		if sourceImage == nil {
-			let scheme: String
+			var scheme: String
 
 			if let s = imageURL.scheme {
 				scheme = s
+
+				if s == "http" && imageURL.pathExtension == "iso" {
+					scheme = "iso"
+				} else if s == "https" && imageURL.pathExtension == "iso" {
+					scheme = "isos"
+				} else if imageURL.pathExtension == "ipsw" {
+					scheme = "ipsw"
+				}
 			} else {
 				scheme = imageURL.pathExtension
 			}
