@@ -212,7 +212,7 @@ public struct CurrentStatusHandler {
 				switch grpcError.code {
 				case .unavailable:
 					// These could be temporary - continue monitoring
-					self.logger.debug("Agent monitoring: VM \(self.location.name) agent unvailable")
+					self.logger.trace("Agent monitoring: VM \(self.location.name) agent unvailable")
 					return true
 				case .cancelled:
 					// These could be temporary - continue monitoring
