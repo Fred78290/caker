@@ -135,14 +135,18 @@ struct VMRun: AsyncParsableCommand {
 			runMode: runMode)
 
 		try handler.run { address, vm in
+			let logger = Logger(self)
+
 			address.whenSuccess { ip in
 				if let ip {
-					Logger(self).info("VM Machine \(location.name) is now available at \(ip)")
+					logger.info("VM Machine \(location.name) is now available at \(ip)")
 				}
 			}
 
 			// Check also manual launch
 			if startGrandCentral {
+				logger.info("Start GCD for VM: \(location.name)")
+
 				try? Utilities.group.next().makeFutureWithTask {
 					try await vm.startGrandCentralUpdate(frequency: 1, runMode: runMode)
 				}.wait()
@@ -150,9 +154,9 @@ struct VMRun: AsyncParsableCommand {
 
 			if display == .all || display == .vnc {
 				if let vncURL = try? vm.startVncServer(vncPassword: vncPassword, port: vncPort) {
-					Logger(self).info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
+					logger.info("VNC server started at \(vncURL.map(\.absoluteString).joined(separator: ", "))")
 				} else {
-					Logger(self).info("Failed to start VNC server")
+					logger.info("Failed to start VNC server")
 				}
 
 			} else if display == .ui {
