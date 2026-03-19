@@ -345,7 +345,7 @@ public final class VirtualMachine: NSObject, @unchecked Sendable, ObservableObje
 	internal var env: VirtualMachineEnvironment
 	private var vmQueue: DispatchQueue
 	private let logger = Logger("VirtualMachine")
-	private var gdc: GrandCentralUpdater? = nil
+	private var gcd: GrandCentralUpdater? = nil
 
 	public var suspendable: Bool {
 		return self.config.suspendable
@@ -1181,26 +1181,26 @@ extension VirtualMachine {
 	}
 
 	public func startGrandCentralUpdate(frequency: Int32, runMode: Utils.RunMode) async throws {
-		guard gdc == nil, self.config.agent else {
+		guard gcd == nil, self.config.agent else {
 			return
 		}
 		
 		let gdc = try GrandCentralUpdater(vm: self, runMode: runMode)
 		
 		try await gdc.start(frequency: frequency) {
-			self.gdc = nil
+			self.gcd = nil
 		}
 		
-		self.gdc = gdc
+		self.gcd = gdc
 	}
 
 	public func stopGrandCentralUpdate() throws {
-		guard let gdc else {
+		guard let gcd else {
 			return
 		}
 
-		self.gdc = nil
+		self.gcd = nil
 
-		gdc.stop()
+		gcd.stop()
 	}
 }
