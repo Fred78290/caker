@@ -167,7 +167,7 @@ public struct BuildOptions: ParsableArguments {
 	public init(request: Caked_CommonBuildRequest) throws {
 		self.name = request.name
 		self.displayRefit = false
-		self.autoinstall = false
+		self.autoinstall = request.autoinstall
 
 		if request.hasCpu {
 			self.cpu = UInt16(request.cpu)

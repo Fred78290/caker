@@ -363,6 +363,7 @@ message Caked {
       optional bool             displayRefit          = 26;
       optional string           otherGroups           = 27;
       Configuration.ImageSource imageSource           = 28;
+      bool                      autoinstall           = 29;
     }
 
     message BuildRequest {

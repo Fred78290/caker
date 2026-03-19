@@ -506,6 +506,7 @@ extension Caked_CommonBuildRequest {
 		self.otherGroups = buildOptions.otherGroup.joined(separator: ",")
 		self.sshPwAuth = buildOptions.clearPassword
 		self.autostart = buildOptions.autostart
+		self.autoinstall = buildOptions.autoinstall
 		self.nested = buildOptions.nested
 		self.image = buildOptions.image
 		self.ifnames = buildOptions.netIfnames
