@@ -163,7 +163,6 @@ public struct VMBuilder {
 		var options = options
 		var sourceImage = options.imageSource
 		let remoteDb = try Home(runMode: runMode).remoteDatabase()
-		let schemes: [String] = ImageSource.schemes.keys.map { $0 + "://" }
 		let remotes = remoteDb.keys.map { $0 }
 
 		func aliasImage(_ image: String) -> String {
