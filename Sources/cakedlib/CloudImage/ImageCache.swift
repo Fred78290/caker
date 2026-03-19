@@ -141,16 +141,24 @@ public class RawImageCache: CommonCacheImageCache {
 public class IPSWCache: CommonCacheImageCache {
 	static let scheme = "ipsw"
 
-	public init(runMode: Utils.RunMode) throws {
-		try super.init(scheme: Self.scheme, location: "ipsw", ext: "ipsw", runMode: runMode)
+	public convenience init(runMode: Utils.RunMode) throws {
+		try self.init(name: "", runMode: runMode)
+	}
+
+	public init(name: String, runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "ipsw", name: name, ext: "ipsw", runMode: runMode)
 	}
 }
 
 public class IsoCache: CommonCacheImageCache {
 	static let scheme = "iso"
 
-	public init(runMode: Utils.RunMode) throws {
-		try super.init(scheme: Self.scheme, location: "iso", ext: "iso", runMode: runMode)
+	public convenience init(runMode: Utils.RunMode) throws {
+		try self.init(name: "", runMode: runMode)
+	}
+
+	public init(name: String, runMode: Utils.RunMode) throws {
+		try super.init(scheme: Self.scheme, location: "iso", name: name, ext: "iso", runMode: runMode)
 	}
 }
 

@@ -46,6 +46,8 @@ public struct ListHandler {
 					try OCIImageCache(runMode: runMode),
 					try CloudImageCache(runMode: runMode),
 					try RawImageCache(runMode: runMode),
+					try IPSWCache(runMode: runMode),
+					try IsoCache(runMode: runMode),
 					try SimpleStreamsImageCache(name: "", runMode: runMode),
 				]
 

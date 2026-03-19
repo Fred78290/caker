@@ -47,6 +47,8 @@ public struct DeleteHandler {
 					var purgeableStorages: [String: CommonCacheImageCache] = [
 						CloudImageCache.scheme: try CloudImageCache(runMode: runMode),
 						RawImageCache.scheme: try RawImageCache(runMode: runMode),
+						IPSWCache.scheme: try IPSWCache(runMode: runMode),
+						IsoCache.scheme: try IsoCache(runMode: runMode),
 						SimpleStreamsImageCache.scheme: try SimpleStreamsImageCache(runMode: runMode),
 					]
 
