@@ -794,8 +794,6 @@ extension VirtualMachineDocument {
 						throw ServiceError("Internal error: Virtual machine is not launched from a local or remote location.")
 					}
 				} catch {
-					self.externalRunning = false
-
 					await self.setStateAsStopped()
 					await alertError(error)
 				}
