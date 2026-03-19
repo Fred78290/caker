@@ -551,7 +551,9 @@ public struct VMLocation: Hashable, Equatable, Sendable, Purgeable {
 			throw ServiceError("VM \(name) is not running")
 		}
 
-		if config.agent {
+		if config.firstLaunch && (config.source == .iso || config.source == .ipsw) {
+			return try waitIPWithLease(wait: wait, runMode: runMode, startedProcess: startedProcess)
+		} else if config.agent {
 			return try waitIPWithAgent(wait: wait, runMode: runMode, startedProcess: startedProcess)
 		} else {
 			return try waitIPWithLease(wait: wait, runMode: runMode, startedProcess: startedProcess)

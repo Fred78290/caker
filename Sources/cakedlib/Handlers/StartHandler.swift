@@ -100,7 +100,7 @@ public struct StartHandler {
 			}
 
 			do {
-				let runningIP = try location.waitIPWithAgent(wait: 180, runMode: runMode, startedProcess: process)
+				let runningIP = try location.waitIP(config: config, wait: 180, runMode: runMode, startedProcess: process)
 
 				return runningIP
 			} catch {
