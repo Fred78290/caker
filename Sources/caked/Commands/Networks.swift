@@ -322,8 +322,10 @@ struct Networks: ParsableCommand {
 		func validate() throws {
 			Logger.setLevel(self.common.logLevel)
 
-			if geteuid() != 0 {
-				throw ValidationError("This command must be run as root not as user \(geteuid())")
+			if #unavailable(macOS 26) {
+				if geteuid() != 0 {
+					throw ValidationError("This command must be run as root not as user \(geteuid())")
+				}
 			}
 		}
 

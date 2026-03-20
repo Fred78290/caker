@@ -914,10 +914,14 @@ public struct NetworksHandler {
 	}
 
 	public static func natNetworkInfos() throws -> String {
-		let address = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
-		let netmask = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
-
-		return "\(address)/\(netmask.netmaskToCidr())"
+		if #available(macOS 26, *) {
+			return "192.168.64.1/24"
+		} else {
+			let address = try Shell.exec("defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
+			let netmask = try Shell.exec("defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
+			
+			return "\(address)/\(netmask.netmaskToCidr())"
+		}
 	}
 
 	private static var _defaultNatNetwork: BridgedNetwork?
@@ -940,7 +944,9 @@ public struct NetworksHandler {
 		}
 
 		do {
-			if geteuid() == 0 {
+			if #available(macOS 26, *) {
+				dhcpStart = try natNetworkInfos()
+			} else if geteuid() == 0 {
 				dhcpStart = try natNetworkInfos()
 			} else {
 				let sudo = try SudoCaked(arguments: ["networks", "nat-infos", "--text"], runMode: .user)
