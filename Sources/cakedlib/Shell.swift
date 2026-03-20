@@ -1,5 +1,7 @@
 import Foundation
 import GRPCLib
+import Subprocess
+import System
 
 nonisolated(unsafe) private var tartLocation: String = ""
 
@@ -71,6 +73,38 @@ public struct Shell {
 			outputHandle: outputHandle,
 			errorHandle: errorHandle
 		)
+	}
+
+	@discardableResult static public func exec(_ name: String, arguments: [String]) throws -> String {
+		return try Task.sync {
+			let result = try await Subprocess.run(.name(name), arguments: .init(arguments), output: .string(limit: Int.max), error: .string(limit: Int.max))
+
+			if let out: String = result.standardOutput {
+				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			if let out: String = result.standardError {
+				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			return ""
+		}
+	}
+
+	@discardableResult static public func exec(_ command: FilePath, arguments: [String]) throws -> String {
+		return try Task.sync {
+			let result = try await Subprocess.run(.path(command), arguments: .init(arguments), output: .string(limit: Int.max), error: .string(limit: Int.max))
+
+			if let out: String = result.standardOutput {
+				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			if let out: String = result.standardError {
+				return out.trimmingCharacters(in: .whitespacesAndNewlines)
+			}
+
+			return ""
+		}
 	}
 
 	@discardableResult static public func bash(

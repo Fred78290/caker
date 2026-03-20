@@ -1,4 +1,5 @@
 import Foundation
+import System
 
 struct ARPEntry {
 	let ipAddress: String
@@ -10,7 +11,7 @@ class ARPParser: DHCPLeaseProvider {
 	let arp: [String: ARPEntry]
 
 	init() throws {
-		self.arp = Self.parseArp(arpOutput: try Shell.bash(to: "/usr/sbin/arp", arguments: ["-an"]))
+		self.arp = Self.parseArp(arpOutput: try Shell.exec(FilePath("/usr/sbin/arp"), arguments: ["-an"]))
 	}
 
 	subscript(macAddress: String) -> String? {
