@@ -497,52 +497,56 @@ extension VirtualMachine {
 				}
 			}
 
-			if #available(macOS 14, *) {
-				do {
-					try self.env.configuration.validateSaveRestoreSupport()
+			#if arch(arm64)
+				if #available(macOS 14, *) {
+					do {
+						try self.env.configuration.validateSaveRestoreSupport()
 
-					self.virtualMachine.pause { result in
+						self.virtualMachine.pause { result in
 
-						if case .failure(let err) = result {
-							self.logger.error("Failed to pause VM \(self.location.name) \(err)")
-							if let completionHandler {
-								completionHandler(.failure(err))
-							}
-						} else {
-							self.logger.info("VM \(self.location.name) paused")
+							if case .failure(let err) = result {
+								self.logger.error("Failed to pause VM \(self.location.name) \(err)")
+								if let completionHandler {
+									completionHandler(.failure(err))
+								}
+							} else {
+								self.logger.info("VM \(self.location.name) paused")
 
-							self.env.stopServices()
+								self.env.stopServices()
 
-							self.env.timer?.invalidate()
-							self.env.timer = nil
+								self.env.timer?.invalidate()
+								self.env.timer = nil
 
-							self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
-								if let error = result {
-									if let completionHandler = completionHandler {
-										completionHandler(.failure(error))
-									}
-								} else {
-									self.logger.info("Snap created successfully...")
+								self.virtualMachine.saveMachineStateTo(url: self.location.stateURL) { result in
+									if let error = result {
+										if let completionHandler = completionHandler {
+											completionHandler(.failure(error))
+										}
+									} else {
+										self.logger.info("Snap created successfully...")
 
-									if let completionHandler = completionHandler {
-										completionHandler(.success(self))
+										if let completionHandler = completionHandler {
+											completionHandler(.success(self))
+										}
 									}
 								}
 							}
+
+							self.didChangedState(true)
 						}
+					} catch {
+						self.logger.warn("Snapshot is only supported on macOS 14 or newer")
 
-						self.didChangedState(true)
+						if let completionHandler = completionHandler {
+							completionHandler(.failure(error))
+						}
 					}
-				} catch {
-					self.logger.warn("Snapshot is only supported on macOS 14 or newer")
-
-					if let completionHandler = completionHandler {
-						completionHandler(.failure(error))
-					}
+				} else {
+					pauseVM()
 				}
-			} else {
+			#else
 				pauseVM()
-			}
+			#endif
 		}
 	}
 
@@ -705,6 +709,7 @@ extension VirtualMachine {
 		
 		try self.env.startVMRunService(mode, vm: self)
 		
+#if arch(arm64)
 		if #available(macOS 14, *) {
 			if FileManager.default.fileExists(atPath: location.stateURL.path) {
 				self.logger.info("Restore VM \(self.location.name) snapshot...")
@@ -723,6 +728,10 @@ extension VirtualMachine {
 			self.logger.info("Start VM \(self.location.name)...")
 			self.startVM(completionHandler: completionHandler)
 		}
+#else
+		self.logger.info("Start VM \(self.location.name)...")
+		self.startVM(completionHandler: completionHandler)
+#endif
 		
 		try await self.env.serveVMRunService()
 		
