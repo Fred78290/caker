@@ -917,8 +917,8 @@ public struct NetworksHandler {
 		if #available(macOS 26, *) {
 			return "192.168.64.1/24"
 		} else {
-			let address = try Shell.exec("defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
-			let netmask = try Shell.exec("defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
+			let address = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Address"])
+			let netmask = try Shell.bash(to: "defaults", arguments: ["read", "/Library/Preferences/SystemConfiguration/com.apple.vmnet.plist", "Shared_Net_Mask"])
 			
 			return "\(address)/\(netmask.netmaskToCidr())"
 		}
