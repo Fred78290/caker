@@ -72,6 +72,17 @@ extension URL: Purgeable {
 		let pid = getpid()
 
 		try "\(pid)".write(to: self, atomically: true, encoding: .ascii)
+
+		// Set file mode to 0644 for the PID file
+		let mode: mode_t = 0o644
+
+		let result = self.path.withCString { cstr in
+			chmod(cstr, mode)
+		}
+
+		if result != 0 {
+			throw ServiceError("Failed to set permissions 0644 on PID file at \(self.path): errno=\(errno)")
+		}
 	}
 
 	public func readPID() -> Int32? {
