@@ -31,7 +31,7 @@ public enum ImageSource: Int, Sendable, Codable, CaseIterable, CustomStringConve
 	
 	public var description: String {
 		switch self {
-		case .raw: return "local"
+		case .raw: return "raw"
 		case .qcow2: return "qcow2"
 		case .oci: return "oci"
 		case .template: return "template"
