@@ -464,6 +464,8 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 			"agentReady"
 		case .UNRECOGNIZED(let value):
 			"unrecognized: \(value)"
+		case .new:
+			"new"
 		}
 	}
 	

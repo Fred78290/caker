@@ -178,6 +178,8 @@ class AppState: ObservableObject, Observable {
 					self.removeVirtualMachineDocument(vmURL)
 				}
 			}
+		} else if value == .new {
+			self.addVirtualMachineDocument(vmURL)
 		} else {
 			self.logger.debug("VM : \(vmURL.absoluteString) not found for status")
 		}

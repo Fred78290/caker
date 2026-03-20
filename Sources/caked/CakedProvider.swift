@@ -301,7 +301,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		
 		try await self.gcd.updateStatus(.with {
 			$0.name = request.options.name
-			$0.status = .stopped
+			$0.status = .new
 		})
 	}
 	
@@ -323,7 +323,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		if reply.vms.duplicated.duplicated {
 			try await self.gcd.updateStatus(.with {
 				$0.name = request.to
-				$0.status = .stopped
+				$0.status = .new
 			})
 		}
 

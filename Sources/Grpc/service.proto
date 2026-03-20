@@ -93,6 +93,7 @@ message Caked {
     deleted    = 3;
     error      = 4;
     agentReady = 5;
+    new = 6;
   }
 
   message CpuCoreInfo {

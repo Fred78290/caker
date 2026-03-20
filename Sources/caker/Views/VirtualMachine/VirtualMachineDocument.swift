@@ -180,7 +180,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 
 		init(_ from: Caked_VirtualMachineStatus) {
 			switch from {
-			case .stopped:
+			case .stopped, .new:
 				self = .stopped
 			case .running, .agentReady:
 				self = .running
