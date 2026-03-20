@@ -646,11 +646,9 @@ struct VirtualMachineWizard: View {
 						}
 					} else {
 						LabeledContent("Raw image url.") {
-							HStack {
-								TextField("URL", text: $config.imageName)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
-							}
+							TextField("URL", text: $config.imageName)
+								.rounded(.leading)
+								.disabled(self.model.createVM)
 						}
 					}
 				case .iso:
@@ -677,11 +675,9 @@ struct VirtualMachineWizard: View {
 							}
 						} else {
 							LabeledContent("Bootable iso url.") {
-								HStack {
-									TextField("URL", text: $config.imageName)
-										.rounded(.leading)
-										.disabled(self.model.createVM)
-								}
+								TextField("URL", text: $config.imageName)
+									.rounded(.leading)
+									.disabled(self.model.createVM)
 							}
 						}
 
@@ -714,11 +710,9 @@ struct VirtualMachineWizard: View {
 						}
 					} else {
 						LabeledContent("MacOS ipsw url.") {
-							HStack {
-								TextField("URL", text: $config.imageName)
-									.rounded(.leading)
-									.disabled(self.model.createVM)
-							}
+							TextField("URL", text: $config.imageName)
+								.rounded(.leading)
+								.disabled(self.model.createVM)
 						}
 					}
 				case .qcow2:
@@ -883,21 +877,29 @@ struct VirtualMachineWizard: View {
 	}
 
 	func validateConfig(config: VirtualMachineConfig) {
-		var valid = false
+		var valid = true
 
-		if AppState.shared.runMode != .app && (model.imageSource == .iso || model.imageSource == .ipsw) {
+		if model.imageSource == .iso || model.imageSource == .ipsw || model.imageSource == .raw {
 			if let url = URL(string: config.imageName) {
-				valid = url.scheme == "http" || url.scheme == "https"
+				if AppState.shared.runMode == .app {
+					valid = (url.isFileURL && FileManager.default.fileExists(atPath: url.path))
+						|| ["http", "https"].contains(url.scheme)
+						|| (url.scheme == nil && FileManager.default.fileExists(atPath: url.path))
+				} else {
+					valid = ["http", "https"].contains(url.scheme)
+				}
 			} else {
 				valid = false
 			}
 		}
 
-		if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
-			valid = false
-		} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
-			if AppState.shared.findVirtualMachineDocument(vmname) == nil {
-				valid = true
+		if valid {
+			if (config.configuredPassword ?? "").isEmpty && config.clearPassword {
+				valid = false
+			} else if let vmname = config.vmname, self.config.imageName.isEmpty == false, vmname.isEmpty == false {
+				valid = AppState.shared.findVirtualMachineDocument(vmname) == nil
+			} else {
+				valid = false
 			}
 		}
 
@@ -976,11 +978,7 @@ struct VirtualMachineWizard: View {
 	}
 
 	func chooseDiskImage(ofType: UTType = .diskImage) -> String? {
-		if let diskImg = FileHelpers.selectSingleInputFile(ofType: [ofType], withTitle: "Select image", allowsOtherFileTypes: true) {
-			return diskImg.absoluteURL.path
-		}
-
-		return nil
+		return chooseDiskImage(ofTypes: [ofType])
 	}
 
 	func chooseDocument(_ title: String, ofType: UTType = .diskImage, showsHiddenFiles: Bool = false) -> String? {
