@@ -103,7 +103,7 @@ struct HostVirtualMachineView: View {
 		self.minSize = CGSize(width: 800, height: 600)
 		self.launchExternally = document.isLaunchVMExternally
 		self.externalModeView = document.externalRunning ? (document.vncURL != nil ? .vnc : .terminal) : .none
-		self.documentSize = ViewSize(size: document.documentSize.cgSize)
+		self.documentSize = ViewSize(document.documentSize.cgSize)
 		self.monitoringTask = CPUUsageMonitor(document: document)
 	}
 
@@ -352,7 +352,7 @@ struct HostVirtualMachineView: View {
 		document.enterView()
 
 		if let window = self.window {
-			self.document.setScreenSize(.init(size: window.contentLayoutRect.size))
+			self.document.setScreenSize(.init(window.contentLayoutRect.size))
 		} else {
 			self.needsResize = true
 		}

@@ -330,7 +330,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.externalRunning = location.pidFile.isPIDRunning(Home.cakedCommandName)
 		self.monitor = monitor
-		self.documentSize = ViewSize(size: config.display.cgSize)
+		self.documentSize = ViewSize(config.display.cgSize)
 		
 		switch location.status {
 		case .running:
@@ -361,7 +361,7 @@ final class VirtualMachineDocument: @unchecked Sendable, ObservableObject, Equat
 		self.agent = config.agent ? config.firstLaunch ? AgentStatus.installing : AgentStatus.installed : AgentStatus.none
 		self.status = status
 		self.vncURL = vncURL?.compactMap { URL(string: $0) }
-		self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
+		self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 	}
 	
 	static func anyVirtualMachineDocument() throws -> VirtualMachineDocument {
@@ -657,7 +657,7 @@ extension VirtualMachineDocument {
 		if self.status == .running {
 			self.setDocumentSize(self.getVncScreenSize())
 		} else {
-			self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
+			self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 		}
 
 		retrieveVNCURL()
@@ -680,7 +680,7 @@ extension VirtualMachineDocument {
 			if self.isLaunchVMExternally && self.externalRunning {
 				self.setDocumentSize(self.getVncScreenSize())
 			} else {
-				self.setDocumentSize(.init(size: self.virtualMachineConfig.display.cgSize))
+				self.setDocumentSize(.init(self.virtualMachineConfig.display.cgSize))
 			}
 			
 			retrieveVNCURL()
@@ -1128,7 +1128,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didCreateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		if self.vncStatus != .ready {
-			let size = ViewSize(size: framebuffer.cgSize)
+			let size = ViewSize(framebuffer.cgSize)
 
 			#if DEBUG
 				self.logger.debug("Connection create framebuffer size: \(size.description)")
@@ -1150,7 +1150,7 @@ extension VirtualMachineDocument: VNCConnectionDelegate {
 			self.vncView?.connection(connection, didResizeFramebuffer: framebuffer)
 
 			DispatchQueue.main.async {
-				self.setDocumentSize(.init(size: framebuffer.cgSize))
+				self.setDocumentSize(.init(framebuffer.cgSize))
 
 				NotificationCenter.default.post(name: VirtualMachineDocument.VNCFramebufferSizeChanged, object: framebuffer.cgSize, userInfo: ["document": self.url!])
 			}

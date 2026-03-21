@@ -41,7 +41,7 @@ class CakerVZVirtualMachineView: VNCVirtualMachineView {
 
 	override func viewDidEndLiveResize() {
 		self.liveViewResize = false
-		self.document.setScreenSize(.init(size: self.bounds.size))
+		self.document.setScreenSize(.init(self.bounds.size))
 		super.viewDidEndLiveResize()
 	}
 }

@@ -50,12 +50,12 @@ final class ViewSize: ObservableObject, Observable, Equatable, Codable {
 		self.height = height
 	}
 
-	init(size: CGSize) {
+	init(_ size: CGSize) {
 		self.width = size.width
 		self.height = size.height
 	}
 
-	init(size: GRPCLib.ViewSize) {
+	init(_ size: GRPCLib.ViewSize) {
 		self.width = CGFloat(size.width)
 		self.height = CGFloat(size.height)
 	}
