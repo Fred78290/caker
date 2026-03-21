@@ -178,9 +178,6 @@
 		9B75308E2E65E557000736B3 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B75308D2E65E557000736B3 /* RoyalVNCKitStatic */; };
 		9B75A6D32E2A2C48000AA773 /* Pty.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B75A6D22E2A2C45000AA773 /* Pty.swift */; };
 		9B7997252E45EDEC00147500 /* VNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7997242E45EDEC00147500 /* VNCView.swift */; };
-		9B7999072E48A27900147500 /* NSVNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7999052E48A27900147500 /* NSVNCView.swift */; };
-		9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */; };
-		9B79990D2E48A36C00147500 /* VNCFramebufferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */; };
 		9B7C7AD32E09B6FF009D0A26 /* ForwardedPortNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */; };
 		9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */; };
 		9B7C7AD72E09B75D009D0A26 /* MountNewItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */; };
@@ -226,6 +223,9 @@
 		9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E8E2E23BF1300C13D23 /* AppState.swift */; };
 		9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C4E922E23C92900C13D23 /* TemplatesView.swift */; };
 		9B9C56592DCA09DF00F89C71 /* CakedAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */; };
+		9B9DCB362F6EB09900E07852 /* NSVNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB332F6EB09900E07852 /* NSVNCView.swift */; };
+		9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */; };
+		9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */; };
 		9B9DCED42F57220E007EEACC /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED32F572202007EEACC /* InfosHandler.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
@@ -294,11 +294,11 @@
 		9BBF7B372F3E058D00F37D2C /* Restart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7B362F3E058A00F37D2C /* Restart.swift */; };
 		9BBF7B392F3E084A00F37D2C /* Restart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7B382F3E084600F37D2C /* Restart.swift */; };
 		9BBF7B3B2F3E098F00F37D2C /* RestartHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7B3A2F3E098A00F37D2C /* RestartHandler.swift */; };
-		9BBF7BB72F3E0E8D00F37D2C /* VncURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7BB62F3E0E7F00F37D2C /* VncURLHandler.swift */; };
-		9BBF7BB92F3E0F6200F37D2C /* VncURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7BB82F3E0F6100F37D2C /* VncURLHandler.swift */; };
+		9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7BB62F3E0E7F00F37D2C /* VNCInfosHandler.swift */; };
+		9BBF7BB92F3E0F6200F37D2C /* VNCInfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7BB82F3E0F6100F37D2C /* VNCInfosHandler.swift */; };
 		9BBF7CAF2F3F1B8E00F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */; };
 		9BBF7CB12F3F1F5500F37D2C /* ScreenSizeHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */; };
-		9BBF7CB32F3F28F600F37D2C /* VncURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */; };
+		9BBF7CB32F3F28F600F37D2C /* VNCInfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */; };
 		9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */; };
 		9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */; };
 		9BC1F55B2F617B3400A83B33 /* CakedServiceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */; };
@@ -777,9 +777,6 @@
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
 		9B75A6D22E2A2C45000AA773 /* Pty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pty.swift; sourceTree = "<group>"; };
 		9B7997242E45EDEC00147500 /* VNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCView.swift; sourceTree = "<group>"; };
-		9B7999052E48A27900147500 /* NSVNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSVNCView.swift; sourceTree = "<group>"; };
-		9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardModifiers.swift; sourceTree = "<group>"; };
-		9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebufferView.swift; sourceTree = "<group>"; };
 		9B7C7AD22E09B6FF009D0A26 /* ForwardedPortNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForwardedPortNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD42E09B720009D0A26 /* DiskAttachementNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskAttachementNewItemView.swift; sourceTree = "<group>"; };
 		9B7C7AD62E09B75D009D0A26 /* MountNewItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MountNewItemView.swift; sourceTree = "<group>"; };
@@ -817,6 +814,9 @@
 		9B9C4E8F2E23BF1300C13D23 /* RemoteData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteData.swift; sourceTree = "<group>"; };
 		9B9C4E922E23C92900C13D23 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		9B9C56582DCA09DF00F89C71 /* CakedAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedAliases.swift; sourceTree = "<group>"; };
+		9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardModifiers.swift; sourceTree = "<group>"; };
+		9B9DCB332F6EB09900E07852 /* NSVNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSVNCView.swift; sourceTree = "<group>"; };
+		9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebufferView.swift; sourceTree = "<group>"; };
 		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
@@ -883,11 +883,11 @@
 		9BBF7B362F3E058A00F37D2C /* Restart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Restart.swift; sourceTree = "<group>"; };
 		9BBF7B382F3E084600F37D2C /* Restart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Restart.swift; sourceTree = "<group>"; };
 		9BBF7B3A2F3E098A00F37D2C /* RestartHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestartHandler.swift; sourceTree = "<group>"; };
-		9BBF7BB62F3E0E7F00F37D2C /* VncURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VncURLHandler.swift; sourceTree = "<group>"; };
-		9BBF7BB82F3E0F6100F37D2C /* VncURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VncURLHandler.swift; sourceTree = "<group>"; };
+		9BBF7BB62F3E0E7F00F37D2C /* VNCInfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInfosHandler.swift; sourceTree = "<group>"; };
+		9BBF7BB82F3E0F6100F37D2C /* VNCInfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInfosHandler.swift; sourceTree = "<group>"; };
 		9BBF7CAE2F3F1B8600F37D2C /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
 		9BBF7CB02F3F1F5300F37D2C /* ScreenSizeHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenSizeHandler.swift; sourceTree = "<group>"; };
-		9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VncURLHandler.swift; sourceTree = "<group>"; };
+		9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCInfosHandler.swift; sourceTree = "<group>"; };
 		9BBF7E242F41C18200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BBF7F942F41D78200F37D2C /* InstallAgentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstallAgentHandler.swift; sourceTree = "<group>"; };
 		9BC1F55A2F617B3200A83B33 /* CakedServiceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakedServiceClient.swift; sourceTree = "<group>"; };
@@ -1326,7 +1326,6 @@
 				9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */,
 				9B9C4E592E23BC8B00C13D23 /* Home */,
 				9B2BFAB32DFED25E000045C3 /* VirtualMachine */,
-				9B7999062E48A27900147500 /* VNC */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1544,16 +1543,6 @@
 			path = VNCLib;
 			sourceTree = "<group>";
 		};
-		9B7999062E48A27900147500 /* VNC */ = {
-			isa = PBXGroup;
-			children = (
-				9B79990C2E48A36B00147500 /* VNCFramebufferView.swift */,
-				9B79990A2E48A2E700147500 /* KeyboardModifiers.swift */,
-				9B7999052E48A27900147500 /* NSVNCView.swift */,
-			);
-			path = VNC;
-			sourceTree = "<group>";
-		};
 		9B7D682B2F17E1A700FE1B0B /* SharedPtrBridge */ = {
 			isa = PBXGroup;
 			children = (
@@ -1591,6 +1580,16 @@
 				9BACEB6D2EB2833600EB4C8D /* WizardModel.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		9B9DCB352F6EB09900E07852 /* VNC */ = {
+			isa = PBXGroup;
+			children = (
+				9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */,
+				9B9DCB332F6EB09900E07852 /* NSVNCView.swift */,
+				9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */,
+			);
+			path = VNC;
 			sourceTree = "<group>";
 		};
 		9BA1808A2EFBF87B000D1424 /* Compression */ = {
@@ -1635,7 +1634,7 @@
 				9BBF7A382F3DE0A900F37D2C /* StopHandler.swift */,
 				9BBF7A3C2F3DE0BD00F37D2C /* SuspendHandler.swift */,
 				9BB213CD2F37548300B45692 /* TemplateHandler.swift */,
-				9BBF7CB22F3F28F400F37D2C /* VncURLHandler.swift */,
+				9BBF7CB22F3F28F400F37D2C /* VNCInfosHandler.swift */,
 			);
 			path = Handlers;
 			sourceTree = "<group>";
@@ -1751,7 +1750,7 @@
 				9BEBC6C52DF4400A0092B196 /* StopHandler.swift */,
 				9B1500BC2E6B067200B23147 /* SuspendHandler.swift */,
 				9BEBC6C72DF4400A0092B196 /* TemplateHandler.swift */,
-				9BBF7BB82F3E0F6100F37D2C /* VncURLHandler.swift */,
+				9BBF7BB82F3E0F6100F37D2C /* VNCInfosHandler.swift */,
 				9BEBC6C82DF4400A0092B196 /* WaitIPHandler.swift */,
 			);
 			path = Handlers;
@@ -1818,7 +1817,7 @@
 				9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */,
 				9BEBC72A2DF440720092B196 /* TemplateHandler.swift */,
 				9BEBC72B2DF440720092B196 /* VMRunHandler.swift */,
-				9BBF7BB62F3E0E7F00F37D2C /* VncURLHandler.swift */,
+				9BBF7BB62F3E0E7F00F37D2C /* VNCInfosHandler.swift */,
 				9BEBC72C2DF440720092B196 /* WaitIPHandler.swift */,
 			);
 			path = Handlers;
@@ -1881,6 +1880,7 @@
 			children = (
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
 				9BEBC74B2DF440720092B196 /* VMView.swift */,
+				9B9DCB352F6EB09900E07852 /* VNC */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -1900,11 +1900,11 @@
 		9BEBC7692DF440720092B196 /* cakedlib */ = {
 			isa = PBXGroup;
 			children = (
-				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
 				9BEBC7532DF440720092B196 /* ARPParser.swift */,
 				9BEBC7542DF440720092B196 /* CakeAgentAsyncParsableCommand.swift */,
 				9BEBC7552DF440720092B196 /* CakeAgentClientInterceptorFactory.swift */,
 				9BEBC7562DF440720092B196 /* CakeAgentConnection.swift */,
+				9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */,
 				9BEBC7572DF440720092B196 /* CertificatesLocation.swift */,
 				9BEBC7582DF440720092B196 /* Config.swift */,
 				9BEBC7592DF440720092B196 /* Curl.swift */,
@@ -2413,7 +2413,6 @@
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
 				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,
 				9BBF7A3D2F3DE0C500F37D2C /* SuspendHandler.swift in Sources */,
-				9B7999072E48A27900147500 /* NSVNCView.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */,
 				9B7C7ADD2E09BA62009D0A26 /* EditableListNewItem.swift in Sources */,
@@ -2423,7 +2422,6 @@
 				9B9C4E932E23C92900C13D23 /* TemplatesView.swift in Sources */,
 				9B9C4E5B2E23BC8B00C13D23 /* RemotesView.swift in Sources */,
 				9B44388E2EBDE95E008BB2BB /* NetworkWizard.swift in Sources */,
-				9B79990D2E48A36C00147500 /* VNCFramebufferView.swift in Sources */,
 				9B9C4E5F2E23BCA300C13D23 /* HomeView.swift in Sources */,
 				9B9C4E5C2E23BC8B00C13D23 /* SideBarView.swift in Sources */,
 				9B9C4E5D2E23BC8B00C13D23 /* VirtualMachinesView.swift in Sources */,
@@ -2448,7 +2446,7 @@
 				9BAF74B82EBBD7CC0036CE1B /* MultiplatformTabBarVerticalAlignment.swift in Sources */,
 				9BAF74B92EBBD7CC0036CE1B /* MultiplatformTabBarHorizontalAlignment.swift in Sources */,
 				9BAF74BA2EBBD7CC0036CE1B /* MultiplatformTabViewPosition.swift in Sources */,
-				9BBF7CB32F3F28F600F37D2C /* VncURLHandler.swift in Sources */,
+				9BBF7CB32F3F28F600F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BAF74BB2EBBD7CC0036CE1B /* MultiplatformTabBar.swift in Sources */,
 				9B30BA522E0BF3D800256A9D /* OptionalStringFormatStyle.swift in Sources */,
 				9BBF7B3B2F3E098F00F37D2C /* RestartHandler.swift in Sources */,
@@ -2457,7 +2455,6 @@
 				9B215B6F2E0C347A00AFC89D /* DiskAttachementDetailView.swift in Sources */,
 				9B9620CB2EAB62EF0075CD18 /* ToolbarSettings.swift in Sources */,
 				9B2BFAC42DFED25E000045C3 /* HostingViewFinder.swift in Sources */,
-				9B79990B2E48A2E800147500 /* KeyboardModifiers.swift in Sources */,
 				9B4438902EBDE9AD008BB2BB /* RemoteWizard.swift in Sources */,
 				9BB8D9B02ED32ACB00AD4700 /* CPUUsageView.swift in Sources */,
 				9B7C7AD52E09B720009D0A26 /* DiskAttachementNewItemView.swift in Sources */,
@@ -2573,7 +2570,7 @@
 				9BBF7F952F41D78300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
-				9BBF7BB92F3E0F6200F37D2C /* VncURLHandler.swift in Sources */,
+				9BBF7BB92F3E0F6200F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BBF7B352F3DEF9E00F37D2C /* RestartHandler.swift in Sources */,
 				9BEBC6D52DF4400A0092B196 /* CI.swift in Sources */,
 				9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */,
@@ -2660,11 +2657,14 @@
 				9BEBC77B2DF440720092B196 /* VMRunService.swift in Sources */,
 				9BEBC77D2DF440720092B196 /* NetworkAttachement.swift in Sources */,
 				9BEBC77E2DF440720092B196 /* mount.pb.swift in Sources */,
-				9BBF7BB72F3E0E8D00F37D2C /* VncURLHandler.swift in Sources */,
+				9BBF7BB72F3E0E8D00F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BEBC77F2DF440720092B196 /* VMRunHandler.swift in Sources */,
 				9BEBC7802DF440720092B196 /* Config.swift in Sources */,
 				9BEBC7812DF440720092B196 /* GRPCVMRunService.swift in Sources */,
 				9B9711C22DFF32A0005B161B /* ImportHandler.swift in Sources */,
+				9B9DCB362F6EB09900E07852 /* NSVNCView.swift in Sources */,
+				9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */,
+				9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */,
 				9BEBC7822DF440720092B196 /* DHCPLeases.swift in Sources */,
 				9BBF7E252F41C18300F37D2C /* InstallAgentHandler.swift in Sources */,
 				9BEBC7832DF440720092B196 /* ListHandler.swift in Sources */,
