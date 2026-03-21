@@ -25,7 +25,7 @@ let package = Package(
 		.package(url: "https://github.com/Fred78290/Shout.git", revision: "9bd074b3d0943e391021cf7a86360fd5f82268cc"),
 		.package(url: "https://github.com/Fred78290/swift-nio-portforwarding.git", revision: "d97e677fd4247e7d140aa0e8a80dd52dceab4d4d"),
 
-		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "246251aea59e99f6085467190059ba8a36c946ea"),
+		.package(url :"https://github.com/migueldeicaza/SwiftTerm.git", revision: "3c45fdcfcf4395c72d2a4ee23c0bce79017b5391"),
 		.package(url: "https://github.com/amodm/iso9660-swift", branch: "main"),
 		.package(url: "https://github.com/antlr/antlr4", exact: "4.13.2"),
 		.package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),
@@ -55,7 +55,7 @@ let package = Package(
 		.package(url: "https://github.com/nicklockwood/SwiftFormat", exact: "0.53.6"),
 		.package(url: "https://github.com/orchetect/SwiftRadix", exact: "1.3.1"),
 		.package(url: "https://github.com/sersoft-gmbh/swift-sysctl.git", exact: "1.8.0"),
-		.package(url: "https://github.com/swiftlang/swift-subprocess.git", exact: "0.3.0"),
+		.package(url: "https://github.com/swiftlang/swift-subprocess.git", revision: "7928f39b374b3403224c3a243da6326bdf7c918a"),
 		//.package(url :"https://github.com/utmapp/CocoaSpice.git", revision: "ac641bd7b88e14b4107dcdb508d9779c49b69617"),
 		//.package(url: "https://github.com/apple/swift-collections.git", exact: "1.2.1"),
 		//.package(url: "https://github.com/apple/swift-nio-transport-services.git", exact: "1.24.0"),
