@@ -119,7 +119,7 @@ public class TemplateImageCache: CommonCacheImageCache {
 }
 
 public class CloudImageCache: CommonCacheImageCache {
-	static let scheme = "https"
+	static let scheme = "qcow2"
 
 	public convenience init(runMode: Utils.RunMode) throws {
 		try self.init(name: "", runMode: runMode)
