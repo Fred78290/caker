@@ -10,10 +10,12 @@ typealias Caked_ResponseBuildStreamReply = GRPCAsyncResponseStreamWriter<Caked_B
 struct BuildHandler: CakedCommandAsync {
 	var options: BuildOptions
 	let responseStream: Caked_ResponseBuildStreamReply
+	let handler: () async throws -> Void
 
-	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext) {
+	init(provider: CakedProvider, options: BuildOptions, responseStream: Caked_ResponseBuildStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) {
 		self.responseStream = responseStream
 		self.options = options
+		self.handler = handler
 	}
 
 	func replyError(error: any Error) -> Caked_Reply {
@@ -101,6 +103,10 @@ struct BuildHandler: CakedCommandAsync {
 				
 				for try await result in group {
 					if let result = result {
+						if result.builded {
+							try await self.handler()
+						}
+
 						try await responseStream.send(.with {
 							$0.builded = result.caked
 						})

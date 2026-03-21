@@ -106,12 +106,6 @@ extension Caked_CommonBuildRequest {
 	}
 }
 
-extension Caked_LaunchRequest: CreateCakedCommand {
-	func createCommand(provider: CakedProvider) throws -> CakedCommand {
-		return LaunchHandler(options: try self.options.buildOptions(), startMode: .service, gcd: provider.gcd.haveListeners, waitIPTimeout: self.hasWaitIptimeout ? Int(self.waitIptimeout) : 180)
-	}
-}
-
 extension Caked_PurgeRequest: CreateCakedCommand {
 	func createCommand(provider: CakedProvider) throws -> CakedCommand {
 		var options = PurgeOptions()
@@ -297,18 +291,23 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func build(request: Caked_BuildRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_BuildStreamReply>, context: GRPCAsyncServerCallContext) async throws {
-		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context))
-		
-		try await self.gcd.updateStatus(.with {
-			$0.name = request.options.name
-			$0.status = .new
+		_ = try self.execute(command: BuildHandler(provider: self, options: request.options.buildOptions(), responseStream: responseStream, context: context) {
+			try await self.gcd.updateStatus(.with {
+				$0.name = request.options.name
+				$0.status = .new
+			})
 		})
 	}
 	
-	func launch(request: Caked_LaunchRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: request)
+	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
+		_ = try self.execute(command: LaunchHandler(request: request, gcd: self.gcd, responseStream: responseStream, context: context) {
+			try await self.gcd.updateStatus(.with {
+				$0.name = request.options.name
+				$0.status = .new
+			})
+		})
 	}
-	
+
 	func start(request: Caked_StartRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
 		return try self.execute(command: request)
 	}

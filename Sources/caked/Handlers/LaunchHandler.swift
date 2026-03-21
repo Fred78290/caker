@@ -1,22 +1,29 @@
 import CakedLib
 import Foundation
+import GRPC
 import GRPCLib
 import NIOCore
+
+typealias Caked_ResponseLaunchStreamReply = GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>
 
 struct LaunchHandler: CakedCommandAsync {
 	var options: BuildOptions
 	let startMode: CakedLib.StartHandler.StartMode
-	let gcd: Bool
+	let gcd: GrandCentralDispatch
 	var waitIPTimeout = 180
+	let responseStream: Caked_ResponseLaunchStreamReply
+	let handler: () async throws -> Void
 
-	init(options: BuildOptions, startMode: CakedLib.StartHandler.StartMode, gcd: Bool, waitIPTimeout: Int = 180) {
-		self.options = options
+	init(request: Caked_LaunchRequest, gcd: GrandCentralDispatch, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
+		self.options = try request.options.buildOptions()
 		self.gcd = gcd
-		self.startMode = startMode
-		self.waitIPTimeout = waitIPTimeout
+		self.startMode = .service
+		self.waitIPTimeout = request.hasWaitIptimeout ? Int(request.waitIptimeout) : 180
+		self.responseStream = responseStream
+		self.handler = handler
 	}
 
-	func replyError(error: any Error) -> GRPCLib.Caked_Reply {
+	func replyError(error: any Error) -> Caked_Reply {
 		return Caked_Reply.with { reply in
 			reply.vms = Caked_VirtualMachineReply.with {
 				$0.launched = .with {
@@ -29,13 +36,91 @@ struct LaunchHandler: CakedCommandAsync {
 	}
 
 	func run(on: EventLoop, runMode: Utils.RunMode) async -> Caked_Reply {
-		let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd)
+		do {
+			let (stream, continuation) = AsyncStream.makeStream(of: ProgressObserver.ProgressValue.self)
+			
+			try await withThrowingTaskGroup(of: LaunchReply?.self, returning: Void.self) { group in
+				group.addTask {
+					let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd.haveListeners) { progress in
+						continuation.yield(progress)
+					}
+					
+					continuation.finish()
 
-		return Caked_Reply.with { reply in
-			reply.vms = Caked_VirtualMachineReply.with {
-				$0.launched = result.caked
+					return result
+				}
+				
+				group.addTask {
+					for try await progress in stream {
+						if case .progress(let context, let fractionCompleted) = progress {
+							let completed = Int(100 * fractionCompleted)
+
+							if completed % 10 == 0 {
+								if completed - context.lastCompleted10 >= 10 || completed == 0 || completed == 100 {
+									context.lastCompleted10 = completed
+								}
+							} else if completed % 2 == 0 {
+								if completed - context.lastCompleted2 >= 2 {
+									context.lastCompleted2 = completed
+								}
+							}
+
+							try await responseStream.send(.with {
+								$0.progress = .with {
+									$0.fractionCompleted = Double(fractionCompleted)
+									$0.oldFractionCompleted = context.oldFractionCompleted
+									$0.lastCompleted10 = Int32(context.lastCompleted10)
+									$0.lastCompleted2 = Int32(context.lastCompleted2)
+								}
+							})
+						} else if case .terminated(let result, let message) = progress {
+							if case .failure(let error) = result {
+								if let message {
+									try await responseStream.send(.with {
+										$0.terminated = .with {
+											$0.failure = "\(message): \(error)"
+										}
+									})
+								} else {
+									try await responseStream.send(.with {
+										$0.terminated = .with {
+											$0.failure = "Installation failed: \(error)"
+										}
+									})
+								}
+							} else {
+								try await responseStream.send(.with {
+									$0.terminated = .with {
+										$0.success = message ?? "Installation succeeded"
+									}
+								})
+							}
+						} else if case .step(let message) = progress {
+							try await responseStream.send(.with {
+								$0.step = message
+							})
+						}
+					}
+					
+					return nil
+				}
+				
+				for try await result in group {
+					if let result = result {
+						if result.launched {
+							try await self.handler()
+						}
+
+						try await responseStream.send(.with {
+							$0.launched = result.caked
+						})
+					}
+				}
 			}
+		} catch {
+			return replyError(error: error)
 		}
-	}
 
+		return .init()
+	}
 }

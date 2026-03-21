@@ -56,8 +56,9 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
 
   func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
-    callOptions: CallOptions?
-  ) -> UnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>
+    callOptions: CallOptions?,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>
 
   func list(
     _ request: Caked_Caked.VMRequest.ListRequest,
@@ -333,16 +334,19 @@ extension Caked_ServiceClientProtocol {
   /// - Parameters:
   ///   - request: Request to send to Launch.
   ///   - callOptions: Call options.
-  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  ///   - handler: A closure called when each response is received from the server.
+  /// - Returns: A `ServerStreamingCall` with futures for the metadata and status.
   public func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
-    callOptions: CallOptions? = nil
-  ) -> UnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply> {
-    return self.makeUnaryCall(
+    callOptions: CallOptions? = nil,
+    handler: @escaping (Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply) -> Void
+  ) -> ServerStreamingCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply> {
+    return self.makeServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeLaunchInterceptors() ?? []
+      interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
+      handler: handler
     )
   }
 
@@ -921,7 +925,7 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
   func makeLaunchCall(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>
 
   func makeListCall(
     _ request: Caked_Caked.VMRequest.ListRequest,
@@ -1148,8 +1152,8 @@ extension Caked_ServiceAsyncClientProtocol {
   public func makeLaunchCall(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply> {
-    return self.makeAsyncUnaryCall(
+  ) -> GRPCAsyncServerStreamingCall<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply> {
+    return self.makeAsyncServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1579,8 +1583,8 @@ extension Caked_ServiceAsyncClientProtocol {
   public func launch(
     _ request: Caked_Caked.VMRequest.LaunchRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Caked_Caked.Reply {
-    return try await self.performAsyncUnaryCall(
+  ) -> GRPCAsyncResponseStream<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply> {
+    return self.performAsyncServerStreamingCall(
       path: Caked_ServiceClientMetadata.Methods.launch.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
@@ -1954,7 +1958,7 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   func makeVncURLInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'launch'.
-  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
+  func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
 
   /// - Returns: Interceptors to use when invoking 'list'.
   func makeListInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.ListRequest, Caked_Caked.Reply>]
@@ -2123,7 +2127,7 @@ public enum Caked_ServiceClientMetadata {
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/caked.Service/Launch",
-      type: GRPCCallType.unary
+      type: GRPCCallType.serverStreaming
     )
 
     public static let list = GRPCMethodDescriptor(
@@ -2312,7 +2316,7 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   func vncURL(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   /// Launch creates and starts a new virtual machine.
-  func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+  func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>) -> EventLoopFuture<GRPCStatus>
 
   /// List returns all virtual machines or images.
   func list(request: Caked_Caked.VMRequest.ListRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
@@ -2469,10 +2473,10 @@ extension Caked_ServiceProvider {
       )
 
     case "Launch":
-      return UnaryServerHandler(
+      return ServerStreamingServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
         userFunction: self.launch(request:context:)
       )
@@ -2772,8 +2776,9 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
   /// Launch creates and starts a new virtual machine.
   func launch(
     request: Caked_Caked.VMRequest.LaunchRequest,
+    responseStream: GRPCAsyncResponseStreamWriter<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Caked_Caked.Reply
+  ) async throws
 
   /// List returns all virtual machines or images.
   func list(
@@ -3020,9 +3025,9 @@ extension Caked_ServiceAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.LaunchRequest>(),
-        responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
+        responseSerializer: ProtobufSerializer<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>(),
         interceptors: self.interceptors?.makeLaunchInterceptors() ?? [],
-        wrapping: { try await self.launch(request: $0, context: $1) }
+        wrapping: { try await self.launch(request: $0, responseStream: $1, context: $2) }
       )
 
     case "List":
@@ -3297,7 +3302,7 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply>]
+  func makeLaunchInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
 
   /// - Returns: Interceptors to use when handling 'list'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3492,7 +3497,7 @@ public enum Caked_ServiceServerMetadata {
     public static let launch = GRPCMethodDescriptor(
       name: "Launch",
       path: "/caked.Service/Launch",
-      type: GRPCCallType.unary
+      type: GRPCCallType.serverStreaming
     )
 
     public static let list = GRPCMethodDescriptor(

@@ -27,7 +27,7 @@ service Service {
 	// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
   rpc VncURL (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
 	// Launch creates and starts a new virtual machine.
-  rpc Launch (Caked.VMRequest.LaunchRequest) returns (Caked.Reply);
+  rpc Launch (Caked.VMRequest.LaunchRequest) returns (stream Caked.Reply.VirtualMachineReply.LaunchStreamReply);
 	// List returns all virtual machines or images.
   rpc List(Caked.VMRequest.ListRequest) returns (Caked.Reply);
 	// Rename changes the name of a virtual machine.
@@ -767,6 +767,15 @@ message Caked {
           BuildTerminatedReply terminated = 3;
           string               step       = 2;
           BuildedReply         builded    = 4;
+        }
+      }
+
+      message LaunchStreamReply {
+        oneof current {
+          BuildProgressValue   progress   = 1;
+          BuildTerminatedReply terminated = 3;
+          string               step       = 2;
+          LaunchReply          launched   = 4;
         }
       }
 

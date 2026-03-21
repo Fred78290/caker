@@ -4,7 +4,7 @@ import GRPC
 import GRPCLib
 import CakeAgentLib
 
-struct Launch: GrpcParsableCommand {
+struct Launch: AsyncGrpcParsableCommand {
 	static let configuration = BuildOptions.launch
 
 	@OptionGroup(title: "Client options")
@@ -27,7 +27,39 @@ struct Launch: GrpcParsableCommand {
 		}
 	}
 
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		return self.format.render(try client.launch(Caked_LaunchRequest(command: self), callOptions: callOptions).response.wait().vms.launched)
+	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String {
+		return try await withThrowingTaskGroup(of: Void.self, returning: String.self) { group in
+			let context: ProgressObserver.ProgressHandlerContext = .init()
+			let (stream, continuation) = AsyncStream.makeStream(of: Caked_LaunchStreamReply.OneOf_Current?.self)
+			var result: String = ""
+
+			group.addTask {
+				let stream = try client.launch(Caked_LaunchRequest(command: self)) { stream in
+					continuation.yield(stream.current)
+				}
+				
+				_ = try await stream.status.get()
+
+				continuation.finish()
+			}
+
+			for try await current in stream {
+				if case .progress(let progress) = current {
+					ProgressObserver.progressHandler(.progress(context, progress.fractionCompleted))
+				} else if case .step(let step) = current {
+					ProgressObserver.progressHandler(.step(step))
+				} else if case .terminated(let status) = current {
+					if case .success(let v)? = status.result {
+						ProgressObserver.progressHandler(.terminated(.success(self.buildOptions.name), v))
+					} else if case .failure(let v)? = status.result {
+						ProgressObserver.progressHandler(.terminated(.failure(GrpcError(code: 1, reason: v)), nil))
+					}
+				} else if case .launched(let launched) = current {
+					result = self.format.render(LaunchReply(launched))
+				}
+			}
+
+			return result
+		}
 	}
 }

@@ -98,9 +98,9 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 	func makeDuplicateInterceptors() -> [ClientInterceptor<Caked_DuplicateRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_DuplicateRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
-	
-	func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_Reply>] {
-		[CakeServiceClientInterceptor<Caked_LaunchRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
+
+	func makeLaunchInterceptors() -> [ClientInterceptor<Caked_LaunchRequest, Caked_LaunchStreamReply>] {
+		[CakeServiceClientInterceptor<Caked_LaunchRequest, Caked_LaunchStreamReply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
 	func makeLoginInterceptors() -> [ClientInterceptor<Caked_LoginRequest, Caked_Reply>] {
