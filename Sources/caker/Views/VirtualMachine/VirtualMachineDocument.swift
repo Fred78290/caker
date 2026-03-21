@@ -738,13 +738,13 @@ extension VirtualMachineDocument {
 		let screenSize = GRPCLib.ViewSize(width: Int(self.documentSize.width), height: Int(self.documentSize.height))
 
 		let result = try AppState.shared.startVirtualMachine(vmURL: location, screenSize: screenSize, vncPassword: vncPassword, vncPort: vncPort, waitIPTimeout: 120, startMode: .service)
-		let vncURL = try AppState.shared.vncURL(vmURL: location)
+		let vncInfos = try AppState.shared.vncInfos(vmURL: location)
 #if DEBUG
 		self.logger.debug("VM started on \(result.ip)")
-		self.logger.debug("Found VNC URL: \(vncURL)")
+		self.logger.debug("Found VNC URL: \(vncInfos.urls)")
 #endif
 
-		await self.setStateAsRunning(suspendable: suspendable, vncURL: vncURL)
+		await self.setStateAsRunning(suspendable: suspendable, vncURL: vncInfos.urls.compactMap { URL(string: $0) })
 	}
 
 	func startLocally(location: VMLocation) async throws {
@@ -1347,6 +1347,7 @@ extension VirtualMachineDocument {
 	}
 }
 
+// MARK: - Usage update
 extension VirtualMachineDocument {
 	/// Update the document's usage information with new VMUsage data asynchronously on the main actor
 	@MainActor
@@ -1360,5 +1361,12 @@ extension VirtualMachineDocument {
 		if usage.hasMemory {
 			self.memoryInfos.update(usage.memory)
 		}
+	}
+}
+
+// MARK: - NSVNCViewDelegate
+extension VirtualMachineDocument: NSVNCViewDelegate {
+	func viewDidEndLiveResize(_ view: CakedLib.NSVNCView) {
+		self.setScreenSize(.init(view.bounds.size))
 	}
 }

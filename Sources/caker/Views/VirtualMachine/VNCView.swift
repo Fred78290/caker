@@ -42,7 +42,7 @@ struct VNCView: NSViewRepresentable {
 	private let document: VirtualMachineDocument
 	private let logger = Logger("HostVirtualMachineView")
 
-	init(document: VirtualMachineDocument, ) {
+	init(document: VirtualMachineDocument) {
 		self.document = document
 	}
 
@@ -55,7 +55,7 @@ struct VNCView: NSViewRepresentable {
 			fatalError("Connection is nil")
 		}
 
-		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), document: document)
+		let view = NSVNCView(frame: CGRectMake(0, 0, framebuffer.cgSize.width, framebuffer.cgSize.height), connection: document.connection)
 
 		self.document.vncView = view
 

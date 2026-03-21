@@ -10,9 +10,12 @@ import Carbon
 import Cocoa
 import RoyalVNCKit
 
-class NSVNCView: NSView {
-	private let document: VirtualMachineDocument
-	private let connection: VNCConnection
+public protocol NSVNCViewDelegate: AnyObject {
+	func viewDidEndLiveResize(_ view: NSVNCView)
+}
+
+public class NSVNCView: NSView {
+	private let connection: RoyalVNCKit.VNCConnection
 	private var accumulatedScrollDeltaX: CGFloat = 0
 	private var accumulatedScrollDeltaY: CGFloat = 0
 	private var scrollStep: CGFloat = 12
@@ -26,8 +29,9 @@ class NSVNCView: NSView {
 	private let checkVNCReconfigurationTimeoutPeriod: Double = 0.250
 	private var checkVNCReconfigurationTimeoutAttempts: Int = 20
 	private var cancelWaitVNCReconfiguration: DispatchWorkItem?
+	public weak var delegate: NSVNCViewDelegate?
 
-	var isLiveViewResize: Bool {
+	public var isLiveViewResize: Bool {
 		return self.liveViewResize
 	}
 
@@ -35,7 +39,7 @@ class NSVNCView: NSView {
 		self.connection.framebuffer!.cgSize
 	}
 
-	private var settings: VNCConnection.Settings {
+	private var settings: RoyalVNCKit.VNCConnection.Settings {
 		self.connection.settings
 	}
 
@@ -95,9 +99,8 @@ class NSVNCView: NSView {
 		true
 	}
 
-	public init(frame frameRect: CGRect, document: VirtualMachineDocument) {
-		self.document = document
-		self.connection = document.connection
+	public init(frame frameRect: CGRect, connection: RoyalVNCKit.VNCConnection) {
+		self.connection = connection
 		self.currentCursor = VNCCursor.empty.nsCursor
 
 		super.init(frame: frameRect)
@@ -149,13 +152,13 @@ class NSVNCView: NSView {
 		}
 	}
 
-	override func viewDidEndLiveResize() {
+	public override func viewDidEndLiveResize() {
 		self.liveViewResize = false
 		self.startWaitVNCReconfiguration()
-		self.document.setScreenSize(.init(size: self.bounds.size))
+		self.delegate?.viewDidEndLiveResize(self)
 	}
 
-	override func viewWillMove(toWindow newWindow: NSWindow?) {
+	public override func viewWillMove(toWindow newWindow: NSWindow?) {
 		self.stopWaitVNCReconfiguration()
 		super.viewWillMove(toWindow: newWindow)
 	}
@@ -293,12 +296,12 @@ class NSVNCView: NSView {
 }
 
 extension NSVNCView {
-	func connection(_ connection: VNCConnection, didResizeFramebuffer framebuffer: VNCFramebuffer) {
+	public func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
 		self.didResizeFramebuffer = true
 		self.stopWaitVNCReconfiguration()
 	}
 
-	func connection(_ connection: VNCConnection, didUpdateFramebuffer framebuffer: VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
+	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer, x: UInt16, y: UInt16, width: UInt16, height: UInt16) {
 		// NOTE: If we ever take the updatedRegion into consideration, we will likely need to flip the coordinates on macOS
 		guard !settings.useDisplayLink, displayLink == nil else {
 			return
@@ -307,7 +310,7 @@ extension NSVNCView {
 		updateImage(framebuffer.cgImage, animated: didResizeFramebuffer)
 	}
 
-	func connection(_ connection: VNCConnection, didUpdateCursor cursor: VNCCursor) {
+	public func connection(_ connection: RoyalVNCKit.VNCConnection, didUpdateCursor cursor: VNCCursor) {
 		DispatchQueue.main.async { [weak self] in
 			self?.currentCursor = cursor.nsCursor
 		}

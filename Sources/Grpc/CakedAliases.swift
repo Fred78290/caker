@@ -470,7 +470,7 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 		}
 	}
 	
-	init (agentStatus: CakeAgentLib.Status) {
+	public init (agentStatus: CakeAgentLib.Status) {
 		switch agentStatus {
 		case .running:
 			self = .running
@@ -481,7 +481,7 @@ extension Caked_VirtualMachineStatus: CustomStringConvertible {
 		}
 	}
 
-	var agentStatus: CakeAgentLib.Status {
+	public var agentStatus: CakeAgentLib.Status {
 		switch self {
 			case .running:
 				return .running

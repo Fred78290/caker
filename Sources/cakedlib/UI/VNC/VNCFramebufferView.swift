@@ -8,11 +8,11 @@ import Foundation
 import RoyalVNCKit
 
 extension VNCFramebufferView {
-	func frameSizeExceedsFramebufferSize(_ frameSize: CGSize) -> Bool {
+	public func frameSizeExceedsFramebufferSize(_ frameSize: CGSize) -> Bool {
 		return frameSize.width >= framebufferSize.width && frameSize.height >= framebufferSize.height
 	}
 
-	func handleScrollWheel(
+	public func handleScrollWheel(
 		scrollDelta: CGPoint,
 		hasPreciseScrollingDeltas: Bool,
 		mousePositionX: UInt16,
@@ -31,7 +31,7 @@ extension VNCFramebufferView {
 		}
 	}
 
-	func handleImpreciseScrollingDelta(
+	public func handleImpreciseScrollingDelta(
 		_ scrollDelta: CGPoint,
 		mousePositionX: UInt16,
 		mousePositionY: UInt16
@@ -53,7 +53,7 @@ extension VNCFramebufferView {
 		}
 	}
 
-	func handlePreciseScrollingDelta(
+	public func handlePreciseScrollingDelta(
 		_ scrollDelta: CGPoint,
 		mousePositionX: UInt16,
 		mousePositionY: UInt16
