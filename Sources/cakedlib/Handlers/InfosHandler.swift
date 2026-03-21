@@ -19,14 +19,7 @@ public struct InfosHandler {
 		let config: CakeConfig = try location.config()
 		var infos: VMInformations
 
-		if location.status == .running {
-			infos = .init(try client.info(callOptions: callOptions))
-			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL {
-				infos.vncURL = vncURL.map(\.absoluteString)
-			} else {
-				infos.vncURL = nil
-			}
-		} else {
+		func offline(_ status: Status = .stopped) throws -> VMInformations {
 			var diskInfos: [DiskInfo] = []
 
 			diskInfos.append(DiskInfo(device: URL(fileURLWithPath: "disk.img", relativeTo: config.locationURL).absoluteURL.path, mount: "/", fsType: "native", total: UInt64(try location.diskSize()), free: 0, used: 0))
@@ -37,19 +30,35 @@ public struct InfosHandler {
 				diskInfos.append(DiskInfo(device: diskURL.path, mount: "not mounted", fsType: "native", total: UInt64(try diskURL.sizeBytes()), free: 0, used: 0))
 			}
 
-			infos = VMInformations.with {
+			return VMInformations.with {
 				$0.osname = config.os.rawValue
-				$0.status = .stopped
+				$0.status = status
 				$0.cpuCount = Int32(config.cpuCount)
 				$0.diskInfos = diskInfos
 				$0.memory = .with {
 					$0.total = config.memorySize
 				}
 
-				if let runningIP = config.runningIP {
+				if let runningIP = config.runningIP, status == .running {
 					$0.ipaddresses = [runningIP]
 				}
 			}
+		}
+
+		if location.status == .running {
+			if let agent = try? client.info(callOptions: callOptions) {
+				infos = .init(agent)
+			} else {
+				infos = try offline(.running)
+			}
+
+			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL {
+				infos.vncURL = vncURL.map(\.absoluteString)
+			} else {
+				infos.vncURL = nil
+			}
+		} else {
+			infos = try offline(.stopped)
 		}
 
 		infos.name = location.name
