@@ -432,8 +432,8 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 		_ = try self.execute(command: CurrentStatusHandler(provider: self, request: request, responseStream: responseStream))
 	}
 	
-	func vncURL(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
-		return try self.execute(command: VncURLHandler(request: request))
+	func vncInfos(request: Caked_InfoRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {
+		return try self.execute(command: VNCInfosHandler(request: request))
 	}
 	
 	func getScreenSize(request: Caked_GetScreenSizeRequest, context: GRPCAsyncServerCallContext) async throws -> Caked_Reply {

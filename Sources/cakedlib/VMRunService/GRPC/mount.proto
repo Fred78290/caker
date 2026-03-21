@@ -10,86 +10,87 @@ package vmrun;
 // Service provides remote procedure calls for virtual machine management and display operations.
 service Service {
 	// Returns the VNC endpoint URL for connecting to the virtual machine display.
-	rpc VncEndPoint(Empty) returns (VNCEndPointReply);
+  rpc VncEndPoint(Empty) returns (VNCEndPointReply);
 	// Sets the screen size of the virtual machine display.
-	rpc SetScreenSize(ScreenSize) returns (Empty);
+  rpc SetScreenSize(ScreenSize) returns (Empty);
 	// Gets the current screen size of the virtual machine display.
-	rpc GetScreenSize(Empty) returns (ScreenSize);
+  rpc GetScreenSize(Empty) returns (ScreenSize);
 	// Installs the agent on the virtual machine.
-	rpc InstallAgent(InstalledAgentRequest) returns (InstalledAgentReply);
+  rpc InstallAgent(InstalledAgentRequest) returns (InstalledAgentReply);
 	// Mounts the specified virtual filesystem.
-	rpc Mount(MountRequest) returns (MountReply);
+  rpc Mount(MountRequest) returns (MountReply);
 	// Unmounts the specified virtual filesystem.
-	rpc Umount(MountRequest) returns (MountReply);
-	
+  rpc Umount(MountRequest) returns (MountReply);
+
 	// Starts the Grand Central update process.
-	rpc StartGrandCentralUpdate(FrequencyRequest) returns (GrandCentralUpdateReply);
+  rpc StartGrandCentralUpdate(FrequencyRequest) returns (GrandCentralUpdateReply);
 	// Stops the Grand Central update process.
-	rpc StopGrandCentralUpdate(Empty) returns (GrandCentralUpdateReply);
+  rpc StopGrandCentralUpdate(Empty) returns (GrandCentralUpdateReply);
 }
 
 message FrequencyRequest {
-	int32 frequency = 1; // Update frequency in seconds
+  int32 frequency = 1; // Update frequency in seconds
 }
 
 message GrandCentralUpdateReply {
-	bool success = 1;
-	optional string reason = 2;
+  bool            success = 1;
+  optional string reason  = 2;
 }
 
 message ScreenSize {
-	int32 width = 1;
-	int32 height = 2;
+  int32 width  = 1;
+  int32 height = 2;
 }
 
 message Empty {
 }
 
 message InstalledAgentRequest {
-	int32 timeout = 1;
+  int32 timeout = 1;
 }
 
 message InstalledAgentReply {
-	bool installed = 1;
-	optional string reason = 2;
+  bool            installed = 1;
+  optional string reason    = 2;
 }
 
 message VNCEndPointReply {
-	repeated string vncURL = 1;
+  repeated string     vncURL     = 1;
+  optional ScreenSize screenSize = 2;
 }
 
 message MountVirtioFS {
-	string source = 1;
-	optional string target = 2;
-	optional string name = 3;
-	optional int32 uid = 4;
-	optional int32 gid = 5;
-	bool readonly = 6;
+  string          source   = 1;
+  optional string target   = 2;
+  optional string name     = 3;
+  optional int32  uid      = 4;
+  optional int32  gid      = 5;
+  bool            readonly = 6;
 }
 
 enum MountCommand {
-	none = 0;
-	mount = 1;
-	umount = 2;
+  none   = 0;
+  mount  = 1;
+  umount = 2;
 }
 
 message MountRequest {
-	MountCommand command = 1;
-	repeated MountVirtioFS mounts = 4;
+  MountCommand           command = 1;
+  repeated MountVirtioFS mounts  = 4;
 }
 
 message MountVirtioFSReply {
-	string name = 1;
-	oneof response {
-		string error = 2;
-		bool success = 3;
-	}
+  string name = 1;
+  oneof response {
+    string error   = 2;
+    bool   success = 3;
+  }
 }
 
 message MountReply {
-	repeated MountVirtioFSReply mounts = 1;
-	oneof response {
-		string error = 2;
-		bool success = 3;
-	}
+  repeated MountVirtioFSReply mounts = 1;
+  oneof response {
+    string error   = 2;
+    bool   success = 3;
+  }
 }

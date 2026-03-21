@@ -24,8 +24,8 @@ service Service {
   rpc Execute (stream Caked.VMRequest.ExecuteRequest) returns (stream Caked.VMRequest.ExecuteResponse);
 	// Info retrieves detailed information about a virtual machine.
   rpc Info (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
-	// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
-  rpc VncURL (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
+	// VncInfos retrieves the VNC infos for connecting to a virtual machine's display.
+  rpc VncInfos (Caked.VMRequest.InfoRequest) returns (Caked.Reply);
 	// Launch creates and starts a new virtual machine.
   rpc Launch (Caked.VMRequest.LaunchRequest) returns (stream Caked.Reply.VirtualMachineReply.LaunchStreamReply);
 	// List returns all virtual machines or images.
@@ -592,6 +592,7 @@ message Caked {
           optional string        ip            = 10;
           optional string        fingerprint   = 11;
           optional Configuration configuration = 12;
+          optional ScreenSize    screenSize    = 13;
         }
 
         repeated VirtualMachineInfo infos   = 1;
@@ -719,6 +720,7 @@ message Caked {
           CpuInfo                  cpu          = 16;
           repeated string          vncURL       = 17;
           string                   agentVersion = 18;
+          optional ScreenSize      screenSize   = 19;
         }
 
         optional InfoReply     infos   = 1;
@@ -832,7 +834,8 @@ message Caked {
       }
 
       message VncURL {
-        repeated string urls = 1;
+        repeated string urls       = 1;
+        ScreenSize      screenSize = 2;
       }
 
       oneof response {

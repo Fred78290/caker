@@ -584,7 +584,16 @@ extension VirtualMachineDocument {
 		self.canRequestStop = newStatus == .running
 
 		if status == .running {
-			self.vncURL = try? AppState.shared.vncURL(vmURL: self.url)
+			if let vncInfos = try? AppState.shared.vncInfos(vmURL: self.url) {
+				self.vncURL = vncInfos.urls.compactMap {
+					URL(string: $0)
+				}
+
+				if let screenSize = vncInfos.screenSize {
+					self.setDocumentSize(.init(width: CGFloat(screenSize.width), height: CGFloat(screenSize.height)))
+				}
+			}
+
 			if self.inView {
 				self.tryVNCConnect()
 			}
@@ -981,10 +990,16 @@ extension VirtualMachineDocument {
 		}
 
 		MainActor.assumeIsolated {
-			if let url = try? AppState.shared.vncURL(vmURL: self.url) {
-				self.logger.info("Found VNC URL: \(url)")
+			if let vncInfos = try? AppState.shared.vncInfos(vmURL: self.url) {
+				self.logger.info("Found VNC URL: \(vncInfos.urls)")
 
-				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: url)
+				self.setStateAsRunning(suspendable: self.virtualMachineConfig.suspendable, vncURL: vncInfos.urls.compactMap {
+					URL(string: $0)
+				})
+
+				if let screenSize = vncInfos.screenSize {
+					self.setDocumentSize(.init(width: CGFloat(screenSize.width), height: CGFloat(screenSize.height)))
+				}
 
 				if self.inView {
 					self.tryVNCConnect()

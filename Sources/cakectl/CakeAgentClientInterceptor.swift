@@ -199,7 +199,7 @@ final class CakeServiceClientInterceptorFactory: Caked_ServiceClientInterceptorF
 		[CakeServiceClientInterceptor<Caked_CurrentStatusRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	
-	func makeVncURLInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>] {
+	func makeVncInfosInterceptors() -> [ClientInterceptor<Caked_InfoRequest, Caked_Reply>] {
 		[CakeServiceClientInterceptor<Caked_InfoRequest, Caked_Reply>(state: self.state, inputHandle: self.inputHandle)]
 	}
 	

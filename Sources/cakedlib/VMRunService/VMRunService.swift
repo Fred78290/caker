@@ -6,9 +6,29 @@ import GRPCLib
 import NIO
 import Virtualization
 
+public struct VNCInfos: Codable {
+	public var urls: [String] = []
+	public var screenSize: ViewSize? = nil
+	
+	public init() {
+		self.urls = []
+		self.screenSize = nil
+	}
+	
+	public init(urls: [URL], screenSize: (width: Int, height: Int)) {
+		self.urls = urls.map(\.absoluteString)
+		self.screenSize = .init(width: screenSize.width, height: screenSize.height)
+	}
+	
+	public init(urls: [String], screenSize: ViewSize?) {
+		self.urls = urls
+		self.screenSize = screenSize
+	}
+}
+
 public protocol VMRunServiceClient {
 	var location: VMLocation { get }
-	var vncURL: [URL] { get }
+	var vncInfos: VNCInfos { get }
 	var screenSize: (width: Int, height: Int) { set get }
 
 	func share(mounts: DirectorySharingAttachments) throws -> MountInfos
@@ -102,8 +122,12 @@ class VMRunService: NSObject {
 	let certLocation: CertificatesLocation
 	let group: EventLoopGroup
 
-	var vncURL: [URL]? {
-		return vm.vncURL
+	var vncURL: VNCInfos? {
+		if let vncURL = vm.vncURL {
+			return VNCInfos(urls: vncURL, screenSize: vm.getScreenSize())
+		}
+
+		return nil
 	}
 
 	init(group: EventLoopGroup, runMode: Utils.RunMode, vm: VirtualMachine, certLocation: CertificatesLocation, logger: Logger) {

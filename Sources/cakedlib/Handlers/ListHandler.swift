@@ -11,11 +11,11 @@ public struct ListHandler {
 			var vmInfos = try StorageLocation(runMode: runMode).list().map { (name: String, location: VMLocation) in
 				let status = location.status
 				let config = try location.config()
-				var vncURL: [String]? = nil
+				var vncInfos = VNCInfos()
 
 				if status == .running {
-					if let urls = try? VncURLHandler.vncURL(location: location, runMode: runMode) {
-						vncURL = urls.map(\.absoluteString)
+					if let infos = try? VNCInfosHandler.vncInfos(location: location, runMode: runMode) {
+						vncInfos = infos
 					}
 				}
 
@@ -24,7 +24,8 @@ public struct ListHandler {
 					source: "vms",
 					name: name,
 					fqn: ["\(VMLocation.scheme)://\(name)"],
-					vncURL: vncURL,
+					vncURL: vncInfos.urls,
+					screenSize: vncInfos.screenSize,
 					instanceID: config.instanceID,
 					diskSize: try location.diskSize(),
 					sizeOnDisk: try location.allocatedSize(),
@@ -65,6 +66,8 @@ public struct ListHandler {
 								source: purgeable.source,
 								name: purgeable.name,
 								fqn: imageCache.fqn(purgeable),
+								vncURL: nil,
+								screenSize: nil,
 								instanceID: "",
 								diskSize: try purgeable.sizeBytes(),
 								sizeOnDisk: try purgeable.allocatedSizeBytes(),

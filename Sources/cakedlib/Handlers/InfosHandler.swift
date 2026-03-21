@@ -52,10 +52,12 @@ public struct InfosHandler {
 				infos = try offline(.running)
 			}
 
-			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncURL {
-				infos.vncURL = vncURL.map(\.absoluteString)
+			if let vncURL = try? createVMRunServiceClient(VMRunHandler.serviceMode, location: location, runMode: runMode).vncInfos {
+				infos.vncURL = vncURL.urls
+				infos.screenSize = vncURL.screenSize
 			} else {
 				infos.vncURL = nil
+				infos.screenSize = nil
 			}
 		} else {
 			infos = try offline(.stopped)

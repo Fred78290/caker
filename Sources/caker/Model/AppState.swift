@@ -641,8 +641,8 @@ class AppState: ObservableObject, Observable {
 		return defaultSize
 	}
 
-	func vncURL(vmURL: URL) throws -> [URL] {
-		try VncURLHandler.vncURL(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
+	func vncInfos(vmURL: URL) throws -> VNCInfos {
+		try VNCInfosHandler.vncInfos(client: self.serviceClient, vmURL: vmURL, runMode: self.runMode)
 	}
 
 	func virtualMachineInfos(vmURL: URL) throws -> (infos: VMInformations, config: any VirtualMachineConfiguration) {

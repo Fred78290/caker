@@ -49,7 +49,7 @@ public protocol Caked_ServiceClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
 
-  func vncURL(
+  func vncInfos(
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
@@ -311,21 +311,21 @@ extension Caked_ServiceClientProtocol {
     )
   }
 
-  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
+  /// VncInfos retrieves the VNC infos for connecting to a virtual machine's display.
   ///
   /// - Parameters:
-  ///   - request: Request to send to VncURL.
+  ///   - request: Request to send to VncInfos.
   ///   - callOptions: Call options.
   /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
-  public func vncURL(
+  public func vncInfos(
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions? = nil
   ) -> UnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
     return self.makeUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      path: Caked_ServiceClientMetadata.Methods.vncInfos.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
+      interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
     )
   }
 
@@ -917,7 +917,7 @@ public protocol Caked_ServiceAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
 
-  func makeVncURLCall(
+  func makeVncInfosCall(
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>
@@ -1137,15 +1137,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func makeVncURLCall(
+  public func makeVncInfosCall(
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions? = nil
   ) -> GRPCAsyncUnaryCall<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply> {
     return self.makeAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      path: Caked_ServiceClientMetadata.Methods.vncInfos.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
+      interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
     )
   }
 
@@ -1568,15 +1568,15 @@ extension Caked_ServiceAsyncClientProtocol {
     )
   }
 
-  public func vncURL(
+  public func vncInfos(
     _ request: Caked_Caked.VMRequest.InfoRequest,
     callOptions: CallOptions? = nil
   ) async throws -> Caked_Caked.Reply {
     return try await self.performAsyncUnaryCall(
-      path: Caked_ServiceClientMetadata.Methods.vncURL.path,
+      path: Caked_ServiceClientMetadata.Methods.vncInfos.path,
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
-      interceptors: self.interceptors?.makeVncURLInterceptors() ?? []
+      interceptors: self.interceptors?.makeVncInfosInterceptors() ?? []
     )
   }
 
@@ -1954,8 +1954,8 @@ public protocol Caked_ServiceClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'info'.
   func makeInfoInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when invoking 'vncURL'.
-  func makeVncURLInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+  /// - Returns: Interceptors to use when invoking 'vncInfos'.
+  func makeVncInfosInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when invoking 'launch'.
   func makeLaunchInterceptors() -> [ClientInterceptor<Caked_Caked.VMRequest.LaunchRequest, Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>]
@@ -2050,7 +2050,7 @@ public enum Caked_ServiceClientMetadata {
       Caked_ServiceClientMetadata.Methods.duplicate,
       Caked_ServiceClientMetadata.Methods.execute,
       Caked_ServiceClientMetadata.Methods.info,
-      Caked_ServiceClientMetadata.Methods.vncURL,
+      Caked_ServiceClientMetadata.Methods.vncInfos,
       Caked_ServiceClientMetadata.Methods.launch,
       Caked_ServiceClientMetadata.Methods.list,
       Caked_ServiceClientMetadata.Methods.rename,
@@ -2118,9 +2118,9 @@ public enum Caked_ServiceClientMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let vncURL = GRPCMethodDescriptor(
-      name: "VncURL",
-      path: "/caked.Service/VncURL",
+    public static let vncInfos = GRPCMethodDescriptor(
+      name: "VncInfos",
+      path: "/caked.Service/VncInfos",
       type: GRPCCallType.unary
     )
 
@@ -2312,8 +2312,8 @@ public protocol Caked_ServiceProvider: CallHandlerProvider {
   /// Info retrieves detailed information about a virtual machine.
   func info(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
-  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
-  func vncURL(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
+  /// VncInfos retrieves the VNC infos for connecting to a virtual machine's display.
+  func vncInfos(request: Caked_Caked.VMRequest.InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Caked_Caked.Reply>
 
   /// Launch creates and starts a new virtual machine.
   func launch(request: Caked_Caked.VMRequest.LaunchRequest, context: StreamingResponseCallContext<Caked_Caked.Reply.VirtualMachineReply.LaunchStreamReply>) -> EventLoopFuture<GRPCStatus>
@@ -2463,13 +2463,13 @@ extension Caked_ServiceProvider {
         userFunction: self.info(request:context:)
       )
 
-    case "VncURL":
+    case "VncInfos":
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makeVncURLInterceptors() ?? [],
-        userFunction: self.vncURL(request:context:)
+        interceptors: self.interceptors?.makeVncInfosInterceptors() ?? [],
+        userFunction: self.vncInfos(request:context:)
       )
 
     case "Launch":
@@ -2767,8 +2767,8 @@ public protocol Caked_ServiceAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
 
-  /// VncURL retrieves the VNC URL for connecting to a virtual machine's display.
-  func vncURL(
+  /// VncInfos retrieves the VNC infos for connecting to a virtual machine's display.
+  func vncInfos(
     request: Caked_Caked.VMRequest.InfoRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Caked_Caked.Reply
@@ -3012,13 +3012,13 @@ extension Caked_ServiceAsyncProvider {
         wrapping: { try await self.info(request: $0, context: $1) }
       )
 
-    case "VncURL":
+    case "VncInfos":
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Caked_Caked.VMRequest.InfoRequest>(),
         responseSerializer: ProtobufSerializer<Caked_Caked.Reply>(),
-        interceptors: self.interceptors?.makeVncURLInterceptors() ?? [],
-        wrapping: { try await self.vncURL(request: $0, context: $1) }
+        interceptors: self.interceptors?.makeVncInfosInterceptors() ?? [],
+        wrapping: { try await self.vncInfos(request: $0, context: $1) }
       )
 
     case "Launch":
@@ -3296,9 +3296,9 @@ public protocol Caked_ServiceServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeInfoInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
-  /// - Returns: Interceptors to use when handling 'vncURL'.
+  /// - Returns: Interceptors to use when handling 'vncInfos'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeVncURLInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
+  func makeVncInfosInterceptors() -> [ServerInterceptor<Caked_Caked.VMRequest.InfoRequest, Caked_Caked.Reply>]
 
   /// - Returns: Interceptors to use when handling 'launch'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3420,7 +3420,7 @@ public enum Caked_ServiceServerMetadata {
       Caked_ServiceServerMetadata.Methods.duplicate,
       Caked_ServiceServerMetadata.Methods.execute,
       Caked_ServiceServerMetadata.Methods.info,
-      Caked_ServiceServerMetadata.Methods.vncURL,
+      Caked_ServiceServerMetadata.Methods.vncInfos,
       Caked_ServiceServerMetadata.Methods.launch,
       Caked_ServiceServerMetadata.Methods.list,
       Caked_ServiceServerMetadata.Methods.rename,
@@ -3488,9 +3488,9 @@ public enum Caked_ServiceServerMetadata {
       type: GRPCCallType.unary
     )
 
-    public static let vncURL = GRPCMethodDescriptor(
-      name: "VncURL",
-      path: "/caked.Service/VncURL",
+    public static let vncInfos = GRPCMethodDescriptor(
+      name: "VncInfos",
+      path: "/caked.Service/VncInfos",
       type: GRPCCallType.unary
     )
 

@@ -160,9 +160,20 @@ public struct Vmrun_VNCEndPointReply: Sendable {
 
   public var vncURL: [String] = []
 
+  public var screenSize: Vmrun_ScreenSize {
+    get {_screenSize ?? Vmrun_ScreenSize()}
+    set {_screenSize = newValue}
+  }
+  /// Returns true if `screenSize` has been explicitly set.
+  public var hasScreenSize: Bool {self._screenSize != nil}
+  /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+  public mutating func clearScreenSize() {self._screenSize = nil}
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _screenSize: Vmrun_ScreenSize? = nil
 }
 
 public struct Vmrun_MountVirtioFS: Sendable {
@@ -508,7 +519,7 @@ extension Vmrun_InstalledAgentReply: SwiftProtobuf.Message, SwiftProtobuf._Messa
 
 extension Vmrun_VNCEndPointReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".VNCEndPointReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vncURL\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}vncURL\0\u{1}screenSize\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -517,20 +528,29 @@ extension Vmrun_VNCEndPointReply: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedStringField(value: &self.vncURL) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.vncURL.isEmpty {
       try visitor.visitRepeatedStringField(value: self.vncURL, fieldNumber: 1)
     }
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Vmrun_VNCEndPointReply, rhs: Vmrun_VNCEndPointReply) -> Bool {
     if lhs.vncURL != rhs.vncURL {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

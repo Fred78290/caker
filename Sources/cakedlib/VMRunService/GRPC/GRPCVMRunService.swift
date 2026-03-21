@@ -9,6 +9,24 @@ import Semaphore
 import SwiftASN1
 import X509
 
+extension VNCInfos {
+	init(_ from: Vmrun_VNCEndPointReply) {
+		self.urls = from.vncURL
+		if from.hasScreenSize {
+			self.screenSize = .init(width: Int(from.screenSize.width), height: Int(from.screenSize.height))
+		} else {
+			self.screenSize = nil
+		}
+	}
+}
+
+extension Vmrun_ScreenSize {
+	init(_ from: (width: Int, height: Int)) {
+		self.width = Int32(from.width)
+		self.height = Int32(from.height)
+	}
+}
+
 extension Caked_MountReply {
 	func toCaked() -> Vmrun_MountReply {
 		.init(self)
@@ -174,15 +192,13 @@ class GRPCVMRunServiceClient: VMRunServiceClient {
 		return result!
 	}
 
-	var vncURL: [URL] {
+	var vncInfos: VNCInfos {
 		get {
 			guard let result = try? self.execute({try await self.client.vncEndPoint(Vmrun_Empty()).response.get() }) else {
-				return []
+				return VNCInfos(urls: [], screenSize: nil)
 			}
 
-			return result.vncURL.compactMap {
-				URL(string: $0)
-			}
+			return VNCInfos(result)
 		}
 	}
 	
@@ -311,6 +327,7 @@ class GRPCVMRunService: VMRunService, @unchecked Sendable, Vmrun_ServiceAsyncPro
 
 		return Vmrun_VNCEndPointReply.with { reply in
 			reply.vncURL = vncURL.map(\.absoluteString)
+			reply.screenSize = .init(self.vm.getScreenSize())
 		}
 	}
 

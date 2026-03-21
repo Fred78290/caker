@@ -2650,6 +2650,15 @@ public struct Caked_Caked: Sendable {
           /// Clears the value of `configuration`. Subsequent reads from it will return its default value.
           public mutating func clearConfiguration() {self._configuration = nil}
 
+          public var screenSize: Caked_Caked.ScreenSize {
+            get {_screenSize ?? Caked_Caked.ScreenSize()}
+            set {_screenSize = newValue}
+          }
+          /// Returns true if `screenSize` has been explicitly set.
+          public var hasScreenSize: Bool {self._screenSize != nil}
+          /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+          public mutating func clearScreenSize() {self._screenSize = nil}
+
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
           public init() {}
@@ -2658,6 +2667,7 @@ public struct Caked_Caked: Sendable {
           fileprivate var _ip: String? = nil
           fileprivate var _fingerprint: String? = nil
           fileprivate var _configuration: Caked_Caked.Configuration? = nil
+          fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
         }
 
         public init() {}
@@ -2985,6 +2995,15 @@ public struct Caked_Caked: Sendable {
             get {_storage._agentVersion}
             set {_uniqueStorage()._agentVersion = newValue}
           }
+
+          public var screenSize: Caked_Caked.ScreenSize {
+            get {_storage._screenSize ?? Caked_Caked.ScreenSize()}
+            set {_uniqueStorage()._screenSize = newValue}
+          }
+          /// Returns true if `screenSize` has been explicitly set.
+          public var hasScreenSize: Bool {_storage._screenSize != nil}
+          /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+          public mutating func clearScreenSize() {_uniqueStorage()._screenSize = nil}
 
           public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -3679,9 +3698,20 @@ public struct Caked_Caked: Sendable {
 
         public var urls: [String] = []
 
+        public var screenSize: Caked_Caked.ScreenSize {
+          get {_screenSize ?? Caked_Caked.ScreenSize()}
+          set {_screenSize = newValue}
+        }
+        /// Returns true if `screenSize` has been explicitly set.
+        public var hasScreenSize: Bool {self._screenSize != nil}
+        /// Clears the value of `screenSize`. Subsequent reads from it will return its default value.
+        public mutating func clearScreenSize() {self._screenSize = nil}
+
         public var unknownFields = SwiftProtobuf.UnknownStorage()
 
         public init() {}
+
+        fileprivate var _screenSize: Caked_Caked.ScreenSize? = nil
       }
 
       public init() {}
@@ -9059,7 +9089,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply: SwiftPr
 
 extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualMachineInfo: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.protoMessageName + ".VirtualMachineInfo"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}type\0\u{1}source\0\u{1}name\0\u{1}fqn\0\u{1}instanceID\0\u{1}diskSize\0\u{1}sizeOnDisk\0\u{1}state\0\u{1}vncURL\0\u{1}ip\0\u{1}fingerprint\0\u{1}configuration\0\u{1}screenSize\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -9079,6 +9109,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
       case 10: try { try decoder.decodeSingularStringField(value: &self._ip) }()
       case 11: try { try decoder.decodeSingularStringField(value: &self._fingerprint) }()
       case 12: try { try decoder.decodeSingularMessageField(value: &self._configuration) }()
+      case 13: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
       default: break
       }
     }
@@ -9125,6 +9156,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     try { if let v = self._configuration {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
     } }()
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 13)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -9141,6 +9175,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.VirtualMachineInfoReply.VirtualM
     if lhs._ip != rhs._ip {return false}
     if lhs._fingerprint != rhs._fingerprint {return false}
     if lhs._configuration != rhs._configuration {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -9538,7 +9573,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply: SwiftProtobuf.Messa
 
 extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.StatusReply.protoMessageName + ".InfoReply"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}version\0\u{1}uptime\0\u{1}memory\0\u{1}cpuCount\0\u{1}diskInfos\0\u{1}ipaddresses\0\u{1}osname\0\u{1}hostname\0\u{1}release\0\u{1}status\0\u{1}mounts\0\u{1}name\0\u{1}networks\0\u{1}tunnels\0\u{1}sockets\0\u{1}cpu\0\u{1}vncURL\0\u{1}agentVersion\0\u{1}screenSize\0")
 
   fileprivate class _StorageClass {
     var _version: String? = nil
@@ -9559,6 +9594,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
     var _cpu: Caked_Caked.CpuInfo? = nil
     var _vncURL: [String] = []
     var _agentVersion: String = String()
+    var _screenSize: Caked_Caked.ScreenSize? = nil
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -9587,6 +9623,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       _cpu = source._cpu
       _vncURL = source._vncURL
       _agentVersion = source._agentVersion
+      _screenSize = source._screenSize
     }
   }
 
@@ -9623,6 +9660,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         case 16: try { try decoder.decodeSingularMessageField(value: &_storage._cpu) }()
         case 17: try { try decoder.decodeRepeatedStringField(value: &_storage._vncURL) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._agentVersion) }()
+        case 19: try { try decoder.decodeSingularMessageField(value: &_storage._screenSize) }()
         default: break
         }
       }
@@ -9689,6 +9727,9 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
       if !_storage._agentVersion.isEmpty {
         try visitor.visitSingularStringField(value: _storage._agentVersion, fieldNumber: 18)
       }
+      try { if let v = _storage._screenSize {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 19)
+      } }()
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -9716,6 +9757,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.StatusReply.InfoReply: SwiftProt
         if _storage._cpu != rhs_storage._cpu {return false}
         if _storage._vncURL != rhs_storage._vncURL {return false}
         if _storage._agentVersion != rhs_storage._agentVersion {return false}
+        if _storage._screenSize != rhs_storage._screenSize {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -10829,7 +10871,7 @@ extension Caked_Caked.Reply.VirtualMachineReply.InstalledAgentReply: SwiftProtob
 
 extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = Caked_Caked.Reply.VirtualMachineReply.protoMessageName + ".VncURL"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}urls\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}urls\0\u{1}screenSize\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -10838,20 +10880,29 @@ extension Caked_Caked.Reply.VirtualMachineReply.VncURL: SwiftProtobuf.Message, S
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeRepeatedStringField(value: &self.urls) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._screenSize) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
     if !self.urls.isEmpty {
       try visitor.visitRepeatedStringField(value: self.urls, fieldNumber: 1)
     }
+    try { if let v = self._screenSize {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Caked_Caked.Reply.VirtualMachineReply.VncURL, rhs: Caked_Caked.Reply.VirtualMachineReply.VncURL) -> Bool {
     if lhs.urls != rhs.urls {return false}
+    if lhs._screenSize != rhs._screenSize {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

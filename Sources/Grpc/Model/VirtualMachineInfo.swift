@@ -69,6 +69,7 @@ public struct VMInformations: Sendable, Codable {
 	public var tunnelInfos: [TunnelInfo]?
 	public var socketInfos: [SocketInfo]?
 	public var vncURL: [String]?
+	public var screenSize: ViewSize?
 	public var cpuInfos: CpuInformations?
 	public var agentVersion: String?
 
@@ -165,6 +166,13 @@ public struct VMInformations: Sendable, Codable {
 		if from.hasCpu {
 			self.cpuInfos = from.cpu.asCakeAgentLib
 		}
+		
+		self.vncURL	= from.vncURL
+		
+		if from.hasScreenSize {
+			let screenSize = from.screenSize
+			self.screenSize = .init(width: Int(screenSize.width), height: Int(screenSize.height))
+		}
 	}
 
 	public var caked: Caked_InfoReply {
@@ -236,6 +244,12 @@ public struct VMInformations: Sendable, Codable {
 			}
 
 			reply.vncURL = self.vncURL ?? []
+			if let screenSize = self.screenSize {
+				reply.screenSize = .with {
+					$0.width = Int32(screenSize.width)
+					$0.height = Int32(screenSize.height)
+				}
+			}
 
 			if let cpuInfos = self.cpuInfos {
 				reply.cpu = .with {
@@ -781,6 +795,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 	public let fingerprint: String?
 	public let config: CakedConfiguration?
 	public let vncURL: [String]?
+	public let screenSize: ViewSize?
 
 	public var id: String {
 		self.instanceID ?? self.name
@@ -804,6 +819,14 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 			self.vncURL = nil
 		}
 
+		if from.hasScreenSize {
+			let screenSize = from.screenSize
+
+			self.screenSize = .init(width: Int(screenSize.width), height: Int(screenSize.height))
+		} else {
+			self.screenSize = nil
+		}
+
 		if from.hasConfiguration {
 			self.config = CakedConfiguration(from.configuration)
 		} else {
@@ -817,6 +840,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		name: String = "",
 		fqn: [String] = [],
 		vncURL: [String]? = nil,
+		screenSize: ViewSize?,
 		instanceID: String? = nil,
 		diskSize: UInt64 = 0,
 		sizeOnDisk: UInt64 = 0,
@@ -837,6 +861,7 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 		self.ip = ip
 		self.fingerprint = fingerprint
 		self.config = config
+		self.screenSize = screenSize
 	}
 
 	public var caked: Caked_VirtualMachineInfo {
@@ -851,6 +876,13 @@ public struct VirtualMachineInfo: Codable, Identifiable, Hashable {
 
 			if let vncURL {
 				info.vncURL = vncURL
+			}
+
+			if let screenSize {
+				info.screenSize = .with {
+					$0.width = Int32(screenSize.width)
+					$0.height = Int32(screenSize.height)
+				}
 			}
 
 			if let instanceID: String = self.instanceID {

@@ -237,7 +237,7 @@ struct MountRequest: Codable {
 }
 
 @objc protocol ReplyVMRunServiceProtocol {
-	func vncURLReply(response: [String])
+	func vncInfosReply(urls: [String], width: Int, height: Int)
 	func mountReply(response: String)
 	func screenSizeReply(width: Int, height: Int)
 	func agentReply(installed: Bool, reason: String)
@@ -293,11 +293,11 @@ class XPCVMRunService: VMRunService, VMRunServiceProtocol {
 	func vncUrl() {
 		self.reply { serviceReply in
 			guard let vncURL = self.vncURL else {
-				serviceReply.vncURLReply(response: [])
+				serviceReply.vncInfosReply(urls: [], width: -1, height: -1)
 				return
 			}
 			
-			serviceReply.vncURLReply(response: vncURL.map(\.absoluteString))
+			serviceReply.vncInfosReply(urls: vncURL.urls, width: vncURL.screenSize?.width ?? -1, height: vncURL.screenSize?.height ?? -1)
 		}
 	}
 	
@@ -452,7 +452,7 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 	
 	enum ServiceReply {
 		case mountInfos(MountInfos)
-		case vncURL([String])
+		case vncInfos([String], Int, Int)
 		case screenSize(Int, Int)
 		case agent(Bool, String)
 		case gdc(Bool, String)
@@ -472,11 +472,11 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		self.response = coder.decodeObject(forKey: "response") as? ServiceReply
 	}
 	
-	func vncURLReply(response: [String]) {
+	func vncInfosReply(urls: [String], width: Int, height: Int) {
 #if DEBUG
-		self.logger.debug("Received VNC URL: \(response)")
+		self.logger.debug("Received VNC URL: \(urls)")
 #endif
-		self.response = .vncURL(response)
+		self.response = .vncInfos(urls, width, height)
 	}
 	
 	func mountReply(response: String) {
@@ -547,29 +547,26 @@ class ReplyVMRunService: NSObject, NSSecureCoding, ReplyVMRunServiceProtocol {
 		}
 	}
 	
-	func waitForVnUrlReply() -> [URL] {
+	func waitForVncInfosReply() -> VNCInfos {
 #if DEBUG
 		logger.debug("Wait VNC URL reply")
 #endif
 		
 		guard let reply = self.wait() else {
-			return []
+			return VNCInfos()
 		}
 		
-		guard case .vncURL(let url) = reply else {
+		guard case .vncInfos(let url, let width, let height) = reply else {
 #if DEBUG
 			logger.debug("Unexpected VNC URL reply")
 #endif
-			return []
+			return VNCInfos()
 		}
 		
 #if DEBUG
 		logger.debug("VNC URL reply: \(url)")
 #endif
-		
-		return url.compactMap {
-			URL(string: $0)
-		}
+		return VNCInfos(urls: url, screenSize: width > 0 && height > 0 ? ViewSize(width: width, height: height) : nil)
 	}
 	
 	@discardableResult func waitForScreenSizeReply() -> (Int, Int) {
@@ -638,12 +635,12 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 		return handler(service, replier)
 	}
 
-	var vncURL: [URL] {
+	var vncInfos: VNCInfos {
 		if location.status == .running {
 			let vncURL = try? self.connection { (service, replier) in
 				service.vncUrl()
 				
-				return replier.waitForVnUrlReply()
+				return replier.waitForVncInfosReply()
 			}
 
 			if let vncURL {
@@ -651,7 +648,7 @@ class XPCVMRunServiceClient: VMRunServiceClient {
 			}
 		}
 		
-		return []
+		return VNCInfos(urls: [], screenSize: nil)
 	}
 	
 	var screenSize: (width: Int, height: Int) {
