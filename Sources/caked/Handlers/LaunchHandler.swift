@@ -9,12 +9,12 @@ typealias Caked_ResponseLaunchStreamReply = GRPCAsyncResponseStreamWriter<Caked_
 struct LaunchHandler: CakedCommandAsync {
 	var options: BuildOptions
 	let startMode: CakedLib.StartHandler.StartMode
-	let gcd: GrandCentralDispatch
+	let gcd: Bool
 	var waitIPTimeout = 180
 	let responseStream: Caked_ResponseLaunchStreamReply
 	let handler: () async throws -> Void
 
-	init(request: Caked_LaunchRequest, gcd: GrandCentralDispatch, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
+	init(request: Caked_LaunchRequest, gcd: Bool, responseStream: Caked_ResponseLaunchStreamReply, context: GRPCAsyncServerCallContext, handler: @escaping () async throws -> Void) throws {
 		self.options = try request.options.buildOptions()
 		self.gcd = gcd
 		self.startMode = .service
@@ -41,13 +41,28 @@ struct LaunchHandler: CakedCommandAsync {
 			
 			try await withThrowingTaskGroup(of: LaunchReply?.self, returning: Void.self) { group in
 				group.addTask {
-					let result = await CakedLib.LaunchHandler.buildAndLaunchVM(runMode: runMode, options: options, waitIPTimeout: waitIPTimeout, startMode: startMode, gcd: gcd.haveListeners) { progress in
+					defer {
+						continuation.finish()
+					}
+
+					let storageLocation: StorageLocation = StorageLocation(runMode: runMode)
+					let result = await CakedLib.BuildHandler.build(options: options, runMode: runMode) { progress in
 						continuation.yield(progress)
 					}
-					
-					continuation.finish()
 
-					return result
+					if result.builded == false {
+						return LaunchReply(name: result.name, ip: "", launched: false, reason: result.reason)
+					}
+
+					do {
+						try await self.handler()
+
+						let reply = try CakedLib.StartHandler.startVM(on: Utilities.group.next(), location: storageLocation.find(options.name), screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: 180, startMode: startMode, gcd: self.gcd, runMode: runMode)
+
+						return LaunchReply(name: reply.name, ip: reply.ip, launched: reply.started, reason: reply.reason)
+					} catch {
+						return LaunchReply(name: result.name, ip: "", launched: false, reason: "\(error)")
+					}
 				}
 				
 				group.addTask {
@@ -118,7 +133,13 @@ struct LaunchHandler: CakedCommandAsync {
 				}
 			}
 		} catch {
-			return replyError(error: error)
+			try? await responseStream.send(.with {
+				$0.launched = .with {
+					$0.name = self.options.name
+					$0.launched = false
+					$0.reason = "\(error)"
+				}
+			})
 		}
 
 		return .init()

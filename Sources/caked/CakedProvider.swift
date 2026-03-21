@@ -300,7 +300,7 @@ class CakedProvider: @unchecked Sendable, Caked_ServiceAsyncProvider {
 	}
 	
 	func launch(request: Caked_LaunchRequest, responseStream: GRPCAsyncResponseStreamWriter<Caked_LaunchStreamReply>, context: GRPCAsyncServerCallContext) async throws {
-		_ = try self.execute(command: LaunchHandler(request: request, gcd: self.gcd, responseStream: responseStream, context: context) {
+		_ = try self.execute(command: LaunchHandler(request: request, gcd: self.gcd.haveListeners, responseStream: responseStream, context: context) {
 			try await self.gcd.updateStatus(.with {
 				$0.name = request.options.name
 				$0.status = .new
