@@ -506,6 +506,7 @@ public struct LaunchReply: Codable {
 		Caked_LaunchReply.with { object in
 			object.name = name
 			object.launched = launched
+			object.address = ip
 			object.reason = reason
 		}
 	}
