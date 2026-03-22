@@ -167,6 +167,7 @@ let package = Package(
 		]),
 		.executableTarget(name: "cakectl", dependencies: [
 			.target(name: "GRPCLib"),
+			.target(name: "CakedLib"),
 			.product(name: "Algorithms", package: "swift-algorithms"),
 			.product(name: "Antlr4Static", package: "Antlr4"),
 			.product(name: "ArgumentParser", package: "swift-argument-parser"),

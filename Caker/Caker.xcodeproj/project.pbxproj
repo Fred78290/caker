@@ -36,7 +36,6 @@
 		9B1500BD2E6B067200B23147 /* SuspendHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BC2E6B067200B23147 /* SuspendHandler.swift */; };
 		9B1500BF2E6B07EC00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500BE2E6B07EC00B23147 /* Suspend.swift */; };
 		9B1500C12E6B092A00B23147 /* Suspend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1500C02E6B092A00B23147 /* Suspend.swift */; };
-		9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1501382E6C2AE000B23147 /* LabelView.swift */; };
 		9B15FE6B2E69CC5600B23147 /* VMSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */; };
 		9B1970002F59867100B424DB /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B196FFF2F59866E00B424DB /* Root.swift */; };
 		9B1B5E352F1E329E0084BE05 /* VNCVirtualMachineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */; };
@@ -97,7 +96,6 @@
 		9B3601A32E2116E600889BFD /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A22E2116E600889BFD /* SettingsView.swift */; };
 		9B3601A52E21175900889BFD /* ApplicationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */; };
 		9B3601AB2E211A6800889BFD /* CreateTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */; };
-		9B3602452E2273C700889BFD /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3602442E2273C200889BFD /* Extensions.swift */; };
 		9B3C92412EE2F19A00FA8D28 /* RoyalVNCKitStatic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B3C92402EE2F19A00FA8D28 /* RoyalVNCKitStatic */; };
 		9B3C92D72EE44CF500FA8D28 /* VNCPixelTranslation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */; };
 		9B44388A2EBC9C12008BB2BB /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 9B4438892EBC9C12008BB2BB /* Dynamic */; };
@@ -126,7 +124,6 @@
 		9B464B772D5A3E8900164BF5 /* Delete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A6D2D5A3E0300164BF5 /* Delete.swift */; };
 		9B464B7B2D5A3E8900164BF5 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A742D5A3E0300164BF5 /* Infos.swift */; };
 		9B464B7E2D5A3E8900164BF5 /* ImagesManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A722D5A3E0300164BF5 /* ImagesManagement.swift */; };
-		9B464B7F2D5A3E9000164BF5 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B464A662D5A3E0300164BF5 /* CI.swift */; };
 		9B464C082D5A426200164BF5 /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C072D5A426200164BF5 /* SwiftDate */; };
 		9B464C0A2D5A426200164BF5 /* SwiftFormat in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C092D5A426200164BF5 /* SwiftFormat */; };
 		9B464C0C2D5A426200164BF5 /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C0B2D5A426200164BF5 /* TextTable */; };
@@ -159,7 +156,6 @@
 		9B464C8C2D5A491D00164BF5 /* libGRPCLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */; };
 		9B464C902D5A492F00164BF5 /* X509 in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C8F2D5A492F00164BF5 /* X509 */; };
 		9B464C922D5A493900164BF5 /* XAttr in Frameworks */ = {isa = PBXBuildFile; productRef = 9B464C912D5A493900164BF5 /* XAttr */; };
-		9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */; };
 		9B57E9D02E745FB600C5601D /* ViewSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B57E9CF2E745FB600C5601D /* ViewSize.swift */; };
 		9B5A37812ED4BDA8007B59B0 /* VNCKeyMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377A2ED4BDA8007B59B0 /* VNCKeyMapper.swift */; };
 		9B5A37822ED4BDA8007B59B0 /* VNCProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */; };
@@ -171,6 +167,11 @@
 		9B5C52D92F0FB27B002D628C /* GRPCTLSConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */; };
 		9B5C53CF2F124A82002D628C /* CPUUsageMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */; };
 		9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5D7BCD2EAA9602001FB96E /* Color.swift */; };
+		9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49BF2F70032800AE1991 /* LabelView.swift */; };
+		9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */; };
+		9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F49C32F70280700AE1991 /* Subprocess */; };
+		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
+		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
@@ -226,6 +227,10 @@
 		9B9DCB362F6EB09900E07852 /* NSVNCView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB332F6EB09900E07852 /* NSVNCView.swift */; };
 		9B9DCB372F6EB09900E07852 /* VNCFramebufferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */; };
 		9B9DCB382F6EB09900E07852 /* KeyboardModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */; };
+		9B9DCD862F6FF16700E07852 /* WindowAccessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */; };
+		9B9DCD882F6FF19100E07852 /* VNCApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCD872F6FF18D00E07852 /* VNCApp.swift */; };
+		9B9DCD8A2F6FFF4B00E07852 /* AboutApplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */; };
+		9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCDED2F70006D00E07852 /* CI.swift */; };
 		9B9DCED42F57220E007EEACC /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED32F572202007EEACC /* InfosHandler.swift */; };
 		9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */; };
 		9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */; };
@@ -330,7 +335,6 @@
 		9BEBC6D12DF4400A0092B196 /* LaunchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BA2DF4400A0092B196 /* LaunchHandler.swift */; };
 		9BEBC6D22DF4400A0092B196 /* RemoteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6C12DF4400A0092B196 /* RemoteHandler.swift */; };
 		9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6BD2DF4400A0092B196 /* LogoutHandler.swift */; };
-		9BEBC6D52DF4400A0092B196 /* CI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6952DF4400A0092B196 /* CI.swift */; };
 		9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC69F2DF4400A0092B196 /* Infos.swift */; };
 		9BEBC6D72DF4400A0092B196 /* InfosHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6B92DF4400A0092B196 /* InfosHandler.swift */; };
 		9BEBC6D82DF4400A0092B196 /* Build.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BEBC6972DF4400A0092B196 /* Build.swift */; };
@@ -581,6 +585,13 @@
 			remoteGlobalIDString = 9B464C5B2D5A459B00164BF5;
 			remoteInfo = GRPCLib;
 		};
+		9B5F49C62F70282400AE1991 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BEBC7062DF440560092B196;
+			remoteInfo = CakedLib;
+		};
 		9B96B0132F4B68380069C970 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9B464A4C2D5A3DA000164BF5 /* Project object */;
@@ -672,7 +683,6 @@
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
 		9B1500C02E6B092A00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
-		9B1501382E6C2AE000B23147 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B15FE6A2E69CC5600B23147 /* VMSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VMSettingsView.swift; sourceTree = "<group>"; };
 		9B196FFF2F59866E00B424DB /* Root.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
 		9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCVirtualMachineView.swift; sourceTree = "<group>"; };
@@ -720,13 +730,11 @@
 		9B3601A22E2116E600889BFD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		9B3601A42E21175900889BFD /* ApplicationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSettingsView.swift; sourceTree = "<group>"; };
 		9B3601AA2E211A6800889BFD /* CreateTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTemplateView.swift; sourceTree = "<group>"; };
-		9B3602442E2273C200889BFD /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9B3C92D62EE44CED00FA8D28 /* VNCPixelTranslation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCPixelTranslation.swift; sourceTree = "<group>"; };
 		9B44388D2EBDE95E008BB2BB /* NetworkWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkWizard.swift; sourceTree = "<group>"; };
 		9B44388F2EBDE9AD008BB2BB /* RemoteWizard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteWizard.swift; sourceTree = "<group>"; };
 		9B4517E62F067E7B0088F093 /* GraphCapsule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphCapsule.swift; sourceTree = "<group>"; };
 		9B464A542D5A3DA000164BF5 /* Caker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B464A662D5A3E0300164BF5 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B464A682D5A3E0300164BF5 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
 		9B464A6B2D5A3E0300164BF5 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
 		9B464A6D2D5A3E0300164BF5 /* Delete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Delete.swift; sourceTree = "<group>"; };
@@ -760,7 +768,6 @@
 		9B464C492D5A427100164BF5 /* Virtualization.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Virtualization.framework; path = System/Library/Frameworks/Virtualization.framework; sourceTree = SDKROOT; };
 		9B464C542D5A444600164BF5 /* Qcow2convert.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Qcow2convert.xcframework; path = ../qcow2convert/Qcow2convert.xcframework; sourceTree = SOURCE_ROOT; };
 		9B464C5C2D5A459B00164BF5 /* libGRPCLib.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libGRPCLib.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowAccessor.swift; sourceTree = "<group>"; };
 		9B57E9CF2E745FB600C5601D /* ViewSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewSize.swift; sourceTree = "<group>"; };
 		9B5A37752ED4BDA8007B59B0 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnection.swift; sourceTree = "<group>"; };
@@ -772,6 +779,9 @@
 		9B5C52D82F0FB27B002D628C /* GRPCTLSConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRPCTLSConfiguration.swift; sourceTree = "<group>"; };
 		9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPUUsageMonitor.swift; sourceTree = "<group>"; };
 		9B5D7BCD2EAA9602001FB96E /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		9B5F49BF2F70032800AE1991 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
+		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
+		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
@@ -817,6 +827,10 @@
 		9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardModifiers.swift; sourceTree = "<group>"; };
 		9B9DCB332F6EB09900E07852 /* NSVNCView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSVNCView.swift; sourceTree = "<group>"; };
 		9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCFramebufferView.swift; sourceTree = "<group>"; };
+		9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowAccessor.swift; sourceTree = "<group>"; };
+		9B9DCD872F6FF18D00E07852 /* VNCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCApp.swift; sourceTree = "<group>"; };
+		9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutApplication.swift; sourceTree = "<group>"; };
+		9B9DCDED2F70006D00E07852 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9B9DCED32F572202007EEACC /* InfosHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfosHandler.swift; sourceTree = "<group>"; };
 		9B9DCED52F57272D007EEACC /* CakeAgentHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CakeAgentHelper.swift; sourceTree = "<group>"; };
 		9BA180A02EFBF9D8000D1424 /* ZlibInflateStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZlibInflateStream.swift; sourceTree = "<group>"; };
@@ -909,7 +923,6 @@
 		9BEAA14F2F37B073005ACC9D /* BuildHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildHandler.swift; sourceTree = "<group>"; };
 		9BEAA2452F38FCEE005ACC9D /* ProgressObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressObserver.swift; sourceTree = "<group>"; };
 		9BEBC68E2DF43FEE0092B196 /* caked */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = caked; sourceTree = BUILT_PRODUCTS_DIR; };
-		9BEBC6952DF4400A0092B196 /* CI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CI.swift; sourceTree = "<group>"; };
 		9BEBC6972DF4400A0092B196 /* Build.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Build.swift; sourceTree = "<group>"; };
 		9BEBC6982DF4400A0092B196 /* Certificates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Certificates.swift; sourceTree = "<group>"; };
 		9BEBC69A2DF4400A0092B196 /* Configure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configure.swift; sourceTree = "<group>"; };
@@ -1095,6 +1108,7 @@
 				9B464C2C2D5A426200164BF5 /* NIOHTTP1 in Frameworks */,
 				9B464C282D5A426200164BF5 /* NIOEmbedded in Frameworks */,
 				9B464C262D5A426200164BF5 /* NIOCore in Frameworks */,
+				9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */,
 				9B464C922D5A493900164BF5 /* XAttr in Frameworks */,
 				9B464C362D5A426200164BF5 /* NIOHTTP2 in Frameworks */,
 				9B28BFA42DDB25BD00B5A0AF /* ArgumentParser in Frameworks */,
@@ -1104,6 +1118,7 @@
 				9B464C812D5A487C00164BF5 /* Algorithms in Frameworks */,
 				9B464C182D5A426200164BF5 /* GRPC in Frameworks */,
 				9B464C102D5A426200164BF5 /* Crypto in Frameworks */,
+				9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */,
 				9B464C2E2D5A426200164BF5 /* NIOPosix in Frameworks */,
 				9B464C852D5A489E00164BF5 /* DMRetry in Frameworks */,
 				9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */,
@@ -1314,11 +1329,9 @@
 				9B3600862E1FB1AC00889BFD /* DynamicList.swift */,
 				9B2BFAB42DFED25E000045C3 /* EditableList.swift */,
 				9B7C7ADC2E09BA62009D0A26 /* EditableListNewItem.swift */,
-				9B3602442E2273C200889BFD /* Extensions.swift */,
 				9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */,
 				9B911A602ECF854E0017791D /* GlossyCircle.swift */,
 				9B2BFAB52DFED25E000045C3 /* HostingViewFinder.swift */,
-				9B1501382E6C2AE000B23147 /* LabelView.swift */,
 				9B2BFAB62DFED25E000045C3 /* MainView.swift */,
 				9B3601A22E2116E600889BFD /* SettingsView.swift */,
 				9B9620CA2EAB62EF0075CD18 /* ToolbarSettings.swift */,
@@ -1364,7 +1377,6 @@
 				9B3601A02E21169200889BFD /* Settings.swift */,
 				9B88A8962E16AF2B00E3A97E /* TextFieldStore.swift */,
 				9B30BA4F2E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift */,
-				9B57E8EC2E717F0400C5601D /* WindowAccessor.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -1420,14 +1432,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9B464A672D5A3E0300164BF5 /* CI */ = {
-			isa = PBXGroup;
-			children = (
-				9B464A662D5A3E0300164BF5 /* CI.swift */,
-			);
-			path = CI;
-			sourceTree = "<group>";
-		};
 		9B464A862D5A3E0300164BF5 /* Commands */ = {
 			isa = PBXGroup;
 			children = (
@@ -1457,6 +1461,7 @@
 				9B1500C02E6B092A00B23147 /* Suspend.swift */,
 				9BE2E7C12D5F85FD000CA07F /* Template.swift */,
 				9BD32F862D75FF060066A01E /* Umount.swift */,
+				9B5F49C82F7028F200AE1991 /* VNC.swift */,
 				9B464A852D5A3E0300164BF5 /* WaitIP.swift */,
 			);
 			path = Commands;
@@ -1468,7 +1473,6 @@
 				9B98B7782D897123003C26F3 /* CakeAgentClientInterceptor.swift */,
 				9B464A872D5A3E0300164BF5 /* CakeProvider.swift */,
 				9B464A882D5A3E0300164BF5 /* Client.swift */,
-				9B464A672D5A3E0300164BF5 /* CI */,
 				9B464A862D5A3E0300164BF5 /* Commands */,
 			);
 			path = cakectl;
@@ -1527,9 +1531,9 @@
 		9B5A377E2ED4BDA8007B59B0 /* VNCLib */ = {
 			isa = PBXGroup;
 			children = (
-				9BDA13A52EE6D42300357544 /* Keymapper */,
 				9B5A37752ED4BDA8007B59B0 /* VNC.swift */,
 				9B5A37772ED4BDA8007B59B0 /* VNCConnection.swift */,
+				9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */,
 				9BDA12AE2EE5831300357544 /* VNCFixedWidthInteger.swift */,
 				9B5A37782ED4BDA8007B59B0 /* VNCFramebuffer.swift */,
 				9B5A37792ED4BDA8007B59B0 /* VNCInputHandler.swift */,
@@ -1539,6 +1543,7 @@
 				9B5A377C2ED4BDA8007B59B0 /* VNCProtocol.swift */,
 				9B5A377D2ED4BDA8007B59B0 /* VNCServer.swift */,
 				9B1B5E342F1E329E0084BE05 /* VNCVirtualMachineView.swift */,
+				9BDA13A52EE6D42300357544 /* Keymapper */,
 			);
 			path = VNCLib;
 			sourceTree = "<group>";
@@ -1587,9 +1592,18 @@
 			children = (
 				9B9DCB322F6EB09900E07852 /* KeyboardModifiers.swift */,
 				9B9DCB332F6EB09900E07852 /* NSVNCView.swift */,
+				9B9DCD872F6FF18D00E07852 /* VNCApp.swift */,
 				9B9DCB342F6EB09900E07852 /* VNCFramebufferView.swift */,
 			);
 			path = VNC;
+			sourceTree = "<group>";
+		};
+		9B9DCDEE2F70006D00E07852 /* CI */ = {
+			isa = PBXGroup;
+			children = (
+				9B9DCDED2F70006D00E07852 /* CI.swift */,
+			);
+			path = CI;
 			sourceTree = "<group>";
 		};
 		9BA1808A2EFBF87B000D1424 /* Compression */ = {
@@ -1671,14 +1685,6 @@
 				9BDA13A62EE6D43F00357544 /* OSXKeyMapper.swift */,
 			);
 			path = Keymapper;
-			sourceTree = "<group>";
-		};
-		9BEBC6962DF4400A0092B196 /* CI */ = {
-			isa = PBXGroup;
-			children = (
-				9BEBC6952DF4400A0092B196 /* CI.swift */,
-			);
-			path = CI;
 			sourceTree = "<group>";
 		};
 		9BEBC6B12DF4400A0092B196 /* Commands */ = {
@@ -1763,7 +1769,6 @@
 				9BBE59792F49B558005B3359 /* GrandCentralDispatch.swift */,
 				9BEBC6CB2DF4400A0092B196 /* MainApp.swift */,
 				9BEBC6CC2DF4400A0092B196 /* Root.swift */,
-				9BEBC6962DF4400A0092B196 /* CI */,
 				9BEBC6B12DF4400A0092B196 /* Commands */,
 				9BEBC6C92DF4400A0092B196 /* Handlers */,
 			);
@@ -1878,8 +1883,11 @@
 		9BEBC74C2DF440720092B196 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				9B9DCD892F6FFF4900E07852 /* AboutApplication.swift */,
 				9B7D69242F1B92E800FE1B0B /* Extensions.swift */,
+				9B5F49BF2F70032800AE1991 /* LabelView.swift */,
 				9BEBC74B2DF440720092B196 /* VMView.swift */,
+				9B9DCD852F6FF16700E07852 /* WindowAccessor.swift */,
 				9B9DCB352F6EB09900E07852 /* VNC */,
 			);
 			path = UI;
@@ -1927,6 +1935,7 @@
 				9BEBC7662DF440720092B196 /* VirtualMachine.swift */,
 				9BEBC7672DF440720092B196 /* VMBuilder.swift */,
 				9BEBC7682DF440720092B196 /* VMLocation.swift */,
+				9B9DCDEE2F70006D00E07852 /* CI */,
 				9BEBC7152DF440720092B196 /* CloudImage */,
 				9BA1808A2EFBF87B000D1424 /* Compression */,
 				9BEBC72D2DF440720092B196 /* Handlers */,
@@ -2017,6 +2026,7 @@
 			);
 			dependencies = (
 				9B464C8E2D5A491D00164BF5 /* PBXTargetDependency */,
+				9B5F49C72F70282400AE1991 /* PBXTargetDependency */,
 			);
 			name = cakectl;
 			packageProductDependencies = (
@@ -2046,6 +2056,7 @@
 				9B464C912D5A493900164BF5 /* XAttr */,
 				9B28BFA32DDB25BD00B5A0AF /* ArgumentParser */,
 				9B13C3402F0AD8540099F00F /* CakeAgentLib */,
+				9B5F49C32F70280700AE1991 /* Subprocess */,
 			);
 			productName = cakectl;
 			productReference = 9B464B4F2D5A3E5C00164BF5 /* cakectl */;
@@ -2391,7 +2402,6 @@
 				9B30BA4E2E0BF37300256A9D /* RegexParseableFormatStyle.swift in Sources */,
 				9B215B732E0C388F00AFC89D /* MountDetailView.swift in Sources */,
 				9B2BFABF2DFED25E000045C3 /* HostVirtualMachineView.swift in Sources */,
-				9B3602452E2273C700889BFD /* Extensions.swift in Sources */,
 				9B30BA4A2E0BDB5600256A9D /* FileHelpers.swift in Sources */,
 				9B1970002F59867100B424DB /* Root.swift in Sources */,
 				9BACED5E2EB676C500EB4C8D /* BridgeVirtualDocument.swift in Sources */,
@@ -2411,7 +2421,6 @@
 				9B3601912E20FBCF00889BFD /* CakerMenuBarExtraScene.swift in Sources */,
 				9BEAA1502F37B073005ACC9D /* BuildHandler.swift in Sources */,
 				9B911A612ECF85550017791D /* GlossyCircle.swift in Sources */,
-				9B57E8ED2E717F0800C5601D /* WindowAccessor.swift in Sources */,
 				9BBF7A3D2F3DE0C500F37D2C /* SuspendHandler.swift in Sources */,
 				9B30BA4C2E0BF2B600256A9D /* RangeIntegerStyle.swift in Sources */,
 				9BACEB6E2EB2833600EB4C8D /* WizardModel.swift in Sources */,
@@ -2435,7 +2444,6 @@
 				9B215B712E0C35D400AFC89D /* ForwardedPortDetailView.swift in Sources */,
 				9B215B772E0C39AE00AFC89D /* SocketsDetailView.swift in Sources */,
 				9B2BFAC22DFED25E000045C3 /* SocketsView.swift in Sources */,
-				9B1501392E6C2AE000B23147 /* LabelView.swift in Sources */,
 				9B7997252E45EDEC00147500 /* VNCView.swift in Sources */,
 				9B9C4E902E23BF1300C13D23 /* RemoteData.swift in Sources */,
 				9B9C4E912E23BF1300C13D23 /* AppState.swift in Sources */,
@@ -2474,6 +2482,7 @@
 				9B464B612D5A3E8900164BF5 /* Login.swift in Sources */,
 				9B464B622D5A3E8900164BF5 /* WaitIP.swift in Sources */,
 				9B464B632D5A3E8900164BF5 /* Push.swift in Sources */,
+				9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */,
 				9B464B642D5A3E8900164BF5 /* Exec.swift in Sources */,
 				9B464B652D5A3E8900164BF5 /* Configure.swift in Sources */,
 				9BE2E7C22D5F85FD000CA07F /* Template.swift in Sources */,
@@ -2482,7 +2491,6 @@
 				9B464B6B2D5A3E8900164BF5 /* List.swift in Sources */,
 				9B464B6C2D5A3E8900164BF5 /* Launch.swift in Sources */,
 				9B464B6D2D5A3E8900164BF5 /* Logout.swift in Sources */,
-				9B464B7F2D5A3E9000164BF5 /* CI.swift in Sources */,
 				9B464B6E2D5A3E8900164BF5 /* Start.swift in Sources */,
 				9B464B6F2D5A3E8900164BF5 /* Sh.swift in Sources */,
 				9B464B702D5A3E8900164BF5 /* Pull.swift in Sources */,
@@ -2572,7 +2580,6 @@
 				9BEBC6D32DF4400A0092B196 /* LogoutHandler.swift in Sources */,
 				9BBF7BB92F3E0F6200F37D2C /* VNCInfosHandler.swift in Sources */,
 				9BBF7B352F3DEF9E00F37D2C /* RestartHandler.swift in Sources */,
-				9BEBC6D52DF4400A0092B196 /* CI.swift in Sources */,
 				9BEBC6D62DF4400A0092B196 /* Infos.swift in Sources */,
 				9BEBC6D72DF4400A0092B196 /* InfosHandler.swift in Sources */,
 				9BCEB1912ED76EBC00B29B70 /* VNC.swift in Sources */,
@@ -2677,6 +2684,7 @@
 				9BEBC7882DF440720092B196 /* ExecuteHandler.swift in Sources */,
 				9BEBC7892DF440720092B196 /* Utilities.swift in Sources */,
 				9BF8AB882F3E4B2600DE5EAB /* ScreenSizeHandler.swift in Sources */,
+				9B9DCDEF2F70006D00E07852 /* CI.swift in Sources */,
 				9BE0B6FE2F1E4CBD0040EDD4 /* TaskQueue.swift in Sources */,
 				9BEBC78A2DF440720092B196 /* ConfigureHandler.swift in Sources */,
 				9BEBC78B2DF440720092B196 /* GuestPlateform.swift in Sources */,
@@ -2707,8 +2715,10 @@
 				9BEBC7A42DF440720092B196 /* ImageCache.swift in Sources */,
 				9BEBC7A52DF440720092B196 /* RemoteHandler.swift in Sources */,
 				9BEBC7A62DF440720092B196 /* StartHandler.swift in Sources */,
+				9B5F49C02F70032800AE1991 /* LabelView.swift in Sources */,
 				9BEBC7A72DF440720092B196 /* CommunicationHandlers.swift in Sources */,
 				9B9DCED62F57272F007EEACC /* CakeAgentHelper.swift in Sources */,
+				9B5F49C22F7006B100AE1991 /* VNCConnectionLogger.swift in Sources */,
 				9B7D69252F1B92EC00FE1B0B /* Extensions.swift in Sources */,
 				9BEBC7A82DF440720092B196 /* CakeAgentAsyncParsableCommand.swift in Sources */,
 				9BEBC7A92DF440720092B196 /* VirtualSocketDevices.swift in Sources */,
@@ -2728,6 +2738,7 @@
 				9B5A37862ED4BDA8007B59B0 /* VNCServer.swift in Sources */,
 				9BF8AE662F4231C300DE5EAB /* ShellHandler.swift in Sources */,
 				9B5A37872ED4BDA8007B59B0 /* VNCInputHandler.swift in Sources */,
+				9B9DCD8A2F6FFF4B00E07852 /* AboutApplication.swift in Sources */,
 				9BEBC7AE2DF440720092B196 /* TemplateHandler.swift in Sources */,
 				9B91177C2ECA05880017791D /* PurgeableContentStore.swift in Sources */,
 				9BEBC7AF2DF440720092B196 /* InfosHandler.swift in Sources */,
@@ -2735,8 +2746,10 @@
 				9B20D6062E01A74000BEFB41 /* INI.swift in Sources */,
 				9BA180A22EFBF9D8000D1424 /* ZlibInflateStream.swift in Sources */,
 				9BA180A32EFBF9D8000D1424 /* ZlibStream.swift in Sources */,
+				9B9DCD882F6FF19100E07852 /* VNCApp.swift in Sources */,
 				9BFE81A82EC8F8D900767615 /* OCIManagement.swift in Sources */,
 				9BDA13A72EE6D44100357544 /* OSXKeyMapper.swift in Sources */,
+				9B9DCD862F6FF16700E07852 /* WindowAccessor.swift in Sources */,
 				9B1500BB2E6B060F00B23147 /* SuspendHandler.swift in Sources */,
 				9BEBC7B22DF440720092B196 /* XPCVMRunService.swift in Sources */,
 				9BEBC7B32DF440720092B196 /* RunHandler.swift in Sources */,
@@ -2791,6 +2804,11 @@
 			isa = PBXTargetDependency;
 			target = 9B464C5B2D5A459B00164BF5 /* GRPCLib */;
 			targetProxy = 9B464C8D2D5A491D00164BF5 /* PBXContainerItemProxy */;
+		};
+		9B5F49C72F70282400AE1991 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BEBC7062DF440560092B196 /* CakedLib */;
+			targetProxy = 9B5F49C62F70282400AE1991 /* PBXContainerItemProxy */;
 		};
 		9B96B0142F4B68380069C970 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3826,6 +3844,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9B464BA72D5A406000164BF5 /* XCRemoteSwiftPackageReference "swift-xattr" */;
 			productName = XAttr;
+		};
+		9B5F49C32F70280700AE1991 /* Subprocess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BC1F9962F6D469A00A83B33 /* XCRemoteSwiftPackageReference "swift-subprocess" */;
+			productName = Subprocess;
 		};
 		9B6ECD932E22B5400003ACED /* TextTable */ = {
 			isa = XCSwiftPackageProductDependency;
