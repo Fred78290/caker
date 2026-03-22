@@ -8,6 +8,7 @@ import AppKit
 import Foundation
 import QuartzCore
 import GRPCLib
+import SwiftUI
 
 extension CGEvent {
 	var dumpEvent: String {
@@ -550,5 +551,18 @@ extension IOSurface {
 		}
 
 		return NSImage(cgImage: croppedCgImage, size: .init(width: croppedCgImage.width, height: croppedCgImage.height))
+	}
+}
+
+extension View {
+	public func onReceive(
+		_ name: Notification.Name,
+		center: NotificationCenter = .default,
+		object: AnyObject? = nil,
+		perform action: @escaping (Notification) -> Void
+	) -> some View {
+		self.onReceive(
+			center.publisher(for: name, object: object), perform: action
+		)
 	}
 }
