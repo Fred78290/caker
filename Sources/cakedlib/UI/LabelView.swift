@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct LabelView: View {
+public struct LabelView: View {
 	private let text: String
 	private let size: CGSize?
 	private let progress: Bool
 
-	init(_ text: String, size: CGSize? = nil, progress: Bool = false) {
+	public init(_ text: String, size: CGSize? = nil, progress: Bool = false) {
 		self.text = text
 		self.size = size
 		self.progress = progress
@@ -31,18 +31,18 @@ struct LabelView: View {
 					.foregroundStyle(.white)
 					.font(.largeTitle)
 			}
-			.frame(size: size)
+			.frame(width: size.width, height: size.height)
 			.background(.black, ignoresSafeAreaEdges: .bottom)
 		} else {
 			HStack {
 				Text(text).foregroundStyle(.white).font(.largeTitle)
 			}
-			.frame(size: size)
+			.frame(width: size.width, height: size.height)
 			.background(.black, ignoresSafeAreaEdges: .bottom)
 		}
 	}
 
-	var body: some View {
+	public var body: some View {
 		if let size = self.size {
 			content(size: size)
 		} else {
