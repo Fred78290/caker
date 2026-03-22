@@ -11,31 +11,6 @@ import RoyalVNCKit
 import SwiftUI
 import CakeAgentLib
 
-class VNCConnectionLogger: VNCLogger {
-	let logger: Logger = Logger("VNCConnectionLogger")
-	var isDebugLoggingEnabled: Bool = false
-
-	public func logDebug(_ message: String) {
-		#if DEBUG
-			if isDebugLoggingEnabled {
-				self.logger.debug(message)
-			}
-		#endif
-	}
-
-	public func logInfo(_ message: String) {
-		self.logger.info(message)
-	}
-
-	public func logWarning(_ message: String) {
-		self.logger.warn(message)
-	}
-
-	public func logError(_ message: String) {
-		self.logger.error(message)
-	}
-}
-
 struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
 
