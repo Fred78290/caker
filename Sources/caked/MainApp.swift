@@ -115,7 +115,7 @@ struct MainApp: App, VirtualMachineDelegate {
 			CommandGroup(replacing: .textEditing, addition: {})
 			CommandGroup(replacing: .undoRedo, addition: {})
 			CommandGroup(replacing: .windowSize, addition: {})
-			CommandGroup(replacing: .appInfo) { AboutCaker(config: MainApp.params.config) }
+			CommandGroup(replacing: .appInfo) { AboutApplication(config: MainApp.params.config) }
 			CommandMenu("Control") {
 				Button("Start") {
 					Task { self.startFromUI() }
@@ -190,40 +190,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 			return .terminateLater
 		} else {
 			return .terminateNow
-		}
-	}
-}
-
-struct AboutCaker: View {
-	var infos: NSAttributedString
-
-	init(config: CakeConfig) {
-		let infos = NSMutableAttributedString()
-		let style: NSMutableParagraphStyle = NSMutableParagraphStyle()
-
-		style.alignment = NSTextAlignment.center
-
-		let center: [NSAttributedString.Key: Any] = [.paragraphStyle: style]
-
-		infos.append(NSAttributedString(string: "CPU: \(config.cpuCount) cores\n", attributes: center))
-		infos.append(NSAttributedString(string: "Memory: \(ByteCountFormatter.string(fromByteCount: Int64(config.memorySize), countStyle: .memory))\n", attributes: center))
-		infos.append(NSAttributedString(string: "User: \(config.configuredUser)\n", attributes: center))
-
-		if let runningIP = config.runningIP {
-			infos.append(NSAttributedString(string: "IP: \(runningIP)\n", attributes: center))
-		}
-
-		self.infos = infos
-	}
-
-	var body: some View {
-		Button("About Caked") {
-			NSApplication.shared.orderFrontStandardAboutPanel(options: [
-				NSApplication.AboutPanelOptionKey.applicationIcon: NSApplication.shared.applicationIconImage as Any,
-				NSApplication.AboutPanelOptionKey.applicationName: "Caked",
-				NSApplication.AboutPanelOptionKey.applicationVersion: CI.version,
-				NSApplication.AboutPanelOptionKey.credits: self.infos,
-			])
 		}
 	}
 }
