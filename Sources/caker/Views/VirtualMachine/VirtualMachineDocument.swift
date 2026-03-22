@@ -1036,7 +1036,7 @@ extension VirtualMachineDocument {
 				isClipboardRedirectionEnabled: AppState.shared.isClipboardRedirectionEnabled,
 				colorDepth: .depth24Bit,
 				frameEncodings: .default)
-			let connection = RoyalVNCKit.VNCConnection(settings: settings, logger: VNCConnectionLogger())
+			let connection = RoyalVNCKit.VNCConnection(settings: settings, logger: VNCConnectionLogger(isDebugLoggingEnabled))
 
 			self.connection = connection
 			self.vncStatus = .connecting

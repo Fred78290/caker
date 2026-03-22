@@ -4,6 +4,7 @@ import Foundation
 import GRPC
 import GRPCLib
 import CakeAgentLib
+import CakedLib
 import NIOCore
 import NIOPosix
 import NIOSSL
@@ -218,6 +219,7 @@ struct Client: AsyncParsableCommand {
 				Logout.self,
 				Pull.self,
 				Push.self,
+				VNC.self,
 			])
 
 #if DEBUG

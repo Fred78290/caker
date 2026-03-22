@@ -84,6 +84,7 @@ struct Root: ParsableCommand {
 				Logout.self,
 				Push.self,
 				Pull.self,
+				VNC.self
 			])
 
 	static func parse() throws -> ParsableCommand? {
@@ -100,10 +101,6 @@ struct Root: ParsableCommand {
 	}
 
 	public static func main() async throws {
-		#if DEBUG
-			Self.configuration.subcommands.append(VNC.self)
-		#endif
-
 		// Set up logging to stderr
 		LoggingSystem.bootstrap { label in
 			StreamLogHandler.standardError(label: label)

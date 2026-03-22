@@ -8,9 +8,10 @@ import Foundation
 import GRPC
 
 extension CakedServiceClient {
-	public func info(name: String, timeout: Int64 = 10) throws -> Caked_Reply {
+	public func info(name: String, includeConfig: Bool = false, timeout: Int64 = 10) throws -> Caked_Reply {
 		return try self.info(.with {
 			$0.name = name
+			$0.includeConfig = includeConfig
 		}, callOptions: CallOptions(timeLimit: .timeout(.seconds(timeout)))).response.wait()
 	}
 

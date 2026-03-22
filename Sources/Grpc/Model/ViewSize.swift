@@ -9,7 +9,7 @@ import Foundation
 
 public struct ViewSize: Codable, Identifiable, ExpressibleByArgument, CustomStringConvertible, Hashable, Sendable {
 	public static let standard = ViewSize(width: 1024, height: 768)
-
+	
 	public var id: String {
 		self.description
 	}
@@ -18,11 +18,11 @@ public struct ViewSize: Codable, Identifiable, ExpressibleByArgument, CustomStri
 	public var cgSize: CGSize {
 		.init(width: CGFloat(width), height: CGFloat(height))
 	}
-
+	
 	public var description: String {
 		"\(width)x\(height)"
 	}
-
+	
 	public init?(argument: String) {
 		do {
 			try self.init(parseFrom: argument)
@@ -30,21 +30,31 @@ public struct ViewSize: Codable, Identifiable, ExpressibleByArgument, CustomStri
 			return nil
 		}
 	}
-
+	
 	public init?(parseFrom: String) throws {
 		let components = parseFrom.split(separator: "x")
-
+		
 		guard components.count == 2, let width = Int(String(components[0])), let height = Int(String(components[1])) else {
 			throw NSError(domain: "Invalid view size format", code: 0, userInfo: nil)
 		}
-
+		
 		self.width = width
 		self.height = height
 	}
-
+	
 	public init(width: Int, height: Int) {
 		self.width = width
 		self.height = height
+	}
+	
+	public init(_ size: CGSize) {
+		self.width = Int(size.width)
+		self.height = Int(size.height)
+	}
+	
+	public init(_ size: Caked_ScreenSize) {
+		self.width = Int(size.width)
+		self.height = Int(size.height)
 	}
 }
 
