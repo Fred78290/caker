@@ -122,9 +122,8 @@ jobs:
           echo "version_tag=${VERSION_TAG}" >> $GITHUB_OUTPUT
 
           TMPFILE=$(mktemp)
-          envsubst < Sources/caked/CI/CI.swift > $TMPFILE
-          cp $TMPFILE Sources/caked/CI/CI.swift
-          cp $TMPFILE Sources/cakectl/CI/CI.swift
+          envsubst < Sources/cakedlib/CI/CI.swift > $TMPFILE
+          cp $TMPFILE Sources/cakedlib/CI/CI.swift
 
       - name: Build QCow2convert framework
         run: |
