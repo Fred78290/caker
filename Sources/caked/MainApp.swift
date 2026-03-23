@@ -181,7 +181,7 @@ struct MainApp: App, VirtualMachineDelegate {
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 	func applicationDidFinishLaunching(_ notification: Notification) {
 		if MainApp.displayUI {
-			NSApp.setActivationPolicy(.regular)
+			NSApp.setDockIcon()
 		}
 	}
 

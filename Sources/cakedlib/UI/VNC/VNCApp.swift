@@ -10,6 +10,7 @@ import RoyalVNCKit
 import CakeAgentLib
 import RoyalVNCKit
 import GRPCLib
+import AppKit
 
 struct VNCView: NSViewRepresentable {
 	typealias NSViewType = NSVNCView
@@ -46,8 +47,8 @@ struct VNCView: NSViewRepresentable {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
-	func applicationDidFinishLaunching(_ notification: Notification) {
-		NSApp.setActivationPolicy(.regular)
+	func applicationWillFinishLaunching(_ notification: Notification) {
+		NSApp.setDockIcon()
 	}
 }
 

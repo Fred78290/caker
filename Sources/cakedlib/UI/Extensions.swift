@@ -566,3 +566,24 @@ extension View {
 		)
 	}
 }
+
+extension NSApplication {
+	public func setDockIcon(_ name: String = "AppIcon", ofType: String = "icns") {
+		var customIcon: NSImage? = nil
+		let path = Bundle.main.bundleURL.appendingPathComponent("../resources/\(name).\(ofType)").absoluteURL
+
+		if FileManager.default.fileExists(atPath: path.path()) {
+			customIcon = NSImage(contentsOf: path)
+		} else if let path = Bundle.main.path(forResource: name, ofType: ofType) {
+			customIcon = NSImage(contentsOfFile: path)
+		} else {
+			customIcon = NSImage(named: name)
+		}
+
+		self.setActivationPolicy(.regular)
+
+		if let customIcon /*?? NSImage(named: NSImage.applicationIconName)*/ {
+			self.applicationIconImage = customIcon
+		}
+	}
+}
