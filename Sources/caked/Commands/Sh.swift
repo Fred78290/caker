@@ -7,6 +7,7 @@ import GRPCLib
 import NIO
 
 struct Sh: CakeAgentAsyncParsableCommand {
+	
 	static let configuration = ShellOptions.configuration
 
 	@OptionGroup(title: "Global options")
@@ -56,7 +57,7 @@ struct Sh: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async throws {
 		if self.createVM {
 			let build = await CakedLib.BuildHandler.build(options: .init(name: self.shell.name), runMode: self.common.runMode, progressHandler: ProgressObserver.progressHandler)
 

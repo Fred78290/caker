@@ -6,7 +6,7 @@ import GRPC
 import GRPCLib
 import NIO
 
-struct Infos: CakeAgentAsyncParsableCommand {
+struct Infos: CakeAgentParsableCommand {
 	static let configuration: CommandConfiguration = CommandConfiguration(commandName: "infos", abstract: "Get info for VM")
 
 	@OptionGroup(title: "Global options")
@@ -34,7 +34,7 @@ struct Infos: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) {
 		do {
 			let result = try CakedLib.InfosHandler.infos(name: self.name, runMode: self.common.runMode, client: helper, callOptions: callOptions)
 			

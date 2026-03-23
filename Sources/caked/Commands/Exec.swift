@@ -6,7 +6,7 @@ import GRPC
 import GRPCLib
 import NIO
 
-struct Exec: CakeAgentAsyncParsableCommand {
+struct Exec: CakeAgentAsyncParsableCommand {	
 	static let configuration = ExecOptions.configuration
 
 	@OptionGroup(title: "Global options")
@@ -49,7 +49,7 @@ struct Exec: CakeAgentAsyncParsableCommand {
 		try self.validateOptions(runMode: self.common.runMode)
 	}
 
-	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async throws {
 		guard let result = try? CakedLib.StartHandler.startVM(name: self.execute.name, screenSize: nil, vncPassword: nil, vncPort: nil, waitIPTimeout: self.execute.waitIPTimeout, startMode: self.execute.foreground ? .foreground : .background, gcd: false, runMode: self.common.runMode) else {
 			Logger.appendNewLine(self.common.format.render("Failed to start VM"))
 

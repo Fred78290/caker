@@ -9,66 +9,86 @@ import NIOCore
 import NIOPosix
 import NIOSSL
 import SwiftDate
+import Logging
 
-protocol GrpcParsableCommand: ParsableCommand {
+protocol GrpcCommand {
 	var options: Client.Options { get }
 	var retries: ConnectionBackoff.Retries { get }
 	var callOptions: CallOptions? { get }
 	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? { get }
+}
 
+extension GrpcCommand {
+	var retries: ConnectionBackoff.Retries {
+		.upTo(1)
+	}
+	
+	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
+		nil
+	}
+	
+	var callOptions: CallOptions? {
+		CallOptions(timeLimit: .none)
+	}
+	
+	func prepareClient() throws -> (EventLoopGroup, CakedServiceClient) {
+		let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
+		let connection = try Caked.createClient(
+			on: group,
+			listeningAddress: URL(string: self.options.address),
+			connectionTimeout: self.options.timeout,
+			retries: retries,
+			caCert: self.options.caCert,
+			tlsCert: self.options.tlsCert,
+			tlsKey: self.options.tlsKey,
+			interceptors: interceptors)
+
+		return (group, connection)
+	}
+}
+
+protocol GrpcParsableCommand: ParsableCommand, GrpcCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String
 }
 
-protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcParsableCommand {
+extension GrpcParsableCommand {
+	public mutating func run() throws {
+		let (group, grpcClient) = try self.prepareClient()
+
+		defer {
+			try? grpcClient.channel.close().wait()
+			try? group.syncShutdownGracefully()
+		}
+
+		try print(self.run(client: grpcClient, arguments: self.options.arguments, callOptions: self.callOptions))
+	}
+}
+
+protocol AsyncGrpcParsableCommand: AsyncParsableCommand, GrpcCommand {
 	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) async throws -> String
 }
 
 extension AsyncGrpcParsableCommand {
-	func run(client: CakedServiceClient, arguments: [String], callOptions: CallOptions?) throws -> String {
-		throw CleanExit.helpRequest(self)
-	}
-
 	public mutating func run() async throws {
-		do {
-			let response = try await self.options.execute(command: self, arguments: self.options.arguments)
+		let (group, grpcClient) = try self.prepareClient()
 
-			if response.count > 0 {
-				print(response)
-			}
-		} catch {
-			Client.handleError(error)
+		func finish() async {
+			try? await grpcClient.channel.close().get()
+			try? await group.shutdownGracefully()
 		}
-	}
-}
 
-extension GrpcParsableCommand {
-	var retries: ConnectionBackoff.Retries {
-		.upTo(1)
-	}
-
-	var interceptors: Caked_ServiceClientInterceptorFactoryProtocol? {
-		nil
-	}
-
-	var callOptions: CallOptions? {
-		CallOptions(timeLimit: .none)
-	}
-
-	public mutating func run() throws {
 		do {
-			let response = try self.options.execute(command: self, arguments: self.options.arguments)
-
-			if response.count > 0 {
-				print(response)
-			}
+			try await print(self.run(client: grpcClient, arguments: self.options.arguments, callOptions: self.callOptions))
+			await finish()
 		} catch {
-			Client.handleError(error)
+			await finish()
+			throw error
 		}
 	}
 }
 
 @main
-struct Client: AsyncParsableCommand {
+struct Client: ParsableCommand {
 	struct Options: ParsableArguments {
 		var commandName: String? = nil
 		var arguments: [String] = []
@@ -118,52 +138,7 @@ struct Client: AsyncParsableCommand {
 		public var tlsKey: String? = nil
 
 		@Option(name: [.customLong("log-level")], help: "Log level")
-		public var logLevel: Logger.LogLevel = .info
-
-		func prepareClient(retries: ConnectionBackoff.Retries, interceptors: Caked_ServiceClientInterceptorFactoryProtocol?) throws -> (EventLoopGroup, CakedServiceClient) {
-			let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
-			let connection = try Caked.createClient(
-				on: group,
-				listeningAddress: URL(string: self.address),
-				connectionTimeout: self.timeout,
-				retries: retries,
-				caCert: self.caCert,
-				tlsCert: self.tlsCert,
-				tlsKey: self.tlsKey,
-				interceptors: interceptors)
-
-			return (group, connection)
-		}
-
-		func execute(command: GrpcParsableCommand, arguments: [String]) throws -> String {
-			let (group, grpcClient) = try prepareClient(retries: command.retries, interceptors: command.interceptors)
-
-			defer {
-				try? grpcClient.channel.close().wait()
-				try? group.syncShutdownGracefully()
-			}
-
-			return try command.run(client: grpcClient, arguments: arguments, callOptions: command.callOptions)
-		}
-
-		func execute(command: AsyncGrpcParsableCommand, arguments: [String]) async throws -> String {
-			let (group, grpcClient) = try prepareClient(retries: command.retries, interceptors: command.interceptors)
-			let finish = {
-				try? await grpcClient.channel.close().get()
-				try? await group.shutdownGracefully()
-			}
-
-			do {
-				let reply = try await command.run(client: grpcClient, arguments: arguments, callOptions: command.callOptions)
-
-				await finish()
-
-				return reply
-			} catch {
-				await finish()
-				throw error
-			}
-		}
+		public var logLevel: CakeAgentLib.Logger.LogLevel = .info
 
 		mutating func validate() throws {
 			Logger.setLevel(self.logLevel)
@@ -189,6 +164,7 @@ struct Client: AsyncParsableCommand {
 	@OptionGroup(title: "Client options")
 	var options: Client.Options
 
+	nonisolated(unsafe)
 	static var configuration: CommandConfiguration {
 		var conf = CommandConfiguration(
 			commandName: "cakectl",
@@ -229,14 +205,6 @@ struct Client: AsyncParsableCommand {
 		return conf
 	}
 
-	static func parse() throws -> GrpcParsableCommand? {
-		do {
-			return try parseAsRoot() as? GrpcParsableCommand
-		} catch {
-			return nil
-		}
-	}
-
 	static func handleError(_ error: Error) {
 		var error = error
 
@@ -260,7 +228,12 @@ struct Client: AsyncParsableCommand {
 		Self.exit(withError: error)
 	}
 
-	mutating func run() async throws {
+	public static func main() async throws {
+		// Set up logging to stderr
+		LoggingSystem.bootstrap { label in
+			StreamLogHandler.standardError(label: label)
+		}
+
 		// Ensure the default SIGINT handled is disabled,
 		// otherwise there's a race between two handlers
 		signal(SIGINT, SIG_IGN)
@@ -275,24 +248,14 @@ struct Client: AsyncParsableCommand {
 		// Set line-buffered output for stdout
 		setlinebuf(stdout)
 
-		try self.options.validate()
-
 		// Parse and run command
 		do {
-			guard let command = try Self.parse() else {
-				throw CleanExit.helpRequest(self)
-			}
+			var command = try Self.parseAsRoot()
 
-			let response: String
-
-			if let command = command as? AsyncGrpcParsableCommand {
-				response = try await self.options.execute(command: command, arguments: self.options.arguments)
+			if var command = command as? AsyncParsableCommand {
+				try await command.run()
 			} else {
-				response = try self.options.execute(command: command, arguments: self.options.arguments)
-			}
-
-			if response.count > 0 {
-				print(response)
+				try command.run()
 			}
 		} catch {
 			Self.handleError(error)
