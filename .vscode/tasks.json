@@ -3,21 +3,12 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"label": "Build signed caked",
+			"label": "Build signed",
 			"group": "build",
-			"command": "${workspaceFolder:caker}/.vscode/taskes/build-caked.sh",
+			"command": "${workspaceFolder:caker}/.vscode/taskes/build.sh",
 			"args": [
 				"${workspaceFolder:caker}"
 			]
-		},
-		{
-			"type": "shell",
-			"label": "Build signed cakectl",
-			"group": "build",
-			"command": "${workspaceFolder:caker}/.vscode/taskes/build-cakectl.sh",
-			"args": [
-				"${workspaceFolder:caker}"
-			]
-		}		
+		}
 	]
 }

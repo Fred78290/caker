@@ -24,8 +24,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build linux cloud-image",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -45,8 +45,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build linux lxd",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -63,8 +63,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked build sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -81,8 +81,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -105,8 +105,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked launch linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -116,8 +116,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked list",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -128,8 +128,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked pull ghcr.io/cirruslabs/macos-sequoia-vanilla:latest",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -141,8 +141,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked clone ghcr.io/cirruslabs/ubuntu:24.04",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -156,8 +156,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked convert frank-eland",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -171,8 +171,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked convert ubuntu-desktop",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -185,8 +185,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked waitip ubuntu",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -197,8 +197,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -209,8 +209,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete integration-test-devices-linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -221,8 +221,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete stream ubuntu://noble",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -233,8 +233,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete integration-test-devices-linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -245,8 +245,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked delete sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -258,8 +258,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked configure linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -272,8 +272,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux --ui",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -286,8 +286,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun linux --vnc",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -300,22 +300,34 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
 			"request": "launch",
 			"args": [
 				"vmrun",
-				"ubuntu-desktop",
+				"ubuntu-desktop-26.04",
 				"--vnc",
 				"--log-level=info"
 			],
 			"cwd": "${workspaceFolder:caker}",
-			"name": "caked vmrun ubuntu-desktop",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"name": "caked vmrun ubuntu-desktop-26.04",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
+		},
+		{
+			"type": "swift",
+			"request": "launch",
+			"args": [
+				"vnc",
+				"ubuntu-desktop-26.04"
+			],
+			"cwd": "${workspaceFolder:caker}",
+			"name": "caked vnc ubuntu-desktop-26.04",
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -327,8 +339,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked vmrun /Volumes/Manix/Users/fboltz/.cake/vms/test/disk.img",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -338,8 +350,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked shell",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -350,8 +362,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked infos linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -362,8 +374,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked infos sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -375,8 +387,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked start linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -387,8 +399,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked start sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -399,8 +411,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked stop linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -411,8 +423,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked stop macos-sequoia-vanilla-test",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -424,8 +436,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked service listen",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -438,8 +450,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked mount linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -452,8 +464,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked umount linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -466,8 +478,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked mount sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -480,8 +492,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked umount sequoia",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -493,8 +505,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked image pull ubuntu:noble",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -506,8 +518,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked image info canonical:centos/9-Stream/cloud",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -520,8 +532,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked template create linux test-template",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -532,8 +544,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked template list",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -545,8 +557,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked exec linux ls",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -560,8 +572,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked networks run en0",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -573,8 +585,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked networks list",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -586,8 +598,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked networks start en0",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -599,8 +611,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked networks stop en0",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -612,8 +624,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "caked networks configure shared",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/caked",
-			"preLaunchTask": "Build signed caked"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/caked",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"name": "-----------------------------------------------------------------------------"
@@ -626,8 +638,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl list",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -638,8 +650,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl infos linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -653,8 +665,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl exec linux ls -- -al",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -665,8 +677,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl shell linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -678,8 +690,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl networks start en0",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		},
 		{
 			"type": "swift",
@@ -708,71 +720,8 @@
 			],
 			"cwd": "${workspaceFolder:caker}",
 			"name": "cakectl build linux",
-			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/MacOS/cakectl",
-			"preLaunchTask": "Build signed cakectl"
-		},
-		{
-			"name": "-----------------------------------------------------------------------------"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Debug caked",
-			"preLaunchTask": "swift: Build Debug caked",
-			"target": "caked",
-			"configuration": "debug"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Release caked",
-			"preLaunchTask": "swift: Build Release caked",
-			"target": "caked",
-			"configuration": "release"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Debug cakectl",
-			"preLaunchTask": "swift: Build Debug cakectl",
-			"target": "cakectl",
-			"configuration": "debug"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Release cakectl",
-			"preLaunchTask": "swift: Build Release cakectl",
-			"target": "cakectl",
-			"configuration": "release"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Debug caker",
-			"preLaunchTask": "swift: Build Debug caker",
-			"target": "caker",
-			"configuration": "debug"
-		},
-		{
-			"type": "swift",
-			"request": "launch",
-			"args": [],
-			"cwd": "${workspaceFolder:caker}",
-			"name": "Release caker",
-			"preLaunchTask": "swift: Build Release caker",
-			"target": "caker",
-			"configuration": "release"
+			"program": "${workspaceFolder:caker}/dist/Caker.app/Contents/Plugins/cakectl",
+			"preLaunchTask": "Build signed"
 		}
 	]
 }
