@@ -385,7 +385,7 @@ struct HostVirtualMachineView: View {
 			if self.liveResizeWindow {
 				self.liveResizeWindow = false
 
-				self.document.setDocumentSize(self.documentSize)
+				self.document.setScreenSize(self.documentSize)
 			}
 		}
 	}
