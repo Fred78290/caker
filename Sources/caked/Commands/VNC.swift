@@ -16,7 +16,7 @@ import NIO
 import RoyalVNCKit
 import SwiftUI
 
-struct VNC: CakeAgentAsyncParsableCommand {
+struct VNC: CakeAgentParsableCommand {
 	static var configuration = CommandConfiguration(commandName: "vnc", abstract: "Start a VNC client for a running VM")
 	static let logger = Logger("VNCClient")
 
@@ -39,6 +39,9 @@ struct VNC: CakeAgentAsyncParsableCommand {
 	@Argument(help: "VM name")
 	var name: String
 
+	@Flag(name: .customLong("vnc-debug"), help: ArgumentHelp("Trace vnc traffic", visibility: .hidden))
+	var vncDebug: Bool = false
+
 	mutating func validate() throws {
 		Logger.setLevel(self.common.logLevel)
 
@@ -51,8 +54,7 @@ struct VNC: CakeAgentAsyncParsableCommand {
 		}
 	}
 
-	@MainActor
-	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) async {
+	func run(on: EventLoopGroup, helper: CakeAgentHelper, callOptions: CallOptions?) throws {
 		do {
 			let location = try StorageLocation(runMode: runMode).find(name)
 			let result = try CakedLib.InfosHandler.infos(location: location, runMode: self.common.runMode, client: helper, callOptions: callOptions)
@@ -64,20 +66,25 @@ struct VNC: CakeAgentAsyncParsableCommand {
 				return
 			}
 
-			try await VNCApp.startVncClient(name: self.name,
-											config: result.config,
-											vncURL: vncURL,
-											screenSize: screenSize,
-											isDebugLoggingEnabled: self.logLevel > .info,
-			vmStatus: {
+			func vmStatus() -> Status {
 				if location.status == .running {
 					return .running
 				}
-
+				
 				return .stopped
-			}, screenSizeAction: { screenSize in
+			}
+
+			func screenSizeAction(_ screenSize: ViewSize) -> Void {
 				_ = CakedLib.ScreenSizeHandler.setScreenSize(name: self.name, width: screenSize.width, height: screenSize.height, runMode: runMode)
-			})
+			}
+
+			try VNCApp.startVncClient(name: self.name,
+									  config: result.config,
+									  vncURL: vncURL,
+									  screenSize: screenSize,
+									  isDebugLoggingEnabled: vncDebug,
+									  vmStatus: vmStatus,
+									  screenSizeAction: screenSizeAction)
 
 		} catch {
 			Logger.appendNewLine(self.common.format.render("\(error)"))

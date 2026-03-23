@@ -112,9 +112,9 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 			port: UInt16(vncPort),
 			isShared: true,
 			isScalingEnabled: true,
-			useDisplayLink: false,
-			inputMode: .none,
-			isClipboardRedirectionEnabled: false,
+			useDisplayLink: true,
+			inputMode: .forwardAllKeyboardShortcutsAndHotKeys,
+			isClipboardRedirectionEnabled: true,
 			colorDepth: .depth24Bit,
 			frameEncodings: .default)
 
@@ -145,6 +145,16 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 		self.connection = RoyalVNCKit.VNCConnection(settings: self.settings, logger: vncLogger)
 		self.connection.delegate = self
 		self.connection.connect()
+	}
+
+	func disconnect() {
+		guard let connection = self.connection else {
+			return
+		}
+
+		self.connection = nil
+
+		connection.disconnect()
 	}
 
 	func connect() async throws {
@@ -200,6 +210,7 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 					}
 				} else {
 					self.vncView = nil
+					NSApplication.shared.terminate(self)
 				}
 			}
 
@@ -276,7 +287,6 @@ class VNCConnectionAppState: RoyalVNCKit.VNCConnectionDelegate, Codable {
 				self.vncStatus = .ready
 			}
 		}
-
 	}
 
 	func connection(_ connection: RoyalVNCKit.VNCConnection, didResizeFramebuffer framebuffer: RoyalVNCKit.VNCFramebuffer) {
@@ -305,6 +315,7 @@ struct VNCContentView: View {
 	@State var window: NSWindow? = nil
 	@State var needsResize: Bool = false
 	@State var liveResizeWindow: Bool = false
+	@State var screenSize: ViewSize
 
 	var body: some View {
 		GeometryReader { geom in
@@ -317,14 +328,13 @@ struct VNCContentView: View {
 							DispatchQueue.main.async {
 								self.setContentSize(size, window: window, animated: true)
 							}
-
 						}
 					}
 				}
 				.frame(width: geom.size.width, height: geom.size.height)
 				.onAppear {
 					NSWindow.allowsAutomaticWindowTabbing = false
-
+					
 					if let window = self.window {
 						self.appState.setScreenSize(ViewSize(window.contentLayoutRect.size))
 					} else {
@@ -334,11 +344,13 @@ struct VNCContentView: View {
 					handleStartLiveResizeNotification(notification)
 				}.onReceive(NSWindow.didEndLiveResizeNotification) { notification in
 					handleDidResizeNotification(notification)
+				}.onReceive(NSWindow.willCloseNotification) { notification in
+					handleWillCloseNotification(notification)
 				}.onGeometryChange(for: CGRect.self) { proxy in
 					proxy.frame(in: .global)
 				} action: { newValue in
-					if self.needsResize == false && self.liveResizeWindow == false && window != nil {
-						self.appState.setScreenSize(ViewSize(newValue.size))
+					if self.needsResize == false && window != nil {
+						self.setScreenSize(ViewSize(newValue.size))
 					}
 				}
 		}
@@ -388,7 +400,22 @@ struct VNCContentView: View {
 
 			if self.liveResizeWindow {
 				self.liveResizeWindow = false
+				self.appState.setScreenSize(screenSize)
 			}
+		}
+	}
+
+	func handleWillCloseNotification(_ notification: Notification) {
+		if isMyWindowKey(notification) {
+			self.appState.disconnect()
+		}
+	}
+
+	func setScreenSize(_ size: ViewSize) {
+		self.screenSize = size
+
+		if self.liveResizeWindow == false {
+			self.appState.setScreenSize(size)
 		}
 	}
 
@@ -420,7 +447,7 @@ public struct VNCApp: App {
 	
 	public var body: some Scene {
 		WindowGroup {
-			VNCContentView(appState: self.appState)
+			VNCContentView(appState: self.appState, screenSize: appState.screenSize)
 				.frame(idealWidth: CGFloat(appState.screenSize.width), maxWidth: .infinity, idealHeight: CGFloat(appState.screenSize.height), maxHeight: .infinity)
 				.presentedWindowToolbarStyle(.unifiedCompact)
 				.windowMinimizeBehavior(.enabled)
@@ -449,7 +476,7 @@ public struct VNCApp: App {
 									  screenSize: ViewSize,
 									  isDebugLoggingEnabled: Bool = false,
 									  vmStatus: @escaping VMStatusAction,
-									  screenSizeAction: VNCSetScreenSizeAction? = nil) async throws {
+									  screenSizeAction: VNCSetScreenSizeAction? = nil) throws {
 		VNCConnectionAppState.state = try VNCConnectionAppState(
 			name: name,
 			config: config,
@@ -459,12 +486,7 @@ public struct VNCApp: App {
 			vmStatus: vmStatus,
 			screenSizeAction: screenSizeAction
 		)
-		
-		// Connect
-		try await VNCConnectionAppState.state.connect()
 
-		await MainActor.run {
-			VNCApp.main()
-		}
+		VNCApp.main()
 	}
 }

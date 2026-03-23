@@ -28,6 +28,9 @@ struct CommonOptions: ParsableArguments {
 
 @main
 struct Root: ParsableCommand {
+	@OptionGroup(title: "Global options")
+	var common: CommonOptions
+
 	static let sigintSrc: any DispatchSourceSignal = {
 		signal(SIGINT, SIG_IGN)
 		let sigintSrc = DispatchSource.makeSignalSource(signal: SIGINT)
@@ -48,7 +51,7 @@ struct Root: ParsableCommand {
 	}()
 
 	nonisolated(unsafe)
-		static var configuration = CommandConfiguration(
+	static var configuration = CommandConfiguration(
 			commandName: "\(Home.cakedCommandName)",
 			usage: "\(Home.cakedCommandName) <subcommand>",
 			discussion: "\(Home.cakedCommandName) is an hypervisor running VM",
