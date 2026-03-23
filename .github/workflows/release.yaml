@@ -124,6 +124,8 @@ jobs:
           TMPFILE=$(mktemp)
           envsubst < Sources/cakedlib/CI/CI.swift > $TMPFILE
           cp $TMPFILE Sources/cakedlib/CI/CI.swift
+          envsubst < Resources/Info.plist > $TMPFILE
+          cp $TMPFILE Resources/Info.plist
 
       - name: Build QCow2convert framework
         run: |

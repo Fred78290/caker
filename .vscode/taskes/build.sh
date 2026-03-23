@@ -5,6 +5,9 @@ PKGDIR=${CURDIR}/dist/Caker.app
 BUILDDIR="${CURDIR}/.build/debug"
 RESOURCESDIR="${CURDIR}/Caker/Caker/Content"
 ASSETS="${BUILDDIR}/assets"
+SNAPSHOT=$(git rev-parse --short=8 HEAD)
+
+export VERSION_TAG=${VERSION_TAG:=SNAPSHOT-$SNAPSHOT}
 
 /usr/bin/swift build -Xswiftc -diagnostic-style=llvm
 
@@ -38,4 +41,5 @@ cp -c "${ASSETS}/AppIcon.icns" "${PKGDIR}/Contents/Resources/AppIcon.icns"
 cp -c "${ASSETS}/Assets.car" "${PKGDIR}/Contents/Resources/Assets.car"
 cp -c "${CURDIR}/Resources/Icons/"*.png "${PKGDIR}/Contents/Resources/Icons"
 cp -c "${CURDIR}/Resources/Caker.provisionprofile" "${PKGDIR}/Contents/embedded.provisionprofile"
-cp -c "${CURDIR}/Resources/caked.plist" "${PKGDIR}/Contents/Info.plist"
+
+envsubst < "${CURDIR}/Resources/Info.plist" > "${PKGDIR}/Contents/Info.plist"

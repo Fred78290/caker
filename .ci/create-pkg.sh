@@ -37,7 +37,7 @@ cp -c ${ASSETS}/AppIcon.icns ${PKGDIR}/Contents/Resources/AppIcon.icns
 cp -c ${ASSETS}/Assets.car ${PKGDIR}/Contents/Resources/Assets.car
 cp -c ${CURDIR}/Resources/Icons/*.png ${PKGDIR}/Contents/Resources/Icons
 cp -c ${CURDIR}/Resources/Caker.provisionprofile ${PKGDIR}/Contents/embedded.provisionprofile
-cp -c ${CURDIR}/Resources/caked.plist ${PKGDIR}/Contents/Info.plist
+cp -c ${CURDIR}/Resources/Info.plist ${PKGDIR}/Contents/Info.plist
 
 if [ -n "$1" ]; then
 	KEYCHAIN_OPTIONS="--keychain $1"
