@@ -2,7 +2,7 @@
 
 set -e
 
-echo "/Applications/Caker.app/Contents/PlugIns" >> /etc/paths.d/com.aldunelabs.caker
+echo "/Applications/Caker.app/Contents/PlugIns" > /etc/paths.d/com.aldunelabs.caker
 
 # Create sudoers file for Caker
 cat <<EOF > /etc/sudoers.d/caked
