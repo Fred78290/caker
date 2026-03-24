@@ -50,21 +50,33 @@ struct CakerMenuBarExtraScene: Scene {
 				
 				if self.appState.cakedServiceInstalled {
 					Button("Remove service") {
-						self.appState.removeCakedService()
+						MainApp.removeCakedService()
 					}
 				} else {
 					Button("Install service") {
-						self.appState.installCakedService()
+						MainApp.installCakedService()
 					}
 				}
-				
-				if self.appState.cakedServiceRunning {
-					Button("Stop service") {
-						self.appState.stopCakedService()
+
+				if self.appState.cakedServiceInstalled {
+					if self.appState.cakedServiceRunning {
+						Button("Stop service") {
+							MainApp.stopCakedService()
+						}.disabled(self.appState.cakedServiceInstalled == false)
+					} else {
+						Button("Start service") {
+							MainApp.startCakedService()
+						}.disabled(self.appState.cakedServiceInstalled == false)
 					}
 				} else {
-					Button("Start service") {
-						self.appState.startCakedService()
+					if self.appState.cakedServiceRunning {
+						Button("Stop caked daemon") {
+							MainApp.stopCakedDaemon()
+						}
+					} else {
+						Button("Start caked daemon") {
+							MainApp.startCakedDaemon()
+						}
 					}
 				}
 			}

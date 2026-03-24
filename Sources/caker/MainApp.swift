@@ -152,7 +152,7 @@ struct MainApp: App {
 		WindowGroup(id: "VM", for: URL.self) { $vmURL in
 			if let vmURL, let document = self.appState.findVirtualMachineDocument(vmURL) {
 				let initialSize = document.virtualMachineConfig.display.cgSize
-					
+				
 				HostVirtualMachineView(appState: $appState, document: document)
 					.colorSchemeForColor()
 					.windowMinimizeBehavior(.enabled)
@@ -254,22 +254,34 @@ struct MainApp: App {
 		CommandMenu("Service") {
 			if self.appState.cakedServiceInstalled {
 				Button("Remove service") {
-					self.appState.removeCakedService()
+					Self.removeCakedService()
 				}.disabled(self.appState.cakedServiceRunning)
 			} else {
 				Button("Install service") {
-					self.appState.installCakedService()
+					Self.installCakedService()
 				}
 			}
 			
-			if self.appState.cakedServiceRunning {
-				Button("Stop service") {
-					self.appState.stopCakedService()
-				}.disabled(self.appState.cakedServiceInstalled == false)
+			if self.appState.cakedServiceInstalled {
+				if self.appState.cakedServiceRunning {
+					Button("Stop service") {
+						Self.stopCakedService()
+					}.disabled(self.appState.cakedServiceInstalled == false)
+				} else {
+					Button("Start service") {
+						Self.startCakedService()
+					}.disabled(self.appState.cakedServiceInstalled == false)
+				}
 			} else {
-				Button("Start service") {
-					self.appState.startCakedService()
-				}.disabled(self.appState.cakedServiceInstalled == false)
+				if self.appState.cakedServiceRunning {
+					Button("Stop caked daemon") {
+						Self.stopCakedDaemon()
+					}
+				} else {
+					Button("Start caked daemon") {
+						Self.startCakedDaemon()
+					}
+				}
 			}
 		}
 	}
@@ -298,7 +310,7 @@ struct MainApp: App {
 			.restorationState(.disabled)
 			.frame(minWidth: 700, maxWidth: 700, minHeight: 670, maxHeight: 670)
 	}
-
+	
 	@MainActor func openVirtualMachine(_ vmURL: URL) async {
 		if let document = appState.tryVirtualMachineDocument(vmURL) {
 			if let vmURL = document.loadVirtualMachine() {
@@ -310,6 +322,110 @@ struct MainApp: App {
 			}
 		}
 	}
+	
+	static func installCakedService() {
+		do {
+			try ServiceHandler.installAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func removeCakedService() {
+		do {
+			try ServiceHandler.uninstallAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func stopCakedService() {
+		do {
+			try ServiceHandler.stopAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func startCakedService() {
+		do {
+			try ServiceHandler.launchAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func stopCakedDaemon() {
+		do {
+			try ServiceHandler.stopAgentRunning(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func startCakedDaemon() {
+		do {
+			try self.runAgent(runMode: .user)
+		} catch {
+			DispatchQueue.main.async {
+				alertError(error)
+			}
+		}
+	}
+	
+	static func runAgent(runMode: Utils.RunMode) throws {
+		guard var pluginsURL = Bundle.main.builtInPlugInsURL else {
+			throw ServiceError("Plugins path is missing")
+		}
+
+		pluginsURL = pluginsURL.appendingPathComponent("caked")
+
+		// Launch off the main thread to avoid QoS inversions and UI stalls
+		Task.detached(priority: .userInitiated) {
+			do {
+				let process = ProcessWithSharedFileHandle()
+				process.executableURL = pluginsURL
+				process.arguments = [
+					"service",
+					"listen",
+					"--secure",
+					"--log-level=\(CakeAgentLib.Logger.Level().description)"
+				]
+
+				// If you need to capture output, switch to Pipes and read asynchronously.
+				// For now, inherit parent's stdio without blocking the main thread.
+				process.standardOutput = FileHandle.standardOutput
+				process.standardError = FileHandle.standardError
+				process.standardInput = FileHandle.nullDevice
+
+				try process.run()
+
+				// Do not call waitUntilExit() on the main thread. If needed, wait here off-main.
+				//process.waitUntilExit()
+
+				// If you need to update UI after exit, hop back to the main actor here.
+				// await MainActor.run { /* update UI state */ }
+			} catch {
+				// Report error back to the main actor if UI needs to reflect failures
+				await MainActor.run {
+					// You can integrate with your app's logging or state here
+					// e.g., Logger.error("Failed to run agent: \(error)")
+					alertError(error)
+				}
+			}
+		}
+	}
+
 }
 
 class MainUIAppDelegate: NSObject, NSApplicationDelegate {
