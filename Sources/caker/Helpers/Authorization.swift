@@ -89,13 +89,18 @@ public struct Authorization {
 		var file = FILE()
 		let fh = try withUnsafeMutablePointer(to: &file) { file in
 			var pipe = file
-			let err = authorizationExecuteWithPrivileges(authorization, command, [], &args, &pipe)
+			return try args.withUnsafeBufferPointer { buffer in
+				// `args` always has at least one element (the terminating nil),
+				// so `baseAddress` is non-nil here.
+				let argsPointer = buffer.baseAddress!
+				let err = authorizationExecuteWithPrivileges(authorization, command, [], argsPointer, &pipe)
 
-			guard err == errAuthorizationSuccess else {
-				throw ServiceError("Authorization failed: \(err)")
+				guard err == errAuthorizationSuccess else {
+					throw ServiceError("Authorization failed: \(err)")
+				}
+
+				return FileHandle(fileDescriptor: fileno(pipe), closeOnDealloc: true)
 			}
-
-			return FileHandle(fileDescriptor: fileno(pipe), closeOnDealloc: true)
 		}
 
 		guard let output = try fh.readToEnd() else {
