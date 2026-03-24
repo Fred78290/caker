@@ -12,7 +12,7 @@ EOF
 
 chgroup staff /etc/sudoers.d/caked
 
-chmod 0664 /etc/sudoers.d/caked
+chmod 0440 /etc/sudoers.d/caked
 
 # Install the Caker service
 /Applications/Caker.app/Contents/PlugIns/caked service install --system
