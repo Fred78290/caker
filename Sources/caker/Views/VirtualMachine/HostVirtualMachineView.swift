@@ -267,7 +267,7 @@ struct HostVirtualMachineView: View {
 					if document.status == .running && document.agentReady {
 						ToolbarItemGroup(placement: .status) {
 							self.cpuUsageView
-						}
+						}.backgroundVisibility(false)
 					}
 
 					ToolbarItemGroup(placement: .primaryAction) {
