@@ -219,6 +219,8 @@ struct HomeView: View {
 			.windowAccessor($window) {
 				if let window = $0 {
 					window.titlebarAppearsTransparent = true
+                    window.titleVisibility = .visible
+                    window.toolbarStyle = .unified
 				}
 			}
 	}
