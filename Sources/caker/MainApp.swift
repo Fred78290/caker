@@ -6,6 +6,7 @@ import SwiftTerm
 import SwiftUI
 import SwifterSwiftUI
 import Logging
+import Security
 
 @MainActor
 func alertError(_ messageText: String, _ informativeText: String) {
@@ -322,12 +323,67 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
+		Task.detached(priority: .background) {
+			Self.ensurePrivilegedBootstrapFiles()
+		}
+
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
 		} else {
 			NSApp.setActivationPolicy(.regular)
 			EnvironmentValues().openWindow(id: "home")
 			NSApp.windows.first?.makeKeyAndOrderFront(nil)
+		}
+	}
+
+	private static func ensurePrivilegedBootstrapFiles() {
+		do {
+			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
+			let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
+			let pluginPath = Bundle.main.builtInPlugInsPath ?? Bundle.main.bundleURL.appendingPathComponent("Contents/PlugIns").path
+			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
+			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
+
+			if needsPathsFile || needsSudoersFile {
+				let authorization = try Authorization.requestAdminAuthorizationIfNeeded("/usr/bin/install")
+
+				defer {
+					if let authorization {
+						AuthorizationFree(authorization, [.destroyRights])
+					}
+				}
+				
+				if needsPathsFile {
+					let content = pluginPath.hasSuffix("\n") ? pluginPath : "\(pluginPath)\n"
+					try installRootOwnedFile(content: content, to: pathsFile, mode: "0644", authorization: authorization)
+				}
+				
+				if needsSudoersFile {
+					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+					try installRootOwnedFile(content: content, to: sudoersFile, mode: "0440", authorization: authorization)
+				}
+			}
+		} catch {
+			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
+		}
+	}
+
+	private static func installRootOwnedFile(content: String, to destination: URL, mode: String, authorization: AuthorizationRef?) throws {
+		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString)")
+		let parent = destination.deletingLastPathComponent()
+		let logger = CakeAgentLib.Logger("MainUIAppDelegate")
+
+		try content.write(to: temporaryFile, atomically: true, encoding: .utf8)
+		defer {
+			try? FileManager.default.removeItem(at: temporaryFile)
+		}
+
+		if geteuid() == 0 {
+			try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+			logger.debug(try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path]))
+		} else {
+			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-d", "-m", "755", parent.path], authorization: authorization))
+			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path], authorization: authorization))
 		}
 	}
 
