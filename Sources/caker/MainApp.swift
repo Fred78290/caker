@@ -344,35 +344,34 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			let needsPathsFile = FileManager.default.fileExists(atPath: pathsFile.path) == false
 			let needsSudoersFile = FileManager.default.fileExists(atPath: sudoersFile.path) == false
 
-			guard needsPathsFile || needsSudoersFile else {
-				return
-			}
+			if needsPathsFile || needsSudoersFile {
+				let authorization = try Authorization.requestAdminAuthorizationIfNeeded("/usr/bin/install")
 
-			let authorization = try requestAdminAuthorizationIfNeeded()
-			defer {
-				if let authorization {
-					AuthorizationFree(authorization, [.destroyRights])
+				defer {
+					if let authorization {
+						AuthorizationFree(authorization, [.destroyRights])
+					}
+				}
+				
+				if needsPathsFile {
+					let content = pluginPath.hasSuffix("\n") ? pluginPath : "\(pluginPath)\n"
+					try installRootOwnedFile(content: content, to: pathsFile, mode: "0644", authorization: authorization)
+				}
+				
+				if needsSudoersFile {
+					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
+					try installRootOwnedFile(content: content, to: sudoersFile, mode: "0644", authorization: authorization)
 				}
 			}
-
-			if needsPathsFile {
-				let content = pluginPath.hasSuffix("\n") ? pluginPath : "\(pluginPath)\n"
-				try installRootOwnedFile(content: content, to: pathsFile, mode: "0644", authorization: authorization)
-			}
-
-			if needsSudoersFile {
-				let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-				try installRootOwnedFile(content: content, to: sudoersFile, mode: "0440", authorization: authorization)
-				_ = try runPrivileged("/usr/sbin/visudo", arguments: ["-cf", sudoersFile.path], authorization: authorization)
-			}
 		} catch {
-			Logger(label: "MainUIAppDelegate").warning("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
+			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
 		}
 	}
 
 	private static func installRootOwnedFile(content: String, to destination: URL, mode: String, authorization: AuthorizationRef?) throws {
 		let temporaryFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("caker-bootstrap-\(UUID().uuidString)")
 		let parent = destination.deletingLastPathComponent()
+		let logger = CakeAgentLib.Logger("MainUIAppDelegate")
 
 		try content.write(to: temporaryFile, atomically: true, encoding: .utf8)
 		defer {
@@ -381,66 +380,11 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 
 		if geteuid() == 0 {
 			try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-			_ = try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path])
-			return
+			logger.debug(try Shell.command("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path]))
+		} else {
+			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-d", "-m", "755", parent.path], authorization: authorization))
+			logger.debug(try Authorization.runPrivileged("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path], authorization: authorization))
 		}
-
-		_ = try runPrivileged("/usr/bin/install", arguments: ["-d", "-m", "755", parent.path], authorization: authorization)
-		_ = try runPrivileged("/usr/bin/install", arguments: ["-o", "root", "-g", "wheel", "-m", mode, temporaryFile.path, destination.path], authorization: authorization)
-	}
-
-	private static func runPrivileged(_ command: String, arguments: [String], authorization: AuthorizationRef?) throws -> String {
-		if geteuid() == 0 {
-			return try Shell.command(command, arguments: arguments)
-		}
-
-		guard let authorization else {
-			throw ServiceError("Missing Authorization Services reference for privileged operation")
-		}
-		_ = authorization
-
-		let shellCommand = ([command] + arguments).map { shellQuote($0) }.joined(separator: " ")
-		let escapedShellCommand = shellCommand
-			.replacingOccurrences(of: "\\", with: "\\\\")
-			.replacingOccurrences(of: "\"", with: "\\\"")
-
-		let appleScript = "do shell script \"\(escapedShellCommand)\" with administrator privileges"
-		return try Shell.command("/usr/bin/osascript", arguments: ["-e", appleScript])
-	}
-
-	private static func requestAdminAuthorizationIfNeeded() throws -> AuthorizationRef? {
-		if geteuid() == 0 {
-			return nil
-		}
-
-		var authorization: AuthorizationRef?
-		let createStatus = AuthorizationCreate(nil, nil, [], &authorization)
-
-		guard createStatus == errAuthorizationSuccess, let authorization else {
-			throw ServiceError("AuthorizationCreate failed with status \(createStatus)")
-		}
-
-		let flags: AuthorizationFlags = [.interactionAllowed, .extendRights, .preAuthorize]
-		let copyStatus = kAuthorizationRightExecute.withCString { rightName in
-			var right = AuthorizationItem(name: rightName, valueLength: 0, value: nil, flags: 0)
-
-			return withUnsafeMutablePointer(to: &right) { rightPointer in
-				var rights = AuthorizationRights(count: 1, items: rightPointer)
-				return AuthorizationCopyRights(authorization, &rights, nil, flags, nil)
-			}
-		}
-
-		guard copyStatus == errAuthorizationSuccess else {
-			AuthorizationFree(authorization, [.destroyRights])
-			throw ServiceError("AuthorizationCopyRights failed with status \(copyStatus)")
-		}
-
-		return authorization
-	}
-
-	private static func shellQuote(_ value: String) -> String {
-		let escaped = value.replacingOccurrences(of: "'", with: "'\\''")
-		return "'\(escaped)'"
 	}
 
 	func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

@@ -172,6 +172,7 @@
 		9B5F49C42F70280700AE1991 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = 9B5F49C32F70280700AE1991 /* Subprocess */; };
 		9B5F49C52F70282400AE1991 /* libCakedLib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEBC7072DF440560092B196 /* libCakedLib.a */; };
 		9B5F49C92F7028F500AE1991 /* VNC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F49C82F7028F200AE1991 /* VNC.swift */; };
+		9B5F4B532F728AF600AE1991 /* Authorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F4B522F728AF200AE1991 /* Authorization.swift */; };
 		9B69F00C2EDF4A71008B41C5 /* VNCKeysyms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */; };
 		9B6CE5152E217A9D001BFAA4 /* RestorationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */; };
 		9B6ECD942E22B5400003ACED /* TextTable in Frameworks */ = {isa = PBXBuildFile; productRef = 9B6ECD932E22B5400003ACED /* TextTable */; };
@@ -782,6 +783,7 @@
 		9B5F49BF2F70032800AE1991 /* LabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelView.swift; sourceTree = "<group>"; };
 		9B5F49C12F7006AF00AE1991 /* VNCConnectionLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCConnectionLogger.swift; sourceTree = "<group>"; };
 		9B5F49C82F7028F200AE1991 /* VNC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNC.swift; sourceTree = "<group>"; };
+		9B5F4B522F728AF200AE1991 /* Authorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authorization.swift; sourceTree = "<group>"; };
 		9B69F00B2EDF4A6B008B41C5 /* VNCKeysyms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VNCKeysyms.swift; sourceTree = "<group>"; };
 		9B6CE5142E217A8B001BFAA4 /* RestorationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestorationState.swift; sourceTree = "<group>"; };
 		9B7053F22F4F06D2006C68AA /* GrandCentralDispatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandCentralDispatch.swift; sourceTree = "<group>"; };
@@ -1362,6 +1364,7 @@
 		9B30BA492E0BDB5600256A9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				9B5F4B522F728AF200AE1991 /* Authorization.swift */,
 				9BACED5D2EB676B900EB4C8D /* BridgeVirtualDocument.swift */,
 				9B5D7BCD2EAA9602001FB96E /* Color.swift */,
 				9B5C53CE2F124A7B002D628C /* CPUUsageMonitor.swift */,
@@ -2389,6 +2392,7 @@
 				9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */,
 				9BC1F6852F66B25C00A83B33 /* ColorWell.swift in Sources */,
 				9B2BFABD2DFED25E000045C3 /* ForwardedPortView.swift in Sources */,
+				9B5F4B532F728AF600AE1991 /* Authorization.swift in Sources */,
 				9B2221CE2F5831F20037344D /* InstallAgentHandler.swift in Sources */,
 				9B5D7BCE2EAA960B001FB96E /* Color.swift in Sources */,
 				9B30BA502E0BF38D00256A9D /* VZMacAddressParseableFormatStyle.swift in Sources */,
