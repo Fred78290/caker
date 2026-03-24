@@ -39,13 +39,11 @@ struct HomeView: View {
 	var body: some View {
 		self.navigationView
 			.toolbar {
-				ToolbarItem(placement: .navigation) {
+				ToolbarItemGroup(placement: .navigation) {
 					Button("Delete", systemImage: "trash") {
 						self.actionDelete()
 					}.disabled(self.deleteButtonDisabled)
-				}
 
-				ToolbarItem(placement: .navigation) {
 					Button("Plus", systemImage: "plus") {
 						self.actionPlus()
 					}
