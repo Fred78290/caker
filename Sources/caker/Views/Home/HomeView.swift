@@ -55,6 +55,28 @@ struct HomeView: View {
 							self.mustShowDetailView.toggle()
 						}
 					}
+				} else {
+					ToolbarItem(placement: .automatic) {
+						Image(systemName: "circle")
+							.resizable()
+							.renderingMode(.template)
+							.foregroundStyle(self.appState.runMode == .app ? .red : .green)
+							.aspectRatio(contentMode: .fit)
+							.opacity(0.8)
+							.frame(width: 24, height: 24)
+							.padding(4)
+							.overlay {
+								Image(systemName: "app.connected.to.app.below.fill")
+									.resizable()
+									.renderingMode(.template)
+									.foregroundStyle(self.appState.runMode == .app ? .red : .green)
+									.aspectRatio(contentMode: .fit)
+									.opacity(0.8)
+									.frame(width: 14, height: 14)
+									.padding(4)
+
+							}
+					}.backgroundVisibility(false)
 				}
 			}
 			.sheet(isPresented: $presented) {
