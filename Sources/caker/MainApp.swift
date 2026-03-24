@@ -164,7 +164,7 @@ struct MainApp: App {
 					.containerBackground(.windowBackground, for: .window)
 					.navigationTitle(document.name)
 			} else {
-				self.failedLoadVirtualMachine("Unexpected URL \(vmURL?.absoluteString ?? "not defined")")
+				self.failedLoadVirtualMachine("Service is not runing or stopped")
 			}
 		}
 		.handlesExternalEvents(matching: [])
@@ -287,7 +287,7 @@ struct MainApp: App {
 	}
 	
 	private func failedLoadVirtualMachine(_ title: String) -> some View {
-		LabelView("Unable to load virtual machine \(title)")
+		LabelView("Unable to load virtual machine\n\(title)")
 			.containerBackground(.windowBackground, for: .window)
 			.colorSchemeForColor()
 			.restorationState(.disabled)
