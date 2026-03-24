@@ -391,7 +391,7 @@ struct MainApp: App {
 		pluginsURL = pluginsURL.appendingPathComponent("caked")
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
-		Task.detached(priority: .userInitiated) {
+		Task.detached(priority: .background) {
 			do {
 				let process = ProcessWithSharedFileHandle()
 				process.executableURL = pluginsURL
