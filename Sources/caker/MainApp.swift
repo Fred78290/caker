@@ -388,7 +388,7 @@ struct MainApp: App {
 			throw ServiceError("Plugins path is missing")
 		}
 
-		pluginsURL = pluginsURL.appendingPathComponent("caked")
+		pluginsURL = pluginsURL.appendingPathComponent(Home.cakedCommandName)
 
 		// Launch off the main thread to avoid QoS inversions and UI stalls
 		Task.detached(priority: .background) {
