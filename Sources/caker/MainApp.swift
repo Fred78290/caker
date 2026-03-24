@@ -360,7 +360,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 				
 				if needsSudoersFile {
 					let content = "%everyone ALL=(root:wheel) NOPASSWD: \(pluginPath)/caked\n"
-					try installRootOwnedFile(content: content, to: sudoersFile, mode: "0644", authorization: authorization)
+					try installRootOwnedFile(content: content, to: sudoersFile, mode: "0440", authorization: authorization)
 				}
 			}
 		} catch {
