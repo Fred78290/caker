@@ -34,7 +34,7 @@ public struct Authorization {
 			path.withUnsafeBufferPointer { pathBuf in
 				let pathPtr = UnsafeMutableRawPointer(mutating: pathBuf.baseAddress!)
 				
-				return AuthorizationItem(name: nameBuf.baseAddress!, valueLength: path.count, value: pathPtr, flags: 0)
+				return AuthorizationItem(name: nameBuf.baseAddress!, valueLength: path.count - 1, value: pathPtr, flags: 0)
 			}
 		}
 
