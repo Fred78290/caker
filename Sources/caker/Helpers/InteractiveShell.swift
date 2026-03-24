@@ -95,6 +95,7 @@ class InteractiveShell {
 #if DEBUG
 		self.logger.debug("Close shell: \(self.name) \(_file):\(_line)")
 #endif
+		shellStream.finish()
 
 		self.shellStream = nil
 
