@@ -439,9 +439,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		Task.detached(priority: .background) {
-			Self.ensurePrivilegedBootstrapFiles()
-		}
+		Self.ensurePrivilegedBootstrapFiles()
 
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
