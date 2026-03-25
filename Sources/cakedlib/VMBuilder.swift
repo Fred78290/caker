@@ -268,7 +268,7 @@ public struct VMBuilder {
 				options.image = try await CloudImageConverter.downloadIPSW(remoteURL: imageURL, runMode: runMode, progressHandler: progressHandler).absoluteString
 			}
 			#else
-				throw ServiceError("unsupported image url: \(options.image)")
+				throw ServiceError("IPSW is only available on arm64 architecture: \(options.image)")
 			#endif
 		} else if sourceImage == .stream {
 			let scheme = imageURL.scheme!
