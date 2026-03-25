@@ -2389,7 +2389,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Type a script or drag a script file from your workspace to insert its path.\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif $OSVERSION -lt 25; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Type a script or drag a script file from your workspace to insert its path.\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"$OSVERSION\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
 		};
 		9B08B4AF2F743D68009EC5C6 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2407,7 +2407,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif $OSVERSION -lt 25; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"$OSVERSION\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
