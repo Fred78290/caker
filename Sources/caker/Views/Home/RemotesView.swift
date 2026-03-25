@@ -17,5 +17,5 @@ struct RemotesView: View {
 }
 
 #Preview {
-	RemotesView(appState: .constant(.init()), navigationModel: .constant(.init()))
+	RemotesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()))
 }

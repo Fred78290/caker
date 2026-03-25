@@ -300,12 +300,20 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
-	init() {
+	private init() {
 		var cakedServiceClient: CakedServiceClient? = nil
 		let runMode = ServiceHandler.runningMode
 		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
 		let cakedServiceRunning = runMode != .app
 		
+		let env = ProcessInfo.processInfo.environment
+		let isRunningInPreviews = env["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+		let isRunningInTests = env["XCTestConfigurationFilePath"] != nil
+		
+		if !isRunningInPreviews && !isRunningInTests {
+			MainUIAppDelegate.ensurePrivilegedBootstrapFiles()
+		}
+
 		if cakedServiceRunning {
 			cakedServiceClient = ServiceHandler.serviceClient
 		}

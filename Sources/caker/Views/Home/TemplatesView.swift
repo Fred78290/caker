@@ -17,5 +17,5 @@ struct TemplatesView: View {
 }
 
 #Preview {
-	TemplatesView(appState: .constant(.init()), navigationModel: .constant(.init()))
+	TemplatesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()))
 }

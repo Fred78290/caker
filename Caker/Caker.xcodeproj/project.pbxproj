@@ -29,6 +29,9 @@
 		9B0202732EA8D0A100053712 /* RoundedTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0202722EA8D08800053712 /* RoundedTextField.swift */; };
 		9B03171D2E3B7B08002FC5B7 /* IPSWInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */; };
 		9B068D5A2EB89E2C00C68D7E /* GlassEffectHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */; };
+		9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
+		9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */; };
 		9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0D1A452E2BAA2700D70267 /* FileMonitor */; };
 		9B13C3412F0AD8540099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3402F0AD8540099F00F /* CakeAgentLib */; };
 		9B13C3432F0AD87C0099F00F /* CakeAgentLib in Frameworks */ = {isa = PBXBuildFile; productRef = 9B13C3422F0AD87C0099F00F /* CakeAgentLib */; };
@@ -644,15 +647,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		9BA22EF42E2505D500172D25 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Icons;
-			dstSubfolderSpec = 7;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9BE569EB2DFEF9720086B9C7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -680,6 +674,7 @@
 		9B0202722EA8D08800053712 /* RoundedTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedTextField.swift; sourceTree = "<group>"; };
 		9B03171C2E3B7AFF002FC5B7 /* IPSWInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPSWInstaller.swift; sourceTree = "<group>"; };
 		9B068D592EB89E2A00C68D7E /* GlassEffectHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectHelper.swift; sourceTree = "<group>"; };
+		9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCompatibilitySpan.tbd; path = usr/lib/swift/libswiftCompatibilitySpan.tbd; sourceTree = SDKROOT; };
 		9B1500BA2E6B060F00B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BC2E6B067200B23147 /* SuspendHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuspendHandler.swift; sourceTree = "<group>"; };
 		9B1500BE2E6B07EC00B23147 /* Suspend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suspend.swift; sourceTree = "<group>"; };
@@ -1091,6 +1086,7 @@
 				9B21ABCA2DF4A243000B3B40 /* libGRPCLib.a in Frameworks */,
 				9B0D1A462E2BAA2700D70267 /* FileMonitor in Frameworks */,
 				9B21ABCD2DF4A243000B3B40 /* Qcow2convert.xcframework in Frameworks */,
+				9B08B4AD2F7436F1009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B30BA7D2E0C202A00256A9D /* SwiftletUtilities in Frameworks */,
 				9B9123812E29253A006DD682 /* SwiftTerm in Frameworks */,
 			);
@@ -1107,6 +1103,7 @@
 				9B464C3A2D5A426200164BF5 /* NIOExtras in Frameworks */,
 				9B464C8B2D5A48F500164BF5 /* Semaphore in Frameworks */,
 				9B464C832D5A488400164BF5 /* AsyncAlgorithms in Frameworks */,
+				9B08B4AC2F743641009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9B464C2C2D5A426200164BF5 /* NIOHTTP1 in Frameworks */,
 				9B464C282D5A426200164BF5 /* NIOEmbedded in Frameworks */,
 				9B464C262D5A426200164BF5 /* NIOCore in Frameworks */,
@@ -1184,6 +1181,7 @@
 				9BEBC8302DF44B9C0092B196 /* SwiftFormat in Frameworks */,
 				9BEBC84A2DF44B9C0092B196 /* NIO in Frameworks */,
 				9BEBC8602DF44B9D0092B196 /* Shout in Frameworks */,
+				9B08B4AB2F743633009EC5C6 /* libswiftCompatibilitySpan.tbd in Frameworks */,
 				9BEBC85C2DF44B9D0092B196 /* SwiftProtobuf in Frameworks */,
 				9BEBC8642DF44B9D0092B196 /* Gzip in Frameworks */,
 				9BEBC8582DF44B9D0092B196 /* NIOWebSocket in Frameworks */,
@@ -1522,6 +1520,7 @@
 		9B464C042D5A426200164BF5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				9B08B4AA2F743609009EC5C6 /* libswiftCompatibilitySpan.tbd */,
 				9BBE5C6E2F4C544E005B3359 /* XCTest.framework */,
 				9BA22FFE2E26512500172D25 /* CoreAudio.framework */,
 				9BA22FFF2E26512500172D25 /* CoreAudioKit.framework */,
@@ -1993,7 +1992,7 @@
 				9B464A512D5A3DA000164BF5 /* Frameworks */,
 				9B464A522D5A3DA000164BF5 /* Resources */,
 				9BE569EB2DFEF9720086B9C7 /* CopyFiles */,
-				9BA22EF42E2505D500172D25 /* CopyFiles */,
+				9B05B3DD2F74525100EAADCA /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2135,6 +2134,7 @@
 				9BEBC68A2DF43FEE0092B196 /* Sources */,
 				9BEBC68B2DF43FEE0092B196 /* Frameworks */,
 				9BEBC68C2DF43FEE0092B196 /* CopyFiles */,
+				9B08B4AF2F743D68009EC5C6 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2371,6 +2371,45 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		9B05B3DD2F74525100EAADCA /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Type a script or drag a script file from your workspace to insert its path.\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"$OSVERSION\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+		};
+		9B08B4AF2F743D68009EC5C6 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path\nOSVERSION=$(uname -r|cut -d'.' -f 1)\n\nif [ \"$OSVERSION\" -lt 25 ]; then\n  mkdir ${CONFIGURATION_BUILD_DIR}/Frameworks\n  cp /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx/libswiftCompatibilitySpan.dylib ${CONFIGURATION_BUILD_DIR}/Frameworks\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		9B464A502D5A3DA000164BF5 /* Sources */ = {
@@ -2840,6 +2879,7 @@
 		9B464A612D5A3DA100164BF5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -2876,7 +2916,7 @@
 				DEVELOPMENT_TEAM = LE7988HTRN;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2891,6 +2931,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@executable_path/../Frameworks",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -2906,6 +2950,7 @@
 		9B464A622D5A3DA100164BF5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -2942,7 +2987,7 @@
 				DEVELOPMENT_TEAM = LE7988HTRN;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2951,6 +2996,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@executable_path/../Frameworks",
+				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -2991,6 +3040,10 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -3036,6 +3089,10 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
@@ -3060,6 +3117,10 @@
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3081,6 +3142,10 @@
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3187,6 +3252,10 @@
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -3209,6 +3278,10 @@
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = LE7988HTRN;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ../Resources/Info.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aldunelabs.caker;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -80,5 +80,5 @@ struct NetworksView: View {
 }
 
 #Preview {
-	NetworksView(appState: .constant(.init()), navigationModel: .constant(.init()))
+	NetworksView(appState: .constant(AppState.shared), navigationModel: .constant(.init()))
 }

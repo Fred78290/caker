@@ -439,9 +439,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		Task.detached(priority: .background) {
-			Self.ensurePrivilegedBootstrapFiles()
-		}
+		Self.ensurePrivilegedBootstrapFiles()
 
 		if isDockIconHidden {
 			NSApp.setActivationPolicy(.accessory)
@@ -452,7 +450,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	private static func ensurePrivilegedBootstrapFiles() {
+	static func ensurePrivilegedBootstrapFiles() {
 		do {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
 			let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
@@ -481,6 +479,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
+
+			MainActor.assumeIsolated {
+				alertError("Admin rights", "Failed to ensure privileged bootstrap files")
+			}
+
+			NSApp.terminate(self)
 		}
 	}
 
