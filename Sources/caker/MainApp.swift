@@ -481,6 +481,12 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 			}
 		} catch {
 			CakeAgentLib.Logger("MainUIAppDelegate").warn("Failed to ensure privileged bootstrap files: \(error.localizedDescription)")
+
+			MainActor.assumeIsolated {
+				alertError("Admin rights", "Failed to ensure privileged bootstrap files")
+			}
+
+			NSApp.terminate(self)
 		}
 	}
 
