@@ -337,5 +337,5 @@ struct HomeView: View {
 }
 
 #Preview {
-	HomeView(appState: .constant(.init()))
+	HomeView(appState: .constant(AppState.shared))
 }

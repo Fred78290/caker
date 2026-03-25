@@ -300,12 +300,14 @@ class AppState: ObservableObject, Observable {
 		}
 	}
 
-	init() {
+	private init() {
 		var cakedServiceClient: CakedServiceClient? = nil
 		let runMode = ServiceHandler.runningMode
 		let cakedServiceInstalled = ServiceHandler.isAgentInstalled
 		let cakedServiceRunning = runMode != .app
 		
+		MainUIAppDelegate.ensurePrivilegedBootstrapFiles()
+
 		if cakedServiceRunning {
 			cakedServiceClient = ServiceHandler.serviceClient
 		}

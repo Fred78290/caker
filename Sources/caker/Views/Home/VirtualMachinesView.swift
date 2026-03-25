@@ -77,5 +77,5 @@ struct VirtualMachinesView: View {
 }
 
 #Preview {
-	VirtualMachinesView(appState: .constant(.init()), navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
+	VirtualMachinesView(appState: .constant(AppState.shared), navigationModel: .constant(.init()), size: .init(width: 500, height: 600))
 }

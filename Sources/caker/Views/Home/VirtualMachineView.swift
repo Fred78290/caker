@@ -221,8 +221,6 @@ struct VirtualMachineView: View {
 }
 
 #Preview {
-	let appState = AppState()
-
-	VirtualMachineView(appState.virtualMachines.first!.value, selected: false)
+	VirtualMachineView(AppState.shared.virtualMachines.first!.value, selected: false)
 }
 

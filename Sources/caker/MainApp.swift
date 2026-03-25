@@ -452,7 +452,7 @@ class MainUIAppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	private static func ensurePrivilegedBootstrapFiles() {
+	static func ensurePrivilegedBootstrapFiles() {
 		do {
 			let pathsFile = URL(fileURLWithPath: "/etc/paths.d/com.aldunelabs.caker")
 			let sudoersFile = URL(fileURLWithPath: "/etc/sudoers.d/caked")
