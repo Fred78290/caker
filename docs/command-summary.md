@@ -58,7 +58,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 ## `cakectl`-specific Commands
 
-- `grandcentraldispatch` — stream global status updates from daemon dispatcher.
+- `gcd` — stream global status updates from daemon dispatcher.
 
 ## Notes
 
