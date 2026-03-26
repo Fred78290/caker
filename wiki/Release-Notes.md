@@ -1,5 +1,37 @@
 # Release Notes
 
+## 2026-03-26 (Git log summary - main)
+
+### Added
+- See commit highlights below.
+
+### Updated
+- Refactor ensurePrivilegedBootstrapFiles call
+- Update Sources/caker/Model/AppState.swift
+- Terminate app and alert user on privileged bootstrap failure
+- Use singleton pattern for AppState and automate bootstrap file check
+- Clarify error message for IPSW usage on non-ARM architectures
+- Use shared constant for the caked command name
+- Improve error feedback for virtual machine loading failures
+- Adjust daemon launch priority to background
+- Refactor service management and introduce manual daemon control
+- Refactor AppState service loading and mode switching logic
+- Configure window title and toolbar style for HomeView
+- Add run mode status indicator to the HomeView toolbar
+- Group navigation toolbar items
+- Finish shell stream when closing the interactive shell
+- Hide background visibility for VM status toolbar items
+- Update Sources/caker/MainApp.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Update Sources/caker/Helpers/Authorization.swift
+- Refactor privileged operations to use native Authorization Services
+
+### Notes
+- Summary generated automatically from recent git commits on branch `main`.
+- Command used: `git log --no-merges --oneline -n 20 -- Sources wiki`.
+
+
 ## 2026-03-03 (Git log summary - main)
 
 ### Added
