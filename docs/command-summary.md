@@ -10,15 +10,15 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `Sources/caked/Commands`
 - `Sources/cakectl/Commands`
 
-## Command Model
+## Command model
 
 - `caked` is the local daemon/hypervisor command surface.
 - `cakectl` is the gRPC client command surface.
 - Most VM/image/network operations exist on both sides with similar names.
 
-## Common Command Groups (`caked` and `cakectl`)
+## Common command groups (`caked` and `cakectl`)
 
-### VM Lifecycle and Execution
+### VM lifecycle and execution
 
 - `build` — create a VM from options.
 - `launch` — build and start a VM.
@@ -28,7 +28,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 - `exec` / `sh` — execute commands in guest VM context.
 - `mount` / `umount` — manage VM mounts.
 
-### Images and Registries
+### Images and registries
 
 - `image` group: `list`, `info`, `pull`.
 - `pull` / `push` — transfer VM images.
@@ -41,7 +41,7 @@ This page summarizes the `ArgumentParser` commands implemented in:
 
 - `networks` group: `infos`, `list`, `create`, `configure`, `delete`, `start`, `stop`.
 
-## `caked`-specific Commands
+## `caked`-specific commands
 
 - `certificates` group:
   - `get` — show certificate paths
@@ -56,41 +56,12 @@ This page summarizes the `ArgumentParser` commands implemented in:
   - `restart`
   - `run` (internal)
 
-## `cakectl`-specific Commands
+## `cakectl`-specific commands
 
-- `gcd` — stream global status updates from daemon dispatcher.
+- `grandcentraldispatch` — stream global status updates from daemon dispatcher.
 
 ## Notes
 
 - Some commands are internal or hidden in help output on `caked` (`vmrun`, some `networks` subcommands).
 - Exact flags/options are defined in the corresponding `*Options` types and command files.
 - If the `caked` service is already active, do not run `caked` commands directly; use `cakectl` to interact with the running service.
-
-## Examples
-
-### Basic VM Operations
-```bash
-# Create and start a VM
-cakectl launch myvm --image ubuntu:22.04
-
-# List running VMs
-cakectl list
-
-# Execute command in VM
-cakectl exec myvm -- ls -la
-
-# Stop VM
-cakectl stop myvm
-```
-
-### Image Management
-```bash
-# Pull an image
-cakectl pull ubuntu:22.04
-
-# List local images
-cakectl image list
-
-# Push custom image
-cakectl push myregistry.com/myimage:latest
-```

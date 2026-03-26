@@ -24,7 +24,7 @@ If build scripts fail, verify:
 - signing entitlements in `Resources/`
 - local Xcode signing configuration
 
-## Core Commands
+## Core commands
 
 The project contains two principal binaries:
 
@@ -35,9 +35,3 @@ Use the run helpers when needed:
 
 - `./Scripts/run-signed-caked.sh`
 - `./Scripts/run-signed-cakectl.sh`
-
-## Next Steps
-
-- Explore the [Architecture](architecture) to understand how components work together
-- Check the [Command Summary](command-summary) for detailed command references
-- Visit [Development](development) for contribution guidelines

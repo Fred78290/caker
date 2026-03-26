@@ -1,6 +1,7 @@
 <p align="center">
 	<a href="https://github.com/Fred78290/caker/actions/workflows/release.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg?branch=main" alt="Build" /></a>
 	<a href="https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml"><img src="https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml/badge.svg?branch=main" alt="Publish Wiki" /></a>
+	<a href="https://caker.aldunelabs.com"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-blue" alt="GitHub Pages" /></a>
 	<a href="https://github.com/Fred78290/caker/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL v3" /></a>
 </p>
 
@@ -19,9 +20,12 @@ Available features include:
 - Cloud-Init support for VM initialization and customization
 - Automatic installation of an in-guest agent, with source code in [cakeagent](https://github.com/Fred78290/cakeagent)
 
-## Wiki
+## Documentation
 
-- Local wiki home: [wiki/Home.md](wiki/Home.md)
+- **📖 GitHub Pages**: [https://caker.aldunelabs.com](https://caker.aldunelabs.com) - Complete documentation with navigation and search
+- **📚 Local wiki**: [wiki/Home.md](wiki/Home.md) - Source wiki files
+
+The documentation is automatically synchronized from the `wiki/` directory to GitHub Pages when changes are pushed to the main branch.
 
 ## Caked command line
 

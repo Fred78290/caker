@@ -12,58 +12,35 @@ nav_order: 1
 
 [![Build](https://github.com/Fred78290/caker/actions/workflows/release.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/release.yaml)
 [![Publish Wiki](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml/badge.svg?branch=main)](https://github.com/Fred78290/caker/actions/workflows/publish-wiki.yaml)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://caker.aldunelabs.com)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://github.com/Fred78290/caker/blob/main/LICENSE)
 
-## Features
 
-Available features include:
-- Port forwarding between the VM and the host using TCP or Unix sockets
-- Dynamic port forwarding updates while virtual machines are running
-- Network creation in bridge, hosted, or NAT mode
-- Cloud-Init support for VM initialization and customization
-- Automatic installation of an in-guest agent, with source code in [cakeagent](https://github.com/Fred78290/cakeagent)
+It is designed around two complementary components:
+- `caked`: the daemon/service that performs VM, image, and network operations
+- `cakectl`: the CLI client used to control `caked`
 
-## Components
+In typical usage, `cakectl` sends commands to `caked` through gRPC, and `caked` executes lifecycle actions such as build, launch, start/stop, image pull/push, and network management.
 
-### caked - Core Daemon
-`caked` is the core daemon process that handles virtual machine lifecycle management, including building, running, and orchestrating virtual machines with configuration-driven workflows.
+Use this wiki as the central reference for architecture, command usage, troubleshooting, and operational workflows.
 
-### cakectl - Command Line Interface
-`cakectl` is the command-line interface tool used to interact with `caked`. It provides commands to:
-- Build and deploy applications
-- Manage virtual machine configurations
-- View logs and status
-- Control the daemon process
+Contributor guide: [CONTRIBUTING.md](https://github.com/Fred78290/caker/blob/main/CONTRIBUTING.md)
 
-### Caker.app - macOS Desktop Application
-`Caker.app` is the macOS desktop application that provides a graphical experience for working with virtual machines managed by `caked`. It acts as the user-facing control plane of the project and is designed for day-to-day local development workflows.
+## Quick links
 
-## Quick Start
+- [Getting Started](getting-started)
+- [Architecture](architecture)
+- [Development](development)
+- [Troubleshooting](troubleshooting)
+- [FAQ](faq)
+- [Release Notes](release-notes)
+- [Command Summary](command-summary)
+- [Cheat Sheet](cheat-sheet)
 
-Get started with Caker by following our [Getting Started Guide]({% link getting-started.md %}).
-
-## Documentation
-
-- [Getting Started]({% link getting-started.md %}) - Setup and first steps
-- [Architecture]({% link architecture.md %}) - System design and components
-- [Development]({% link development.md %}) - Contributing and building from source
-- [Command Summary]({% link command-summary.md %}) - Complete command reference
-- [Troubleshooting]({% link troubleshooting.md %}) - Common issues and solutions
-- [FAQ]({% link faq.md %}) - Frequently asked questions
-- [Release Notes]({% link release-notes.md %}) - Version history and changes
-
-## Repository Map
+## Repository map
 
 - `Sources/caked/` – daemon entrypoints and commands
 - `Sources/cakectl/` – CLI commands and client logic
 - `Sources/cakedlib/` – shared core library
 - `Sources/grpc/` – gRPC layer and generated interfaces
 - `Tests/` and `Caker/CakerTests/` – test suites
-
-## Contributing
-
-See our [Contributing Guide](https://github.com/Fred78290/caker/blob/main/CONTRIBUTING.md) for details on how to contribute to the project.
-
-## License
-
-This project is licensed under the [AGPL v3 License](https://github.com/Fred78290/caker/blob/main/LICENSE).

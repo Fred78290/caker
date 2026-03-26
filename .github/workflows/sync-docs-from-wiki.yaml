@@ -1,0 +1,154 @@
+name: Sync Docs from Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - wiki/**
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force synchronization even if no wiki changes detected'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  sync-docs:
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Check for wiki changes
+        id: check-changes
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.force_sync }}" == "true" ]]; then
+            echo "force_sync=true" >> $GITHUB_OUTPUT
+            echo "sync_needed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Check if there are actual changes to wiki files in the last commit
+          WIKI_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E "^wiki/" || true)
+          
+          if [[ -n "$WIKI_CHANGES" ]]; then
+            echo "Wiki changes detected:"
+            echo "$WIKI_CHANGES"
+            echo "sync_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No wiki changes detected in this push"
+            echo "sync_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync documentation from wiki
+        if: steps.check-changes.outputs.sync_needed == 'true'
+        run: |
+          chmod +x ./Scripts/sync-docs-from-wiki.sh
+          ./Scripts/sync-docs-from-wiki.sh
+
+      - name: Check for docs changes
+        if: steps.check-changes.outputs.sync_needed == 'true'
+        id: check-docs-changes
+        run: |
+          # Check if there are changes to commit
+          if git diff --quiet docs/; then
+            echo "No changes to docs files detected"
+            echo "docs_changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes to docs files detected:"
+            git diff --name-only docs/
+            echo "docs_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push docs updates
+        if: steps.check-changes.outputs.sync_needed == 'true' && steps.check-docs-changes.outputs.docs_changed == 'true'
+        run: |
+          git add docs/
+          if git diff --staged --quiet; then
+            echo "No staged changes found"
+          else
+            # Get the list of changed wiki files for the commit message
+            WIKI_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E "^wiki/" | head -5 || true)
+            COMMIT_MSG="docs: sync from wiki updates
+
+Updated documentation from wiki changes:
+$(echo "$WIKI_CHANGES" | sed 's/^/- /')
+
+[skip ci]"
+            git commit -m "$COMMIT_MSG"
+            git push
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          if [[ "${{ steps.check-changes.outputs.sync_needed }}" == "true" ]]; then
+            if [[ "${{ steps.check-docs-changes.outputs.docs_changed }}" == "true" ]]; then
+              echo "✅ Documentation successfully synchronized from wiki and pushed to GitHub Pages"
+            else
+              echo "ℹ️ Wiki changes detected but no docs updates needed"
+            fi
+          else
+            echo "ℹ️ No wiki changes detected, synchronization skipped"
+          fi
+
+  # Deploy to GitHub Pages
+  deploy:
+    needs: sync-docs
+    if: always() && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout updated repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true
+          working-directory: docs
+
+      - name: Build with Jekyll
+        working-directory: docs
+        run: bundle exec jekyll build
+        env:
+          JEKYLL_ENV: production
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/_site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
