@@ -83,7 +83,6 @@ The content in this directory is based on the `wiki/` folder in the repository r
 The Jekyll site provides:
 
 - **Navigation**: Automatic sidebar navigation
-- **Search**: Built-in search functionality (theme dependent)
 - **Mobile-friendly**: Responsive design
 - **SEO**: Meta tags and structured data
 - **Syntax highlighting**: Code blocks with language support
