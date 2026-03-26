@@ -36,10 +36,10 @@ echo "Creating symbolic link to Applications..."
 ln -sf /Applications "${DMGDIR}/Applications"
 
 # Signer l'application dans le dossier DMG (re-signature pour s'assurer que tout est correct)
-if [ -n "${TEAM_ID}" ]; then
-	echo "Code signing Caker.app..."
-	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force --deep "${DMGDIR}/Caker.app"
-fi
+#if [ -n "${TEAM_ID}" ]; then
+#	echo "Code signing Caker.app..."
+#	codesign --sign "Developer ID Application: Frederic BOLTZ (${TEAM_ID})" --options runtime --entitlements Resources/release.entitlements --force --deep "${DMGDIR}/Caker.app"
+#fi
 
 # Créer un DMG temporaire en lecture/écriture
 echo "Creating temporary DMG..."
