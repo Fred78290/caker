@@ -2,18 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>Caker</string>
-	<key>CFBundleDisplayName</key>
-	<string>Caker</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.aldunelabs.caker</string>
-	<key>CFBundleExecutable</key>
-	<string>Caker</string>
 	<key>BuildMachineOSBuild</key>
-	<string>24F74</string>
+	<string>25D2128</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>Caker</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -24,7 +18,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Virtual machine</string>
 			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
+			<string>Editor</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
@@ -33,12 +27,18 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleExecutable</key>
+	<string>Caker</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.aldunelabs.caker</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Caker</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -47,24 +47,39 @@
 	<array>
 		<string>MacOSX</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string>Document</string>
+			<key>CFBundleURLName</key>
+			<string>cakedvm</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>caked-vm</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>${VERSION_TAG}</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>24F74</string>
+	<string>25C58</string>
 	<key>DTPlatformName</key>
 	<string>macosx</string>
 	<key>DTPlatformVersion</key>
-	<string>15.5</string>
+	<string>26.2</string>
 	<key>DTSDKBuild</key>
-	<string>24F74</string>
+	<string>25C58</string>
 	<key>DTSDKName</key>
-	<string>macosx15.5</string>
+	<string>macosx26.2</string>
 	<key>DTXcode</key>
-	<string>1640</string>
+	<string>2630</string>
 	<key>DTXcodeBuild</key>
-	<string>16F6</string>
+	<string>17C529</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
@@ -78,7 +93,7 @@
 	<string>Fred78290</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Caker need SSH access to running VM and create virtual network</string>
-	<key>UTExportedTypeDeclarations</key>
+	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict>
 			<key>UTTypeConformsTo</key>
@@ -108,6 +123,48 @@
 				<array>
 					<string>application/x-caked-vm</string>
 				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.archive</string>
+				<string>public.data</string>
+				<string>public.disk-image</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Disk Image</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.apple.disk-image</string>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.disk-image</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>ISO Disk Image</string>
+			<key>UTTypeIdentifier</key>
+			<string>public.iso-image</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>iso</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.disk-image</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Unix socket address</string>
+			<key>UTTypeIdentifier</key>
+			<string>public.socket-address</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>sock</string>
 			</dict>
 		</dict>
 	</array>
