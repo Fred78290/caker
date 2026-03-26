@@ -18,7 +18,7 @@
 The GitHub Pages site includes:
 - 📖 Complete documentation from the wiki
 - 🎨 Professional Jekyll theme with navigation
-- 🔍 Search functionality
+- 🔍 Optional search functionality (requires additional configuration)
 - 📱 Mobile-responsive design
 - 🔗 Cross-linking between pages
 - 💻 Syntax highlighting for code examples
